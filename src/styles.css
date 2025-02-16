@@ -18,8 +18,8 @@
 
 @layer base {
     body {
-        @apply bg-background text-primary-text flex min-h-screen min-w-[320px] flex-col items-center justify-between;
-        background-image: url('background.svg');
+        @apply flex min-h-screen min-w-[320px] flex-col items-center justify-between bg-background text-primary-text;
+        background-image: url('/background.svg');
         background-repeat: no-repeat;
         background-size: contain;
         background-position: center;
@@ -28,11 +28,11 @@
 
 @layer components {
     .counter-button {
-        @apply border-button-border bg-counter-bg h-[47%] w-[48%] rounded-[120px] border text-center text-6xl hover:border-[rgba(76,166,255,0.2)];
+        @apply h-[47%] w-[48%] rounded-[120px] border border-button-border bg-counter-bg text-center text-6xl hover:border-[rgba(76,166,255,0.2)];
     }
 
     .counter-info {
-        @apply border-button-border bg-counter-bg mr-7 h-[345px] w-[360px] rounded-[29px] border;
+        @apply mr-7 h-[345px] w-[360px] rounded-[29px] border border-button-border bg-counter-bg;
     }
 }
 
