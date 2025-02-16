@@ -7,6 +7,7 @@ module.exports = {
                 sans: ['"JetBrains Sans"', 'Inter', 'system-ui', 'sans-serif'],
                 mono: ['"JetBrains Mono"', 'monospace']
             },
+
             colors: {
                 debug: '#f0f',
                 background: '#000000',
