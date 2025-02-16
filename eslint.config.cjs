@@ -188,7 +188,11 @@ module.exports = [
 
             // Tailwind
             'tailwindcss/classnames-order': 'error',
-            'tailwindcss/no-custom-classname': 'off'
+            'tailwindcss/enforces-negative-arbitrary-values': 'error',
+            'tailwindcss/enforces-shorthand': 'warn',
+            'tailwindcss/migration-from-tailwind-2': 'warn',
+            'tailwindcss/no-custom-classname': 'off',
+            'tailwindcss/no-contradicting-classname': 'error'
         }
     },
 

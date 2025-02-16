@@ -6,19 +6,32 @@
         <link rel="icon" type="image/svg+xml" href="/webstorm-icon-logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>WS playground</title>
-        <link rel="stylesheet" href="/style.css" />
         <link rel="preload" href="/fonts/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
     </head>
 
     <body>
-        <header class="logo">
+        <section class="p-15 flex flex-row justify-center font-mono font-normal text-white">
+            <div class="counter-info">
+                <p class="mt-15 mb-7 text-2xl font-medium uppercase">Counter is</p>
+                <p class="m-0 p-0 text-[170px] font-light leading-none" id="counter-value"></p>
+            </div>
+
+            <div class="flex w-[470px] flex-row flex-wrap justify-between gap-5">
+                <button class="counter-button" id="increaseByOne" type="button">+1</button>
+                <button class="counter-button" id="increaseByTwo" type="button">+2</button>
+                <button class="counter-button" id="decreaseByOne" type="button">-1</button>
+                <button class="counter-button" id="decreaseByTwo" type="button">-2</button>
+            </div>
+        </section>
+
+        <header class="logo bg-debug">
             <a href="https://www.jetbrains.com/webstorm/">
                 <img src="/webstorm-logo.svg" alt="WebStorm logo" width="344" height="90" />
             </a>
         </header>
 
         <main id="app">
-            <h1 class="title">
+            <h1 class="title border-red">
                 Aliquip mollit magna esse officia reprehenderit elit. Quis ipsum nisi aute ea. In mollit consectetur
                 excepteur non consequat culpa culpa nostrud cupidatat culpa. Amet tempor ea ea aliquip. Ex ullamco
                 fugiat excepteur deserunt qui fugiat sit culpa nulla ea eiusmod reprehenderit magna.

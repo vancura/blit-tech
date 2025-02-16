@@ -1,4 +1,5 @@
 import { visualizer } from 'rollup-plugin-visualizer';
+import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import compression from 'vite-plugin-compression';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
@@ -81,6 +82,8 @@ export default defineConfig(({ mode }) => ({
 
     // Plugin configuration.
     plugins: [
+        tailwindcss(),
+
         // Development inspection tool (available at /__inspect/).
         mode === 'development' &&
             inspect({

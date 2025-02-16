@@ -4,7 +4,7 @@ const tailwindPlugin = require.resolve('prettier-plugin-tailwindcss');
 const jsdocPlugin = require.resolve('prettier-plugin-jsdoc');
 
 module.exports = {
-    plugins: [organizeImportsPlugin, organizeAttributesPlugin, tailwindPlugin, jsdocPlugin],
+    plugins: [organizeImportsPlugin, jsdocPlugin, organizeAttributesPlugin, tailwindPlugin],
 
     tabWidth: 4,
     useTabs: false,
