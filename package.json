@@ -61,6 +61,7 @@
         "vite-imagetools": "^7.0.5",
         "vite-plugin-compression": "^0.5.1",
         "vite-plugin-fonts": "^0.7.0",
+        "vite-plugin-html": "^3.2.2",
         "vite-plugin-image-optimizer": "^1.1.8",
         "vite-plugin-inspect": "^10.2.1",
         "vite-plugin-preload": "^0.4.2",

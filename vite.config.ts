@@ -2,6 +2,7 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import compression from 'vite-plugin-compression';
+import { createHtmlPlugin } from 'vite-plugin-html';
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer';
 import inspect from 'vite-plugin-inspect';
 
@@ -51,12 +52,17 @@ export default defineConfig(({ mode }) => ({
         // Chunk splitting configuration.
         rollupOptions: {
             output: {
-                manualChunks: (id: string) => {
-                    if (id.includes('node_modules')) {
-                        return 'vendor';
-                    }
-                    return null;
-                }
+                // Remove manual chunks if not needed, or configure properly.
+                chunkFileNames: 'assets/[name]-[hash].js',
+                entryFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash][extname]'
+
+                // Only keep manualChunks if you really need custom chunk splitting.
+                // manualChunks: (id: string) => {
+                //     if (id.includes('node_modules')) {
+                //         return 'vendor';
+                //     }
+                // }
             }
         },
 
@@ -157,6 +163,31 @@ export default defineConfig(({ mode }) => ({
                 gzipSize: true, // show gzip sizes
                 brotliSize: true, // show brotli sizes
                 filename: '.stats/stats.html'
-            })
+            }),
+
+        createHtmlPlugin({
+            entry: '/src/main.ts',
+            inject: {
+                data: {
+                    title: 'WS playground',
+                    injectScript: `<script src="./inject.js"></script>`
+                }
+            },
+            minify: {
+                collapseWhitespace: true,
+                removeComments: true,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                useShortDoctype: true,
+                minifyCSS: true,
+                minifyJS: true,
+                minifyURLs: true,
+                removeEmptyAttributes: true,
+                removeOptionalTags: true,
+                sortAttributes: true,
+                sortClassName: true
+            }
+        })
     ].filter(Boolean) // remove false values from plugins array
 }));
