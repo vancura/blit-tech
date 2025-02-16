@@ -52,7 +52,6 @@ module.exports = {
                 parser: 'markdown',
                 tabWidth: 4,
                 proseWrap: 'preserve',
-                listItemIndent: 'one',
                 embeddedLanguageFormatting: 'auto'
             }
         },

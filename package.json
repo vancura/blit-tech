@@ -13,7 +13,7 @@
         "preview": "cross-env NODE_ENV=production vite preview",
         "clean": "rm -rf dist dist-ssr .stats logs .yarn/cache .yarn/unplugged .yarn/build-state.yml && yarn cache clean",
         "clean:all": "yarn clean && rm -rf node_modules .pnp.* .env .env.*",
-        "format": "prettier --write \"**/*.{js,ts,json,yml,yaml,md}\"",
+        "format": "prettier --write \"**/*.{js,ts,json,yml,yaml,md,html}\"",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix && prettier --write",
         "check": "yarn lint && yarn format --check && tsc --noEmit",

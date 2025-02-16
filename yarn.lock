@@ -2211,7 +2211,7 @@ __metadata:
     svgo: "npm:^3.3.2"
     tailwindcss: "npm:^3.4.17"
     terser: "npm:^5.39.0"
-    typescript: "npm:^5.7.3"
+    typescript: "npm:^5.8.0-dev.20250216"
     vite: "npm:^6.1.0"
     vite-imagetools: "npm:^7.0.5"
     vite-plugin-compression: "npm:^0.5.1"
@@ -7109,7 +7109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5, typescript@npm:^5.7.3":
+"typescript@npm:^5":
   version: 5.7.3
   resolution: "typescript@npm:5.7.3"
   bin:
@@ -7119,13 +7119,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.7.3#optional!builtin<compat/typescript>":
+"typescript@npm:^5.8.0-dev.20250216":
+  version: 5.8.0-dev.20250216
+  resolution: "typescript@npm:5.8.0-dev.20250216"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/f15c67e6d1345421d78b92fb59153987caf677845ae1cc4220865bc21c932b8fff968bab473cbfc319ee494da5ca2a96e4dfba69413f7898694446d8448552d9
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5#optional!builtin<compat/typescript>":
   version: 5.7.3
   resolution: "typescript@patch:typescript@npm%3A5.7.3#optional!builtin<compat/typescript>::version=5.7.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/6fd7e0ed3bf23a81246878c613423730c40e8bdbfec4c6e4d7bf1b847cbb39076e56ad5f50aa9d7ebd89877999abaee216002d3f2818885e41c907caaa192cc4
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5.8.0-dev.20250216#optional!builtin<compat/typescript>":
+  version: 5.8.0-dev.20250216
+  resolution: "typescript@patch:typescript@npm%3A5.8.0-dev.20250216#optional!builtin<compat/typescript>::version=5.8.0-dev.20250216&hash=5786d5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/590c0780e963ee5cbcb6022c880dac46c032f2ad6c5167926496a6fd59e4627180982e5e549a32dd09c067beecec222706a85768328322fc5cdf4f02dce4ac09
   languageName: node
   linkType: hard
 
