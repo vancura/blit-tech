@@ -66,3 +66,6 @@ coverage/
 
 # Bundle analyzer
 .stats/
+
+# Inspector
+.inspect/
