@@ -28,17 +28,16 @@ A Vite-powered website with optimized assets and comprehensive build tooling.
 
 After cloning the repository:
 
-### Install dependencies
-
 ```bash
-yarn install
+# Install dependencies and set up VSCode SDK
+yarn setup
 ```
 
-### Set up VSCode SDK for Yarn PnP
+This will:
 
-```bash
-yarn dlx @yarnpkg/sdks vscode
-```
+1. Install all dependencies
+2. Configure VSCode for Yarn PnP
+3. Set up TypeScript, ESLint, and Prettier integration
 
 ## Available Scripts
 
@@ -85,11 +84,11 @@ yarn check
 ### Maintenance
 
 ```bash
-# Clean build output and cache
+# Clean build artifacts and caches
 yarn clean
 
-# Clean build output and cache
-yarn clean
+# Full cleanup (including dependencies)
+yarn clean:all
 ```
 
 ## Asset Optimization

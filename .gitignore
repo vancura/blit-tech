@@ -56,3 +56,13 @@ Thumbs.db
 
 # Stats output
 .stats/
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*~
+
+# Bundle analyzer
+.stats/
