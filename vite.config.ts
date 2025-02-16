@@ -15,6 +15,7 @@ const compressionPlugin = compression as unknown as (options?: {
     threshold?: number;
     compressionOptions?: Record<string, unknown>;
     filter?: RegExp;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }) => any;
 
 export default defineConfig(({ mode }) => ({
@@ -44,7 +45,10 @@ export default defineConfig(({ mode }) => ({
         minify: 'terser',
         terserOptions: {
             compress: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 drop_console: true, // remove console.logs
+
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 drop_debugger: true // remove debugger statements
             }
         },
@@ -87,6 +91,7 @@ export default defineConfig(({ mode }) => ({
     },
 
     // Plugin configuration.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     plugins: [
         tailwindcss(),
 
@@ -99,7 +104,8 @@ export default defineConfig(({ mode }) => ({
 
         // Image and SVG optimization.
         ViteImageOptimizer({
-            test: /\.(jpe?g|png|gif|tiff|webp|svg|avif)$/i,
+            test: /\.(?<imageExt>jpe?g|png|gif|tiff|webp|svg|avif)$/i,
+
             includePublic: true, // also optimize images in public/
             logStats: true, // log optimization stats
             svg: {
@@ -143,7 +149,7 @@ export default defineConfig(({ mode }) => ({
             deleteOriginFile: false,
             threshold: 10240,
             compressionOptions: { level: 11 },
-            filter: /\.(js|mjs|json|css|html|svg|woff2)$/i
+            filter: /\.(?<imageExt>js|mjs|json|css|html|svg|woff2)$/i
         }),
 
         // Gzip compression (fallback for browsers without Brotli support).
@@ -153,17 +159,18 @@ export default defineConfig(({ mode }) => ({
             deleteOriginFile: false,
             threshold: 10240,
             compressionOptions: { level: 9 },
-            filter: /\.(js|mjs|json|css|html|svg|woff2)$/i
+            filter: /\.(?<imageExt>js|mjs|json|css|html|svg|woff2)$/i
         }),
 
         // Bundle analysis (generates .stats/stats.html in analyze mode).
         mode === 'analyze' &&
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             visualizer({
                 open: true, // open analyzer in browser
                 gzipSize: true, // show gzip sizes
                 brotliSize: true, // show brotli sizes
                 filename: '.stats/stats.html'
-            }),
+            })(),
 
         createHtmlPlugin({
             entry: '/src/main.ts',
