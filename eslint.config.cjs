@@ -175,7 +175,20 @@ module.exports = [
 
             // Node
             'n/no-missing-import': 'off',
-            'n/no-unpublished-import': 'error',
+            'n/no-unpublished-import': [
+                'error',
+                {
+                    allowModules: [
+                        'vite',
+                        'rollup-plugin-visualizer',
+                        'tailwindcss',
+                        'vite-plugin-compression',
+                        'vite-plugin-html',
+                        'vite-plugin-image-optimizer',
+                        'vite-plugin-inspect'
+                    ]
+                }
+            ],
 
             // JSDoc
             'jsdoc/check-alignment': 'error',
