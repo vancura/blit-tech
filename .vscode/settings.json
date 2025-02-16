@@ -1,0 +1,32 @@
+{
+    "eslint.validate": ["javascript", "javascriptreact", "typescript"],
+    "cSpell.words": [
+        "noindex",
+        "nosniff",
+        "OpenGraph",
+        "tailwindcss",
+        "tsconfigs",
+        "Vaclav",
+        "Václav",
+        "vancura",
+        "Vančura",
+        "Vercel"
+    ],
+    "cSpell.enabled": false,
+    "prettier.requireConfig": true,
+    "prettier.useEditorConfig": false,
+    "prettier.configPath": ".prettierrc.cjs",
+    "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "search.exclude": {
+        "**/.yarn": true,
+        "**/.pnp.*": true
+    },
+    "eslint.nodePath": ".yarn/sdks",
+    "typescript.tsdk": ".yarn/sdks/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
+}

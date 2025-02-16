@@ -1,0 +1,225 @@
+# Vite Project Development Guidelines with TypeScript
+
+You are an expert in TypeScript and modern web development, focusing on Vite projects.
+
+## Key Principles
+
+- **Type-Safe Development**: Write strictly typed TypeScript code following configured standards
+- **Code Quality**: Maintain high standards through ESLint and Prettier configurations
+- **Performance**: Optimize for bundle size and runtime performance
+- **Security**: Follow security best practices defined in security plugins
+- **Maintainability**: Write clean, documented, and well-organized code
+
+## Project Structure
+
+- **Recommended Project Layout**:
+
+```text
+  - src/
+    - components/
+    - config/        # Configuration files
+    - stores/        # Nanostores
+    - styles/        # Global styles
+    - types/         # TypeScript definitions
+    - utils/         # Utility functions
+  - public/         # Static assets
+  - vite.config.ts
+  - tsconfig.json
+  - eslint.config.cjs
+  - .prettierrc.cjs
+  ```
+
+## TypeScript Standards
+
+- **Compiler Options** (as per tsconfig.json):
+  - Target: ES2020
+  - Strict mode enabled
+  - No unused locals/parameters
+  - No fallthrough cases
+  - Module: ESNext
+  - Bundler module resolution
+
+- **Type Safety**:
+  - Use explicit return types
+  - Avoid `any` and non-null assertions
+  - Prefer type imports
+  - Follow naming conventions:
+    - Interfaces: `IMyInterface`
+    - Variables: camelCase
+    - Types: PascalCase
+    - Constants: UPPER_CASE
+
+## Code Quality Standards
+
+- **ESLint Rules**:
+  - Maximum line length: 120 characters
+  - Maximum complexity: 10
+  - No console.log (warn/error allowed)
+  - No debugger statements
+  - Cognitive complexity limits
+  - Proper promise handling
+  - Secure coding practices
+
+- **Formatting Standards**:
+  - Indentation: 4 spaces
+  - Single quotes
+  - Semicolons required
+  - No trailing commas
+  - Organized imports
+  - Consistent attribute ordering
+
+## Security Guidelines
+
+- **Regular Expressions**:
+  - Use eslint-plugin-optimize-regex
+  - Prevent unsafe patterns
+  - Optimize for performance
+
+- **Code Security**:
+  - Prevent timing attacks
+  - Secure object handling
+  - Safe regular expressions
+  - Input validation
+
+- **Promise Handling**:
+  - Always return from promises
+  - Proper error catching
+  - Avoid callback mixing
+  - Handle rejections
+
+## State Management
+
+- **Nanostores Best Practices**:
+  - Atomic store design
+  - Type-safe store creation
+  - Computed values
+  - Action encapsulation
+
+## Performance Optimization
+
+- **Build Optimization**:
+  - Proper code splitting
+  - Dynamic imports
+  - Tree shaking
+  - Asset optimization
+
+- **Runtime Performance**:
+  - Optimize regular expressions
+  - Efficient state updates
+  - Bundle size monitoring
+  - Lazy loading
+
+## Development Workflow
+
+- **Code Organization**:
+  - Follow perfectionist plugin rules
+  - Organize imports naturally
+  - Group related functionality
+  - Maintain clean module boundaries
+
+- **Documentation**:
+  - JSDoc comments required
+  - Parameter documentation
+  - Return type documentation
+  - Type documentation
+
+## Testing and Quality Assurance
+
+- **Code Quality Checks**:
+  - SonarJS rules
+  - Cognitive complexity
+  - Duplicate code prevention
+  - Dead code elimination
+
+- **Type Checking**:
+  - Run `tsc --noEmit`
+  - Validate type coverage
+  - Check for type errors
+  - Maintain strict mode
+
+## Environment and Build
+
+- **Development**:
+  - Use Vite dev server
+  - Enable HMR
+  - Source maps
+  - Type checking
+
+- **Production**:
+  - Optimize builds
+  - Minification
+  - Code splitting
+  - Asset optimization
+
+## Naming Conventions
+
+- **Files and Folders**:
+  - Components: PascalCase
+  - Utilities: camelCase
+  - Constants: UPPER_CASE
+  - Types: PascalCase
+  - Tests: `.test.ts` or `.spec.ts`
+
+## Code Style Rules
+
+- **TypeScript**:
+
+  ```typescript
+  // Prefer interfaces
+  interface IUser {
+      id: string;
+      name: string;
+  }
+
+  // Use type imports
+  import type { IUser } from './types';
+
+  // Explicit return types
+  function getUser(): IUser {
+      // implementation
+  }
+
+  // Proper promise handling
+  async function fetchData(): Promise<void> {
+      try {
+          await getData();
+      } catch (error) {
+          handleError(error);
+      }
+  }
+  ```
+
+## Additional Resources
+
+- **Documentation**:
+  - [Vite](https://vitejs.dev/)
+  - [TypeScript](https://www.typescriptlang.org/)
+  - [ESLint](https://eslint.org/)
+  - [Prettier](https://prettier.io/)
+  - [Nanostores](https://github.com/nanostores/nanostores)
+
+## Plugin-Specific Guidelines
+
+- **SonarJS**:
+  - Maximum cognitive complexity: 10
+  - No duplicate strings (threshold: 5)
+  - No identical functions
+  - Clean code patterns
+
+- **Security Plugin**:
+  - Prevent object injection
+  - Safe regexp usage
+  - Timing attack prevention
+  - Input validation
+
+- **Perfectionist**:
+  - Natural sort imports
+  - Grouped imports structure
+  - Consistent ordering
+  - Clean code organization
+
+- **JSDoc**:
+  - Required for functions
+  - Parameter documentation
+  - Return type documentation
+  - Type checking enabled
