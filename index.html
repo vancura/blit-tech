@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WebGPU Demo</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: system-ui, -apple-system, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                background: #1a1a1a;
+                color: #fff;
+            }
+
+            canvas {
+                border: 1px solid #333;
+                border-radius: 4px;
+            }
+
+            #info {
+                margin-top: 1rem;
+                text-align: center;
+                color: #999;
+                font-size: 0.875rem;
+            }
+
+            #error {
+                color: #ff6b6b;
+                padding: 1rem;
+                max-width: 600px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="info">WebGPU Demo</div>
+        <div id="error"></div>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
+</html>

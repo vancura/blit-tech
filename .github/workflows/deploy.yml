@@ -1,0 +1,67 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual deployment
+
+jobs:
+  build-and-deploy:
+    name: Build & Create Deployment Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build examples for deployment
+        run: pnpm build:deploy
+
+      - name: Create deployment summary
+        run: |
+          echo "### Deployment Build Complete ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Information:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Examples built to: \`dist/\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Options:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the artifact below" >> $GITHUB_STEP_SUMMARY
+          echo "2. Upload to your chosen platform (FastFront, Coolify, StaticHost.eu, etc.)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or use GitHub Pages (see DEPLOYMENT.md)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blit-tech-deployment-${{ github.sha }}
+          path: dist/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create deployment archive
+        run: |
+          cd dist
+          tar -czf ../blit-tech-deployment.tar.gz .
+          cd ..
+
+      - name: Upload deployment archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: blit-tech-deployment-archive
+          path: blit-tech-deployment.tar.gz
+          retention-days: 90

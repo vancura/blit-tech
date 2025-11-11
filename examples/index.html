@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blit-Tech - Basic Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #canvas-container {
+            position: relative;
+            display: inline-block;
+            background: #000;
+            border: 2px solid #444;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            /* Note: Canvas display size is now set via queryHardware().canvasDisplaySize */
+            /* These CSS values are fallback only if canvasDisplaySize is not specified */
+            /* Remove these if you always want to use canvasDisplaySize */
+            width: 640px;
+            height: 480px;
+        }
+
+        .info {
+            margin-top: 20px;
+            max-width: 640px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .error {
+            color: #ff6b6b;
+            padding: 20px;
+            background: #2a0000;
+            border: 1px solid #ff0000;
+            border-radius: 4px;
+            max-width: 640px;
+        }
+
+        code {
+            background: #2a2a2a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #4caf50;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4caf50;
+            border-radius: 5px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(76, 175, 80, 0.5);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Blit-Tech Basic Example</h1>
+
+    <div id="canvas-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <div class="info">
+        <p>
+            A minimal Blit-Tech game example.<br>
+            Use <code>WASD</code> or <code>Arrow Keys</code> to move the white square.
+        </p>
+        <p>
+            <strong>Note:</strong> This demo requires WebGPU support.
+            Currently works in Chrome/Edge 113+.
+        </p>
+    </div>
+
+    <a href="examples-index.html" class="back-link">← All Examples</a>
+
+    <script type="module" src="./basic-example.ts"></script>
+
+    <noscript>
+        <div class="error">
+            <strong>Error:</strong> JavaScript is required to run this example.
+        </div>
+    </noscript>
+</body>
+</html>
