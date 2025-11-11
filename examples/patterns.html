@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blit-Tech - Patterns Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #canvas-container {
+            background: #000;
+            border: 4px solid #764ba2;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .info {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .info h3 {
+            margin-bottom: 10px;
+            color: #a78bfa;
+        }
+
+        .info p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .pattern-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .pattern-item strong {
+            color: #a78bfa;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(118, 75, 162, 0.3);
+            border: 2px solid #764ba2;
+            border-radius: 5px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(118, 75, 162, 0.5);
+            transform: translateY(-2px);
+        }
+
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Blit-Tech Patterns Demo</h1>
+
+        <div id="canvas-container">
+            <canvas id="game-canvas" width="320" height="240"></canvas>
+        </div>
+
+        <div class="info">
+            <h3>Animated Patterns:</h3>
+            <p>This demo showcases various mathematical patterns and visual effects created using primitive drawing functions.</p>
+
+            <div class="patterns-grid">
+                <div class="pattern-item">
+                    <strong>Spiral</strong>
+                    Parametric spiral with color gradient
+                </div>
+                <div class="pattern-item">
+                    <strong>Radial Lines</strong>
+                    Pulsing rays from center point
+                </div>
+                <div class="pattern-item">
+                    <strong>Wave</strong>
+                    Multiple sine waves with interference
+                </div>
+                <div class="pattern-item">
+                    <strong>Circle</strong>
+                    Polygon approximation with rotation
+                </div>
+                <div class="pattern-item">
+                    <strong>Lissajous</strong>
+                    Complex parametric curve (3:4 ratio)
+                </div>
+                <div class="pattern-item">
+                    <strong>Tunnel</strong>
+                    Concentric rectangles with offset
+                </div>
+            </div>
+
+            <p style="margin-top: 15px;">
+                All patterns are rendered in real-time using <code>drawPixel()</code>, <code>drawLine()</code>, and <code>drawRect()</code>.
+            </p>
+        </div>
+
+        <a href="examples-index.html" class="back-link">← Back to Examples</a>
+    </div>
+
+    <script type="module" src="./patterns-example.ts"></script>
+
+    <noscript>
+        <div class="error">
+            <strong>Error:</strong> JavaScript is required to run this example.
+        </div>
+    </noscript>
+</body>
+</html>

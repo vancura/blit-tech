@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blit-Tech - Sprite Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1e3a5e 0%, #71a0b2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #canvas-container {
+            background: #000;
+            border: 4px solid #71a0b2;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        .info {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .info h3 {
+            margin-bottom: 10px;
+            color: #71a0b2;
+        }
+
+        .info ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .info li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #71a0b2;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: rgba(113, 160, 178, 0.3);
+            border: 2px solid #71a0b2;
+            border-radius: 5px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(113, 160, 178, 0.5);
+            transform: translateY(-2px);
+        }
+
+        code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .note {
+            background: rgba(100, 200, 255, 0.2);
+            border-left: 3px solid #64c8ff;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Blit-Tech Sprite Demo</h1>
+
+        <div id="canvas-container">
+            <canvas id="game-canvas" width="320" height="240"></canvas>
+        </div>
+
+        <div class="info">
+            <h3>Demonstrated Features:</h3>
+            <ul>
+                <li><code>SpriteSheet.load(url)</code> - Load sprite sheets from images</li>
+                <li><code>BT.drawSprite(sheet, srcRect, destPos, tint)</code> - Render textured sprites</li>
+                <li>Color tinting and transparency control</li>
+                <li>Sprite animation (position, color, opacity)</li>
+                <li>Efficient texture batching (automatic)</li>
+            </ul>
+
+            <div class="note">
+                <strong>How to use your own sprites:</strong><br>
+                1. Load your sprite sheet: <code>const sheet = await SpriteSheet.load('path/to/sprites.png')</code><br>
+                2. Define sprite regions: <code>const sprite = new Rect2i(x, y, width, height)</code><br>
+                3. Render: <code>BT.drawSprite(sheet, sprite, position, tintColor)</code>
+            </div>
+        </div>
+
+        <a href="examples-index.html" class="back-link">← Back to Examples</a>
+    </div>
+
+    <script type="module" src="./sprite-example.ts"></script>
+
+    <noscript>
+        <div class="error">
+            <strong>Error:</strong> JavaScript is required to run this example.
+        </div>
+    </noscript>
+</body>
+</html>

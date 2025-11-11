@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blit-Tech - Examples</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .example-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .example-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .example-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .example-description {
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .example-badge {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.5);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-top: 10px;
+        }
+
+        .info-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        .info-section h2 {
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+
+        .info-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .info-section li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Blit-Tech Examples</h1>
+        <div class="subtitle">WebGPU Retro Game Engine - Phase 1 Demos</div>
+
+        <div class="examples-grid">
+            <a href="index.html" class="example-card">
+                <div class="example-icon">🟦</div>
+                <div class="example-title">Basic Example</div>
+                <div class="example-description">
+                    Simple game with a moving square. Demonstrates basic setup and rendering.
+                </div>
+                <div class="example-badge">Getting Started</div>
+            </a>
+
+            <a href="primitives.html" class="example-card">
+                <div class="example-icon">🎨</div>
+                <div class="example-title">Primitives</div>
+                <div class="example-description">
+                    Showcase of all drawing primitives: pixels, lines, rectangles, and filled shapes.
+                </div>
+                <div class="example-badge">Drawing API</div>
+            </a>
+
+            <a href="camera.html" class="example-card">
+                <div class="example-icon">📷</div>
+                <div class="example-title">Camera</div>
+                <div class="example-description">
+                    Demonstrates camera scrolling in a large world with mini-map and UI overlay.
+                </div>
+                <div class="example-badge">Camera System</div>
+            </a>
+
+            <a href="patterns.html" class="example-card">
+                <div class="example-icon">✨</div>
+                <div class="example-title">Patterns</div>
+                <div class="example-description">
+                    Animated mathematical patterns: spirals, waves, Lissajous curves, and more.
+                </div>
+                <div class="example-badge">Animation</div>
+            </a>
+
+            <a href="sprite.html" class="example-card">
+                <div class="example-icon">🎨</div>
+                <div class="example-title">Sprites</div>
+                <div class="example-description">
+                    Textured sprite rendering with color tinting, transparency, and animation effects.
+                </div>
+                <div class="example-badge">Sprite System</div>
+            </a>
+
+            <a href="font.html" class="example-card">
+                <div class="example-icon">🔤</div>
+                <div class="example-title">Bitmap Fonts</div>
+                <div class="example-description">
+                    Bitmap font rendering with colors, effects, and custom font loading.
+                </div>
+                <div class="example-badge">Text Rendering</div>
+            </a>
+        </div>
+
+        <div class="info-section">
+            <h2>Phase 1 Features Implemented:</h2>
+            <ul>
+                <li>Core type system: <code>Vector2i</code>, <code>Rect2i</code>, <code>Color32</code></li>
+                <li>WebGPU dual-pipeline renderer (primitives + sprites)</li>
+                <li>Primitive rendering: pixels, lines, rectangles</li>
+                <li>Sprite rendering with texture batching and color tinting</li>
+                <li>Bitmap font system with fixed-width font support</li>
+                <li>Asset loading: <code>SpriteSheet</code>, <code>BitmapFont</code></li>
+                <li>Camera system with offset and reset</li>
+                <li>Fixed timestep game loop (60 FPS)</li>
+                <li>Clear operations (full screen and rectangular regions)</li>
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h2>Requirements:</h2>
+            <ul>
+                <li>Chrome/Edge 113+ or Firefox Nightly</li>
+                <li>WebGPU support enabled</li>
+                <li>Compatible GPU and drivers</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            Blit-Tech - Inspired by RetroBlit | Built with WebGPU
+        </div>
+    </div>
+</body>
+</html>

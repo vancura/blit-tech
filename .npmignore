@@ -1,0 +1,58 @@
+# Source files (only dist/ should be published)
+src/
+examples/
+tests/
+*.test.ts
+*.spec.ts
+
+# Configuration files
+.husky/
+.github/
+.vscode/
+.idea/
+.changeset/
+*.config.js
+*.config.ts
+tsconfig.json
+.editorconfig
+.gitignore
+.gitattributes
+.prettierignore
+.lintstagedrc.json
+commitlint.config.js
+
+# Development files
+index.html
+vite.config.*.timestamp-*
+*.tsbuildinfo
+.eslintcache
+
+# Documentation (keep README.md and LICENSE)
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+DEPLOYMENT.md
+PHASE_2.md
+PHASE_3.md
+docs/
+
+# Build artifacts
+node_modules/
+.pnpm-store/
+coverage/
+*.log
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.tgz

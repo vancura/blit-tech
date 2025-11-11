@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+.pnpm-store
+
+# Build outputs
+dist
+build
+
+# Git and system files
+.git
+.DS_Store
+
+# Generated files
+vite.config.*.timestamp-*
+**/*.min.js
+**/*.min.css
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment files
+.env*
+!.env.example
+
+# Coverage
+coverage
+
+# IDE files
+.vscode/settings.json
+.idea
+
+# Test outputs
+playwright-report
+test-results
+.vitest
+
+# Git hooks
+.husky
+
+# Changesets
+.changeset

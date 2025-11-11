@@ -1,0 +1,91 @@
+{
+  "name": "blit-tech",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "A lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit.",
+  "author": "Václav Vančura",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ambilab/blit-tech.git"
+  },
+  "homepage": "https://github.com/ambilab/blit-tech#readme",
+  "bugs": {
+    "url": "https://github.com/ambilab/blit-tech/issues"
+  },
+  "keywords": [
+    "webgpu",
+    "typescript",
+    "game-engine",
+    "retro",
+    "pixel-art",
+    "2d-game",
+    "sprite",
+    "canvas",
+    "fantasy-console"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./dist/blit-tech.cjs",
+  "module": "./dist/blit-tech.js",
+  "types": "./dist/BlitTech.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/BlitTech.d.ts",
+      "import": "./dist/blit-tech.js",
+      "require": "./dist/blit-tech.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:lib": "vite build --mode lib",
+    "build:deploy": "pnpm build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"examples/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.vite",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "pnpm build:lib && changeset publish",
+    "version:bump": "pnpm changeset:version && pnpm install --no-frozen-lockfile",
+    "release": "pnpm build:lib && pnpm changeset:publish",
+    "prepublishOnly": "pnpm run build:lib",
+    "prepare": "husky"
+  },
+  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
+  "devDependencies": {
+    "@changesets/cli": "^2.29.8",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@eslint/js": "^9.39.1",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "@webgpu/types": "^0.1.66",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^50.8.0",
+    "eslint-plugin-perfectionist": "^4.15.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}
