@@ -14,7 +14,8 @@
     "indentStyle": "space",
     "indentWidth": 4,
     "lineWidth": 120,
-    "lineEnding": "lf"
+    "lineEnding": "lf",
+    "formatWithErrors": true
   },
   "assist": {
     "enabled": false
@@ -85,6 +86,16 @@
     },
     {
       "includes": ["*.config.js", "*.config.ts", "*.config.mjs"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["tools/**/*.mjs"],
       "linter": {
         "rules": {
           "suspicious": {
