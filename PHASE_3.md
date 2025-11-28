@@ -129,7 +129,8 @@ pnpm lint
 
 Husky runs automatically on commit:
 
-- ✓ Biome formatting (auto-fix)
+- ✓ Biome formatting for TS/JS/JSON/CSS (auto-fix)
+- ✓ Prettier formatting for Markdown/YAML (auto-fix)
 - ✓ ESLint (auto-fix)
 - ✓ TypeScript type checking
 - ✓ Unit tests (if they exist)
@@ -277,8 +278,9 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 ### Formatting
 
-- Biome handles formatting automatically
-- 4 spaces indentation (2 for JSON/YAML)
+- Biome handles formatting for TS/JS/JSON/CSS
+- Prettier handles formatting for Markdown/YAML
+- 4 spaces indentation (2 for JSON/YAML/Markdown)
 - Single quotes for strings
 - Semicolons required
 - Max line length: 120
@@ -686,7 +688,8 @@ Closes #
 - [ ] Code follows project style guidelines
 - [ ] TypeScript type check passes (`pnpm typecheck`)
 - [ ] ESLint passes (`pnpm lint`)
-- [ ] Biome formatting applied (`pnpm format`)
+- [ ] Biome formatting applied (`pnpm format` for TS/JS/JSON/CSS)
+- [ ] Prettier formatting applied (auto via pre-commit for Markdown/YAML)
 - [ ] Pre-commit hooks pass
 - [ ] JSDoc added for public APIs
 - [ ] No console.log or debug code left
