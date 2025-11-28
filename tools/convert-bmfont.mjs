@@ -125,11 +125,9 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
 
     // Parse all char tags
     const glyphs = {};
-    const charRegex = /<char[^>]+>/g;
-    let charMatch;
     let glyphCount = 0;
 
-    while ((charMatch = charRegex.exec(xmlData)) !== null) {
+    for (const charMatch of xmlData.matchAll(/<char[^>]+>/g)) {
         const tag = charMatch[0];
         const charCode = parseInt(parseXmlAttribute(tag, 'id') || '0', 10);
         const char = String.fromCharCode(charCode);
