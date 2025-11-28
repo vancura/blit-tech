@@ -1,23 +1,30 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
   workflow_dispatch: # Allow manual deployment
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
   build-and-deploy:
     name: Build & Create Deployment Artifact
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10.24.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,8 +43,8 @@ jobs:
           echo "### Deployment Build Complete ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Build Information:**" >> $GITHUB_STEP_SUMMARY
-          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Branch: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: \`${{ github.event.workflow_run.head_branch || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Examples built to: \`dist/\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Deployment Options:**" >> $GITHUB_STEP_SUMMARY
@@ -48,7 +55,7 @@ jobs:
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
-          name: blit-tech-deployment-${{ github.sha }}
+          name: blit-tech-deployment-${{ github.event.workflow_run.head_sha || github.sha }}
           path: dist/
           retention-days: 90
           compression-level: 9
