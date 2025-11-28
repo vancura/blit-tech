@@ -84,10 +84,13 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 ````
 
 3. Install dependencies:
+
    ```bash
    pnpm install
    ```
+
 4. Create a branch for your changes:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -192,10 +195,13 @@ test(vector): add tests for magnitude calculation
 1. Ensure all tests pass
 2. Update documentation if needed
 3. Add changeset if making library changes:
+
    ```bash
    pnpm changeset
    ```
+
 4. Rebase on latest main:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
@@ -219,6 +225,7 @@ test(vector): add tests for magnitude calculation
 
 - Delete your branch (locally and on GitHub)
 - Pull latest main:
+
   ```bash
   git checkout main
   git pull upstream main
@@ -278,9 +285,24 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 ### Formatting
 
-- Biome handles formatting for TS/JS/JSON/CSS
-- Prettier handles formatting for Markdown/YAML
-- 4 spaces indentation (2 for JSON/YAML/Markdown)
+The project uses **dual formatters** for optimal coverage:
+
+| File Type     | Formatter | Configuration        |
+| ------------- | --------- | -------------------- |
+| TypeScript/JS | Biome     | `biome.json`         |
+| JSON/CSS      | Biome     | `biome.json`         |
+| Markdown/YAML | Prettier  | `prettier.config.js` |
+
+**Commands:**
+
+- `pnpm format` - Format all files (Biome + Prettier)
+- `pnpm format:check` - Check formatting without changes
+- `pnpm format:biome` - Format only TS/JS/JSON/CSS
+- `pnpm format:prettier` - Format only Markdown/YAML
+
+**Settings:**
+
+- 4 spaces indentation for code (2 for JSON/YAML/Markdown)
 - Single quotes for strings
 - Semicolons required
 - Max line length: 120
@@ -289,6 +311,7 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 - ESLint enforces code quality
 - JSDoc required for public APIs:
+
   ```typescript
   /**
    * Description of the function
