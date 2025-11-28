@@ -5,16 +5,7 @@
  * This example creates a simple moving square that responds to keyboard input.
  */
 
-import {
-    BitmapFont,
-    BT,
-    Color32,
-    type HardwareSettings,
-    type IBlitTechGame,
-    Rect2i,
-    SpriteSheet,
-    Vector2i,
-} from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * A minimal game demonstrating core Blit-Tech functionality.
@@ -57,8 +48,13 @@ class BasicGame implements IBlitTechGame {
     async initialize(): Promise<boolean> {
         console.log('[BasicGame] Initializing...');
 
-        // Create a simple bitmap font for text rendering
-        this.font = await this.createSimpleFont();
+        // Load bitmap font from .btfont file
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[BasicGame] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.warn('[BasicGame] Failed to load font, will use fallback:', error);
+        }
 
         // Center player on screen
         const displaySize = BT.displaySize();
@@ -69,55 +65,6 @@ class BasicGame implements IBlitTechGame {
 
         console.log('[BasicGame] Initialization complete!');
         return true;
-    }
-
-    /**
-     * Creates a simple 8x8 bitmap font programmatically.
-     * Uses canvas text rendering to generate glyph texture.
-     * @returns Promise resolving to the created BitmapFont.
-     */
-    private async createSimpleFont(): Promise<BitmapFont> {
-        // Character set for basic text rendering
-        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:- ';
-        const charWidth = 8;
-        const charHeight = 8;
-        const charsPerRow = 16;
-        const rows = Math.ceil(charset.length / charsPerRow);
-
-        // Create canvas for font texture
-        const canvas = document.createElement('canvas');
-        canvas.width = charsPerRow * charWidth;
-        canvas.height = rows * charHeight;
-        const ctx = canvas.getContext('2d')!;
-
-        // Fill with transparent background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw simple characters
-        ctx.fillStyle = 'white';
-        ctx.font = '8px monospace';
-        ctx.textBaseline = 'top';
-
-        for (let i = 0; i < charset.length; i++) {
-            const col = i % charsPerRow;
-            const row = Math.floor(i / charsPerRow);
-            const x = col * charWidth + 1;
-            const y = row * charHeight;
-            ctx.fillText(charset.charAt(i), x, y);
-        }
-
-        // Convert canvas to image
-        const dataUrl = canvas.toDataURL();
-        const image = new Image();
-        await new Promise<void>((resolve) => {
-            image.onload = () => resolve();
-            image.src = dataUrl;
-        });
-
-        // Create sprite sheet and font
-        const spriteSheet = new SpriteSheet(image);
-        return new BitmapFont(spriteSheet, charset, new Vector2i(charWidth, charHeight), 1);
     }
 
     /**
@@ -176,15 +123,15 @@ class BasicGame implements IBlitTechGame {
 
             BT.printFont(
                 this.font,
-                new Vector2i(10, 20),
+                new Vector2i(10, 26),
                 `Position: ${this.playerPos.x}, ${this.playerPos.y}`,
                 Color32.white(),
             );
 
-            BT.printFont(this.font, new Vector2i(10, 30), 'Use WASD or Arrow Keys to move', Color32.white());
+            BT.printFont(this.font, new Vector2i(10, 42), 'Use WASD or Arrow Keys to move', Color32.white());
         } else {
-            // Fallback to basic print if font not loaded yet
-            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading font...');
+            // Fallback to basic print if font not loaded
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Font not loaded');
         }
     }
 }
