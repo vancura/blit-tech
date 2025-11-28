@@ -5,7 +5,16 @@
  * This example creates a simple moving square that responds to keyboard input.
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+import {
+    BitmapFont,
+    BT,
+    Color32,
+    type HardwareSettings,
+    type IBlitTechGame,
+    Rect2i,
+    SpriteSheet,
+    Vector2i,
+} from '../src/BlitTech';
 
 /**
  * A minimal game demonstrating core Blit-Tech functionality.
@@ -20,6 +29,9 @@ class BasicGame implements IBlitTechGame {
     // Game state
     private bgColor: Color32 = new Color32(50, 100, 150);
     private playerColor: Color32 = Color32.white();
+
+    // Font for text rendering
+    private font: BitmapFont | null = null;
 
     /**
      * Configures hardware settings for this game.
@@ -39,11 +51,14 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Initializes game state after the engine is ready.
-     * Centers the player on screen.
+     * Centers the player on screen and loads bitmap font.
      * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[BasicGame] Initializing...');
+
+        // Create a simple bitmap font for text rendering
+        this.font = await this.createSimpleFont();
 
         // Center player on screen
         const displaySize = BT.displaySize();
@@ -54,6 +69,55 @@ class BasicGame implements IBlitTechGame {
 
         console.log('[BasicGame] Initialization complete!');
         return true;
+    }
+
+    /**
+     * Creates a simple 8x8 bitmap font programmatically.
+     * Uses canvas text rendering to generate glyph texture.
+     * @returns Promise resolving to the created BitmapFont.
+     */
+    private async createSimpleFont(): Promise<BitmapFont> {
+        // Character set for basic text rendering
+        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:- ';
+        const charWidth = 8;
+        const charHeight = 8;
+        const charsPerRow = 16;
+        const rows = Math.ceil(charset.length / charsPerRow);
+
+        // Create canvas for font texture
+        const canvas = document.createElement('canvas');
+        canvas.width = charsPerRow * charWidth;
+        canvas.height = rows * charHeight;
+        const ctx = canvas.getContext('2d')!;
+
+        // Fill with transparent background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw simple characters
+        ctx.fillStyle = 'white';
+        ctx.font = '8px monospace';
+        ctx.textBaseline = 'top';
+
+        for (let i = 0; i < charset.length; i++) {
+            const col = i % charsPerRow;
+            const row = Math.floor(i / charsPerRow);
+            const x = col * charWidth + 1;
+            const y = row * charHeight;
+            ctx.fillText(charset.charAt(i), x, y);
+        }
+
+        // Convert canvas to image
+        const dataUrl = canvas.toDataURL();
+        const image = new Image();
+        await new Promise<void>((resolve) => {
+            image.onload = () => resolve();
+            image.src = dataUrl;
+        });
+
+        // Create sprite sheet and font
+        const spriteSheet = new SpriteSheet(image);
+        return new BitmapFont(spriteSheet, charset, new Vector2i(charWidth, charHeight), 1);
     }
 
     /**
@@ -96,7 +160,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Renders game graphics.
-     * Clears screen, draws player square, and displays UI text.
+     * Clears screen, draws player square, and displays UI text using bitmap font.
      */
     render(): void {
         // Clear screen
@@ -106,12 +170,22 @@ class BasicGame implements IBlitTechGame {
         const playerRect = new Rect2i(this.playerPos.x, this.playerPos.y, this.playerSize.x, this.playerSize.y);
         BT.drawRectFill(playerRect, this.playerColor);
 
-        // Draw UI
-        BT.print(new Vector2i(10, 10), Color32.white(), `FPS: ${BT.fps()}`);
+        // Draw UI with bitmap font
+        if (this.font) {
+            BT.printFont(this.font, new Vector2i(10, 10), `FPS: ${BT.fps()}`, Color32.white());
 
-        BT.print(new Vector2i(10, 20), Color32.white(), `Position: ${this.playerPos.x}, ${this.playerPos.y}`);
+            BT.printFont(
+                this.font,
+                new Vector2i(10, 20),
+                `Position: ${this.playerPos.x}, ${this.playerPos.y}`,
+                Color32.white(),
+            );
 
-        BT.print(new Vector2i(10, 30), Color32.white(), 'Use WASD or Arrow Keys to move');
+            BT.printFont(this.font, new Vector2i(10, 30), 'Use WASD or Arrow Keys to move', Color32.white());
+        } else {
+            // Fallback to basic print if font not loaded yet
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading font...');
+        }
     }
 }
 
