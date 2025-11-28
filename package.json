@@ -52,7 +52,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "biome format --write .",
-    "format:check": "biome check .",
+    "format:check": "biome format --check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
     "changeset": "changeset",
