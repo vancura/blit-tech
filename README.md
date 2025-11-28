@@ -51,22 +51,24 @@ The examples gallery opens automatically at `http://localhost:5173/examples/`.
 
 ## Scripts
 
-| Command             | Description                            |
-| ------------------- | -------------------------------------- |
-| `pnpm dev`          | Start dev server with HMR              |
-| `pnpm build`        | Type-check and build examples          |
-| `pnpm build:lib`    | Build the library for npm distribution |
-| `pnpm build:deploy` | Build examples for deployment          |
-| `pnpm preview`      | Preview the production build           |
-| `pnpm lint`         | Run ESLint                             |
-| `pnpm lint:fix`     | Run ESLint with auto-fix               |
-| `pnpm format`       | Format code with Prettier              |
-| `pnpm format:check` | Check formatting without changes       |
-| `pnpm typecheck`    | Run TypeScript type checking           |
-| `pnpm clean`        | Remove dist and cache directories      |
-| `pnpm changeset`    | Create a changeset for version bump    |
-| `pnpm version:bump` | Bump version based on changesets       |
-| `pnpm release`      | Build library and publish to npm       |
+| Command                | Description                            |
+| ---------------------- | -------------------------------------- |
+| `pnpm dev`             | Start dev server with HMR              |
+| `pnpm build`           | Type-check and build examples          |
+| `pnpm build:lib`       | Build the library for npm distribution |
+| `pnpm build:deploy`    | Build examples for deployment          |
+| `pnpm preview`         | Preview the production build           |
+| `pnpm lint`            | Run ESLint                             |
+| `pnpm lint:fix`        | Run ESLint with auto-fix               |
+| `pnpm format`          | Format all code (Biome + Prettier)     |
+| `pnpm format:check`    | Check all formatting without changes   |
+| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)     |
+| `pnpm format:prettier` | Format Markdown/YAML only (Prettier)   |
+| `pnpm typecheck`       | Run TypeScript type checking           |
+| `pnpm clean`           | Remove dist and cache directories      |
+| `pnpm changeset`       | Create a changeset for version bump    |
+| `pnpm version:bump`    | Bump version based on changesets       |
+| `pnpm release`         | Build library and publish to npm       |
 
 ## Quick Start
 
