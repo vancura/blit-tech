@@ -17,7 +17,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 
 /**
  * Parse an XML attribute value from a tag string.
@@ -114,13 +114,10 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
             // Same directory, just use filename
             textureValue = textureFilename;
         } else {
-            // Different directory, use path relative to fnt file
-            // (assumes texture is next to fnt file)
-            const relativePath = join(dirname(fntPath), textureFilename)
-                .replace(outputDir + '/', '')
-                .replace(outputDir + '\\', '');
-
-            textureValue = relativePath.replace(/\\/g, '/');
+            // Compute relative path from output directory to texture file
+            // Texture is assumed to be next to the input .fnt file
+            const absoluteTexturePath = join(fntDir, textureFilename);
+            textureValue = relative(outputDir, absoluteTexturePath).replace(/\\/g, '/');
         }
 
         console.log(`Texture reference: ${textureValue}`);
