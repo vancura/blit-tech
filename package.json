@@ -52,7 +52,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
-    "format:check": "biome format . && prettier --check \"**/*.{md,mdx,yml,yaml}\"",
+    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml}\"",
     "format:biome": "biome format --write .",
     "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
