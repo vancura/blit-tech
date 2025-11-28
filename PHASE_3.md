@@ -577,7 +577,7 @@ body:
       value: |
         Have a question? We're here to help!
 
-        For general discussions, consider using [GitHub Discussions](https://github.com/ambilab/blit-tech/discussions).
+        For general discussions, consider using [GitHub Discussions](https://github.com/vancura/blit-tech/discussions).
 
   - type: textarea
     id: question
@@ -618,10 +618,10 @@ body:
 blank_issues_enabled: false
 contact_links:
   - name: GitHub Discussions
-    url: https://github.com/ambilab/blit-tech/discussions
+    url: https://github.com/vancura/blit-tech/discussions
     about: Ask questions and discuss ideas with the community
   - name: Documentation
-    url: https://github.com/ambilab/blit-tech#readme
+    url: https://github.com/vancura/blit-tech#readme
     about: Read the documentation
 ```
 
@@ -922,7 +922,7 @@ export default defineConfig({
         src: './public/logo.svg',
       },
       social: {
-        github: 'https://github.com/ambilab/blit-tech',
+        github: 'https://github.com/vancura/blit-tech',
       },
       sidebar: [
         {

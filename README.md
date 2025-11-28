@@ -1,6 +1,6 @@
 # Blit-Tech
 
-[![CI](https://github.com/ambilab/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/ambilab/blit-tech/actions/workflows/ci.yml)
+[![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
@@ -34,7 +34,7 @@ Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 Clone the repository:
 
 ```bash
-git clone https://github.com/ambilab/blit-tech.git
+git clone https://github.com/vancura/blit-tech.git
 cd blit-tech
 pnpm install
 ```
