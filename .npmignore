@@ -17,6 +17,9 @@ tsconfig.json
 .editorconfig
 .gitignore
 .gitattributes
+.prettierignore
+prettier.config.js
+biome.json
 .lintstagedrc.json
 commitlint.config.js
 
