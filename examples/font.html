@@ -123,17 +123,17 @@
         <div class="info">
             <h3>Demonstrated Features:</h3>
             <ul>
-                <li><code>BitmapFont.loadFixedWidth()</code> - Load bitmap fonts from images</li>
+                <li><code>BitmapFont.load()</code> - Load bitmap fonts from .btfont files</li>
                 <li><code>BT.printFont(font, pos, text, color)</code> - Render bitmap text</li>
                 <li>Multiple text colors and effects (rainbow, pulsing)</li>
                 <li>Character-by-character color control</li>
-                <li>Programmatic font generation example</li>
+                <li>Variable-width glyphs with per-character offsets</li>
             </ul>
 
             <div class="note">
                 <strong>How to use your own bitmap font:</strong><br>
-                1. Create a font image with fixed-width characters<br>
-                2. Use <code>BitmapFont.loadFixedWidth(url, charset, charSize, charsPerRow)</code><br>
+                1. Create a .btfont file (JSON) with glyph data and texture<br>
+                2. Use <code>const font = await BitmapFont.load('path/to/font.btfont')</code><br>
                 3. Render with <code>BT.printFont(font, position, text, color)</code>
             </div>
         </div>
