@@ -245,6 +245,11 @@ The engine displays an error message if WebGPU is not supported.
 - **Vite** — Fast build tool with HMR
 - **WGSL** — WebGPU Shading Language
 
+## Assets & Fonts
+
+The bitmap font examples use **PragmataPro** by Fabrizio Schiavi, available at
+[https://fsd.it/shop/fonts/pragmatapro/](https://fsd.it/shop/fonts/pragmatapro/).
+
 ## License
 
 ISC
