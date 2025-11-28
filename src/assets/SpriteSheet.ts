@@ -1,7 +1,6 @@
+import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
-
-import type { Rect2i } from '../utils/Rect2i';
 
 /**
  * Sprite sheet asset for GPU-accelerated sprite rendering.

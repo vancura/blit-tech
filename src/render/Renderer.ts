@@ -1,9 +1,8 @@
+import type { BitmapFont } from '../assets/BitmapFont';
+import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
-
-import type { BitmapFont } from '../assets/BitmapFont';
-import type { SpriteSheet } from '../assets/SpriteSheet';
 
 /**
  * WebGPU renderer for Blit-Tech.

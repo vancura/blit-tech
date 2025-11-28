@@ -7,11 +7,6 @@ export default {
     trailingComma: 'all',
     printWidth: 120,
     endOfLine: 'lf',
-    plugins: ['@ianvs/prettier-plugin-sort-imports'],
-
-    // Import sorting configuration
-    importOrder: ['<BUILTIN_MODULES>', '', '<THIRD_PARTY_MODULES>', '', '^@/(.*)$', '^[./]'],
-    importOrderTypeScriptVersion: '5.9.0',
 
     overrides: [
         {

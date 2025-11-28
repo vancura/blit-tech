@@ -6,6 +6,7 @@ import jsdocPlugin from 'eslint-plugin-jsdoc';
 import perfectionistPlugin from 'eslint-plugin-perfectionist';
 import promisePlugin from 'eslint-plugin-promise';
 import securityPlugin from 'eslint-plugin-security';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import globals from 'globals';
 
 const TSCONFIG_PATH = './tsconfig.json';
@@ -47,6 +48,7 @@ export default [
             perfectionist: perfectionistPlugin,
             promise: promisePlugin,
             security: securityPlugin,
+            'simple-import-sort': simpleImportSort,
         },
         rules: {
             // Base ESLint rules
@@ -65,16 +67,9 @@ export default [
             '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
             '@typescript-eslint/naming-convention': 'off',
 
-            // Perfectionist - sort imports
-            'perfectionist/sort-imports': [
-                'error',
-                {
-                    type: 'natural',
-                    order: 'asc',
-                    groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index'], 'type'],
-                    newlinesBetween: 'always',
-                },
-            ],
+            // Import sorting
+            'simple-import-sort/imports': 'error',
+            'simple-import-sort/exports': 'error',
 
             // JSDoc rules
             'jsdoc/check-alignment': 'warn',

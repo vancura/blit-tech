@@ -9,7 +9,7 @@
  * - Mini-map with viewport indicator
  */
 
-import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates camera scrolling with a procedurally generated city.

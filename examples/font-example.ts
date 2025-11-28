@@ -18,10 +18,10 @@ import {
     BitmapFont,
     BT,
     Color32,
-    SpriteSheet,
-    Vector2i,
     type HardwareSettings,
     type IBlitTechGame,
+    SpriteSheet,
+    Vector2i,
 } from '../src/BlitTech';
 
 /**
