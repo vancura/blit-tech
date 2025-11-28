@@ -129,7 +129,7 @@ pnpm lint
 
 Husky runs automatically on commit:
 
-- ✓ Prettier formatting (auto-fix)
+- ✓ Biome formatting (auto-fix)
 - ✓ ESLint (auto-fix)
 - ✓ TypeScript type checking
 - ✓ Unit tests (if they exist)
@@ -277,7 +277,7 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 ### Formatting
 
-- Prettier handles formatting automatically
+- Biome handles formatting automatically
 - 4 spaces indentation (2 for JSON/YAML)
 - Single quotes for strings
 - Semicolons required
@@ -686,7 +686,7 @@ Closes #
 - [ ] Code follows project style guidelines
 - [ ] TypeScript type check passes (`pnpm typecheck`)
 - [ ] ESLint passes (`pnpm lint`)
-- [ ] Prettier formatting applied (`pnpm format`)
+- [ ] Biome formatting applied (`pnpm format`)
 - [ ] Pre-commit hooks pass
 - [ ] JSDoc added for public APIs
 - [ ] No console.log or debug code left
@@ -1033,7 +1033,7 @@ Create `.vscode/extensions.json`:
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
+    "biomejs.biome-vscode",
     "editorconfig.editorconfig",
     "ms-playwright.playwright",
     "vitest.explorer",

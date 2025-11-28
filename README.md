@@ -60,7 +60,7 @@ The examples gallery opens automatically at `http://localhost:5173/examples/`.
 | `pnpm preview`      | Preview the production build           |
 | `pnpm lint`         | Run ESLint                             |
 | `pnpm lint:fix`     | Run ESLint with auto-fix               |
-| `pnpm format`       | Format code with Prettier              |
+| `pnpm format`       | Format code with Biome                 |
 | `pnpm format:check` | Check formatting without changes       |
 | `pnpm typecheck`    | Run TypeScript type checking           |
 | `pnpm clean`        | Remove dist and cache directories      |
