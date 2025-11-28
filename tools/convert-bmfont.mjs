@@ -33,25 +33,11 @@ function parseXmlAttribute(tag, attr) {
 }
 
 /**
- * Convert a BMFont XML file to .btfont format.
- * @param {string} fntPath - Path to the .fnt file
- * @param {string} outputPath - Path for the output .btfont file
- * @param {boolean} embedTexture - Whether to embed the texture as base64
+ * Parse info tag from XML data.
+ * @param {string} xmlData - The XML font data
+ * @returns {{fontName: string, fontSize: number}} Parsed font info
  */
-function convertBMFont(fntPath, outputPath, embedTexture = false) {
-    // Validate input file exists
-    if (!existsSync(fntPath)) {
-        console.error(`Error: Input file not found: ${fntPath}`);
-        process.exit(1);
-    }
-
-    // Read the XML font file
-    console.log(`Reading: ${fntPath}`);
-
-    const xmlData = readFileSync(fntPath, 'utf-8');
-    const fntDir = dirname(fntPath);
-
-    // Parse info tag
+function parseInfoTag(xmlData) {
     const infoMatch = xmlData.match(/<info[^>]+>/);
 
     if (!infoMatch) {
@@ -62,7 +48,16 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
     const fontName = parseXmlAttribute(infoMatch[0], 'face') || 'Unknown';
     const fontSize = Math.abs(parseInt(parseXmlAttribute(infoMatch[0], 'size') || '12', 10));
 
-    // Parse common tag
+    return { fontName, fontSize };
+}
+
+/**
+ * Parse common tag from XML data.
+ * @param {string} xmlData - The XML font data
+ * @param {number} fontSize - Default font size
+ * @returns {{lineHeight: number, baseline: number}} Parsed common properties
+ */
+function parseCommonTag(xmlData, fontSize) {
     const commonMatch = xmlData.match(/<common[^>]+>/);
 
     if (!commonMatch) {
@@ -73,7 +68,15 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
     const lineHeight = parseInt(parseXmlAttribute(commonMatch[0], 'lineHeight') || String(fontSize), 10);
     const baseline = parseInt(parseXmlAttribute(commonMatch[0], 'base') || String(fontSize), 10);
 
-    // Parse page tag to get texture filename
+    return { lineHeight, baseline };
+}
+
+/**
+ * Parse page tag from XML data to get texture filename.
+ * @param {string} xmlData - The XML font data
+ * @returns {string} Texture filename
+ */
+function parsePageTag(xmlData) {
     const pageMatch = xmlData.match(/<page[^>]+>/);
 
     if (!pageMatch) {
@@ -88,8 +91,18 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
         process.exit(1);
     }
 
-    // Determine texture value (base64 or path)
-    let textureValue;
+    return textureFilename;
+}
+
+/**
+ * Get texture value (either base64 embedded or relative path).
+ * @param {boolean} embedTexture - Whether to embed as base64
+ * @param {string} textureFilename - Texture filename
+ * @param {string} fntDir - Directory of the .fnt file
+ * @param {string} outputPath - Output file path
+ * @returns {string} Texture value (base64 data URI or path)
+ */
+function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     const texturePath = join(fntDir, textureFilename);
 
     if (embedTexture) {
@@ -103,28 +116,40 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
         const pngData = readFileSync(texturePath);
         const base64 = pngData.toString('base64');
 
-        textureValue = `data:image/png;base64,${base64}`;
-
         console.log(`  Texture size: ${base64.length} bytes (base64)`);
-    } else {
-        // Use relative path from output file to texture
-        const outputDir = dirname(outputPath);
 
-        if (outputDir === fntDir) {
-            // Same directory, just use filename
-            textureValue = textureFilename;
-        } else {
-            // Compute relative path from output directory to texture file
-            // Texture is assumed to be next to the input .fnt file
-            const absoluteTexturePath = join(fntDir, textureFilename);
-            textureValue = relative(outputDir, absoluteTexturePath).replace(/\\/g, '/');
-        }
-
-        console.log(`Texture reference: ${textureValue}`);
+        return `data:image/png;base64,${base64}`;
     }
 
-    // Parse all char tags
-    const glyphs = {};
+    // Use relative path from output file to texture
+    const outputDir = dirname(outputPath);
+
+    if (outputDir === fntDir) {
+        // Same directory, just use filename
+        const textureValue = textureFilename;
+
+        console.log(`Texture reference: ${textureValue}`);
+
+        return textureValue;
+    }
+
+    // Compute relative path from output directory to texture file
+    const absoluteTexturePath = join(fntDir, textureFilename);
+    const textureValue = relative(outputDir, absoluteTexturePath).replace(/\\/g, '/');
+
+    console.log(`Texture reference: ${textureValue}`);
+
+    return textureValue;
+}
+
+/**
+ * Parse all glyphs from XML data.
+ * @param {string} xmlData - The XML font data
+ * @returns {Object} Glyphs object
+ */
+function parseGlyphs(xmlData) {
+    // Use Object.create(null) to prevent prototype pollution
+    const glyphs = Object.create(null);
     let glyphCount = 0;
 
     for (const charMatch of xmlData.matchAll(/<char[^>]+>/g)) {
@@ -132,15 +157,21 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
         const charCode = parseInt(parseXmlAttribute(tag, 'id') || '0', 10);
         const char = String.fromCharCode(charCode);
 
-        glyphs[char] = {
-            x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
-            y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
-            w: parseInt(parseXmlAttribute(tag, 'width') || '0', 10),
-            h: parseInt(parseXmlAttribute(tag, 'height') || '0', 10),
-            ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
-            oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
-            adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
-        };
+        // Use Object.defineProperty to safely set property and prevent prototype pollution
+        Object.defineProperty(glyphs, char, {
+            value: {
+                x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
+                y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
+                w: parseInt(parseXmlAttribute(tag, 'width') || '0', 10),
+                h: parseInt(parseXmlAttribute(tag, 'height') || '0', 10),
+                ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
+                oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
+                adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true,
+        });
 
         glyphCount++;
     }
@@ -149,6 +180,56 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
         console.error('Error: No glyphs found in font file');
         process.exit(1);
     }
+
+    return { glyphs, glyphCount };
+}
+
+/**
+ * Write output file and log success message.
+ * @param {string} outputPath - Output file path
+ * @param {Object} btfont - The btfont object to write
+ * @param {string} fontName - Font name
+ * @param {number} fontSize - Font size
+ * @param {number} lineHeight - Line height
+ * @param {number} baseline - Baseline
+ * @param {number} glyphCount - Number of glyphs
+ */
+function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baseline, glyphCount) {
+    writeFileSync(outputPath, JSON.stringify(btfont, null, 2));
+
+    console.log(`\nConverted successfully!`);
+    console.log(`  Output: ${outputPath}`);
+    console.log(`  Font: ${fontName} ${fontSize}pt`);
+    console.log(`  Line height: ${lineHeight}px`);
+    console.log(`  Baseline: ${baseline}px`);
+    console.log(`  Glyphs: ${glyphCount}`);
+}
+
+/**
+ * Convert a BMFont XML file to .btfont format.
+ * @param {string} fntPath - Path to the .fnt file
+ * @param {string} outputPath - Path for the output .btfont file
+ * @param {boolean} embedTexture - Whether to embed the texture as base64
+ */
+function convertBMFont(fntPath, outputPath, embedTexture = false) {
+    // Validate input file exists
+    if (!existsSync(fntPath)) {
+        console.error(`Error: Input file not found: ${fntPath}`);
+        process.exit(1);
+    }
+
+    console.log(`Reading: ${fntPath}`);
+
+    // Read the XML font file
+    const xmlData = readFileSync(fntPath, 'utf-8');
+    const fntDir = dirname(fntPath);
+
+    // Parse XML tags
+    const { fontName, fontSize } = parseInfoTag(xmlData);
+    const { lineHeight, baseline } = parseCommonTag(xmlData, fontSize);
+    const textureFilename = parsePageTag(xmlData);
+    const textureValue = getTextureValue(embedTexture, textureFilename, fntDir, outputPath);
+    const { glyphs, glyphCount } = parseGlyphs(xmlData);
 
     // Create the .btfont structure
     const btfont = {
@@ -161,14 +242,7 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
     };
 
     // Write the output
-    writeFileSync(outputPath, JSON.stringify(btfont, null, 2));
-
-    console.log(`\nConverted successfully!`);
-    console.log(`  Output: ${outputPath}`);
-    console.log(`  Font: ${fontName} ${fontSize}pt`);
-    console.log(`  Line height: ${lineHeight}px`);
-    console.log(`  Baseline: ${baseline}px`);
-    console.log(`  Glyphs: ${glyphCount}`);
+    writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baseline, glyphCount);
 }
 
 // Main entry point
