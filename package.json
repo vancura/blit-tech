@@ -7,11 +7,11 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ambilab/blit-tech.git"
+    "url": "https://github.com/vancura/blit-tech.git"
   },
-  "homepage": "https://github.com/ambilab/blit-tech#readme",
+  "homepage": "https://github.com/vancura/blit-tech#readme",
   "bugs": {
-    "url": "https://github.com/ambilab/blit-tech/issues"
+    "url": "https://github.com/vancura/blit-tech/issues"
   },
   "keywords": [
     "webgpu",

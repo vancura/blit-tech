@@ -169,7 +169,7 @@ zip -r deployment.zip .
 1. Install Coolify: https://coolify.io/docs/installation
 2. Create new Static Site resource
 3. Configure:
-   - **Repository:** `https://github.com/ambilab/blit-tech.git`
+   - **Repository:** `https://github.com/vancura/blit-tech.git`
    - **Build Pack:** Node.js
    - **Build Command:** `pnpm install && pnpm build:deploy`
    - **Publish Directory:** `dist`
@@ -230,7 +230,7 @@ server {
 
 ```bash
 cd ~/html
-git clone https://github.com/ambilab/blit-tech.git
+git clone https://github.com/vancura/blit-tech.git
 cd blit-tech
 pnpm install
 pnpm build:deploy
@@ -355,8 +355,8 @@ Most platforms provide automatic SSL via Let's Encrypt:
 
 ## Support
 
-- **Issues:** https://github.com/ambilab/blit-tech/issues
-- **Discussions:** https://github.com/ambilab/blit-tech/discussions
+- **Issues:** https://github.com/vancura/blit-tech/issues
+- **Discussions:** https://github.com/vancura/blit-tech/discussions
 - **Blit-Tech Docs:** Coming soon with Astro Starlight
 
 ---
