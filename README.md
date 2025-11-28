@@ -1,6 +1,6 @@
 # Blit-Tech
 
-[![CI](https://github.com/ambilab/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/ambilab/blit-tech/actions/workflows/ci.yml)
+[![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
@@ -34,7 +34,7 @@ Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 Clone the repository:
 
 ```bash
-git clone https://github.com/ambilab/blit-tech.git
+git clone https://github.com/vancura/blit-tech.git
 cd blit-tech
 pnpm install
 ```
@@ -51,22 +51,24 @@ The examples gallery opens automatically at `http://localhost:5173/examples/`.
 
 ## Scripts
 
-| Command             | Description                            |
-| ------------------- | -------------------------------------- |
-| `pnpm dev`          | Start dev server with HMR              |
-| `pnpm build`        | Type-check and build examples          |
-| `pnpm build:lib`    | Build the library for npm distribution |
-| `pnpm build:deploy` | Build examples for deployment          |
-| `pnpm preview`      | Preview the production build           |
-| `pnpm lint`         | Run ESLint                             |
-| `pnpm lint:fix`     | Run ESLint with auto-fix               |
-| `pnpm format`       | Format code with Prettier              |
-| `pnpm format:check` | Check formatting without changes       |
-| `pnpm typecheck`    | Run TypeScript type checking           |
-| `pnpm clean`        | Remove dist and cache directories      |
-| `pnpm changeset`    | Create a changeset for version bump    |
-| `pnpm version:bump` | Bump version based on changesets       |
-| `pnpm release`      | Build library and publish to npm       |
+| Command                | Description                            |
+| ---------------------- | -------------------------------------- |
+| `pnpm dev`             | Start dev server with HMR              |
+| `pnpm build`           | Type-check and build examples          |
+| `pnpm build:lib`       | Build the library for npm distribution |
+| `pnpm build:deploy`    | Build examples for deployment          |
+| `pnpm preview`         | Preview the production build           |
+| `pnpm lint`            | Run ESLint                             |
+| `pnpm lint:fix`        | Run ESLint with auto-fix               |
+| `pnpm format`          | Format all code (Biome + Prettier)     |
+| `pnpm format:check`    | Check all formatting without changes   |
+| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)     |
+| `pnpm format:prettier` | Format Markdown/YAML only (Prettier)   |
+| `pnpm typecheck`       | Run TypeScript type checking           |
+| `pnpm clean`           | Remove dist and cache directories      |
+| `pnpm changeset`       | Create a changeset for version bump    |
+| `pnpm version:bump`    | Bump version based on changesets       |
+| `pnpm release`         | Build library and publish to npm       |
 
 ## Quick Start
 

@@ -1,43 +1,27 @@
-# Dependencies
-node_modules
+# Prettier ignore - only for Markdown/YAML formatting
+# NOTE: TS/JS/JSON/CSS are handled by Biome, not Prettier
+
+# Lock files (never format)
 pnpm-lock.yaml
-.pnpm-store
+package-lock.json
+yarn.lock
+
+# Dependencies
+node_modules/
+.pnpm-store/
 
 # Build outputs
-dist
-build
+dist/
+build/
 
-# Git and system files
-.git
-.DS_Store
+# Git
+.git/
 
-# Generated files
-vite.config.*.timestamp-*
+# Generated/minified files
 **/*.min.js
 **/*.min.css
+vite.config.*.timestamp-*
 
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment files
-.env*
-!.env.example
-
-# Coverage
-coverage
-
-# IDE files
-.vscode/settings.json
-.idea
-
-# Test outputs
-playwright-report
-test-results
-.vitest
-
-# Git hooks
-.husky
-
-# Changesets
-.changeset
+# Changesets (auto-generated)
+.changeset/*.md
+!.changeset/README.md

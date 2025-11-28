@@ -84,10 +84,13 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 ````
 
 3. Install dependencies:
+
    ```bash
    pnpm install
    ```
+
 4. Create a branch for your changes:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -129,7 +132,8 @@ pnpm lint
 
 Husky runs automatically on commit:
 
-- ✓ Prettier formatting (auto-fix)
+- ✓ Biome formatting for TS/JS/JSON/CSS (auto-fix)
+- ✓ Prettier formatting for Markdown/YAML (auto-fix)
 - ✓ ESLint (auto-fix)
 - ✓ TypeScript type checking
 - ✓ Unit tests (if they exist)
@@ -191,10 +195,13 @@ test(vector): add tests for magnitude calculation
 1. Ensure all tests pass
 2. Update documentation if needed
 3. Add changeset if making library changes:
+
    ```bash
    pnpm changeset
    ```
+
 4. Rebase on latest main:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
@@ -218,6 +225,7 @@ test(vector): add tests for magnitude calculation
 
 - Delete your branch (locally and on GitHub)
 - Pull latest main:
+
   ```bash
   git checkout main
   git pull upstream main
@@ -277,8 +285,24 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 ### Formatting
 
-- Prettier handles formatting automatically
-- 4 spaces indentation (2 for JSON/YAML)
+The project uses **dual formatters** for optimal coverage:
+
+| File Type     | Formatter | Configuration        |
+| ------------- | --------- | -------------------- |
+| TypeScript/JS | Biome     | `biome.json`         |
+| JSON/CSS      | Biome     | `biome.json`         |
+| Markdown/YAML | Prettier  | `prettier.config.js` |
+
+**Commands:**
+
+- `pnpm format` - Format all files (Biome + Prettier)
+- `pnpm format:check` - Check formatting without changes
+- `pnpm format:biome` - Format only TS/JS/JSON/CSS
+- `pnpm format:prettier` - Format only Markdown/YAML
+
+**Settings:**
+
+- 4 spaces indentation for code (2 for JSON/YAML/Markdown)
 - Single quotes for strings
 - Semicolons required
 - Max line length: 120
@@ -287,6 +311,7 @@ View coverage report: `pnpm test:coverage` → `coverage/index.html`
 
 - ESLint enforces code quality
 - JSDoc required for public APIs:
+
   ```typescript
   /**
    * Description of the function
@@ -577,7 +602,7 @@ body:
       value: |
         Have a question? We're here to help!
 
-        For general discussions, consider using [GitHub Discussions](https://github.com/ambilab/blit-tech/discussions).
+        For general discussions, consider using [GitHub Discussions](https://github.com/vancura/blit-tech/discussions).
 
   - type: textarea
     id: question
@@ -618,10 +643,10 @@ body:
 blank_issues_enabled: false
 contact_links:
   - name: GitHub Discussions
-    url: https://github.com/ambilab/blit-tech/discussions
+    url: https://github.com/vancura/blit-tech/discussions
     about: Ask questions and discuss ideas with the community
   - name: Documentation
-    url: https://github.com/ambilab/blit-tech#readme
+    url: https://github.com/vancura/blit-tech#readme
     about: Read the documentation
 ```
 
@@ -686,7 +711,8 @@ Closes #
 - [ ] Code follows project style guidelines
 - [ ] TypeScript type check passes (`pnpm typecheck`)
 - [ ] ESLint passes (`pnpm lint`)
-- [ ] Prettier formatting applied (`pnpm format`)
+- [ ] Biome formatting applied (`pnpm format` for TS/JS/JSON/CSS)
+- [ ] Prettier formatting applied (auto via pre-commit for Markdown/YAML)
 - [ ] Pre-commit hooks pass
 - [ ] JSDoc added for public APIs
 - [ ] No console.log or debug code left
@@ -922,7 +948,7 @@ export default defineConfig({
         src: './public/logo.svg',
       },
       social: {
-        github: 'https://github.com/ambilab/blit-tech',
+        github: 'https://github.com/vancura/blit-tech',
       },
       sidebar: [
         {
@@ -1033,7 +1059,7 @@ Create `.vscode/extensions.json`:
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
+    "biomejs.biome-vscode",
     "editorconfig.editorconfig",
     "ms-playwright.playwright",
     "vitest.explorer",

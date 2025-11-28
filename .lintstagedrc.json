@@ -1,5 +1,10 @@
 {
-  "*.{ts,tsx}": ["prettier --write", "eslint --fix", "bash -c 'pnpm typecheck'"],
-  "*.{js,cjs,mjs}": ["prettier --write", "eslint --fix"],
-  "*.{json,jsonc,md,mdx,yml,yaml}": ["prettier --write"]
+  "*.{ts,tsx}": [
+    "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
+    "eslint --fix",
+    "bash -c 'pnpm typecheck'"
+  ],
+  "*.{js,cjs,mjs}": ["biome check --write --no-errors-on-unmatched --files-ignore-unknown=true", "eslint --fix"],
+  "*.{json,jsonc,css}": ["biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"],
+  "*.{md,mdx,yml,yaml}": ["prettier --write"]
 }

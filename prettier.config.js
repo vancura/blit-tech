@@ -1,8 +1,16 @@
-/** @type {import('prettier').Config} */
+/**
+ * Prettier configuration for Blit-Tech
+ *
+ * NOTE: Prettier is only used for Markdown and YAML files.
+ * TypeScript, JavaScript, JSON, and CSS are formatted by Biome.
+ *
+ * @type {import('prettier').Config}
+ */
 export default {
+    // Base settings (applied to Markdown/YAML)
     semi: true,
     singleQuote: true,
-    tabWidth: 4,
+    tabWidth: 2,
     useTabs: false,
     trailingComma: 'all',
     printWidth: 120,
@@ -18,23 +26,9 @@ export default {
             },
         },
         {
-            files: ['*.json', '*.jsonc'],
-            options: {
-                tabWidth: 2,
-            },
-        },
-        {
             files: ['*.yml', '*.yaml'],
             options: {
                 tabWidth: 2,
-            },
-        },
-        {
-            files: ['*.css'],
-            options: {
-                tabWidth: 4,
-                printWidth: 100,
-                singleQuote: false,
             },
         },
     ],
