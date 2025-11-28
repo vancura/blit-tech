@@ -5,7 +5,7 @@
  * This example creates a simple moving square that responds to keyboard input.
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * A minimal game demonstrating core Blit-Tech functionality.
@@ -20,6 +20,9 @@ class BasicGame implements IBlitTechGame {
     // Game state
     private bgColor: Color32 = new Color32(50, 100, 150);
     private playerColor: Color32 = Color32.white();
+
+    // Font for text rendering
+    private font: BitmapFont | null = null;
 
     /**
      * Configures hardware settings for this game.
@@ -39,11 +42,19 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Initializes game state after the engine is ready.
-     * Centers the player on screen.
+     * Centers the player on screen and loads bitmap font.
      * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[BasicGame] Initializing...');
+
+        // Load bitmap font from .btfont file
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[BasicGame] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.warn('[BasicGame] Failed to load font, will use fallback:', error);
+        }
 
         // Center player on screen
         const displaySize = BT.displaySize();
@@ -96,7 +107,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Renders game graphics.
-     * Clears screen, draws player square, and displays UI text.
+     * Clears screen, draws player square, and displays UI text using bitmap font.
      */
     render(): void {
         // Clear screen
@@ -106,12 +117,22 @@ class BasicGame implements IBlitTechGame {
         const playerRect = new Rect2i(this.playerPos.x, this.playerPos.y, this.playerSize.x, this.playerSize.y);
         BT.drawRectFill(playerRect, this.playerColor);
 
-        // Draw UI
-        BT.print(new Vector2i(10, 10), Color32.white(), `FPS: ${BT.fps()}`);
+        // Draw UI with bitmap font
+        if (this.font) {
+            BT.printFont(this.font, new Vector2i(10, 10), `FPS: ${BT.fps()}`, Color32.white());
 
-        BT.print(new Vector2i(10, 20), Color32.white(), `Position: ${this.playerPos.x}, ${this.playerPos.y}`);
+            BT.printFont(
+                this.font,
+                new Vector2i(10, 26),
+                `Position: ${this.playerPos.x}, ${this.playerPos.y}`,
+                Color32.white(),
+            );
 
-        BT.print(new Vector2i(10, 30), Color32.white(), 'Use WASD or Arrow Keys to move');
+            BT.printFont(this.font, new Vector2i(10, 42), 'Use WASD or Arrow Keys to move', Color32.white());
+        } else {
+            // Fallback to basic print if font not loaded
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Font not loaded');
+        }
     }
 }
 

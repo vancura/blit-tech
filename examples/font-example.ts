@@ -3,30 +3,21 @@
  *
  * Shows how to use bitmap fonts for text rendering in Blit-Tech.
  * Demonstrates:
- * - Loading/creating bitmap fonts
+ * - Loading bitmap fonts from .btfont files
  * - Colored text rendering
  * - Rainbow and pulsing text effects
  * - Text measurement
  *
- * To use your own bitmap font:
- * 1. Create a font image with fixed-width characters
- * 2. Use BitmapFont.loadFixedWidth() to load it
- * 3. Render with BT.printFont()
+ * Font file format (.btfont):
+ * - JSON with embedded base64 texture or relative path to PNG
+ * - Supports variable-width glyphs with per-character offsets
+ * - Unicode support for special characters
  */
 
-import {
-    BitmapFont,
-    BT,
-    Color32,
-    type HardwareSettings,
-    type IBlitTechGame,
-    SpriteSheet,
-    Vector2i,
-} from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates bitmap font rendering with various text effects.
- * Creates a programmatic font for demo purposes.
  */
 class FontDemo implements IBlitTechGame {
     /** Loaded bitmap font for text rendering. */
@@ -51,84 +42,33 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Creates a demo font programmatically using canvas.
-     * In production, you'd load from an image file instead.
-     * @returns Promise resolving to true when font is created.
+     * Loads the bitmap font from a .btfont file.
+     * @returns Promise resolving to true when font is loaded.
      */
     async initialize(): Promise<boolean> {
         console.log('[FontDemo] Initializing...');
 
-        // Create a simple programmatic font for demonstration
-        this.font = await this.createSimpleFont();
+        // Load font from .btfont file
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[FontDemo] Loaded font: ${this.font.name}`);
+            console.log(`  Size: ${this.font.size}pt`);
+            console.log(`  Line height: ${this.font.lineHeight}px`);
+            console.log(`  Glyphs: ${this.font.glyphCount}`);
+        } catch (error) {
+            console.error('[FontDemo] Failed to load font:', error);
+            return false;
+        }
 
         console.log('[FontDemo] Font loaded successfully!');
         return true;
     }
 
     /**
-     * Creates a simple 8x8 bitmap font programmatically.
-     * Uses canvas text rendering to generate glyph texture.
-     *
-     * In a real game, you'd load from an image file:
-     * ```
-     * const font = await BitmapFont.loadFixedWidth(
-     *     'path/to/font.png',
-     *     'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!? ',
-     *     new Vector2i(8, 8),
-     *     16  // characters per row
-     * );
-     * ```
-     * @returns Promise resolving to the created BitmapFont.
-     */
-    private async createSimpleFont(): Promise<BitmapFont> {
-        // Character set
-        const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?:- ';
-        const charWidth = 8;
-        const charHeight = 8;
-        const charsPerRow = 16;
-        const rows = Math.ceil(charset.length / charsPerRow);
-
-        // Create canvas for font texture
-        const canvas = document.createElement('canvas');
-        canvas.width = charsPerRow * charWidth;
-        canvas.height = rows * charHeight;
-        const ctx = canvas.getContext('2d')!;
-
-        // Fill with transparent background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw simple characters
-        ctx.fillStyle = 'white';
-        ctx.font = '8px monospace';
-        ctx.textBaseline = 'top';
-
-        for (let i = 0; i < charset.length; i++) {
-            const col = i % charsPerRow;
-            const row = Math.floor(i / charsPerRow);
-            const x = col * charWidth + 1;
-            const y = row * charHeight;
-            ctx.fillText(charset.charAt(i), x, y);
-        }
-
-        // Convert canvas to image
-        const dataUrl = canvas.toDataURL();
-        const image = new Image();
-        await new Promise<void>((resolve) => {
-            image.onload = () => resolve();
-            image.src = dataUrl;
-        });
-
-        // Create sprite sheet and font
-        const spriteSheet = new SpriteSheet(image);
-        return new BitmapFont(spriteSheet, charset, new Vector2i(charWidth, charHeight), 1);
-    }
-
-    /**
      * Advances animation time for text effects.
      */
     update(): void {
-        this.animTime += 0.016;
+        this.animTime += 1 / 60; // Assuming 60 FPS
     }
 
     /**
@@ -144,44 +84,73 @@ class FontDemo implements IBlitTechGame {
             return;
         }
 
+        const lineHeight = this.font.lineHeight + 2;
+        let y = 10;
+
         // Title
-        BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH FONT DEMO', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, y), 'Blit-Tech Font Demo', Color32.white());
+        y += lineHeight + 4;
 
         // Different colors
-        BT.printFont(this.font, new Vector2i(10, 30), 'RED TEXT', new Color32(255, 100, 100));
-        BT.printFont(this.font, new Vector2i(10, 45), 'GREEN TEXT', new Color32(100, 255, 100));
-        BT.printFont(this.font, new Vector2i(10, 60), 'BLUE TEXT', new Color32(100, 100, 255));
-        BT.printFont(this.font, new Vector2i(10, 75), 'YELLOW TEXT', new Color32(255, 255, 100));
+        BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
+        y += lineHeight;
+        BT.printFont(this.font, new Vector2i(10, y), 'Green Text', new Color32(100, 255, 100));
+        y += lineHeight;
+        BT.printFont(this.font, new Vector2i(10, y), 'Blue Text', new Color32(100, 100, 255));
+        y += lineHeight;
+        BT.printFont(this.font, new Vector2i(10, y), 'Yellow Text', new Color32(255, 255, 100));
+        y += lineHeight + 4;
 
         // Animated rainbow text
-        const rainbowText = 'RAINBOW ANIMATION';
+        const rainbowText = 'Rainbow Animation!';
         let x = 10;
-        for (let i = 0; i < rainbowText.length; i++) {
-            const hue = (i * 20 + this.animTime * 100) % 360;
+        for (const char of rainbowText) {
+            const hue = (x * 3 + this.animTime * 100) % 360;
             const color = this.hslToRgb(hue, 100, 60);
-            const char = rainbowText.charAt(i);
-            BT.printFont(this.font, new Vector2i(x, 95), char, color);
+            BT.printFont(this.font, new Vector2i(x, y), char, color);
             const glyph = this.font.getGlyph(char);
-            x += glyph ? glyph.advance : 0;
+            x += glyph ? glyph.advance : 7;
         }
+        y += lineHeight + 4;
 
         // Pulsing text
         const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
-        const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), Math.floor(255));
-        BT.printFont(this.font, new Vector2i(10, 115), 'PULSING TEXT', pulseColor);
+        const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), 255);
+        BT.printFont(this.font, new Vector2i(10, y), 'Pulsing Text', pulseColor);
+        y += lineHeight + 4;
 
-        // Multi-line text
-        BT.printFont(this.font, new Vector2i(10, 140), 'MULTI-LINE TEXT:', Color32.white());
-        BT.printFont(this.font, new Vector2i(10, 155), 'LINE 1', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(10, 170), 'LINE 2', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(10, 185), 'LINE 3', new Color32(200, 200, 200));
+        // Unicode special characters
+        BT.printFont(this.font, new Vector2i(10, y), 'Special: 3 x 4 = 12', Color32.white());
+        y += lineHeight;
 
-        // Instructions
-        BT.printFont(this.font, new Vector2i(10, 210), 'USE YOUR OWN FONT:', new Color32(255, 200, 100));
+        // Text measurement demo
+        const measureText = 'Measured Width';
+        const textWidth = this.font.measureText(measureText);
+        BT.printFont(this.font, new Vector2i(10, y), measureText, new Color32(200, 200, 200));
+        // Draw underline showing measured width
+        BT.drawLine(
+            new Vector2i(10, y + lineHeight - 2),
+            new Vector2i(10 + textWidth, y + lineHeight - 2),
+            new Color32(255, 200, 100),
+        );
+        y += lineHeight + 4;
 
-        // FPS (using old placeholder print for comparison)
-        BT.print(new Vector2i(10, 225), new Color32(150, 150, 150), `FPS: ${BT.fps()}`);
-        BT.printFont(this.font, new Vector2i(100, 225), `TICKS: ${BT.ticks()}`, new Color32(150, 150, 150));
+        // Font info
+        BT.printFont(
+            this.font,
+            new Vector2i(10, y),
+            `Font: ${this.font.name} (${this.font.glyphCount} glyphs)`,
+            new Color32(150, 150, 150),
+        );
+        y += lineHeight;
+
+        // FPS counter
+        BT.printFont(
+            this.font,
+            new Vector2i(10, y),
+            `FPS: ${BT.fps()} | Ticks: ${BT.ticks()}`,
+            new Color32(100, 100, 100),
+        );
     }
 
     /**
@@ -196,7 +165,7 @@ class FontDemo implements IBlitTechGame {
         s = s / 100;
         l = l / 100;
 
-        let r, g, b;
+        let r: number, g: number, b: number;
 
         if (s === 0) {
             r = g = b = l;

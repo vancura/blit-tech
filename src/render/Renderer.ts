@@ -501,10 +501,12 @@ export class Renderer {
         const spriteSheet = font.getSpriteSheet();
         let cursorX = pos.x;
 
-        for (let i = 0; i < text.length; i++) {
-            const glyph = font.getGlyph(text.charAt(i));
+        for (const char of text) {
+            const glyph = font.getGlyph(char);
+
             if (glyph) {
-                this.drawSprite(spriteSheet, glyph.rect, new Vector2i(cursorX, pos.y), color);
+                const drawPos = new Vector2i(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
+                this.drawSprite(spriteSheet, glyph.rect, drawPos, color);
                 cursorX += glyph.advance;
             }
         }
