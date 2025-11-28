@@ -17,13 +17,7 @@
     "lineEnding": "lf"
   },
   "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": {
-          "level": "on"
-        }
-      }
-    }
+    "enabled": false
   },
   "javascript": {
     "formatter": {
