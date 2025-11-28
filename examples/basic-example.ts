@@ -5,7 +5,7 @@
  * This example creates a simple moving square that responds to keyboard input.
  */
 
-import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * A minimal game demonstrating core Blit-Tech functionality.

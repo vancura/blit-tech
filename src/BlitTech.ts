@@ -9,18 +9,17 @@ import { AssetLoader } from './assets/AssetLoader';
 import { BitmapFont } from './assets/BitmapFont';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
+import type { HardwareSettings, IBlitTechGame } from './core/IBlitTechGame';
 import { Color32 } from './utils/Color32';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
 
-import type { HardwareSettings, IBlitTechGame } from './core/IBlitTechGame';
-
 // Re-export types for convenience (type-only exports for interfaces)
-export type { IBlitTechGame, HardwareSettings };
-export { Vector2i, Rect2i, Color32 };
+export type { HardwareSettings, IBlitTechGame };
+export { Color32, Rect2i, Vector2i };
 
 // Re-export asset classes
-export { AssetLoader, SpriteSheet, BitmapFont };
+export { AssetLoader, BitmapFont, SpriteSheet };
 
 // Track which warnings have been shown to avoid console spam
 const _warnedFunctions = new Set<string>();

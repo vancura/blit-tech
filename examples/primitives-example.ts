@@ -9,7 +9,7 @@
  * - clearRect: Region clearing
  */
 
-import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates all primitive drawing operations with animated examples.

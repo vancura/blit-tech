@@ -1,10 +1,9 @@
-import { Renderer } from '../render/Renderer';
-import { Vector2i } from '../utils/Vector2i';
-
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
+import { Vector2i } from '../utils/Vector2i';
 import type { HardwareSettings, IBlitTechGame } from './IBlitTechGame';
 
 /**

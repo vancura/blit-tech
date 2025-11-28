@@ -14,7 +14,7 @@
  * 3. Render with BT.drawSprite(spriteSheet, srcRect, destPos, tint)
  */
 
-import { BT, Color32, Rect2i, SpriteSheet, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, SpriteSheet, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates sprite rendering with various tint and animation effects.

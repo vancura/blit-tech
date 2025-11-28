@@ -1,7 +1,6 @@
 import { Rect2i } from '../utils/Rect2i';
-import { SpriteSheet } from './SpriteSheet';
-
 import type { Vector2i } from '../utils/Vector2i';
+import { SpriteSheet } from './SpriteSheet';
 
 /**
  * Character glyph information for bitmap font rendering.
