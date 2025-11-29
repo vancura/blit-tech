@@ -29,9 +29,6 @@ class PrimitivesDemo implements IBlitTechGame {
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
-            mapSize: new Vector2i(128, 128),
-            mapLayers: 4,
-            chunkSize: new Vector2i(16, 16),
             targetFPS: 60,
         };
     }

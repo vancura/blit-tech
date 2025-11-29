@@ -35,7 +35,6 @@ export class BTAPI {
 
     // Subsystems
     private renderer: Renderer | null = null;
-    // private tilemapRenderer: TilemapRenderer | null = null;
     // private inputManager: InputManager | null = null;
     // private audioManager: AudioManager | null = null;
     // private effectsManager: EffectsManager | null = null;
@@ -91,9 +90,6 @@ export class BTAPI {
 
         console.log('[BlitTech] Hardware settings:', {
             displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
-            mapSize: `${this.hwSettings.mapSize.x}x${this.hwSettings.mapSize.y}`,
-            mapLayers: this.hwSettings.mapLayers,
-            chunkSize: `${this.hwSettings.chunkSize.x}x${this.hwSettings.chunkSize.y}`,
             targetFPS: this.hwSettings.targetFPS,
         });
 

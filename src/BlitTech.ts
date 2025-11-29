@@ -145,15 +145,6 @@ export const BT = {
     },
 
     /**
-     * Get current map size in tiles.
-     * @returns Map size as Vector2i.
-     */
-    mapSize: (): Vector2i => {
-        const settings = BTAPI.instance.getHardwareSettings();
-        return settings ? settings.mapSize.clone() : Vector2i.zero();
-    },
-
-    /**
      * Get target FPS.
      * @returns Target frames per second.
      */
