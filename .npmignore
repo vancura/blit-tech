@@ -32,9 +32,6 @@ vite.config.*.timestamp-*
 # Documentation (keep README.md and LICENSE)
 CONTRIBUTING.md
 CODE_OF_CONDUCT.md
-DEPLOYMENT.md
-PHASE_2.md
-PHASE_3.md
 docs/
 
 # Build artifacts
