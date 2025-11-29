@@ -14,7 +14,16 @@
  * 3. Render with BT.drawSprite(spriteSheet, srcRect, destPos, tint)
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, SpriteSheet, Vector2i } from '../src/BlitTech';
+import {
+    BitmapFont,
+    BT,
+    Color32,
+    type HardwareSettings,
+    type IBlitTechGame,
+    Rect2i,
+    SpriteSheet,
+    Vector2i,
+} from '../src/BlitTech';
 
 /**
  * Demonstrates sprite rendering with various tint and animation effects.
@@ -23,6 +32,9 @@ import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, SpriteS
 class SpriteDemo implements IBlitTechGame {
     /** Loaded sprite sheet containing shape sprites. */
     private spriteSheet: SpriteSheet | null = null;
+
+    /** Bitmap font for text rendering. */
+    private font: BitmapFont | null = null;
 
     /** Animation time accumulator in seconds. */
     private animTime: number = 0;
@@ -53,17 +65,28 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Creates a demo sprite sheet with basic shapes.
+     * Creates a demo sprite sheet with basic shapes and loads font.
      * In production, you'd load from an image file instead.
-     * @returns Promise resolving to true when sprites are created.
+     * @returns Promise resolving to true when sprites and font are loaded.
      */
     async initialize(): Promise<boolean> {
         console.log('[SpriteDemo] Initializing...');
 
         // Create a simple sprite sheet programmatically for demonstration
+        // (do this first to match original initialization order)
         this.spriteSheet = await this.createDemoSpriteSheet();
-
         console.log('[SpriteDemo] Sprite sheet created successfully!');
+
+        // Load bitmap font for text rendering
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[SpriteDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.error('[SpriteDemo] Failed to load font:', error);
+            return false;
+        }
+
+        console.log('[SpriteDemo] Initialization complete!');
         return true;
     }
 
@@ -224,37 +247,36 @@ class SpriteDemo implements IBlitTechGame {
         // Clear to dark background
         BT.clear(new Color32(30, 20, 40));
 
-        if (!this.spriteSheet) {
-            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading sprites...');
+        if (!this.font || !this.spriteSheet) {
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading...');
             return;
         }
 
-        // Title
-        BT.print(new Vector2i(10, 10), Color32.white(), 'BLITTECH SPRITE DEMO');
+        // Calculate animation values
+        const hue1 = (this.animTime * 60) % 360;
+        const hue2 = (this.animTime * 60 + 90) % 360;
+        const hue3 = (this.animTime * 60 + 180) % 360;
+        const hue4 = (this.animTime * 60 + 270) % 360;
+        const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
+        const alpha = Math.floor(100 + pulse * 155);
+        const bounce1 = Math.sin(this.animTime * 4) * 10;
+        const bounce2 = Math.sin(this.animTime * 4 + 1) * 10;
+        const bounce3 = Math.sin(this.animTime * 4 + 2) * 10;
 
+        // ===== DRAW ALL SPRITES FIRST =====
         // Row 1: Basic sprites with different colors
-        BT.print(new Vector2i(10, 30), new Color32(200, 200, 200), 'Colored Sprites:');
         BT.drawSprite(this.spriteSheet, this.sprites.square, new Vector2i(10, 45), new Color32(255, 100, 100));
         BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(50, 45), new Color32(100, 255, 100));
         BT.drawSprite(this.spriteSheet, this.sprites.triangle, new Vector2i(90, 45), new Color32(100, 100, 255));
         BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, 45), new Color32(255, 255, 100));
 
         // Row 2: Animated rainbow tints
-        BT.print(new Vector2i(10, 85), new Color32(200, 200, 200), 'Rainbow Tints:');
-        const hue1 = (this.animTime * 60) % 360;
-        const hue2 = (this.animTime * 60 + 90) % 360;
-        const hue3 = (this.animTime * 60 + 180) % 360;
-        const hue4 = (this.animTime * 60 + 270) % 360;
-
         BT.drawSprite(this.spriteSheet, this.sprites.heart, new Vector2i(10, 100), this.hslToRgb(hue1, 100, 60));
         BT.drawSprite(this.spriteSheet, this.sprites.diamond, new Vector2i(50, 100), this.hslToRgb(hue2, 100, 60));
         BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(90, 100), this.hslToRgb(hue3, 100, 60));
         BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, 100), this.hslToRgb(hue4, 100, 60));
 
         // Row 3: Pulsing opacity
-        BT.print(new Vector2i(10, 140), new Color32(200, 200, 200), 'Pulsing:');
-        const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
-        const alpha = Math.floor(100 + pulse * 155);
         BT.drawSprite(this.spriteSheet, this.sprites.square, new Vector2i(10, 155), new Color32(255, 255, 255, alpha));
         BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(50, 155), new Color32(255, 255, 255, alpha));
         BT.drawSprite(
@@ -265,11 +287,6 @@ class SpriteDemo implements IBlitTechGame {
         );
 
         // Row 4: Bouncing sprites
-        BT.print(new Vector2i(10, 195), new Color32(200, 200, 200), 'Animated:');
-        const bounce1 = Math.sin(this.animTime * 4) * 10;
-        const bounce2 = Math.sin(this.animTime * 4 + 1) * 10;
-        const bounce3 = Math.sin(this.animTime * 4 + 2) * 10;
-
         BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(10, 210 + bounce1), Color32.white());
         BT.drawSprite(
             this.spriteSheet,
@@ -284,19 +301,29 @@ class SpriteDemo implements IBlitTechGame {
             new Color32(100, 200, 255),
         );
 
+        // ===== DRAW ALL TEXT AFTER SPRITES =====
+        // Title
+        BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH SPRITE DEMO', Color32.white());
+
+        // Row labels
+        BT.printFont(this.font, new Vector2i(10, 30), 'Colored Sprites:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 85), 'Rainbow Tints:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 140), 'Pulsing:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 195), 'Animated:', new Color32(200, 200, 200));
+
         // Instructions
-        BT.print(new Vector2i(170, 30), new Color32(150, 150, 150), 'Load your own');
-        BT.print(new Vector2i(170, 45), new Color32(150, 150, 150), 'sprite sheets:');
-        BT.print(new Vector2i(170, 65), new Color32(100, 150, 200), 'const sheet =');
-        BT.print(new Vector2i(170, 80), new Color32(100, 150, 200), '  await');
-        BT.print(new Vector2i(170, 95), new Color32(100, 150, 200), '  SpriteSheet');
-        BT.print(new Vector2i(170, 110), new Color32(100, 150, 200), '  .load(url);');
-        BT.print(new Vector2i(170, 130), new Color32(100, 150, 200), 'BT.drawSprite(');
-        BT.print(new Vector2i(170, 145), new Color32(100, 150, 200), '  sheet,');
-        BT.print(new Vector2i(170, 160), new Color32(100, 150, 200), '  srcRect,');
-        BT.print(new Vector2i(170, 175), new Color32(100, 150, 200), '  destPos,');
-        BT.print(new Vector2i(170, 190), new Color32(100, 150, 200), '  tint');
-        BT.print(new Vector2i(170, 205), new Color32(100, 150, 200), ');');
+        BT.printFont(this.font, new Vector2i(170, 30), 'Load your own', new Color32(150, 150, 150));
+        BT.printFont(this.font, new Vector2i(170, 45), 'sprite sheets:', new Color32(150, 150, 150));
+        BT.printFont(this.font, new Vector2i(170, 65), 'const sheet =', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 80), '  await', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 95), '  SpriteSheet', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 110), '  .load(url);', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 130), 'BT.drawSprite(', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 145), '  sheet,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 160), '  srcRect,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 175), '  destPos,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 190), '  tint', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 205), ');', new Color32(100, 150, 200));
     }
 
     /**
