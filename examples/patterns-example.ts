@@ -11,7 +11,7 @@
  * - Tunnel: Concentric rotating rectangles
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates animated mathematical patterns using primitive drawing.
@@ -20,6 +20,9 @@ import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2
 class PatternsDemo implements IBlitTechGame {
     /** Animation time accumulator in seconds. */
     private animTime: number = 0;
+
+    /** Bitmap font for text rendering. */
+    private font: BitmapFont | null = null;
 
     /**
      * Configures a standard 320x240 display for pattern rendering.
@@ -36,10 +39,21 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes the demo (no assets to load).
-     * @returns Promise resolving to true.
+     * Initializes the demo and loads the bitmap font.
+     * @returns Promise resolving to true when font is loaded.
      */
     async initialize(): Promise<boolean> {
+        console.log('[PatternsDemo] Initializing...');
+
+        // Load bitmap font for text rendering
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[PatternsDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.error('[PatternsDemo] Failed to load font:', error);
+            return false;
+        }
+
         console.log('[PatternsDemo] Initialized');
         return true;
     }
@@ -58,8 +72,13 @@ class PatternsDemo implements IBlitTechGame {
         // Clear to dark background
         BT.clear(new Color32(15, 15, 25));
 
+        if (!this.font) {
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading font...');
+            return;
+        }
+
         // Title
-        BT.print(new Vector2i(10, 5), Color32.white(), 'Blit-Tech - Patterns Demo');
+        BT.printFont(this.font, new Vector2i(10, 5), 'Blit-Tech - Patterns Demo', Color32.white());
 
         // Draw different pattern sections
         this.drawSpiral(new Vector2i(40, 50));
@@ -70,18 +89,19 @@ class PatternsDemo implements IBlitTechGame {
         this.drawTunnel(new Vector2i(200, 130));
 
         // Labels
-        BT.print(new Vector2i(15, 95), new Color32(200, 200, 200), 'Spiral');
-        BT.print(new Vector2i(90, 95), new Color32(200, 200, 200), 'Radial');
-        BT.print(new Vector2i(175, 95), new Color32(200, 200, 200), 'Wave');
-        BT.print(new Vector2i(15, 175), new Color32(200, 200, 200), 'Circle');
-        BT.print(new Vector2i(85, 175), new Color32(200, 200, 200), 'Lissajous');
-        BT.print(new Vector2i(175, 175), new Color32(200, 200, 200), 'Tunnel');
+        BT.printFont(this.font, new Vector2i(15, 95), 'Spiral', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(90, 95), 'Radial', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(175, 95), 'Wave', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(15, 175), 'Circle', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(85, 175), 'Lissajous', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(175, 175), 'Tunnel', new Color32(200, 200, 200));
 
         // FPS counter
-        BT.print(
+        BT.printFont(
+            this.font,
             new Vector2i(10, 225),
-            new Color32(150, 150, 150),
             `FPS: ${BT.fps()} | Time: ${this.animTime.toFixed(1)}s`,
+            new Color32(150, 150, 150),
         );
     }
 

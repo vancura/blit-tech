@@ -9,7 +9,7 @@
  * - Mini-map with viewport indicator
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates camera scrolling with a procedurally generated city.
@@ -32,6 +32,9 @@ class CameraDemo implements IBlitTechGame {
     /** Procedurally generated tree positions. */
     private trees: Array<{ pos: Vector2i }> = [];
 
+    /** Bitmap font for text rendering. */
+    private font: BitmapFont | null = null;
+
     /**
      * Configures a 320x240 viewport for the scrolling world.
      * @returns Hardware configuration.
@@ -47,11 +50,20 @@ class CameraDemo implements IBlitTechGame {
     }
 
     /**
-     * Generates random buildings and trees to populate the world.
+     * Generates random buildings and trees to populate the world and loads font.
      * @returns Promise resolving to true when world generation completes.
      */
     async initialize(): Promise<boolean> {
-        console.log('[CameraDemo] Initialized');
+        console.log('[CameraDemo] Initializing...');
+
+        // Load bitmap font for text rendering
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[CameraDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.error('[CameraDemo] Failed to load font:', error);
+            return false;
+        }
 
         // Generate some buildings
         for (let i = 0; i < 20; i++) {
@@ -79,6 +91,7 @@ class CameraDemo implements IBlitTechGame {
             });
         }
 
+        console.log('[CameraDemo] Initialized');
         return true;
     }
 
@@ -196,27 +209,34 @@ class CameraDemo implements IBlitTechGame {
      * Includes title, camera position, instructions, mini-map, and FPS.
      */
     private drawUI(): void {
+        if (!this.font) return;
+
         // Semi-transparent background for UI
         BT.drawRectFill(new Rect2i(0, 0, 320, 40), new Color32(0, 0, 0, 180));
 
         // Title
-        BT.print(new Vector2i(10, 10), Color32.white(), 'Camera Demo');
+        BT.printFont(this.font, new Vector2i(10, 10), 'Camera Demo', Color32.white());
 
         // Camera info
         const camPos = BT.cameraGet();
-        BT.print(new Vector2i(10, 22), new Color32(200, 200, 200), `Camera: (${camPos.x}, ${camPos.y})`);
+        BT.printFont(this.font, new Vector2i(10, 22), `Camera: (${camPos.x}, ${camPos.y})`, new Color32(200, 200, 200));
 
         // Instructions (placeholder - input not implemented yet)
-        BT.print(new Vector2i(170, 10), new Color32(180, 180, 180), 'Auto-scrolling');
+        BT.printFont(this.font, new Vector2i(170, 10), 'Auto-scrolling', new Color32(180, 180, 180));
 
         // World size indicator
-        BT.print(new Vector2i(170, 22), new Color32(180, 180, 180), `World: ${this.worldWidth}x${this.worldHeight}`);
+        BT.printFont(
+            this.font,
+            new Vector2i(170, 22),
+            `World: ${this.worldWidth}x${this.worldHeight}`,
+            new Color32(180, 180, 180),
+        );
 
         // Mini-map
         this.drawMiniMap();
 
         // FPS counter
-        BT.print(new Vector2i(10, 225), new Color32(150, 150, 150), `FPS: ${BT.fps()}`);
+        BT.printFont(this.font, new Vector2i(10, 225), `FPS: ${BT.fps()}`, new Color32(150, 150, 150));
     }
 
     /**
