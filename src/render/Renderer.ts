@@ -594,6 +594,13 @@ export class Renderer {
         const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
 
         if (index + 8 > this.spriteVertices.length) {
+            // Check if flushing would help - only if we have vertices in current batch
+            if (this.spriteVertexCount === 0) {
+                // Buffer is full across all batches this frame - cannot add more vertices
+                console.warn('[Renderer] Sprite buffer capacity exceeded for this frame, vertex dropped');
+                return;
+            }
+
             console.warn('[Renderer] Sprite buffer full, flushing early');
             this.flushSprites();
             return this.addSpriteVertex(x, y, u, v, r, g, b, a);
