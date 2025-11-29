@@ -517,8 +517,19 @@ export class Renderer {
     }
 
     /**
+     * Checks if there's enough buffer space for a complete quad (6 vertices).
+     * @returns True if a quad can be added without splitting.
+     */
+    private hasSpaceForQuad(): boolean {
+        const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
+        const quadSize = 6 * 8; // 6 vertices * 8 floats per vertex
+        return index + quadSize <= this.spriteVertices.length;
+    }
+
+    /**
      * Draws a textured quad (two triangles) to the screen.
      * Handles texture switching and batch flushing.
+     * Ensures complete quads are added atomically to prevent partial geometry.
      * @param texture - GPU texture to sample from.
      * @param pos - Screen position (top-left corner).
      * @param size - Quad dimensions in pixels.
@@ -547,6 +558,19 @@ export class Renderer {
             this.currentBindGroup = this.getOrCreateBindGroup(texture);
         }
 
+        // Ensure we have space for a complete quad (6 vertices) before adding any
+        // This prevents partial quads that would cause rendering corruption
+        if (!this.hasSpaceForQuad()) {
+            if (this.spriteVertexCount > 0) {
+                this.flushSprites();
+            }
+            // Check again after flush - if still no space, buffer is full for this frame
+            if (!this.hasSpaceForQuad()) {
+                console.warn('[Renderer] Sprite buffer capacity exceeded for this frame, quad dropped');
+                return;
+            }
+        }
+
         const x0 = pos.x;
         const y0 = pos.y;
         const x1 = pos.x + size.x;
@@ -570,7 +594,7 @@ export class Renderer {
 
     /**
      * Adds a sprite vertex to the batch.
-     * Flushes if buffer is full.
+     * Assumes buffer space was pre-checked via hasSpaceForQuad() in drawTexturedQuad().
      * @param x - X position in pixels.
      * @param y - Y position in pixels.
      * @param u - U texture coordinate.
@@ -592,19 +616,6 @@ export class Renderer {
     ): void {
         // Use total vertices (across all batches) + current batch count for the index
         const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
-
-        if (index + 8 > this.spriteVertices.length) {
-            // Check if flushing would help - only if we have vertices in current batch
-            if (this.spriteVertexCount === 0) {
-                // Buffer is full across all batches this frame - cannot add more vertices
-                console.warn('[Renderer] Sprite buffer capacity exceeded for this frame, vertex dropped');
-                return;
-            }
-
-            console.warn('[Renderer] Sprite buffer full, flushing early');
-            this.flushSprites();
-            return this.addSpriteVertex(x, y, u, v, r, g, b, a);
-        }
 
         this.spriteVertices[index + 0] = x - this.cameraOffset.x;
         this.spriteVertices[index + 1] = y - this.cameraOffset.y;
