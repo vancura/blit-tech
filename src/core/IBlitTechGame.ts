@@ -16,15 +16,6 @@ export interface HardwareSettings {
      */
     canvasDisplaySize?: Vector2i;
 
-    /** Tilemap size in tiles (e.g., 128x128, 256x256) */
-    mapSize: Vector2i;
-
-    /** Number of tilemap layers (typically 4-8) */
-    mapLayers: number;
-
-    /** Chunk size for tilemap rendering (default: 16x16 tiles) */
-    chunkSize: Vector2i;
-
     /** Target frames per second for update() calls (default: 60) */
     targetFPS: number;
 }
@@ -71,15 +62,12 @@ export interface IBlitTechGame {
 
 /**
  * Creates default hardware settings for quick prototyping.
- * Provides a 320x240 display at 60 FPS with standard tilemap support.
+ * Provides a 320x240 display at 60 FPS.
  * @returns Default HardwareSettings configuration.
  */
 export function defaultHardwareSettings(): HardwareSettings {
     return {
         displaySize: new Vector2i(320, 240),
-        mapSize: new Vector2i(128, 128),
-        mapLayers: 4,
-        chunkSize: new Vector2i(16, 16),
         targetFPS: 60,
     };
 }
