@@ -35,6 +35,10 @@ export class Renderer {
     private currentBindGroup: GPUBindGroup | null = null;
     private textureBindGroups: Map<GPUTexture, GPUBindGroup> = new Map();
 
+    // Sprite batch queue for multi-texture support
+    private spriteBatches: Array<{ bindGroup: GPUBindGroup; vertexStart: number; vertexCount: number }> = [];
+    private totalSpriteVertices: number = 0;
+
     // Current state
     private currentClearColor: Color32 = Color32.black();
     private cameraOffset: Vector2i = Vector2i.zero();
@@ -299,11 +303,14 @@ export class Renderer {
 
     /**
      * Begins a new render frame.
-     * Resets vertex counts and texture state.
+     * Resets all frame state including vertex counts, sprite batches, and texture bindings.
+     * Safe to call multiple times - defensively resets all state to prevent corruption.
      */
     beginFrame(): void {
         this.primitiveVertexCount = 0;
         this.spriteVertexCount = 0;
+        this.totalSpriteVertices = 0;
+        this.spriteBatches = [];
         this.currentTexture = null;
         this.currentBindGroup = null;
     }
@@ -513,8 +520,19 @@ export class Renderer {
     }
 
     /**
+     * Checks if there's enough buffer space for a complete quad (6 vertices).
+     * @returns True if a quad can be added without splitting.
+     */
+    private hasSpaceForQuad(): boolean {
+        const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
+        const quadSize = 6 * 8; // 6 vertices * 8 floats per vertex
+        return index + quadSize <= this.spriteVertices.length;
+    }
+
+    /**
      * Draws a textured quad (two triangles) to the screen.
      * Handles texture switching and batch flushing.
+     * Ensures complete quads are added atomically to prevent partial geometry.
      * @param texture - GPU texture to sample from.
      * @param pos - Screen position (top-left corner).
      * @param size - Quad dimensions in pixels.
@@ -543,6 +561,19 @@ export class Renderer {
             this.currentBindGroup = this.getOrCreateBindGroup(texture);
         }
 
+        // Ensure we have space for a complete quad (6 vertices) before adding any
+        // This prevents partial quads that would cause rendering corruption
+        if (!this.hasSpaceForQuad()) {
+            if (this.spriteVertexCount > 0) {
+                this.flushSprites();
+            }
+            // Check again after flush - if still no space, buffer is full for this frame
+            if (!this.hasSpaceForQuad()) {
+                console.warn('[Renderer] Sprite buffer capacity exceeded for this frame, quad dropped');
+                return;
+            }
+        }
+
         const x0 = pos.x;
         const y0 = pos.y;
         const x1 = pos.x + size.x;
@@ -566,7 +597,7 @@ export class Renderer {
 
     /**
      * Adds a sprite vertex to the batch.
-     * Flushes if buffer is full.
+     * Assumes buffer space was pre-checked via hasSpaceForQuad() in drawTexturedQuad().
      * @param x - X position in pixels.
      * @param y - Y position in pixels.
      * @param u - U texture coordinate.
@@ -586,13 +617,8 @@ export class Renderer {
         b: number,
         a: number,
     ): void {
-        const index = this.spriteVertexCount * 8;
-
-        if (index + 8 > this.spriteVertices.length) {
-            console.warn('[Renderer] Sprite buffer full, flushing early');
-            this.flushSprites();
-            return this.addSpriteVertex(x, y, u, v, r, g, b, a);
-        }
+        // Use total vertices (across all batches) + current batch count for the index
+        const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
 
         this.spriteVertices[index + 0] = x - this.cameraOffset.x;
         this.spriteVertices[index + 1] = y - this.cameraOffset.y;
@@ -679,20 +705,20 @@ export class Renderer {
     }
 
     /**
-     * Uploads sprite vertices to the GPU and resets the batch.
-     * Called automatically when texture changes or frame ends.
+     * Saves the current sprite batch and prepares for a new texture.
+     * Called automatically when texture changes.
      */
     private flushSprites(): void {
-        if (this.spriteVertexCount === 0) return;
+        if (this.spriteVertexCount === 0 || !this.currentBindGroup) return;
 
-        this.device.queue.writeBuffer(
-            this.spriteVertexBuffer!,
-            0,
-            this.spriteVertices.buffer,
-            0,
-            this.spriteVertexCount * 8 * 4,
-        );
+        // Save this batch for rendering at endFrame
+        this.spriteBatches.push({
+            bindGroup: this.currentBindGroup,
+            vertexStart: this.totalSpriteVertices,
+            vertexCount: this.spriteVertexCount,
+        });
 
+        this.totalSpriteVertices += this.spriteVertexCount;
         this.spriteVertexCount = 0;
     }
 
@@ -701,6 +727,16 @@ export class Renderer {
      * Uploads all batched vertices, executes render passes, and submits to GPU.
      */
     endFrame(): void {
+        // Flush any remaining sprite vertices to the batch queue
+        if (this.spriteVertexCount > 0 && this.currentBindGroup) {
+            this.spriteBatches.push({
+                bindGroup: this.currentBindGroup,
+                vertexStart: this.totalSpriteVertices,
+                vertexCount: this.spriteVertexCount,
+            });
+            this.totalSpriteVertices += this.spriteVertexCount;
+        }
+
         // Get current texture to render to
         const textureView = this.context.getCurrentTexture().createView();
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
@@ -738,20 +774,25 @@ export class Renderer {
             renderPass.draw(this.primitiveVertexCount);
         }
 
-        // Draw sprites if any were added this frame
-        if (this.spriteVertexCount > 0 && this.currentBindGroup) {
+        // Draw all sprite batches (supports multiple textures per frame)
+        if (this.spriteBatches.length > 0 && this.totalSpriteVertices > 0) {
+            // Upload all sprite vertices at once
             this.device.queue.writeBuffer(
                 this.spriteVertexBuffer!,
                 0,
                 this.spriteVertices.buffer,
                 0,
-                this.spriteVertexCount * 8 * 4,
+                this.totalSpriteVertices * 8 * 4,
             );
 
             renderPass.setPipeline(this.spritePipeline!);
-            renderPass.setBindGroup(0, this.currentBindGroup);
             renderPass.setVertexBuffer(0, this.spriteVertexBuffer!);
-            renderPass.draw(this.spriteVertexCount);
+
+            // Draw each batch with its own bind group (texture)
+            for (const batch of this.spriteBatches) {
+                renderPass.setBindGroup(0, batch.bindGroup);
+                renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
+            }
         }
 
         renderPass.end();
@@ -760,6 +801,8 @@ export class Renderer {
         // Reset for next frame
         this.primitiveVertexCount = 0;
         this.spriteVertexCount = 0;
+        this.totalSpriteVertices = 0;
+        this.spriteBatches = [];
         this.currentTexture = null;
         this.currentBindGroup = null;
     }
