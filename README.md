@@ -9,6 +9,8 @@
 A lightweight WebGPU retro game engine for TypeScript, inspired by [RetroBlit](https://github.com/pixeltris/RetroBlit).
 Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 
+![Blit-Tech logo](assets/logo.png)
+
 ## Features
 
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
