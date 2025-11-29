@@ -84,9 +84,6 @@ class MyGame implements IBlitTechGame {
   queryHardware(): HardwareSettings {
     return {
       displaySize: new Vector2i(320, 240),
-      mapSize: new Vector2i(128, 128),
-      mapLayers: 4,
-      chunkSize: new Vector2i(16, 16),
       targetFPS: 60,
     };
   }
@@ -155,7 +152,6 @@ blit-tech/
 ```typescript
 BT.initialize(game, canvas); // Start the engine
 BT.displaySize(); // Get display resolution
-BT.mapSize(); // Get tilemap size
 BT.fps(); // Get target FPS
 BT.ticks(); // Get current tick count
 BT.ticksReset(); // Reset tick counter
