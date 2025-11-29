@@ -16,11 +16,12 @@ Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: sprite sheets, color tinting, transparency
-- **Bitmap fonts**: fixed-width font rendering with color support
+- **Bitmap fonts**: variable-width font rendering with color support
 - **Camera system**: scrolling with offset and reset
 - **Asset loading**: sprite sheets and bitmap fonts from images
 - **Fixed timestep**: deterministic 60 FPS game loop
 - **Clean API**: all engine access through the `BT` namespace
+- **Asset management**: sprite sheets and bitmap fonts with automatic caching
 
 ## Prerequisites
 
@@ -33,7 +34,7 @@ Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 
 ## Installation
 
-Clone the repository:
+**Note:** Blit-Tech is currently in development and not yet published to npm. Clone the repository to use it:
 
 ```bash
 git clone https://github.com/vancura/blit-tech.git
@@ -77,7 +78,7 @@ The examples gallery opens automatically at `http://localhost:5173/examples/`.
 Create a game by implementing the `IBlitTechGame` interface:
 
 ```typescript
-import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from 'blit-tech';
+import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
 
 class MyGame implements IBlitTechGame {
   queryHardware(): HardwareSettings {
@@ -91,12 +92,14 @@ class MyGame implements IBlitTechGame {
   }
 
   async initialize(): Promise<boolean> {
-    // Load assets here
+    // Load assets here (sprites, fonts, etc.)
+    // Example: const spriteSheet = await SpriteSheet.load('assets/sprites.png');
     return true;
   }
 
   update(): void {
-    // Game logic at fixed timestep
+    // Game logic at fixed timestep (60 FPS)
+    // Note: Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
   }
 
   render(): void {
@@ -169,13 +172,29 @@ BT.drawRect(rect, color); // Draw rectangle outline
 BT.drawRectFill(rect, color); // Draw filled rectangle
 ```
 
+### Asset Loading
+
+```typescript
+// Load sprite sheet from image
+const spriteSheet = await SpriteSheet.load('path/to/sprites.png');
+
+// Load bitmap font from .btfont file
+const font = await BitmapFont.load('fonts/MyFont.btfont');
+
+// Load multiple images in parallel
+const images = await AssetLoader.loadImages(['sprite1.png', 'sprite2.png']);
+```
+
 ### Sprites and Text
 
 ```typescript
-BT.drawSprite(sheet, srcRect, destPos, tint?); // Draw sprite
-BT.printFont(font, pos, text, color?); // Draw bitmap text
-BT.print(pos, color, text); // Draw basic text
+BT.drawSprite(sheet, srcRect, destPos, tint?); // Draw sprite from sprite sheet
+BT.printFont(font, pos, text, color?); // Draw text using bitmap font
+BT.print(pos, color, text); // Draw placeholder text (colored blocks)
 ```
+
+**Note:** `BT.print()` renders text as colored blocks and is intended as a placeholder. Use `BT.printFont()` with a
+`BitmapFont` for proper text rendering.
 
 ### Camera
 
@@ -188,11 +207,25 @@ BT.cameraReset(); // Reset to (0, 0)
 ### Core Types
 
 ```typescript
+// Vectors and rectangles
 Vector2i(x, y); // Integer 2D vector
 Rect2i(x, y, width, height); // Integer rectangle
-Color32.fromRGB(r, g, b); // Create color from RGB
-Color32.fromRGBA(r, g, b, a); // Create color with alpha
+
+// Colors
+Color32.fromRGB(r, g, b); // Create color from RGB (0-255)
+Color32.fromRGBA(r, g, b, a); // Create color with alpha (0-255)
+Color32.white(); // Predefined colors
+Color32.black();
+
+// Assets
+SpriteSheet.load(url); // Load sprite sheet (static method)
+BitmapFont.load(url); // Load bitmap font (static method)
 ```
+
+### Input
+
+**Note:** Keyboard and gamepad input methods (`BT.keyDown()`, `BT.buttonDown()`, etc.) are planned but not yet
+implemented. They currently return `false`. See the examples for workarounds.
 
 ## Examples
 
@@ -215,19 +248,6 @@ pnpm build:deploy
 
 The `dist/` directory contains a ready-to-deploy static site with all examples.
 
-**Supported Platforms:**
-
-- GitHub Pages
-- FastFront.io
-- StaticHost.eu
-- Coolify
-- Hetzner
-- Uberspace
-- Ploi.cloud
-- And any static host!
-
-**📚 Full deployment guide:** See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions for each platform.
-
 ## Browser Compatibility
 
 WebGPU support varies by browser:
@@ -248,6 +268,38 @@ The engine displays an error message if WebGPU is not supported.
 - **WGSL** — WebGPU Shading Language
 
 ## Assets & Fonts
+
+### Sprite Sheets
+
+Load sprite sheets from PNG images:
+
+```typescript
+const spriteSheet = await SpriteSheet.load('assets/sprites.png');
+BT.drawSprite(spriteSheet, new Rect2i(0, 0, 32, 32), new Vector2i(100, 100));
+```
+
+### Bitmap Fonts
+
+Blit-Tech uses a custom `.btfont` JSON format for bitmap fonts. The format supports:
+
+- Variable-width glyphs with per-character offsets
+- Unicode character support
+- Embedded or external textures (base64 or relative paths)
+
+**Quick example:**
+
+```typescript
+const font = await BitmapFont.load('fonts/MyFont.btfont');
+BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
+const width = font.measureText('Hello'); // Measure text width
+```
+
+**Full documentation:** See [Bitmap Fonts in Wiki](https://github.com/vancura/blit-tech/wiki/Bitmap-Fonts) for:
+
+- Complete `.btfont` format specification
+- Converting from BMFont format
+- Font creation tips and tools
+- API reference and examples
 
 The bitmap font examples use **PragmataPro** by Fabrizio Schiavi, available at
 [https://fsd.it/shop/fonts/pragmatapro/](https://fsd.it/shop/fonts/pragmatapro/).
