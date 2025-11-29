@@ -303,11 +303,14 @@ export class Renderer {
 
     /**
      * Begins a new render frame.
-     * Resets vertex counts and texture state.
+     * Resets all frame state including vertex counts, sprite batches, and texture bindings.
+     * Safe to call multiple times - defensively resets all state to prevent corruption.
      */
     beginFrame(): void {
         this.primitiveVertexCount = 0;
         this.spriteVertexCount = 0;
+        this.totalSpriteVertices = 0;
+        this.spriteBatches = [];
         this.currentTexture = null;
         this.currentBindGroup = null;
     }
