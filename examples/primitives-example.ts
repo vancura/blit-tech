@@ -9,7 +9,7 @@
  * - clearRect: Region clearing
  */
 
-import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * Demonstrates all primitive drawing operations with animated examples.
@@ -18,6 +18,9 @@ import { BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2
 class PrimitivesDemo implements IBlitTechGame {
     /** Animation tick counter for time-based effects. */
     private animTicks: number = 0;
+
+    /** Bitmap font for text rendering. */
+    private font: BitmapFont | null = null;
 
     /**
      * Configures a standard 320x240 display.
@@ -34,10 +37,21 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes the demo (no assets to load).
-     * @returns Promise resolving to true.
+     * Initializes the demo and loads the bitmap font.
+     * @returns Promise resolving to true when font is loaded.
      */
     async initialize(): Promise<boolean> {
+        console.log('[PrimitivesDemo] Initializing...');
+
+        // Load bitmap font for text rendering
+        try {
+            this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+            console.log(`[PrimitivesDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
+        } catch (error) {
+            console.error('[PrimitivesDemo] Failed to load font:', error);
+            return false;
+        }
+
         console.log('[PrimitivesDemo] Initialized');
         return true;
     }
@@ -57,11 +71,16 @@ class PrimitivesDemo implements IBlitTechGame {
         // Clear background to dark blue
         BT.clear(new Color32(20, 30, 50));
 
+        if (!this.font) {
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading font...');
+            return;
+        }
+
         // Title
-        BT.print(new Vector2i(10, 10), Color32.white(), 'Blit-Tech - Primitives Demo');
+        BT.printFont(this.font, new Vector2i(10, 10), 'Blit-Tech - Primitives Demo', Color32.white());
 
         // Section 1: Pixels
-        BT.print(new Vector2i(10, 30), new Color32(255, 200, 100), 'Pixels:');
+        BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
 
         // Draw random-ish pixels
         for (let i = 0; i < 50; i++) {
@@ -73,7 +92,7 @@ class PrimitivesDemo implements IBlitTechGame {
         }
 
         // Section 2: Lines
-        BT.print(new Vector2i(10, 75), new Color32(255, 200, 100), 'Lines:');
+        BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
 
         // Horizontal line
         BT.drawLine(new Vector2i(10, 90), new Vector2i(70, 90), new Color32(255, 100, 100));
@@ -94,7 +113,7 @@ class PrimitivesDemo implements IBlitTechGame {
         BT.drawLine(new Vector2i(centerX, centerY), new Vector2i(Math.floor(endX), Math.floor(endY)), Color32.white());
 
         // Section 3: Rectangle Outlines
-        BT.print(new Vector2i(90, 30), new Color32(255, 200, 100), 'Rect Outlines:');
+        BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
 
         // Static rectangles
         BT.drawRect(new Rect2i(90, 45, 40, 25), new Color32(255, 100, 100));
@@ -106,7 +125,7 @@ class PrimitivesDemo implements IBlitTechGame {
         BT.drawRect(new Rect2i(220, 45, pulse * 2, pulse * 2), new Color32(255, 255, 100));
 
         // Section 4: Filled Rectangles
-        BT.print(new Vector2i(90, 90), new Color32(255, 200, 100), 'Rect Fills:');
+        BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
 
         // Static filled rectangles
         BT.drawRectFill(new Rect2i(90, 105, 40, 25), new Color32(255, 100, 100));
@@ -118,7 +137,7 @@ class PrimitivesDemo implements IBlitTechGame {
         BT.drawRectFill(new Rect2i(slideX, 105, 20, 20), new Color32(255, 255, 100));
 
         // Section 5: Clear Rect
-        BT.print(new Vector2i(10, 135), new Color32(255, 200, 100), 'Clear Rect:');
+        BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
 
         // Draw a background pattern
         for (let i = 0; i < 10; i++) {
@@ -132,7 +151,7 @@ class PrimitivesDemo implements IBlitTechGame {
         BT.clearRect(new Color32(20, 30, 50), new Rect2i(clearX, 160, 40, 30));
 
         // Section 6: Combined Demo
-        BT.print(new Vector2i(120, 150), new Color32(255, 200, 100), 'Combined:');
+        BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
 
         // Draw a simple animated "graph"
         const graphX = 120;
@@ -159,7 +178,12 @@ class PrimitivesDemo implements IBlitTechGame {
         }
 
         // FPS counter
-        BT.print(new Vector2i(10, 225), new Color32(150, 150, 150), `FPS: ${BT.fps()} | Ticks: ${BT.ticks()}`);
+        BT.printFont(
+            this.font,
+            new Vector2i(10, 225),
+            `FPS: ${BT.fps()} | Ticks: ${BT.ticks()}`,
+            new Color32(150, 150, 150),
+        );
     }
 
     /**
