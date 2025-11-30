@@ -1,159 +1,20 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Blit-Tech - Bitmap Font Demo</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+{{> layout-top}}
 
-            body {
-                font-family: 'Courier New', monospace;
-                background: linear-gradient(135deg, #4e134e 0%, #b28071 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                color: #fff;
-            }
+<h3>Demonstrated Features:</h3>
 
-            .container {
-                text-align: center;
-                padding: 20px;
-            }
+<ul>
+    <li><code>BitmapFont.load()</code> - Load bitmap fonts from .btfont files</li>
+    <li><code>BT.printFont(font, pos, text, color)</code> - Render bitmap text</li>
+    <li>Multiple text colors and effects (rainbow, pulsing)</li>
+    <li>Character-by-character color control</li>
+    <li>Variable-width glyphs with per-character offsets</li>
+</ul>
 
-            h1 {
-                margin-bottom: 10px;
-                font-size: 2em;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            }
+<div class="note">
+    <strong>How to use your own bitmap font:</strong><br />
+    1. Create a .btfont file (JSON) with glyph data and texture<br />
+    2. Use <code>const font = await BitmapFont.load('path/to/font.btfont')</code><br />
+    3. Render with <code>BT.printFont(font, position, text, color)</code>
+</div>
 
-            #canvas-container {
-                background: #000;
-                border: 4px solid #b28071;
-                border-radius: 8px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                display: inline-block;
-                margin: 20px 0;
-            }
-
-            canvas {
-                display: block;
-                image-rendering: pixelated;
-                image-rendering: crisp-edges;
-            }
-
-            .info {
-                background: rgba(0, 0, 0, 0.3);
-                padding: 15px;
-                border-radius: 8px;
-                max-width: 600px;
-                margin: 20px auto;
-                text-align: left;
-            }
-
-            .info h3 {
-                margin-bottom: 10px;
-                color: #b28071;
-            }
-
-            .info ul {
-                list-style-type: none;
-                padding-left: 0;
-            }
-
-            .info li {
-                padding: 5px 0;
-                padding-left: 20px;
-                position: relative;
-            }
-
-            .info li::before {
-                content: '▸';
-                position: absolute;
-                left: 0;
-                color: #b28071;
-            }
-
-            .back-link {
-                display: inline-block;
-                margin-top: 20px;
-                padding: 10px 20px;
-                background: rgba(178, 128, 113, 0.3);
-                border: 2px solid #b28071;
-                border-radius: 5px;
-                color: #fff;
-                text-decoration: none;
-                transition: all 0.3s ease;
-            }
-
-            .back-link:hover {
-                background: rgba(178, 128, 113, 0.5);
-                transform: translateY(-2px);
-            }
-
-            code {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Courier New', monospace;
-            }
-
-            .note {
-                background: rgba(255, 200, 100, 0.2);
-                border-left: 3px solid #ffc864;
-                padding: 10px;
-                margin-top: 15px;
-                border-radius: 3px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>🔤 Blit-Tech Bitmap Font Demo</h1>
-
-            <div id="canvas-container">
-                <canvas id="game-canvas" width="320" height="240"></canvas>
-            </div>
-
-            <div class="info">
-                <h3>Demonstrated Features:</h3>
-                <ul>
-                    <li><code>BitmapFont.load()</code> - Load bitmap fonts from .btfont files</li>
-                    <li><code>BT.printFont(font, pos, text, color)</code> - Render bitmap text</li>
-                    <li>Multiple text colors and effects (rainbow, pulsing)</li>
-                    <li>Character-by-character color control</li>
-                    <li>Variable-width glyphs with per-character offsets</li>
-                </ul>
-
-                <div class="note">
-                    <strong>How to use your own bitmap font:</strong><br />
-                    1. Create a .btfont file (JSON) with glyph data and texture<br />
-                    2. Use <code>const font = await BitmapFont.load('path/to/font.btfont')</code><br />
-                    3. Render with <code>BT.printFont(font, position, text, color)</code>
-                </div>
-
-                <div class="note" style="margin-top: 15px">
-                    <strong>Font Attribution:</strong><br />
-                    This example uses <strong>PragmataPro</strong> by Fabrizio Schiavi.<br />
-                    Available at
-                    <a href="https://fsd.it/shop/fonts/pragmatapro/" target="_blank" style="color: #ffc864"
-                        >https://fsd.it/shop/fonts/pragmatapro/</a
-                    >
-                </div>
-            </div>
-
-            <a href="index.html" class="back-link">← Back to Examples</a>
-        </div>
-
-        <script type="module" src="fonts.ts"></script>
-
-        <noscript>
-            <div class="error"><strong>Error:</strong> JavaScript is required to run this example.</div>
-        </noscript>
-    </body>
-</html>
+{{> font-attribution}} {{> layout-bottom}}

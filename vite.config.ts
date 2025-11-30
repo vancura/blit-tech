@@ -1,10 +1,23 @@
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import handlebars from 'vite-plugin-handlebars';
+
+import { exampleContexts } from './examples/_config/contexts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+/**
+ * Get context data for a page based on its filename.
+ * @param pagePath - Absolute path to the HTML file
+ * @returns Context object with template variables
+ */
+function getPageContext(pagePath: string): Record<string, string> {
+    const filename = basename(pagePath);
+    return exampleContexts[filename] ?? {};
+}
 
 export default defineConfig(({ mode, command }) => {
     const isLibBuild = mode === 'lib';
@@ -12,6 +25,10 @@ export default defineConfig(({ mode, command }) => {
 
     return {
         plugins: [
+            handlebars({
+                partialDirectory: resolve(__dirname, 'examples/_partials'),
+                context: getPageContext,
+            }),
             dts({
                 include: ['src/**/*.ts'],
                 exclude: ['src/main.ts'],
