@@ -52,10 +52,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml,html}\"",
-    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml,html}\"",
+    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
+    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
     "format:biome": "biome format --write .",
-    "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml,html}\"",
+    "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
     "changeset": "changeset",
@@ -87,9 +87,18 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.2",
+    "prettier": "^3.7.3",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-handlebars": "^2.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs,json,jsonc,css}": [
+      "biome check --write --no-errors-on-unmatched"
+    ],
+    "*.{md,mdx,yml,yaml,html,hbs}": [
+      "prettier --write"
+    ]
   }
 }

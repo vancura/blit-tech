@@ -39,5 +39,13 @@ export default {
                 printWidth: 120,
             },
         },
+        {
+            files: ['*.hbs'],
+            options: {
+                parser: 'html',
+                tabWidth: 4,
+                printWidth: 120,
+            },
+        },
     ],
 };
