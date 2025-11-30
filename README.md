@@ -6,10 +6,18 @@
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
 
-A lightweight WebGPU retro game engine for TypeScript, inspired by [RetroBlit](https://github.com/pixeltris/RetroBlit).
+A lightweight WebGPU retro game engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit).
 Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 
 ![Blit-Tech logo](assets/logo.png)
+
+## Inspiration
+
+Blit-Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html), a retro
+pixel game framework for Unity created by **Martin Cietwierkowski**. RetroBlit provides an ideal environment for making
+pixel-perfect retro games through a traditional game loop and code-only development, discarding the Unity Editor in
+favor of a clean, low-level API. Blit-Tech brings similar philosophy to the web using WebGPU: no scene graphs, no
+complex frameworks - just sprites, primitives, fonts, and tilemaps.
 
 ## Features
 
