@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+    /* Accent color - unified blue theme */
+    --color-accent: #4a90e2;
+    --color-accent-hover: #5da0f2;
+
+    /* Surface colors */
+    --color-surface: oklch(0% 0 0 / 0.3);
+    --color-surface-hover: oklch(100% 0 0 / 0.2);
+
+    /* Background gradient */
+    --color-bg-from: #1e3c72;
+    --color-bg-to: #2a5298;
+
+    /* Note/warning colors */
+    --color-note-bg: oklch(85% 0.1 85 / 0.2);
+    --color-note-border: #ffc864;
+
+    /* Success color for checkmarks */
+    --color-success: #2ecc71;
+
+    /* Font family */
+    --font-mono: "Courier New", monospace;
+}
+
+/* Canvas pixel-perfect rendering */
+canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* List marker styling */
+.info-list li::before {
+    content: "\25B8";
+    position: absolute;
+    left: 0;
+    color: var(--color-accent);
+}
+
+.check-list li::before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    color: var(--color-success);
+    font-weight: bold;
+}
