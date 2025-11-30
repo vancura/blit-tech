@@ -52,10 +52,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
-    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
+    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
+    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml}\"",
     "format:biome": "biome format --write .",
-    "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml,html,hbs}\"",
+    "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
     "changeset": "changeset",
@@ -97,7 +97,7 @@
     "*.{ts,js,mjs,cjs,json,jsonc,css}": [
       "biome check --write --no-errors-on-unmatched"
     ],
-    "*.{md,mdx,yml,yaml,html,hbs}": [
+    "*.{md,mdx,yml,yaml}": [
       "prettier --write"
     ]
   }
