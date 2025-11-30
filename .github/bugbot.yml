@@ -37,9 +37,13 @@ rules:
     severity: error
     message: 'Emoji are not allowed in this project. Use plain text instead.'
     patterns:
-      - "[\U0001F300-\U0001F9FF]" # Most emoji ranges
-      - "[\u2600-\u26FF]" # Misc symbols
-      - "[\u2700-\u27BF]" # Dingbats
+      # Use Unicode property escapes (requires /u flag in JS regex)
+      - '\p{Emoji_Presentation}' # Emoji with default emoji presentation
+      - '\p{Extended_Pictographic}' # All pictographic characters
+      # Fallback explicit ranges using JS regex Unicode escapes
+      - '[\u{1F300}-\u{1F9FF}]' # Miscellaneous Symbols and Pictographs + Supplemental
+      - '[\u{2600}-\u{26FF}]' # Miscellaneous Symbols
+      - '[\u{2700}-\u{27BF}]' # Dingbats
 
   # Integer coordinates for rendering
   integer_coordinates:
