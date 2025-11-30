@@ -35,10 +35,18 @@
     }
   },
   "css": {
+    "parser": {
+      "cssModules": false,
+      "allowWrongLineComments": false,
+      "tailwindDirectives": true
+    },
     "formatter": {
       "indentWidth": 4,
       "lineWidth": 100,
       "quoteStyle": "double"
+    },
+    "linter": {
+      "enabled": true
     }
   },
   "linter": {
