@@ -51,13 +51,13 @@ export default defineConfig(({ mode, command }) => {
                   rollupOptions: {
                       input: {
                           main: resolve(__dirname, 'index.html'),
-                          'examples-index': resolve(__dirname, 'examples/examples-index.html'),
-                          'examples-basic': resolve(__dirname, 'examples/index.html'),
+                          'examples-index': resolve(__dirname, 'examples/index.html'),
+                          'examples-basics': resolve(__dirname, 'examples/basics.html'),
                           'examples-primitives': resolve(__dirname, 'examples/primitives.html'),
                           'examples-camera': resolve(__dirname, 'examples/camera.html'),
                           'examples-patterns': resolve(__dirname, 'examples/patterns.html'),
-                          'examples-sprite': resolve(__dirname, 'examples/sprite.html'),
-                          'examples-font': resolve(__dirname, 'examples/font.html'),
+                          'examples-sprites': resolve(__dirname, 'examples/sprites.html'),
+                          'examples-fonts': resolve(__dirname, 'examples/fonts.html'),
                       },
                       output: isProduction
                           ? {
@@ -74,12 +74,12 @@ export default defineConfig(({ mode, command }) => {
               },
 
         server: {
-            open: '/examples/examples-index.html',
+            open: true,
             hmr: true,
         },
 
         preview: {
-            open: '/examples/examples-index.html',
+            open: true,
         },
 
         // Optimize dependency pre-bundling

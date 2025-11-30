@@ -58,7 +58,7 @@ Start the development server with hot module replacement:
 pnpm dev
 ```
 
-The examples gallery opens automatically at `http://localhost:5173/examples/`.
+The browser opens automatically at `http://localhost:5173/` and redirects to the examples gallery.
 
 ## Scripts
 
@@ -123,13 +123,13 @@ BT.initialize(new MyGame(), canvas);
 ```text
 blit-tech/
 ├── examples/                   # Interactive examples
-│   ├── examples-index.html     # Examples gallery
-│   ├── index.html              # Basic example
+│   ├── index.html              # Examples gallery
+│   ├── basics.html             # Basic example
 │   ├── primitives.html         # Drawing primitives demo
 │   ├── camera.html             # Camera scrolling demo
 │   ├── patterns.html           # Animated patterns demo
-│   ├── sprite.html             # Sprite rendering demo
-│   └── font.html               # Bitmap font demo
+│   ├── sprites.html            # Sprite rendering demo
+│   └── fonts.html              # Bitmap font demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
