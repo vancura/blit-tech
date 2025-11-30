@@ -31,21 +31,5 @@ export default {
                 tabWidth: 2,
             },
         },
-        {
-            files: ['*.html'],
-            options: {
-                parser: 'html',
-                tabWidth: 4,
-                printWidth: 120,
-            },
-        },
-        {
-            files: ['*.hbs'],
-            options: {
-                parser: 'html',
-                tabWidth: 4,
-                printWidth: 120,
-            },
-        },
     ],
 };
