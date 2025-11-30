@@ -132,7 +132,6 @@ blit-tech/
 │   └── font.html               # Bitmap font demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
-│   ├── main.ts                 # Dev entry point
 │   ├── assets/
 │   │   ├── AssetLoader.ts      # Image/asset loading
 │   │   ├── BitmapFont.ts       # Bitmap font system
@@ -146,7 +145,6 @@ blit-tech/
 │       ├── Color32.ts          # 32-bit color type
 │       ├── Rect2i.ts           # Integer rectangle
 │       └── Vector2i.ts         # Integer 2D vector
-├── index.html                  # Dev entry HTML
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
