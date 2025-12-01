@@ -101,7 +101,12 @@ export class BTAPI {
 
         // Initialize subsystems
         console.log('[BlitTech] Initializing renderer...');
-        this.renderer = new Renderer(this.device!, this.context!, this.hwSettings.displaySize);
+        // Safe assertion: initializeWebGPU sets device and context before this point
+        this.renderer = new Renderer(
+            this.device as GPUDevice,
+            this.context as GPUCanvasContext,
+            this.hwSettings.displaySize,
+        );
         if (!(await this.renderer.initialize())) {
             console.error('[BlitTech] Failed to initialize renderer');
             return false;
@@ -157,7 +162,13 @@ export class BTAPI {
         }
 
         // Configure canvas
-        this.context = this.canvas!.getContext('webgpu') as GPUCanvasContext;
+        // Guard: canvas is set in initialize() before this method is called
+        if (!this.canvas || !this.hwSettings) {
+            console.error('[BlitTech] Canvas or hardware settings not initialized');
+            return false;
+        }
+
+        this.context = this.canvas.getContext('webgpu') as GPUCanvasContext;
         if (!this.context) {
             console.error('[BlitTech] Failed to get WebGPU context');
             return false;
@@ -172,15 +183,15 @@ export class BTAPI {
 
         // Set canvas resolution to match display size from game
         // Note: This sets the internal pixel resolution, NOT the CSS display size
-        this.canvas!.width = this.hwSettings!.displaySize.x;
-        this.canvas!.height = this.hwSettings!.displaySize.y;
+        this.canvas.width = this.hwSettings.displaySize.x;
+        this.canvas.height = this.hwSettings.displaySize.y;
 
         // Set CSS display size if specified (for upscaling)
-        if (this.hwSettings!.canvasDisplaySize) {
-            this.canvas!.style.width = `${this.hwSettings!.canvasDisplaySize.x}px`;
-            this.canvas!.style.height = `${this.hwSettings!.canvasDisplaySize.y}px`;
+        if (this.hwSettings.canvasDisplaySize) {
+            this.canvas.style.width = `${this.hwSettings.canvasDisplaySize.x}px`;
+            this.canvas.style.height = `${this.hwSettings.canvasDisplaySize.y}px`;
             console.log(
-                `[BlitTech] Canvas display size: ${this.hwSettings!.canvasDisplaySize.x}x${this.hwSettings!.canvasDisplaySize.y}`,
+                `[BlitTech] Canvas display size: ${this.hwSettings.canvasDisplaySize.x}x${this.hwSettings.canvasDisplaySize.y}`,
             );
         }
 
