@@ -144,7 +144,7 @@ function showError(title: string, message: string) {
     if (container) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border: 2px solid #ff0000; border-radius: 8px; max-width: 600px;">
-                <h2 style="margin-top: 0; font-size: 24px;">❌ ${title}</h2>
+                <h2 style="margin-top: 0; font-size: 24px;">[X] ${title}</h2>
                 <p style="margin: 20px 0; line-height: 1.6;">${message}</p>
                 <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Check the browser console for more details.</p>
             </div>
