@@ -2,19 +2,21 @@
  * Basic Blit-Tech Example
  *
  * Demonstrates the minimal setup required for a Blit-Tech game.
- * This example creates a simple moving square that responds to keyboard input.
+ * This example creates a simple moving square that bounces around the screen.
+ * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
  * A minimal game demonstrating core Blit-Tech functionality.
- * Shows hardware configuration, game loop, input handling, and basic rendering.
+ * Shows hardware configuration, game loop, and basic rendering.
+ * Note: Input handling is planned but not yet implemented in Phase 1.
  */
 class BasicGame implements IBlitTechGame {
     // Player state
     private playerPos: Vector2i = new Vector2i(160, 120);
-    private playerVel: Vector2i = new Vector2i(0, 0);
+    private playerVel: Vector2i = new Vector2i(2, 1); // Auto-move velocity
     private playerSize: Vector2i = new Vector2i(16, 16);
 
     // Game state
@@ -66,35 +68,25 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Updates game logic at fixed 60 FPS.
-     * Handles WASD/Arrow key input for player movement and clamps to screen bounds.
+     * Auto-moves the square and bounces off screen edges.
+     * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
      */
     update(): void {
-        // Reset velocity
-        this.playerVel = Vector2i.zero();
-
-        // Handle keyboard input
-        const moveSpeed = 2;
-
-        if (BT.keyDown('ArrowLeft') || BT.keyDown('KeyA')) {
-            this.playerVel.x = -moveSpeed;
-        }
-        if (BT.keyDown('ArrowRight') || BT.keyDown('KeyD')) {
-            this.playerVel.x = moveSpeed;
-        }
-        if (BT.keyDown('ArrowUp') || BT.keyDown('KeyW')) {
-            this.playerVel.y = -moveSpeed;
-        }
-        if (BT.keyDown('ArrowDown') || BT.keyDown('KeyS')) {
-            this.playerVel.y = moveSpeed;
-        }
-
         // Update position
         this.playerPos = this.playerPos.add(this.playerVel);
 
-        // Clamp to screen bounds
+        // Bounce off screen edges
         const displaySize = BT.displaySize();
-        this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
-        this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
+
+        if (this.playerPos.x <= 0 || this.playerPos.x >= displaySize.x - this.playerSize.x) {
+            this.playerVel.x = -this.playerVel.x;
+            this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
+        }
+
+        if (this.playerPos.y <= 0 || this.playerPos.y >= displaySize.y - this.playerSize.y) {
+            this.playerVel.y = -this.playerVel.y;
+            this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
+        }
 
         // Debug: Log position every 60 frames
         if (BT.ticks() % 60 === 0) {
@@ -125,7 +117,12 @@ class BasicGame implements IBlitTechGame {
                 Color32.white(),
             );
 
-            BT.printFont(this.font, new Vector2i(10, 42), 'Use WASD or Arrow Keys to move', Color32.white());
+            BT.printFont(
+                this.font,
+                new Vector2i(10, 42),
+                'Auto-bouncing (input not yet implemented)',
+                new Color32(180, 180, 180),
+            );
         } else {
             // Fallback to basic print if font not loaded
             BT.print(new Vector2i(10, 10), Color32.white(), 'Font not loaded');
