@@ -23,12 +23,13 @@ class PrimitivesDemo implements IBlitTechGame {
     private font: BitmapFont | null = null;
 
     /**
-     * Configures a standard 320x240 display.
+     * Configures a 320x240 display with 2x CSS upscaling for crisp pixels.
      * @returns Hardware configuration for primitive rendering demo.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS: 60,
         };
     }
@@ -231,7 +232,7 @@ function showError(title: string, message: string) {
     if (container) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
-                <h2>❌ ${title}</h2>
+                <h2>[X] ${title}</h2>
                 <p style="margin: 20px 0;">${message}</p>
                 <p style="font-size: 0.9em; color: #ff9999;">Check the browser console for more details.</p>
             </div>

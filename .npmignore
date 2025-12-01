@@ -24,7 +24,6 @@ biome.json
 commitlint.config.js
 
 # Development files
-index.html
 vite.config.*.timestamp-*
 *.tsbuildinfo
 .eslintcache

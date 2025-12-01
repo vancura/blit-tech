@@ -35,10 +35,18 @@
     }
   },
   "css": {
+    "parser": {
+      "cssModules": false,
+      "allowWrongLineComments": false,
+      "tailwindDirectives": true
+    },
     "formatter": {
       "indentWidth": 4,
       "lineWidth": 100,
       "quoteStyle": "double"
+    },
+    "linter": {
+      "enabled": true
     }
   },
   "linter": {
@@ -100,6 +108,21 @@
         "rules": {
           "suspicious": {
             "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/core/**/*.ts", "src/render/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": {
+              "level": "warn",
+              "options": {
+                "allow": ["log", "warn", "error"]
+              }
+            }
           }
         }
       }
