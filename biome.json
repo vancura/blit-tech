@@ -111,6 +111,21 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/core/**/*.ts", "src/render/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": {
+              "level": "warn",
+              "options": {
+                "allow": ["log", "warn", "error"]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
