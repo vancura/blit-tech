@@ -50,7 +50,8 @@ export class SpriteSheet {
         if (!this.texture) {
             this.createTexture(device);
         }
-        return this.texture!;
+        // Safe assertion: createTexture always initializes this.texture
+        return this.texture as GPUTexture;
     }
 
     /**
@@ -71,7 +72,10 @@ export class SpriteSheet {
         const canvas = document.createElement('canvas');
         canvas.width = this.image.width;
         canvas.height = this.image.height;
-        const ctx = canvas.getContext('2d')!;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Failed to get 2D canvas context for texture creation');
+        }
         ctx.drawImage(this.image, 0, 0);
 
         // Get image data

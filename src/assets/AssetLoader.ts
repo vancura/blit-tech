@@ -16,13 +16,15 @@ export class AssetLoader {
      */
     static async loadImage(url: string): Promise<HTMLImageElement> {
         // Return cached image if available
-        if (this.loadedImages.has(url)) {
-            return this.loadedImages.get(url)!;
+        const cachedImage = this.loadedImages.get(url);
+        if (cachedImage) {
+            return cachedImage;
         }
 
         // Return existing promise if already loading
-        if (this.loadingPromises.has(url)) {
-            return this.loadingPromises.get(url)!;
+        const existingPromise = this.loadingPromises.get(url);
+        if (existingPromise) {
+            return existingPromise;
         }
 
         // Start loading
