@@ -36,12 +36,13 @@ class CameraDemo implements IBlitTechGame {
     private font: BitmapFont | null = null;
 
     /**
-     * Configures a 320x240 viewport for the scrolling world.
+     * Configures a 320x240 viewport with 2x CSS upscaling for the scrolling world.
      * @returns Hardware configuration.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS: 60,
         };
     }
@@ -285,7 +286,7 @@ function showError(title: string, message: string) {
     if (container) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
-                <h2>❌ ${title}</h2>
+                <h2>[X] ${title}</h2>
                 <p style="margin: 20px 0;">${message}</p>
                 <p style="font-size: 0.9em; color: #ff9999;">Check the browser console for more details.</p>
             </div>

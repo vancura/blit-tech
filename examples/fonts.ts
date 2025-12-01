@@ -197,7 +197,7 @@ function showError(title: string, message: string) {
     if (container) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
-                <h2>❌ ${title}</h2>
+                <h2>[X] ${title}</h2>
                 <p style="margin: 20px 0;">${message}</p>
                 <p style="font-size: 0.9em; color: #ff9999;">Check the browser console for more details.</p>
             </div>

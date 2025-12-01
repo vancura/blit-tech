@@ -58,28 +58,28 @@ Start the development server with hot module replacement:
 pnpm dev
 ```
 
-The examples gallery opens automatically at `http://localhost:5173/examples/`.
+The browser opens automatically at `http://localhost:5173/` and redirects to the examples gallery.
 
 ## Scripts
 
-| Command                | Description                            |
-| ---------------------- | -------------------------------------- |
-| `pnpm dev`             | Start dev server with HMR              |
-| `pnpm build`           | Type-check and build examples          |
-| `pnpm build:lib`       | Build the library for npm distribution |
-| `pnpm build:deploy`    | Build examples for deployment          |
-| `pnpm preview`         | Preview the production build           |
-| `pnpm lint`            | Run ESLint                             |
-| `pnpm lint:fix`        | Run ESLint with auto-fix               |
-| `pnpm format`          | Format all code (Biome + Prettier)     |
-| `pnpm format:check`    | Check all formatting without changes   |
-| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)     |
-| `pnpm format:prettier` | Format Markdown/YAML only (Prettier)   |
-| `pnpm typecheck`       | Run TypeScript type checking           |
-| `pnpm clean`           | Remove dist and cache directories      |
-| `pnpm changeset`       | Create a changeset for version bump    |
-| `pnpm version:bump`    | Bump version based on changesets       |
-| `pnpm release`         | Build library and publish to npm       |
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `pnpm dev`             | Start dev server with HMR                |
+| `pnpm build`           | Type-check and build examples            |
+| `pnpm build:lib`       | Build the library for npm distribution   |
+| `pnpm build:deploy`    | Build examples for deployment            |
+| `pnpm preview`         | Preview the production build             |
+| `pnpm lint`            | Run ESLint                               |
+| `pnpm lint:fix`        | Run ESLint with auto-fix                 |
+| `pnpm format`          | Format all code (Biome + Prettier)       |
+| `pnpm format:check`    | Check all formatting without changes     |
+| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)       |
+| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier) |
+| `pnpm typecheck`       | Run TypeScript type checking             |
+| `pnpm clean`           | Remove dist and cache directories        |
+| `pnpm changeset`       | Create a changeset for version bump      |
+| `pnpm version:bump`    | Bump version based on changesets         |
+| `pnpm release`         | Build library and publish to npm         |
 
 ## Quick Start
 
@@ -123,16 +123,21 @@ BT.initialize(new MyGame(), canvas);
 ```text
 blit-tech/
 ├── examples/                   # Interactive examples
-│   ├── examples-index.html     # Examples gallery
-│   ├── index.html              # Basic example
+│   ├── _config/
+│   │   └── contexts.ts         # Page-specific template data
+│   ├── _partials/              # Shared Handlebars templates
+│   │   ├── layout-top.hbs      # Common HTML head and styles
+│   │   ├── layout-bottom.hbs   # Common HTML footer
+│   │   └── font-attribution.hbs
+│   ├── index.html              # Examples gallery
+│   ├── basics.html             # Basic example
 │   ├── primitives.html         # Drawing primitives demo
 │   ├── camera.html             # Camera scrolling demo
 │   ├── patterns.html           # Animated patterns demo
-│   ├── sprite.html             # Sprite rendering demo
-│   └── font.html               # Bitmap font demo
+│   ├── sprites.html            # Sprite rendering demo
+│   └── fonts.html              # Bitmap font demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
-│   ├── main.ts                 # Dev entry point
 │   ├── assets/
 │   │   ├── AssetLoader.ts      # Image/asset loading
 │   │   ├── BitmapFont.ts       # Bitmap font system
@@ -146,7 +151,6 @@ blit-tech/
 │       ├── Color32.ts          # 32-bit color type
 │       ├── Rect2i.ts           # Integer rectangle
 │       └── Vector2i.ts         # Integer 2D vector
-├── index.html                  # Dev entry HTML
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts

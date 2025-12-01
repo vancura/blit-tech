@@ -1,118 +1,172 @@
 <!doctype html>
 <html lang="en">
+
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Blit-Tech - Basic Example</title>
-        <style>
-            body {
-                margin: 0;
-                padding: 20px;
-                background: #1a1a1a;
-                color: #ffffff;
-                font-family: 'Courier New', monospace;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-            }
-
-            h1 {
-                margin-bottom: 20px;
-                font-size: 24px;
-                text-align: center;
-            }
-
-            #canvas-container {
-                position: relative;
-                display: inline-block;
-                background: #000;
-                border: 2px solid #444;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            }
-
-            #game-canvas {
-                display: block;
-                image-rendering: pixelated;
-                image-rendering: crisp-edges;
-                /* Note: Canvas display size is now set via queryHardware().canvasDisplaySize */
-                /* These CSS values are fallback only if canvasDisplaySize is not specified */
-                /* Remove these if you always want to use canvasDisplaySize */
-                width: 640px;
-                height: 480px;
-            }
-
-            .info {
-                margin-top: 20px;
-                max-width: 640px;
-                text-align: center;
-                opacity: 0.7;
-            }
-
-            .error {
-                color: #ff6b6b;
-                padding: 20px;
-                background: #2a0000;
-                border: 1px solid #ff0000;
-                border-radius: 4px;
-                max-width: 640px;
-            }
-
-            code {
-                background: #2a2a2a;
-                padding: 2px 6px;
-                border-radius: 3px;
-                color: #4caf50;
-            }
-
-            .back-link {
-                display: inline-block;
-                margin-top: 20px;
-                padding: 10px 20px;
-                background: rgba(76, 175, 80, 0.3);
-                border: 2px solid #4caf50;
-                border-radius: 5px;
-                color: #fff;
-                text-decoration: none;
-                transition: all 0.3s ease;
-            }
-
-            .back-link:hover {
-                background: rgba(76, 175, 80, 0.5);
-                transform: translateY(-2px);
-            }
-        </style>
+        <title>Blit-Tech - Examples</title>
+        <link rel="stylesheet" href="./styles.css" />
     </head>
-    <body>
-        <h1>🎮 Blit-Tech Basic Example</h1>
 
-        <div id="canvas-container">
-            <canvas id="game-canvas"></canvas>
+    <body
+        class="font-mono bg-linear-to-br from-bg-from to-bg-to min-h-screen flex items-center justify-center text-white p-5">
+        <div class="max-w-4xl w-full">
+            <h1 class="text-center text-5xl mb-5 drop-shadow-lg">Blit-Tech Examples</h1>
+
+            <div class="text-center text-xl mb-10 opacity-90">WebGPU Retro Game Engine - Phase 1 Demos</div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+                <a href="basics.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[*]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Basic Example</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Bouncing square demo. Demonstrates basic setup and rendering.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Getting Started</div>
+                </a>
+
+                <a href="primitives.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[#]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Primitives</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Showcase of all drawing primitives: pixels, lines, rectangles, and filled shapes.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Drawing API</div>
+                </a>
+
+                <a href="camera.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[o]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Camera</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Demonstrates camera scrolling in a large world with mini-map and UI overlay.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Camera System</div>
+                </a>
+
+                <a href="patterns.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[~]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Patterns</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Animated mathematical patterns: spirals, waves, Lissajous curves, and more.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Animation</div>
+                </a>
+
+                <a href="sprites.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[%]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Sprites</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Textured sprite rendering with color tinting, transparency, and animation effects.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Sprite System</div>
+                </a>
+
+                <a href="fonts.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
+                    <div class="text-5xl mb-2.5">[A]</div>
+                    <div class="text-2xl mb-2.5 font-bold">Bitmap Fonts</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Bitmap font rendering with colors, effects, and custom font loading.</div>
+                    <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Text Rendering</div>
+                </a>
+            </div>
+
+            <div class="bg-surface rounded-xl p-5 mt-10">
+                <h2 class="mb-4 text-accent">Phase 1 Features Implemented:</h2>
+
+                <ul class="check-list list-none pl-0">
+                    <li class="py-2 pl-6 relative">
+                        Core type system: <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Vector2i</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Rect2i</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Color32</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        WebGPU dual-pipeline renderer (primitives + sprites)
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Primitive rendering: pixels, lines, rectangles
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Sprite rendering with texture batching and color tinting
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Bitmap font system with fixed-width font support
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Asset loading: <code class="bg-surface px-1.5 py-0.5 rounded font-mono">SpriteSheet</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BitmapFont</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Camera system with offset and reset
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Fixed timestep game loop (60 FPS)
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Clear operations (full screen and rectangular regions)
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-5 mt-5">
+                <h2 class="mb-4 text-amber-400">Not Yet Implemented (Planned):</h2>
+
+                <ul class="list-none pl-0">
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Keyboard input (WASD, Arrow Keys) -
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.keyDown()</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.keyPressed()</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">Gamepad support -
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.buttonDown()</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Mouse input
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Palette system (indexed colors, color cycling)
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Tilemap rendering
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Audio playback
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-surface rounded-xl p-5 mt-5">
+                <h2 class="mb-4 text-accent">Requirements:</h2>
+
+                <ul class="check-list list-none pl-0">
+                    <li class="py-2 pl-6 relative">
+                        Chrome/Edge 113+ or Firefox Nightly
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        WebGPU support enabled
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Compatible GPU and drivers
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-surface rounded-xl p-5 mt-5">
+                <h2 class="mb-4 text-accent">Assets and Fonts:</h2>
+
+                <p class="opacity-90 leading-relaxed">
+                    Bitmap font examples use <strong>PragmataPro</strong> by Fabrizio Schiavi.<br />
+                    Available at <a href="https://fsd.it/shop/fonts/pragmatapro/" target="_blank" class="text-accent hover:text-accent-hover">https://fsd.it/shop/fonts/pragmatapro/</a>
+                </p>
+            </div>
+
+            <div class="text-center mt-10 opacity-60 text-sm">
+                Blit-Tech - Inspired by RetroBlit | Built with WebGPU
+            </div>
         </div>
-
-        <div class="info">
-            <p>
-                A minimal Blit-Tech game example.<br />
-                Use <code>WASD</code> or <code>Arrow Keys</code> to move the white square.
-            </p>
-            <p><strong>Note:</strong> This demo requires WebGPU support. Currently works in Chrome/Edge 113+.</p>
-            <p style="margin-top: 15px; opacity: 0.8; font-size: 0.9em">
-                <strong>Font Attribution:</strong> Bitmap font examples use <strong>PragmataPro</strong> by Fabrizio
-                Schiavi.<br />
-                Available at
-                <a href="https://fsd.it/shop/fonts/pragmatapro/" target="_blank" style="color: #4caf50"
-                    >https://fsd.it/shop/fonts/pragmatapro/</a
-                >
-            </p>
-        </div>
-
-        <a href="examples-index.html" class="back-link">← All Examples</a>
-
-        <script type="module" src="./basic-example.ts"></script>
-
-        <noscript>
-            <div class="error"><strong>Error:</strong> JavaScript is required to run this example.</div>
-        </noscript>
     </body>
+
 </html>
