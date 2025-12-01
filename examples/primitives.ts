@@ -23,12 +23,13 @@ class PrimitivesDemo implements IBlitTechGame {
     private font: BitmapFont | null = null;
 
     /**
-     * Configures a standard 320x240 display.
+     * Configures a 320x240 display with 2x CSS upscaling for crisp pixels.
      * @returns Hardware configuration for primitive rendering demo.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS: 60,
         };
     }

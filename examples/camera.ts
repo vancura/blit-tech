@@ -36,12 +36,13 @@ class CameraDemo implements IBlitTechGame {
     private font: BitmapFont | null = null;
 
     /**
-     * Configures a 320x240 viewport for the scrolling world.
+     * Configures a 320x240 viewport with 2x CSS upscaling for the scrolling world.
      * @returns Hardware configuration.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS: 60,
         };
     }
