@@ -259,9 +259,11 @@ export class Renderer {
             new Float32Array([this.displaySize.x, this.displaySize.y]),
         );
 
+        // Safe assertion: createPrimitivePipeline is called before createBuffers
+        const primitivePipelineLayout = (this.primitivePipeline as GPURenderPipeline).getBindGroupLayout(0);
         this.primitiveBindGroup = this.device.createBindGroup({
             label: 'Primitive Bind Group',
-            layout: this.primitivePipeline!.getBindGroupLayout(0),
+            layout: primitivePipelineLayout,
             entries: [{ binding: 0, resource: { buffer: this.primitiveUniformBuffer } }],
         });
 
@@ -639,19 +641,23 @@ export class Renderer {
      * @returns Bind group containing uniform buffer, sampler, and texture.
      */
     private getOrCreateBindGroup(texture: GPUTexture): GPUBindGroup {
-        if (!this.textureBindGroups.has(texture)) {
-            const bindGroup = this.device.createBindGroup({
-                label: 'Sprite Bind Group',
-                layout: this.spritePipeline!.getBindGroupLayout(0),
-                entries: [
-                    { binding: 0, resource: { buffer: this.spriteUniformBuffer! } },
-                    { binding: 1, resource: this.spriteSampler! },
-                    { binding: 2, resource: texture.createView() },
-                ],
-            });
-            this.textureBindGroups.set(texture, bindGroup);
+        const existingBindGroup = this.textureBindGroups.get(texture);
+        if (existingBindGroup) {
+            return existingBindGroup;
         }
-        return this.textureBindGroups.get(texture)!;
+
+        // Safe assertions: these resources are created in initialize() before any drawing
+        const bindGroup = this.device.createBindGroup({
+            label: 'Sprite Bind Group',
+            layout: (this.spritePipeline as GPURenderPipeline).getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: { buffer: this.spriteUniformBuffer as GPUBuffer } },
+                { binding: 1, resource: this.spriteSampler as GPUSampler },
+                { binding: 2, resource: texture.createView() },
+            ],
+        });
+        this.textureBindGroups.set(texture, bindGroup);
+        return bindGroup;
     }
 
     // ========================================================================
@@ -693,8 +699,9 @@ export class Renderer {
     private flushPrimitives(): void {
         if (this.primitiveVertexCount === 0) return;
 
+        // Safe assertion: primitiveVertexBuffer is created in initialize()
         this.device.queue.writeBuffer(
-            this.primitiveVertexBuffer!,
+            this.primitiveVertexBuffer as GPUBuffer,
             0,
             this.primitiveVertices.buffer,
             0,
@@ -759,34 +766,36 @@ export class Renderer {
         });
 
         // Draw primitives if any were added this frame
+        // Safe assertions: these resources are created in initialize() before any rendering
         if (this.primitiveVertexCount > 0) {
             this.device.queue.writeBuffer(
-                this.primitiveVertexBuffer!,
+                this.primitiveVertexBuffer as GPUBuffer,
                 0,
                 this.primitiveVertices.buffer,
                 0,
                 this.primitiveVertexCount * 6 * 4,
             );
 
-            renderPass.setPipeline(this.primitivePipeline!);
-            renderPass.setBindGroup(0, this.primitiveBindGroup!);
-            renderPass.setVertexBuffer(0, this.primitiveVertexBuffer!);
+            renderPass.setPipeline(this.primitivePipeline as GPURenderPipeline);
+            renderPass.setBindGroup(0, this.primitiveBindGroup as GPUBindGroup);
+            renderPass.setVertexBuffer(0, this.primitiveVertexBuffer as GPUBuffer);
             renderPass.draw(this.primitiveVertexCount);
         }
 
         // Draw all sprite batches (supports multiple textures per frame)
+        // Safe assertions: these resources are created in initialize() before any rendering
         if (this.spriteBatches.length > 0 && this.totalSpriteVertices > 0) {
             // Upload all sprite vertices at once
             this.device.queue.writeBuffer(
-                this.spriteVertexBuffer!,
+                this.spriteVertexBuffer as GPUBuffer,
                 0,
                 this.spriteVertices.buffer,
                 0,
                 this.totalSpriteVertices * 8 * 4,
             );
 
-            renderPass.setPipeline(this.spritePipeline!);
-            renderPass.setVertexBuffer(0, this.spriteVertexBuffer!);
+            renderPass.setPipeline(this.spritePipeline as GPURenderPipeline);
+            renderPass.setVertexBuffer(0, this.spriteVertexBuffer as GPUBuffer);
 
             // Draw each batch with its own bind group (texture)
             for (const batch of this.spriteBatches) {
