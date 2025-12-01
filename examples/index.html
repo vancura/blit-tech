@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,8 @@
         <link rel="stylesheet" href="./styles.css" />
     </head>
 
-    <body class="font-mono bg-gradient-to-br from-bg-from to-bg-to min-h-screen flex items-center justify-center text-white p-5">
+    <body
+        class="font-mono bg-linear-to-br from-bg-from to-bg-to min-h-screen flex items-center justify-center text-white p-5">
         <div class="max-w-4xl w-full">
             <h1 class="text-center text-5xl mb-5 drop-shadow-lg">Blit-Tech Examples</h1>
 
@@ -17,7 +19,7 @@
                 <a href="basics.html" class="bg-white/10 border-2 border-white/20 rounded-xl p-5 no-underline text-white transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl">
                     <div class="text-5xl mb-2.5">[*]</div>
                     <div class="text-2xl mb-2.5 font-bold">Basic Example</div>
-                    <div class="text-sm opacity-80 leading-relaxed">Simple game with a moving square. Demonstrates basic setup and rendering.</div>
+                    <div class="text-sm opacity-80 leading-relaxed">Bouncing square demo. Demonstrates basic setup and rendering.</div>
                     <div class="inline-block bg-accent/50 px-2 py-1 rounded text-xs mt-2.5">Getting Started</div>
                 </a>
 
@@ -62,23 +64,75 @@
 
                 <ul class="check-list list-none pl-0">
                     <li class="py-2 pl-6 relative">
-                        Core type system: <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Vector2i</code>, <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Rect2i</code>,
+                        Core type system: <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Vector2i</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Rect2i</code>,
                         <code class="bg-surface px-1.5 py-0.5 rounded font-mono">Color32</code>
                     </li>
 
-                    <li class="py-2 pl-6 relative">WebGPU dual-pipeline renderer (primitives + sprites)</li>
-                    <li class="py-2 pl-6 relative">Primitive rendering: pixels, lines, rectangles</li>
-                    <li class="py-2 pl-6 relative">Sprite rendering with texture batching and color tinting</li>
-                    <li class="py-2 pl-6 relative">Bitmap font system with fixed-width font support</li>
+                    <li class="py-2 pl-6 relative">
+                        WebGPU dual-pipeline renderer (primitives + sprites)
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Primitive rendering: pixels, lines, rectangles
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Sprite rendering with texture batching and color tinting
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Bitmap font system with fixed-width font support
+                    </li>
 
                     <li class="py-2 pl-6 relative">
                         Asset loading: <code class="bg-surface px-1.5 py-0.5 rounded font-mono">SpriteSheet</code>,
                         <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BitmapFont</code>
                     </li>
 
-                    <li class="py-2 pl-6 relative">Camera system with offset and reset</li>
-                    <li class="py-2 pl-6 relative">Fixed timestep game loop (60 FPS)</li>
-                    <li class="py-2 pl-6 relative">Clear operations (full screen and rectangular regions)</li>
+                    <li class="py-2 pl-6 relative">
+                        Camera system with offset and reset
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Fixed timestep game loop (60 FPS)
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Clear operations (full screen and rectangular regions)
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-5 mt-5">
+                <h2 class="mb-4 text-amber-400">Not Yet Implemented (Planned):</h2>
+
+                <ul class="list-none pl-0">
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Keyboard input (WASD, Arrow Keys) -
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.keyDown()</code>,
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.keyPressed()</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">Gamepad support -
+                        <code class="bg-surface px-1.5 py-0.5 rounded font-mono">BT.buttonDown()</code>
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Mouse input
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Palette system (indexed colors, color cycling)
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Tilemap rendering
+                    </li>
+
+                    <li class="py-2 pl-6 relative opacity-80">
+                        Audio playback
+                    </li>
                 </ul>
             </div>
 
@@ -86,9 +140,17 @@
                 <h2 class="mb-4 text-accent">Requirements:</h2>
 
                 <ul class="check-list list-none pl-0">
-                    <li class="py-2 pl-6 relative">Chrome/Edge 113+ or Firefox Nightly</li>
-                    <li class="py-2 pl-6 relative">WebGPU support enabled</li>
-                    <li class="py-2 pl-6 relative">Compatible GPU and drivers</li>
+                    <li class="py-2 pl-6 relative">
+                        Chrome/Edge 113+ or Firefox Nightly
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        WebGPU support enabled
+                    </li>
+
+                    <li class="py-2 pl-6 relative">
+                        Compatible GPU and drivers
+                    </li>
                 </ul>
             </div>
 
@@ -101,7 +163,10 @@
                 </p>
             </div>
 
-            <div class="text-center mt-10 opacity-60 text-sm">Blit-Tech - Inspired by RetroBlit | Built with WebGPU</div>
+            <div class="text-center mt-10 opacity-60 text-sm">
+                Blit-Tech - Inspired by RetroBlit | Built with WebGPU
+            </div>
         </div>
     </body>
+
 </html>
