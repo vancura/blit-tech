@@ -16,8 +16,8 @@
  *   node convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont --embed
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { dirname, join, relative } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 
 /**
  * Parse an XML attribute value from a tag string.
