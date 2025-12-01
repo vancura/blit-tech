@@ -24,11 +24,17 @@
     --font-mono: "Courier New", monospace;
 }
 
-/* Canvas pixel-perfect rendering */
+/* Canvas pixel-perfect rendering - using both values for cross-browser support */
+/* pixelated works in Chrome/Safari, crisp-edges works in Firefox */
 canvas {
     display: block;
     image-rendering: pixelated;
-    image-rendering: crisp-edges;
+}
+
+@supports (image-rendering: crisp-edges) {
+    canvas {
+        image-rendering: crisp-edges;
+    }
 }
 
 /* List marker styling */
