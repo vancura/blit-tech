@@ -25,12 +25,13 @@ class PatternsDemo implements IBlitTechGame {
     private font: BitmapFont | null = null;
 
     /**
-     * Configures a standard 320x240 display for pattern rendering.
+     * Configures a 320x240 display with 2x CSS upscaling for crisp patterns.
      * @returns Hardware configuration.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS: 60,
         };
     }
