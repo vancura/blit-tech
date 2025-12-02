@@ -18,6 +18,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
  */
 function getPageContext(pagePath: string): Record<string, string> {
     const filename = basename(pagePath);
+    // eslint-disable-next-line security/detect-object-injection -- Safe: exampleContexts is a static config object, filename is sanitized by basename()
     return exampleContexts[filename] ?? {};
 }
 
