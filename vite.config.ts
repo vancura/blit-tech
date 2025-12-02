@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import handlebars from 'vite-plugin-handlebars';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 import { exampleContexts } from './examples/_config/contexts';
 
@@ -25,6 +26,9 @@ export default defineConfig(({ mode, command }) => {
     const isProduction = command === 'build';
 
     return {
+        // Use relative paths for assets (required for Electron file:// protocol)
+        base: isProduction && !isLibBuild ? './' : '/',
+
         plugins: [
             tailwindcss(),
             handlebars({
@@ -36,6 +40,19 @@ export default defineConfig(({ mode, command }) => {
                 exclude: ['src/main.ts'],
                 rollupTypes: true,
             }),
+            // Copy static assets (fonts) to dist for Electron builds
+            ...(!isLibBuild
+                ? [
+                      viteStaticCopy({
+                          targets: [
+                              {
+                                  src: 'examples/fonts/*',
+                                  dest: 'examples/fonts',
+                              },
+                          ],
+                      }),
+                  ]
+                : []),
         ],
 
         // Handle WGSL shader files as raw text
