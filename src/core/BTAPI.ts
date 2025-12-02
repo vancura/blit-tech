@@ -122,6 +122,16 @@ export class BTAPI {
             return false;
         }
 
+        // Wait for next frame to ensure canvas is fully ready
+        // This helps with Electron and some browser timing issues
+        await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    resolve();
+                });
+            });
+        });
+
         // Start game loop
         this.startGameLoop();
 
@@ -168,6 +178,20 @@ export class BTAPI {
             return false;
         }
 
+        // Set canvas resolution BEFORE getting WebGPU context
+        // This ensures getCurrentTexture() returns valid textures
+        this.canvas.width = this.hwSettings.displaySize.x;
+        this.canvas.height = this.hwSettings.displaySize.y;
+
+        // Set CSS display size if specified (for upscaling)
+        if (this.hwSettings.canvasDisplaySize) {
+            this.canvas.style.width = `${this.hwSettings.canvasDisplaySize.x}px`;
+            this.canvas.style.height = `${this.hwSettings.canvasDisplaySize.y}px`;
+            console.log(
+                `[BlitTech] Canvas display size: ${this.hwSettings.canvasDisplaySize.x}x${this.hwSettings.canvasDisplaySize.y}`,
+            );
+        }
+
         this.context = this.canvas.getContext('webgpu') as GPUCanvasContext;
         if (!this.context) {
             console.error('[BlitTech] Failed to get WebGPU context');
@@ -180,20 +204,6 @@ export class BTAPI {
             format: canvasFormat,
             alphaMode: 'premultiplied',
         });
-
-        // Set canvas resolution to match display size from game
-        // Note: This sets the internal pixel resolution, NOT the CSS display size
-        this.canvas.width = this.hwSettings.displaySize.x;
-        this.canvas.height = this.hwSettings.displaySize.y;
-
-        // Set CSS display size if specified (for upscaling)
-        if (this.hwSettings.canvasDisplaySize) {
-            this.canvas.style.width = `${this.hwSettings.canvasDisplaySize.x}px`;
-            this.canvas.style.height = `${this.hwSettings.canvasDisplaySize.y}px`;
-            console.log(
-                `[BlitTech] Canvas display size: ${this.hwSettings.canvasDisplaySize.x}x${this.hwSettings.canvasDisplaySize.y}`,
-            );
-        }
 
         console.log('[BlitTech] WebGPU initialized successfully');
         return true;
