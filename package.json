@@ -50,6 +50,12 @@
     "build:lib": "vite build --mode lib",
     "build:deploy": "pnpm build",
     "preview": "vite preview",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm dev\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173/examples/ BLIT_DEV=1 electron electron/main.cjs\"",
+    "electron:build": "pnpm build && electron-builder --config electron-builder.json",
+    "electron:dist": "pnpm build && electron-builder --config electron-builder.json --publish never",
+    "electron:dist:linux": "pnpm build && electron-builder --linux --config electron-builder.json",
+    "electron:dist:win": "pnpm build && electron-builder --win --config electron-builder.json",
+    "electron:dist:mac": "pnpm build && electron-builder --mac --config electron-builder.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
@@ -57,7 +63,7 @@
     "format:biome": "biome format --write .",
     "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist node_modules/.vite",
+    "clean": "rm -rf dist node_modules/.vite dist-electron",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build:lib && changeset publish",
@@ -78,6 +84,10 @@
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
     "@webgpu/types": "^0.1.66",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsdoc": "^61.4.1",
@@ -93,6 +103,8 @@
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
     "vite-plugin-dts": "^4.5.4",
-    "vite-plugin-handlebars": "^2.0.0"
+    "vite-plugin-handlebars": "^2.0.0",
+    "vite-plugin-static-copy": "^3.1.4",
+    "wait-on": "^9.0.3"
   }
 }
