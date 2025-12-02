@@ -283,8 +283,6 @@ pnpm electron:dist
 - Native app feel, appears in Steam library
 - Cross-platform (Linux, Windows, macOS)
 
-**Steam Deck Instructions**: See [ELECTRON.md](ELECTRON.md) for complete setup, deployment, and troubleshooting guide.
-
 Output location: `dist-electron/`
 
 ## Browser Compatibility
