@@ -130,6 +130,7 @@ export default [
             ...eslint.configs.recommended.rules,
             'no-console': 'off',
             'no-debugger': 'error',
+            'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
 
             // JSDoc rules (relaxed for JS config files)
             'jsdoc/check-alignment': 'warn',
