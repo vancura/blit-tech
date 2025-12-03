@@ -35,11 +35,12 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
             contextIsolation: true,
+            sandbox: true,
             webgl: true,
             // Enable WebGPU
             experimentalFeatures: true,
-            // Allow file:// protocol to load local resources
-            webSecurity: false,
+            // Security: Keep webSecurity enabled, use custom protocol for local files
+            webSecurity: true,
         },
         backgroundColor: '#000000',
         title: 'Blit-Tech',
@@ -47,6 +48,26 @@ function createWindow() {
         fullscreen: process.env.BLIT_FULLSCREEN === '1',
         // Show dev tools in development
         autoHideMenuBar: !process.env.BLIT_DEV,
+    });
+
+    // Set Content Security Policy
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': [
+                    [
+                        "default-src 'self'",
+                        "script-src 'self' 'unsafe-inline'", // Required for Vite HMR in dev
+                        "style-src 'self' 'unsafe-inline'",
+                        "img-src 'self' data: blob:",
+                        "font-src 'self' data:",
+                        "connect-src 'self' ws: wss:", // Required for Vite HMR
+                        "worker-src 'self' blob:",
+                    ].join('; '),
+                ],
+            },
+        });
     });
 
     // Load the app
