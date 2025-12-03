@@ -451,6 +451,7 @@ export class Renderer {
      * @param g - Green component (0-1).
      * @param b - Blue component (0-1).
      * @param a - Alpha component (0-1).
+     * @returns Nothing.
      */
     private addPrimitiveVertex(x: number, y: number, r: number, g: number, b: number, a: number): void {
         const index = this.primitiveVertexCount * 6;

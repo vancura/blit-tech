@@ -1,0 +1,86 @@
+{
+  "appId": "com.vancura.blit-tech",
+  "productName": "Blit-Tech",
+  "copyright": "Copyright © 2025 Václav Vančura",
+  "directories": {
+    "output": "dist-electron",
+    "buildResources": "electron/resources"
+  },
+  "asar": true,
+  "asarUnpack": ["dist/examples/fonts/**"],
+  "files": ["dist/**/*", "electron/main.cjs", "electron/preload.cjs", "package.json"],
+  "extraMetadata": {
+    "main": "electron/main.cjs"
+  },
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      },
+      {
+        "target": "tar.gz",
+        "arch": ["x64"]
+      }
+    ],
+    "category": "Game",
+    "synopsis": "WebGPU retro game engine",
+    "description": "A lightweight WebGPU-based retro game engine for TypeScript",
+    "desktop": {
+      "entry": {
+        "Name": "Blit-Tech",
+        "Comment": "WebGPU Retro Game Engine",
+        "Type": "Application",
+        "Categories": "Game;Development;",
+        "Terminal": false,
+        "StartupNotify": true
+      }
+    }
+  },
+  "appImage": {
+    "license": "LICENSE",
+    "category": "Game"
+  },
+  "deb": {
+    "depends": ["libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libuuid1"],
+    "priority": "optional"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.games"
+  },
+  "dmg": {
+    "title": "Blit-Tech ${version}"
+  }
+}
