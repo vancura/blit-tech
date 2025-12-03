@@ -21,7 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         // Remove any previous listeners to prevent memory leaks
         ipcRenderer.removeAllListeners('gpu-crashed');
         // Add the new listener with a wrapper for safety
-        ipcRenderer.on('gpu-crashed', (_event) => {
+        ipcRenderer.on('gpu-crashed', () => {
             callback();
         });
     },
