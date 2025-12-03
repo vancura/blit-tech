@@ -19,7 +19,12 @@ if (process.platform === 'linux') {
 
 // For Steam Deck Game Mode compatibility
 if (process.env.WEBKIT_DISABLE_COMPOSITING_MODE) {
-    // Steam Deck Game Mode environment detected
+    // TODO: Implement Steam Deck Game Mode optimizations:
+    // - Force fullscreen mode for better performance
+    // - Adjust input handling for Steam Deck controls
+    // - Set display scaling/resolution optimizations
+    // - Configure GPU performance profile for handheld mode
+    // - Handle suspend/resume events specific to Steam Deck
 }
 
 let mainWindow;
