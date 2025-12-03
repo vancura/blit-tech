@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import handlebars from 'vite-plugin-handlebars';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 import { exampleContexts } from './examples/_config/contexts';
 
@@ -17,6 +18,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
  */
 function getPageContext(pagePath: string): Record<string, string> {
     const filename = basename(pagePath);
+    // eslint-disable-next-line security/detect-object-injection -- Safe: exampleContexts is a static config object, filename is sanitized by basename()
     return exampleContexts[filename] ?? {};
 }
 
@@ -25,6 +27,9 @@ export default defineConfig(({ mode, command }) => {
     const isProduction = command === 'build';
 
     return {
+        // Use relative paths for assets (required for Electron file:// protocol)
+        base: isProduction && !isLibBuild ? './' : '/',
+
         plugins: [
             tailwindcss(),
             handlebars({
@@ -36,6 +41,19 @@ export default defineConfig(({ mode, command }) => {
                 exclude: ['src/main.ts'],
                 rollupTypes: true,
             }),
+            // Copy static assets (fonts) to dist for Electron builds
+            ...(!isLibBuild
+                ? [
+                      viteStaticCopy({
+                          targets: [
+                              {
+                                  src: 'examples/fonts/*',
+                                  dest: 'examples/fonts',
+                              },
+                          ],
+                      }),
+                  ]
+                : []),
         ],
 
         // Handle WGSL shader files as raw text
