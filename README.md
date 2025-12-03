@@ -276,6 +276,10 @@ pnpm electron:dist:linux
 pnpm electron:dist
 ```
 
+**Note**: When running `pnpm install` for the first time, pnpm may prompt you to approve build scripts for Electron.
+Select `electron` from the list and press enter to allow it to download the binary. If Electron fails to install, run
+`pnpm rebuild electron`.
+
 **Why Electron?**
 
 - WebGPU support on Linux/Steam Deck (via Vulkan)
