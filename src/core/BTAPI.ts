@@ -212,10 +212,10 @@ export class BTAPI {
     /**
      * Starts the main game loop using requestAnimationFrame.
      * Implements a fixed timestep for update() and variable rate for render().
+     * Uses a double requestAnimationFrame wait to ensure canvas is fully ready.
      */
     private startGameLoop(): void {
         this.isRunning = true;
-        this.lastUpdateTime = performance.now();
 
         const loop = (currentTime: number) => {
             if (!this.isRunning) return;
@@ -247,7 +247,15 @@ export class BTAPI {
             requestAnimationFrame(loop);
         };
 
-        requestAnimationFrame(loop);
+        // Double requestAnimationFrame wait ensures canvas is fully ready
+        // This fixes timing issues in Electron and certain browsers where
+        // the canvas may not be fully initialized on the first frame
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                this.lastUpdateTime = performance.now();
+                requestAnimationFrame(loop);
+            });
+        });
     }
 
     /**
