@@ -745,7 +745,23 @@ export class Renderer {
         }
 
         // Get current texture to render to
-        const textureView = this.context.getCurrentTexture().createView();
+        let texture: GPUTexture;
+        try {
+            texture = this.context.getCurrentTexture();
+        } catch (error) {
+            console.error('[Renderer] Failed to get current texture:', error);
+            this.resetFrameState();
+            return;
+        }
+
+        // Validate texture dimensions
+        if (texture.width === 0 || texture.height === 0) {
+            console.warn('[Renderer] Texture has zero dimensions, skipping frame');
+            this.resetFrameState();
+            return;
+        }
+
+        const textureView = texture.createView();
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
 
         const renderPass = commandEncoder.beginRenderPass({
@@ -808,6 +824,14 @@ export class Renderer {
         this.device.queue.submit([commandEncoder.finish()]);
 
         // Reset for next frame
+        this.resetFrameState();
+    }
+
+    /**
+     * Resets all per-frame rendering state.
+     * Called at end of frame or when frame must be skipped.
+     */
+    private resetFrameState(): void {
         this.primitiveVertexCount = 0;
         this.spriteVertexCount = 0;
         this.totalSpriteVertices = 0;
