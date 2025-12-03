@@ -6,7 +6,8 @@
     "output": "dist-electron",
     "buildResources": "electron/resources"
   },
-  "asar": false,
+  "asar": true,
+  "asarUnpack": ["dist/examples/fonts/**"],
   "files": ["dist/**/*", "electron/main.cjs", "electron/preload.cjs", "package.json"],
   "extraMetadata": {
     "main": "electron/main.cjs"

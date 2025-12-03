@@ -12,8 +12,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
         node: process.versions.node,
     },
 
-    // Listen for GPU crash events
+    // Listen for GPU crash events - safely wrapped
     onGPUCrashed: (callback) => {
-        ipcRenderer.on('gpu-crashed', callback);
+        // Validate callback is a function
+        if (typeof callback !== 'function') {
+            throw new TypeError('Callback must be a function');
+        }
+        // Remove any previous listeners to prevent memory leaks
+        ipcRenderer.removeAllListeners('gpu-crashed');
+        // Add the new listener with a wrapper for safety
+        ipcRenderer.on('gpu-crashed', (_event) => {
+            callback();
+        });
     },
 });
