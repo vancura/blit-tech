@@ -53,7 +53,7 @@ export default [
         rules: {
             // Base ESLint rules
             ...eslint.configs.recommended.rules,
-            'no-console': ['warn', { allow: ['warn', 'error'] }],
+            'no-console': 'off',
             'no-debugger': 'error',
             'no-unused-vars': 'off', // TypeScript handles this
 
@@ -126,7 +126,7 @@ export default [
         },
         rules: {
             ...eslint.configs.recommended.rules,
-            'no-console': ['warn', { allow: ['warn', 'error'] }],
+            'no-console': 'off',
             'no-debugger': 'error',
 
             // JSDoc rules (relaxed for JS config files)
@@ -153,7 +153,6 @@ export default [
             'jsdoc/require-param': 'off',
             'jsdoc/require-returns': 'off',
             'jsdoc/require-description': 'off',
-            'no-console': 'off',
             '@typescript-eslint/no-non-null-assertion': 'off',
         },
     },
