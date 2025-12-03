@@ -1,10 +1,13 @@
 {
   "*.{ts,tsx}": [
     "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
-    "eslint --fix",
+    "eslint --fix --max-warnings=0",
     "bash -c 'pnpm typecheck'"
   ],
-  "*.{js,cjs,mjs}": ["biome check --write --no-errors-on-unmatched --files-ignore-unknown=true", "eslint --fix"],
+  "*.{js,cjs,mjs}": [
+    "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
+    "eslint --fix --max-warnings=0"
+  ],
   "*.{json,jsonc,css}": ["biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"],
   "*.{md,mdx,yml,yaml}": ["prettier --write"]
 }
