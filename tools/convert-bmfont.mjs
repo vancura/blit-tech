@@ -7,7 +7,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 
 /**
  * Extracts the value of a specified attribute from an XML tag.
@@ -107,7 +107,11 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     const resolvedTexturePath = resolve(texturePath);
     const resolvedFntDir = resolve(fntDir);
 
-    if (!resolvedTexturePath.startsWith(resolvedFntDir)) {
+    // Ensure the resolved directory ends with a separator to prevent sibling directory bypass
+    // (e.g., /home/user/fonts and /home/user/fonts-backup).
+    const normalizedFntDir = resolvedFntDir.endsWith(sep) ? resolvedFntDir : resolvedFntDir + sep;
+
+    if (!resolvedTexturePath.startsWith(normalizedFntDir)) {
         console.error(`Error: Texture path escapes font directory: ${textureFilename}`);
         process.exit(1);
     }
