@@ -58,7 +58,7 @@ function isInternalUrl(url) {
 
 /**
  * Sets Content Security Policy headers for all web requests.
- * Restricts resource loading to same-origin and allows necessary inline scripts/styles.
+ * Restricts resource loading to same-origin and allows necessary inline styles.
  *
  * @param {Electron.OnHeadersReceivedListenerDetails} details - Request details.
  * @param {Function} callback - Callback to modify response headers.
@@ -70,7 +70,7 @@ function setContentSecurityPolicyHeaders(details, callback) {
             'Content-Security-Policy': [
                 [
                     "default-src 'self'",
-                    "script-src 'self' 'unsafe-inline'",
+                    "script-src 'self'",
                     "style-src 'self' 'unsafe-inline'",
                     "img-src 'self' data: blob:",
                     "font-src 'self' data:",
