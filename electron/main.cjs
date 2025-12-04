@@ -59,6 +59,7 @@ function isInternalUrl(url) {
 /**
  * Sets Content Security Policy headers for all web requests.
  * Restricts resource loading to same-origin and allows necessary inline styles.
+ * In production, WebSocket connections are restricted to same-origin only.
  *
  * @param {Electron.OnHeadersReceivedListenerDetails} details - Request details.
  * @param {Function} callback - Callback to modify response headers.
@@ -74,7 +75,7 @@ function setContentSecurityPolicyHeaders(details, callback) {
                     "style-src 'self' 'unsafe-inline'",
                     "img-src 'self' data: blob:",
                     "font-src 'self' data:",
-                    "connect-src 'self' ws: wss:",
+                    process.env.VITE_DEV_SERVER_URL ? "connect-src 'self' ws: wss:" : "connect-src 'self'",
                     "worker-src 'self' blob:",
                 ].join('; '),
             ],
