@@ -279,8 +279,8 @@ pnpm electron:dist
 ```
 
 **Note**: When running `pnpm install` for the first time, pnpm may prompt to approve build scripts for Electron. Select
-`electron` from the list and press enter to allow it to download the binary. If Electron fails to install, run
-`pnpm rebuild electron`.
+`electron` from the list and press enter to allow it to download the binary. If Electron fails to install, try running
+`pnpm rebuild electron` or `pnpm install electron --force`.
 
 **Why Electron?**
 
