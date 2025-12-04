@@ -215,17 +215,27 @@ app.on('window-all-closed', () => {
 });
 
 /**
- * Handles GPU process crashes.
- * Logs the crash and notifies the renderer process via IPC.
+ * Handles child process crashes, specifically monitoring GPU process failures.
+ * Logs detailed crash information and notifies the renderer process when GPU crashes occur.
  *
  * @param {Electron.Event} _event - The crash event.
- * @param {boolean} killed - Whether the process was killed.
+ * @param {Electron.Details} details - Detailed information about the crashed process.
  */
-app.on('gpu-process-crashed', (_event, killed) => {
-    console.error('GPU process crashed!', { killed });
+app.on('child-process-gone', (_event, details) => {
+    if (details.type === 'GPU') {
+        console.error('GPU process crashed!', {
+            type: details.type,
+            reason: details.reason,
+            exitCode: details.exitCode,
+            serviceName: details.serviceName,
+        });
 
-    if (mainWindow) {
-        mainWindow.webContents.send('gpu-crashed');
+        if (mainWindow) {
+            mainWindow.webContents.send('gpu-crashed', {
+                reason: details.reason,
+                exitCode: details.exitCode,
+            });
+        }
     }
 });
 
