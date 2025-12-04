@@ -1,22 +1,36 @@
+// #region Imports
+
 import { Vector2i } from './Vector2i';
+
+// #endregion
 
 /**
  * Integer rectangle for pixel-perfect bounds and regions.
  * Inspired by RetroBlit's Rect2i.
  */
 export class Rect2i {
+    // #region Constructor
+
     /**
      * Creates a new integer rectangle.
      * All values are automatically floored to ensure pixel-perfect bounds.
+     *
      * @param x - Left edge X coordinate (defaults to 0).
      * @param y - Top edge Y coordinate (defaults to 0).
      * @param width - Width in pixels (defaults to 0).
      * @param height - Height in pixels (defaults to 0).
      */
     constructor(
+        /** Left edge X coordinate (defaults to 0). */
         public x: number = 0,
+
+        /** Top edge Y coordinate (defaults to 0). */
         public y: number = 0,
+
+        /** Width in pixels (defaults to 0). */
         public width: number = 0,
+
+        /** Height in pixels (defaults to 0). */
         public height: number = 0,
     ) {
         this.x = Math.floor(x);
@@ -25,9 +39,13 @@ export class Rect2i {
         this.height = Math.floor(height);
     }
 
-    // Computed properties
+    // #endregion
+
+    // #region Computed Properties
+
     /**
      * Gets the top-left corner of the rectangle.
+     *
      * @returns Vector2i representing (x, y).
      */
     get min(): Vector2i {
@@ -36,6 +54,7 @@ export class Rect2i {
 
     /**
      * Gets the bottom-right corner of the rectangle (exclusive).
+     *
      * @returns Vector2i representing (x + width, y + height).
      */
     get max(): Vector2i {
@@ -44,6 +63,7 @@ export class Rect2i {
 
     /**
      * Gets the center point of the rectangle.
+     *
      * @returns Vector2i at the rectangle's center (floored).
      */
     get center(): Vector2i {
@@ -52,6 +72,7 @@ export class Rect2i {
 
     /**
      * Gets the position (top-left corner) as a vector.
+     *
      * @returns Vector2i representing (x, y).
      */
     get position(): Vector2i {
@@ -60,6 +81,7 @@ export class Rect2i {
 
     /**
      * Sets the position (top-left corner) from a vector.
+     *
      * @param value - New position vector.
      */
     set position(value: Vector2i) {
@@ -69,6 +91,7 @@ export class Rect2i {
 
     /**
      * Gets the size (width, height) as a vector.
+     *
      * @returns Vector2i representing (width, height).
      */
     get size(): Vector2i {
@@ -77,6 +100,7 @@ export class Rect2i {
 
     /**
      * Sets the size from a vector.
+     *
      * @param value - New size vector (x=width, y=height).
      */
     set size(value: Vector2i) {
@@ -84,10 +108,14 @@ export class Rect2i {
         this.height = value.y;
     }
 
-    // Intersection tests
+    // #endregion
+
+    // #region Intersection Tests
+
     /**
      * Tests if a point lies within this rectangle.
      * Uses half-open interval: includes min, excludes max.
+     *
      * @param point - Point to test.
      * @returns True if point is inside the rectangle.
      */
@@ -99,6 +127,7 @@ export class Rect2i {
 
     /**
      * Tests if this rectangle overlaps with another.
+     *
      * @param other - Rectangle to test against.
      * @returns True if rectangles overlap.
      */
@@ -113,6 +142,7 @@ export class Rect2i {
 
     /**
      * Calculates the overlapping region of two rectangles.
+     *
      * @param other - Rectangle to intersect with.
      * @returns New rectangle representing the overlap, or null if no overlap.
      */
@@ -133,23 +163,26 @@ export class Rect2i {
      * Calculates intersection depth for collision resolution.
      * Returns how much the rectangles overlap in each axis.
      * Useful for pushing objects apart after collision detection.
+     *
      * @param other - Rectangle to measure overlap with.
      * @returns Vector with overlap depth in X and Y axes.
      */
     intersectionDepth(other: Rect2i): Vector2i {
         const centerA = this.center;
         const centerB = other.center;
-
         const xDepth = centerA.x < centerB.x ? this.x + this.width - other.x : other.x + other.width - this.x;
-
         const yDepth = centerA.y < centerB.y ? this.y + this.height - other.y : other.y + other.height - this.y;
 
         return new Vector2i(xDepth, yDepth);
     }
 
-    // Utility
+    // #endregion
+
+    // #region Utility
+
     /**
      * Checks if this rectangle equals another (all components match).
+     *
      * @param other - Rectangle to compare with.
      * @returns True if position and size are identical.
      */
@@ -159,6 +192,7 @@ export class Rect2i {
 
     /**
      * Creates an independent copy of this rectangle.
+     *
      * @returns New rectangle with same bounds.
      */
     clone(): Rect2i {
@@ -167,15 +201,20 @@ export class Rect2i {
 
     /**
      * Formats the rectangle as a readable string.
+     *
      * @returns String in format "Rect2i(x, y, width, height)".
      */
     toString(): string {
         return `Rect2i(${this.x}, ${this.y}, ${this.width}, ${this.height})`;
     }
 
-    // Static constructors
+    // #endregion
+
+    // #region Static Constructors
+
     /**
      * Creates a zero-sized rectangle at origin.
+     *
      * @returns New rectangle at (0, 0) with size (0, 0).
      */
     static zero(): Rect2i {
@@ -184,6 +223,7 @@ export class Rect2i {
 
     /**
      * Creates a rectangle from two corner points.
+     *
      * @param min - Top-left corner.
      * @param max - Bottom-right corner.
      * @returns New rectangle spanning from min to max.
@@ -194,6 +234,7 @@ export class Rect2i {
 
     /**
      * Creates a rectangle centered on a point with given size.
+     *
      * @param center - Center point of the rectangle.
      * @param size - Width and height as a vector.
      * @returns New rectangle centered on the given point.
@@ -203,4 +244,6 @@ export class Rect2i {
         const halfHeight = Math.floor(size.y / 2);
         return new Rect2i(center.x - halfWidth, center.y - halfHeight, size.x, size.y);
     }
+
+    // #endregion
 }
