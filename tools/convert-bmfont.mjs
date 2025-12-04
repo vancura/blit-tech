@@ -103,7 +103,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     let textureValue;
     const texturePath = join(fntDir, textureFilename);
 
-    // Prevent path traversal attacks by ensuring texturePath stays within fntDir
+    // Prevent path traversal attacks by ensuring texturePath stays within fntDir.
     const resolvedTexturePath = resolve(texturePath);
     const resolvedFntDir = resolve(fntDir);
 
@@ -113,39 +113,46 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 
     if (!resolvedTexturePath.startsWith(normalizedFntDir)) {
         console.error(`Error: Texture path escapes font directory: ${textureFilename}`);
+
         process.exit(1);
     }
 
     if (embedTexture) {
-        // Validate texture file existence
-        if (!existsSync(texturePath)) {
-            console.error(`Error: Texture file not found: ${texturePath}`);
+        // Validate texture file existence.
+        if (!existsSync(resolvedTexturePath)) {
+            console.error(`Error: Texture file not found: ${resolvedTexturePath}`);
+
             process.exit(1);
         }
 
-        console.log(`Embedding texture: ${texturePath}`);
+        console.log(`Embedding texture: ${resolvedTexturePath}`);
 
         try {
-            const pngData = readFileSync(texturePath);
+            const pngData = readFileSync(resolvedTexturePath);
             const base64 = pngData.toString('base64');
+
             console.log(`  Texture size: ${pngData.length} bytes (${base64.length} base64)`);
+
             textureValue = `data:image/png;base64,${base64}`;
         } catch (error) {
             console.error(`Error reading texture file: ${error.message}`);
+
             process.exit(1);
         }
     } else {
-        // Use relative path from output file to texture
-        const outputDir = dirname(outputPath);
+        // Use relative path from output file to texture.
+        const resolvedOutputPath = resolve(outputPath);
+        const outputDir = dirname(resolvedOutputPath);
 
-        // Validate texture file existence
-        if (!existsSync(texturePath)) {
-            console.error(`Error: Texture file not found: ${texturePath}`);
+        // Validate texture file existence.
+        if (!existsSync(resolvedTexturePath)) {
+            console.error(`Error: Texture file not found: ${resolvedTexturePath}`);
+
             process.exit(1);
         }
 
-        // Compute a relative path from the output directory to the texture file
-        textureValue = relative(outputDir, texturePath).replace(/\\/g, '/');
+        // Compute a relative path from the output directory to the texture file.
+        textureValue = relative(outputDir, resolvedTexturePath).replace(/\\/g, '/');
 
         console.log(`Texture reference: ${textureValue}`);
     }
@@ -162,12 +169,15 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
  * @returns {void} Does not return a value; updates the glyphs object directly with parsed data.
  */
 function parseGlyphData(glyphs, char, tag) {
+    const width = parseInt(parseXmlAttribute(tag, 'width') || '0', 10);
+    const height = parseInt(parseXmlAttribute(tag, 'height') || '0', 10);
+
     // eslint-disable-next-line security/detect-object-injection
     glyphs[char] = {
         x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
         y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
-        w: parseInt(parseXmlAttribute(tag, 'width') || '0', 10),
-        h: parseInt(parseXmlAttribute(tag, 'height') || '0', 10),
+        w: width,
+        h: height,
         ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
         oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
         adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
@@ -186,7 +196,23 @@ function parseGlyphs(xmlData) {
 
     for (const charMatch of xmlData.matchAll(/<char[^>]+>/g)) {
         const tag = charMatch[0];
-        const charCode = parseInt(parseXmlAttribute(tag, 'id') || '0', 10);
+        const idAttr = parseXmlAttribute(tag, 'id');
+
+        // Validate that id attribute exists and is numeric.
+        if (!idAttr) {
+            console.error('Error: Glyph missing required "id" attribute');
+
+            process.exit(1);
+        }
+
+        const charCode = parseInt(idAttr, 10);
+
+        if (Number.isNaN(charCode)) {
+            console.error(`Error: Glyph has non-numeric id: ${idAttr}`);
+
+            process.exit(1);
+        }
+
         const char = String.fromCharCode(charCode);
 
         parseGlyphData(glyphs, char, tag);
@@ -196,6 +222,7 @@ function parseGlyphs(xmlData) {
 
     if (glyphCount === 0) {
         console.error('Error: No glyphs found in font file');
+
         process.exit(1);
     }
 
@@ -235,26 +262,27 @@ function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baselin
  * @returns {void} Does not return a value. The converted file is saved to the specified output path.
  */
 function convertBMFont(fntPath, outputPath, embedTexture = false) {
-    // Validate input file exists
+    // Validate input file exists.
     if (!existsSync(fntPath)) {
         console.error(`Error: Input file not found: ${fntPath}`);
+
         process.exit(1);
     }
 
     console.log(`Reading: ${fntPath}`);
 
-    // Read the XML font file
+    // Read the XML font file.
     const xmlData = readFileSync(fntPath, 'utf-8');
     const fntDir = dirname(fntPath);
 
-    // Parse XML tags
+    // Parse XML tags.
     const { fontName, fontSize } = parseInfoTag(xmlData);
     const { lineHeight, baseline } = parseCommonTag(xmlData, fontSize);
     const textureFilename = parsePageTag(xmlData);
     const textureValue = getTextureValue(embedTexture, textureFilename, fntDir, outputPath);
     const { glyphs, glyphCount } = parseGlyphs(xmlData);
 
-    // Create the .btfont structure
+    // Create the .btfont structure.
     const btfont = {
         name: fontName,
         size: fontSize,
@@ -264,7 +292,7 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
         glyphs,
     };
 
-    // Write the output
+    // Write the output.
     writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baseline, glyphCount);
 }
 
@@ -285,7 +313,7 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
 function main() {
     const args = process.argv.slice(2);
 
-    // Check for the help flag
+    // Check for the help flag.
     if (args.includes('--help') || args.includes('-h') || args.length === 0) {
         console.log(`
 BMFont to .btfont Converter
@@ -306,9 +334,20 @@ Examples:
         process.exit(0);
     }
 
-    // Parse arguments
+    // Parse arguments.
     const embedTexture = args.includes('--embed');
     const paths = args.filter((arg) => !arg.startsWith('--'));
+
+    // Validate no unknown flags.
+    const unknownFlags = args.filter((arg) => arg.startsWith('--') && arg !== '--embed');
+
+    if (unknownFlags.length > 0) {
+        console.error(`Error: Unknown flag(s): ${unknownFlags.join(', ')}`);
+        console.error('Usage: node tools/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]');
+        console.error('Run with --help for more information');
+
+        process.exit(1);
+    }
 
     if (paths.length < 2) {
         console.error('Error: Please provide input and output paths');
@@ -317,9 +356,17 @@ Examples:
         process.exit(1);
     }
 
+    // Validate no extra positional arguments.
+    if (paths.length !== 2) {
+        console.error(`Error: Expected 2 paths, but got ${paths.length}: ${paths.join(', ')}`);
+        console.error('Usage: node tools/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]');
+
+        process.exit(1);
+    }
+
     const [inputPath, outputPath] = paths;
 
-    // Run conversion
+    // Run conversion.
     convertBMFont(inputPath, outputPath, embedTexture);
 }
 
