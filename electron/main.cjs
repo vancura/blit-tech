@@ -1,23 +1,25 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('node:path');
 
-// Enable WebGPU support with necessary flags
+// #region Configuration
+
+// Enable WebGPU support with necessary flags.
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-gpu-rasterization');
 
-// Platform-specific flags
+// Platform-specific flags.
 if (process.platform === 'linux') {
-    // Vulkan backend for Linux/Steam Deck
+    // Enable Vulkan support for Linux.
     app.commandLine.appendSwitch('enable-features', 'Vulkan');
     app.commandLine.appendSwitch('use-angle', 'vulkan');
     app.commandLine.appendSwitch('enable-zero-copy');
 } else if (process.platform === 'darwin') {
-    // Metal backend for macOS (default, no special flags needed)
+    // Enable Metal support for macOS.
     app.commandLine.appendSwitch('use-angle', 'metal');
 }
 
-// For Steam Deck Game Mode compatibility
+// For Steam Deck Game Mode compatibility.
 if (process.env.WEBKIT_DISABLE_COMPOSITING_MODE) {
     // TODO: Implement Steam Deck Game Mode optimizations:
     // - Force fullscreen mode for better performance
@@ -27,144 +29,219 @@ if (process.env.WEBKIT_DISABLE_COMPOSITING_MODE) {
     // - Handle suspend/resume events specific to Steam Deck
 }
 
+// #endregion
+
+// #region Module State
+
 let mainWindow;
 
+// #endregion
+
+// #region Helper Functions
+
+/**
+ * Checks if a URL is an internal URL that should be allowed within the app.
+ * Internal URLs include file:// protocol and the Vite dev server in development.
+ *
+ * @param {string} url - The URL to check.
+ * @returns {boolean} True if the URL is internal and should be allowed.
+ */
+function isInternalUrl(url) {
+    if (url.startsWith('file://')) {
+        return true;
+    }
+
+    if (process.env.VITE_DEV_SERVER_URL && url.startsWith(process.env.VITE_DEV_SERVER_URL)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Sets Content Security Policy headers for all web requests.
+ * Restricts resource loading to same-origin and allows necessary inline scripts/styles.
+ *
+ * @param {Electron.OnHeadersReceivedListenerDetails} details - Request details.
+ * @param {Function} callback - Callback to modify response headers.
+ */
+function setContentSecurityPolicyHeaders(details, callback) {
+    callback({
+        responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': [
+                [
+                    "default-src 'self'",
+                    "script-src 'self' 'unsafe-inline'",
+                    "style-src 'self' 'unsafe-inline'",
+                    "img-src 'self' data: blob:",
+                    "font-src 'self' data:",
+                    "connect-src 'self' ws: wss:",
+                    "worker-src 'self' blob:",
+                ].join('; '),
+            ],
+        },
+    });
+}
+
+// #endregion
+
+// #region Navigation Handlers
+
+/**
+ * Prevents navigation to external URLs within the current window.
+ * Called on the 'will-navigate' event. Allows internal URLs (file://, dev server)
+ * and blocks all external navigation attempts.
+ *
+ * @param {Electron.Event} event - The navigation event.
+ * @param {string} url - The URL being navigated to.
+ */
+function preventExternalNavigation(event, url) {
+    if (isInternalUrl(url)) {
+        return;
+    }
+
+    event.preventDefault();
+}
+
+/**
+ * Handles requests to open new windows or tabs.
+ * Called by setWindowOpenHandler. Allows internal URLs to open within the app.
+ * External URLs are opened in the system's default browser instead.
+ *
+ * @param {{ url: string }} details - Window open request details containing the URL.
+ * @returns {{ action: 'allow' | 'deny' }} Action to take - 'allow' for internal URLs, 'deny' for external.
+ */
+function handleNewWindowRequest({ url }) {
+    if (isInternalUrl(url)) {
+        return { action: 'allow' };
+    }
+
+    const { shell } = require('electron');
+    shell.openExternal(url);
+
+    return { action: 'deny' };
+}
+
+// #endregion
+
+// #region Window Lifecycle
+
+/**
+ * Handles the main window closed event.
+ * Cleans up the window reference when the window is closed.
+ */
+function onMainWindowClosed() {
+    mainWindow = null;
+}
+
+/**
+ * Creates and configures the main application window.
+ *
+ * Sets up window dimensions optimized for Steam Deck, configures security settings,
+ * applies Content Security Policy, and loads the appropriate content based on environment.
+ * Registers event handlers for navigation, window lifecycle, and crash events.
+ *
+ * @returns {BrowserWindow} The created main application window instance.
+ */
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
-        // Steam Deck native resolution is 1280x800
         minWidth: 640,
         minHeight: 480,
+
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: true,
             webgl: true,
-            // Enable WebGPU
             experimentalFeatures: true,
-            // Security: Keep webSecurity enabled, use custom protocol for local files
             webSecurity: true,
         },
-        backgroundColor: '#000000',
-        title: 'Blit-Tech',
-        // Start in fullscreen on Steam Deck if requested
+
+        backgroundColor: 'black',
+        title: 'Blit–Tech',
         fullscreen: process.env.BLIT_FULLSCREEN === '1',
-        // Show dev tools in development
         autoHideMenuBar: !process.env.BLIT_DEV,
     });
 
-    // Set Content Security Policy
-    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-            responseHeaders: {
-                ...details.responseHeaders,
-                'Content-Security-Policy': [
-                    [
-                        "default-src 'self'",
-                        "script-src 'self' 'unsafe-inline'", // Required for Vite HMR in dev
-                        "style-src 'self' 'unsafe-inline'",
-                        "img-src 'self' data: blob:",
-                        "font-src 'self' data:",
-                        "connect-src 'self' ws: wss:", // Required for Vite HMR
-                        "worker-src 'self' blob:",
-                    ].join('; '),
-                ],
-            },
-        });
-    });
+    // Apply Content Security Policy to all web requests.
+    mainWindow.webContents.session.webRequest.onHeadersReceived(setContentSecurityPolicyHeaders);
 
-    // Load the app
+    // Load content based on environment.
     if (process.env.VITE_DEV_SERVER_URL) {
-        // Development mode - connect to Vite dev server
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+
         if (process.env.BLIT_DEV) {
             mainWindow.webContents.openDevTools();
         }
     } else {
-        // Production mode - load built files (examples gallery)
         mainWindow.loadFile(path.join(__dirname, '../dist/examples/index.html'));
     }
 
-    // Log WebGPU availability
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents
-            .executeJavaScript('navigator.gpu ? "WebGPU Available" : "WebGPU NOT Available"')
-            .then((result) => {
-                if (result === 'WebGPU NOT Available') {
-                    console.error('ERROR: WebGPU is not available in this Electron instance!');
-                    console.error('This might be due to:');
-                    console.error('  1. GPU blocklist (try --ignore-gpu-blocklist)');
-                    console.error('  2. Missing Vulkan drivers');
-                    console.error('  3. Incompatible GPU');
-                }
-            })
-            .catch((err) => console.error('Failed to check WebGPU:', err));
-    });
-
-    // Gracefully handle window close
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
-
-    // Allow internal navigation, block external URLs
-    mainWindow.webContents.on('will-navigate', (event, url) => {
-        // Allow file:// URLs (internal app navigation)
-        if (url.startsWith('file://')) {
-            return;
-        }
-        // Allow dev server in development
-        if (process.env.VITE_DEV_SERVER_URL && url.startsWith(process.env.VITE_DEV_SERVER_URL)) {
-            return;
-        }
-        // Block external navigation
-        event.preventDefault();
-    });
-
-    // Block new windows from opening external URLs
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        // Allow file:// and dev server URLs
-        if (url.startsWith('file://')) {
-            return { action: 'allow' };
-        }
-        if (process.env.VITE_DEV_SERVER_URL && url.startsWith(process.env.VITE_DEV_SERVER_URL)) {
-            return { action: 'allow' };
-        }
-        // Open external links in system browser
-        const { shell } = require('electron');
-        shell.openExternal(url);
-        return { action: 'deny' };
-    });
+    // Register window lifecycle and navigation event handlers.
+    mainWindow.on('closed', onMainWindowClosed);
+    mainWindow.webContents.on('will-navigate', preventExternalNavigation);
+    mainWindow.webContents.setWindowOpenHandler(handleNewWindowRequest);
 }
 
-// App lifecycle
+// #endregion
+
+// #region App Lifecycle
+
+/**
+ * Initializes the application when Electron is ready.
+ * Creates the main window and sets up macOS-specific window activation handling.
+ */
 app.whenReady().then(() => {
     createWindow();
 
+    // On macOS, recreate window when dock icon is clicked and no windows exist.
     app.on('activate', () => {
-        // On macOS, re-create window when dock icon is clicked
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
         }
     });
 });
 
-// Quit when all windows are closed (except on macOS)
+/**
+ * Handles the window-all-closed event.
+ * Quits the application on all platforms except macOS, where apps typically
+ * continue running even when all windows are closed.
+ */
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
 });
 
-// Handle crashes
+/**
+ * Handles GPU process crashes.
+ * Logs the crash and notifies the renderer process via IPC.
+ *
+ * @param {Electron.Event} _event - The crash event.
+ * @param {boolean} killed - Whether the process was killed.
+ */
 app.on('gpu-process-crashed', (_event, killed) => {
     console.error('GPU process crashed!', { killed });
+
     if (mainWindow) {
         mainWindow.webContents.send('gpu-crashed');
     }
 });
 
+/**
+ * Handles renderer process crashes or termination.
+ * Logs crash details for debugging purposes.
+ *
+ * @param {Electron.Event} _event - The crash event.
+ * @param {Electron.WebContents} _webContents - The affected web contents.
+ * @param {Electron.RenderProcessGoneDetails} details - Crash details.
+ */
 app.on('render-process-gone', (_event, _webContents, details) => {
     console.error('Render process gone!', details);
 });
+
+// #endregion
