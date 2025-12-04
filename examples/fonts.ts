@@ -215,7 +215,11 @@ class FontDemo implements IBlitTechGame {
 
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
     }
+
+    // #endregion
 }
+
+// #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
