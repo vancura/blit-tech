@@ -19,15 +19,13 @@ if (process.platform === 'linux') {
     app.commandLine.appendSwitch('use-angle', 'metal');
 }
 
-// For Steam Deck Game Mode compatibility.
-if (process.env.WEBKIT_DISABLE_COMPOSITING_MODE) {
-    // TODO: Implement Steam Deck Game Mode optimizations:
-    // - Force fullscreen mode for better performance
-    // - Adjust input handling for Steam Deck controls
-    // - Set display scaling/resolution optimizations
-    // - Configure GPU performance profile for handheld mode
-    // - Handle suspend/resume events specific to Steam Deck
-}
+// TODO: Steam Deck Game Mode compatibility (WEBKIT_DISABLE_COMPOSITING_MODE)
+// When implemented:
+// - Force fullscreen mode for better performance
+// - Adjust input handling for Steam Deck controls
+// - Set display scaling/resolution optimizations
+// - Configure GPU performance profile for handheld mode
+// - Handle suspend/resume events specific to Steam Deck
 
 // #endregion
 
