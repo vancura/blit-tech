@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 const path = require('node:path');
 
 // #region Configuration
@@ -115,7 +115,6 @@ function handleNewWindowRequest({ url }) {
         return { action: 'allow' };
     }
 
-    const { shell } = require('electron');
     shell.openExternal(url);
 
     return { action: 'deny' };
