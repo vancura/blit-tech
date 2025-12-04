@@ -1,12 +1,12 @@
 ---
-description: Blit-Tech WebGPU game engine - main project rules and conventions
+description: Blit–Tech WebGPU game engine - main project rules and conventions
 globs: ["**/*.ts", "**/*.js", "**/*.mjs", "**/*.wgsl", "**/*.md"]
 alwaysApply: true
 ---
 
-# Blit-Tech Project Rules
+# Blit–Tech Project Rules
 
-Blit-Tech is a lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit.
+Blit–Tech is a lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit.
 It provides pixel-perfect 2D rendering with a clean, fantasy-console-style API.
 
 ## CRITICAL RULES

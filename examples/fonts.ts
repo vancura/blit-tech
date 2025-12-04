@@ -1,7 +1,7 @@
 /**
  * Font Demo
  *
- * Shows how to use bitmap fonts for text rendering in Blit-Tech.
+ * Shows how to use bitmap fonts for text rendering in Blit–Tech.
  * Demonstrates:
  * - Loading bitmap fonts from .btfont files
  * - Colored text rendering
@@ -85,7 +85,7 @@ class FontDemo implements IBlitTechGame {
         let y = 10;
 
         // Title
-        BT.printFont(this.font, new Vector2i(10, y), 'Blit-Tech Font Demo', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, y), 'Blit–Tech Font Demo', Color32.white());
         y += lineHeight + 4;
 
         // Different colors
@@ -229,7 +229,7 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Font demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
     }
 }
 

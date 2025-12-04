@@ -76,7 +76,7 @@ class PatternsDemo implements IBlitTechGame {
         }
 
         // Title
-        BT.printFont(this.font, new Vector2i(10, 5), 'Blit-Tech - Patterns Demo', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 5), 'Blit–Tech - Patterns Demo', Color32.white());
 
         // Draw different pattern sections
         this.drawSpiral(new Vector2i(40, 50));
@@ -348,7 +348,7 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Patterns demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize the Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize the Blit–Tech engine. Check console for details.');
     }
 }
 

@@ -1,8 +1,8 @@
 /**
  * Camera Demo
  *
- * Showcases camera scrolling functionality in Blit-Tech.
  * Creates a large procedural world (800x600) that can be explored
+ * Showcases camera scrolling functionality in Blit–Tech.
  * via automatic camera panning, demonstrating:
  * - Camera offset for scrolling
  * - World-space vs screen-space rendering
@@ -319,7 +319,7 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Camera demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize the Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize the Blit–Tech engine. Check console for details.');
     }
 }
 

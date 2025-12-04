@@ -1,7 +1,7 @@
 /**
  * Primitives Demo
  *
- * Showcases all basic drawing functions in Blit-Tech:
+ * Showcases all basic drawing functions in Blit–Tech:
  * - drawPixel: Single pixel rendering
  * - drawLine: Bresenham line algorithm
  * - drawRect: Rectangle outlines
@@ -75,7 +75,7 @@ class PrimitivesDemo implements IBlitTechGame {
         }
 
         // Title
-        BT.printFont(this.font, new Vector2i(10, 10), 'Blit-Tech - Primitives Demo', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 10), 'Blit–Tech - Primitives Demo', Color32.white());
 
         // Section 1: Pixels
         BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
@@ -265,7 +265,7 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Primitives demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize the Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize the Blit–Tech engine. Check console for details.');
     }
 }
 
