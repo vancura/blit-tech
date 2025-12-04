@@ -1,7 +1,7 @@
 /**
  * Font Demo
  *
- * Shows how to use bitmap fonts for text rendering in Blit-Tech.
+ * Shows how to use bitmap fonts for text rendering in Blit–Tech.
  * Demonstrates:
  * - Loading bitmap fonts from .btfont files
  * - Colored text rendering
@@ -20,14 +20,21 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Vec
  * Demonstrates bitmap font rendering with various text effects.
  */
 class FontDemo implements IBlitTechGame {
+    // #region Module State
+
     /** Loaded bitmap font for text rendering. */
     private font: BitmapFont | null = null;
 
     /** Animation time accumulator in seconds. */
     private animTime: number = 0;
 
+    // #endregion
+
+    // #region IBlitTechGame Implementation
+
     /**
      * Configures display with 2x upscaling for crisp pixel text.
+     *
      * @returns Hardware configuration.
      */
     queryHardware(): HardwareSettings {
@@ -40,20 +47,23 @@ class FontDemo implements IBlitTechGame {
 
     /**
      * Loads the bitmap font from a .btfont file.
+     *
      * @returns Promise resolving to true when font is loaded.
      */
     async initialize(): Promise<boolean> {
         console.log('[FontDemo] Initializing...');
 
-        // Load font from .btfont file
+        // Load font from .btfont file.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+
             console.log(`[FontDemo] Loaded font: ${this.font.name}`);
             console.log(`  Size: ${this.font.size}pt`);
             console.log(`  Line height: ${this.font.lineHeight}px`);
             console.log(`  Glyphs: ${this.font.glyphCount}`);
         } catch (error) {
             console.error('[FontDemo] Failed to load font:', error);
+
             return false;
         }
 
@@ -73,75 +83,95 @@ class FontDemo implements IBlitTechGame {
      * Shows static colors, rainbow animation, and pulsing brightness.
      */
     render(): void {
-        // Clear to dark blue
+        // Clear to dark blue.
         BT.clear(new Color32(20, 30, 50));
 
         if (!this.font) {
             BT.print(new Vector2i(10, 10), Color32.white(), 'Loading font...');
+
             return;
         }
 
         const lineHeight = this.font.lineHeight + 2;
         let y = 10;
 
-        // Title
-        BT.printFont(this.font, new Vector2i(10, y), 'Blit-Tech Font Demo', Color32.white());
+        // Title.
+        BT.printFont(this.font, new Vector2i(10, y), 'Blit–Tech Font Demo', Color32.white());
+
         y += lineHeight + 4;
 
-        // Different colors
+        // Different colors.
         BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
+
         y += lineHeight;
+
         BT.printFont(this.font, new Vector2i(10, y), 'Green Text', new Color32(100, 255, 100));
+
         y += lineHeight;
+
         BT.printFont(this.font, new Vector2i(10, y), 'Blue Text', new Color32(100, 100, 255));
+
         y += lineHeight;
+
         BT.printFont(this.font, new Vector2i(10, y), 'Yellow Text', new Color32(255, 255, 100));
+
         y += lineHeight + 4;
 
-        // Animated rainbow text
+        // Animated rainbow text.
         const rainbowText = 'Rainbow Animation!';
         let x = 10;
         for (const char of rainbowText) {
             const hue = (x * 3 + this.animTime * 100) % 360;
             const color = this.hslToRgb(hue, 100, 60);
+
             BT.printFont(this.font, new Vector2i(x, y), char, color);
+
             const glyph = this.font.getGlyph(char);
+
             x += glyph ? glyph.advance : 7;
         }
+
         y += lineHeight + 4;
 
-        // Pulsing text
+        // Pulsing text.
         const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
         const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), 255);
+
         BT.printFont(this.font, new Vector2i(10, y), 'Pulsing Text', pulseColor);
+
         y += lineHeight + 4;
 
-        // Unicode special characters
+        // Unicode special characters.
         BT.printFont(this.font, new Vector2i(10, y), 'Special: 3 x 4 = 12', Color32.white());
+
         y += lineHeight;
 
-        // Text measurement demo
+        // Text measurement demo.
         const measureText = 'Measured Width';
         const textWidth = this.font.measureText(measureText);
+
         BT.printFont(this.font, new Vector2i(10, y), measureText, new Color32(200, 200, 200));
-        // Draw underline showing measured width
+
+        // Draw underline showing measured width.
         BT.drawLine(
             new Vector2i(10, y + lineHeight - 2),
             new Vector2i(10 + textWidth, y + lineHeight - 2),
             new Color32(255, 200, 100),
         );
+
         y += lineHeight + 4;
 
-        // Font info
+        // Font info.
         BT.printFont(
             this.font,
             new Vector2i(10, y),
             `Font: ${this.font.name} (${this.font.glyphCount} glyphs)`,
             new Color32(150, 150, 150),
         );
+
         y += lineHeight;
 
-        // FPS counter
+        // FPS counter.
         BT.printFont(
             this.font,
             new Vector2i(10, y),
@@ -185,14 +215,18 @@ class FontDemo implements IBlitTechGame {
 
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
     }
+
+    // #endregion
 }
+
+// #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
  * @param title - Error heading.
  * @param message - Error details.
  */
-function showError(title: string, message: string) {
+function showError(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
@@ -205,11 +239,15 @@ function showError(title: string, message: string) {
     }
 }
 
+// #endregion
+
+// #region Main Logic
+
 /**
  * Application entry point.
  * Validates WebGPU support and starts the font demo.
  */
-async function main() {
+async function main(): Promise<void> {
     if (!navigator.gpu) {
         showError(
             'WebGPU Not Supported',
@@ -229,13 +267,19 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Font demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
     }
 }
 
-// Start when DOM is ready
+// #endregion
+
+// #region App Lifecycle
+
+// Auto-start when DOM is ready.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', main);
 } else {
     main();
 }
+
+// #endregion

@@ -1,12 +1,12 @@
 ---
-description: TypeScript conventions and style guide for Blit-Tech
+description: TypeScript conventions and style guide for Blit–Tech
 globs: ["**/*.ts"]
 alwaysApply: false
 ---
 
 # TypeScript Conventions
 
-This document covers TypeScript-specific patterns and style requirements for Blit-Tech.
+This document covers TypeScript-specific patterns and style requirements for Blit–Tech.
 
 ## Compiler Configuration
 
@@ -46,6 +46,7 @@ import { HardwareSettings } from './IBlitTechGame';
 ```
 
 Use `import type` when:
+
 - Importing interfaces
 - Importing type aliases
 - Importing types only used in type positions
@@ -226,7 +227,7 @@ export class SpriteSheet {
 ```typescript
 /**
  * Game lifecycle interface.
- * Implement this to create a Blit-Tech game.
+ * Implement this to create a Blit–Tech game.
  */
 export interface IBlitTechGame {
     /**
