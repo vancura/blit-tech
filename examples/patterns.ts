@@ -18,14 +18,21 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
  * Each section shows a different algorithmic visual effect.
  */
 class PatternsDemo implements IBlitTechGame {
+    // #region Module State
+
     /** Animation time accumulator in seconds. */
     private animTime: number = 0;
 
     /** Bitmap font for text rendering. */
     private font: BitmapFont | null = null;
 
+    // #endregion
+
+    // #region IBlitTechGame Implementation
+
     /**
      * Configures a 320x240 display with 2x CSS upscaling for crisp patterns.
+     *
      * @returns Hardware configuration.
      */
     queryHardware(): HardwareSettings {
@@ -38,12 +45,13 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Initializes the demo and loads the bitmap font.
+     *
      * @returns Promise resolving to true when font is loaded.
      */
     async initialize(): Promise<boolean> {
         console.log('[PatternsDemo] Initializing...');
 
-        // Load bitmap font for text rendering
+        // Load bitmap font for text rendering.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
             console.log(`[PatternsDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
@@ -67,7 +75,7 @@ class PatternsDemo implements IBlitTechGame {
      * Renders all pattern demonstrations in a 2x3 grid layout.
      */
     render(): void {
-        // Clear to dark background
+        // Clear to dark background.
         BT.clear(new Color32(15, 15, 25));
 
         if (!this.font) {
@@ -75,10 +83,10 @@ class PatternsDemo implements IBlitTechGame {
             return;
         }
 
-        // Title
+        // Title.
         BT.printFont(this.font, new Vector2i(10, 5), 'Blit–Tech - Patterns Demo', Color32.white());
 
-        // Draw different pattern sections
+        // Draw different pattern sections.
         this.drawSpiral(new Vector2i(40, 50));
         this.drawRadialLines(new Vector2i(120, 50));
         this.drawWavePattern(new Vector2i(200, 50));
@@ -86,7 +94,7 @@ class PatternsDemo implements IBlitTechGame {
         this.drawLissajous(new Vector2i(120, 130));
         this.drawTunnel(new Vector2i(200, 130));
 
-        // Labels
+        // Labels.
         BT.printFont(this.font, new Vector2i(15, 95), 'Spiral', new Color32(200, 200, 200));
         BT.printFont(this.font, new Vector2i(90, 95), 'Radial', new Color32(200, 200, 200));
         BT.printFont(this.font, new Vector2i(175, 95), 'Wave', new Color32(200, 200, 200));
@@ -94,7 +102,7 @@ class PatternsDemo implements IBlitTechGame {
         BT.printFont(this.font, new Vector2i(85, 175), 'Lissajous', new Color32(200, 200, 200));
         BT.printFont(this.font, new Vector2i(175, 175), 'Tunnel', new Color32(200, 200, 200));
 
-        // FPS counter
+        // FPS counter.
         BT.printFont(
             this.font,
             new Vector2i(10, 225),
@@ -103,9 +111,14 @@ class PatternsDemo implements IBlitTechGame {
         );
     }
 
+    // #endregion
+
+    // #region Pattern Rendering
+
     /**
      * Draws an animated Archimedean spiral using pixels.
      * Points expand outward while rotating with rainbow colors.
+     *
      * @param center - Center point of the spiral.
      */
     private drawSpiral(center: Vector2i): void {
@@ -129,6 +142,7 @@ class PatternsDemo implements IBlitTechGame {
     /**
      * Draws animated radial lines from center like sun rays.
      * Line lengths pulse based on time offset.
+     *
      * @param center - Center point of the radial pattern.
      */
     private drawRadialLines(center: Vector2i): void {
@@ -152,23 +166,24 @@ class PatternsDemo implements IBlitTechGame {
     /**
      * Draws three overlapping wave patterns demonstrating interference.
      * Shows primary, secondary, and combined waves.
+     *
      * @param center - Center point (waves drawn horizontally around this).
      */
     private drawWavePattern(center: Vector2i): void {
         const width = 60;
 
         for (let x = 0; x < width; x++) {
-            // Primary wave
+            // Primary wave.
             const y1 = Math.sin((x + this.animTime * 20) * 0.2) * 15;
             const color1 = new Color32(100, 200, 255);
             BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y1)), color1);
 
-            // Secondary wave
+            // Secondary wave.
             const y2 = Math.cos((x + this.animTime * 15) * 0.15) * 10;
             const color2 = new Color32(255, 150, 100);
             BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y2)), color2);
 
-            // Interference pattern
+            // Interference pattern.
             const y3 = Math.sin((x + this.animTime * 20) * 0.2) * 15 + Math.cos((x + this.animTime * 15) * 0.15) * 10;
             const color3 = new Color32(150, 255, 150);
             BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y3 / 2)), color3);
@@ -178,6 +193,7 @@ class PatternsDemo implements IBlitTechGame {
     /**
      * Draws a rotating circle using line segment approximation.
      * Shows how circles can be rendered using only line primitives.
+     *
      * @param center - Center point of the circle.
      */
     private drawCircleApproximation(center: Vector2i): void {
@@ -208,6 +224,7 @@ class PatternsDemo implements IBlitTechGame {
      * Draws a Lissajous curve (parametric figure-8 variant).
      * Classic demonstration of harmonic oscillation patterns.
      * Uses frequency ratio 3:4 for the characteristic shape.
+     *
      * @param center - Center point of the curve.
      */
     private drawLissajous(center: Vector2i): void {
@@ -244,6 +261,7 @@ class PatternsDemo implements IBlitTechGame {
     /**
      * Draws a psychedelic tunnel effect using concentric rectangles.
      * Rectangles rotate and wobble for depth illusion.
+     *
      * @param center - Center point of the tunnel.
      */
     private drawTunnel(center: Vector2i): void {
@@ -270,6 +288,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Converts HSL color values to RGB Color32.
+     *
      * @param h - Hue in degrees (0-360).
      * @param s - Saturation percentage (0-100).
      * @param l - Lightness percentage (0-100).
@@ -280,7 +299,7 @@ class PatternsDemo implements IBlitTechGame {
         s = s / 100;
         l = l / 100;
 
-        let r, g, b;
+        let r: number, g: number, b: number;
 
         if (s === 0) {
             r = g = b = l;
@@ -291,11 +310,13 @@ class PatternsDemo implements IBlitTechGame {
                 if (t < 1 / 6) return p + (q - p) * 6 * t;
                 if (t < 1 / 2) return q;
                 if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+
                 return p;
             };
 
             const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             const p = 2 * l - q;
+
             r = hue2rgb(p, q, h + 1 / 3);
             g = hue2rgb(p, q, h);
             b = hue2rgb(p, q, h - 1 / 3);
@@ -303,15 +324,21 @@ class PatternsDemo implements IBlitTechGame {
 
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
     }
+
+    // #endregion
 }
+
+// #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
+ *
  * @param title - Error heading.
  * @param message - Error details.
  */
-function showError(title: string, message: string) {
+function showError(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
+
     if (container) {
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
@@ -323,23 +350,29 @@ function showError(title: string, message: string) {
     }
 }
 
+// #endregion
+
+// #region Main Logic
+
 /**
  * Application entry point.
  * Validates WebGPU support and starts the patterns demo.
  */
-async function main() {
+async function main(): Promise<void> {
     // Check WebGPU support
     if (!navigator.gpu) {
         showError(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.',
         );
+
         return;
     }
 
     const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
     if (!canvas) {
         console.error('[Main] Canvas element not found');
+
         return;
     }
 
@@ -352,9 +385,15 @@ async function main() {
     }
 }
 
-// Start when DOM is ready
+// #endregion
+
+// #region App Lifecycle
+
+// Auto-start when DOM is ready.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', main);
 } else {
     main();
 }
+
+// #endregion
