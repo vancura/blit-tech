@@ -7,7 +7,7 @@ import { Vector2i } from '../utils/Vector2i';
 import type { HardwareSettings, IBlitTechGame } from './IBlitTechGame';
 
 /**
- * Internal API coordinator for all Blit-Tech subsystems.
+ * Internal API coordinator for all Blit–Tech subsystems.
  * This is similar to RetroBlit's RBAPI class.
  *
  * Manages the lifecycle of all engine subsystems and coordinates

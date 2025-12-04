@@ -5,7 +5,7 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 
 /**
- * WebGPU renderer for Blit-Tech.
+ * WebGPU renderer for Blit–Tech.
  * Handles all drawing operations including primitives (lines, rects) and sprites.
  * Uses batched rendering for performance - vertices are accumulated and drawn at frame end.
  */
