@@ -1,6 +1,6 @@
 {
   "appId": "com.vancura.blit-tech",
-  "productName": "Blit-Tech",
+  "productName": "Blit–Tech",
   "copyright": "Copyright © 2025 Václav Vančura",
   "directories": {
     "output": "dist-electron",
@@ -32,7 +32,7 @@
     "description": "A lightweight WebGPU-based retro game engine for TypeScript",
     "desktop": {
       "entry": {
-        "Name": "Blit-Tech",
+        "Name": "Blit–Tech",
         "Comment": "WebGPU Retro Game Engine",
         "Type": "Application",
         "Categories": "Game;Development;",
@@ -81,6 +81,6 @@
     "category": "public.app-category.games"
   },
   "dmg": {
-    "title": "Blit-Tech ${version}"
+    "title": "Blit–Tech ${version}"
   }
 }

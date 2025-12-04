@@ -1,15 +1,15 @@
 /**
- * Basic Blit-Tech Example
+ * Basic Blit–Tech Example
  *
- * Demonstrates the minimal setup required for a Blit-Tech game.
  * This example creates a simple moving square that bounces around the screen.
+ * Demonstrates the minimal setup required for a Blit–Tech game.
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
 
 /**
- * A minimal game demonstrating core Blit-Tech functionality.
+ * A minimal game demonstrating core Blit–Tech functionality.
  * Shows hardware configuration, game loop, and basic rendering.
  * Note: Input handling is planned but not yet implemented in Phase 1.
  */

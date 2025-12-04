@@ -1,7 +1,7 @@
 /**
  * Sprite Demo
  *
- * Shows how to use sprite sheets and textured rendering in Blit-Tech.
+ * Shows how to use sprite sheets and textured rendering in Blit–Tech.
  * Demonstrates:
  * - Loading/creating sprite sheets
  * - Drawing sprites with source rectangles
@@ -402,7 +402,7 @@ async function main() {
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit-Tech engine. Check console for details.');
+        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
     }
 }
 

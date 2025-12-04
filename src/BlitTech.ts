@@ -1,5 +1,5 @@
 /**
- * Blit-Tech - WebGPU Retro Game Engine
+ * Blit–Tech - WebGPU Retro Game Engine
  *
  * Main static API inspired by RetroBlit's RB namespace.
  * All game code interacts with the engine through this interface.

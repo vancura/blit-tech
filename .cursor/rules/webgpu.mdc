@@ -1,12 +1,12 @@
 ---
-description: WebGPU conventions and best practices for Blit-Tech
+description: WebGPU conventions and best practices for Blit–Tech
 globs: ["**/*.ts", "**/*.wgsl"]
 alwaysApply: false
 ---
 
 # WebGPU Conventions
 
-This document covers WebGPU-specific patterns and best practices for the Blit-Tech engine.
+This document covers WebGPU-specific patterns and best practices for the Blit–Tech engine.
 
 ## Buffer Management
 
@@ -214,7 +214,8 @@ const pipeline = device.createRenderPipeline({
 
 ### Multiple Pipelines
 
-Blit-Tech uses separate pipelines for different purposes:
+Blit–Tech uses separate pipelines for different purposes:
+
 1. **Primitives pipeline** - Colored vertices, no texture
 2. **Sprites pipeline** - Textured quads with tint
 
