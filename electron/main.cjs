@@ -183,6 +183,8 @@ function createWindow() {
     mainWindow.on('closed', onMainWindowClosed);
     mainWindow.webContents.on('will-navigate', preventExternalNavigation);
     mainWindow.webContents.setWindowOpenHandler(handleNewWindowRequest);
+
+    return mainWindow;
 }
 
 // #endregion
