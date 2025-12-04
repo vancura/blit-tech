@@ -124,17 +124,34 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
         // Use relative path from output file to texture
         const outputDir = dirname(outputPath);
 
-        if (outputDir === fntDir) {
-            textureValue = textureFilename; // same directory, just use the filename
-        } else {
-            // Compute a relative path from the output directory to the texture file
-            textureValue = relative(outputDir, texturePath).replace(/\\/g, '/');
-        }
+        // Compute a relative path from the output directory to the texture file
+        textureValue = relative(outputDir, texturePath).replace(/\\/g, '/');
 
         console.log(`Texture reference: ${textureValue}`);
     }
 
     return textureValue;
+}
+
+/**
+ * Parses glyph data from a given XML tag and updates the glyphs object with the corresponding character's properties.
+ *
+ * @param {Object} glyphs - The object representing all glyph data, which will be updated with the parsed character information.
+ * @param {string} char - The character corresponding to the glyph data being parsed.
+ * @param {String} tag - The XML tag containing the attributes for the glyph's properties.
+ * @returns {void} Does not return a value; updates the glyphs object directly with parsed data.
+ */
+function parseGlyphData(glyphs, char, tag) {
+    // eslint-disable-next-line security/detect-object-injection
+    glyphs[char] = {
+        x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
+        y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
+        w: parseInt(parseXmlAttribute(tag, 'width') || '0', 10),
+        h: parseInt(parseXmlAttribute(tag, 'height') || '0', 10),
+        ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
+        oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
+        adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
+    };
 }
 
 /**
@@ -152,21 +169,7 @@ function parseGlyphs(xmlData) {
         const charCode = parseInt(parseXmlAttribute(tag, 'id') || '0', 10);
         const char = String.fromCharCode(charCode);
 
-        // Use Object.defineProperty to safely set property and prevent prototype pollution
-        Object.defineProperty(glyphs, char, {
-            value: {
-                x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
-                y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
-                w: parseInt(parseXmlAttribute(tag, 'width') || '0', 10),
-                h: parseInt(parseXmlAttribute(tag, 'height') || '0', 10),
-                ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
-                oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
-                adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
-            },
-            writable: true,
-            enumerable: true,
-            configurable: true,
-        });
+        parseGlyphData(glyphs, char, tag);
 
         glyphCount++;
     }
@@ -272,7 +275,7 @@ Usage:
 
 Options:
   --embed    Embed the texture as base64 instead of referencing it
-  --help     Show this help message
+  -h --help  Show this help message
 
 Examples:
   node convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont
