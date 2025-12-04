@@ -14,6 +14,7 @@ It provides pixel-perfect 2D rendering with a clean, fantasy-console-style API.
 ### No Emoji
 
 NEVER use emoji in:
+
 - Source code (comments, strings, identifiers)
 - Documentation (markdown files, JSDoc)
 - Commit messages
@@ -25,6 +26,7 @@ This rule has no exceptions. Use plain text descriptions instead.
 ### Integer Coordinates
 
 All rendering uses integer positions. The engine is designed for pixel-perfect graphics:
+
 - Use `Vector2i` for all positions and sizes
 - Use `Rect2i` for all rectangular regions
 - Values are automatically floored to integers
@@ -33,6 +35,7 @@ All rendering uses integer positions. The engine is designed for pixel-perfect g
 ### Performance First
 
 The engine targets 60 FPS with thousands of sprites:
+
 - Minimize allocations in update/render loops
 - Reuse buffers and objects where possible
 - Batch draw calls (sprites batched by texture)
@@ -78,6 +81,7 @@ interface IBlitTechGame {
 ### Vector2i
 
 Integer 2D vector for positions and sizes:
+
 - Constructor auto-floors values: `new Vector2i(1.7, 2.3)` becomes `(1, 2)`
 - Has `width`/`height` aliases for `x`/`y`
 - Arithmetic methods return new instances: `pos.add(offset)`
@@ -86,6 +90,7 @@ Integer 2D vector for positions and sizes:
 ### Rect2i
 
 Integer rectangle for regions:
+
 - Properties: `x`, `y`, `width`, `height`
 - Computed: `min`, `max`, `center`, `position`, `size`
 - Methods: `contains()`, `intersects()`, `intersection()`, `intersectionDepth()`
@@ -93,6 +98,7 @@ Integer rectangle for regions:
 ### Color32
 
 32-bit RGBA color (0-255 per channel):
+
 - Constructor auto-clamps values
 - Conversions: `toFloat32Array()`, `toUint32()`, `toHex()`
 - Static colors: `Color32.white()`, `Color32.black()`, `Color32.red()`, etc.
@@ -118,6 +124,7 @@ The renderer uses two separate WebGPU pipelines:
 ### Drawing Order
 
 Draw calls are rendered in order within each frame:
+
 1. `BT.clear()` sets background color
 2. Primitives and sprites interleave based on call order
 3. Frame ends with `endFrame()` which flushes all batches
@@ -125,6 +132,7 @@ Draw calls are rendered in order within each frame:
 ### Camera System
 
 Camera offset affects all drawing:
+
 ```typescript
 BT.cameraSet(new Vector2i(100, 50));  // Scroll world
 BT.cameraGet();                        // Get current offset
@@ -136,6 +144,7 @@ BT.cameraReset();                      // Reset to (0, 0)
 ### SpriteSheet
 
 Load images as GPU textures:
+
 ```typescript
 const sheet = await SpriteSheet.load('sprites.png');
 BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(100, 100));
@@ -148,6 +157,7 @@ BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(100, 100));
 ### BitmapFont
 
 Custom `.btfont` JSON format:
+
 ```typescript
 const font = await BitmapFont.load('fonts/MyFont.btfont');
 BT.printFont(font, new Vector2i(10, 10), 'Hello World', Color32.white());
@@ -168,6 +178,7 @@ The engine will support VGA Mode 13h style palettized rendering:
 - Dual-mode: RGBA and indexed sprites can coexist
 
 When implementing palette features:
+
 - Index framebuffer separate from RGBA framebuffer
 - Palette lookup in fragment shader
 - Palette changes don't require redrawing - just update uniform
@@ -186,6 +197,7 @@ Enforced by Biome and ESLint:
 ### Imports
 
 Use type imports for type-only imports:
+
 ```typescript
 // Correct
 import type { HardwareSettings } from './IBlitTechGame';
@@ -198,6 +210,7 @@ import { HardwareSettings } from './IBlitTechGame';  // If only used as type
 ### JSDoc
 
 Required for public APIs:
+
 ```typescript
 /**
  * Draws a sprite from a sprite sheet at the specified position.
@@ -214,9 +227,115 @@ export function drawSprite(
 ): void;
 ```
 
+### Code Organization
+
+Structure source files for maximum readability and maintainability. Organize code logically with clear sections.
+
+#### File Structure
+
+Organize files in a logical flow from top to bottom:
+
+1. **Imports/Requires** - All external dependencies at the top
+2. **Configuration** - Setup, constants, command-line flags, environment checks
+3. **Module State** - Module-level variables and state
+4. **Helper/Utility Functions** - Pure functions and utilities (defined before use)
+5. **Event Handlers** - Functions that handle specific events
+6. **Lifecycle Functions** - Initialization, cleanup, main entry points
+7. **Exports** - Public API exports (if applicable)
+
+#### Region Comments
+
+Use `// #region` and `// #endregion` comments to create collapsible sections in editors (VS Code/Cursor). This provides a `#pragma region`-like experience:
+
+```javascript
+// #region Configuration
+
+app.commandLine.appendSwitch('enable-webgpu');
+
+// #endregion
+
+// #region Helper Functions
+
+function isInternalUrl(url) {
+    // ...
+}
+
+// #endregion
+
+// #region Event Handlers
+
+function handleNavigation(event, url) {
+    // ...
+}
+
+// #endregion
+```
+
+**Benefits:**
+
+- Collapsible sections in the editor for better navigation
+- Clear visual separation of code sections
+- Improved code readability and maintainability
+- Standard practice in JavaScript/TypeScript projects
+
+**Guidelines:**
+
+- Use descriptive region names that clearly indicate the section's purpose
+- Group related functionality together within regions
+- Keep regions focused - split large sections if they become too broad
+- Place helper functions before functions that use them
+- End regions with `// #endregion` on its own line
+
+**Example Structure:**
+
+```javascript
+const { app, BrowserWindow } = require('electron');
+
+// #region Configuration
+
+// Platform-specific setup
+if (process.platform === 'linux') {
+    // ...
+}
+
+// #endregion
+
+// #region Module State
+
+let mainWindow;
+
+// #endregion
+
+// #region Helper Functions
+
+function isInternalUrl(url) {
+    return url.startsWith('file://');
+}
+
+// #endregion
+
+// #region Event Handlers
+
+function handleNavigation(event, url) {
+    if (!isInternalUrl(url)) {
+        event.preventDefault();
+    }
+}
+
+// #endregion
+
+// #region App Lifecycle
+
+app.whenReady().then(() => {
+    createWindow();
+});
+
+// #endregion
+```
+
 ## File Organization
 
-```
+```text
 src/
   BlitTech.ts          # Public API (BT namespace exports)
   main.ts              # Dev entry point
@@ -241,7 +360,7 @@ src/
 
 All commits must follow the Conventional Commits format:
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -250,11 +369,13 @@ All commits must follow the Conventional Commits format:
 ```
 
 **Rules:**
+
 - Header (first line) max 100 characters
 - Subject must be lowercase
 - Subject must not end with period
 
 **Types:**
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `docs` - Documentation only
@@ -267,6 +388,7 @@ All commits must follow the Conventional Commits format:
 - `chore` - Other changes (e.g., tooling)
 
 **Suggested Scopes:**
+
 - `renderer` - Rendering system
 - `camera` - Camera system
 - `assets` - Asset loading
@@ -277,7 +399,8 @@ All commits must follow the Conventional Commits format:
 - `docs` - Documentation
 
 **Examples:**
-```
+
+```text
 feat(renderer): add circle primitive drawing
 fix(assets): handle missing texture gracefully
 perf(renderer): reduce buffer uploads per frame
@@ -288,7 +411,7 @@ docs: update API reference section
 
 All commits must include a sign-off line (DCO - Developer Certificate of Origin):
 
-```
+```text
 Signed-off-by: Your Name <your.email@example.com>
 ```
 
@@ -298,7 +421,7 @@ Use `git commit -s` to automatically add the sign-off.
 
 When AI tools are used to write code or commit messages, include the AI trailer:
 
-```
+```text
 feat(palette): implement color cycling effect
 
 Add palette rotation with configurable speed and range.

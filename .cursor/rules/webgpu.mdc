@@ -13,6 +13,7 @@ This document covers WebGPU-specific patterns and best practices for the Blit–
 ### Typed Arrays
 
 Use typed arrays for GPU data:
+
 ```typescript
 // Vertex data - pre-allocated
 private vertexData = new Float32Array(MAX_VERTICES * VERTEX_SIZE);
@@ -62,6 +63,7 @@ device.queue.writeBuffer(this.resolutionBuffer, 0, resolutionData);
 ### Texture Creation
 
 Standard texture setup for sprites:
+
 ```typescript
 const texture = device.createTexture({
     size: [width, height],
@@ -83,6 +85,7 @@ const texture = device.createTexture({
 ### Sampling
 
 Pixel-perfect rendering requires nearest-neighbor:
+
 ```typescript
 const sampler = device.createSampler({
     magFilter: 'nearest',
@@ -97,6 +100,7 @@ Never use `linear` filtering for pixel art.
 ### Texture Upload
 
 Upload from ImageBitmap:
+
 ```typescript
 device.queue.copyExternalImageToTexture(
     { source: imageBitmap },
@@ -110,6 +114,7 @@ device.queue.copyExternalImageToTexture(
 ### Binding Groups
 
 Organize bindings by update frequency:
+
 - **Group 0**: Per-frame uniforms (resolution, camera)
 - **Group 1**: Per-material resources (textures, samplers)
 
@@ -125,6 +130,7 @@ Organize bindings by update frequency:
 ### Vertex Shader Pattern
 
 Standard vertex transformation:
+
 ```wgsl
 struct VertexInput {
     @location(0) position: vec2<f32>,
@@ -152,6 +158,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 ### Fragment Shader Pattern
 
 Basic textured fragment:
+
 ```wgsl
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
@@ -163,6 +170,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
 ### Palette Lookup (Future)
 
 For indexed color rendering:
+
 ```wgsl
 @group(0) @binding(0) var<uniform> palette: array<vec4<f32>, 256>;
 @group(1) @binding(0) var indexTexture: texture_2d<u32>;
@@ -179,6 +187,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
 ### Render Pipeline Setup
 
 Standard pipeline configuration:
+
 ```typescript
 const pipeline = device.createRenderPipeline({
     layout: 'auto',
@@ -220,6 +229,7 @@ Blit–Tech uses separate pipelines for different purposes:
 2. **Sprites pipeline** - Textured quads with tint
 
 Each pipeline has its own:
+
 - Shader module
 - Vertex buffer layout
 - Bind group layout
@@ -229,6 +239,7 @@ Each pipeline has its own:
 ### Batching
 
 Minimize draw calls by batching:
+
 ```typescript
 // Bad - one draw call per sprite
 for (const sprite of sprites) {
@@ -242,11 +253,13 @@ renderPass.draw(totalVertices, 1, 0, 0);
 ### State Changes
 
 State changes are expensive. Minimize:
+
 - Pipeline switches
 - Bind group changes
 - Texture binds
 
 Sort draw calls by state when possible:
+
 ```typescript
 // Sort sprites by texture before batching
 sprites.sort((a, b) => a.texture.id - b.texture.id);
@@ -255,6 +268,7 @@ sprites.sort((a, b) => a.texture.id - b.texture.id);
 ### Texture Atlases
 
 Prefer texture atlases over individual textures:
+
 - Single bind group for all sprites
 - No texture switching mid-batch
 - Better GPU cache utilization
@@ -262,6 +276,7 @@ Prefer texture atlases over individual textures:
 ### Multi-Texture Batching
 
 When texture atlases aren't possible, queue batches:
+
 ```typescript
 interface SpriteBatch {
     texture: GPUTexture;
@@ -278,6 +293,7 @@ private spriteBatches: SpriteBatch[] = [];
 ### Device Lost
 
 Handle GPU device loss gracefully:
+
 ```typescript
 device.lost.then((info) => {
     console.error('WebGPU device lost:', info.message);
@@ -291,6 +307,7 @@ device.lost.then((info) => {
 ### Validation Errors
 
 Enable validation in development:
+
 ```typescript
 const adapter = await navigator.gpu.requestAdapter();
 const device = await adapter.requestDevice({
@@ -305,6 +322,7 @@ device.onuncapturederror = (event) => {
 ### Feature Detection
 
 Check for WebGPU support:
+
 ```typescript
 if (!navigator.gpu) {
     throw new Error('WebGPU not supported in this browser');
@@ -321,6 +339,7 @@ if (!adapter) {
 ### Resource Cleanup
 
 Destroy GPU resources when done:
+
 ```typescript
 class SpriteSheet {
     private texture: GPUTexture | null = null;
@@ -337,6 +356,7 @@ class SpriteSheet {
 ### Bind Group Caching
 
 Cache bind groups to avoid recreation:
+
 ```typescript
 private bindGroupCache = new Map<GPUTexture, GPUBindGroup>();
 
@@ -353,6 +373,7 @@ getBindGroup(texture: GPUTexture): GPUBindGroup {
 ## Frame Lifecycle
 
 Standard frame structure:
+
 ```typescript
 beginFrame(): void {
     // Reset counters
