@@ -16,11 +16,17 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
  * Each section shows a different drawing function in action.
  */
 class PrimitivesDemo implements IBlitTechGame {
+    // #region Module State
+
     /** Animation tick counter for time-based effects. */
     private animTicks: number = 0;
 
     /** Bitmap font for text rendering. */
     private font: BitmapFont | null = null;
+
+    // #endregion
+
+    // #region IBlitTechGame Implementation
 
     /**
      * Configures a 320x240 display with 2x CSS upscaling for crisp pixels.
@@ -41,7 +47,7 @@ class PrimitivesDemo implements IBlitTechGame {
     async initialize(): Promise<boolean> {
         console.log('[PrimitivesDemo] Initializing...');
 
-        // Load bitmap font for text rendering
+        // Load bitmap font for text rendering.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
             console.log(`[PrimitivesDemo] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
@@ -74,13 +80,13 @@ class PrimitivesDemo implements IBlitTechGame {
             return;
         }
 
-        // Title
+        // Title.
         BT.printFont(this.font, new Vector2i(10, 10), 'Blit–Tech - Primitives Demo', Color32.white());
 
-        // Section 1: Pixels
+        // Section 1: Pixels.
         BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
 
-        // Draw random-ish pixels
+        // Draw random-ish pixels.
         for (let i = 0; i < 50; i++) {
             const x = 10 + ((i * 13) % 60);
             const y = 45 + ((i * 7) % 20);
@@ -89,19 +95,19 @@ class PrimitivesDemo implements IBlitTechGame {
             BT.drawPixel(new Vector2i(x, y), color);
         }
 
-        // Section 2: Lines
+        // Section 2: Lines.
         BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
 
-        // Horizontal line
+        // Horizontal line.
         BT.drawLine(new Vector2i(10, 90), new Vector2i(70, 90), new Color32(255, 100, 100));
 
-        // Vertical line
+        // Vertical line.
         BT.drawLine(new Vector2i(20, 95), new Vector2i(20, 115), new Color32(100, 255, 100));
 
-        // Diagonal line
+        // Diagonal line.
         BT.drawLine(new Vector2i(30, 95), new Vector2i(60, 115), new Color32(100, 100, 255));
 
-        // Animated rotating line
+        // Animated rotating line.
         const angle = (this.animTicks * 2 * Math.PI) / 180;
         const centerX = 50;
         const centerY = 105;
@@ -110,60 +116,60 @@ class PrimitivesDemo implements IBlitTechGame {
         const endY = centerY + Math.sin(angle) * radius;
         BT.drawLine(new Vector2i(centerX, centerY), new Vector2i(Math.floor(endX), Math.floor(endY)), Color32.white());
 
-        // Section 3: Rectangle Outlines
+        // Section 3: Rectangle Outlines.
         BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
 
-        // Static rectangles
+        // Static rectangles.
         BT.drawRect(new Rect2i(90, 45, 40, 25), new Color32(255, 100, 100));
         BT.drawRect(new Rect2i(140, 45, 30, 30), new Color32(100, 255, 100));
         BT.drawRect(new Rect2i(180, 45, 25, 35), new Color32(100, 100, 255));
 
-        // Animated pulsing rectangle
+        // Animated pulsing rectangle.
         const pulse = Math.floor(10 + Math.sin(this.animTicks * 0.1) * 5);
         BT.drawRect(new Rect2i(220, 45, pulse * 2, pulse * 2), new Color32(255, 255, 100));
 
-        // Section 4: Filled Rectangles
+        // Section 4: Filled Rectangles.
         BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
 
-        // Static filled rectangles
+        // Static filled rectangles.
         BT.drawRectFill(new Rect2i(90, 105, 40, 25), new Color32(255, 100, 100));
         BT.drawRectFill(new Rect2i(140, 105, 30, 30), new Color32(100, 255, 100));
         BT.drawRectFill(new Rect2i(180, 105, 25, 35), new Color32(100, 100, 255));
 
-        // Animated sliding rectangle
+        // Animated sliding rectangle.
         const slideX = 220 + Math.floor(Math.sin(this.animTicks * 0.05) * 20);
         BT.drawRectFill(new Rect2i(slideX, 105, 20, 20), new Color32(255, 255, 100));
 
-        // Section 5: Clear Rect
+        // Section 5: Clear Rect.
         BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
 
-        // Draw a background pattern
+        // Draw a background pattern.
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 5; j++) {
                 BT.drawRectFill(new Rect2i(10 + i * 10, 150 + j * 10, 8, 8), new Color32(100, 150, 200));
             }
         }
 
-        // Clear a rectangular region
+        // Clear a rectangular region.
         const clearX = 30 + Math.floor(Math.sin(this.animTicks * 0.03) * 15);
         BT.clearRect(new Color32(20, 30, 50), new Rect2i(clearX, 160, 40, 30));
 
-        // Section 6: Combined Demo
+        // Section 6: Combined Demo.
         BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
 
-        // Draw a simple animated "graph"
+        // Draw a simple animated "graph".
         const graphX = 120;
         const graphY = 170;
         const graphW = 180;
         const graphH = 50;
 
-        // Graph background
+        // Graph background.
         BT.drawRectFill(new Rect2i(graphX, graphY, graphW, graphH), new Color32(10, 15, 25));
 
-        // Graph border
+        // Graph border.
         BT.drawRect(new Rect2i(graphX, graphY, graphW, graphH), new Color32(100, 100, 100));
 
-        // Draw sine wave
+        // Draw sine wave.
         for (let x = 0; x < graphW - 1; x++) {
             const y1 = Math.floor(graphH / 2 + Math.sin((x + this.animTicks) * 0.1) * (graphH / 3));
             const y2 = Math.floor(graphH / 2 + Math.sin((x + 1 + this.animTicks) * 0.1) * (graphH / 3));
@@ -175,7 +181,7 @@ class PrimitivesDemo implements IBlitTechGame {
             );
         }
 
-        // FPS counter
+        // FPS counter.
         BT.printFont(
             this.font,
             new Vector2i(10, 225),
@@ -184,9 +190,14 @@ class PrimitivesDemo implements IBlitTechGame {
         );
     }
 
+    // #endregion
+
+    // #region Helper Functions
+
     /**
      * Converts HSL color values to RGB Color32.
      * Used for rainbow color effects.
+     *
      * @param h - Hue in degrees (0-360).
      * @param s - Saturation percentage (0-100).
      * @param l - Lightness percentage (0-100).
@@ -220,14 +231,19 @@ class PrimitivesDemo implements IBlitTechGame {
 
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
     }
+
+    // #endregion
 }
+
+// #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
+ *
  * @param title - Error heading.
  * @param message - Error details.
  */
-function showError(title: string, message: string) {
+function showError(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
@@ -240,11 +256,15 @@ function showError(title: string, message: string) {
     }
 }
 
+// #endregion
+
+// #region Main Logic
+
 /**
  * Application entry point.
  * Validates WebGPU support and starts the demo.
  */
-async function main() {
+async function main(): Promise<void> {
     // Check WebGPU support
     if (!navigator.gpu) {
         showError(
@@ -269,9 +289,15 @@ async function main() {
     }
 }
 
-// Start when DOM is ready
+// #endregion
+
+// #region App Lifecycle
+
+// Auto-start when DOM is ready.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', main);
 } else {
     main();
 }
+
+// #endregion
