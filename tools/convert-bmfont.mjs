@@ -7,7 +7,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 
 /**
  * Extracts the value of a specified attribute from an XML tag.
@@ -65,10 +65,11 @@ function parseCommonTag(xmlData, fontSize) {
 
 /**
  * Parses the <page> tag in the provided XML data to extract the texture file name.
+ * Only the first <page> tag is parsed; multi-page BMFonts are not supported.
  * Logs an error and terminates the process if the <page> tag or texture file name is missing.
  *
  * @param {string} xmlData The XML data containing the <page> tag to be parsed.
- * @returns {string} The texture file name extracted from the <page> tag.
+ * @returns {string} The texture file name extracted from the first <page> tag.
  */
 function parsePageTag(xmlData) {
     const pageMatch = xmlData.match(/<page[^>]+>/);
@@ -102,6 +103,15 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     let textureValue;
     const texturePath = join(fntDir, textureFilename);
 
+    // Prevent path traversal attacks by ensuring texturePath stays within fntDir
+    const resolvedTexturePath = resolve(texturePath);
+    const resolvedFntDir = resolve(fntDir);
+
+    if (!resolvedTexturePath.startsWith(resolvedFntDir)) {
+        console.error(`Error: Texture path escapes font directory: ${textureFilename}`);
+        process.exit(1);
+    }
+
     if (embedTexture) {
         // Validate texture file existence
         if (!existsSync(texturePath)) {
@@ -114,7 +124,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
         try {
             const pngData = readFileSync(texturePath);
             const base64 = pngData.toString('base64');
-            console.log(`  Texture size: ${base64.length} bytes (base64)`);
+            console.log(`  Texture size: ${pngData.length} bytes (${base64.length} base64)`);
             textureValue = `data:image/png;base64,${base64}`;
         } catch (error) {
             console.error(`Error reading texture file: ${error.message}`);
