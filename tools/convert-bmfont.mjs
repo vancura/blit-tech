@@ -259,9 +259,11 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
  * It processes command-line arguments, provides help instructions, and initiates the
  * conversion process from BMFont XML format to Blit–Tech's .btfont JSON format.
  *
- * Error cases:
- * - If no arguments are provided or insufficient arguments are passed, an error message
- *   is displayed along with usage instructions, and the program exits with an error code.
+ * Behavior:
+ * - If no arguments are provided, `--help`, or `-h` is passed, usage instructions
+ *   are displayed and the program exits successfully (status 0).
+ * - If insufficient arguments are passed (less than 2 paths), an error message
+ *   is displayed and the program exits with an error code (status 1).
  *
  * @returns {void} This function does not return a value. It either executes the
  * conversion process or exits the process with a relevant status code.
@@ -277,15 +279,15 @@ BMFont to .btfont Converter
 Converts BMFont XML format (.fnt + .png) to Blit–Tech’s .btfont JSON format.
 
 Usage:
-  node convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]
+  node tools/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]
 
 Options:
-  --embed    Embed the texture as base64 instead of referencing it
-  -h --help  Show this help message
+  --embed        Embed the texture as base64 instead of referencing it
+  -h, --help     Show this help message
 
 Examples:
-  node convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont
-  node convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont --embed
+  node tools/convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont
+  node tools/convert-bmfont.mjs fonts/MyFont.fnt fonts/MyFont.btfont --embed
 `);
         process.exit(0);
     }
@@ -296,7 +298,7 @@ Examples:
 
     if (paths.length < 2) {
         console.error('Error: Please provide input and output paths');
-        console.error('Usage: node convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]');
+        console.error('Usage: node tools/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]');
 
         process.exit(1);
     }
