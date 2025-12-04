@@ -65,24 +65,34 @@ function parseCommonTag(xmlData, fontSize) {
 
 /**
  * Parses the <page> tag in the provided XML data to extract the texture file name.
- * Only the first <page> tag is parsed; multi-page BMFonts are not supported.
- * Logs an error and terminates the process if the <page> tag or texture file name is missing.
+ * Multi-page BMFonts are not supported and will cause an error.
+ * Logs an error and terminates the process if no <page> tag is found, multiple <page> tags exist,
+ * or the texture file name is missing.
  *
  * @param {string} xmlData The XML data containing the <page> tag to be parsed.
- * @returns {string} The texture file name extracted from the first <page> tag.
+ * @returns {string} The texture file name extracted from the single <page> tag.
  */
 function parsePageTag(xmlData) {
-    const pageMatch = xmlData.match(/<page[^>]+>/);
+    const pageMatches = [...xmlData.matchAll(/<page[^>]+>/g)];
 
-    if (!pageMatch) {
+    if (pageMatches.length === 0) {
         console.error('Error: Could not find <page> tag in font file');
+
         process.exit(1);
     }
 
-    const textureFilename = parseXmlAttribute(pageMatch[0], 'file');
+    if (pageMatches.length > 1) {
+        console.error(`Error: Multi-page BMFonts are not supported (found ${pageMatches.length} <page> tags)`);
+        console.error('This font uses multiple texture pages, which is not currently supported.');
+
+        process.exit(1);
+    }
+
+    const textureFilename = parseXmlAttribute(pageMatches[0][0], 'file');
 
     if (!textureFilename) {
         console.error('Error: Could not find texture filename in <page> tag');
+
         process.exit(1);
     }
 
