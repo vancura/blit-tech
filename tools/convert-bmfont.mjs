@@ -346,10 +346,11 @@ Examples:
 
     // Parse arguments.
     const embedTexture = args.includes('--embed');
-    const paths = args.filter((arg) => !arg.startsWith('--'));
+    const paths = args.filter((arg) => !arg.startsWith('-'));
 
     // Validate no unknown flags.
-    const unknownFlags = args.filter((arg) => arg.startsWith('--') && arg !== '--embed');
+    const knownFlags = ['-h', '--help', '--embed'];
+    const unknownFlags = args.filter((arg) => arg.startsWith('-') && !knownFlags.includes(arg));
 
     if (unknownFlags.length > 0) {
         console.error(`Error: Unknown flag(s): ${unknownFlags.join(', ')}`);
