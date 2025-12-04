@@ -144,7 +144,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
  *
  * @param {Object} glyphs - The object representing all glyph data, which will be updated with the parsed character information.
  * @param {string} char - The character corresponding to the glyph data being parsed.
- * @param {String} tag - The XML tag containing the attributes for the glyph's properties.
+ * @param {string} tag - The XML tag containing the attributes for the glyph's properties.
  * @returns {void} Does not return a value; updates the glyphs object directly with parsed data.
  */
 function parseGlyphData(glyphs, char, tag) {
