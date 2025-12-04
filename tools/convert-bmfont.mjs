@@ -33,11 +33,19 @@ function parseInfoTag(xmlData) {
 
     if (!infoMatch) {
         console.error('Error: Could not find <info> tag in font file');
+
         process.exit(1);
     }
 
     const fontName = parseXmlAttribute(infoMatch[0], 'face') || 'Unknown';
-    const fontSize = Math.abs(parseInt(parseXmlAttribute(infoMatch[0], 'size') || '12', 10));
+    const sizeAttr = parseXmlAttribute(infoMatch[0], 'size') || '12';
+    const fontSize = Math.abs(parseInt(sizeAttr, 10));
+
+    if (Number.isNaN(fontSize)) {
+        console.error(`Error: Invalid font size in <info> tag: "${sizeAttr}"`);
+
+        process.exit(1);
+    }
 
     return { fontName, fontSize };
 }
@@ -54,11 +62,27 @@ function parseCommonTag(xmlData, fontSize) {
 
     if (!commonMatch) {
         console.error('Error: Could not find <common> tag in font file');
+
         process.exit(1);
     }
 
-    const lineHeight = parseInt(parseXmlAttribute(commonMatch[0], 'lineHeight') || String(fontSize), 10);
-    const baseline = parseInt(parseXmlAttribute(commonMatch[0], 'base') || String(fontSize), 10);
+    const lineHeightAttr = parseXmlAttribute(commonMatch[0], 'lineHeight') || String(fontSize);
+    const baselineAttr = parseXmlAttribute(commonMatch[0], 'base') || String(fontSize);
+
+    const lineHeight = parseInt(lineHeightAttr, 10);
+    const baseline = parseInt(baselineAttr, 10);
+
+    if (Number.isNaN(lineHeight)) {
+        console.error(`Error: Invalid lineHeight in <common> tag: "${lineHeightAttr}"`);
+
+        process.exit(1);
+    }
+
+    if (Number.isNaN(baseline)) {
+        console.error(`Error: Invalid baseline (base) in <common> tag: "${baselineAttr}"`);
+
+        process.exit(1);
+    }
 
     return { lineHeight, baseline };
 }
