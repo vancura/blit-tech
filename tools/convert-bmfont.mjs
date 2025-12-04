@@ -219,21 +219,55 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
  * @param {Object} glyphs - The object representing all glyph data, which will be updated with the parsed character information.
  * @param {string} char - The character corresponding to the glyph data being parsed.
  * @param {string} tag - The XML tag containing the attributes for the glyph's properties.
+ * @param {number} charCode - The character code for error reporting.
  * @returns {void} Does not return a value; updates the glyphs object directly with parsed data.
  */
-function parseGlyphData(glyphs, char, tag) {
-    const width = parseInt(parseXmlAttribute(tag, 'width') || '0', 10);
-    const height = parseInt(parseXmlAttribute(tag, 'height') || '0', 10);
+function parseGlyphData(glyphs, char, tag, charCode) {
+    // Parse all numeric attributes with defaults.
+    const xAttr = parseXmlAttribute(tag, 'x') || '0';
+    const yAttr = parseXmlAttribute(tag, 'y') || '0';
+    const widthAttr = parseXmlAttribute(tag, 'width') || '0';
+    const heightAttr = parseXmlAttribute(tag, 'height') || '0';
+    const xoffsetAttr = parseXmlAttribute(tag, 'xoffset') || '0';
+    const yoffsetAttr = parseXmlAttribute(tag, 'yoffset') || '0';
+    const xadvanceAttr = parseXmlAttribute(tag, 'xadvance') || '0';
+
+    const x = parseInt(xAttr, 10);
+    const y = parseInt(yAttr, 10);
+    const width = parseInt(widthAttr, 10);
+    const height = parseInt(heightAttr, 10);
+    const xoffset = parseInt(xoffsetAttr, 10);
+    const yoffset = parseInt(yoffsetAttr, 10);
+    const xadvance = parseInt(xadvanceAttr, 10);
+
+    // Validate all numeric values.
+    const attributes = [
+        { name: 'x', value: x, attr: xAttr },
+        { name: 'y', value: y, attr: yAttr },
+        { name: 'width', value: width, attr: widthAttr },
+        { name: 'height', value: height, attr: heightAttr },
+        { name: 'xoffset', value: xoffset, attr: xoffsetAttr },
+        { name: 'yoffset', value: yoffset, attr: yoffsetAttr },
+        { name: 'xadvance', value: xadvance, attr: xadvanceAttr },
+    ];
+
+    for (const { name, value, attr } of attributes) {
+        if (Number.isNaN(value)) {
+            console.error(`Error: Invalid ${name} attribute for glyph (char code ${charCode}): "${attr}"`);
+
+            process.exit(1);
+        }
+    }
 
     // eslint-disable-next-line security/detect-object-injection
     glyphs[char] = {
-        x: parseInt(parseXmlAttribute(tag, 'x') || '0', 10),
-        y: parseInt(parseXmlAttribute(tag, 'y') || '0', 10),
+        x,
+        y,
         w: width,
         h: height,
-        ox: parseInt(parseXmlAttribute(tag, 'xoffset') || '0', 10),
-        oy: parseInt(parseXmlAttribute(tag, 'yoffset') || '0', 10),
-        adv: parseInt(parseXmlAttribute(tag, 'xadvance') || '0', 10),
+        ox: xoffset,
+        oy: yoffset,
+        adv: xadvance,
     };
 }
 
@@ -268,7 +302,7 @@ function parseGlyphs(xmlData) {
 
         const char = String.fromCharCode(charCode);
 
-        parseGlyphData(glyphs, char, tag);
+        parseGlyphData(glyphs, char, tag, charCode);
 
         glyphCount++;
     }
