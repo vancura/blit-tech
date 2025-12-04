@@ -124,6 +124,12 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
         // Use relative path from output file to texture
         const outputDir = dirname(outputPath);
 
+        // Validate texture file existence
+        if (!existsSync(texturePath)) {
+            console.error(`Error: Texture file not found: ${texturePath}`);
+            process.exit(1);
+        }
+
         // Compute a relative path from the output directory to the texture file
         textureValue = relative(outputDir, texturePath).replace(/\\/g, '/');
 
