@@ -222,7 +222,7 @@ class FontDemo implements IBlitTechGame {
  * @param title - Error heading.
  * @param message - Error details.
  */
-function showError(title: string, message: string) {
+function showError(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
