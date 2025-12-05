@@ -1,10 +1,6 @@
-// #region Imports
-
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
-
-// #endregion
 
 /**
  * Sprite sheet asset for GPU-accelerated sprite rendering.
