@@ -105,8 +105,10 @@ export class AssetLoader {
     }
 
     /**
-     * Clears all cached assets from memory.
-     * Also cancels any pending load operations.
+     * Clears all in-memory caches. In-flight image requests are not aborted
+     * and may repopulate the cache once they complete.
+     *
+     * @returns void
      */
     static clear(): void {
         loadedImages.clear();
