@@ -28,6 +28,19 @@ class PatternsDemo implements IBlitTechGame {
 
     // #endregion
 
+    // #region Pre-allocated Reusable Objects (Performance)
+
+    /** Reusable vector for drawing operations. */
+    private readonly tempVec1 = new Vector2i(0, 0);
+
+    /** Reusable vector for drawing operations. */
+    private readonly tempVec2 = new Vector2i(0, 0);
+
+    /** Reusable rect for drawing operations. */
+    private readonly tempRect = new Rect2i(0, 0, 0, 0);
+
+    // #endregion
+
     // #region IBlitTechGame Implementation
 
     /**
@@ -135,7 +148,9 @@ class PatternsDemo implements IBlitTechGame {
             const hue = (i / points) * 360 + this.animTime * 50;
             const color = this.hslToRgb(hue % 360, 100, 50);
 
-            BT.drawPixel(new Vector2i(Math.floor(x), Math.floor(y)), color);
+            // Reuse vector to avoid allocation per pixel
+            this.tempVec1.set(Math.floor(x), Math.floor(y));
+            BT.drawPixel(this.tempVec1, color);
         }
     }
 
@@ -159,7 +174,9 @@ class PatternsDemo implements IBlitTechGame {
             const hue = (i / numLines) * 360;
             const color = this.hslToRgb(hue, 80, 60);
 
-            BT.drawLine(center, new Vector2i(Math.floor(x), Math.floor(y)), color);
+            // Reuse vector to avoid allocation per line
+            this.tempVec1.set(Math.floor(x), Math.floor(y));
+            BT.drawLine(center, this.tempVec1, color);
         }
     }
 
@@ -172,21 +189,28 @@ class PatternsDemo implements IBlitTechGame {
     private drawWavePattern(center: Vector2i): void {
         const width = 60;
 
+        // Pre-create colors outside loop
+        const color1 = new Color32(100, 200, 255);
+        const color2 = new Color32(255, 150, 100);
+        const color3 = new Color32(150, 255, 150);
+
         for (let x = 0; x < width; x++) {
+            const baseX = center.x - width / 2 + x;
+
             // Primary wave.
             const y1 = Math.sin((x + this.animTime * 20) * 0.2) * 15;
-            const color1 = new Color32(100, 200, 255);
-            BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y1)), color1);
+            this.tempVec1.set(baseX, center.y + Math.floor(y1));
+            BT.drawPixel(this.tempVec1, color1);
 
             // Secondary wave.
             const y2 = Math.cos((x + this.animTime * 15) * 0.15) * 10;
-            const color2 = new Color32(255, 150, 100);
-            BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y2)), color2);
+            this.tempVec1.set(baseX, center.y + Math.floor(y2));
+            BT.drawPixel(this.tempVec1, color2);
 
             // Interference pattern.
             const y3 = Math.sin((x + this.animTime * 20) * 0.2) * 15 + Math.cos((x + this.animTime * 15) * 0.15) * 10;
-            const color3 = new Color32(150, 255, 150);
-            BT.drawPixel(new Vector2i(center.x - width / 2 + x, center.y + Math.floor(y3 / 2)), color3);
+            this.tempVec1.set(baseX, center.y + Math.floor(y3 / 2));
+            BT.drawPixel(this.tempVec1, color3);
         }
     }
 
@@ -212,11 +236,10 @@ class PatternsDemo implements IBlitTechGame {
             const hue = (i / segments) * 360;
             const color = this.hslToRgb(hue, 100, 50);
 
-            BT.drawLine(
-                new Vector2i(Math.floor(x1), Math.floor(y1)),
-                new Vector2i(Math.floor(x2), Math.floor(y2)),
-                color,
-            );
+            // Reuse vectors to avoid allocation per segment
+            this.tempVec1.set(Math.floor(x1), Math.floor(y1));
+            this.tempVec2.set(Math.floor(x2), Math.floor(y2));
+            BT.drawLine(this.tempVec1, this.tempVec2, color);
         }
     }
 
@@ -246,11 +269,10 @@ class PatternsDemo implements IBlitTechGame {
                 const hue = (i / points) * 360 + this.animTime * 30;
                 const color = this.hslToRgb(hue % 360, 100, 50);
 
-                BT.drawLine(
-                    new Vector2i(Math.floor(prevX), Math.floor(prevY)),
-                    new Vector2i(Math.floor(x), Math.floor(y)),
-                    color,
-                );
+                // Reuse vectors to avoid allocation per segment
+                this.tempVec1.set(Math.floor(prevX), Math.floor(prevY));
+                this.tempVec2.set(Math.floor(x), Math.floor(y));
+                BT.drawLine(this.tempVec1, this.tempVec2, color);
             }
 
             prevX = x;
@@ -282,7 +304,9 @@ class PatternsDemo implements IBlitTechGame {
             const lightness = 30 + t * 40;
             const color = this.hslToRgb(hue, 100, lightness);
 
-            BT.drawRect(new Rect2i(Math.floor(x), Math.floor(y), Math.floor(size), Math.floor(size)), color);
+            // Reuse rect to avoid allocation per rectangle
+            this.tempRect.set(Math.floor(x), Math.floor(y), Math.floor(size), Math.floor(size));
+            BT.drawRect(this.tempRect, color);
         }
     }
 

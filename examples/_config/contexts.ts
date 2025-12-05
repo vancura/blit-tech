@@ -38,4 +38,16 @@ export const exampleContexts: Record<string, Record<string, string>> = {
         h1Title: 'Blit–Tech Bitmap Font Demo',
         scriptFile: 'fonts',
     },
+
+    'sprite-effects.html': {
+        title: 'Blit–Tech - Sprite Effects Demo',
+        h1Title: 'Blit–Tech Sprite Effects Demo',
+        scriptFile: 'sprite-effects',
+    },
+
+    'animation.html': {
+        title: 'Blit–Tech - Animation & Timing Demo',
+        h1Title: 'Blit–Tech Animation & Timing Demo',
+        scriptFile: 'animation',
+    },
 };
