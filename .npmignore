@@ -11,6 +11,11 @@ tests/
 .vscode/
 .idea/
 .changeset/
+
+# AI assistant configs (development only)
+.cursor/
+.rules
+.claude/
 *.config.js
 *.config.ts
 tsconfig.json
