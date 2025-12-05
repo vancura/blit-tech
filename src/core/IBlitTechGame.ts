@@ -87,10 +87,8 @@ export interface IBlitTechGame {
      *
      * @example
      * async initialize(): Promise<boolean> {
-     *   this.spriteSheet = await AssetLoader.loadSpriteSheet(
-     *     BT.getDevice(),
-     *     'assets/sprites.png'
-     *   );
+     *   this.spriteSheet = await SpriteSheet.load('assets/sprites.png');
+     *   this.font = await BitmapFont.load('fonts/MyFont.btfont');
      *
      *   return true;
      * }

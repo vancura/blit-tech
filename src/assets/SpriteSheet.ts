@@ -13,6 +13,9 @@ export class SpriteSheet {
     /** Source HTML image element. */
     private image: HTMLImageElement;
 
+    /** Pre-decoded image bitmap for GPU upload (created by load()). */
+    private imageBitmap: ImageBitmap | null = null;
+
     /** GPU texture created lazily on first use. */
     private texture: GPUTexture | null = null;
 
@@ -40,14 +43,32 @@ export class SpriteSheet {
 
     /**
      * Loads a sprite sheet from an image URL.
+     * Creates an ImageBitmap with proper alpha handling for pixel-perfect rendering.
      *
      * @param url - Path or URL to the image file.
      * @returns Promise resolving to the loaded SpriteSheet.
      */
     static async load(url: string): Promise<SpriteSheet> {
         const image = await AssetLoader.loadImage(url);
+        const sheet = new SpriteSheet(image);
 
-        return new SpriteSheet(image);
+        // Create ImageBitmap with explicit alpha handling.
+        // - premultiplyAlpha: 'none' preserves original alpha values (avoids dark fringes)
+        // - colorSpaceConversion: 'none' preserves exact RGB values for pixel art
+        try {
+            sheet.imageBitmap = await createImageBitmap(image, {
+                premultiplyAlpha: 'none',
+                colorSpaceConversion: 'none',
+            });
+        } catch (error) {
+            // Fall back to HTMLImageElement if ImageBitmap creation fails.
+            console.warn(
+                `[SpriteSheet] ImageBitmap creation failed for ${url}, using HTMLImageElement fallback:`,
+                error,
+            );
+        }
+
+        return sheet;
     }
 
     // #endregion
@@ -85,22 +106,28 @@ export class SpriteSheet {
 
     /**
      * Creates and uploads the GPU texture from the image.
-     * Uses copyExternalImageToTexture for efficient direct upload.
+     * Uses ImageBitmap if available (from load()), otherwise falls back to HTMLImageElement.
      *
      * @param device - WebGPU device for texture creation.
      */
     private createTexture(device: GPUDevice): void {
         this.texture = device.createTexture({
             label: 'Sprite Sheet Texture',
-            size: [this.image.width, this.image.height, 1],
+            size: [this.size.x, this.size.y, 1],
             format: 'rgba8unorm',
             usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
         });
 
-        device.queue.copyExternalImageToTexture({ source: this.image }, { texture: this.texture }, [
-            this.image.width,
-            this.image.height,
-        ]);
+        // Prefer ImageBitmap (correct alpha handling) over HTMLImageElement.
+        const source = this.imageBitmap ?? this.image;
+
+        device.queue.copyExternalImageToTexture({ source }, { texture: this.texture }, [this.size.x, this.size.y]);
+
+        // Close ImageBitmap after upload to free resources.
+        if (this.imageBitmap) {
+            this.imageBitmap.close();
+            this.imageBitmap = null;
+        }
     }
 
     // #endregion
@@ -130,11 +157,18 @@ export class SpriteSheet {
     /**
      * Releases the GPU texture from memory.
      * Call when the sprite sheet is no longer needed.
+     *
+     * @returns void
      */
     destroy(): void {
         if (this.texture) {
             this.texture.destroy();
             this.texture = null;
+        }
+
+        if (this.imageBitmap) {
+            this.imageBitmap.close();
+            this.imageBitmap = null;
         }
     }
 }
