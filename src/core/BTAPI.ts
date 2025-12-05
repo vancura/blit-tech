@@ -14,63 +14,122 @@ import type { HardwareSettings, IBlitTechGame } from './IBlitTechGame';
  * the game loop. This is a singleton - use BTAPI.instance to access.
  */
 export class BTAPI {
-    // Version info
+    // #region Version Constants
+
+    /**
+     * Major version number.
+     * Combined with MINOR and PATCH to form semantic version string.
+     *
+     * @example
+     * const version = `${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`;
+     * console.log(`Blit–Tech v${version}`);
+     */
     public static readonly VERSION_MAJOR = 0;
+
+    /** Minor version number. */
     public static readonly VERSION_MINOR = 1;
+
+    /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
 
-    // Singleton instance
+    // #endregion
+
+    // #region Singleton Instance
+
+    /** Singleton instance of BTAPI. */
     private static _instance: BTAPI | null = null;
 
-    // Game instance
+    // #endregion
+
+    // #region Module State - Game Instance
+
+    /** Current game instance implementing IBlitTechGame. */
     private game: IBlitTechGame | null = null;
 
-    // Hardware settings
+    /** Hardware configuration settings from the game. */
     private hwSettings: HardwareSettings | null = null;
 
-    // WebGPU context
+    // #endregion
+
+    // #region Module State - WebGPU Resources
+
+    /** WebGPU device for GPU operations. */
     private device: GPUDevice | null = null;
+
+    /** WebGPU canvas context for presenting frames. */
     private context: GPUCanvasContext | null = null;
+
+    /** HTML canvas element used for rendering. */
     private canvas: HTMLCanvasElement | null = null;
 
-    // Subsystems
-    private renderer: Renderer | null = null;
-    // private inputManager: InputManager | null = null;
-    // private audioManager: AudioManager | null = null;
-    // private effectsManager: EffectsManager | null = null;
-    // private fontRenderer: FontRenderer | null = null;
-    // private assetManager: AssetManager | null = null;
+    // #endregion
 
-    // Game loop state
+    // #region Module State - Subsystems
+
+    /** Renderer subsystem for all drawing operations. */
+    private renderer: Renderer | null = null;
+
+    // TODO: Additional subsystems for future implementation:
+    // InputManager, AudioManager, EffectsManager, AssetManager
+
+    // #endregion
+
+    // #region Module State - Game Loop
+
+    /** Whether the game loop is currently running. */
     private isRunning: boolean = false;
+
+    /** Current tick count (increments each update). */
     private ticks: number = 0;
+
+    /** Timestamp of the last update call. */
     private lastUpdateTime: number = 0;
+
+    /** Update interval in milliseconds (calculated from target FPS). */
     private updateInterval: number = 1000 / 60; // 60 FPS default
+
+    /** Accumulated time for fixed timestep updates. */
     private accumulator: number = 0;
+
+    // #endregion
+
+    // #region Constructor
 
     /**
      * Private constructor to enforce singleton pattern.
      * Use BTAPI.instance to access the singleton.
      */
-    private constructor() {
-        // Private constructor for singleton
-    }
+    private constructor() {}
+
+    // #endregion
+
+    // #region Singleton Access
 
     /**
      * Gets the singleton BTAPI instance.
-     * Creates the instance on first access.
+     * Creates the instance on first access if it doesn't exist (lazy initialization).
+     *
+     * Thread-safe in JavaScript's single-threaded environment.
+     * The instance is created once and reused for all subsequent calls.
+     *
      * @returns The global BTAPI instance.
      */
     public static get instance(): BTAPI {
         if (!BTAPI._instance) {
             BTAPI._instance = new BTAPI();
         }
+
         return BTAPI._instance;
     }
 
+    // #endregion
+
+    // #region Initialization
+
     /**
-     * Initializes the engine with a game instance and canvas.
+     * Initializes the engine with a game instance and canvas element.
      * Sets up WebGPU, creates renderer, and starts the game loop.
+     *
      * @param game - Game implementing the IBlitTechGame interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
      * @returns Promise resolving to true if initialization succeeded.
@@ -83,8 +142,9 @@ export class BTAPI {
         this.game = game;
         this.canvas = canvas;
 
-        // Query hardware settings from game
+        // Query hardware settings from game.
         console.log('[BlitTech] Querying hardware settings...');
+
         this.hwSettings = game.queryHardware();
         this.updateInterval = 1000 / this.hwSettings.targetFPS;
 
@@ -93,37 +153,46 @@ export class BTAPI {
             targetFPS: this.hwSettings.targetFPS,
         });
 
-        // Initialize WebGPU
+        // Initialize WebGPU.
         if (!(await this.initializeWebGPU())) {
             console.error('[BlitTech] Failed to initialize WebGPU');
+
             return false;
         }
 
-        // Initialize subsystems
+        // Initialize subsystems.
         console.log('[BlitTech] Initializing renderer...');
-        // Safe assertion: initializeWebGPU sets device and context before this point
-        this.renderer = new Renderer(
-            this.device as GPUDevice,
-            this.context as GPUCanvasContext,
-            this.hwSettings.displaySize,
-        );
-        if (!(await this.renderer.initialize())) {
-            console.error('[BlitTech] Failed to initialize renderer');
+
+        // Defensive check: Ensure WebGPU resources were initialized successfully.
+        if (!this.device || !this.context) {
+            console.error('[BlitTech] WebGPU resources not initialized');
+
             return false;
         }
+
+        this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
+
+        if (!(await this.renderer.initialize())) {
+            console.error('[BlitTech] Failed to initialize renderer');
+
+            return false;
+        }
+
         console.log('[BlitTech] Renderer initialized');
 
         // TODO: Initialize input, audio, etc.
 
-        // Initialize game
+        // Initialize game.
         console.log('[BlitTech] Initializing game...');
+
         if (!(await game.initialize())) {
             console.error('[BlitTech] Game initialization failed');
+
             return false;
         }
 
-        // Wait for next frame to ensure canvas is fully ready
-        // This helps with Electron and some browser timing issues
+        // Wait for next frame to ensure canvas is fully ready.
+        // This helps with Electron and some browser timing issues.
         await new Promise<void>((resolve) => {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -132,16 +201,22 @@ export class BTAPI {
             });
         });
 
-        // Start game loop
+        // Start game loop.
         this.startGameLoop();
 
         console.log('[BlitTech] Initialization complete!');
+
         return true;
     }
+
+    // #endregion
+
+    // #region WebGPU Initialization
 
     /**
      * Initializes the WebGPU adapter, device, and canvas context.
      * Configures the canvas for the game's display resolution.
+     *
      * @returns Promise resolving to true if WebGPU setup succeeded.
      */
     private async initializeWebGPU(): Promise<boolean> {
@@ -149,11 +224,13 @@ export class BTAPI {
             console.error('[BlitTech] WebGPU is not supported in this browser.');
             console.error('[BlitTech] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');
             console.error('[BlitTech] See: https://caniuse.com/webgpu');
+
             return false;
         }
 
-        // Request adapter
+        // Request adapter.
         const adapter = await navigator.gpu.requestAdapter();
+
         if (!adapter) {
             console.error('[BlitTech] Failed to get WebGPU adapter.');
             console.error('[BlitTech] This could mean:');
@@ -161,44 +238,52 @@ export class BTAPI {
             console.error('[BlitTech]   2. WebGPU is disabled in browser settings');
             console.error('[BlitTech]   3. Running in incompatible environment (VM, remote desktop, etc.)');
             console.error('[BlitTech] Browser:', navigator.userAgent);
+
             return false;
         }
 
-        // Request device
+        // Request device.
         this.device = await adapter.requestDevice();
+
         if (!this.device) {
             console.error('[BlitTech] Failed to get WebGPU device');
+
             return false;
         }
 
-        // Configure canvas
-        // Guard: canvas is set in initialize() before this method is called
+        // Configure canvas.
+        // Guard: canvas is set in initialize() before this method is called.
         if (!this.canvas || !this.hwSettings) {
             console.error('[BlitTech] Canvas or hardware settings not initialized');
+
             return false;
         }
 
-        // Set canvas resolution BEFORE getting WebGPU context
-        // This ensures getCurrentTexture() returns valid textures
+        // Set canvas resolution BEFORE getting WebGPU context.
+        // This ensures getCurrentTexture() returns valid textures.
         this.canvas.width = this.hwSettings.displaySize.x;
         this.canvas.height = this.hwSettings.displaySize.y;
 
-        // Set CSS display size if specified (for upscaling)
+        // Set CSS display size if specified (for upscaling).
         if (this.hwSettings.canvasDisplaySize) {
             this.canvas.style.width = `${this.hwSettings.canvasDisplaySize.x}px`;
             this.canvas.style.height = `${this.hwSettings.canvasDisplaySize.y}px`;
+
             console.log(
                 `[BlitTech] Canvas display size: ${this.hwSettings.canvasDisplaySize.x}x${this.hwSettings.canvasDisplaySize.y}`,
             );
         }
 
         this.context = this.canvas.getContext('webgpu') as GPUCanvasContext;
+
         if (!this.context) {
             console.error('[BlitTech] Failed to get WebGPU context');
+
             return false;
         }
 
         const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+
         this.context.configure({
             device: this.device,
             format: canvasFormat,
@@ -206,13 +291,29 @@ export class BTAPI {
         });
 
         console.log('[BlitTech] WebGPU initialized successfully');
+
         return true;
     }
+
+    // #endregion
+
+    // #region Game Loop
 
     /**
      * Starts the main game loop using requestAnimationFrame.
      * Implements a fixed timestep for update() and variable rate for render().
      * Uses a double requestAnimationFrame wait to ensure canvas is fully ready.
+     *
+     * PERFORMANCE CRITICAL: This runs every frame at 60+ FPS.
+     * The loop implements fixed timestep updates to ensure deterministic physics:
+     * - update() runs at exactly targetFPS (default 60 Hz)
+     * - render() runs as fast as the browser allows (variable rate)
+     *
+     * The accumulator pattern ensures update() is called the correct number of times
+     * even if frame timing is irregular. This guarantees consistent game simulation.
+     *
+     * The double RAF wait fixes timing issues in Electron where the canvas
+     * may not be fully initialized on the first frame.
      */
     private startGameLoop(): void {
         this.isRunning = true;
@@ -220,39 +321,41 @@ export class BTAPI {
         const loop = (currentTime: number) => {
             if (!this.isRunning) return;
 
-            // Calculate delta time
+            // Calculate delta time.
             const deltaTime = currentTime - this.lastUpdateTime;
             this.lastUpdateTime = currentTime;
 
-            // Accumulator for fixed timestep
+            // Accumulator for fixed timestep.
             this.accumulator += deltaTime;
 
-            // Fixed update loop (run at target FPS)
+            // Fixed update loop (run at target FPS).
             while (this.accumulator >= this.updateInterval) {
                 if (this.game) {
                     this.game.update();
                 }
+
                 this.ticks++;
                 this.accumulator -= this.updateInterval;
             }
 
-            // Variable render loop
+            // Variable render loop.
             if (this.game && this.renderer) {
                 this.renderer.beginFrame();
                 this.game.render();
                 this.renderer.endFrame();
             }
 
-            // Continue loop
+            // Continue loop.
             requestAnimationFrame(loop);
         };
 
-        // Double requestAnimationFrame wait ensures canvas is fully ready
-        // This fixes timing issues in Electron and certain browsers where
-        // the canvas may not be fully initialized on the first frame
+        // Double requestAnimationFrame wait ensures canvas is fully ready.
+        // This fixes timing issues in Electron and certain browsers where.
+        // the canvas may not be fully initialized on the first frame.
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 this.lastUpdateTime = performance.now();
+
                 requestAnimationFrame(loop);
             });
         });
@@ -266,9 +369,14 @@ export class BTAPI {
         this.isRunning = false;
     }
 
+    // #endregion
+
+    // #region Game State Accessors
+
     /**
      * Gets the current tick count.
      * Ticks increment once per fixed update (e.g., 60 times/second at 60 FPS).
+     *
      * @returns Number of update ticks since initialization or last reset.
      */
     public getTicks(): number {
@@ -277,7 +385,7 @@ export class BTAPI {
 
     /**
      * Resets the tick counter to zero.
-     * Useful for timing-based game events.
+     * Useful for timing-based game events and animations.
      */
     public resetTicks(): void {
         this.ticks = 0;
@@ -285,14 +393,20 @@ export class BTAPI {
 
     /**
      * Gets the current hardware settings.
+     *
      * @returns Hardware configuration, or null if not initialized.
      */
     public getHardwareSettings(): HardwareSettings | null {
         return this.hwSettings;
     }
 
+    // #endregion
+
+    // #region WebGPU Resource Accessors
+
     /**
      * Gets the WebGPU device for advanced rendering operations.
+     *
      * @returns GPU device, or null if not initialized.
      */
     public getDevice(): GPUDevice | null {
@@ -301,6 +415,7 @@ export class BTAPI {
 
     /**
      * Gets the WebGPU canvas context.
+     *
      * @returns Canvas context, or null if not initialized.
      */
     public getContext(): GPUCanvasContext | null {
@@ -309,6 +424,7 @@ export class BTAPI {
 
     /**
      * Gets the canvas element.
+     *
      * @returns HTML canvas element, or null if not initialized.
      */
     public getCanvas(): HTMLCanvasElement | null {
@@ -317,18 +433,20 @@ export class BTAPI {
 
     /**
      * Gets the renderer instance for advanced rendering operations.
+     *
      * @returns Renderer instance, or null if not initialized.
      */
     public getRenderer(): Renderer | null {
         return this.renderer;
     }
 
-    // ========================================================================
-    // RENDERING API
-    // ========================================================================
+    // #endregion
+
+    // #region Rendering API - Clear Operations
 
     /**
      * Sets the background clear color for each frame.
+     *
      * @param color - Color to clear the screen with.
      */
     public setClearColor(color: Color32): void {
@@ -337,6 +455,7 @@ export class BTAPI {
 
     /**
      * Fills a rectangular region with a solid color.
+     *
      * @param color - Fill color.
      * @param rect - Region to fill in pixel coordinates.
      */
@@ -344,8 +463,13 @@ export class BTAPI {
         this.renderer?.clearRect(color, rect);
     }
 
+    // #endregion
+
+    // #region Rendering API - Primitives
+
     /**
      * Draws a single pixel at the specified position.
+     *
      * @param pos - Pixel coordinates.
      * @param color - Pixel color.
      */
@@ -355,6 +479,8 @@ export class BTAPI {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
+     * Produces pixel-perfect lines without anti-aliasing.
+     *
      * @param p0 - Start point.
      * @param p1 - End point.
      * @param color - Line color.
@@ -365,6 +491,7 @@ export class BTAPI {
 
     /**
      * Draws a rectangle outline (unfilled).
+     *
      * @param rect - Rectangle bounds.
      * @param color - Outline color.
      */
@@ -374,6 +501,7 @@ export class BTAPI {
 
     /**
      * Draws a filled rectangle.
+     *
      * @param rect - Rectangle bounds.
      * @param color - Fill color.
      */
@@ -383,7 +511,8 @@ export class BTAPI {
 
     /**
      * Draws placeholder text (simple rectangle blocks).
-     * For proper text, use drawBitmapText() instead.
+     * For proper text rendering, use drawBitmapText() instead.
+     *
      * @param pos - Text position (top-left corner).
      * @param color - Text color.
      * @param text - String to display.
@@ -392,12 +521,14 @@ export class BTAPI {
         this.renderer?.drawText(pos, color, text);
     }
 
-    // ========================================================================
-    // SPRITE API
-    // ========================================================================
+    // #endregion
+
+    // #region Rendering API - Sprites
 
     /**
      * Draws a sprite region from a sprite sheet.
+     * Supports texture batching for optimal performance.
+     *
      * @param spriteSheet - Source sprite sheet texture.
      * @param srcRect - Region to copy from the sprite sheet.
      * @param destPos - Screen position to draw at (top-left corner).
@@ -408,7 +539,9 @@ export class BTAPI {
     }
 
     /**
-     * Draws text using a bitmap font.
+     * Draws text using a bitmap font with variable-width glyphs.
+     * Supports Unicode characters and per-glyph rendering offsets.
+     *
      * @param font - Bitmap font containing character glyphs.
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
@@ -418,13 +551,14 @@ export class BTAPI {
         this.renderer?.drawBitmapText(font, pos, text, color);
     }
 
-    // ========================================================================
-    // CAMERA API
-    // ========================================================================
+    // #endregion
+
+    // #region Camera API
 
     /**
      * Sets the camera offset for scrolling effects.
      * All drawing operations are offset by this amount.
+     *
      * @param offset - Camera position offset in pixels.
      */
     public setCameraOffset(offset: Vector2i): void {
@@ -433,6 +567,7 @@ export class BTAPI {
 
     /**
      * Gets the current camera offset.
+     *
      * @returns Current camera position offset.
      */
     public getCameraOffset(): Vector2i {
@@ -445,4 +580,6 @@ export class BTAPI {
     public resetCamera(): void {
         this.renderer?.resetCamera();
     }
+
+    // #endregion
 }
