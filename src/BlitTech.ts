@@ -6,6 +6,7 @@
  */
 
 import { AssetLoader } from './assets/AssetLoader';
+import type { TextSize } from './assets/BitmapFont';
 import { BitmapFont } from './assets/BitmapFont';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
@@ -465,6 +466,6 @@ export const BT = {
 // #region Exports
 
 export { AssetLoader, BitmapFont, Color32, Rect2i, SpriteSheet, Vector2i };
-export type { HardwareSettings, IBlitTechGame };
+export type { HardwareSettings, IBlitTechGame, TextSize };
 
 // #endregion

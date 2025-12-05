@@ -782,9 +782,12 @@ export class Renderer {
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
         const spriteSheet = font.getSpriteSheet();
         let cursorX = pos.x;
+        const len = text.length;
 
-        for (const char of text) {
-            const glyph = font.getGlyph(char);
+        // Optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
+        for (let i = 0; i < len; i++) {
+            const code = text.charCodeAt(i);
+            const glyph = font.getGlyphByCode(code);
 
             if (glyph) {
                 // Use pre-allocated vector to avoid allocation per character.
