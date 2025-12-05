@@ -406,9 +406,9 @@ export class BitmapFont {
             }
         }
 
-        // Cache the result with LRU-style eviction.
+        // Cache the result with FIFO eviction when full.
         if (this.measureCache.size >= MAX_MEASURE_CACHE_SIZE) {
-            // Remove oldest entry (first key in Map iteration order).
+            // Remove oldest inserted entry (first key in Map insertion order).
             const firstKey = this.measureCache.keys().next().value;
 
             if (firstKey !== undefined) {
