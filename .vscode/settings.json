@@ -1,0 +1,63 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "biome.lspBin": "./node_modules/@biomejs/biome/bin/biome",
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "cSpell.words": [
+    "ABGR",
+    "asar",
+    "blit",
+    "bmfont",
+    "Bresenham",
+    "BTAPI",
+    "btfont",
+    "eslintcache",
+    "Fabrizio",
+    "flac",
+    "lerp",
+    "libatspi",
+    "libnotify",
+    "libnss",
+    "libuuid",
+    "libxss",
+    "libxtst",
+    "nsis",
+    "palettized",
+    "RBAPI",
+    "RGBA",
+    "RRGGBB",
+    "RRGGBBAA",
+    "Scanlines",
+    "Schiavi",
+    "tilemap",
+    "timestep",
+    "unorm",
+    "Václav",
+    "Vančura",
+    "vite",
+    "WASD",
+    "webgpu",
+    "webp",
+    "WGSL",
+    "xadvance",
+    "xoffset",
+    "yoffset"
+  ]
+}
