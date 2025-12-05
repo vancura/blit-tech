@@ -1,0 +1,457 @@
+# Blit–Tech WebGPU Game Engine
+
+Blit–Tech is a lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit.
+It provides pixel-perfect 2D rendering with a clean, fantasy-console-style API.
+
+## CRITICAL RULES
+
+### No Emoji - ZERO TOLERANCE
+
+NEVER use emoji in:
+
+- Source code (comments, strings, identifiers)
+- Documentation (markdown files, JSDoc)
+- Commit messages
+- Pull request titles and descriptions
+- Error messages or log output
+
+This rule has no exceptions. Use plain text descriptions instead.
+
+### Integer Coordinates
+
+All rendering uses integer positions. The engine is designed for pixel-perfect graphics:
+
+- Use `Vector2i` for all positions and sizes
+- Use `Rect2i` for all rectangular regions
+- Values are automatically floored to integers
+- Never use floating-point coordinates for rendering
+
+### Performance First
+
+The engine targets 60 FPS with thousands of sprites:
+
+- Minimize allocations in update/render loops
+- Reuse buffers and objects where possible
+- Batch draw calls (sprites batched by texture)
+- Avoid creating objects in hot paths - use object pools or pre-allocated arrays
+
+## Architecture
+
+### Public API - BT Namespace
+
+All engine functionality is accessed through the static `BT` namespace:
+
+```typescript
+// Correct - use BT namespace
+BT.clear(Color32.black());
+BT.drawSprite(sheet, srcRect, destPos);
+BT.cameraSet(new Vector2i(100, 50));
+
+// Wrong - never access internal classes directly
+BTAPI.instance.renderer.drawSprite(...);
+```
+
+### Game Interface
+
+Games implement `IBlitTechGame`:
+
+```typescript
+interface IBlitTechGame {
+    queryHardware(): HardwareSettings;  // Called first, configure display
+    initialize(): Promise<boolean>;      // Load assets, return true if ready
+    update(): void;                       // Fixed timestep (60 FPS default)
+    render(): void;                       // Variable rate rendering
+}
+```
+
+### Internal Architecture
+
+- `BTAPI` - Internal singleton managing all subsystems (never expose directly)
+- `Renderer` - WebGPU rendering with dual pipelines (primitives + sprites)
+- Asset classes (`SpriteSheet`, `BitmapFont`) with lazy GPU resource creation
+
+## Core Types
+
+### Vector2i - Integer 2D Vectors
+
+- Constructor auto-floors values: `new Vector2i(1.7, 2.3)` becomes `(1, 2)`
+- Has `width`/`height` aliases for `x`/`y`
+- Arithmetic methods return new instances: `pos.add(offset)`
+- Static constructors: `Vector2i.zero()`, `Vector2i.one()`, etc.
+
+### Rect2i - Integer Rectangles
+
+- Properties: `x`, `y`, `width`, `height`
+- Computed: `min`, `max`, `center`, `position`, `size`
+- Methods: `contains()`, `intersects()`, `intersection()`, `intersectionDepth()`
+
+### Color32 - 32-bit RGBA Color
+
+- Constructor auto-clamps values (0-255 per channel)
+- Conversions: `toFloat32Array()`, `toUint32()`, `toHex()`
+- Static colors: `Color32.white()`, `Color32.black()`, `Color32.red()`, etc.
+- Parsing: `Color32.fromHex('#FF0000')`, `Color32.fromRGB(255, 0, 0)`
+
+## Rendering
+
+### Dual Pipeline Architecture
+
+The renderer uses two separate WebGPU pipelines:
+
+1. **Primitives Pipeline** - Colored geometry (pixels, lines, rectangles)
+   - Vertex format: position (x, y) + color (r, g, b, a)
+   - Max vertices: 100,000 per frame
+   - Used by: `drawPixel`, `drawLine`, `drawRect`, `drawRectFill`
+
+2. **Sprites Pipeline** - Textured quads with tinting
+   - Vertex format: position + UV + tint color
+   - Max vertices: 50,000 per frame (4096 quads)
+   - Nearest-neighbor sampling for pixel-perfect rendering
+   - Automatic batching by texture
+
+### Drawing Order
+
+Draw calls are rendered in order within each frame:
+
+1. `BT.clear()` sets background color
+2. Primitives and sprites interleave based on call order
+3. Frame ends with `endFrame()` which flushes all batches
+
+### Camera System
+
+Camera offset affects all drawing:
+
+```typescript
+BT.cameraSet(new Vector2i(100, 50));  // Scroll world
+BT.cameraGet();                        // Get current offset
+BT.cameraReset();                      // Reset to (0, 0)
+```
+
+## Assets
+
+### SpriteSheet
+
+Load images as GPU textures:
+
+```typescript
+const sheet = await SpriteSheet.load('sprites.png');
+BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(100, 100));
+```
+
+- Textures created lazily on first use
+- Format: `rgba8unorm`
+- Sampling: nearest-neighbor (pixel-perfect)
+
+### BitmapFont
+
+Custom `.btfont` JSON format:
+
+```typescript
+const font = await BitmapFont.load('fonts/MyFont.btfont');
+BT.printFont(font, new Vector2i(10, 10), 'Hello World', Color32.white());
+```
+
+- Variable-width glyphs with per-character offsets
+- Unicode support
+- Embedded (base64) or external texture references
+
+## TypeScript Conventions
+
+### Strict Configuration
+
+The project uses strict TypeScript (`tsconfig.json`):
+
+- `strict: true`
+- `noUnusedLocals: true`
+- `noUnusedParameters: true`
+- `noFallthroughCasesInSwitch: true`
+- `noUncheckedIndexedAccess: true`
+- `exactOptionalPropertyTypes: true`
+- `noImplicitReturns: true`
+- `noImplicitOverride: true`
+- `verbatimModuleSyntax: true`
+
+All code must pass these checks.
+
+### Type Imports
+
+Always use type-only imports for types:
+
+```typescript
+// Correct - type import
+import type { HardwareSettings, IBlitTechGame } from './IBlitTechGame';
+import { Vector2i, Rect2i } from '../utils/Vector2i';
+
+// Wrong - importing types as values
+import { HardwareSettings } from './IBlitTechGame';
+```
+
+### Type Safety
+
+- Avoid `any` - use proper types or `unknown`
+- Handle null/undefined explicitly (strict null checks enabled)
+- Avoid `!` non-null assertions - use runtime checks or add justifying comments
+- Use guard clauses and early returns for validation
+
+### Naming Conventions
+
+- Classes/Interfaces: PascalCase - `SpriteSheet`, `IBlitTechGame`
+- Variables/Functions: camelCase - `vertexCount`, `drawSprite`
+- Constants: UPPER_SNAKE_CASE - `MAX_VERTICES`, `FLIP_H`
+- Private members: camelCase (no underscore prefix)
+- Unused parameters: prefix with underscore
+
+### JSDoc Requirements
+
+Required for all public APIs (functions, classes, interfaces):
+
+```typescript
+/**
+ * Draws a filled rectangle on the screen.
+ * @param rect - The rectangle bounds in screen coordinates
+ * @param color - Fill color
+ */
+export function drawRectFill(rect: Rect2i, color: Color32): void {
+    // implementation
+}
+```
+
+## WebGPU Conventions
+
+### Buffer Management
+
+- Pre-allocate buffers at initialization
+- Reuse buffers across frames with TypedArrays
+- Upload data with `device.queue.writeBuffer()`
+- Check capacity before adding vertices
+
+```typescript
+private vertexData = new Float32Array(MAX_VERTICES * VERTEX_SIZE);
+private vertexCount = 0;
+
+beginFrame(): void {
+    this.vertexCount = 0;  // Reset, don't reallocate
+}
+```
+
+### Texture Handling
+
+Standard formats:
+
+- Sprites/images: `rgba8unorm` (standard 32-bit color)
+- Index buffer (palette): `r8uint` (8-bit palette indices)
+- Render target: `rgba8unorm` (same as swap chain)
+
+Pixel-perfect rendering requires nearest-neighbor sampling:
+
+```typescript
+const sampler = device.createSampler({
+    magFilter: 'nearest',
+    minFilter: 'nearest',
+    addressModeU: 'clamp-to-edge',
+    addressModeV: 'clamp-to-edge',
+});
+```
+
+Never use `linear` filtering for pixel art.
+
+### WGSL Shader Conventions
+
+Organize bindings by update frequency:
+
+- Group 0: Per-frame uniforms (resolution, camera)
+- Group 1: Per-material resources (textures, samplers)
+
+```wgsl
+// Group 0 - frame uniforms
+@group(0) @binding(0) var<uniform> resolution: vec2<f32>;
+
+// Group 1 - texture resources
+@group(1) @binding(0) var texSampler: sampler;
+@group(1) @binding(1) var texture: texture_2d<f32>;
+```
+
+### Performance Patterns
+
+- Minimize draw calls by batching
+- Minimize state changes (pipeline switches, bind group changes)
+- Prefer texture atlases over individual textures
+- Destroy GPU resources when done with `destroy()`
+- Cache bind groups to avoid recreation
+
+## Code Style (Biome/ESLint)
+
+- **Indent**: 4 spaces
+- **Line width**: 120 characters max
+- **Quotes**: Single quotes for strings
+- **Semicolons**: Always required
+- **Trailing commas**: Always (including function parameters)
+- **Arrow parens**: Always use parentheses
+
+### Code Organization
+
+Use `// #region` and `// #endregion` comments to create collapsible sections:
+
+```typescript
+// #region Configuration
+
+app.commandLine.appendSwitch('enable-webgpu');
+
+// #endregion
+
+// #region Helper Functions
+
+function isInternalUrl(url) {
+    // ...
+}
+
+// #endregion
+```
+
+File structure (top to bottom):
+
+1. Imports/Requires
+2. Configuration (constants, setup)
+3. Module State
+4. Helper/Utility Functions
+5. Event Handlers
+6. Lifecycle Functions
+7. Exports
+
+### Import Order
+
+```typescript
+// 1. External packages
+import type { GPUDevice, GPUTexture } from '@webgpu/types';
+
+// 2. Internal absolute imports
+import { BTAPI } from './core/BTAPI';
+import type { IBlitTechGame } from './core/IBlitTechGame';
+
+// 3. Relative imports
+import { Color32 } from '../utils/Color32';
+import { Vector2i } from '../utils/Vector2i';
+```
+
+Use named exports (not default exports).
+
+## Git Commits
+
+### Conventional Commits Format (Required)
+
+```text
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Rules:
+
+- Header (first line) max 100 characters
+- Subject must be lowercase
+- Subject must not end with period
+- No emoji anywhere
+
+Types:
+
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation only
+- `style` - Formatting, no code change
+- `refactor` - Code restructuring
+- `perf` - Performance improvement
+- `test` - Adding or updating tests
+- `build` - Build system or dependencies
+- `ci` - CI configuration
+- `chore` - Maintenance tasks
+- `revert` - Reverting previous commit
+
+Suggested scopes:
+
+- `renderer` - Rendering system
+- `camera` - Camera system
+- `assets` - Asset loading
+- `api` - Public API (BT namespace)
+- `utils` - Utility classes
+- `examples` - Example projects
+- `ci` - CI/CD configuration
+- `docs` - Documentation
+
+### Signed-Off Commits (DCO - Required)
+
+All commits must include:
+
+```text
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+Use `git commit -s` to automatically add the sign-off.
+
+### AI-Assisted Commits (Required when AI used)
+
+When AI tools are used to write code or commit messages, include the AI trailer:
+
+```text
+feat(palette): implement color cycling effect
+
+Add palette rotation with configurable speed and range.
+Supports both forward and reverse cycling directions.
+
+Signed-off-by: Your Name <your.email@example.com>
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+This applies to any AI assistance (Cursor, Claude, GitHub Copilot, Zed AI, etc.).
+
+## Future: Palette System
+
+The engine will support VGA Mode 13h style palettized rendering:
+
+- R8Uint index framebuffer (256 colors max)
+- Palette as uniform buffer (256 x vec4<f32>)
+- Palette effects: rotation/cycling, fade, swap, flash
+- Configurable sizes: 256, 128, 64, 32, 16, 8, 4 colors
+- Dual-mode: RGBA and indexed sprites can coexist
+
+When implementing palette features:
+
+- Index framebuffer separate from RGBA framebuffer
+- Palette lookup in fragment shader
+- Palette changes don't require redrawing - just update uniform
+
+## Directory Structure
+
+```text
+src/
+  BlitTech.ts          # Public API (BT namespace exports)
+  main.ts              # Dev entry point
+  core/
+    BTAPI.ts           # Internal singleton
+    IBlitTechGame.ts   # Game interface
+  render/
+    Renderer.ts        # WebGPU renderer
+  assets/
+    AssetLoader.ts     # Image loading with caching
+    SpriteSheet.ts     # GPU texture wrapper
+    BitmapFont.ts      # Bitmap font system
+  utils/
+    Vector2i.ts        # Integer 2D vector
+    Rect2i.ts          # Integer rectangle
+    Color32.ts         # 32-bit color
+```
+
+## Common Mistakes to Avoid
+
+1. Using floating-point coordinates - Always use Vector2i/Rect2i
+2. Creating objects in render loop - Pre-allocate or use pools
+3. Accessing BTAPI directly - Use BT namespace
+4. Forgetting async in initialize() - Asset loading is async
+5. Using emoji - Never allowed anywhere
+6. Skipping JSDoc - Required for public functions/classes
+7. Using `any` type - Use proper types or `unknown`
+8. Using default exports - Use named exports
+9. Linear texture filtering - Use nearest-neighbor for pixel art
+10. Reallocating buffers per frame - Reuse with reset counters
