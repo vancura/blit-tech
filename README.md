@@ -137,10 +137,12 @@ blit-tech/
 │   ├── index.html              # Examples gallery
 │   ├── basics.html             # Basic example
 │   ├── primitives.html         # Drawing primitives demo
-│   ├── camera.html             # Camera scrolling demo
-│   ├── patterns.html           # Animated patterns demo
+│   ├── fonts.html              # Bitmap font demo
 │   ├── sprites.html            # Sprite rendering demo
-│   └── fonts.html              # Bitmap font demo
+│   ├── sprite-effects.html     # Sprite tinting effects demo
+│   ├── animation.html          # Animation & timing demo
+│   ├── patterns.html           # Animated patterns demo
+│   └── camera.html             # Camera scrolling demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
@@ -242,14 +244,35 @@ implemented. They currently return `false`. See the examples for workarounds.
 
 ## Examples
 
-Run `pnpm dev` and visit the examples’ gallery:
+Run `pnpm dev` and visit the examples' gallery:
+
+### Learning Path
+
+We recommend exploring the examples in this order:
+
+1. **basics.ts** — Start here! Core concepts and game loop
+2. **primitives.ts** — Drawing shapes and lines
+3. **fonts.ts** — Text rendering and colors
+4. **sprites.ts** — Sprite sheets and textures
+5. **sprite-effects.ts** — Practical tinting effects (NEW)
+6. **animation.ts** — Timing and frame-based logic (NEW)
+7. **patterns.ts** — Complex animations (performance-optimized)
+8. **camera.ts** — Camera scrolling and world management (performance-optimized)
+
+**Note:** Earlier examples prioritize clarity and readability. Later examples (patterns, camera) demonstrate performance
+optimization techniques when working with hundreds of operations per frame. See
+[Performance Best Practices](docs/performance-best-practices.md) for details.
+
+### Example Descriptions
 
 - **Basic Example** — Simple game setup with a moving square
 - **Primitives** — All drawing primitives showcase
-- **Camera** — Scrolling world with a mini-map
-- **Patterns** — Animated mathematical patterns
-- **Sprites** — Texture rendering with tinting
 - **Bitmap Fonts** — Text rendering with custom fonts
+- **Sprites** — Texture rendering with tinting
+- **Sprite Effects** — Practical tinting use cases (damage flash, shadows, team colors)
+- **Animation & Timing** — Tick-based animation, state machines, cooldowns
+- **Patterns** — Animated mathematical patterns
+- **Camera** — Scrolling world with a mini-map
 
 ## Deployment
 

@@ -41,6 +41,19 @@ class CameraDemo implements IBlitTechGame {
 
     // #endregion
 
+    // #region Pre-allocated Reusable Objects (Performance)
+
+    /** Reusable vector for drawing operations. */
+    private readonly tempVec1 = new Vector2i(0, 0);
+
+    /** Reusable vector for drawing operations. */
+    private readonly tempVec2 = new Vector2i(0, 0);
+
+    /** Reusable rect for drawing operations. */
+    private readonly tempRect = new Rect2i(0, 0, 0, 0);
+
+    // #endregion
+
     // #region IBlitTechGame Implementation
 
     /**
@@ -140,41 +153,40 @@ class CameraDemo implements IBlitTechGame {
         this.drawGrid();
 
         // Draw world boundaries.
-        BT.drawRect(new Rect2i(0, 0, this.worldWidth, this.worldHeight), new Color32(255, 0, 0));
+        this.tempRect.set(0, 0, this.worldWidth, this.worldHeight);
+        BT.drawRect(this.tempRect, new Color32(255, 0, 0));
 
         // Draw trees (behind buildings).
         for (const tree of this.trees) {
             this.drawTree(tree.pos);
         }
 
+        // Pre-create colors outside loop.
+        const outlineColor = new Color32(50, 50, 50);
+        const windowColor = new Color32(255, 255, 200, 200);
+
         // Draw buildings.
         for (const building of this.buildings) {
             // Building body.
-            BT.drawRectFill(
-                new Rect2i(building.pos.x, building.pos.y, building.size.x, building.size.y),
-                building.color,
-            );
+            this.tempRect.set(building.pos.x, building.pos.y, building.size.x, building.size.y);
+            BT.drawRectFill(this.tempRect, building.color);
 
             // Building outline.
-            BT.drawRect(
-                new Rect2i(building.pos.x, building.pos.y, building.size.x, building.size.y),
-                new Color32(50, 50, 50),
-            );
+            BT.drawRect(this.tempRect, outlineColor);
 
             // Windows.
             for (let y = 10; y < building.size.y - 10; y += 15) {
                 for (let x = 5; x < building.size.x - 5; x += 15) {
-                    BT.drawRectFill(
-                        new Rect2i(building.pos.x + x, building.pos.y + y, 8, 8),
-                        new Color32(255, 255, 200, 200),
-                    );
+                    this.tempRect.set(building.pos.x + x, building.pos.y + y, 8, 8);
+                    BT.drawRectFill(this.tempRect, windowColor);
                 }
             }
         }
 
         // Draw player.
-        BT.drawRectFill(new Rect2i(this.playerPos.x - 8, this.playerPos.y - 8, 16, 16), new Color32(255, 100, 100));
-        BT.drawRect(new Rect2i(this.playerPos.x - 8, this.playerPos.y - 8, 16, 16), new Color32(200, 50, 50));
+        this.tempRect.set(this.playerPos.x - 8, this.playerPos.y - 8, 16, 16);
+        BT.drawRectFill(this.tempRect, new Color32(255, 100, 100));
+        BT.drawRect(this.tempRect, new Color32(200, 50, 50));
 
         // Reset camera for UI drawing.
         BT.cameraReset();
@@ -197,12 +209,16 @@ class CameraDemo implements IBlitTechGame {
 
         // Vertical lines.
         for (let x = 0; x < this.worldWidth; x += gridSize) {
-            BT.drawLine(new Vector2i(x, 0), new Vector2i(x, this.worldHeight), color);
+            this.tempVec1.set(x, 0);
+            this.tempVec2.set(x, this.worldHeight);
+            BT.drawLine(this.tempVec1, this.tempVec2, color);
         }
 
         // Horizontal lines.
         for (let y = 0; y < this.worldHeight; y += gridSize) {
-            BT.drawLine(new Vector2i(0, y), new Vector2i(this.worldWidth, y), color);
+            this.tempVec1.set(0, y);
+            this.tempVec2.set(this.worldWidth, y);
+            BT.drawLine(this.tempVec1, this.tempVec2, color);
         }
     }
 
@@ -213,11 +229,13 @@ class CameraDemo implements IBlitTechGame {
      */
     private drawTree(pos: Vector2i): void {
         // Trunk.
-        BT.drawRectFill(new Rect2i(pos.x - 2, pos.y - 8, 4, 8), new Color32(101, 67, 33));
+        this.tempRect.set(pos.x - 2, pos.y - 8, 4, 8);
+        BT.drawRectFill(this.tempRect, new Color32(101, 67, 33));
 
         // Foliage.
-        BT.drawRectFill(new Rect2i(pos.x - 6, pos.y - 16, 12, 12), new Color32(34, 139, 34));
-        BT.drawRect(new Rect2i(pos.x - 6, pos.y - 16, 12, 12), new Color32(20, 100, 20));
+        this.tempRect.set(pos.x - 6, pos.y - 16, 12, 12);
+        BT.drawRectFill(this.tempRect, new Color32(34, 139, 34));
+        BT.drawRect(this.tempRect, new Color32(20, 100, 20));
     }
 
     /**
@@ -227,27 +245,27 @@ class CameraDemo implements IBlitTechGame {
     private drawUI(): void {
         if (this.font) {
             // Semi-transparent background for UI.
-            BT.drawRectFill(new Rect2i(0, 0, 320, 40), new Color32(0, 0, 0, 180));
+            this.tempRect.set(0, 0, 320, 40);
+            BT.drawRectFill(this.tempRect, new Color32(0, 0, 0, 180));
 
             // Title.
-            BT.printFont(this.font, new Vector2i(10, 10), 'Camera Demo', Color32.white());
+            this.tempVec1.set(10, 10);
+            BT.printFont(this.font, this.tempVec1, 'Camera Demo', Color32.white());
 
             // Camera info.
             const camPos = BT.cameraGet();
-            BT.printFont(
-                this.font,
-                new Vector2i(10, 22),
-                `Camera: (${camPos.x}, ${camPos.y})`,
-                new Color32(200, 200, 200),
-            );
+            this.tempVec1.set(10, 22);
+            BT.printFont(this.font, this.tempVec1, `Camera: (${camPos.x}, ${camPos.y})`, new Color32(200, 200, 200));
 
             // Instructions (placeholder - input not implemented yet).
-            BT.printFont(this.font, new Vector2i(170, 10), 'Auto-scrolling', new Color32(180, 180, 180));
+            this.tempVec1.set(170, 10);
+            BT.printFont(this.font, this.tempVec1, 'Auto-scrolling', new Color32(180, 180, 180));
 
             // World size indicator.
+            this.tempVec1.set(170, 22);
             BT.printFont(
                 this.font,
-                new Vector2i(170, 22),
+                this.tempVec1,
                 `World: ${this.worldWidth}x${this.worldHeight}`,
                 new Color32(180, 180, 180),
             );
@@ -256,7 +274,8 @@ class CameraDemo implements IBlitTechGame {
             this.drawMiniMap();
 
             // FPS counter.
-            BT.printFont(this.font, new Vector2i(10, 225), `FPS: ${BT.fps()}`, new Color32(150, 150, 150));
+            this.tempVec1.set(10, 225);
+            BT.printFont(this.font, this.tempVec1, `FPS: ${BT.fps()}`, new Color32(150, 150, 150));
         }
     }
 
@@ -271,17 +290,20 @@ class CameraDemo implements IBlitTechGame {
         const mapH = 70;
 
         // Map background.
-        BT.drawRectFill(new Rect2i(mapX, mapY, mapW, mapH), new Color32(0, 0, 0, 200));
+        this.tempRect.set(mapX, mapY, mapW, mapH);
+        BT.drawRectFill(this.tempRect, new Color32(0, 0, 0, 200));
 
         // Map border.
-        BT.drawRect(new Rect2i(mapX, mapY, mapW, mapH), new Color32(255, 255, 255));
+        BT.drawRect(this.tempRect, new Color32(255, 255, 255));
 
-        // Draw buildings on mini-map.
+        // Draw buildings on mini-map - pre-create color.
+        const buildingColor = new Color32(150, 150, 200);
         for (const building of this.buildings) {
             const miniX = mapX + Math.floor((building.pos.x / this.worldWidth) * mapW);
             const miniY = mapY + Math.floor((building.pos.y / this.worldHeight) * mapH);
 
-            BT.drawPixel(new Vector2i(miniX, miniY), new Color32(150, 150, 200));
+            this.tempVec1.set(miniX, miniY);
+            BT.drawPixel(this.tempVec1, buildingColor);
         }
 
         // Draw camera viewport on mini-map.
@@ -291,13 +313,15 @@ class CameraDemo implements IBlitTechGame {
         const viewW = Math.floor((displaySize.x / this.worldWidth) * mapW);
         const viewH = Math.floor((displaySize.y / this.worldHeight) * mapH);
 
-        BT.drawRect(new Rect2i(viewX, viewY, viewW, viewH), new Color32(255, 255, 0));
+        this.tempRect.set(viewX, viewY, viewW, viewH);
+        BT.drawRect(this.tempRect, new Color32(255, 255, 0));
 
         // Draw player on mini-map.
         const playerMiniX = mapX + Math.floor((this.playerPos.x / this.worldWidth) * mapW);
         const playerMiniY = mapY + Math.floor((this.playerPos.y / this.worldHeight) * mapH);
 
-        BT.drawRectFill(new Rect2i(playerMiniX - 1, playerMiniY - 1, 2, 2), new Color32(255, 100, 100));
+        this.tempRect.set(playerMiniX - 1, playerMiniY - 1, 2, 2);
+        BT.drawRectFill(this.tempRect, new Color32(255, 100, 100));
     }
 
     // #endregion
