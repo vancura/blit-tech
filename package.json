@@ -45,6 +45,7 @@
   "sideEffects": false,
   "scripts": {
     "convert-font": "node tools/convert-bmfont.mjs",
+    "sync-rules": "node scripts/sync-rules.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:lib": "vite build --mode lib",
