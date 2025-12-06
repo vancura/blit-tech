@@ -82,7 +82,7 @@ class BasicGame implements IBlitTechGame {
     }
 
     /**
-     * Updates game logic at fixed 60 FPS.
+     * Updates animation state based on ticks.
      * Auto-moves the square and bounces off-screen edges.
      * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
      */

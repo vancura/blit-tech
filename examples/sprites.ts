@@ -56,9 +56,10 @@ class SpriteDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures display with 2x upscaling for crisp pixel sprites.
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
-     * @returns Hardware configuration.
+     * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
@@ -69,9 +70,11 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
+     * Initializes game state after the engine is ready.
      * Creates a demo sprite sheet with basic shapes and loads font.
      * In production, you'd load from an image file instead.
-     * @returns Promise resolving to true when sprites and font are loaded.
+     *
+     * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[SpriteDemo] Initializing...');

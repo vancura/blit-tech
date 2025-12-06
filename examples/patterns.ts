@@ -44,9 +44,10 @@ class PatternsDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures a 320x240 display with 2x CSS upscaling for crisp patterns.
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
-     * @returns Hardware configuration.
+     * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
@@ -57,9 +58,10 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes the demo and loads the bitmap font.
+     * Initializes game state after the engine is ready.
+     * Loads the bitmap font.
      *
-     * @returns Promise resolving to true when font is loaded.
+     * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[PatternsDemo] Initializing...');
@@ -78,14 +80,14 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Advances animation time (approximately 60 FPS).
+     * Updates animation state based on ticks.
      */
     update(): void {
         this.animTime += 0.016; // ~60 FPS
     }
 
     /**
-     * Renders all pattern demonstrations in a 2x3 grid layout.
+     * Renders game graphics (all pattern demonstrations in a 2x3 grid layout).
      */
     render(): void {
         // Clear to dark background.
