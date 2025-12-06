@@ -38,19 +38,29 @@ const rootDir = join(__dirname, '..');
  */
 function readCursorRules() {
     const rulesDir = join(rootDir, '.cursor', 'rules');
-    const files = readdirSync(rulesDir);
-    const mdcFiles = files.filter((file) => file.endsWith('.mdc'));
+    
+    try {
+        const files = readdirSync(rulesDir);
+        const mdcFiles = files.filter((file) => file.endsWith('.mdc'));
+        
+        if (mdcFiles.length === 0) {
+            throw new Error('No .mdc files found in .cursor/rules directory');
+        }
 
-    return mdcFiles.map((file) => {
-        const fullPath = join(rulesDir, file);
-        const content = readFileSync(fullPath, 'utf-8');
-        const name = file.replace('.mdc', '');
+        return mdcFiles.map((file) => {
+            const fullPath = join(rulesDir, file);
+            const content = readFileSync(fullPath, 'utf-8');
+            const name = file.replace('.mdc', '');
 
-        // Strip frontmatter (between --- markers).
-        const contentWithoutFrontmatter = content.replace(/^---\n[\s\S]*?\n---\n/, '');
+            // Strip frontmatter (between --- markers), handle both Unix and Windows line endings.
+            const contentWithoutFrontmatter = content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
 
-        return { name, content: contentWithoutFrontmatter };
-    });
+            return { name, content: contentWithoutFrontmatter };
+        });
+    } catch (error) {
+        console.error(`Error reading rules: ${error.message}`);
+        process.exit(1);
+    }
 }
 
 /**
