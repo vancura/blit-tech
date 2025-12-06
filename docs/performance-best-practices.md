@@ -1,6 +1,6 @@
 # Performance Best Practices
 
-This guide explains when and how to optimize your Blit-Tech games for performance, with a focus on object allocation
+This guide explains when and how to optimize your Blit–Tech games for performance, with a focus on object allocation
 patterns and rendering efficiency.
 
 ## Table of Contents
@@ -41,7 +41,7 @@ If your frame time exceeds this budget, you'll drop frames and see stuttering.
 
 ## Object Allocation Patterns
 
-JavaScript's garbage collector can cause frame hitches if you allocate many objects per frame. Blit-Tech provides two
+JavaScript's garbage collector can cause frame hitches if you allocate many objects per frame. Blit–Tech provides two
 patterns for managing allocations:
 
 ### Inline Allocation (Simple & Clear)
@@ -116,7 +116,7 @@ pre-allocation provides measurable benefits.
 
 ### Batching
 
-Blit-Tech automatically batches draw calls for optimal GPU performance:
+Blit–Tech automatically batches draw calls for optimal GPU performance:
 
 - **Primitive batching:** All primitives (pixels, lines, rects) are batched together
 - **Texture batching:** Sprites from the same `SpriteSheet` are batched
@@ -168,7 +168,7 @@ Use tinting liberally for visual effects - it doesn't impact performance.
 
 ### Fixed Timestep
 
-Blit-Tech uses a fixed 60 FPS timestep by default. This provides:
+Blit–Tech uses a fixed 60 FPS timestep by default. This provides:
 
 - **Deterministic behavior:** Same inputs always produce same results
 - **Predictable physics:** No need to multiply by delta time
@@ -304,7 +304,7 @@ render(): void {
 
 ## Example References
 
-The Blit-Tech examples demonstrate both approaches:
+The Blit–Tech examples demonstrate both approaches:
 
 ### Clarity-First Examples (Inline Allocation)
 
