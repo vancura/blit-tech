@@ -74,6 +74,8 @@ The browser opens automatically at `http://localhost:5173/` and redirects to the
 | `pnpm electron:dev`        | Run Electron with hot-reload              |
 | `pnpm electron:dist`       | Build Electron app for current platform   |
 | `pnpm electron:dist:linux` | Build Electron app for Linux (Steam Deck) |
+| `pnpm electron:dist:win`   | Build Electron app for Windows            |
+| `pnpm electron:dist:mac`   | Build Electron app for macOS              |
 | `pnpm lint`                | Run ESLint                                |
 | `pnpm lint:fix`            | Run ESLint with auto-fix                  |
 | `pnpm format`              | Format all code (Biome + Prettier)        |
@@ -82,6 +84,8 @@ The browser opens automatically at `http://localhost:5173/` and redirects to the
 | `pnpm format:prettier`     | Format Markdown/YAML/HTML/HBS (Prettier)  |
 | `pnpm typecheck`           | Run TypeScript type checking              |
 | `pnpm clean`               | Remove dist and cache directories         |
+| `pnpm convert-font`        | Convert BMFont to .btfont format          |
+| `pnpm sync-rules`          | Sync AI assistant rules across files      |
 | `pnpm changeset`           | Create a changeset for version bump       |
 | `pnpm version:bump`        | Bump version based on changesets          |
 | `pnpm release`             | Build library and publish to npm          |
