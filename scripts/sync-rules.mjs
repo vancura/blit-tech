@@ -38,11 +38,11 @@ const rootDir = join(__dirname, '..');
  */
 function readCursorRules() {
     const rulesDir = join(rootDir, '.cursor', 'rules');
-    
+
     try {
         const files = readdirSync(rulesDir);
         const mdcFiles = files.filter((file) => file.endsWith('.mdc'));
-        
+
         if (mdcFiles.length === 0) {
             throw new Error('No .mdc files found in .cursor/rules directory');
         }
