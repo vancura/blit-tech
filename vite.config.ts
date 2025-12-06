@@ -94,6 +94,8 @@ export default defineConfig(({ mode, command }) => {
                           'examples-camera': resolve(__dirname, 'examples/camera.html'),
                           'examples-patterns': resolve(__dirname, 'examples/patterns.html'),
                           'examples-sprites': resolve(__dirname, 'examples/sprites.html'),
+                          'examples-animation': resolve(__dirname, 'examples/animation.html'),
+                          'examples-sprite-effects': resolve(__dirname, 'examples/sprite-effects.html'),
                           'examples-fonts': resolve(__dirname, 'examples/fonts.html'),
                       },
                       output: isProduction
