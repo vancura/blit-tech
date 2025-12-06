@@ -117,6 +117,7 @@ function condenseForWebStorm(markdown) {
  */
 function generateWebStormXml(markdown) {
     const condensed = condenseForWebStorm(markdown);
+    const safe = condensed.replace(/\]\]>/g, ']]]]><![CDATA[>');
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
@@ -124,7 +125,7 @@ function generateWebStormXml(markdown) {
     <option name="instructions">
       <value>
         <![CDATA[
-${condensed}
+${safe}
         ]]>
       </value>
     </option>
@@ -141,9 +142,13 @@ ${condensed}
  * @param description - Description for logging.
  */
 function writeRuleFile(filePath, content, description) {
-    writeFileSync(filePath, content, 'utf-8');
-
-    console.log(`   ✓ Written to ${description}\n`);
+    try {
+        writeFileSync(filePath, content, 'utf-8');
+        console.log(`   ✓ Written to ${description}\n`);
+    } catch (error) {
+        console.error(`   ✗ Failed to write to ${description} (${filePath}): ${error.message}`);
+        process.exit(1);
+    }
 }
 
 // #endregion
