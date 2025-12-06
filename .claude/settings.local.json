@@ -1,6 +1,12 @@
 {
   "permissions": {
-    "allow": ["Bash(ls:*)", "WebFetch(domain:zed.dev)"],
+    "allow": [
+      "Bash(ls:*)",
+      "WebFetch(domain:zed.dev)",
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(pnpm typecheck:*)"
+    ],
     "deny": [],
     "ask": []
   }

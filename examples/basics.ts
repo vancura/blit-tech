@@ -6,7 +6,13 @@
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
+// #region Imports
+
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+
+// #endregion
+
+// #region Game Class
 
 /**
  * A minimal game demonstrating core Blit–Tech functionality.
@@ -16,13 +22,13 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
 class BasicGame implements IBlitTechGame {
     // #region Module State
 
-    /** Player position. */
+    /** Player position in world coordinates. */
     private playerPos: Vector2i = new Vector2i(160, 120);
 
-    /** Player velocity. */
+    /** Player velocity in pixels per frame. */
     private playerVel: Vector2i = new Vector2i(2, 1);
 
-    /** Player size. */
+    /** Player size in pixels. */
     private playerSize: Vector2i = new Vector2i(16, 16);
 
     /** Background color. */
@@ -31,7 +37,7 @@ class BasicGame implements IBlitTechGame {
     /** Player color. */
     private playerColor: Color32 = Color32.white();
 
-    /** Font for text rendering. */
+    /** Bitmap font for text rendering. */
     private font: BitmapFont | null = null;
 
     // #endregion
@@ -64,6 +70,7 @@ class BasicGame implements IBlitTechGame {
         // Load bitmap font from .btfont file.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+
             console.log(`[BasicGame] Loaded font: ${this.font.name} (${this.font.glyphCount} glyphs)`);
         } catch (error) {
             console.warn('[BasicGame] Failed to load font, will use fallback:', error);
@@ -71,6 +78,7 @@ class BasicGame implements IBlitTechGame {
 
         // Center player on screen.
         const displaySize = BT.displaySize();
+
         this.playerPos = new Vector2i(
             Math.floor(displaySize.x / 2 - this.playerSize.x / 2),
             Math.floor(displaySize.y / 2 - this.playerSize.y / 2),
@@ -82,7 +90,7 @@ class BasicGame implements IBlitTechGame {
     }
 
     /**
-     * Updates game logic at fixed 60 FPS.
+     * Updates game logic each tick.
      * Auto-moves the square and bounces off-screen edges.
      * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
      */
@@ -93,13 +101,13 @@ class BasicGame implements IBlitTechGame {
         // Bounce off screen edges.
         const displaySize = BT.displaySize();
 
-        // Bounce off screen edges horizontally.
+        // Handle horizontal bounds.
         if (this.playerPos.x <= 0 || this.playerPos.x >= displaySize.x - this.playerSize.x) {
             this.playerVel.x = -this.playerVel.x;
             this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
         }
 
-        // Bounce off screen edges vertically.
+        // Handle vertical bounds.
         if (this.playerPos.y <= 0 || this.playerPos.y >= displaySize.y - this.playerSize.y) {
             this.playerVel.y = -this.playerVel.y;
             this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
@@ -107,7 +115,7 @@ class BasicGame implements IBlitTechGame {
     }
 
     /**
-     * Renders game graphics.
+     * Renders game graphics each frame.
      * Clears screen, draws player square, and displays UI text using bitmap font.
      */
     render(): void {
@@ -116,9 +124,22 @@ class BasicGame implements IBlitTechGame {
 
         // Draw player.
         const playerRect = new Rect2i(this.playerPos.x, this.playerPos.y, this.playerSize.x, this.playerSize.y);
+
         BT.drawRectFill(playerRect, this.playerColor);
 
-        // Draw UI with bitmap font.
+        // Draw UI.
+        this.renderUI();
+    }
+
+    // #endregion
+
+    // #region Rendering Helpers
+
+    /**
+     * Renders the UI overlay with FPS and position information.
+     * Uses bitmap font if loaded, otherwise falls back to basic print.
+     */
+    private renderUI(): void {
         if (this.font) {
             BT.printFont(this.font, new Vector2i(10, 10), `FPS: ${BT.fps()}`, Color32.white());
 
@@ -144,16 +165,18 @@ class BasicGame implements IBlitTechGame {
     // #endregion
 }
 
+// #endregion
+
 // #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
- * Replaces the canvas container with a styled error box.
+ * Replaces the canvas container with a styled error box showing the title and message.
  *
- * @param title - Error heading text.
+ * @param title - Error heading text displayed prominently.
  * @param message - Detailed error description (HTML supported).
  */
-function showError(title: string, message: string): void {
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
 
     if (container) {
@@ -168,21 +191,25 @@ function showError(title: string, message: string): void {
 }
 
 /**
- * Checks if WebGPU is supported in the current browser.
+ * Checks if WebGPU is supported in the current browser environment.
+ * Tests for the presence of the navigator.gpu API.
  *
  * @returns True if WebGPU is available, false otherwise.
  */
-function isWebGPUSupported(): boolean {
+function checkWebGPUSupport(): boolean {
     return typeof navigator !== 'undefined' && 'gpu' in navigator;
 }
 
 /**
- * Gets the game canvas element from the DOM.
+ * Retrieves the game canvas element from the DOM.
+ * Looks for an element with ID 'game-canvas' and validates it is a canvas element.
  *
- * @returns The canvas element, or null if not found.
+ * @returns The canvas element if found and valid, null otherwise.
  */
-function getGameCanvas(): HTMLCanvasElement | null {
-    return document.getElementById('game-canvas') as HTMLCanvasElement | null;
+function getCanvasElement(): HTMLCanvasElement | null {
+    const element = document.getElementById('game-canvas');
+
+    return element instanceof HTMLCanvasElement ? element : null;
 }
 
 // #endregion
@@ -191,14 +218,15 @@ function getGameCanvas(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Checks WebGPU support, creates game instance, and starts the engine.
+ * Validates WebGPU support, retrieves canvas element, creates game instance,
+ * and initializes the Blit–Tech engine.
  */
-async function main(): Promise<void> {
+async function initializeApplication(): Promise<void> {
     console.log('[Main] Starting Basic Example...');
 
-    // Check WebGPU support.
-    if (!isWebGPUSupported()) {
-        showError(
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU.<br><br>' +
                 '<strong>Supported browsers:</strong><br>' +
@@ -212,13 +240,13 @@ async function main(): Promise<void> {
         return;
     }
 
-    // Get canvas element.
-    const canvas = getGameCanvas();
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
     if (!canvas) {
         console.error('[Main] Canvas element not found!');
 
-        showError('Canvas Error', 'Failed to find canvas element.');
+        displayErrorMessage('Canvas Error', 'Failed to find canvas element.');
 
         return;
     }
@@ -232,7 +260,7 @@ async function main(): Promise<void> {
     } else {
         console.error('[Main] Failed to initialize game');
 
-        showError(
+        displayErrorMessage(
             'Initialization Failed',
             'The game engine failed to initialize.<br><br>' +
                 'This usually means WebGPU could not access your GPU.<br>' +
@@ -245,11 +273,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
-// Auto-start when DOM is ready.
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion
