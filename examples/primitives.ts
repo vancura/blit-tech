@@ -9,11 +9,17 @@
  * - clearRect: Region clearing
  */
 
+// #region Imports
+
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+
+// #endregion
+
+// #region Game Class
 
 /**
  * Demonstrates all primitive drawing operations with animated examples.
- * Each section shows a different drawing function in action.
+ * Each section shows a different drawing function in action with real-time animation.
  */
 class PrimitivesDemo implements IBlitTechGame {
     // #region Module State
@@ -43,8 +49,8 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
-     * Initializes the demo and loads the bitmap font.
+     * Initializes the demo after the engine is ready.
+     * Loads the bitmap font for text rendering.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
@@ -65,18 +71,19 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state based on ticks.
+     * Updates animation state each tick.
+     * Increments the animation counter for time-based effects.
      */
     update(): void {
         this.animTicks++;
     }
 
     /**
-     * Renders game graphics (all primitive demonstrations).
-     * Shows pixels, lines, rect outlines, filled rects, clear regions, and a combined graph.
+     * Renders all primitive demonstrations.
+     * Displays pixels, lines, rectangles, and combined effects in separate sections.
      */
     render(): void {
-        // Clear background to dark blue
+        // Clear background to dark blue.
         BT.clear(new Color32(20, 30, 50));
 
         if (!this.font) {
@@ -87,103 +94,13 @@ class PrimitivesDemo implements IBlitTechGame {
         // Title.
         BT.printFont(this.font, new Vector2i(10, 10), 'Blit–Tech - Primitives Demo', Color32.white());
 
-        // Section 1: Pixels.
-        BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
-
-        // Draw random-ish pixels.
-        for (let i = 0; i < 50; i++) {
-            const x = 10 + ((i * 13) % 60);
-            const y = 45 + ((i * 7) % 20);
-            const hue = (i * 17 + this.animTicks) % 360;
-            const color = this.hslToRgb(hue, 100, 50);
-            BT.drawPixel(new Vector2i(x, y), color);
-        }
-
-        // Section 2: Lines.
-        BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
-
-        // Horizontal line.
-        BT.drawLine(new Vector2i(10, 90), new Vector2i(70, 90), new Color32(255, 100, 100));
-
-        // Vertical line.
-        BT.drawLine(new Vector2i(20, 95), new Vector2i(20, 115), new Color32(100, 255, 100));
-
-        // Diagonal line.
-        BT.drawLine(new Vector2i(30, 95), new Vector2i(60, 115), new Color32(100, 100, 255));
-
-        // Animated rotating line.
-        const angle = (this.animTicks * 2 * Math.PI) / 180;
-        const centerX = 50;
-        const centerY = 105;
-        const radius = 15;
-        const endX = centerX + Math.cos(angle) * radius;
-        const endY = centerY + Math.sin(angle) * radius;
-        BT.drawLine(new Vector2i(centerX, centerY), new Vector2i(Math.floor(endX), Math.floor(endY)), Color32.white());
-
-        // Section 3: Rectangle Outlines.
-        BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
-
-        // Static rectangles.
-        BT.drawRect(new Rect2i(90, 45, 40, 25), new Color32(255, 100, 100));
-        BT.drawRect(new Rect2i(140, 45, 30, 30), new Color32(100, 255, 100));
-        BT.drawRect(new Rect2i(180, 45, 25, 35), new Color32(100, 100, 255));
-
-        // Animated pulsing rectangle.
-        const pulse = Math.floor(10 + Math.sin(this.animTicks * 0.1) * 5);
-        BT.drawRect(new Rect2i(220, 45, pulse * 2, pulse * 2), new Color32(255, 255, 100));
-
-        // Section 4: Filled Rectangles.
-        BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
-
-        // Static filled rectangles.
-        BT.drawRectFill(new Rect2i(90, 105, 40, 25), new Color32(255, 100, 100));
-        BT.drawRectFill(new Rect2i(140, 105, 30, 30), new Color32(100, 255, 100));
-        BT.drawRectFill(new Rect2i(180, 105, 25, 35), new Color32(100, 100, 255));
-
-        // Animated sliding rectangle.
-        const slideX = 220 + Math.floor(Math.sin(this.animTicks * 0.05) * 20);
-        BT.drawRectFill(new Rect2i(slideX, 105, 20, 20), new Color32(255, 255, 100));
-
-        // Section 5: Clear Rect.
-        BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
-
-        // Draw a background pattern.
-        for (let i = 0; i < 10; i++) {
-            for (let j = 0; j < 5; j++) {
-                BT.drawRectFill(new Rect2i(10 + i * 10, 150 + j * 10, 8, 8), new Color32(100, 150, 200));
-            }
-        }
-
-        // Clear a rectangular region.
-        const clearX = 30 + Math.floor(Math.sin(this.animTicks * 0.03) * 15);
-        BT.clearRect(new Color32(20, 30, 50), new Rect2i(clearX, 160, 40, 30));
-
-        // Section 6: Combined Demo.
-        BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
-
-        // Draw a simple animated "graph".
-        const graphX = 120;
-        const graphY = 170;
-        const graphW = 180;
-        const graphH = 50;
-
-        // Graph background.
-        BT.drawRectFill(new Rect2i(graphX, graphY, graphW, graphH), new Color32(10, 15, 25));
-
-        // Graph border.
-        BT.drawRect(new Rect2i(graphX, graphY, graphW, graphH), new Color32(100, 100, 100));
-
-        // Draw sine wave.
-        for (let x = 0; x < graphW - 1; x++) {
-            const y1 = Math.floor(graphH / 2 + Math.sin((x + this.animTicks) * 0.1) * (graphH / 3));
-            const y2 = Math.floor(graphH / 2 + Math.sin((x + 1 + this.animTicks) * 0.1) * (graphH / 3));
-
-            BT.drawLine(
-                new Vector2i(graphX + x, graphY + y1),
-                new Vector2i(graphX + x + 1, graphY + y2),
-                new Color32(100, 255, 255),
-            );
-        }
+        // Draw demonstration sections.
+        this.renderPixelDemo();
+        this.renderLineDemo();
+        this.renderRectOutlineDemo();
+        this.renderRectFillDemo();
+        this.renderClearRectDemo();
+        this.renderCombinedDemo();
 
         // FPS counter.
         BT.printFont(
@@ -196,58 +113,158 @@ class PrimitivesDemo implements IBlitTechGame {
 
     // #endregion
 
-    // #region Helper Functions
+    // #region Rendering Helpers
 
     /**
-     * Converts HSL color values to RGB Color32.
-     * Used for rainbow color effects.
-     *
-     * @param h - Hue in degrees (0-360).
-     * @param s - Saturation percentage (0-100).
-     * @param l - Lightness percentage (0-100).
-     * @returns Color32 with converted RGB values.
+     * Renders the pixel drawing demonstration.
+     * Shows animated rainbow-colored pixels in a pattern.
      */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
+    private renderPixelDemo(): void {
+        if (!this.font) return;
 
-        let r, g, b;
+        BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
 
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
+        // Draw pseudo-random pixels with rainbow colors.
+        for (let i = 0; i < 50; i++) {
+            const x = 10 + ((i * 13) % 60);
+            const y = 45 + ((i * 7) % 20);
+            const hue = (i * 17 + this.animTicks) % 360;
+            const color = Color32.fromHSL(hue, 100, 50);
+            BT.drawPixel(new Vector2i(x, y), color);
+        }
+    }
 
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
+    /**
+     * Renders the line drawing demonstration.
+     * Shows horizontal, vertical, diagonal, and rotating lines.
+     */
+    private renderLineDemo(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
+
+        // Static lines in different orientations.
+        BT.drawLine(new Vector2i(10, 90), new Vector2i(70, 90), new Color32(255, 100, 100)); // Horizontal.
+        BT.drawLine(new Vector2i(20, 95), new Vector2i(20, 115), new Color32(100, 255, 100)); // Vertical.
+        BT.drawLine(new Vector2i(30, 95), new Vector2i(60, 115), new Color32(100, 100, 255)); // Diagonal.
+
+        // Animated rotating line.
+        const angle = (this.animTicks * 2 * Math.PI) / 180;
+        const centerX = 50;
+        const centerY = 105;
+        const radius = 15;
+        const endX = centerX + Math.cos(angle) * radius;
+        const endY = centerY + Math.sin(angle) * radius;
+        BT.drawLine(new Vector2i(centerX, centerY), new Vector2i(Math.floor(endX), Math.floor(endY)), Color32.white());
+    }
+
+    /**
+     * Renders the rectangle outline demonstration.
+     * Shows static rectangles and a pulsing animated rectangle.
+     */
+    private renderRectOutlineDemo(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
+
+        // Static rectangles in different colors.
+        BT.drawRect(new Rect2i(90, 45, 40, 25), new Color32(255, 100, 100));
+        BT.drawRect(new Rect2i(140, 45, 30, 30), new Color32(100, 255, 100));
+        BT.drawRect(new Rect2i(180, 45, 25, 35), new Color32(100, 100, 255));
+
+        // Animated pulsing rectangle.
+        const pulse = Math.floor(10 + Math.sin(this.animTicks * 0.1) * 5);
+        BT.drawRect(new Rect2i(220, 45, pulse * 2, pulse * 2), new Color32(255, 255, 100));
+    }
+
+    /**
+     * Renders the filled rectangle demonstration.
+     * Shows static filled rectangles and a sliding animated rectangle.
+     */
+    private renderRectFillDemo(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
+
+        // Static filled rectangles.
+        BT.drawRectFill(new Rect2i(90, 105, 40, 25), new Color32(255, 100, 100));
+        BT.drawRectFill(new Rect2i(140, 105, 30, 30), new Color32(100, 255, 100));
+        BT.drawRectFill(new Rect2i(180, 105, 25, 35), new Color32(100, 100, 255));
+
+        // Animated sliding rectangle.
+        const slideX = 220 + Math.floor(Math.sin(this.animTicks * 0.05) * 20);
+        BT.drawRectFill(new Rect2i(slideX, 105, 20, 20), new Color32(255, 255, 100));
+    }
+
+    /**
+     * Renders the clear rectangle demonstration.
+     * Shows a background pattern with a moving cleared region.
+     */
+    private renderClearRectDemo(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
+
+        // Draw background pattern.
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 5; j++) {
+                BT.drawRectFill(new Rect2i(10 + i * 10, 150 + j * 10, 8, 8), new Color32(100, 150, 200));
+            }
         }
 
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
+        // Clear a moving rectangular region.
+        const clearX = 30 + Math.floor(Math.sin(this.animTicks * 0.03) * 15);
+        BT.clearRect(new Color32(20, 30, 50), new Rect2i(clearX, 160, 40, 30));
+    }
+
+    /**
+     * Renders the combined primitives demonstration.
+     * Shows an animated sine wave graph using multiple drawing functions.
+     */
+    private renderCombinedDemo(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
+
+        const graphX = 120;
+        const graphY = 170;
+        const graphW = 180;
+        const graphH = 50;
+
+        // Graph background.
+        BT.drawRectFill(new Rect2i(graphX, graphY, graphW, graphH), new Color32(10, 15, 25));
+
+        // Graph border.
+        BT.drawRect(new Rect2i(graphX, graphY, graphW, graphH), new Color32(100, 100, 100));
+
+        // Draw animated sine wave.
+        for (let x = 0; x < graphW - 1; x++) {
+            const y1 = Math.floor(graphH / 2 + Math.sin((x + this.animTicks) * 0.1) * (graphH / 3));
+            const y2 = Math.floor(graphH / 2 + Math.sin((x + 1 + this.animTicks) * 0.1) * (graphH / 3));
+
+            BT.drawLine(
+                new Vector2i(graphX + x, graphY + y1),
+                new Vector2i(graphX + x + 1, graphY + y2),
+                new Color32(100, 255, 255),
+            );
+        }
     }
 
     // #endregion
 }
 
+// #endregion
+
 // #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
+ * Replaces the canvas container with a styled error box.
  *
- * @param title - Error heading.
- * @param message - Error details.
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
  */
-function showError(title: string, message: string): void {
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
@@ -260,38 +277,62 @@ function showError(title: string, message: string): void {
     }
 }
 
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
+}
+
 // #endregion
 
 // #region Main Logic
 
 /**
  * Application entry point.
- * Validates WebGPU support and starts the demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the primitives demo.
  */
-async function main(): Promise<void> {
-    // Check WebGPU support
-    if (!navigator.gpu) {
-        showError(
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.',
         );
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
-
         return;
     }
 
+    // Create game instance.
     const game = new PrimitivesDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Primitives demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize the Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize the Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -299,11 +340,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
-// Auto-start when DOM is ready.
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion

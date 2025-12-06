@@ -11,6 +11,8 @@
  * - Day/night cycle color shifts
  */
 
+// #region Imports
+
 import {
     BitmapFont,
     BT,
@@ -22,8 +24,13 @@ import {
     Vector2i,
 } from '../src/BlitTech';
 
+// #endregion
+
+// #region Game Class
+
 /**
  * Demonstrates practical sprite tinting effects for games.
+ * Shows damage flashes, status effects, team colors, and environmental lighting.
  */
 class SpriteEffectsDemo implements IBlitTechGame {
     // #region Module State
@@ -34,10 +41,10 @@ class SpriteEffectsDemo implements IBlitTechGame {
     /** Sprite sheet with character sprite. */
     private spriteSheet: SpriteSheet | null = null;
 
-    /** Animation time for effects. */
+    /** Animation time for effects in seconds. */
     private animTime: number = 0;
 
-    /** Damage flash trigger timer. */
+    /** Damage flash trigger timer (tick when damage occurred). */
     private damageFlashTick: number = 0;
 
     /** Source rectangle for character sprite in sheet. */
@@ -48,7 +55,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures hardware settings for this game.
+     * Configures hardware settings for this demo.
      * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
@@ -62,14 +69,15 @@ class SpriteEffectsDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
+     * Initializes the demo after the engine is ready.
+     * Loads font and creates character sprite for demonstrations.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[SpriteEffectsDemo] Initializing...');
 
-        // Load font
+        // Load font.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
             console.log(`[SpriteEffectsDemo] Loaded font: ${this.font.name}`);
@@ -78,7 +86,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
             return false;
         }
 
-        // Create character sprite sheet
+        // Create character sprite sheet.
         this.spriteSheet = await this.createCharacterSprite();
         console.log('[SpriteEffectsDemo] Created sprite sheet');
 
@@ -87,22 +95,24 @@ class SpriteEffectsDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state based on ticks.
+     * Updates animation state each tick.
+     * Updates animation timer and triggers periodic damage flashes.
      */
     update(): void {
         this.animTime += 1 / 60;
 
-        // Trigger damage flash periodically
+        // Trigger damage flash every 3 seconds.
         if (BT.ticks() % 180 === 0) {
             this.damageFlashTick = BT.ticks();
         }
     }
 
     /**
-     * Renders game graphics.
+     * Renders all sprite effect demonstrations.
+     * Shows various tint effects, team colors, status effects, and day/night cycle.
      */
     render(): void {
-        // Clear screen
+        // Clear screen.
         BT.clear(new Color32(25, 25, 35));
 
         if (!this.font || !this.spriteSheet) {
@@ -110,16 +120,16 @@ class SpriteEffectsDemo implements IBlitTechGame {
             return;
         }
 
-        // Title
+        // Title.
         BT.printFont(this.font, new Vector2i(10, 8), 'SPRITE TINTING EFFECTS', Color32.white());
 
-        // Draw all effect demonstrations
-        this.drawEffectExamples();
+        // Draw all effect demonstrations.
+        this.renderEffectExamples();
 
-        // Draw day/night cycle demo
-        this.drawDayNightCycle();
+        // Draw day/night cycle demo.
+        this.renderDayNightCycle();
 
-        // FPS counter
+        // FPS counter.
         BT.printFont(this.font, new Vector2i(250, 225), `FPS: ${BT.fps()}`, new Color32(100, 100, 100));
     }
 
@@ -128,61 +138,70 @@ class SpriteEffectsDemo implements IBlitTechGame {
     // #region Effect Demonstrations
 
     /**
-     * Draws various sprite tinting effects side by side.
+     * Renders various sprite tinting effects in two rows.
+     * Row 1: Basic tinting effects (normal, damage, shadow, ghost, invincibility).
+     * Row 2: Team colors and status effects (frozen, poisoned).
      */
-    private drawEffectExamples(): void {
+    private renderEffectExamples(): void {
         if (!this.spriteSheet || !this.font) return;
 
-        // Row 1: Basic tinting effects
+        this.renderBasicEffects();
+        this.renderTeamColorsAndStatus();
+    }
+
+    /**
+     * Renders basic tinting effects (row 1).
+     */
+    private renderBasicEffects(): void {
+        if (!this.spriteSheet || !this.font) return;
+
         const row1Y = 35;
         const spacing = 55;
 
-        // Normal (no tint)
+        // Normal (no tint).
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15, row1Y), Color32.white());
         BT.printFont(this.font, new Vector2i(10, row1Y + 36), 'Normal', new Color32(200, 200, 200));
 
-        // Damage flash (pulsing red/white)
-        const flashAge = BT.ticks() - this.damageFlashTick;
-        let flashTint: Color32;
-        if (flashAge < 30) {
-            // Flash effect: alternate red and white rapidly
-            const flashPhase = Math.floor(flashAge / 3) % 2;
-            flashTint = flashPhase === 0 ? new Color32(255, 255, 255) : new Color32(255, 50, 50);
-        } else {
-            flashTint = Color32.white();
-        }
+        // Damage flash (pulsing red/white).
+        const flashTint = this.calculateDamageFlashTint();
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing, row1Y), flashTint);
         BT.printFont(this.font, new Vector2i(10 + spacing, row1Y + 36), 'Damage', new Color32(255, 100, 100));
 
-        // Silhouette (solid black)
-        const silhouetteTint = new Color32(0, 0, 0);
-        BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 2, row1Y), silhouetteTint);
+        // Silhouette (solid black).
+        BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 2, row1Y), new Color32(0, 0, 0));
         BT.printFont(this.font, new Vector2i(10 + spacing * 2, row1Y + 36), 'Shadow', new Color32(150, 150, 150));
 
-        // Ghost effect (white tint + reduced alpha)
+        // Ghost effect (white tint + reduced alpha).
         const ghostPulse = Math.sin(this.animTime * 3) * 0.3 + 0.5;
         const ghostTint = new Color32(200, 200, 255, Math.floor(ghostPulse * 255));
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 3, row1Y), ghostTint);
         BT.printFont(this.font, new Vector2i(10 + spacing * 3, row1Y + 36), 'Ghost', new Color32(150, 150, 200));
 
-        // Invincibility flash (rainbow)
+        // Invincibility flash (rainbow).
         const invincHue = (this.animTime * 200) % 360;
-        const invincTint = this.hslToRgb(invincHue, 100, 70);
+        const invincTint = Color32.fromHSL(invincHue, 100, 70);
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 4, row1Y), invincTint);
         BT.printFont(this.font, new Vector2i(10 + spacing * 4, row1Y + 36), 'Invincible', new Color32(255, 200, 100));
+    }
 
-        // Row 2: Team colors and environmental lighting
+    /**
+     * Renders team colors and status effects (row 2).
+     */
+    private renderTeamColorsAndStatus(): void {
+        if (!this.spriteSheet || !this.font) return;
+
         const row2Y = 105;
+        const spacing = 55;
 
-        // Team Red
+        // Team Red.
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15, row2Y), new Color32(255, 100, 100));
         BT.printFont(this.font, new Vector2i(10, row2Y + 36), 'Team Red', new Color32(255, 100, 100));
 
-        // Team Blue
+        // Team Blue.
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing, row2Y), new Color32(100, 100, 255));
         BT.printFont(this.font, new Vector2i(10 + spacing, row2Y + 36), 'Team Blue', new Color32(100, 150, 255));
 
-        // Team Green
+        // Team Green.
         BT.drawSprite(
             this.spriteSheet,
             this.charSprite,
@@ -191,7 +210,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         );
         BT.printFont(this.font, new Vector2i(10 + spacing * 2, row2Y + 36), 'Team Green', new Color32(100, 255, 100));
 
-        // Frozen (cyan/blue tint)
+        // Frozen (cyan/blue tint).
         BT.drawSprite(
             this.spriteSheet,
             this.charSprite,
@@ -200,75 +219,112 @@ class SpriteEffectsDemo implements IBlitTechGame {
         );
         BT.printFont(this.font, new Vector2i(10 + spacing * 3, row2Y + 36), 'Frozen', new Color32(150, 200, 255));
 
-        // Poisoned (green tint with pulse)
-        const poisonPulse = Math.sin(this.animTime * 5) * 0.2 + 0.8;
-        const poisonTint = new Color32(
-            Math.floor(100 * poisonPulse),
-            Math.floor(255 * poisonPulse),
-            Math.floor(100 * poisonPulse),
-        );
+        // Poisoned (pulsing green tint).
+        const poisonTint = this.calculatePoisonTint();
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 4, row2Y), poisonTint);
         BT.printFont(this.font, new Vector2i(10 + spacing * 4, row2Y + 36), 'Poisoned', new Color32(100, 255, 100));
     }
 
     /**
-     * Demonstrates day/night cycle color grading.
+     * Calculates the damage flash tint color.
+     * Alternates between red and white for the first 30 ticks after damage.
+     *
+     * @returns Tint color for damage flash effect.
      */
-    private drawDayNightCycle(): void {
+    private calculateDamageFlashTint(): Color32 {
+        const flashAge = BT.ticks() - this.damageFlashTick;
+
+        if (flashAge < 30) {
+            // Flash effect: alternate red and white rapidly.
+            const flashPhase = Math.floor(flashAge / 3) % 2;
+            return flashPhase === 0 ? new Color32(255, 255, 255) : new Color32(255, 50, 50);
+        }
+
+        return Color32.white();
+    }
+
+    /**
+     * Calculates the poison tint color with pulsing effect.
+     *
+     * @returns Tint color for poison effect.
+     */
+    private calculatePoisonTint(): Color32 {
+        const poisonPulse = Math.sin(this.animTime * 5) * 0.2 + 0.8;
+        return new Color32(Math.floor(100 * poisonPulse), Math.floor(255 * poisonPulse), Math.floor(100 * poisonPulse));
+    }
+
+    /**
+     * Demonstrates day/night cycle color grading.
+     * Cycles through Day, Sunset, Night, and Dawn with ambient tinting.
+     */
+    private renderDayNightCycle(): void {
         if (!this.spriteSheet || !this.font) return;
 
         const baseY = 175;
 
         BT.printFont(this.font, new Vector2i(10, baseY), 'Day/Night Cycle:', new Color32(255, 200, 100));
 
-        // Cycle through different times of day
+        // Cycle through different times of day (4 phases, 6 second total cycle).
         const cycleTime = (this.animTime * 0.5) % 4;
 
-        let timeName: string;
-        let ambientTint: Color32;
+        const { timeName, ambientTint } = this.getDayNightPhase(cycleTime);
 
-        if (cycleTime < 1) {
-            // Day
-            timeName = 'Day';
-            ambientTint = new Color32(255, 255, 255);
-        } else if (cycleTime < 2) {
-            // Sunset
-            timeName = 'Sunset';
-            ambientTint = new Color32(255, 180, 120);
-        } else if (cycleTime < 3) {
-            // Night
-            timeName = 'Night';
-            ambientTint = new Color32(80, 80, 150);
-        } else {
-            // Dawn
-            timeName = 'Dawn';
-            ambientTint = new Color32(180, 150, 200);
-        }
-
-        // Draw character with ambient lighting
+        // Draw character with ambient lighting.
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15, baseY + 20), ambientTint);
 
-        // Time label
+        // Time label.
         BT.printFont(this.font, new Vector2i(10, baseY + 56), timeName, ambientTint);
 
-        // Draw progression bar
+        // Draw progression bar.
+        this.renderDayNightProgressBar(baseY, cycleTime, ambientTint);
+    }
+
+    /**
+     * Gets the time name and ambient tint for a given cycle time.
+     *
+     * @param cycleTime - Current position in the day/night cycle (0-4).
+     * @returns Object containing time name and ambient tint color.
+     */
+    private getDayNightPhase(cycleTime: number): { timeName: string; ambientTint: Color32 } {
+        if (cycleTime < 1) {
+            return { timeName: 'Day', ambientTint: new Color32(255, 255, 255) };
+        }
+        if (cycleTime < 2) {
+            return { timeName: 'Sunset', ambientTint: new Color32(255, 180, 120) };
+        }
+        if (cycleTime < 3) {
+            return { timeName: 'Night', ambientTint: new Color32(80, 80, 150) };
+        }
+        return { timeName: 'Dawn', ambientTint: new Color32(180, 150, 200) };
+    }
+
+    /**
+     * Renders the day/night cycle progress bar with time labels.
+     *
+     * @param baseY - Base Y position for the cycle demo.
+     * @param cycleTime - Current position in the cycle (0-4).
+     * @param ambientTint - Current ambient tint color.
+     */
+    private renderDayNightProgressBar(baseY: number, cycleTime: number, ambientTint: Color32): void {
+        if (!this.font) return;
+
         const barX = 60;
         const barY = baseY + 25;
         const barWidth = 240;
         const barHeight = 10;
 
-        // Background
+        // Background.
         BT.drawRectFill(new Rect2i(barX, barY, barWidth, barHeight), new Color32(30, 30, 30));
 
-        // Progress indicator
+        // Progress indicator.
         const progress = (cycleTime % 4) / 4;
         const indicatorX = barX + Math.floor(barWidth * progress);
         BT.drawRectFill(new Rect2i(indicatorX - 2, barY - 2, 4, barHeight + 4), ambientTint);
 
-        // Border
+        // Border.
         BT.drawRect(new Rect2i(barX, barY, barWidth, barHeight), new Color32(150, 150, 150));
 
-        // Time labels
+        // Time labels.
         BT.printFont(this.font, new Vector2i(barX, barY + 14), 'Day', new Color32(150, 150, 150));
         BT.printFont(this.font, new Vector2i(barX + 60, barY + 14), 'Sunset', new Color32(150, 150, 150));
         BT.printFont(this.font, new Vector2i(barX + 120, barY + 14), 'Night', new Color32(150, 150, 150));
@@ -280,7 +336,10 @@ class SpriteEffectsDemo implements IBlitTechGame {
     // #region Sprite Creation
 
     /**
-     * Creates a simple character sprite for demonstration.
+     * Creates a simple character sprite for demonstration purposes.
+     * In a real game, you would load from an image file instead.
+     *
+     * @returns Promise resolving to the created SpriteSheet.
      */
     private async createCharacterSprite(): Promise<SpriteSheet> {
         const canvas = document.createElement('canvas');
@@ -294,30 +353,30 @@ class SpriteEffectsDemo implements IBlitTechGame {
             throw new Error('[SpriteEffectsDemo] Failed to acquire 2D canvas context');
         }
 
-        // Clear background
+        // Clear background.
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
         ctx.fillRect(0, 0, size, size);
 
-        // Draw simple character in white
+        // Draw simple character in white.
         ctx.fillStyle = 'white';
 
-        // Head
+        // Head.
         ctx.beginPath();
         ctx.arc(16, 10, 6, 0, Math.PI * 2);
         ctx.fill();
 
-        // Body
+        // Body.
         ctx.fillRect(12, 16, 8, 10);
 
-        // Arms
+        // Arms.
         ctx.fillRect(8, 18, 4, 6);
         ctx.fillRect(20, 18, 4, 6);
 
-        // Legs
+        // Legs.
         ctx.fillRect(12, 26, 4, 6);
         ctx.fillRect(16, 26, 4, 6);
 
-        // Convert to image
+        // Convert to image.
         const dataUrl = canvas.toDataURL();
         const image = new Image();
         await new Promise<void>((resolve) => {
@@ -329,48 +388,20 @@ class SpriteEffectsDemo implements IBlitTechGame {
     }
 
     // #endregion
-
-    // #region Helper Functions
-
-    /**
-     * Converts HSL to RGB color.
-     */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
-
-        let r, g, b;
-
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
-
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
-    }
-
-    // #endregion
 }
+
+// #endregion
 
 // #region Helper Functions
 
-function showError(title: string, message: string): void {
+/**
+ * Displays an error message in the page UI.
+ * Replaces the canvas container with a styled error box.
+ *
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
+ */
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         const errorDiv = document.createElement('div');
@@ -396,33 +427,62 @@ function showError(title: string, message: string): void {
     }
 }
 
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
+}
+
 // #endregion
 
 // #region Main Logic
 
-async function main(): Promise<void> {
-    if (!navigator.gpu) {
-        showError(
+/**
+ * Application entry point.
+ * Validates WebGPU support, retrieves canvas, and initializes the sprite effects demo.
+ */
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly.',
         );
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
-
         return;
     }
 
+    // Create game instance.
     const game = new SpriteEffectsDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite effects demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -430,10 +490,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion

@@ -11,11 +11,17 @@
  * - Tunnel: Concentric rotating rectangles
  */
 
+// #region Imports
+
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
+
+// #endregion
+
+// #region Game Class
 
 /**
  * Demonstrates animated mathematical patterns using primitive drawing.
- * Each section shows a different algorithmic visual effect.
+ * Each section shows a different algorithmic visual effect arranged in a 2x3 grid.
  */
 class PatternsDemo implements IBlitTechGame {
     // #region Module State
@@ -30,13 +36,13 @@ class PatternsDemo implements IBlitTechGame {
 
     // #region Pre-allocated Reusable Objects (Performance)
 
-    /** Reusable vector for drawing operations. */
+    /** Reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec1 = new Vector2i(0, 0);
 
-    /** Reusable vector for drawing operations. */
+    /** Reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec2 = new Vector2i(0, 0);
 
-    /** Reusable rect for drawing operations. */
+    /** Reusable rectangle for drawing operations to avoid allocations. */
     private readonly tempRect = new Rect2i(0, 0, 0, 0);
 
     // #endregion
@@ -44,7 +50,7 @@ class PatternsDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures hardware settings for this game.
+     * Configures hardware settings for this demo.
      * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
@@ -58,8 +64,8 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
-     * Loads the bitmap font.
+     * Initializes the demo after the engine is ready.
+     * Loads the bitmap font for text rendering.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
@@ -80,14 +86,16 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state based on ticks.
+     * Updates animation state each tick.
+     * Increments the animation timer for time-based effects.
      */
     update(): void {
-        this.animTime += 0.016; // ~60 FPS
+        this.animTime += 0.016; // ~60 FPS.
     }
 
     /**
-     * Renders game graphics (all pattern demonstrations in a 2x3 grid layout).
+     * Renders all pattern demonstrations in a 2x3 grid layout.
+     * Shows six different mathematical patterns with animations.
      */
     render(): void {
         // Clear to dark background.
@@ -101,7 +109,7 @@ class PatternsDemo implements IBlitTechGame {
         // Title.
         BT.printFont(this.font, new Vector2i(10, 5), 'Blit–Tech - Patterns Demo', Color32.white());
 
-        // Draw different pattern sections.
+        // Draw pattern demonstrations.
         this.drawSpiral(new Vector2i(40, 50));
         this.drawRadialLines(new Vector2i(120, 50));
         this.drawWavePattern(new Vector2i(200, 50));
@@ -109,13 +117,8 @@ class PatternsDemo implements IBlitTechGame {
         this.drawLissajous(new Vector2i(120, 130));
         this.drawTunnel(new Vector2i(200, 130));
 
-        // Labels.
-        BT.printFont(this.font, new Vector2i(15, 95), 'Spiral', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(90, 95), 'Radial', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(175, 95), 'Wave', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(15, 175), 'Circle', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(85, 175), 'Lissajous', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(175, 175), 'Tunnel', new Color32(200, 200, 200));
+        // Render labels.
+        this.renderLabels();
 
         // FPS counter.
         BT.printFont(
@@ -148,9 +151,9 @@ class PatternsDemo implements IBlitTechGame {
             const y = center.y + Math.sin(t) * radius;
 
             const hue = (i / points) * 360 + this.animTime * 50;
-            const color = this.hslToRgb(hue % 360, 100, 50);
+            const color = Color32.fromHSL(hue % 360, 100, 50);
 
-            // Reuse vector to avoid allocation per pixel
+            // Reuse vector to avoid allocation per pixel.
             this.tempVec1.set(Math.floor(x), Math.floor(y));
             BT.drawPixel(this.tempVec1, color);
         }
@@ -158,7 +161,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Draws animated radial lines from center like sun rays.
-     * Line lengths pulse based on time offset.
+     * Line lengths pulse based on time offset for each ray.
      *
      * @param center - Center point of the radial pattern.
      */
@@ -174,9 +177,9 @@ class PatternsDemo implements IBlitTechGame {
             const y = center.y + Math.sin(angle) * length;
 
             const hue = (i / numLines) * 360;
-            const color = this.hslToRgb(hue, 80, 60);
+            const color = Color32.fromHSL(hue, 80, 60);
 
-            // Reuse vector to avoid allocation per line
+            // Reuse vector to avoid allocation per line.
             this.tempVec1.set(Math.floor(x), Math.floor(y));
             BT.drawLine(center, this.tempVec1, color);
         }
@@ -184,14 +187,14 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Draws three overlapping wave patterns demonstrating interference.
-     * Shows primary, secondary, and combined waves.
+     * Shows primary wave, secondary wave, and their combined interference pattern.
      *
      * @param center - Center point (waves drawn horizontally around this).
      */
     private drawWavePattern(center: Vector2i): void {
         const width = 60;
 
-        // Pre-create colors outside loop
+        // Pre-create colors outside loop to avoid allocations.
         const color1 = new Color32(100, 200, 255);
         const color2 = new Color32(255, 150, 100);
         const color3 = new Color32(150, 255, 150);
@@ -209,7 +212,7 @@ class PatternsDemo implements IBlitTechGame {
             this.tempVec1.set(baseX, center.y + Math.floor(y2));
             BT.drawPixel(this.tempVec1, color2);
 
-            // Interference pattern.
+            // Interference pattern (combined waves).
             const y3 = Math.sin((x + this.animTime * 20) * 0.2) * 15 + Math.cos((x + this.animTime * 15) * 0.15) * 10;
             this.tempVec1.set(baseX, center.y + Math.floor(y3 / 2));
             BT.drawPixel(this.tempVec1, color3);
@@ -218,7 +221,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Draws a rotating circle using line segment approximation.
-     * Shows how circles can be rendered using only line primitives.
+     * Demonstrates how circles can be rendered using only line primitives with rainbow coloring.
      *
      * @param center - Center point of the circle.
      */
@@ -236,9 +239,9 @@ class PatternsDemo implements IBlitTechGame {
             const y2 = center.y + Math.sin(angle2 + this.animTime) * radius;
 
             const hue = (i / segments) * 360;
-            const color = this.hslToRgb(hue, 100, 50);
+            const color = Color32.fromHSL(hue, 100, 50);
 
-            // Reuse vectors to avoid allocation per segment
+            // Reuse vectors to avoid allocation per segment.
             this.tempVec1.set(Math.floor(x1), Math.floor(y1));
             this.tempVec2.set(Math.floor(x2), Math.floor(y2));
             BT.drawLine(this.tempVec1, this.tempVec2, color);
@@ -247,8 +250,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Draws a Lissajous curve (parametric figure-8 variant).
-     * Classic demonstration of harmonic oscillation patterns.
-     * Uses frequency ratio 3:4 for the characteristic shape.
+     * Classic demonstration of harmonic oscillation patterns using frequency ratio 3:4.
      *
      * @param center - Center point of the curve.
      */
@@ -269,9 +271,9 @@ class PatternsDemo implements IBlitTechGame {
 
             if (i > 0) {
                 const hue = (i / points) * 360 + this.animTime * 30;
-                const color = this.hslToRgb(hue % 360, 100, 50);
+                const color = Color32.fromHSL(hue % 360, 100, 50);
 
-                // Reuse vectors to avoid allocation per segment
+                // Reuse vectors to avoid allocation per segment.
                 this.tempVec1.set(Math.floor(prevX), Math.floor(prevY));
                 this.tempVec2.set(Math.floor(x), Math.floor(y));
                 BT.drawLine(this.tempVec1, this.tempVec2, color);
@@ -284,7 +286,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Draws a psychedelic tunnel effect using concentric rectangles.
-     * Rectangles rotate and wobble for depth illusion.
+     * Rectangles rotate and wobble to create an illusion of depth.
      *
      * @param center - Center point of the tunnel.
      */
@@ -304,65 +306,47 @@ class PatternsDemo implements IBlitTechGame {
 
             const hue = (t * 360 + this.animTime * 50) % 360;
             const lightness = 30 + t * 40;
-            const color = this.hslToRgb(hue, 100, lightness);
+            const color = Color32.fromHSL(hue, 100, lightness);
 
-            // Reuse rect to avoid allocation per rectangle
+            // Reuse rect to avoid allocation per rectangle.
             this.tempRect.set(Math.floor(x), Math.floor(y), Math.floor(size), Math.floor(size));
             BT.drawRect(this.tempRect, color);
         }
     }
 
+    // #endregion
+
+    // #region Rendering Helpers
+
     /**
-     * Converts HSL color values to RGB Color32.
-     *
-     * @param h - Hue in degrees (0-360).
-     * @param s - Saturation percentage (0-100).
-     * @param l - Lightness percentage (0-100).
-     * @returns Color32 with converted RGB values.
+     * Renders text labels for each pattern demonstration.
      */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
+    private renderLabels(): void {
+        if (!this.font) return;
 
-        let r: number, g: number, b: number;
-
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-
-                return p;
-            };
-
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
+        BT.printFont(this.font, new Vector2i(15, 95), 'Spiral', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(90, 95), 'Radial', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(175, 95), 'Wave', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(15, 175), 'Circle', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(85, 175), 'Lissajous', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(175, 175), 'Tunnel', new Color32(200, 200, 200));
     }
 
     // #endregion
 }
 
+// #endregion
+
 // #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
+ * Replaces the canvas container with a styled error box.
  *
- * @param title - Error heading.
- * @param message - Error details.
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
  */
-function showError(title: string, message: string): void {
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
 
     if (container) {
@@ -376,18 +360,37 @@ function showError(title: string, message: string): void {
     }
 }
 
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
+}
+
 // #endregion
 
 // #region Main Logic
 
 /**
  * Application entry point.
- * Validates WebGPU support and starts the patterns demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the patterns demo.
  */
-async function main(): Promise<void> {
-    // Check WebGPU support
-    if (!navigator.gpu) {
-        showError(
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.',
         );
@@ -395,20 +398,25 @@ async function main(): Promise<void> {
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
-
         return;
     }
 
+    // Create game instance.
     const game = new PatternsDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Patterns demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize the Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize the Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -416,11 +424,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
-// Auto-start when DOM is ready.
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion

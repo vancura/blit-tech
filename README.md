@@ -94,6 +94,12 @@ Create a game by implementing the `IBlitTechGame` interface:
 import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
 
 class MyGame implements IBlitTechGame {
+  /**
+   * Configures hardware settings for this game.
+   * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+   *
+   * @returns Hardware configuration specifying display size and target FPS.
+   */
   queryHardware(): HardwareSettings {
     return {
       displaySize: new Vector2i(320, 240),
@@ -101,17 +107,28 @@ class MyGame implements IBlitTechGame {
     };
   }
 
+  /**
+   * Initializes game state after the engine is ready.
+   *
+   * @returns Promise resolving to true when initialization succeeds.
+   */
   async initialize(): Promise<boolean> {
     // Load assets here (sprites, fonts, etc.)
     // Example: const spriteSheet = await SpriteSheet.load('assets/sprites.png');
     return true;
   }
 
+  /**
+   * Updates animation state based on ticks.
+   */
   update(): void {
     // Game logic at fixed timestep (60 FPS)
     // Note: Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
   }
 
+  /**
+   * Renders game graphics.
+   */
   render(): void {
     BT.clear(Color32.fromRGB(20, 30, 40));
     BT.drawRectFill(new Rect2i(100, 100, 50, 50), Color32.fromRGB(255, 100, 50));
