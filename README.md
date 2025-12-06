@@ -94,6 +94,12 @@ Create a game by implementing the `IBlitTechGame` interface:
 import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
 
 class MyGame implements IBlitTechGame {
+  /**
+   * Configures hardware settings for this game.
+   * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+   *
+   * @returns Hardware configuration specifying display size and target FPS.
+   */
   queryHardware(): HardwareSettings {
     return {
       displaySize: new Vector2i(320, 240),
@@ -101,17 +107,28 @@ class MyGame implements IBlitTechGame {
     };
   }
 
+  /**
+   * Initializes game state after the engine is ready.
+   *
+   * @returns Promise resolving to true when initialization succeeds.
+   */
   async initialize(): Promise<boolean> {
     // Load assets here (sprites, fonts, etc.)
     // Example: const spriteSheet = await SpriteSheet.load('assets/sprites.png');
     return true;
   }
 
+  /**
+   * Updates animation state based on ticks.
+   */
   update(): void {
     // Game logic at fixed timestep (60 FPS)
     // Note: Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
   }
 
+  /**
+   * Renders game graphics.
+   */
   render(): void {
     BT.clear(Color32.fromRGB(20, 30, 40));
     BT.drawRectFill(new Rect2i(100, 100, 50, 50), Color32.fromRGB(255, 100, 50));
@@ -137,10 +154,12 @@ blit-tech/
 │   ├── index.html              # Examples gallery
 │   ├── basics.html             # Basic example
 │   ├── primitives.html         # Drawing primitives demo
-│   ├── camera.html             # Camera scrolling demo
-│   ├── patterns.html           # Animated patterns demo
+│   ├── fonts.html              # Bitmap font demo
 │   ├── sprites.html            # Sprite rendering demo
-│   └── fonts.html              # Bitmap font demo
+│   ├── sprite-effects.html     # Sprite tinting effects demo
+│   ├── animation.html          # Animation & timing demo
+│   ├── patterns.html           # Animated patterns demo
+│   └── camera.html             # Camera scrolling demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
@@ -242,14 +261,35 @@ implemented. They currently return `false`. See the examples for workarounds.
 
 ## Examples
 
-Run `pnpm dev` and visit the examples’ gallery:
+Run `pnpm dev` and visit the examples' gallery:
+
+### Learning Path
+
+We recommend exploring the examples in this order:
+
+1. **basics.ts** — Start here! Core concepts and game loop
+2. **primitives.ts** — Drawing shapes and lines
+3. **fonts.ts** — Text rendering and colors
+4. **sprites.ts** — Sprite sheets and textures
+5. **sprite-effects.ts** — Practical tinting effects (NEW)
+6. **animation.ts** — Timing and frame-based logic (NEW)
+7. **patterns.ts** — Complex animations (performance-optimized)
+8. **camera.ts** — Camera scrolling and world management (performance-optimized)
+
+**Note:** Earlier examples prioritize clarity and readability. Later examples (patterns, camera) demonstrate performance
+optimization techniques when working with hundreds of operations per frame. See
+[Performance Best Practices](docs/performance-best-practices.md) for details.
+
+### Example Descriptions
 
 - **Basic Example** — Simple game setup with a moving square
 - **Primitives** — All drawing primitives showcase
-- **Camera** — Scrolling world with a mini-map
-- **Patterns** — Animated mathematical patterns
-- **Sprites** — Texture rendering with tinting
 - **Bitmap Fonts** — Text rendering with custom fonts
+- **Sprites** — Texture rendering with tinting
+- **Sprite Effects** — Practical tinting use cases (damage flash, shadows, team colors)
+- **Animation & Timing** — Tick-based animation, state machines, cooldowns
+- **Patterns** — Animated mathematical patterns
+- **Camera** — Scrolling world with a mini-map
 
 ## Deployment
 
