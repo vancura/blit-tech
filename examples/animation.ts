@@ -601,9 +601,11 @@ async function main(): Promise<void> {
         return;
     }
 
-    const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-    if (!canvas) {
-        console.error('[Main] Canvas element not found');
+    const canvas = document.getElementById('game-canvas');
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+        console.error('[Main] Canvas element not found or is not a <canvas>');
+
         return;
     }
 
