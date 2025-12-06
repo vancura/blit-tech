@@ -9,6 +9,8 @@
  * - Deterministic frame-based logic
  */
 
+// #region Imports
+
 import {
     BitmapFont,
     BT,
@@ -19,6 +21,10 @@ import {
     SpriteSheet,
     Vector2i,
 } from '../src/BlitTech';
+
+// #endregion
+
+// #region Types
 
 /**
  * Animation states for the character.
@@ -33,14 +39,37 @@ enum AnimState {
  * Character animation data.
  */
 interface CharacterAnimation {
+    /** Current animation state. */
     state: AnimState;
+
+    /** Current frame index in the animation. */
     frameIndex: number;
-    frameDuration: number; // Ticks per frame
+
+    /** Ticks per frame for animation speed. */
+    frameDuration: number;
+
+    /** Tick when last frame change occurred. */
     lastFrameChangeTick: number;
 }
 
 /**
+ * Particle effect data.
+ */
+interface Particle {
+    /** Particle position. */
+    pos: Vector2i;
+
+    /** Tick when particle was spawned. */
+    spawnTick: number;
+}
+
+// #endregion
+
+// #region Game Class
+
+/**
  * Demonstrates tick-based animation timing and state management.
+ * Shows sprite sheet animation, state machines, cooldowns, and periodic events.
  */
 class AnimationDemo implements IBlitTechGame {
     // #region Module State
@@ -64,25 +93,31 @@ class AnimationDemo implements IBlitTechGame {
 
     /** Ability cooldown timer (in ticks). */
     private abilityCooldownTicks: number = 0;
-    private readonly abilityCooldownDuration: number = 120; // 2 seconds at 60 FPS
+
+    /** Ability cooldown duration (2 seconds at 60 FPS). */
+    private readonly abilityCooldownDuration: number = 120;
 
     /** Spawn timer for periodic events. */
     private lastSpawnTick: number = 0;
-    private readonly spawnInterval: number = 180; // 3 seconds at 60 FPS
+
+    /** Spawn interval (3 seconds at 60 FPS). */
+    private readonly spawnInterval: number = 180;
 
     /** Particle effects spawned periodically. */
-    private particles: Array<{ pos: Vector2i; spawnTick: number }> = [];
+    private particles: Particle[] = [];
 
-    /** Jump animation timer. */
+    /** Jump animation start tick. */
     private jumpStartTick: number = 0;
-    private readonly jumpDuration: number = 60; // 1 second at 60 FPS
+
+    /** Jump animation duration (1 second at 60 FPS). */
+    private readonly jumpDuration: number = 60;
 
     // #endregion
 
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures hardware settings for this game.
+     * Configures hardware settings for this demo.
      * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
@@ -96,63 +131,67 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
+     * Initializes the demo after the engine is ready.
+     * Loads font and creates animated sprite sheet.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[AnimationDemo] Initializing...');
 
-        // Load font
+        // Load font.
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
+
             console.log(`[AnimationDemo] Loaded font: ${this.font.name}`);
         } catch (error: unknown) {
             console.error('[AnimationDemo] Failed to load font:', error);
+
             return false;
         }
 
-        // Create sprite sheet for character animation
+        // Create sprite sheet for character animation.
         this.spriteSheet = await this.createAnimatedSpriteSheet();
         console.log('[AnimationDemo] Created sprite sheet');
-
         console.log('[AnimationDemo] Initialization complete!');
+
         return true;
     }
 
     /**
-     * Updates animation state based on ticks.
-     * Demonstrates frame-based logic and timing.
+     * Updates animation state each tick.
+     * Handles frame-based logic including animation, cooldowns, and periodic spawning.
      */
     update(): void {
         const currentTick = BT.ticks();
 
-        // Update character animation frame
+        // Update character animation frame.
         this.updateAnimation(currentTick);
 
-        // Update ability cooldown
+        // Update ability cooldown.
         if (this.abilityCooldownTicks > 0) {
             this.abilityCooldownTicks--;
         }
 
-        // Periodic particle spawning
+        // Periodic particle spawning.
         if (currentTick - this.lastSpawnTick >= this.spawnInterval) {
             this.spawnParticle();
             this.lastSpawnTick = currentTick;
         }
 
-        // Remove old particles (after 3 seconds)
+        // Remove old particles (after 3 seconds).
         this.particles = this.particles.filter((p) => currentTick - p.spawnTick < 180);
 
-        // Auto-cycle animation states for demonstration
+        // Auto-cycle animation states for demonstration.
         this.autoCycleStates(currentTick);
     }
 
     /**
-     * Renders game graphics (animated character and UI).
+     * Renders animated character, particles, and UI.
+     * Shows character animation with current state and timing information.
      */
     render(): void {
-        // Clear screen
+        // Clear screen.
         BT.clear(new Color32(30, 20, 40));
 
         if (!this.font || !this.spriteSheet) {
@@ -160,17 +199,17 @@ class AnimationDemo implements IBlitTechGame {
             return;
         }
 
-        // Draw ground
+        // Draw ground.
         BT.drawRectFill(new Rect2i(0, 150, 320, 90), new Color32(40, 60, 40));
 
-        // Draw animated character
-        this.drawCharacter();
+        // Draw animated character.
+        this.renderCharacter();
 
-        // Draw particles
-        this.drawParticles();
+        // Draw particles.
+        this.renderParticles();
 
-        // Draw UI
-        this.drawUI();
+        // Draw UI.
+        this.renderUI();
     }
 
     // #endregion
@@ -179,17 +218,21 @@ class AnimationDemo implements IBlitTechGame {
 
     /**
      * Updates animation frame based on tick counter.
+     * Advances frame when enough ticks have passed based on frameDuration.
+     *
+     * @param currentTick - Current game tick.
      */
     private updateAnimation(currentTick: number): void {
-        // Check if it's time to advance the frame
+        // Check if it's time to advance the frame.
         if (currentTick - this.animation.lastFrameChangeTick >= this.animation.frameDuration) {
             this.animation.frameIndex = (this.animation.frameIndex + 1) % this.getFrameCount(this.animation.state);
             this.animation.lastFrameChangeTick = currentTick;
         }
 
-        // Update jump animation offset
+        // Update jump animation offset.
         if (this.animation.state === AnimState.Jumping) {
             const jumpProgress = (currentTick - this.jumpStartTick) / this.jumpDuration;
+
             if (jumpProgress >= 1.0) {
                 this.changeState(AnimState.Idle);
             }
@@ -197,7 +240,9 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Changes animation state and resets frame.
+     * Changes animation state and resets frame index.
+     *
+     * @param newState - New animation state to transition to.
      */
     private changeState(newState: AnimState): void {
         if (this.animation.state !== newState) {
@@ -212,10 +257,13 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Auto-cycles through animation states for demonstration.
+     * Auto-cycles through animation states for demonstration purposes.
+     * Cycles: Idle (2s) -> Walking (2s) -> Jumping (2s).
+     *
+     * @param currentTick - Current game tick.
      */
     private autoCycleStates(currentTick: number): void {
-        const cycleTime = (currentTick % 360) / 60; // 6-second cycle
+        const cycleTime = (currentTick % 360) / 60; // 6-second cycle.
 
         if (cycleTime < 2) {
             if (this.animation.state !== AnimState.Idle) {
@@ -228,7 +276,7 @@ class AnimationDemo implements IBlitTechGame {
         } else {
             if (this.animation.state !== AnimState.Jumping) {
                 this.changeState(AnimState.Jumping);
-                // Trigger ability cooldown when jumping
+                // Trigger ability cooldown when jumping.
                 if (this.abilityCooldownTicks === 0) {
                     this.abilityCooldownTicks = this.abilityCooldownDuration;
                 }
@@ -238,6 +286,9 @@ class AnimationDemo implements IBlitTechGame {
 
     /**
      * Gets the number of frames for an animation state.
+     *
+     * @param state - Animation state.
+     * @returns Number of frames in the animation.
      */
     private getFrameCount(state: AnimState): number {
         switch (state) {
@@ -250,45 +301,11 @@ class AnimationDemo implements IBlitTechGame {
         }
     }
 
-    // #endregion
-
-    // #region Rendering
-
-    /**
-     * Draws the animated character with current frame and state.
-     */
-    private drawCharacter(): void {
-        if (!this.spriteSheet) return;
-
-        // Calculate sprite position in sheet
-        const stateRow = this.getStateRow(this.animation.state);
-        const spriteSize = 32;
-        const srcRect = new Rect2i(
-            this.animation.frameIndex * spriteSize,
-            stateRow * spriteSize,
-            spriteSize,
-            spriteSize,
-        );
-
-        // Calculate Y offset for jump animation
-        let yOffset = 0;
-        if (this.animation.state === AnimState.Jumping) {
-            const jumpProgress = (BT.ticks() - this.jumpStartTick) / this.jumpDuration;
-            yOffset = -Math.abs(Math.sin(jumpProgress * Math.PI) * 30);
-        }
-
-        // Draw character sprite
-        const drawPos = new Vector2i(this.charPos.x, this.charPos.y + yOffset);
-        BT.drawSprite(this.spriteSheet, srcRect, drawPos, Color32.white());
-
-        // Draw shadow
-        const shadowColor = new Color32(0, 0, 0, 100);
-        const shadowY = this.charPos.y + spriteSize - 4;
-        BT.drawRectFill(new Rect2i(this.charPos.x + 8, shadowY, 16, 4), shadowColor);
-    }
-
     /**
      * Gets the sprite sheet row for an animation state.
+     *
+     * @param state - Animation state.
+     * @returns Row index in the sprite sheet.
      */
     private getStateRow(state: AnimState): number {
         switch (state) {
@@ -301,12 +318,53 @@ class AnimationDemo implements IBlitTechGame {
         }
     }
 
+    // #endregion
+
+    // #region Rendering
+
+    /**
+     * Renders the animated character with current frame and jump offset.
+     */
+    private renderCharacter(): void {
+        if (!this.spriteSheet) return;
+
+        // Calculate sprite position in sheet.
+        const stateRow = this.getStateRow(this.animation.state);
+        const spriteSize = 32;
+        const srcRect = new Rect2i(
+            this.animation.frameIndex * spriteSize,
+            stateRow * spriteSize,
+            spriteSize,
+            spriteSize,
+        );
+
+        // Calculate Y offset for jump animation.
+        let yOffset = 0;
+
+        if (this.animation.state === AnimState.Jumping) {
+            const jumpProgress = (BT.ticks() - this.jumpStartTick) / this.jumpDuration;
+            yOffset = -Math.abs(Math.sin(jumpProgress * Math.PI) * 30);
+        }
+
+        // Draw character sprite.
+        const drawPos = new Vector2i(this.charPos.x, this.charPos.y + yOffset);
+
+        BT.drawSprite(this.spriteSheet, srcRect, drawPos, Color32.white());
+
+        // Draw shadow.
+        const shadowColor = new Color32(0, 0, 0, 100);
+        const shadowY = this.charPos.y + spriteSize - 4;
+
+        BT.drawRectFill(new Rect2i(this.charPos.x + 8, shadowY, 16, 4), shadowColor);
+    }
+
     /**
      * Spawns a particle at a random position.
      */
     private spawnParticle(): void {
         const x = Math.floor(Math.random() * 300) + 10;
         const y = Math.floor(Math.random() * 100) + 30;
+
         this.particles.push({
             pos: new Vector2i(x, y),
             spawnTick: BT.ticks(),
@@ -314,9 +372,9 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws particles with fade-out effect.
+     * Renders particles with fade-out effect based on age.
      */
-    private drawParticles(): void {
+    private renderParticles(): void {
         const currentTick = BT.ticks();
 
         for (const particle of this.particles) {
@@ -324,9 +382,10 @@ class AnimationDemo implements IBlitTechGame {
             const lifetime = 180;
             const alpha = Math.floor(255 * (1 - age / lifetime));
 
-            // Rainbow color based on spawn time
+            // Rainbow color based on spawn time.
             const hue = (particle.spawnTick * 3) % 360;
-            const color = this.hslToRgb(hue, 100, 60);
+            const color = Color32.fromHSL(hue, 100, 60);
+
             color.a = alpha;
 
             BT.drawRectFill(new Rect2i(particle.pos.x - 2, particle.pos.y - 2, 4, 4), color);
@@ -334,18 +393,18 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws UI showing timing information.
+     * Renders UI showing timing information, animation state, and cooldowns.
      */
-    private drawUI(): void {
+    private renderUI(): void {
         if (!this.font) return;
 
-        // Title
+        // Title.
         BT.printFont(this.font, new Vector2i(10, 10), 'ANIMATION & TIMING DEMO', Color32.white());
 
-        // Current state
+        // Current state.
         BT.printFont(this.font, new Vector2i(10, 30), `State: ${this.animation.state}`, new Color32(100, 200, 255));
 
-        // Frame index
+        // Frame index.
         BT.printFont(
             this.font,
             new Vector2i(10, 45),
@@ -353,10 +412,28 @@ class AnimationDemo implements IBlitTechGame {
             new Color32(150, 150, 150),
         );
 
-        // Tick counter
+        // Tick counter.
         BT.printFont(this.font, new Vector2i(10, 60), `Ticks: ${BT.ticks()}`, new Color32(150, 150, 150));
 
-        // Cooldown timer
+        // Render cooldown info.
+        this.renderCooldownUI();
+
+        // Render spawn timer.
+        this.renderSpawnTimerUI();
+
+        // Render info box.
+        this.renderInfoBox();
+
+        // FPS counter.
+        BT.printFont(this.font, new Vector2i(250, 225), `FPS: ${BT.fps()}`, new Color32(100, 100, 100));
+    }
+
+    /**
+     * Renders cooldown timer and progress bar.
+     */
+    private renderCooldownUI(): void {
+        if (!this.font) return;
+
         const cooldownPercent = Math.max(0, this.abilityCooldownTicks / this.abilityCooldownDuration);
         const cooldownColor = cooldownPercent > 0 ? new Color32(255, 100, 100) : new Color32(100, 255, 100);
 
@@ -367,26 +444,34 @@ class AnimationDemo implements IBlitTechGame {
             cooldownColor,
         );
 
-        // Cooldown progress bar
+        // Cooldown progress bar.
         const barWidth = 100;
         const barHeight = 8;
         const barX = 10;
         const barY = 92;
 
-        // Bar background
+        // Bar background.
         BT.drawRectFill(new Rect2i(barX, barY, barWidth, barHeight), new Color32(40, 40, 40));
 
-        // Bar fill
+        // Bar fill.
         if (cooldownPercent > 0) {
             const fillWidth = Math.floor(barWidth * cooldownPercent);
             BT.drawRectFill(new Rect2i(barX, barY, fillWidth, barHeight), new Color32(255, 100, 100));
         }
 
-        // Bar outline
+        // Bar outline.
         BT.drawRect(new Rect2i(barX, barY, barWidth, barHeight), new Color32(150, 150, 150));
+    }
 
-        // Next spawn timer
+    /**
+     * Renders spawn timer information.
+     */
+    private renderSpawnTimerUI(): void {
+        if (!this.font) return;
+
+        // Next spawn timer.
         const ticksUntilSpawn = this.spawnInterval - (BT.ticks() - this.lastSpawnTick);
+
         BT.printFont(
             this.font,
             new Vector2i(10, 110),
@@ -394,22 +479,25 @@ class AnimationDemo implements IBlitTechGame {
             new Color32(200, 200, 100),
         );
 
-        // Active particles
+        // Active particles.
         BT.printFont(
             this.font,
             new Vector2i(10, 125),
             `Particles: ${this.particles.length}`,
             new Color32(150, 150, 150),
         );
+    }
 
-        // Info box
+    /**
+     * Renders information box explaining tick-based animation.
+     */
+    private renderInfoBox(): void {
+        if (!this.font) return;
+
         BT.printFont(this.font, new Vector2i(10, 165), 'Tick-based Animation:', new Color32(255, 200, 100));
         BT.printFont(this.font, new Vector2i(10, 180), '- Deterministic frame timing', new Color32(180, 180, 180));
         BT.printFont(this.font, new Vector2i(10, 195), '- Cooldown & event scheduling', new Color32(180, 180, 180));
         BT.printFont(this.font, new Vector2i(10, 210), '- State machine transitions', new Color32(180, 180, 180));
-
-        // FPS counter
-        BT.printFont(this.font, new Vector2i(250, 225), `FPS: ${BT.fps()}`, new Color32(100, 100, 100));
     }
 
     // #endregion
@@ -418,13 +506,15 @@ class AnimationDemo implements IBlitTechGame {
 
     /**
      * Creates a sprite sheet with animated character frames.
-     * In production, load from an image file instead.
+     * In production, you would load from an image file instead.
+     *
+     * @returns Promise resolving to the created SpriteSheet.
      */
     private async createAnimatedSpriteSheet(): Promise<SpriteSheet> {
         const canvas = document.createElement('canvas');
         const spriteSize = 32;
-        const cols = 6; // Max frames per row
-        const rows = 3; // Number of animation states
+        const cols = 6; // Max frames per row.
+        const rows = 3; // Number of animation states.
 
         canvas.width = cols * spriteSize;
         canvas.height = rows * spriteSize;
@@ -435,30 +525,30 @@ class AnimationDemo implements IBlitTechGame {
             throw new Error('[AnimationDemo] Failed to acquire 2D canvas context');
         }
 
-        // Clear background
+        // Clear background.
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.fillStyle = 'white';
 
-        // Row 0: Idle animation (4 frames)
+        // Row 0: Idle animation (4 frames).
         for (let i = 0; i < 4; i++) {
             this.drawIdleFrame(ctx, i * spriteSize, 0, spriteSize, i);
         }
 
-        // Row 1: Walking animation (6 frames)
+        // Row 1: Walking animation (6 frames).
         for (let i = 0; i < 6; i++) {
             this.drawWalkFrame(ctx, i * spriteSize, spriteSize, spriteSize, i);
         }
 
-        // Row 2: Jumping animation (4 frames)
+        // Row 2: Jumping animation (4 frames).
         for (let i = 0; i < 4; i++) {
             this.drawJumpFrame(ctx, i * spriteSize, spriteSize * 2, spriteSize, i);
         }
 
-        // Convert to image
+        // Convert to image.
         const dataUrl = canvas.toDataURL();
         const image = new Image();
+
         await new Promise<void>((resolve) => {
             image.onload = () => resolve();
             image.src = dataUrl;
@@ -468,164 +558,195 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws an idle animation frame.
+     * Draws an idle animation frame with subtle bobbing.
+     *
+     * @param ctx - Canvas 2D rendering context.
+     * @param x - Frame X position in sprite sheet.
+     * @param y - Frame Y position in sprite sheet.
+     * @param _size - Frame size (unused but kept for consistency).
+     * @param frame - Frame index in animation.
      */
     private drawIdleFrame(ctx: CanvasRenderingContext2D, x: number, y: number, _size: number, frame: number): void {
-        // Simple bobbing animation
+        // Simple bobbing animation.
         const bobOffset = Math.sin(frame * 0.5) * 2;
 
-        // Body
+        // Body.
         ctx.fillRect(x + 12, y + 12 + bobOffset, 8, 12);
 
-        // Head
+        // Head.
         ctx.fillRect(x + 10, y + 8 + bobOffset, 12, 8);
 
-        // Arms
+        // Arms.
         ctx.fillRect(x + 8, y + 14 + bobOffset, 4, 6);
         ctx.fillRect(x + 20, y + 14 + bobOffset, 4, 6);
 
-        // Legs
+        // Legs.
         ctx.fillRect(x + 11, y + 24, 4, 6);
         ctx.fillRect(x + 17, y + 24, 4, 6);
     }
 
     /**
-     * Draws a walking animation frame.
+     * Draws a walking animation frame with alternating legs.
+     *
+     * @param ctx - Canvas 2D rendering context.
+     * @param x - Frame X position in sprite sheet.
+     * @param y - Frame Y position in sprite sheet.
+     * @param _size - Frame size (unused but kept for consistency).
+     * @param frame - Frame index in animation.
      */
     private drawWalkFrame(ctx: CanvasRenderingContext2D, x: number, y: number, _size: number, frame: number): void {
-        // Leg positions alternate
+        // Leg positions alternate.
         const leg1Y = 24 + (frame % 2 === 0 ? 2 : 0);
         const leg2Y = 24 + (frame % 2 === 1 ? 2 : 0);
 
-        // Body
+        // Body.
         ctx.fillRect(x + 12, y + 12, 8, 12);
 
-        // Head
+        // Head.
         ctx.fillRect(x + 10, y + 8, 12, 8);
 
-        // Arms (swinging)
+        // Arms (swinging).
         const armOffset = frame % 2 === 0 ? 1 : -1;
+
         ctx.fillRect(x + 8, y + 14 + armOffset, 4, 6);
         ctx.fillRect(x + 20, y + 14 - armOffset, 4, 6);
 
-        // Legs (walking)
+        // Legs (walking).
         ctx.fillRect(x + 11, y + leg1Y, 4, 6);
         ctx.fillRect(x + 17, y + leg2Y, 4, 6);
     }
 
     /**
-     * Draws a jumping animation frame.
+     * Draws a jumping animation frame with raised arms.
+     *
+     * @param ctx - Canvas 2D rendering context.
+     * @param x - Frame X position in sprite sheet.
+     * @param y - Frame Y position in sprite sheet.
+     * @param _size - Frame size (unused but kept for consistency).
+     * @param _frame - Frame index (unused but kept for consistency).
      */
     private drawJumpFrame(ctx: CanvasRenderingContext2D, x: number, y: number, _size: number, _frame: number): void {
-        // Body
+        // Body.
         ctx.fillRect(x + 12, y + 12, 8, 12);
 
-        // Head
+        // Head.
         ctx.fillRect(x + 10, y + 8, 12, 8);
 
-        // Arms (raised)
+        // Arms (raised).
         ctx.fillRect(x + 8, y + 10, 4, 6);
         ctx.fillRect(x + 20, y + 10, 4, 6);
 
-        // Legs (together)
+        // Legs (together).
         ctx.fillRect(x + 12, y + 24, 8, 6);
-    }
-
-    // #endregion
-
-    // #region Helper Functions
-
-    /**
-     * Converts HSL to RGB color.
-     */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
-
-        let r, g, b;
-
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
-
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
     }
 
     // #endregion
 }
 
+// #endregion
+
 // #region Helper Functions
 
-function showError(title: string, message: string): void {
+/**
+ * Displays an error message in the page UI.
+ * Replaces the canvas container with a styled error box.
+ *
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
+ */
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         const errorDiv = document.createElement('div');
+
         errorDiv.style.cssText =
             'padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;';
 
         const heading = document.createElement('h2');
+
         heading.textContent = `[X] ${title}`;
+
         errorDiv.appendChild(heading);
 
         const msg = document.createElement('p');
+
         msg.style.cssText = 'margin: 20px 0;';
         msg.textContent = message;
+
         errorDiv.appendChild(msg);
 
         const consoleMsg = document.createElement('p');
+
         consoleMsg.style.cssText = 'font-size: 0.9em; color: #ff9999;';
         consoleMsg.textContent = 'Check the browser console for more details.';
+
         errorDiv.appendChild(consoleMsg);
 
         container.innerHTML = '';
+
         container.appendChild(errorDiv);
     }
+}
+
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
 }
 
 // #endregion
 
 // #region Main Logic
 
-async function main(): Promise<void> {
-    if (!navigator.gpu) {
-        showError(
+/**
+ * Application entry point.
+ * Validates WebGPU support, retrieves canvas, and initializes the animation demo.
+ */
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly.',
         );
+
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
 
         return;
     }
 
+    // Create game instance.
     const game = new AnimationDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Animation demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -633,10 +754,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion

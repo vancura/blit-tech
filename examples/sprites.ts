@@ -14,6 +14,8 @@
  * 3. Render with BT.drawSprite(spriteSheet, srcRect, destPos, tint)
  */
 
+// #region Imports
+
 import {
     BitmapFont,
     BT,
@@ -24,6 +26,10 @@ import {
     SpriteSheet,
     Vector2i,
 } from '../src/BlitTech';
+
+// #endregion
+
+// #region Game Class
 
 /**
  * Demonstrates sprite rendering with various tint and animation effects.
@@ -56,7 +62,7 @@ class SpriteDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures hardware settings for this game.
+     * Configures hardware settings for this demo.
      * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
@@ -70,17 +76,16 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
+     * Initializes the demo after the engine is ready.
      * Creates a demo sprite sheet with basic shapes and loads font.
-     * In production, you'd load from an image file instead.
+     * In production, you would load from an image file instead.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[SpriteDemo] Initializing...');
 
-        // Create a simple sprite sheet programmatically for demonstration.
-        // (Do this first to match original initialization order.)
+        // Create sprite sheet programmatically for demonstration.
         this.spriteSheet = await this.createDemoSpriteSheet();
         console.log('[SpriteDemo] Sprite sheet created successfully!');
 
@@ -97,14 +102,186 @@ class SpriteDemo implements IBlitTechGame {
         return true;
     }
 
+    /**
+     * Updates animation state each tick.
+     * Increments the animation timer for time-based effects.
+     */
+    update(): void {
+        this.animTime += 0.016; // ~60 FPS.
+    }
+
+    /**
+     * Renders all sprite demonstrations.
+     * Shows colored sprites, rainbow tints, pulsing opacity, and bouncing animations.
+     */
+    render(): void {
+        // Clear to dark background.
+        BT.clear(new Color32(30, 20, 40));
+
+        if (!this.font || !this.spriteSheet) {
+            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading...');
+            return;
+        }
+
+        // Calculate animation values.
+        const hue1 = (this.animTime * 60) % 360;
+        const hue2 = (this.animTime * 60 + 90) % 360;
+        const hue3 = (this.animTime * 60 + 180) % 360;
+        const hue4 = (this.animTime * 60 + 270) % 360;
+        const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
+        const alpha = Math.floor(100 + pulse * 155);
+        const bounce1 = Math.sin(this.animTime * 4) * 10;
+        const bounce2 = Math.sin(this.animTime * 4 + 1) * 10;
+        const bounce3 = Math.sin(this.animTime * 4 + 2) * 10;
+
+        // Draw all sprites first.
+        this.renderColoredSprites();
+        this.renderRainbowSprites(hue1, hue2, hue3, hue4);
+        this.renderPulsingSprites(alpha);
+        this.renderBouncingSprites(bounce1, bounce2, bounce3);
+
+        // Draw all text after sprites.
+        this.renderLabels();
+        this.renderInstructions();
+    }
+
+    // #endregion
+
+    // #region Rendering Helpers
+
+    /**
+     * Renders sprites with different solid colors.
+     */
+    private renderColoredSprites(): void {
+        if (!this.spriteSheet) return;
+
+        const row1Y = 45;
+
+        BT.drawSprite(this.spriteSheet, this.sprites.square, new Vector2i(10, row1Y), new Color32(255, 100, 100));
+        BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(50, row1Y), new Color32(100, 255, 100));
+        BT.drawSprite(this.spriteSheet, this.sprites.triangle, new Vector2i(90, row1Y), new Color32(100, 100, 255));
+        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, row1Y), new Color32(255, 255, 100));
+    }
+
+    /**
+     * Renders sprites with animated rainbow tints.
+     *
+     * @param hue1 - Hue value for first sprite (0-360).
+     * @param hue2 - Hue value for second sprite (0-360).
+     * @param hue3 - Hue value for third sprite (0-360).
+     * @param hue4 - Hue value for fourth sprite (0-360).
+     */
+    private renderRainbowSprites(hue1: number, hue2: number, hue3: number, hue4: number): void {
+        if (!this.spriteSheet) return;
+
+        const row2Y = 100;
+
+        BT.drawSprite(this.spriteSheet, this.sprites.heart, new Vector2i(10, row2Y), Color32.fromHSL(hue1, 100, 60));
+        BT.drawSprite(this.spriteSheet, this.sprites.diamond, new Vector2i(50, row2Y), Color32.fromHSL(hue2, 100, 60));
+        BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(90, row2Y), Color32.fromHSL(hue3, 100, 60));
+        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, row2Y), Color32.fromHSL(hue4, 100, 60));
+    }
+
+    /**
+     * Renders sprites with pulsing opacity.
+     *
+     * @param alpha - Alpha channel value (0-255).
+     */
+    private renderPulsingSprites(alpha: number): void {
+        if (!this.spriteSheet) return;
+
+        const row3Y = 155;
+
+        BT.drawSprite(
+            this.spriteSheet,
+            this.sprites.square,
+            new Vector2i(10, row3Y),
+            new Color32(255, 255, 255, alpha),
+        );
+        BT.drawSprite(
+            this.spriteSheet,
+            this.sprites.circle,
+            new Vector2i(50, row3Y),
+            new Color32(255, 255, 255, alpha),
+        );
+        BT.drawSprite(
+            this.spriteSheet,
+            this.sprites.triangle,
+            new Vector2i(90, row3Y),
+            new Color32(255, 255, 255, alpha),
+        );
+    }
+
+    /**
+     * Renders bouncing animated sprites.
+     *
+     * @param bounce1 - Vertical offset for first sprite.
+     * @param bounce2 - Vertical offset for second sprite.
+     * @param bounce3 - Vertical offset for third sprite.
+     */
+    private renderBouncingSprites(bounce1: number, bounce2: number, bounce3: number): void {
+        if (!this.spriteSheet) return;
+
+        const baseY = 210;
+
+        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(10, baseY + bounce1), Color32.white());
+        BT.drawSprite(
+            this.spriteSheet,
+            this.sprites.heart,
+            new Vector2i(50, baseY + bounce2),
+            new Color32(255, 100, 150),
+        );
+        BT.drawSprite(
+            this.spriteSheet,
+            this.sprites.diamond,
+            new Vector2i(90, baseY + bounce3),
+            new Color32(100, 200, 255),
+        );
+    }
+
+    /**
+     * Renders text labels for each sprite row.
+     */
+    private renderLabels(): void {
+        if (!this.font) return;
+
+        // Title.
+        BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH SPRITE DEMO', Color32.white());
+
+        // Row labels.
+        BT.printFont(this.font, new Vector2i(10, 30), 'Colored Sprites:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 85), 'Rainbow Tints:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 140), 'Pulsing:', new Color32(200, 200, 200));
+        BT.printFont(this.font, new Vector2i(10, 195), 'Animated:', new Color32(200, 200, 200));
+    }
+
+    /**
+     * Renders code usage instructions.
+     */
+    private renderInstructions(): void {
+        if (!this.font) return;
+
+        BT.printFont(this.font, new Vector2i(170, 30), 'Load your own', new Color32(150, 150, 150));
+        BT.printFont(this.font, new Vector2i(170, 45), 'sprite sheets:', new Color32(150, 150, 150));
+        BT.printFont(this.font, new Vector2i(170, 65), 'const sheet =', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 80), '  await', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 95), '  SpriteSheet', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 110), '  .load(url);', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 130), 'BT.drawSprite(', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 145), '  sheet,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 160), '  srcRect,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 175), '  destPos,', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 190), '  tint', new Color32(100, 150, 200));
+        BT.printFont(this.font, new Vector2i(170, 205), ');', new Color32(100, 150, 200));
+    }
+
     // #endregion
 
     // #region Sprite Sheet Creation
 
     /**
      * Creates a sprite sheet with geometric shapes using canvas drawing.
-     *
-     * In a real game, you'd load from an image file:
+     * In a real game, you would load from an image file:
      * ```
      * const spriteSheet = await SpriteSheet.load('path/to/sprites.png');
      * ```
@@ -129,15 +306,15 @@ class SpriteDemo implements IBlitTechGame {
         // Draw simple shapes as sprites.
         ctx.fillStyle = 'white';
 
-        // Square (0, 0).
+        // Square at (0, 0).
         ctx.fillRect(4, 4, 24, 24);
 
-        // Circle (32, 0).
+        // Circle at (32, 0).
         ctx.beginPath();
         ctx.arc(48, 16, 12, 0, Math.PI * 2);
         ctx.fill();
 
-        // Triangle (64, 0).
+        // Triangle at (64, 0).
         ctx.beginPath();
         ctx.moveTo(80, 4);
         ctx.lineTo(92, 28);
@@ -145,13 +322,13 @@ class SpriteDemo implements IBlitTechGame {
         ctx.closePath();
         ctx.fill();
 
-        // Star (96, 0).
+        // Star at (96, 0).
         this.drawStar(ctx, 112, 16, 5, 12, 6);
 
-        // Heart (0, 32).
+        // Heart at (0, 32).
         this.drawHeart(ctx, 16, 40, 10);
 
-        // Diamond (32, 32).
+        // Diamond at (32, 32).
         ctx.beginPath();
         ctx.moveTo(48, 36);
         ctx.lineTo(56, 48);
@@ -254,161 +431,21 @@ class SpriteDemo implements IBlitTechGame {
         ctx.fill();
     }
 
-    /**
-     * Advances animation time for sprite effects.
-     */
-    update(): void {
-        this.animTime += 0.016;
-    }
-
-    // #endregion
-
-    // #region Rendering
-
-    /**
-     * Renders sprite demonstrations with tinting and animation.
-     * Shows static colors, rainbow tints, pulsing alpha, and bouncing motion.
-     */
-    render(): void {
-        // Clear to dark background
-        BT.clear(new Color32(30, 20, 40));
-
-        if (!this.font || !this.spriteSheet) {
-            BT.print(new Vector2i(10, 10), Color32.white(), 'Loading...');
-            return;
-        }
-
-        // Calculate animation values.
-        const hue1 = (this.animTime * 60) % 360;
-        const hue2 = (this.animTime * 60 + 90) % 360;
-        const hue3 = (this.animTime * 60 + 180) % 360;
-        const hue4 = (this.animTime * 60 + 270) % 360;
-        const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
-        const alpha = Math.floor(100 + pulse * 155);
-        const bounce1 = Math.sin(this.animTime * 4) * 10;
-        const bounce2 = Math.sin(this.animTime * 4 + 1) * 10;
-        const bounce3 = Math.sin(this.animTime * 4 + 2) * 10;
-
-        // ===== DRAW ALL SPRITES FIRST =====
-
-        // Row 1: Basic sprites with different colors.
-        BT.drawSprite(this.spriteSheet, this.sprites.square, new Vector2i(10, 45), new Color32(255, 100, 100));
-        BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(50, 45), new Color32(100, 255, 100));
-        BT.drawSprite(this.spriteSheet, this.sprites.triangle, new Vector2i(90, 45), new Color32(100, 100, 255));
-        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, 45), new Color32(255, 255, 100));
-
-        // Row 2: Animated rainbow tints.
-        BT.drawSprite(this.spriteSheet, this.sprites.heart, new Vector2i(10, 100), this.hslToRgb(hue1, 100, 60));
-        BT.drawSprite(this.spriteSheet, this.sprites.diamond, new Vector2i(50, 100), this.hslToRgb(hue2, 100, 60));
-        BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(90, 100), this.hslToRgb(hue3, 100, 60));
-        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(130, 100), this.hslToRgb(hue4, 100, 60));
-
-        // Row 3: Pulsing opacity.
-        BT.drawSprite(this.spriteSheet, this.sprites.square, new Vector2i(10, 155), new Color32(255, 255, 255, alpha));
-        BT.drawSprite(this.spriteSheet, this.sprites.circle, new Vector2i(50, 155), new Color32(255, 255, 255, alpha));
-        BT.drawSprite(
-            this.spriteSheet,
-            this.sprites.triangle,
-            new Vector2i(90, 155),
-            new Color32(255, 255, 255, alpha),
-        );
-
-        // Row 4: Bouncing sprites.
-        BT.drawSprite(this.spriteSheet, this.sprites.star, new Vector2i(10, 210 + bounce1), Color32.white());
-        BT.drawSprite(
-            this.spriteSheet,
-            this.sprites.heart,
-            new Vector2i(50, 210 + bounce2),
-            new Color32(255, 100, 150),
-        );
-        BT.drawSprite(
-            this.spriteSheet,
-            this.sprites.diamond,
-            new Vector2i(90, 210 + bounce3),
-            new Color32(100, 200, 255),
-        );
-
-        // ===== DRAW ALL TEXT AFTER SPRITES =====
-
-        // Title.
-        BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH SPRITE DEMO', Color32.white());
-
-        // Row labels.
-        BT.printFont(this.font, new Vector2i(10, 30), 'Colored Sprites:', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(10, 85), 'Rainbow Tints:', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(10, 140), 'Pulsing:', new Color32(200, 200, 200));
-        BT.printFont(this.font, new Vector2i(10, 195), 'Animated:', new Color32(200, 200, 200));
-
-        // Instructions.
-        BT.printFont(this.font, new Vector2i(170, 30), 'Load your own', new Color32(150, 150, 150));
-        BT.printFont(this.font, new Vector2i(170, 45), 'sprite sheets:', new Color32(150, 150, 150));
-        BT.printFont(this.font, new Vector2i(170, 65), 'const sheet =', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 80), '  await', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 95), '  SpriteSheet', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 110), '  .load(url);', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 130), 'BT.drawSprite(', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 145), '  sheet,', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 160), '  srcRect,', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 175), '  destPos,', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 190), '  tint', new Color32(100, 150, 200));
-        BT.printFont(this.font, new Vector2i(170, 205), ');', new Color32(100, 150, 200));
-    }
-
-    // #endregion
-
-    // #region Helper Functions
-
-    /**
-     * Converts HSL color values to RGB Color32.
-     *
-     * @param h - Hue in degrees (0-360).
-     * @param s - Saturation percentage (0-100).
-     * @param l - Lightness percentage (0-100).
-     * @returns Color32 with converted RGB values.
-     */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
-
-        let r, g, b;
-
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-
-                return p;
-            };
-
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
-    }
-
     // #endregion
 }
+
+// #endregion
 
 // #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
+ * Replaces the canvas container with a styled error box.
  *
- * @param title - Error heading.
- * @param message - Error details.
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
  */
-function showError(title: string, message: string): void {
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
@@ -421,17 +458,37 @@ function showError(title: string, message: string): void {
     }
 }
 
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
+}
+
 // #endregion
 
 // #region Main Logic
 
 /**
  * Application entry point.
- * Validates WebGPU support and starts the sprite demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the sprite demo.
  */
-async function main(): Promise<void> {
-    if (!navigator.gpu) {
-        showError(
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly.',
         );
@@ -439,20 +496,25 @@ async function main(): Promise<void> {
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
-
         return;
     }
 
+    // Create game instance.
     const game = new SpriteDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -460,11 +522,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
-// Auto-start when DOM is ready.
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion

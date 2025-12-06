@@ -14,10 +14,17 @@
  * - Unicode support for special characters
  */
 
+// #region Imports
+
 import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Vector2i } from '../src/BlitTech';
+
+// #endregion
+
+// #region Game Class
 
 /**
  * Demonstrates bitmap font rendering with various text effects.
+ * Shows static colors, animated rainbow effects, and text measurement.
  */
 class FontDemo implements IBlitTechGame {
     // #region Module State
@@ -33,7 +40,7 @@ class FontDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures hardware settings for this game.
+     * Configures hardware settings for this demo.
      * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
@@ -47,7 +54,7 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Initializes game state after the engine is ready.
+     * Initializes the demo after the engine is ready.
      * Loads the bitmap font from a .btfont file.
      *
      * @returns Promise resolving to true when initialization succeeds.
@@ -74,15 +81,16 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state based on ticks.
+     * Updates animation state each tick.
+     * Increments the animation timer for time-based effects.
      */
     update(): void {
-        this.animTime += 1 / 60; // Assuming 60 FPS
+        this.animTime += 1 / 60; // Assuming 60 FPS.
     }
 
     /**
-     * Renders game graphics (text demonstrations with various colors and effects).
-     * Shows static colors, rainbow animation, and pulsing brightness.
+     * Renders text demonstrations with various colors and effects.
+     * Shows static colors, rainbow animation, pulsing brightness, and text measurement.
      */
     render(): void {
         // Clear to dark blue.
@@ -94,37 +102,69 @@ class FontDemo implements IBlitTechGame {
             return;
         }
 
-        const lineHeight = this.font.lineHeight + 2;
         let y = 10;
+        const lineHeight = this.font.lineHeight + 2;
 
         // Title.
         BT.printFont(this.font, new Vector2i(10, y), 'Blit–Tech Font Demo', Color32.white());
 
         y += lineHeight + 4;
 
-        // Different colors.
-        BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
+        // Render demonstration sections.
+        y = this.renderColoredText(y, lineHeight);
+        y = this.renderRainbowText(y, lineHeight);
+        y = this.renderPulsingText(y, lineHeight);
+        y = this.renderSpecialCharacters(y, lineHeight);
+        y = this.renderTextMeasurement(y, lineHeight);
 
+        this.renderFontInfo(y, lineHeight);
+    }
+
+    // #endregion
+
+    // #region Rendering Helpers
+
+    /**
+     * Renders text in different colors.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     * @returns Next Y position after rendering.
+     */
+    private renderColoredText(y: number, lineHeight: number): number {
+        if (!this.font) return y;
+
+        BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
         y += lineHeight;
 
         BT.printFont(this.font, new Vector2i(10, y), 'Green Text', new Color32(100, 255, 100));
-
         y += lineHeight;
 
         BT.printFont(this.font, new Vector2i(10, y), 'Blue Text', new Color32(100, 100, 255));
-
         y += lineHeight;
 
         BT.printFont(this.font, new Vector2i(10, y), 'Yellow Text', new Color32(255, 255, 100));
-
         y += lineHeight + 4;
 
-        // Animated rainbow text.
+        return y;
+    }
+
+    /**
+     * Renders animated rainbow text with per-character color cycling.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     * @returns Next Y position after rendering.
+     */
+    private renderRainbowText(y: number, lineHeight: number): number {
+        if (!this.font) return y;
+
         const rainbowText = 'Rainbow Animation!';
         let x = 10;
+
         for (const char of rainbowText) {
             const hue = (x * 3 + this.animTime * 100) % 360;
-            const color = this.hslToRgb(hue, 100, 60);
+            const color = Color32.fromHSL(hue, 100, 60);
 
             BT.printFont(this.font, new Vector2i(x, y), char, color);
 
@@ -133,22 +173,52 @@ class FontDemo implements IBlitTechGame {
             x += glyph ? glyph.advance : 7;
         }
 
-        y += lineHeight + 4;
+        return y + lineHeight + 4;
+    }
 
-        // Pulsing text.
+    /**
+     * Renders pulsing text with brightness animation.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     * @returns Next Y position after rendering.
+     */
+    private renderPulsingText(y: number, lineHeight: number): number {
+        if (!this.font) return y;
+
         const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
         const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), 255);
 
         BT.printFont(this.font, new Vector2i(10, y), 'Pulsing Text', pulseColor);
 
-        y += lineHeight + 4;
+        return y + lineHeight + 4;
+    }
 
-        // Unicode special characters.
+    /**
+     * Renders text with special characters.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     * @returns Next Y position after rendering.
+     */
+    private renderSpecialCharacters(y: number, lineHeight: number): number {
+        if (!this.font) return y;
+
         BT.printFont(this.font, new Vector2i(10, y), 'Special: 3 x 4 = 12', Color32.white());
 
-        y += lineHeight;
+        return y + lineHeight;
+    }
 
-        // Text measurement demo.
+    /**
+     * Renders text measurement demonstration with underline.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     * @returns Next Y position after rendering.
+     */
+    private renderTextMeasurement(y: number, lineHeight: number): number {
+        if (!this.font) return y;
+
         const measureText = 'Measured Width';
         const textWidth = this.font.measureText(measureText);
 
@@ -161,7 +231,17 @@ class FontDemo implements IBlitTechGame {
             new Color32(255, 200, 100),
         );
 
-        y += lineHeight + 4;
+        return y + lineHeight + 4;
+    }
+
+    /**
+     * Renders font information and FPS counter.
+     *
+     * @param y - Starting Y position.
+     * @param lineHeight - Height between lines.
+     */
+    private renderFontInfo(y: number, lineHeight: number): void {
+        if (!this.font) return;
 
         // Font info.
         BT.printFont(
@@ -182,53 +262,21 @@ class FontDemo implements IBlitTechGame {
         );
     }
 
-    /**
-     * Converts HSL color values to RGB Color32.
-     * @param h - Hue in degrees (0-360).
-     * @param s - Saturation percentage (0-100).
-     * @param l - Lightness percentage (0-100).
-     * @returns Color32 with converted RGB values.
-     */
-    private hslToRgb(h: number, s: number, l: number): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
-
-        let r: number, g: number, b: number;
-
-        if (s === 0) {
-            r = g = b = l;
-        } else {
-            const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
-
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
-        }
-
-        return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
-    }
-
     // #endregion
 }
+
+// #endregion
 
 // #region Helper Functions
 
 /**
  * Displays an error message in the page UI.
- * @param title - Error heading.
- * @param message - Error details.
+ * Replaces the canvas container with a styled error box.
+ *
+ * @param title - Error heading text.
+ * @param message - Detailed error description.
  */
-function showError(title: string, message: string): void {
+function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
         container.innerHTML = `
@@ -241,37 +289,65 @@ function showError(title: string, message: string): void {
     }
 }
 
+/**
+ * Checks if WebGPU is supported in the current browser.
+ *
+ * @returns True if WebGPU is available, false otherwise.
+ */
+function checkWebGPUSupport(): boolean {
+    return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+/**
+ * Retrieves the game canvas element from the DOM.
+ *
+ * @returns The canvas element if found and valid, null otherwise.
+ */
+function getCanvasElement(): HTMLCanvasElement | null {
+    const canvas = document.getElementById('game-canvas');
+
+    return canvas instanceof HTMLCanvasElement ? canvas : null;
+}
+
 // #endregion
 
 // #region Main Logic
 
 /**
  * Application entry point.
- * Validates WebGPU support and starts the font demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the font demo.
  */
-async function main(): Promise<void> {
-    if (!navigator.gpu) {
-        showError(
+async function initializeApplication(): Promise<void> {
+    // Validate WebGPU support.
+    if (!checkWebGPUSupport()) {
+        displayErrorMessage(
             'WebGPU Not Supported',
             'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly.',
         );
+
         return;
     }
 
-    const canvas = document.getElementById('game-canvas');
+    // Retrieve canvas element.
+    const canvas = getCanvasElement();
 
-    if (!(canvas instanceof HTMLCanvasElement)) {
+    if (!canvas) {
         console.error('[Main] Canvas element not found or is not a <canvas>');
 
         return;
     }
 
+    // Create game instance.
     const game = new FontDemo();
 
+    // Initialize engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Font demo started successfully!');
     } else {
-        showError('Initialization Failed', 'Failed to initialize Blit–Tech engine. Check console for details.');
+        displayErrorMessage(
+            'Initialization Failed',
+            'Failed to initialize Blit–Tech engine. Check console for details.',
+        );
     }
 }
 
@@ -279,11 +355,14 @@ async function main(): Promise<void> {
 
 // #region App Lifecycle
 
-// Auto-start when DOM is ready.
+/**
+ * Handles DOM ready state and starts the application.
+ * Waits for DOM to be ready if still loading, otherwise starts immediately.
+ */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', main);
+    document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
-    main();
+    initializeApplication();
 }
 
 // #endregion
