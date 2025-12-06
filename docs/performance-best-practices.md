@@ -140,7 +140,7 @@ BT.drawSprite(enemySheet, sprite3, pos3); // Batch break!
 
 **Pack related sprites into single sheets:**
 
-```
+```text
 Good:
 - enemies.png (all enemy sprites)
 - ui.png (all UI elements)
