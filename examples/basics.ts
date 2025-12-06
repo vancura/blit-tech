@@ -207,7 +207,9 @@ function checkWebGPUSupport(): boolean {
  * @returns The canvas element if found and valid, null otherwise.
  */
 function getCanvasElement(): HTMLCanvasElement | null {
-    return document.getElementById('game-canvas') as HTMLCanvasElement | null;
+    const element = document.getElementById('game-canvas');
+
+    return element instanceof HTMLCanvasElement ? element : null;
 }
 
 // #endregion
