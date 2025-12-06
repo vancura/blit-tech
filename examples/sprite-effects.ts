@@ -47,6 +47,12 @@ class SpriteEffectsDemo implements IBlitTechGame {
 
     // #region IBlitTechGame Implementation
 
+    /**
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     *
+     * @returns Hardware configuration specifying display size and target FPS.
+     */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
@@ -55,6 +61,11 @@ class SpriteEffectsDemo implements IBlitTechGame {
         };
     }
 
+    /**
+     * Initializes game state after the engine is ready.
+     *
+     * @returns Promise resolving to true when initialization succeeds.
+     */
     async initialize(): Promise<boolean> {
         console.log('[SpriteEffectsDemo] Initializing...');
 
@@ -75,6 +86,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
         return true;
     }
 
+    /**
+     * Updates animation state based on ticks.
+     */
     update(): void {
         this.animTime += 1 / 60;
 
@@ -84,6 +98,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
         }
     }
 
+    /**
+     * Renders game graphics.
+     */
     render(): void {
         // Clear screen
         BT.clear(new Color32(25, 25, 35));

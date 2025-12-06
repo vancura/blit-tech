@@ -33,9 +33,10 @@ class FontDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures display with 2x upscaling for crisp pixel text.
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
-     * @returns Hardware configuration.
+     * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
@@ -46,9 +47,10 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
+     * Initializes game state after the engine is ready.
      * Loads the bitmap font from a .btfont file.
      *
-     * @returns Promise resolving to true when font is loaded.
+     * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[FontDemo] Initializing...');
@@ -72,14 +74,14 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Advances animation time for text effects.
+     * Updates animation state based on ticks.
      */
     update(): void {
         this.animTime += 1 / 60; // Assuming 60 FPS
     }
 
     /**
-     * Renders text demonstrations with various colors and effects.
+     * Renders game graphics (text demonstrations with various colors and effects).
      * Shows static colors, rainbow animation, and pulsing brightness.
      */
     render(): void {

@@ -57,9 +57,10 @@ class CameraDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures a 320×240 viewport with 2x CSS upscaling for the scrolling world.
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
      *
-     * @returns Hardware configuration.
+     * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
@@ -70,9 +71,10 @@ class CameraDemo implements IBlitTechGame {
     }
 
     /**
+     * Initializes game state after the engine is ready.
      * Generates random buildings and trees to populate the world and loads font.
      *
-     * @returns Promise resolving to true when world generation completes.
+     * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[CameraDemo] Initializing...');
@@ -120,7 +122,7 @@ class CameraDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates camera position using a smooth sinusoidal pattern.
+     * Updates animation state based on ticks (camera position using a smooth sinusoidal pattern).
      * In a real game, you would use input to control camera movement.
      */
     update(): void {
@@ -142,7 +144,7 @@ class CameraDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders the world with camera offset, then UI without offset.
+     * Renders game graphics (the world with camera offset, then UI without offset).
      * Demonstrates the difference between world-space and screen-space drawing.
      */
     render(): void {

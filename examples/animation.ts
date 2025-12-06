@@ -81,6 +81,12 @@ class AnimationDemo implements IBlitTechGame {
 
     // #region IBlitTechGame Implementation
 
+    /**
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     *
+     * @returns Hardware configuration specifying display size and target FPS.
+     */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240),
@@ -89,6 +95,11 @@ class AnimationDemo implements IBlitTechGame {
         };
     }
 
+    /**
+     * Initializes game state after the engine is ready.
+     *
+     * @returns Promise resolving to true when initialization succeeds.
+     */
     async initialize(): Promise<boolean> {
         console.log('[AnimationDemo] Initializing...');
 
@@ -138,7 +149,7 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders the animated character and UI.
+     * Renders game graphics (animated character and UI).
      */
     render(): void {
         // Clear screen

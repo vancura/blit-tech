@@ -29,8 +29,10 @@ class PrimitivesDemo implements IBlitTechGame {
     // #region IBlitTechGame Implementation
 
     /**
-     * Configures a 320x240 display with 2x CSS upscaling for crisp pixels.
-     * @returns Hardware configuration for primitive rendering demo.
+     * Configures hardware settings for this game.
+     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     *
+     * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
@@ -41,8 +43,10 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
+     * Initializes game state after the engine is ready.
      * Initializes the demo and loads the bitmap font.
-     * @returns Promise resolving to true when font is loaded.
+     *
+     * @returns Promise resolving to true when initialization succeeds.
      */
     async initialize(): Promise<boolean> {
         console.log('[PrimitivesDemo] Initializing...');
@@ -61,14 +65,14 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Advances animation timer each frame.
+     * Updates animation state based on ticks.
      */
     update(): void {
         this.animTicks++;
     }
 
     /**
-     * Renders all primitive demonstrations.
+     * Renders game graphics (all primitive demonstrations).
      * Shows pixels, lines, rect outlines, filled rects, clear regions, and a combined graph.
      */
     render(): void {
