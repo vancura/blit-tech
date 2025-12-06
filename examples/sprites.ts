@@ -112,7 +112,12 @@ class SpriteDemo implements IBlitTechGame {
         const canvas = document.createElement('canvas');
         canvas.width = 128;
         canvas.height = 64;
-        const ctx = canvas.getContext('2d')!;
+
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            throw new Error('[SpriteDemo] Failed to acquire 2D canvas context');
+        }
 
         // Fill with transparent background.
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';

@@ -270,7 +270,12 @@ class SpriteEffectsDemo implements IBlitTechGame {
         const size = 32;
         canvas.width = size;
         canvas.height = size;
-        const ctx = canvas.getContext('2d')!;
+
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            throw new Error('[SpriteEffectsDemo] Failed to acquire 2D canvas context');
+        }
 
         // Clear background
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
