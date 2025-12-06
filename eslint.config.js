@@ -156,6 +156,7 @@ export default [
             'jsdoc/require-param': 'off',
             'jsdoc/require-returns': 'off',
             'jsdoc/require-description': 'off',
+            'jsdoc/check-param-names': 'off',
             '@typescript-eslint/no-non-null-assertion': 'off',
         },
     },

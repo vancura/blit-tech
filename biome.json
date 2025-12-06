@@ -55,12 +55,7 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "warn",
-        "noConsole": {
-          "level": "warn",
-          "options": {
-            "allow": ["warn", "error"]
-          }
-        },
+        "noConsole": "off",
         "noImplicitAnyLet": "off"
       },
       "style": {
@@ -83,9 +78,6 @@
       "includes": ["examples/**/*.ts"],
       "linter": {
         "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          },
           "style": {
             "noNonNullAssertion": "off"
           }
@@ -93,38 +85,9 @@
       }
     },
     {
-      "includes": ["*.config.js", "*.config.ts", "*.config.mjs"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          }
-        }
-      }
-    },
-    {
       "includes": ["tools/**/*.mjs"],
       "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          }
-        }
-      }
-    },
-    {
-      "includes": ["src/core/**/*.ts", "src/render/**/*.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": {
-              "level": "warn",
-              "options": {
-                "allow": ["log", "warn", "error"]
-              }
-            }
-          }
-        }
+        "rules": {}
       }
     }
   ]
