@@ -96,7 +96,7 @@ class AnimationDemo implements IBlitTechGame {
         try {
             this.font = await BitmapFont.load('fonts/PragmataPro14.btfont');
             console.log(`[AnimationDemo] Loaded font: ${this.font.name}`);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('[AnimationDemo] Failed to load font:', error);
             return false;
         }
