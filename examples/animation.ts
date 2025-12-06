@@ -181,7 +181,12 @@ class AnimationDemo implements IBlitTechGame {
             const jumpProgress = (currentTick - this.jumpStartTick) / this.jumpDuration;
             if (jumpProgress >= 1.0) {
                 this.changeState(AnimState.Idle);
-                BT.ticksReset(); // Reset tick counter when animation sequence completes
+
+                // Reset tick counter when animation sequence completes.
+                BT.ticksReset();
+
+                this.lastSpawnTick = 0;
+                this.animation.lastFrameChangeTick = 0;
             }
         }
     }
