@@ -164,7 +164,7 @@ mkdir -p tests/unit/{utils,assets,core}
 
 **Structure:**
 
-```
+```text
 tests/
 ├── unit/
 │   ├── utils/
@@ -716,7 +716,7 @@ Coverage reports generated in `coverage/`:
 
 ### Codecov Integration (Optional)
 
-1. Sign up at https://codecov.io
+1. Sign up at [codecov.io](https://codecov.io)
 2. Add repository
 3. Set `CODECOV_TOKEN` in GitHub Secrets
 4. Coverage uploaded automatically by CI
