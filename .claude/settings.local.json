@@ -5,7 +5,9 @@
       "WebFetch(domain:zed.dev)",
       "Bash(git checkout:*)",
       "Bash(find:*)",
-      "Bash(pnpm typecheck:*)"
+      "Bash(pnpm typecheck:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
