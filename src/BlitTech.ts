@@ -29,7 +29,7 @@ const _warnedFunctions = new Set<string>();
 
 /**
  * Displays a warning message once per function to avoid console spam.
- * Subsequent calls with the same function name will be silently ignored.
+ * Further calls with the same function name will be silently ignored.
  *
  * @param funcName - Unique identifier for the function (used for deduplication).
  * @param message - Warning message to display in the console.
@@ -47,7 +47,7 @@ function warnOnce(funcName: string, message: string): void {
 
 /**
  * Main Blit–Tech API module.
- * All engine functionality is accessed through BT.* methods.
+ * All engine features are accessed through BT.* methods.
  */
 export const BT = {
     // #region Constants - Sprite Transform Flags
@@ -127,7 +127,7 @@ export const BT = {
      * Setup sequence:
      * 1. Calls game.queryHardware() to get display settings
      * 2. Initializes WebGPU device and context
-     * 3. Creates renderer with configured display size
+     * 3. Creates a renderer with a configured display size
      * 4. Calls game.initialize() to load assets
      * 5. Starts the game loop (fixed update, variable render)
      *
@@ -169,7 +169,7 @@ export const BT = {
 
     /**
      * Gets the target frames per second for update() calls.
-     * Update() runs at this fixed rate, while render() runs at variable rate.
+     * Update() runs at this fixed rate, while render() runs at a variable rate.
      *
      * @returns Target frames per second, or 60 if not initialized.
      */
@@ -238,7 +238,7 @@ export const BT = {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without anti-aliasing.
+     * Produces pixel-perfect lines without the antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
@@ -400,7 +400,7 @@ export const BT = {
 
     /**
      * Measures the pixel dimensions of text.
-     * Currently returns zero vector - implementation pending.
+     * Currently, returns zero vector - implementation pending.
      *
      * @param _text - Text string to measure.
      * @returns Size of text in pixels (currently always zero).
@@ -444,15 +444,15 @@ export const BT = {
      * @param tint - Optional tint color multiplied with texture (defaults to white).
      *
      * @example
-     * // Efficient: All from same sprite sheet.
+     * // Efficient: All from the same sprite sheet.
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10));
      * BT.drawSprite(sheet, new Rect2i(16, 0, 16, 16), new Vector2i(26, 10));
      * BT.drawSprite(sheet, new Rect2i(32, 0, 16, 16), new Vector2i(42, 10));
      *
      * // Less efficient: Interleaving textures causes batch flushes.
      * BT.drawSprite(sheet1, ...);
-     * BT.drawSprite(sheet2, ...);  // Flush + texture change
-     * BT.drawSprite(sheet1, ...);  // Flush + texture change
+     * BT.drawSprite(sheet2, ...); // Flush + texture change
+     * BT.drawSprite(sheet1, ...); // Flush + texture change
      */
     drawSprite: (spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void => {
         BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, tint);

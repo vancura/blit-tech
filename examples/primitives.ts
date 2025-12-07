@@ -71,7 +71,7 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation counter for time-based effects.
      */
     update(): void {
@@ -205,7 +205,7 @@ class PrimitivesDemo implements IBlitTechGame {
 
         BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
 
-        // Draw background pattern.
+        // Draw a background pattern.
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 5; j++) {
                 BT.drawRectFill(new Rect2i(10 + i * 10, 150 + j * 10, 8, 8), new Color32(100, 150, 200));
@@ -302,7 +302,7 @@ function getCanvasElement(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Validates WebGPU support, retrieves canvas, and initializes the primitives demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the primitive demo.
  */
 async function initializeApplication(): Promise<void> {
     // Validate WebGPU support.
@@ -322,10 +322,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new PrimitivesDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Primitives demo started successfully!');
     } else {

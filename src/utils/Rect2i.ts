@@ -7,13 +7,13 @@ import { Vector2i } from './Vector2i';
  * Performance notes:
  * - Use fromValuesUnchecked() for trusted integer values in hot paths
  * - Use raw value getters (centerX, centerY, right, bottom) to avoid allocations
- * - Use "To" methods (centerTo, minTo, maxTo, etc.) for zero-allocation output
+ * - Use “To” methods (centerTo, minTo, maxTo, etc.) for zero-allocation output
  * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
  */
 export class Rect2i {
     // #region Cached Static Rectangles
 
-    /** Cached singleton for zero rectangle. */
+    /** The cached singleton for zero rectangle. */
     private static readonly _zero: Rect2i = Object.freeze(Rect2i.fromValuesUnchecked(0, 0, 0, 0));
 
     // #endregion
@@ -24,11 +24,11 @@ export class Rect2i {
      * Creates a new integer rectangle.
      * All values are truncated to integers using |0.
      *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., -1.7 becomes -1).
+     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
      * If you need floor behavior for negative values, use Math.floor before passing.
      *
-     * @param x - Left edge X coordinate (defaults to 0).
-     * @param y - Top edge Y coordinate (defaults to 0).
+     * @param x - Left-edge X coordinate (defaults to 0).
+     * @param y - Top-edge Y coordinate (defaults to 0).
      * @param width - Width in pixels (defaults to 0).
      * @param height - Height in pixels (defaults to 0).
      */
@@ -321,7 +321,7 @@ export class Rect2i {
      * Zero allocation alternative to intersection().
      *
      * @param other - Rectangle to intersect with.
-     * @param out - Rectangle to write result to.
+     * @param out - Rectangle to write the result to.
      * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
      */
     intersectionTo(other: Rect2i, out: Rect2i): boolean {
@@ -348,8 +348,8 @@ export class Rect2i {
      * Note: Creates a new Vector2i. Use intersectionDepthTo() in hot paths.
      *
      * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they do not overlap, the returned depths
-     * may be zero or negative and are not meaningful for resolution.
+     * {@link intersects} first; if they don't overlap, the returned depths
+     * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
      * @returns Vector with overlap depth in X and Y axes.
@@ -373,11 +373,11 @@ export class Rect2i {
      * Zero allocation alternative to intersectionDepth().
      *
      * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they do not overlap, the returned depths
-     * may be zero or negative and are not meaningful for resolution.
+     * {@link intersects} first; if they don't overlap, the returned depths
+     * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     intersectionDepthTo(other: Rect2i, out: Vector2i): Vector2i {
@@ -436,7 +436,7 @@ export class Rect2i {
     /**
      * Formats the rectangle as a readable string.
      *
-     * @returns String in format "Rect2i(x, y, width, height)".
+     * @returns String in format Rect2i(x, y, width, height).
      */
     toString(): string {
         return `Rect2i(${this.x}, ${this.y}, ${this.width}, ${this.height})`;
@@ -450,7 +450,7 @@ export class Rect2i {
      * Sets all components of this rectangle.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param x - New x position.
      * @param y - New y position.
@@ -468,10 +468,10 @@ export class Rect2i {
     }
 
     /**
-     * Sets only the position of this rectangle, keeping size unchanged.
+     * Sets only the position of this rectangle, keeping the size unchanged.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param x - New x position.
      * @param y - New y position.
@@ -488,7 +488,7 @@ export class Rect2i {
      * Sets only the size of this rectangle, keeping position unchanged.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param width - New width.
      * @param height - New height.
@@ -505,7 +505,7 @@ export class Rect2i {
      * Copies values from another rectangle.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param other - Rectangle to copy from.
      * @returns This rectangle for chaining.
@@ -523,7 +523,7 @@ export class Rect2i {
      * Moves this rectangle by the given offset.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param dx - X offset to add.
      * @param dy - Y offset to add.
@@ -540,7 +540,7 @@ export class Rect2i {
      * Expands this rectangle by the given amount on all sides.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param amount - Amount to expand (positive) or shrink (negative).
      * @returns This rectangle for chaining.
@@ -560,7 +560,7 @@ export class Rect2i {
      * Expands this rectangle by different amounts horizontally and vertically.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param horizontal - Amount to expand horizontally.
      * @param vertical - Amount to expand vertically.
@@ -615,10 +615,10 @@ export class Rect2i {
      * Note: min coordinates must be less than or equal to max coordinates.
      * If min > max on any axis, the resulting width/height will be negative.
      *
-     * @param minX - Left edge X coordinate.
-     * @param minY - Top edge Y coordinate.
-     * @param maxX - Right edge X coordinate.
-     * @param maxY - Bottom edge Y coordinate.
+     * @param minX - Left-edge X coordinate.
+     * @param minY - Top-edge Y coordinate.
+     * @param maxX - Right-edge X coordinate.
+     * @param maxY - Bottom-edge Y coordinate.
      * @returns New rectangle spanning from (minX, minY) to (maxX, maxY).
      */
     static fromMinMaxXY(minX: number, minY: number, maxX: number, maxY: number): Rect2i {
@@ -629,7 +629,7 @@ export class Rect2i {
     }
 
     /**
-     * Creates a rectangle centered on a point with given size.
+     * Creates a rectangle centered on a point with a given size.
      *
      * @param center - Center point of the rectangle.
      * @param size - Width and height as a vector.
@@ -645,7 +645,7 @@ export class Rect2i {
     }
 
     /**
-     * Creates a rectangle centered on raw coordinates with given size.
+     * Creates a rectangle centered on raw coordinates with a given size.
      * Zero allocation alternative to fromCenterSize() when you have raw coordinates.
      *
      * @param centerX - Center X coordinate.
@@ -672,10 +672,10 @@ export class Rect2i {
      * Use this in hot paths when values are guaranteed to be integers.
      *
      * WARNING: Passing non-integer values will result in non-integer rect components.
-     * Only use when you are certain the values are already integers.
+     * Only use when you’re certain the values are already integers.
      *
-     * @param x - Left edge X coordinate (must be integer).
-     * @param y - Top edge Y coordinate (must be integer).
+     * @param x - Left-edge X coordinate (must be integer).
+     * @param y - Top-edge Y coordinate (must be integer).
      * @param width - Width in pixels (must be integer).
      * @param height - Height in pixels (must be integer).
      * @returns New Rect2i with the specified values.

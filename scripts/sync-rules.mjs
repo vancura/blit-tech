@@ -34,7 +34,7 @@ const rootDir = join(__dirname, '..');
  * Reads all MDC files from .cursor/rules/ directory.
  * Strips frontmatter from each file (content between --- markers).
  *
- * @returns Array of rule files with name and content.
+ * @returns Array of rule files with the name and content.
  */
 function readCursorRules() {
     const rulesDir = join(rootDir, '.cursor', 'rules');
@@ -64,11 +64,11 @@ function readCursorRules() {
 }
 
 /**
- * Combines all rule files into a single markdown document.
- * Adds a header with project description and generation notice.
+ * Combines all rule files into a single Markdown document.
+ * Adds a header with a project description and generation notice.
  *
  * @param rules - Array of rule files to combine.
- * @returns Combined markdown document.
+ * @returns Combined Markdown document.
  */
 function combineRules(rules) {
     const header = `# Blit–Tech WebGPU Game Engine - Project Rules
@@ -92,7 +92,7 @@ a clean, fantasy-console-style API.
 }
 
 /**
- * Creates condensed version for WebStorm XML by removing code examples.
+ * Creates a condensed version for WebStorm XML by removing code examples.
  * Keeps inline code but replaces large code blocks with a reference.
  *
  * @param markdown - Original markdown content.
@@ -110,7 +110,7 @@ function condenseForWebStorm(markdown) {
 
 /**
  * Generates WebStorm AI Assistant XML configuration.
- * Creates a properly formatted XML file with CDATA section containing the rules.
+ * Creates a properly formatted XML file with a CDATA section containing the rules.
  *
  * @param markdown - Markdown content to include in XML.
  * @returns XML document string.
@@ -167,7 +167,7 @@ function main() {
     const rules = readCursorRules();
     console.log(`   Found ${rules.length} rule files: ${rules.map((r) => r.name).join(', ')}\n`);
 
-    // Step 2: Combine into single markdown document.
+    // Step 2: Combine into a single Markdown document.
     console.log('2. Combining rules into unified format');
     const combinedMarkdown = combineRules(rules);
     console.log(`   Generated ${combinedMarkdown.split('\n').length} lines of markdown\n`);

@@ -99,13 +99,13 @@ function parseCommonTag(xmlData, fontSize) {
 // #region Asset Loading Functions
 
 /**
- * Parses the <page> tag in the provided XML data to extract the texture file name.
- * Multi-page BMFonts are not supported and will cause an error.
+ * Parses the <page> tag in the provided XML data to extract the texture filename.
+ * Multipage BMFonts aren't supported and will cause an error.
  * Logs an error and terminates the process if no <page> tag is found, multiple <page> tags exist,
- * or the texture file name is missing.
+ * or the texture filename is missing.
  *
  * @param {string} xmlData The XML data containing the <page> tag to be parsed.
- * @returns {string} The texture file name extracted from the single <page> tag.
+ * @returns {string} The texture filename extracted from the single <page> tag.
  */
 function parsePageTag(xmlData) {
     const pageMatches = [...xmlData.matchAll(/<page[^>]+>/g)];
@@ -145,7 +145,7 @@ function parsePageTag(xmlData) {
  * @param {boolean} embedTexture - Indicates whether the texture should be embedded in base64 format.
  * @param {string} textureFilename - The filename of the texture file to be used.
  * @param {string} fntDir - The directory where the texture file is located.
- * @param {string} outputPath - The output file path used for computing relative paths, if embedding is disabled.
+ * @param {string} outputPath - The output path used for computing relative paths if embedding is off.
  * @returns {string} The texture value, either as a base64-encoded string or a relative path.
  */
 function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
@@ -189,7 +189,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
             process.exit(1);
         }
     } else {
-        // Use relative path from output file to texture.
+        // Use the relative path from output file to texture.
         const resolvedOutputPath = resolve(outputPath);
         const outputDir = dirname(resolvedOutputPath);
 
@@ -214,13 +214,13 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 // #region Glyph Parsing Functions
 
 /**
- * Parses glyph data from a given XML tag and updates the glyphs object with the corresponding character's properties.
+ * Parses glyph data from a given XML tag and updates the glyph object with the corresponding character's properties.
  *
  * @param {Object} glyphs - The object representing all glyph data, which will be updated with the parsed character information.
  * @param {string} char - The character corresponding to the glyph data being parsed.
  * @param {string} tag - The XML tag containing the attributes for the glyph's properties.
  * @param {number} charCode - The character code for error reporting.
- * @returns {void} Does not return a value; updates the glyphs object directly with parsed data.
+ * @returns {void} Does not return a value; updates the glyph object directly with parsed data.
  */
 function parseGlyphData(glyphs, char, tag, charCode) {
     // Parse all numeric attributes with defaults.
@@ -285,7 +285,7 @@ function parseGlyphs(xmlData) {
         const tag = charMatch[0];
         const idAttr = parseXmlAttribute(tag, 'id');
 
-        // Validate that id attribute exists and is numeric.
+        // Validate that the ID attribute exists and is numeric.
         if (!idAttr) {
             console.error('Error: Glyph missing required "id" attribute');
 
@@ -324,14 +324,14 @@ function parseGlyphs(xmlData) {
 /**
  * Writes the given font data to a file and logs the conversion details.
  *
- * @param {string} outputPath - The file path where the font data will be written.
+ * @param {string} outputPath - The path where the font data will be written.
  * @param {object} btfont - The font data to be serialized and written to the file.
  * @param {string} fontName - The name of the font being processed.
  * @param {number} fontSize - The size of the font, in points.
  * @param {number} lineHeight - The line height of the font, in pixels.
  * @param {number} baseline - The baseline offset of the font, in pixels.
  * @param {number} glyphCount - The total number of glyphs in the font.
- * @returns {void} This function does not return a value.
+ * @returns {void} This function doesn't return a value.
  */
 function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baseline, glyphCount) {
     writeFileSync(outputPath, JSON.stringify(btfont, null, 2));
@@ -351,8 +351,8 @@ function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baselin
 /**
  * Converts a BMFont `.fnt` file to a `.btfont` format file.
  *
- * @param {string} fntPath - The file path to the input `.fnt` file. This should be a valid BMFont XML file.
- * @param {string} outputPath - The file path where the converted `.btfont` file will be saved.
+ * @param {string} fntPath - The path to the input `.fnt` file. This should be a valid BMFont XML file.
+ * @param {string} outputPath - The path where the converted `.btfont` file will be saved.
  * @param {boolean} [embedTexture=false] - Whether to embed the texture file as a base64-encoded string within the output `.btfont` file. Defaults to `false`.
  * @returns {void} Does not return a value. The converted file is saved to the specified output path.
  */
@@ -406,7 +406,7 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
  * - If insufficient arguments are passed (less than 2 paths), an error message
  *   is displayed and the program exits with an error code (status 1).
  *
- * @returns {void} This function does not return a value. It either executes the
+ * @returns {void} This function doesn't return a value. It either executes the
  * conversion process or exits the process with a relevant status code.
  */
 function main() {

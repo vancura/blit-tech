@@ -81,7 +81,7 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation timer for time-based effects.
      */
     update(): void {
@@ -210,7 +210,7 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders text measurement demonstration with underline.
+     * Renders text measurement demonstration with an underline.
      *
      * @param y - Starting Y position.
      * @param lineHeight - Height between lines.
@@ -337,10 +337,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new FontDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Font demo started successfully!');
     } else {

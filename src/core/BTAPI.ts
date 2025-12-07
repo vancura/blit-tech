@@ -96,7 +96,7 @@ export class BTAPI {
     // #region Constructor
 
     /**
-     * Private constructor to enforce singleton pattern.
+     * The private constructor to enforce the singleton pattern.
      * Use BTAPI.instance to access the singleton.
      */
     private constructor() {}
@@ -110,7 +110,7 @@ export class BTAPI {
      * Creates the instance on first access if it doesn't exist (lazy initialization).
      *
      * Thread-safe in JavaScript's single-threaded environment.
-     * The instance is created once and reused for all subsequent calls.
+     * The instance is created once and reused for all following calls.
      *
      * @returns The global BTAPI instance.
      */
@@ -214,7 +214,7 @@ export class BTAPI {
     // #region WebGPU Initialization
 
     /**
-     * Initializes the WebGPU adapter, device, and canvas context.
+     * Initializes the WebGPU adapter, device and canvas context.
      * Configures the canvas for the game's display resolution.
      *
      * @returns Promise resolving to true if WebGPU setup succeeded.
@@ -351,7 +351,7 @@ export class BTAPI {
 
         // Double requestAnimationFrame wait ensures canvas is fully ready.
         // This fixes timing issues in Electron and certain browsers where.
-        // the canvas may not be fully initialized on the first frame.
+        // The canvas may not be fully initialized on the first frame.
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 this.lastUpdateTime = performance.now();
@@ -479,7 +479,7 @@ export class BTAPI {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without antialiasing.
+     * Produces pixel-perfect lines without the antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
