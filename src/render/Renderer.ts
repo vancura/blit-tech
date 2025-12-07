@@ -32,7 +32,7 @@ export class Renderer {
     // #region Module State - WebGPU Resources
 
     /** WebGPU device for GPU operations. */
-    private device: GPUDevice;
+    private readonly device: GPUDevice;
 
     /** WebGPU canvas context for presenting frames. */
     private context: GPUCanvasContext;
@@ -54,7 +54,7 @@ export class Renderer {
     private primitiveBindGroup: GPUBindGroup | null = null;
 
     /** Primitive vertex data array (6 floats per vertex: x, y, r, g, b, a). */
-    private primitiveVertices: Float32Array;
+    private readonly primitiveVertices: Float32Array;
 
     /** Primitive vertex buffer on GPU. */
     private primitiveVertexBuffer: GPUBuffer | null = null;
@@ -79,7 +79,7 @@ export class Renderer {
     private spriteSampler: GPUSampler | null = null;
 
     /** Sprite vertex data array (8 floats per vertex: x, y, u, v, r, g, b, a). */
-    private spriteVertices: Float32Array;
+    private readonly spriteVertices: Float32Array;
 
     /** Sprite vertex buffer on GPU. */
     private spriteVertexBuffer: GPUBuffer | null = null;

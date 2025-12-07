@@ -122,13 +122,13 @@ export class BitmapFont {
     // #region Module State
 
     /** Sprite sheet containing the font texture atlas. */
-    private spriteSheet: SpriteSheet;
+    private readonly spriteSheet: SpriteSheet;
 
     /** Map of character strings to glyph metadata (for Unicode characters). */
     private glyphs: Map<string, Glyph> = new Map();
 
     /** Direct array lookup for ASCII characters (codes 0-127) for fast access. */
-    private asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+    private readonly asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
 
     /** Cache for text measurement results to avoid repeated calculations. */
     private measureCache: Map<string, number> = new Map();
