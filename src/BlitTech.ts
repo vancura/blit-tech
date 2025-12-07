@@ -54,7 +54,7 @@ export const BT = {
     // #region Constants - Sprite Transform Flags
 
     /** Horizontal flip flag for sprite rendering. */
-    FLIP_H: 1 << 0,
+    FLIP_H: 1,
 
     /** Vertical flip flag for sprite rendering. */
     FLIP_V: 1 << 1,

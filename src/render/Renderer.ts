@@ -742,7 +742,8 @@ export class Renderer {
             return this.addPrimitiveVertex(x, y, r, g, b, a);
         }
 
-        this.primitiveVertices[index + 0] = x - this.cameraOffset.x;
+        // eslint-disable-next-line security/detect-object-injection
+        this.primitiveVertices[index] = x - this.cameraOffset.x;
         this.primitiveVertices[index + 1] = y - this.cameraOffset.y;
         this.primitiveVertices[index + 2] = r;
         this.primitiveVertices[index + 3] = g;
@@ -909,7 +910,8 @@ export class Renderer {
         // Use total vertices (across all batches) + current batch count for the index.
         const index = (this.totalSpriteVertices + this.spriteVertexCount) * 8;
 
-        this.spriteVertices[index + 0] = x - this.cameraOffset.x;
+        // eslint-disable-next-line security/detect-object-injection
+        this.spriteVertices[index] = x - this.cameraOffset.x;
         this.spriteVertices[index + 1] = y - this.cameraOffset.y;
         this.spriteVertices[index + 2] = u;
         this.spriteVertices[index + 3] = v;
