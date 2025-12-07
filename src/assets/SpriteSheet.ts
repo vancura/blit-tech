@@ -11,7 +11,7 @@ export class SpriteSheet {
     // #region Module State
 
     /** Source HTML image element. */
-    private image: HTMLImageElement;
+    private readonly image: HTMLImageElement;
 
     /** Pre-decoded image bitmap for GPU upload (created by load()). */
     private imageBitmap: ImageBitmap | null = null;
