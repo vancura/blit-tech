@@ -3,7 +3,7 @@
  * Inspired by RetroBlit's Color32.
  *
  * Performance notes:
- * - Use static color constants (white, black, etc.) - they return cached singletons.
+ * - Use static color constants like white or black—they return cached singletons.
  * - Use fromRGBAUnchecked() for trusted values in hot paths to skip validation.
  * - Use writeToFloat32Array() to write to pre-allocated buffers instead of allocating.
  */
@@ -19,17 +19,19 @@ export const INV_255 = 1 / 255;
 
 /**
  * Pre-computed hex lookup table for fast byte-to-hex conversion.
- * Trades ~2KB memory for faster hex string generation.
+ * Trades ~2 KB memory for faster hex string generation.
  */
 const HEX_TABLE: string[] = new Array(256);
 for (let i = 0; i < 256; i++) {
-    HEX_TABLE[i] = i.toString(16).padStart(2, '0'); // eslint-disable-line security/detect-object-injection
+    // eslint-disable-next-line security/detect-object-injection
+    HEX_TABLE[i] = i.toString(16).padStart(2, '0');
 }
 
 // #endregion
 
 // #region Color32 Class
 
+// noinspection PointlessBitwiseExpressionJS
 /**
  * 32-bit RGBA color with 8-bit channels (0-255).
  * Provides comprehensive color manipulation and conversion utilities.
@@ -37,28 +39,28 @@ for (let i = 0; i < 256; i++) {
 export class Color32 {
     // #region Static Color Constants
 
-    /** Cached singleton for white color. */
+    /** The cached singleton for white color. */
     private static readonly _white: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 255, 255, 255));
 
-    /** Cached singleton for black color. */
+    /** The cached singleton for black color. */
     private static readonly _black: Color32 = Object.freeze(Color32.fromRGBAUnchecked(0, 0, 0, 255));
 
-    /** Cached singleton for transparent color. */
+    /** The cached singleton for transparent color. */
     private static readonly _transparent: Color32 = Object.freeze(Color32.fromRGBAUnchecked(0, 0, 0, 0));
 
-    /** Cached singleton for red color. */
+    /** The cached singleton for red color. */
     private static readonly _red: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 0, 0, 255));
 
-    /** Cached singleton for green color. */
+    /** The cached singleton for green color. */
     private static readonly _green: Color32 = Object.freeze(Color32.fromRGBAUnchecked(0, 255, 0, 255));
 
-    /** Cached singleton for blue color. */
+    /** The cached singleton for blue color. */
     private static readonly _blue: Color32 = Object.freeze(Color32.fromRGBAUnchecked(0, 0, 255, 255));
 
-    /** Cached singleton for yellow color. */
+    /** The cached singleton for yellow color. */
     private static readonly _yellow: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 255, 0, 255));
 
-    /** Cached singleton for cyan color. */
+    /** The cached singleton for cyan color. */
     private static readonly _cyan: Color32 = Object.freeze(Color32.fromRGBAUnchecked(0, 255, 255, 255));
 
     /** Cached singleton for magenta color. */
@@ -209,12 +211,13 @@ export class Color32 {
 
     // #region Static Factory Methods
 
+    // noinspection DuplicatedCode
     /**
      * Creates a Color32 from RGBA values without validation or clamping.
      * Use this in hot paths when values are guaranteed to be valid integers 0-255.
      *
      * WARNING: Passing invalid values will result in undefined behavior.
-     * Only use when you are certain the values are valid.
+     * Only use when certain the values are valid.
      *
      * @param r - Red channel (must be integer 0-255).
      * @param g - Green channel (must be integer 0-255).
@@ -254,7 +257,7 @@ export class Color32 {
      *
      * @param hex - Hex color string with or without leading #.
      * @returns Parsed color.
-     * @throws Error if hex string format is invalid.
+     * @throws Error if the hex string format is invalid.
      */
     static fromHex(hex: string): Color32 {
         // Skip # if present (charCode 35 = '#').
@@ -267,7 +270,7 @@ export class Color32 {
         let a: number = 255;
 
         if (len === 6 || len === 8) {
-            // Parse RGB as single integer, then extract bytes (reduces parseInt calls).
+            // Parse RGB as a single integer, then extract bytes (reduces parseInt calls).
             const rgb = parseInt(hex.substring(start, start + 6), 16);
 
             if (Number.isNaN(rgb)) {
@@ -286,8 +289,8 @@ export class Color32 {
                 }
             }
         } else if (len === 3 || len === 4) {
-            // Parse RGB as single integer, then extract nibbles and expand to bytes.
-            // For short hex, each digit represents a nibble that expands: F -> FF (0xF * 17 = 0xFF).
+            // Parse RGB as a single integer, then extract nibbles and expand to bytes.
+            // For a short hex, each digit represents a nibble that expands: F -> FF (0xF * 17 = 0xFF).
             const rgb = parseInt(hex.substring(start, start + 3), 16);
 
             if (Number.isNaN(rgb)) {
@@ -331,7 +334,7 @@ export class Color32 {
 
     /**
      * Creates a color from HSL (Hue, Saturation, Lightness) values.
-     * Useful for generating colors based on color wheel positions.
+     * Useful for generating colors based on color-wheel positions.
      *
      * @param h - Hue in degrees (0-360).
      * @param s - Saturation as percentage (0-100).
@@ -350,11 +353,26 @@ export class Color32 {
             r = g = b = l;
         } else {
             const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                if (t < 0) {
+                    t += 1;
+                }
+
+                if (t > 1) {
+                    t -= 1;
+                }
+
+                if (t < 1 / 6) {
+                    return p + (q - p) * 6 * t;
+                }
+
+                if (t < 1 / 2) {
+                    return q;
+                }
+
+                if (t < 2 / 3) {
+                    return p + (q - p) * (2 / 3 - t) * 6;
+                }
+
                 return p;
             };
 
@@ -373,9 +391,10 @@ export class Color32 {
 
     // #region Conversion Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Converts color to Float32Array for WebGPU uniform buffers.
-     * Values are normalized to 0.0-1.0 range.
+     * Values are normalized to the 0.0-1.0 range.
      *
      * Note: This allocates a new Float32Array. For hot paths, use
      * writeToFloat32Array() with a pre-allocated buffer instead.
@@ -386,6 +405,7 @@ export class Color32 {
         return new Float32Array([this.r * INV_255, this.g * INV_255, this.b * INV_255, this.a * INV_255]);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes normalized color values to an existing Float32Array.
      * This avoids allocation and is preferred for render loops.
@@ -397,15 +417,18 @@ export class Color32 {
      * @param offset - Starting index in the array (default: 0).
      */
     writeToFloat32Array(target: Float32Array, offset: number = 0): void {
-        // Using direct index assignment for best performance.
-        // This is safe: offset is truncated to integer, target is a typed Float32Array.
+        // Using direct index assignment for the best performance.
+        // This is safe: offset is truncated to integer, the target is a typed Float32Array.
         const i = offset | 0;
-        target[i] = this.r * INV_255; // eslint-disable-line security/detect-object-injection
+
+        // eslint-disable-next-line security/detect-object-injection
+        target[i] = this.r * INV_255;
         target[i + 1] = this.g * INV_255;
         target[i + 2] = this.b * INV_255;
         target[i + 3] = this.a * INV_255;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Converts color to normalized float values (0.0-1.0).
      * Useful for shader uniforms and GPU operations.
@@ -424,6 +447,7 @@ export class Color32 {
         };
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Packs color into a 32-bit unsigned integer (ABGR format).
      * Little-endian format compatible with typed array views.
@@ -434,20 +458,22 @@ export class Color32 {
         return (this.a << 24) | (this.b << 16) | (this.g << 8) | this.r;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Converts color to CSS hex string format.
      *
-     * @returns Hex string in format "#RRGGBBAA".
+     * @returns Hex string in the format "#RRGGBBAA".
      */
     toHex(): string {
         return `#${HEX_TABLE[this.r]}${HEX_TABLE[this.g]}${HEX_TABLE[this.b]}${HEX_TABLE[this.a]}`;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Converts color to CSS rgba() string format.
      * Useful for DOM styling and canvas operations.
      *
-     * @returns CSS string in format "rgba(r, g, b, a)" where a is 0.0-1.0.
+     * @returns CSS string in the format "rgba(r, g, b, a)" where a is 0.0-1.0.
      */
     toCSS(): string {
         return `rgba(${this.r}, ${this.g}, ${this.b}, ${(this.a * INV_255).toFixed(3)})`;
@@ -466,6 +492,7 @@ export class Color32 {
 
     // #region Comparison Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this color equals another (all channels match).
      *
@@ -473,7 +500,7 @@ export class Color32 {
      * @returns True if all RGBA channels are identical.
      */
     equals(other: Color32): boolean {
-        // Simple comparison with early exit on first mismatch.
+        // Simple comparison with early exit on the first mismatch.
         // Modern JS engines optimize this well.
         return (
             other !== null &&
@@ -499,6 +526,7 @@ export class Color32 {
         return Color32.fromRGBAUnchecked(this.r, this.g, this.b, this.a);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a new color with modified alpha, keeping RGB unchanged.
      *
@@ -509,6 +537,7 @@ export class Color32 {
         return Color32.fromRGBAUnchecked(this.r, this.g, this.b, clampByte(alpha));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a new color with modified RGB, keeping alpha unchanged.
      *
@@ -521,6 +550,7 @@ export class Color32 {
         return new Color32(r, g, b, this.a);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns the inverted color (negative).
      * Alpha channel remains unchanged.
@@ -535,6 +565,7 @@ export class Color32 {
 
     // #region Blending Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Linearly interpolates between this color and another.
      * Useful for color transitions and gradients.
@@ -544,7 +575,7 @@ export class Color32 {
      * @returns New color blended between this and other.
      */
     lerp(other: Color32, t: number): Color32 {
-        // Clamp t to [0, 1] range using branchless-style ternary (avoids Math.max/min calls).
+        // Clamp t to [0, 1] ranges using branchless-style ternary (avoids Math.max/min calls).
         t = t < 0 ? 0 : t > 1 ? 1 : t;
 
         // Optimized lerp: use formula a * (1-t) + b * t to reduce operations.
@@ -558,6 +589,7 @@ export class Color32 {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Linearly interpolates this color toward another, modifying in place.
      * Use this in hot loops to avoid object allocation.
@@ -568,7 +600,9 @@ export class Color32 {
      */
     lerpInPlace(other: Color32, t: number): this {
         t = t < 0 ? 0 : t > 1 ? 1 : t;
+
         const oneMinusT = 1 - t;
+
         this.r = (this.r * oneMinusT + other.r * t) | 0;
         this.g = (this.g * oneMinusT + other.g * t) | 0;
         this.b = (this.b * oneMinusT + other.b * t) | 0;
@@ -577,6 +611,7 @@ export class Color32 {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Multiplies this color by another color component-wise.
      * Useful for tinting and color modulation.
@@ -593,6 +628,7 @@ export class Color32 {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Multiplies this color by another color component-wise, modifying in place.
      * Use this in hot loops to avoid object allocation.
@@ -609,6 +645,7 @@ export class Color32 {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Adds another color to this one, clamping to valid range.
      * Useful for additive blending effects.
@@ -620,6 +657,7 @@ export class Color32 {
         return new Color32(this.r + other.r, this.g + other.g, this.b + other.b, this.a + other.a);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Adds another color to this one in place, clamping to valid range.
      * Use this in hot loops to avoid object allocation.
@@ -636,9 +674,10 @@ export class Color32 {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new color with premultiplied alpha.
-     * RGB channels are multiplied by alpha, useful for blending operations.
+     * Alpha multiplies RGB channels, useful for blending operations.
      *
      * @returns New color with premultiplied alpha.
      */
@@ -657,6 +696,7 @@ export class Color32 {
 
     // #region Mutation Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets all RGBA channels at once, with validation.
      * Use this to reuse a Color32 instance instead of creating a new one.
@@ -676,6 +716,7 @@ export class Color32 {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets all RGBA channels at once without validation.
      * Use this in hot paths when values are guaranteed to be valid integers 0-255.
@@ -697,6 +738,7 @@ export class Color32 {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies values from another Color32 instance.
      * Use this to reuse a Color32 instance instead of creating a new one.
@@ -717,6 +759,7 @@ export class Color32 {
 
     // #region Utility Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the perceived luminance (brightness) of the color.
      * Uses the standard relative luminance formula from WCAG.
@@ -746,9 +789,11 @@ export class Color32 {
 export function clampByte(n: number): number {
     // Bitwise operations: if n < 0, use 0; if n > 255, use 255; else truncate n.
     // This is faster than Math.max(0, Math.min(255, n)) | 0.
+    // noinspection PointlessBitwiseExpressionJS
     return n < 0 ? 0 : n > 255 ? 255 : n | 0;
 }
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Converts a single channel value to a 2-digit hex string.
  * Defined at module level to avoid closure allocation in toHex().

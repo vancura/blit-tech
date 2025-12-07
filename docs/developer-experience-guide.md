@@ -1,7 +1,7 @@
 # Developer Experience Guide
 
 This document provides comprehensive guidance for improving developer experience, community tools, and documentation for
-Blit-Tech.
+Blit–Tech.
 
 ## Table of Contents
 
@@ -24,13 +24,13 @@ automatically.
 
 **Deliverables:**
 
-1. ✓ Contributing guidelines (CONTRIBUTING.md)
-2. ✓ GitHub issue templates (bug, feature, question)
-3. ✓ Pull request template with checklist
-4. ✓ Code of Conduct (CODE_OF_CONDUCT.md)
-5. ✓ Automated dependency updates (Dependabot/Renovate)
-6. ✓ Astro Starlight documentation site preparation
-7. ✓ Additional DX improvements
+1. Contributing guidelines (CONTRIBUTING.md).
+2. GitHub issue templates (bug, feature, question).
+3. Pull a request template with a checklist.
+4. Code of Conduct (CODE_OF_CONDUCT.md).
+5. Automated dependency updates (Dependabot/Renovate).
+6. Astro Starlight documentation site preparation.
+7. Additional DX improvements.
 
 ---
 
@@ -45,9 +45,9 @@ This file guides new contributors through the development workflow.
 **Content:**
 
 ````markdown
-# Contributing to Blit-Tech
+# Contributing to Blit–Tech
 
-Thank you for your interest in contributing to Blit-Tech! This document provides guidelines and instructions for
+Thank you for your interest in contributing to Blit–Tech. This document provides guidelines and instructions for
 contributing.
 
 ## Table of Contents
@@ -62,16 +62,16 @@ contributing.
 
 ## Code of Conduct
 
-Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+Read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js v20 or higher
-- pnpm v10.24.0 or higher
-- Git
-- A WebGPU-compatible browser (Chrome 113+, Edge 113+, Safari 18+)
+- Node.js v20 or higher,
+- pnpm v10.24.0 or higher,
+- Git,
+- A WebGPU-compatible browser (Chrome 113+, Edge 113+, Safari 18+).
 
 ### Setup
 
@@ -98,7 +98,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Running the Project
 
-- **Development server:** `pnpm dev` (opens examples gallery)
+- **Development server:** `pnpm dev` (opens the example gallery)
 - **Type checking:** `pnpm typecheck`
 - **Linting:** `pnpm lint`
 - **Formatting:** `pnpm format`
@@ -133,12 +133,12 @@ pnpm lint
 
 Husky runs automatically on commit:
 
-- ✓ Biome formatting for TS/JS/JSON/CSS (auto-fix)
-- ✓ Prettier formatting for Markdown/YAML (auto-fix)
-- ✓ ESLint (auto-fix)
-- ✓ TypeScript type checking
-- ✓ Unit tests (if they exist)
-- ✓ Commit message validation
+- Biome formatting for TS/JS/JSON/CSS (auto-fix),
+- Prettier formatting for Markdown/YAML (auto-fix),
+- ESLint (auto-fix),
+- TypeScript type checking,
+- Unit tests (if they exist),
+- Commit message validation.
 
 If any check fails, fix the issues and try again.
 
@@ -248,7 +248,7 @@ pnpm test:coverage    # With coverage
 
 - Location: `tests/unit/`
 - Framework: Vitest
-- See [TESTING_GUIDE.md](TESTING_GUIDE.md) for detailed testing guide
+- See [testing-guide.md](testing-guide.md) for detailed testing guide
 
 ### E2E Tests
 
@@ -264,7 +264,7 @@ pnpm test:e2e:debug   # Debug mode
 
 - Location: `tests/e2e/`
 - Framework: Playwright
-- See [TESTING_GUIDE.md](TESTING_GUIDE.md) for examples
+- See [testing-guide.md](testing-guide.md) for examples
 
 ### Coverage
 
@@ -453,7 +453,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Blit-Tech Version
+      label: Blit–Tech Version
       description: Which version are you using?
       placeholder: 0.0.1
     validations:
@@ -593,7 +593,7 @@ body:
 
 ```yaml
 name: Question
-description: Ask a question about using Blit-Tech
+description: Ask a question about using Blit–Tech
 title: '[Question]: '
 labels: ['question']
 body:
@@ -923,7 +923,7 @@ updates:
 
 When ready to create a documentation site, use Astro Starlight:
 
-### Step 1: Create docs directory
+### Step 1: Create a docs directory
 
 ```bash
 mkdir docs
@@ -942,7 +942,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   integrations: [
     starlight({
-      title: 'Blit-Tech Docs',
+      title: 'Blit–Tech Docs',
       description: 'WebGPU retro game engine for TypeScript',
       logo: {
         src: './public/logo.svg',
@@ -1015,7 +1015,7 @@ webgpu, typescript, game-engine, retro, pixel-art, 2d-game,
 fantasy-console, vite, game-development
 ```
 
-**About:** Add description and website URL
+**About:** Add description and website address
 
 **Features:**
 
@@ -1097,7 +1097,7 @@ docs/dist/
 - [ ] Review and merge Dependabot/Renovate PRs
 - [ ] Check open issues and respond
 - [ ] Review open PRs
-- [ ] Update project board (if using)
+- [ ] Update the project board (if using)
 
 ### Monthly
 
@@ -1108,12 +1108,12 @@ docs/dist/
 
 ### Before Releases
 
-- [ ] Run full test suite
+- [ ] Run a full test suite
 - [ ] Update CHANGELOG.md (via changesets)
 - [ ] Bump version
 - [ ] Test library build
 - [ ] Test examples deployment
-- [ ] Create GitHub release with notes
+- [ ] Create a GitHub release with notes
 - [ ] Publish to npm (when ready)
 - [ ] Announce on socials/discussions
 
@@ -1130,13 +1130,13 @@ docs/dist/
 
 ## Implementation Order
 
-1. **CONTRIBUTING.md** - Guide for contributors
-2. **CODE_OF_CONDUCT.md** - Community standards
-3. **Issue templates** - Bug reports, features, questions
-4. **PR template** - Pull request checklist
-5. **Dependabot/Renovate** - Automated updates
-6. **VSCode settings** - Editor configuration
-7. **Astro Starlight** - When ready for docs site (future)
+1. **CONTRIBUTING.md** – Guide for contributors
+2. **CODE_OF_CONDUCT.md** – Community standards
+3. **Issue templates** – Bug reports, features, questions
+4. **PR template** – Pull request checklist
+5. **Dependabot/Renovate** – Automated updates
+6. **VSCode settings** – Editor configuration
+7. **Astro Starlight** – When ready for docs site (future)
 
 ---
 
@@ -1147,9 +1147,9 @@ After completing this guide:
 1. Review all new documentation files
 2. Enable Dependabot or Renovate
 3. Test issue templates by creating test issues
-4. Update main README.md with contribution section
+4. Update the main README.md with the contribution section
 5. Consider adding SECURITY.md for vulnerability reporting
-6. Plan Astro Starlight docs site (when library is more mature)
+6. Plan Astro Starlight docs site (when the library is more mature)
 
 ---
 

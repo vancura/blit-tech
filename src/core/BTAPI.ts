@@ -18,7 +18,7 @@ export class BTAPI {
 
     /**
      * Major version number.
-     * Combined with MINOR and PATCH to form semantic version string.
+     * Combined with MINOR and PATCH to form a semantic version string.
      *
      * @example
      * const version = `${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`;
@@ -96,7 +96,7 @@ export class BTAPI {
     // #region Constructor
 
     /**
-     * Private constructor to enforce singleton pattern.
+     * The private constructor to enforce the singleton pattern.
      * Use BTAPI.instance to access the singleton.
      */
     private constructor() {}
@@ -110,7 +110,7 @@ export class BTAPI {
      * Creates the instance on first access if it doesn't exist (lazy initialization).
      *
      * Thread-safe in JavaScript's single-threaded environment.
-     * The instance is created once and reused for all subsequent calls.
+     * The instance is created once and reused for all following calls.
      *
      * @returns The global BTAPI instance.
      */
@@ -128,7 +128,7 @@ export class BTAPI {
 
     /**
      * Initializes the engine with a game instance and canvas element.
-     * Sets up WebGPU, creates renderer, and starts the game loop.
+     * Sets up WebGPU, creates the renderer, and starts the game loop.
      *
      * @param game - Game implementing the IBlitTechGame interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
@@ -142,7 +142,7 @@ export class BTAPI {
         this.game = game;
         this.canvas = canvas;
 
-        // Query hardware settings from game.
+        // Query hardware settings from the game.
         console.log('[BlitTech] Querying hardware settings...');
 
         this.hwSettings = game.queryHardware();
@@ -182,7 +182,7 @@ export class BTAPI {
 
         // TODO: Initialize input, audio, etc.
 
-        // Initialize game.
+        // Initialize the game.
         console.log('[BlitTech] Initializing game...');
 
         if (!(await game.initialize())) {
@@ -191,7 +191,7 @@ export class BTAPI {
             return false;
         }
 
-        // Wait for next frame to ensure canvas is fully ready.
+        // Wait for the next frame to ensure canvas is fully ready.
         // This helps with Electron and some browser timing issues.
         await new Promise<void>((resolve) => {
             requestAnimationFrame(() => {
@@ -201,7 +201,7 @@ export class BTAPI {
             });
         });
 
-        // Start game loop.
+        // Start the game loop.
         this.startGameLoop();
 
         console.log('[BlitTech] Initialization complete!');
@@ -214,7 +214,7 @@ export class BTAPI {
     // #region WebGPU Initialization
 
     /**
-     * Initializes the WebGPU adapter, device, and canvas context.
+     * Initializes the WebGPU adapter, device and canvas context.
      * Configures the canvas for the game's display resolution.
      *
      * @returns Promise resolving to true if WebGPU setup succeeded.
@@ -237,6 +237,8 @@ export class BTAPI {
             console.error('[BlitTech]   1. Your GPU/drivers are too old');
             console.error('[BlitTech]   2. WebGPU is disabled in browser settings');
             console.error('[BlitTech]   3. Running in incompatible environment (VM, remote desktop, etc.)');
+
+            // noinspection PlatformDetectionJS
             console.error('[BlitTech] Browser:', navigator.userAgent);
 
             return false;
@@ -319,7 +321,9 @@ export class BTAPI {
         this.isRunning = true;
 
         const loop = (currentTime: number) => {
-            if (!this.isRunning) return;
+            if (!this.isRunning) {
+                return;
+            }
 
             // Calculate delta time.
             const deltaTime = currentTime - this.lastUpdateTime;
@@ -351,7 +355,7 @@ export class BTAPI {
 
         // Double requestAnimationFrame wait ensures canvas is fully ready.
         // This fixes timing issues in Electron and certain browsers where.
-        // the canvas may not be fully initialized on the first frame.
+        // The canvas may not be fully initialized on the first frame.
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 this.lastUpdateTime = performance.now();
@@ -361,6 +365,7 @@ export class BTAPI {
         });
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Stops the game loop.
      * The loop will exit after the current frame completes.
@@ -375,7 +380,7 @@ export class BTAPI {
 
     /**
      * Gets the current tick count.
-     * Ticks increment once per fixed update (e.g., 60 times/second at 60 FPS).
+     * Ticks increment once per the fixed update (e.g., 60 times/second at 60 FPS).
      *
      * @returns Number of update ticks since initialization or last reset.
      */
@@ -404,6 +409,7 @@ export class BTAPI {
 
     // #region WebGPU Resource Accessors
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the WebGPU device for advanced rendering operations.
      *
@@ -413,6 +419,7 @@ export class BTAPI {
         return this.device;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the WebGPU canvas context.
      *
@@ -422,6 +429,7 @@ export class BTAPI {
         return this.context;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the canvas element.
      *
@@ -431,6 +439,7 @@ export class BTAPI {
         return this.canvas;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the renderer instance for advanced rendering operations.
      *
@@ -479,7 +488,7 @@ export class BTAPI {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without anti-aliasing.
+     * Produces pixel-perfect lines without the antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
@@ -531,7 +540,7 @@ export class BTAPI {
      *
      * @param spriteSheet - Source sprite sheet texture.
      * @param srcRect - Region to copy from the sprite sheet.
-     * @param destPos - Screen position to draw at (top-left corner).
+     * @param destPos - Screen position to draw in (the top-left corner).
      * @param tint - Optional tint color (defaults to white = no tint).
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void {
@@ -557,7 +566,7 @@ export class BTAPI {
 
     /**
      * Sets the camera offset for scrolling effects.
-     * All drawing operations are offset by this amount.
+     * This amount offsets all drawing operations.
      *
      * @param offset - Camera position offset in pixels.
      */

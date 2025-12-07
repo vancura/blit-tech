@@ -5,12 +5,12 @@
 <ul class="info-list list-none pl-0">
     <li class="py-1 pl-5 relative">
         <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.ticks()</code>
-        - Frame-based timing counter
+        — Frame-based timing counter
     </li>
 
     <li class="py-1 pl-5 relative">
         <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.ticksReset()</code>
-        - Reset tick counter for animation sequences
+        — Reset tick counter for animation sequences
     </li>
 
     <li class="py-1 pl-5 relative">
@@ -33,12 +33,12 @@
 <div class="bg-sky-500/20 border-l-4 border-sky-400 p-2.5 mt-4 rounded">
     <strong>Why tick-based timing?</strong><br />
 
-    Using ticks instead of delta time ensures deterministic behavior - the same inputs always produce the same results. This is ideal for animation timing, cooldowns, and any gameplay logic that needs predictable frame-based behavior.
+    Using ticks instead of delta time ensures deterministic behavior – the same inputs always produce the same results. This is ideal for animation timing, cooldowns, and any gameplay logic that needs predictable frame-based behavior.
 </div>
 
 <div class="bg-note-bg border-l-4 border-note-border p-2.5 mt-4 rounded">
     <strong>Key concepts:</strong><br />
-    • Ticks increment once per fixed update (60 FPS)<br />
+    • Ticks increment once per a fixed update (60 FPS)<br />
     • Compare tick differences for timers: <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">if (BT.ticks() - lastTick >= duration)</code><br />
     • Reset ticks when starting new animation sequences<br />
     • Store tick timestamps for cooldowns and events

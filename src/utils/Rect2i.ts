@@ -1,5 +1,6 @@
 import { Vector2i } from './Vector2i';
 
+// noinspection PointlessBitwiseExpressionJS
 /**
  * Integer rectangle for pixel-perfect bounds and regions.
  * Inspired by RetroBlit's Rect2i.
@@ -7,13 +8,13 @@ import { Vector2i } from './Vector2i';
  * Performance notes:
  * - Use fromValuesUnchecked() for trusted integer values in hot paths
  * - Use raw value getters (centerX, centerY, right, bottom) to avoid allocations
- * - Use "To" methods (centerTo, minTo, maxTo, etc.) for zero-allocation output
+ * - Use “To” methods (centerTo, minTo, maxTo, etc.) for zero-allocation output
  * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
  */
 export class Rect2i {
     // #region Cached Static Rectangles
 
-    /** Cached singleton for zero rectangle. */
+    /** The cached singleton for zero rectangle. */
     private static readonly _zero: Rect2i = Object.freeze(Rect2i.fromValuesUnchecked(0, 0, 0, 0));
 
     // #endregion
@@ -24,11 +25,11 @@ export class Rect2i {
      * Creates a new integer rectangle.
      * All values are truncated to integers using |0.
      *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., -1.7 becomes -1).
+     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
      * If you need floor behavior for negative values, use Math.floor before passing.
      *
-     * @param x - Left edge X coordinate (defaults to 0).
-     * @param y - Top edge Y coordinate (defaults to 0).
+     * @param x - Left-edge X coordinate (defaults to 0).
+     * @param y - Top-edge Y coordinate (defaults to 0).
      * @param width - Width in pixels (defaults to 0).
      * @param height - Height in pixels (defaults to 0).
      */
@@ -56,6 +57,7 @@ export class Rect2i {
 
     // #region Raw Value Getters (Zero Allocation)
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the right edge X coordinate (x + width).
      * Use this instead of max.x in hot paths to avoid allocation.
@@ -66,6 +68,7 @@ export class Rect2i {
         return this.x + this.width;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the bottom edge Y coordinate (y + height).
      * Use this instead of max.y in hot paths to avoid allocation.
@@ -76,6 +79,7 @@ export class Rect2i {
         return this.y + this.height;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center X coordinate.
      * Use this instead of center.x in hot paths to avoid allocation.
@@ -86,6 +90,7 @@ export class Rect2i {
         return (this.x + this.width / 2) | 0;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center Y coordinate.
      * Use this instead of center.y in hot paths to avoid allocation.
@@ -100,6 +105,7 @@ export class Rect2i {
 
     // #region Computed Properties
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the top-left corner of the rectangle.
      *
@@ -111,6 +117,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the bottom-right corner of the rectangle (exclusive).
      *
@@ -122,6 +129,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x + this.width, this.y + this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center point of the rectangle.
      *
@@ -133,6 +141,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked((this.x + this.width / 2) | 0, (this.y + this.height / 2) | 0);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the position (top-left corner) as a vector.
      *
@@ -144,6 +153,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets the position (top-left corner) from a vector.
      *
@@ -154,6 +164,7 @@ export class Rect2i {
         this.y = value.y | 0;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the size (width, height) as a vector.
      *
@@ -165,6 +176,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.width, this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets the size from a vector.
      *
@@ -179,6 +191,7 @@ export class Rect2i {
 
     // #region Zero-Allocation Output Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the top-left corner (min) to an existing vector.
      * Zero allocation alternative to the min getter.
@@ -193,6 +206,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the bottom-right corner (max) to an existing vector.
      * Zero allocation alternative to the max getter.
@@ -207,6 +221,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the center point to an existing vector.
      * Zero allocation alternative to the center getter.
@@ -221,6 +236,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the position (top-left corner) to an existing vector.
      * Zero allocation alternative to the position getter.
@@ -235,6 +251,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the size (width, height) to an existing vector.
      * Zero allocation alternative to the size getter.
@@ -253,6 +270,7 @@ export class Rect2i {
 
     // #region Intersection Tests
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Tests if a point lies within this rectangle.
      * Uses half-open interval: includes min, excludes max.
@@ -266,8 +284,9 @@ export class Rect2i {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Tests if raw x,y coordinates lie within this rectangle.
+     * Tests if raw x, y coordinates lie within this rectangle.
      * Uses half-open interval: includes min, excludes max.
      * Zero allocation alternative to contains() when you have raw coordinates.
      *
@@ -294,6 +313,7 @@ export class Rect2i {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the overlapping region of two rectangles.
      *
@@ -316,12 +336,13 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(x1, y1, x2 - x1, y2 - y1);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the overlapping region and writes to an existing rectangle.
      * Zero allocation alternative to intersection().
      *
      * @param other - Rectangle to intersect with.
-     * @param out - Rectangle to write result to.
+     * @param out - Rectangle to write the result to.
      * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
      */
     intersectionTo(other: Rect2i, out: Rect2i): boolean {
@@ -340,6 +361,7 @@ export class Rect2i {
         return true;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates intersection depth for collision resolution.
      * Returns how much the rectangles overlap in each axis.
@@ -348,8 +370,8 @@ export class Rect2i {
      * Note: Creates a new Vector2i. Use intersectionDepthTo() in hot paths.
      *
      * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they do not overlap, the returned depths
-     * may be zero or negative and are not meaningful for resolution.
+     * {@link intersects} first; if they don't overlap, the returned depths
+     * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
      * @returns Vector with overlap depth in X and Y axes.
@@ -368,16 +390,17 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(xDepth, yDepth);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates intersection depth and writes to an existing vector.
      * Zero allocation alternative to intersectionDepth().
      *
      * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they do not overlap, the returned depths
-     * may be zero or negative and are not meaningful for resolution.
+     * {@link intersects} first; if they don't overlap, the returned depths
+     * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     intersectionDepthTo(other: Rect2i, out: Vector2i): Vector2i {
@@ -397,6 +420,7 @@ export class Rect2i {
 
     // #region Utility
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this rectangle equals another (all components match).
      *
@@ -407,6 +431,7 @@ export class Rect2i {
         return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates an independent copy of this rectangle.
      *
@@ -417,6 +442,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(this.x, this.y, this.width, this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies this rectangle's values to an existing rectangle.
      * Zero allocation alternative to clone().
@@ -436,7 +462,7 @@ export class Rect2i {
     /**
      * Formats the rectangle as a readable string.
      *
-     * @returns String in format "Rect2i(x, y, width, height)".
+     * @returns String in format Rect2i(x, y, width, height).
      */
     toString(): string {
         return `Rect2i(${this.x}, ${this.y}, ${this.width}, ${this.height})`;
@@ -450,7 +476,7 @@ export class Rect2i {
      * Sets all components of this rectangle.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param x - New x position.
      * @param y - New y position.
@@ -467,11 +493,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Sets only the position of this rectangle, keeping size unchanged.
+     * Sets only the position of this rectangle, keeping the size unchanged.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param x - New x position.
      * @param y - New y position.
@@ -484,11 +511,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets only the size of this rectangle, keeping position unchanged.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param width - New width.
      * @param height - New height.
@@ -501,11 +529,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies values from another rectangle.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param other - Rectangle to copy from.
      * @returns This rectangle for chaining.
@@ -519,11 +548,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Moves this rectangle by the given offset.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param dx - X offset to add.
      * @param dy - Y offset to add.
@@ -536,11 +566,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Expands this rectangle by the given amount on all sides.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param amount - Amount to expand (positive) or shrink (negative).
      * @returns This rectangle for chaining.
@@ -556,11 +587,12 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Expands this rectangle by different amounts horizontally and vertically.
      * Modifies this rectangle directly for maximum performance.
      *
-     * WARNING: Mutates this rectangle. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this rectangle. Don't use on frozen/cached singletons.
      *
      * @param horizontal - Amount to expand horizontally.
      * @param vertical - Amount to expand vertically.
@@ -592,6 +624,7 @@ export class Rect2i {
         return Rect2i._zero;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle from two corner points.
      *
@@ -608,6 +641,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(min.x, min.y, max.x - min.x, max.y - min.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle from two corner points specified as raw coordinates.
      * Zero allocation alternative to fromMinMax() when you have raw coordinates.
@@ -615,10 +649,10 @@ export class Rect2i {
      * Note: min coordinates must be less than or equal to max coordinates.
      * If min > max on any axis, the resulting width/height will be negative.
      *
-     * @param minX - Left edge X coordinate.
-     * @param minY - Top edge Y coordinate.
-     * @param maxX - Right edge X coordinate.
-     * @param maxY - Bottom edge Y coordinate.
+     * @param minX - Left-edge X coordinate.
+     * @param minY - Top-edge Y coordinate.
+     * @param maxX - Right-edge X coordinate.
+     * @param maxY - Bottom-edge Y coordinate.
      * @returns New rectangle spanning from (minX, minY) to (maxX, maxY).
      */
     static fromMinMaxXY(minX: number, minY: number, maxX: number, maxY: number): Rect2i {
@@ -628,8 +662,9 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(x, y, (maxX | 0) - x, (maxY | 0) - y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Creates a rectangle centered on a point with given size.
+     * Creates a rectangle centered on a point with a given size.
      *
      * @param center - Center point of the rectangle.
      * @param size - Width and height as a vector.
@@ -644,8 +679,9 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(center.x - halfWidth, center.y - halfHeight, size.x, size.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Creates a rectangle centered on raw coordinates with given size.
+     * Creates a rectangle centered on raw coordinates with a given size.
      * Zero allocation alternative to fromCenterSize() when you have raw coordinates.
      *
      * @param centerX - Center X coordinate.
@@ -667,15 +703,16 @@ export class Rect2i {
 
     // #region Static Factories
 
+    // noinspection DuplicatedCode
     /**
      * Creates a Rect2i from integer values without truncation.
      * Use this in hot paths when values are guaranteed to be integers.
      *
      * WARNING: Passing non-integer values will result in non-integer rect components.
-     * Only use when you are certain the values are already integers.
+     * Only use when you’re certain the values are already integers.
      *
-     * @param x - Left edge X coordinate (must be integer).
-     * @param y - Top edge Y coordinate (must be integer).
+     * @param x - Left-edge X coordinate (must be integer).
+     * @param y - Top-edge Y coordinate (must be integer).
      * @param width - Width in pixels (must be integer).
      * @param height - Height in pixels (must be integer).
      * @returns New Rect2i with the specified values.

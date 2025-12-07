@@ -36,7 +36,7 @@ class PrimitivesDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this game.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
@@ -71,7 +71,7 @@ class PrimitivesDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation counter for time-based effects.
      */
     update(): void {
@@ -120,7 +120,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows animated rainbow-colored pixels in a pattern.
      */
     private renderPixelDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
 
@@ -139,7 +141,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows horizontal, vertical, diagonal, and rotating lines.
      */
     private renderLineDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
 
@@ -163,7 +167,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows static rectangles and a pulsing animated rectangle.
      */
     private renderRectOutlineDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
 
@@ -182,7 +188,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows static filled rectangles and a sliding animated rectangle.
      */
     private renderRectFillDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
 
@@ -201,11 +209,13 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows a background pattern with a moving cleared region.
      */
     private renderClearRectDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
 
-        // Draw background pattern.
+        // Draw a background pattern.
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 5; j++) {
                 BT.drawRectFill(new Rect2i(10 + i * 10, 150 + j * 10, 8, 8), new Color32(100, 150, 200));
@@ -222,7 +232,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows an animated sine wave graph using multiple drawing functions.
      */
     private renderCombinedDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
 
@@ -267,6 +279,7 @@ class PrimitivesDemo implements IBlitTechGame {
 function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
+        // noinspection InnerHTMLJS
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
                 <h2>[X] ${title}</h2>
@@ -302,7 +315,7 @@ function getCanvasElement(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Validates WebGPU support, retrieves canvas, and initializes the primitives demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the primitive demo.
  */
 async function initializeApplication(): Promise<void> {
     // Validate WebGPU support.
@@ -322,10 +335,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new PrimitivesDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Primitives demo started successfully!');
     } else {
@@ -347,6 +360,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

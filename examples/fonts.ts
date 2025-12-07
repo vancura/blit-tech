@@ -41,7 +41,7 @@ class FontDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this demo.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
@@ -81,7 +81,7 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation timer for time-based effects.
      */
     update(): void {
@@ -132,7 +132,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderColoredText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
         y += lineHeight;
@@ -157,7 +159,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderRainbowText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const rainbowText = 'Rainbow Animation!';
         let x = 10;
@@ -184,7 +188,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderPulsingText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
         const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), 255);
@@ -202,7 +208,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderSpecialCharacters(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         BT.printFont(this.font, new Vector2i(10, y), 'Special: 3 x 4 = 12', Color32.white());
 
@@ -210,14 +218,16 @@ class FontDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders text measurement demonstration with underline.
+     * Renders text measurement demonstration with an underline.
      *
      * @param y - Starting Y position.
      * @param lineHeight - Height between lines.
      * @returns Next Y position after rendering.
      */
     private renderTextMeasurement(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const measureText = 'Measured Width';
         const textWidth = this.font.measureText(measureText);
@@ -241,7 +251,9 @@ class FontDemo implements IBlitTechGame {
      * @param lineHeight - Height between lines.
      */
     private renderFontInfo(y: number, lineHeight: number): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Font info.
         BT.printFont(
@@ -279,6 +291,7 @@ class FontDemo implements IBlitTechGame {
 function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
+        // noinspection InnerHTMLJS
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
                 <h2>[X] ${title}</h2>
@@ -337,10 +350,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new FontDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Font demo started successfully!');
     } else {
@@ -362,6 +375,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

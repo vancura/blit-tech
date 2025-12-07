@@ -2,7 +2,7 @@
  * Basic Blit–Tech Example
  *
  * Demonstrates the minimal setup required for a Blit–Tech game.
- * This example creates a simple moving square that bounces around the screen.
+ * This example creates a simple moving square, bounding around the screen.
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
@@ -15,7 +15,7 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
 // #region Game Class
 
 /**
- * A minimal game demonstrating core Blit–Tech functionality.
+ * A minimal game demonstrating core Blit–Tech features.
  * Shows hardware configuration, game loop, and basic rendering.
  * Note: Input handling is planned but not yet implemented in Phase 1.
  */
@@ -46,14 +46,14 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this game.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240), // Internal rendering resolution.
-            canvasDisplaySize: new Vector2i(640, 480), // CSS display size (2x upscale).
+            canvasDisplaySize: new Vector2i(640, 480), // CSS display size (2× upscale).
             targetFPS: 60,
         };
     }
@@ -91,7 +91,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Updates game logic each tick.
-     * Auto-moves the square and bounces off-screen edges.
+     * Automatically moves the square and bounces off-screen edges.
      * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
      */
     update(): void {
@@ -102,12 +102,14 @@ class BasicGame implements IBlitTechGame {
         const displaySize = BT.displaySize();
 
         // Handle horizontal bounds.
+        // noinspection DuplicatedCode
         if (this.playerPos.x <= 0 || this.playerPos.x >= displaySize.x - this.playerSize.x) {
             this.playerVel.x = -this.playerVel.x;
             this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
         }
 
         // Handle vertical bounds.
+        // noinspection DuplicatedCode
         if (this.playerPos.y <= 0 || this.playerPos.y >= displaySize.y - this.playerSize.y) {
             this.playerVel.y = -this.playerVel.y;
             this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
@@ -116,7 +118,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Renders game graphics each frame.
-     * Clears screen, draws player square, and displays UI text using bitmap font.
+     * Clears the screen, draws player square, and displays UI text using bitmap font.
      */
     render(): void {
         // Clear screen.
@@ -180,6 +182,7 @@ function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
 
     if (container) {
+        // noinspection InnerHTMLJS
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border: 2px solid #ff0000; border-radius: 8px; max-width: 600px;">
                 <h2 style="margin-top: 0; font-size: 24px;">[X] ${title}</h2>
@@ -218,7 +221,7 @@ function getCanvasElement(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Validates WebGPU support, retrieves canvas element, creates game instance,
+ * Validates WebGPU support, retrieves the canvas element, creates a game instance,
  * and initializes the Blit–Tech engine.
  */
 async function initializeApplication(): Promise<void> {
@@ -232,7 +235,7 @@ async function initializeApplication(): Promise<void> {
                 '<strong>Supported browsers:</strong><br>' +
                 '• Chrome/Edge 113+<br>' +
                 '• Firefox Nightly (with the flag enabled)<br><br>' +
-                'Please update your browser or try a different one.',
+                'Update your browser or try a different one.',
         );
 
         console.error('[Main] WebGPU not supported');
@@ -251,10 +254,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new BasicGame();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Game started successfully!');
     } else {
@@ -263,7 +266,7 @@ async function initializeApplication(): Promise<void> {
         displayErrorMessage(
             'Initialization Failed',
             'The game engine failed to initialize.<br><br>' +
-                'This usually means WebGPU could not access your GPU.<br>' +
+                'This usually means WebGPU couldn’t access your GPU.<br>' +
                 'Check the console for detailed error messages.',
         );
     }
@@ -280,6 +283,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 
