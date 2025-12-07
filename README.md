@@ -299,7 +299,10 @@ optimization techniques when working with hundreds of operations per frame. See
 
 ### Web Deployment
 
-Deploy the examples to any static hosting platform:
+The examples are automatically deployed to Cloudflare Pages on every push to the main branch. Pull requests receive
+preview deployments for testing before merging.
+
+Build the examples for deployment:
 
 ```bash
 pnpm build:deploy
