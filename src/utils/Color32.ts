@@ -600,7 +600,9 @@ export class Color32 {
      */
     lerpInPlace(other: Color32, t: number): this {
         t = t < 0 ? 0 : t > 1 ? 1 : t;
+
         const oneMinusT = 1 - t;
+
         this.r = (this.r * oneMinusT + other.r * t) | 0;
         this.g = (this.g * oneMinusT + other.g * t) | 0;
         this.b = (this.b * oneMinusT + other.b * t) | 0;

@@ -49,11 +49,7 @@ function isInternalUrl(url) {
         return true;
     }
 
-    if (process.env.VITE_DEV_SERVER_URL && url.startsWith(process.env.VITE_DEV_SERVER_URL)) {
-        return true;
-    }
-
-    return false;
+    return !!(process.env.VITE_DEV_SERVER_URL && url.startsWith(process.env.VITE_DEV_SERVER_URL));
 }
 
 /**
