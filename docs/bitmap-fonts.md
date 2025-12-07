@@ -101,14 +101,14 @@ the included conversion script to convert these to `.btfont`:
 
 ```bash
 # From project root
-node tools/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]
+node scripts/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]
 
 # Or via pnpm:
 pnpm convert-font <input.fnt> <output.btfont> [--embed]
 
 # Examples:
-node tools/convert-bmfont.mjs tmp/MyFont.fnt examples/fonts/MyFont.btfont
-node tools/convert-bmfont.mjs tmp/MyFont.fnt examples/fonts/MyFont.btfont --embed
+node scripts/convert-bmfont.mjs tmp/MyFont.fnt examples/fonts/MyFont.btfont
+node scripts/convert-bmfont.mjs tmp/MyFont.fnt examples/fonts/MyFont.btfont --embed
 ```
 
 Options:
@@ -123,21 +123,21 @@ The conversion script works best when run directly in your terminal:
 
 ```bash
 cd /path/to/blit-tech
-node tools/convert-bmfont.mjs input.fnt output.btfont --embed
+node scripts/convert-bmfont.mjs input.fnt output.btfont --embed
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
 cd D:\path\to\blit-tech
-node tools/convert-bmfont.mjs input.fnt output.btfont --embed
+node scripts/convert-bmfont.mjs input.fnt output.btfont --embed
 ```
 
 **Windows (CMD):**
 
 ```cmd
 cd D:\path\to\blit-tech
-node tools\convert-bmfont.mjs input.fnt output.btfont --embed
+node scripts\convert-bmfont.mjs input.fnt output.btfont --embed
 ```
 
 > **Note:** For best results with file I/O operations, running Node.js scripts directly from your terminal (not through
