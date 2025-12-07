@@ -263,7 +263,7 @@ async function initializeApplication(): Promise<void> {
         displayErrorMessage(
             'Initialization Failed',
             'The game engine failed to initialize.<br><br>' +
-                'This usually means WebGPU could not access your GPU.<br>' +
+                'This usually means WebGPU couldn’t access your GPU.<br>' +
                 'Check the console for detailed error messages.',
         );
     }
