@@ -21,7 +21,7 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
 
 /**
  * Demonstrates animated mathematical patterns using primitive drawing.
- * Each section shows a different algorithmic visual effect arranged in a 2x3 grid.
+ * Each section shows a different algorithmic visual effect arranged in a 2×3 grid.
  */
 class PatternsDemo implements IBlitTechGame {
     // #region Module State
@@ -51,7 +51,7 @@ class PatternsDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this demo.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
@@ -94,7 +94,7 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders all pattern demonstrations in a 2x3 grid layout.
+     * Renders all pattern demonstrations in a 2×3 grid layout.
      * Shows six different mathematical patterns with animations.
      */
     render(): void {

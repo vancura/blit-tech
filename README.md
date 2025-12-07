@@ -100,7 +100,7 @@ import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGam
 class MyGame implements IBlitTechGame {
   /**
    * Configures hardware settings for this game.
-   * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+   * Sets up a 320×240 internal resolution with 2× CSS upscaling.
    *
    * @returns Hardware configuration specifying display size and target FPS.
    */

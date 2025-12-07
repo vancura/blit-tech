@@ -1,6 +1,6 @@
-# Bitmap Fonts in Blit-Tech
+# Bitmap Fonts in Blit–Tech
 
-Blit-Tech uses a modern `.btfont` JSON format for bitmap fonts. This format supports variable-width glyphs,
+Blit–Tech uses a modern `.btfont` JSON format for bitmap fonts. This format supports variable-width glyphs,
 per-character offsets, Unicode characters, and either embedded or external textures.
 
 ## Quick Start
@@ -140,8 +140,8 @@ cd D:\path\to\blit-tech
 node scripts\convert-bmfont.mjs input.fnt output.btfont --embed
 ```
 
-> **Note:** For best results with file I/O operations, running Node.js scripts directly from your terminal (not through
-> an IDE's embedded shell) is recommended.
+> **Note:** For best results with file I/O operations, running Node.js scripts directly from the terminal (not through
+> an IDE’s embedded shell) is recommended.
 
 ### Manual Conversion
 
@@ -149,9 +149,9 @@ If you prefer to convert manually:
 
 1. **Parse the `.fnt` XML file** to extract:
 
-- Font info: `face`, `size` from `<info>`
-- Metrics: `lineHeight`, `base` from `<common>`
-- Glyphs: All `<char>` elements
+- Font info: `face`, `size` from `<info>`.
+- Metrics: `lineHeight`, `base` from `<common>`.
+- Glyphs: All `<char>` elements.
 
 2. **For each `<char>` element**, create a glyph entry:
 
@@ -165,7 +165,7 @@ If you prefer to convert manually:
    "A": { "x": 80, "y": 18, "w": 9, "h": 17, "ox": -1, "oy": -1, "adv": 7 }
    ```
 
-3. **Set the texture path** to the PNG filename, or embed it as base64.
+3. **Set the texture path** to the PNG filename or embed it as base64.
 
 ## Creating Bitmap Fonts
 
@@ -173,33 +173,33 @@ If you prefer to convert manually:
 
 1. **[BMFont](https://www.angelcode.com/products/bmfont/)** (Windows)
 
-- The original bitmap font generator
-- Export as XML format, then convert to `.btfont`
+- The original bitmap font generator.
+- Export as XML format, then convert to `.btfont`.
 
 2. **[Hiero](https://libgdx.com/wiki/tools/hiero)** (Cross-platform)
 
-- Java-based, works on Mac/Linux/Windows
-- Export as BMFont format
+- Java-based, works on Mac/Linux/Windows.
+- Export as BMFont format.
 
 3. **[ShoeBox](https://renderhjs.net/shoebox/)** (Cross-platform)
 
-- Adobe AIR application
-- Can create bitmap fonts from existing images
+- Adobe AIR application.
+- Can create bitmap fonts from existing images.
 
 4. **Custom Font Editor** (Coming Soon)
 
-- Blit-Tech will include its own font editor
-- Native `.btfont` export with embedded textures
+- Blit–Tech will include its own font editor.
+- Native `.btfont` export with embedded textures.
 
 ### Tips for Creating Fonts
 
-1. **Use power-of-two texture sizes** (256×128, 512×256, etc.) for best GPU compatibility
+1. **Use power-of-two texture sizes** (256×128, 512×256, etc.) for best GPU compatibility.
 
-2. **Include an outline** (1-2px) for better readability on varied backgrounds
+2. **Include an outline** (1-2px) for better readability on varied backgrounds.
 
-3. **Export with padding** between characters to prevent bleeding artifacts
+3. **Export with padding** between characters to prevent bleeding artifacts.
 
-4. **Use white glyphs** on transparent background - colors are applied at render time via tinting
+4. **Use white glyphs** on a transparent background – colors are applied at render time via tinting.
 
 5. **Include common symbols** beyond ASCII: `×`, `÷`, `·`, `—`, `…`, etc.
 
@@ -284,22 +284,22 @@ for (let i = 0; i < text.length; i++) {
 
 ### Font not loading
 
-- Check the browser console for error messages
-- Verify the `.btfont` file path is correct (relative to the HTML file)
-- Ensure the texture file exists and is accessible
+- Check the browser console for error messages.
+- Verify the `.btfont` path is correct (relative to the HTML file).
+- Make sure the texture file exists and is accessible.
 
-### Characters appear at wrong positions
+### Characters appear in wrong positions
 
 - Verify `ox` and `oy` (offset) values are correct
-- Check that the texture coordinates match the actual glyph positions in the PNG
+- Check the texture coordinates match the actual glyph positions in the PNG.
 
 ### Missing characters
 
-- Check if the character is in the font's glyph map
-- Use `font.hasGlyph('×')` to test
-- Characters not in the font are silently skipped
+- Check if the character is in the font’s glyph map.
+- Use `font.hasGlyph('×')` to test.
+- Characters not in the font are silently skipped.
 
 ### Blurry text
 
-- Ensure the canvas is using nearest-neighbor scaling (CSS `image-rendering: pixelated`)
-- Use integer positions for `BT.printFont()`
+- Make sure the canvas is using nearest-neighbor scaling (CSS `image-rendering: pixelated`).
+- Use integer positions for `BT.printFont()`.

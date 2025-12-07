@@ -73,7 +73,7 @@ export class AssetLoader {
      * All images are loaded concurrently using Promise.all.
      *
      * @param urls - Array of image paths or URLs.
-     * @returns Promise resolving to array of loaded images in same order.
+     * @returns Promise resolving to an array of loaded images in same order.
      */
     static async loadImages(urls: string[]): Promise<HTMLImageElement[]> {
         return Promise.all(urls.map((url) => AssetLoader.loadImage(url)));
@@ -94,8 +94,8 @@ export class AssetLoader {
     }
 
     /**
-     * Gets a previously loaded image from cache.
-     * Does not trigger a new load if not found.
+     * Gets a previously loaded image from the cache.
+     * Doesn't trigger a new load if not found.
      *
      * @param url - Path or URL of the cached image.
      * @returns The cached image, or null if not loaded.
@@ -105,8 +105,8 @@ export class AssetLoader {
     }
 
     /**
-     * Clears all in-memory caches. In-flight image requests are not aborted
-     * and may repopulate the cache once they complete.
+     * Clears all in-memory caches. In-flight image requests aren't aborted
+     * and may repopulate the cache once complete.
      *
      * @returns void
      */

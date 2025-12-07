@@ -46,14 +46,14 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this game.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
     queryHardware(): HardwareSettings {
         return {
             displaySize: new Vector2i(320, 240), // Internal rendering resolution.
-            canvasDisplaySize: new Vector2i(640, 480), // CSS display size (2x upscale).
+            canvasDisplaySize: new Vector2i(640, 480), // CSS display size (2× upscale).
             targetFPS: 60,
         };
     }

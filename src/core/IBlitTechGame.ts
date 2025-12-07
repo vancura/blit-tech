@@ -7,18 +7,18 @@ import { Vector2i } from '../utils/Vector2i';
  * Returned by IBlitTechGame.queryHardware().
  */
 export interface HardwareSettings {
-    /** Display resolution in pixels (internal rendering resolution, e.g., 320x240). */
+    /** Display resolution in pixels (internal rendering resolution, e.g., 320×240). */
     displaySize: Vector2i;
 
     /**
      * Canvas display size in pixels (CSS size, optional).
      * If specified, sets the canvas CSS width/height for upscaling.
      * If omitted, uses the HTML/CSS size or defaults to displaySize.
-     * Example: displaySize=320x240, canvasDisplaySize=640x480 = 2x scaling.
+     * Example: displaySize=320×240, canvasDisplaySize=640×480 = 2× scaling.
      */
     canvasDisplaySize?: Vector2i;
 
-    /** Target frames per second for update() calls (default: 60). */
+    /** Target frames per second for the update() calls (default: 60). */
     targetFPS: number;
 }
 
@@ -57,7 +57,7 @@ export interface HardwareSettings {
  */
 export interface IBlitTechGame {
     /**
-     * Called once at startup to query hardware settings.
+     * Called once at the startup to query hardware settings.
      * This is the first method called, before any initialization.
      *
      * Define your display resolution and target framerate here.
@@ -68,9 +68,9 @@ export interface IBlitTechGame {
      * @example
      * queryHardware(): HardwareSettings {
      *   return {
-     *     displaySize: new Vector2i(320, 240),  // 320x240 internal resolution
-     *     canvasDisplaySize: new Vector2i(640, 480),  // 2x scaled display (optional)
-     *     targetFPS: 60  // 60 updates per second
+     *     displaySize: new Vector2i(320, 240), // 320×240 internal resolution
+     *     canvasDisplaySize: new Vector2i(640, 480), // 2× scaled display (optional)
+     *     targetFPS: 60 // 60 updates per second
      *   };
      * }
      */
@@ -78,7 +78,7 @@ export interface IBlitTechGame {
 
     /**
      * Called once after hardware initialization.
-     * Load assets and set up initial game state here.
+     * Load assets and set up the initial game state here.
      *
      * WebGPU is fully initialized at this point.
      * Use AssetLoader to load textures and fonts.
@@ -97,11 +97,11 @@ export interface IBlitTechGame {
 
     /**
      * Called at a fixed rate (default 60 times per second).
-     * Update game logic, handle input, and advance simulation here.
+     * Update game logic, handle input and advance simulation here.
      *
      * IMPORTANT: This runs at a fixed timestep for deterministic physics.
      * The timestep is controlled by targetFPS in HardwareSettings.
-     * Do NOT perform rendering in this method - use render() instead.
+     * Don't perform rendering in this method - use render() instead.
      *
      * PERFORMANCE: This is a HOT PATH. Avoid allocations where possible.
      * - Reuse objects instead of creating new ones
@@ -125,7 +125,7 @@ export interface IBlitTechGame {
      * Called at variable rate (as fast as possible).
      * Render game graphics here.
      *
-     * IMPORTANT: Do NOT update game logic in this method.
+     * IMPORTANT: Don't update game logic in this method.
      * Only drawing calls should be made here.
      * The renderer automatically batches sprites for performance.
      *
@@ -163,9 +163,9 @@ export interface IBlitTechGame {
 
 /**
  * Creates default hardware settings for quick prototyping.
- * Provides a 320x240 display at 60 FPS (classic retro resolution).
+ * Provides a 320×240 display at 60 FPS (classic retro resolution).
  *
- * RECOMMENDED FOR: Quick tests, examples, and prototypes.
+ * RECOMMENDED FOR: Quick tests, examples and prototypes.
  * NOT RECOMMENDED FOR: Production games (define explicit settings instead).
  *
  * @returns Default HardwareSettings configuration.
@@ -180,7 +180,7 @@ export interface IBlitTechGame {
  * queryHardware(): HardwareSettings {
  *   return {
  *     displaySize: new Vector2i(320, 240),
- *     canvasDisplaySize: new Vector2i(960, 720),  // 3x upscale
+ *     canvasDisplaySize: new Vector2i(960, 720), // 3x upscale
  *     targetFPS: 60
  *   };
  * }

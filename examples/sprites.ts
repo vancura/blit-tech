@@ -63,7 +63,7 @@ class SpriteDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this demo.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
