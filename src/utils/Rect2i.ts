@@ -1,5 +1,6 @@
 import { Vector2i } from './Vector2i';
 
+// noinspection PointlessBitwiseExpressionJS
 /**
  * Integer rectangle for pixel-perfect bounds and regions.
  * Inspired by RetroBlit's Rect2i.
@@ -56,6 +57,7 @@ export class Rect2i {
 
     // #region Raw Value Getters (Zero Allocation)
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the right edge X coordinate (x + width).
      * Use this instead of max.x in hot paths to avoid allocation.
@@ -66,6 +68,7 @@ export class Rect2i {
         return this.x + this.width;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the bottom edge Y coordinate (y + height).
      * Use this instead of max.y in hot paths to avoid allocation.
@@ -76,6 +79,7 @@ export class Rect2i {
         return this.y + this.height;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center X coordinate.
      * Use this instead of center.x in hot paths to avoid allocation.
@@ -86,6 +90,7 @@ export class Rect2i {
         return (this.x + this.width / 2) | 0;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center Y coordinate.
      * Use this instead of center.y in hot paths to avoid allocation.
@@ -100,6 +105,7 @@ export class Rect2i {
 
     // #region Computed Properties
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the top-left corner of the rectangle.
      *
@@ -111,6 +117,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the bottom-right corner of the rectangle (exclusive).
      *
@@ -122,6 +129,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x + this.width, this.y + this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the center point of the rectangle.
      *
@@ -133,6 +141,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked((this.x + this.width / 2) | 0, (this.y + this.height / 2) | 0);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the position (top-left corner) as a vector.
      *
@@ -144,6 +153,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets the position (top-left corner) from a vector.
      *
@@ -154,6 +164,7 @@ export class Rect2i {
         this.y = value.y | 0;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the size (width, height) as a vector.
      *
@@ -165,6 +176,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(this.width, this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets the size from a vector.
      *
@@ -179,6 +191,7 @@ export class Rect2i {
 
     // #region Zero-Allocation Output Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the top-left corner (min) to an existing vector.
      * Zero allocation alternative to the min getter.
@@ -193,6 +206,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the bottom-right corner (max) to an existing vector.
      * Zero allocation alternative to the max getter.
@@ -207,6 +221,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the center point to an existing vector.
      * Zero allocation alternative to the center getter.
@@ -221,6 +236,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the position (top-left corner) to an existing vector.
      * Zero allocation alternative to the position getter.
@@ -235,6 +251,7 @@ export class Rect2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes the size (width, height) to an existing vector.
      * Zero allocation alternative to the size getter.
@@ -253,6 +270,7 @@ export class Rect2i {
 
     // #region Intersection Tests
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Tests if a point lies within this rectangle.
      * Uses half-open interval: includes min, excludes max.
@@ -266,6 +284,7 @@ export class Rect2i {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Tests if raw x,y coordinates lie within this rectangle.
      * Uses half-open interval: includes min, excludes max.
@@ -294,6 +313,7 @@ export class Rect2i {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the overlapping region of two rectangles.
      *
@@ -316,6 +336,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(x1, y1, x2 - x1, y2 - y1);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the overlapping region and writes to an existing rectangle.
      * Zero allocation alternative to intersection().
@@ -340,6 +361,7 @@ export class Rect2i {
         return true;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates intersection depth for collision resolution.
      * Returns how much the rectangles overlap in each axis.
@@ -368,6 +390,7 @@ export class Rect2i {
         return Vector2i.fromXYUnchecked(xDepth, yDepth);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates intersection depth and writes to an existing vector.
      * Zero allocation alternative to intersectionDepth().
@@ -397,6 +420,7 @@ export class Rect2i {
 
     // #region Utility
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this rectangle equals another (all components match).
      *
@@ -407,6 +431,7 @@ export class Rect2i {
         return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates an independent copy of this rectangle.
      *
@@ -417,6 +442,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(this.x, this.y, this.width, this.height);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies this rectangle's values to an existing rectangle.
      * Zero allocation alternative to clone().
@@ -467,6 +493,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets only the position of this rectangle, keeping the size unchanged.
      * Modifies this rectangle directly for maximum performance.
@@ -484,6 +511,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Sets only the size of this rectangle, keeping position unchanged.
      * Modifies this rectangle directly for maximum performance.
@@ -501,6 +529,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies values from another rectangle.
      * Modifies this rectangle directly for maximum performance.
@@ -519,6 +548,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Moves this rectangle by the given offset.
      * Modifies this rectangle directly for maximum performance.
@@ -536,6 +566,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Expands this rectangle by the given amount on all sides.
      * Modifies this rectangle directly for maximum performance.
@@ -556,6 +587,7 @@ export class Rect2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Expands this rectangle by different amounts horizontally and vertically.
      * Modifies this rectangle directly for maximum performance.
@@ -592,6 +624,7 @@ export class Rect2i {
         return Rect2i._zero;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle from two corner points.
      *
@@ -608,6 +641,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(min.x, min.y, max.x - min.x, max.y - min.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle from two corner points specified as raw coordinates.
      * Zero allocation alternative to fromMinMax() when you have raw coordinates.
@@ -628,6 +662,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(x, y, (maxX | 0) - x, (maxY | 0) - y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle centered on a point with a given size.
      *
@@ -644,6 +679,7 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked(center.x - halfWidth, center.y - halfHeight, size.x, size.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates a rectangle centered on raw coordinates with a given size.
      * Zero allocation alternative to fromCenterSize() when you have raw coordinates.
@@ -667,6 +703,7 @@ export class Rect2i {
 
     // #region Static Factories
 
+    // noinspection DuplicatedCode
     /**
      * Creates a Rect2i from integer values without truncation.
      * Use this in hot paths when values are guaranteed to be integers.

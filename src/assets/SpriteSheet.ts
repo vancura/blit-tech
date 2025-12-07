@@ -75,6 +75,7 @@ export class SpriteSheet {
 
     // #region Accessors
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the source HTMLImageElement.
      *
@@ -154,6 +155,7 @@ export class SpriteSheet {
 
     // #region Cleanup
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Releases the GPU texture from memory.
      * Call when the sprite sheet is no longer needed.

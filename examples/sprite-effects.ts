@@ -422,6 +422,7 @@ function displayErrorMessage(title: string, message: string): void {
         consoleMsg.textContent = 'Check the browser console for more details.';
         errorDiv.appendChild(consoleMsg);
 
+        // noinspection InnerHTMLJS
         container.innerHTML = '';
         container.appendChild(errorDiv);
     }
@@ -497,6 +498,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 
