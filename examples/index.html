@@ -6,6 +6,26 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Blit–Tech - Examples</title>
         <link rel="stylesheet" href="./styles.css" />
+        <script>
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                var script = document.createElement('script');
+
+                script.async = true;
+                script.src = 'https://plausible.io/js/pa-kCVPXRE-G0ez2sSk1JxIN.js';
+
+                document.head.appendChild(script);
+
+                window.plausible = window.plausible || function() {
+                    (plausible.q = plausible.q || []).push(arguments)
+                };
+
+                plausible.init = plausible.init || function(i) {
+                    plausible.o = i || {};
+                };
+
+                plausible.init();
+            }
+        </script>
     </head>
 
     <body
