@@ -18,7 +18,7 @@ export class BTAPI {
 
     /**
      * Major version number.
-     * Combined with MINOR and PATCH to form semantic version string.
+     * Combined with MINOR and PATCH to form a semantic version string.
      *
      * @example
      * const version = `${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`;
@@ -128,7 +128,7 @@ export class BTAPI {
 
     /**
      * Initializes the engine with a game instance and canvas element.
-     * Sets up WebGPU, creates renderer, and starts the game loop.
+     * Sets up WebGPU, creates the renderer, and starts the game loop.
      *
      * @param game - Game implementing the IBlitTechGame interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
@@ -142,7 +142,7 @@ export class BTAPI {
         this.game = game;
         this.canvas = canvas;
 
-        // Query hardware settings from game.
+        // Query hardware settings from the game.
         console.log('[BlitTech] Querying hardware settings...');
 
         this.hwSettings = game.queryHardware();
@@ -182,7 +182,7 @@ export class BTAPI {
 
         // TODO: Initialize input, audio, etc.
 
-        // Initialize game.
+        // Initialize the game.
         console.log('[BlitTech] Initializing game...');
 
         if (!(await game.initialize())) {
@@ -191,7 +191,7 @@ export class BTAPI {
             return false;
         }
 
-        // Wait for next frame to ensure canvas is fully ready.
+        // Wait for the next frame to ensure canvas is fully ready.
         // This helps with Electron and some browser timing issues.
         await new Promise<void>((resolve) => {
             requestAnimationFrame(() => {
@@ -201,7 +201,7 @@ export class BTAPI {
             });
         });
 
-        // Start game loop.
+        // Start the game loop.
         this.startGameLoop();
 
         console.log('[BlitTech] Initialization complete!');
@@ -375,7 +375,7 @@ export class BTAPI {
 
     /**
      * Gets the current tick count.
-     * Ticks increment once per fixed update (e.g., 60 times/second at 60 FPS).
+     * Ticks increment once per the fixed update (e.g., 60 times/second at 60 FPS).
      *
      * @returns Number of update ticks since initialization or last reset.
      */
@@ -479,7 +479,7 @@ export class BTAPI {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without anti-aliasing.
+     * Produces pixel-perfect lines without antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
@@ -531,7 +531,7 @@ export class BTAPI {
      *
      * @param spriteSheet - Source sprite sheet texture.
      * @param srcRect - Region to copy from the sprite sheet.
-     * @param destPos - Screen position to draw at (top-left corner).
+     * @param destPos - Screen position to draw in (the top-left corner).
      * @param tint - Optional tint color (defaults to white = no tint).
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void {
@@ -557,7 +557,7 @@ export class BTAPI {
 
     /**
      * Sets the camera offset for scrolling effects.
-     * All drawing operations are offset by this amount.
+     * This amount offsets all drawing operations.
      *
      * @param offset - Camera position offset in pixels.
      */

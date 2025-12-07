@@ -11,10 +11,10 @@ export interface Glyph {
     /** Source rectangle in the font texture atlas. */
     rect: Rect2i;
 
-    /** Horizontal offset from pen position when rendering. */
+    /** Horizontal offset from the pen position when rendering. */
     offsetX: number;
 
-    /** Vertical offset from pen position when rendering. */
+    /** Vertical offset from the pen position when rendering. */
     offsetY: number;
 
     /** Horizontal advance after drawing (distance to next character). */
@@ -68,7 +68,7 @@ interface FontFileData {
     /**
      * Texture source. Can be:
      * - Base64-encoded PNG data URI (e.g., "data:image/png;base64,...")
-     * - Relative path to PNG file (resolved relative to .btfont file)
+     * - Relative path to the PNG file (resolved relative to .btfont file)
      */
     texture: string;
 
@@ -107,7 +107,7 @@ const ASCII_CACHE_SIZE = 128;
  * Supports Unicode characters and per-glyph rendering offsets.
  *
  * Performance optimizations:
- * - ASCII glyphs cached in direct array for O(1) lookup
+ * - ASCII glyphs cached in a direct array for O(1) lookup
  * - Text measurement results cached with LRU eviction
  * - Reusable result objects to minimize allocations
  * - Optimized loops using charCodeAt for ASCII text
@@ -199,7 +199,7 @@ export class BitmapFont {
      *
      * @param url - Path to the .btfont file.
      * @returns Promise resolving to the loaded BitmapFont.
-     * @throws Error if the file cannot be loaded or parsed.
+     * @throws Error if the file can't be loaded or parsed.
      */
     static async load(url: string): Promise<BitmapFont> {
         // Fetch and parse the JSON file.
@@ -216,7 +216,7 @@ export class BitmapFont {
             throw new Error(`Invalid font file: ${url} - missing texture or glyphs`);
         }
 
-        // Load texture - either from data URI or relative path.
+        // Load texture – either from data URI or relative path.
         const image = await BitmapFont.loadTexture(data.texture, url);
         const spriteSheet = new SpriteSheet(image);
 
@@ -234,7 +234,7 @@ export class BitmapFont {
 
             glyphs.set(char, glyph);
 
-            // Populate ASCII fast-lookup array for single-byte characters.
+            // Populate the ASCII fast-lookup array for single-byte characters.
             if (char.length === 1) {
                 const code = char.charCodeAt(0);
 
@@ -306,7 +306,7 @@ export class BitmapFont {
      * Uses fast array lookup for ASCII characters, falls back to Map for Unicode.
      *
      * @param char - Single character to look up (supports Unicode).
-     * @returns Glyph data with source rect, offsets, and advance, or null if not found.
+     * @returns Glyph data with source rect, offsets and advance, or null if not found.
      */
     getGlyph(char: string): Glyph | null {
         // Fast path for ASCII characters.
@@ -372,7 +372,7 @@ export class BitmapFont {
      * @returns Total width in pixels.
      */
     measureText(text: string): number {
-        // Check cache first.
+        // Check the cache first.
         const cached = this.measureCache.get(text);
 
         if (cached !== undefined) {
@@ -392,7 +392,7 @@ export class BitmapFont {
                 // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
                 glyph = this.asciiGlyphs[code] ?? null;
             } else {
-                // Unicode fallback - index is guaranteed valid within loop bounds.
+                // Unicode fallback – index is guaranteed valid within loop bounds.
                 // eslint-disable-next-line security/detect-object-injection -- Index is within loop bounds
                 const char = text[i];
 
@@ -426,10 +426,10 @@ export class BitmapFont {
      * For single-line text, height equals lineHeight.
      *
      * WARNING: Returns a reusable internal object to avoid allocations.
-     * Do not store the returned reference - copy the values if needed.
+     * Don't store the returned reference – copy the values if needed.
      *
      * @param text - String to measure.
-     * @returns Object with width and height in pixels (reused, do not store reference).
+     * @returns Object with width and height in pixels (reused, don't store reference).
      */
     measureTextSize(text: string): TextSize {
         this.textSizeResult.width = this.measureText(text);
@@ -439,7 +439,7 @@ export class BitmapFont {
     }
 
     /**
-     * Measures the pixel dimensions of a text string and copies to provided object.
+     * Measures the pixel dimensions of a text string and copies to the provided object.
      * Use this when you need to store the result.
      *
      * @param text - String to measure.

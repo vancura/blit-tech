@@ -86,7 +86,7 @@ export class SpriteSheet {
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
-     * Texture is created on first access and cached for reuse.
+     * Texture is created on first access and cached for the reuse.
      *
      * @param device - WebGPU device for texture creation.
      * @returns GPU texture ready for rendering.

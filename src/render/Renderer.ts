@@ -7,16 +7,16 @@ import { Vector2i } from '../utils/Vector2i';
 // #region Configuration
 
 /**
- * Maximum number of primitive vertices per frame.
+ * Maximum number of primitive vertices per a frame.
  * Each vertex uses 6 floats (x, y, r, g, b, a).
- * 100k vertices = ~2.4MB buffer, supports ~16.6k quads per frame.
+ * 100k vertices = ~2.4 MB buffer, supports ~16.6k quads per a frame.
  */
 const MAX_PRIMITIVE_VERTICES = 100000;
 
 /**
- * Maximum number of sprite vertices per frame.
+ * Maximum number of sprite vertices per a frame.
  * Each vertex uses 8 floats (x, y, u, v, r, g, b, a).
- * 50k vertices = ~1.6MB buffer, supports ~8.3k sprites per frame.
+ * 50k vertices = ~1.6 MB buffer, supports ~8.3k sprites per a frame.
  */
 const MAX_SPRITE_VERTICES = 50000;
 
@@ -25,7 +25,7 @@ const MAX_SPRITE_VERTICES = 50000;
 /**
  * WebGPU renderer for Blit–Tech.
  * Handles all drawing operations including primitives (lines, rects) and sprites.
- * Uses batched rendering for performance - vertices are accumulated and drawn at frame end.
+ * Uses batched rendering for performance - vertices are accumulated and drawn at the frame end.
  */
 export class Renderer {
     // #region Module State - WebGPU Resources
@@ -61,7 +61,7 @@ export class Renderer {
     /** Current number of primitive vertices in the batch. */
     private primitiveVertexCount: number = 0;
 
-    /** Maximum number of primitive vertices per frame. */
+    /** Maximum number of primitive vertices per a frame. */
     private maxPrimitiveVertices: number = MAX_PRIMITIVE_VERTICES;
 
     // #endregion
@@ -86,7 +86,7 @@ export class Renderer {
     /** Current number of sprite vertices in the batch. */
     private spriteVertexCount: number = 0;
 
-    /** Maximum number of sprite vertices per frame. */
+    /** Maximum number of sprite vertices per a frame. */
     private maxSpriteVertices: number = MAX_SPRITE_VERTICES;
 
     // #endregion
@@ -99,7 +99,7 @@ export class Renderer {
     /** Currently bound bind group for sprite rendering. */
     private currentBindGroup: GPUBindGroup | null = null;
 
-    /** Cache of texture bind groups for reuse. */
+    /** Cache of texture bind groups for the reuse. */
     private textureBindGroups: Map<GPUTexture, GPUBindGroup> = new Map();
 
     /** Sprite batches to render (one per texture). */
@@ -112,7 +112,7 @@ export class Renderer {
 
     // #region Module State - Frame State
 
-    /** Current clear color for background. */
+    /** Current clear color for the background. */
     private currentClearColor: Color32 = Color32.black();
 
     /** Camera offset for scrolling effects. */
@@ -120,7 +120,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Module State - Reusable Objects (Performance Optimization)
+    // #region Module State – Reusable Objects (Performance Optimization)
 
     /**
      * Pre-allocated reusable rectangle for internal drawing operations.
@@ -175,7 +175,7 @@ export class Renderer {
     // #region Initialization
 
     /**
-     * Initializes GPU resources: pipelines, buffers, and samplers.
+     * Initializes GPU resources: pipelines, buffers and samplers.
      * Must be called before any rendering operations.
      *
      * @returns Promise resolving to true if initialization succeeded.
@@ -473,8 +473,8 @@ export class Renderer {
 
     /**
      * Begins a new render frame.
-     * Resets all frame state including vertex counts, sprite batches, and texture bindings.
-     * Safe to call multiple times - defensively resets all state to prevent corruption.
+     * Resets all frame states, including vertex counts, sprite batches, and texture bindings.
+     * Safe to call multiple times - defensively resets all states to prevent corruption.
      */
     beginFrame(): void {
         this.primitiveVertexCount = 0;
@@ -560,7 +560,7 @@ export class Renderer {
     }
 
     /**
-     * Draws a single pixel as a 1x1 filled rectangle.
+     * Draws a single pixel as a 1×1 filled rectangle.
      *
      * @param pos - Pixel position.
      * @param color - Pixel color.
@@ -588,7 +588,7 @@ export class Renderer {
         const b = color.b / 255;
         const a = color.a / 255;
 
-        // Draw 1x1 rectangle (2 triangles = 6 vertices).
+        // Draw 1×1 rectangle (2 triangles = 6 vertices).
         const x1 = x + 1;
         const y1 = y + 1;
 
@@ -603,14 +603,14 @@ export class Renderer {
 
     /**
      * Draws a line using Bresenham's line algorithm.
-     * Produces pixel-perfect lines without anti-aliasing.
+     * Produces pixel-perfect lines without the antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
      * @param color - Line color.
      */
     drawLine(p0: Vector2i, p1: Vector2i, color: Color32): void {
-        // Vector2i already guarantees integers, but |0 ensures 32-bit int for bitwise ops.
+        // Vector2i already guarantees integers, but |0 ensures the 32-bit int for bitwise ops.
         let x0 = p0.x | 0;
         let y0 = p0.y | 0;
         const x1 = p1.x | 0;
@@ -764,7 +764,7 @@ export class Renderer {
         const texture = spriteSheet.getTexture(this.device);
         const uvs = spriteSheet.getUVs(srcRect);
 
-        // Use pre-allocated vector for size to avoid allocation.
+        // Use a pre-allocated vector for size to avoid allocation.
         this.tempSize.set(srcRect.width, srcRect.height);
 
         this.drawTexturedQuad(texture, destPos, this.tempSize, uvs.u0, uvs.v0, uvs.u1, uvs.v1, tint);
@@ -784,13 +784,13 @@ export class Renderer {
         let cursorX = pos.x;
         const len = text.length;
 
-        // Optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
+        // The optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
         for (let i = 0; i < len; i++) {
             const code = text.charCodeAt(i);
             const glyph = font.getGlyphByCode(code);
 
             if (glyph) {
-                // Use pre-allocated vector to avoid allocation per character.
+                // Use a pre-allocated vector to avoid allocation per character.
                 this.tempVec1.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
                 this.drawSprite(spriteSheet, glyph.rect, this.tempVec1, color);
                 cursorX += glyph.advance;
@@ -843,14 +843,14 @@ export class Renderer {
             this.currentBindGroup = this.getOrCreateBindGroup(texture);
         }
 
-        // Ensure we have space for a complete quad (6 vertices) before adding any
+        // Ensure there is a space for a complete quad (6 vertices) before adding any
         // This prevents partial quads that would cause rendering corruption
         if (!this.hasSpaceForQuad()) {
             if (this.spriteVertexCount > 0) {
                 this.batchSpriteVertices();
             }
 
-            // Check again after flush - if still no space, buffer is full for this frame.
+            // Check again after flush - if still no space, the buffer is full for this frame.
             if (!this.hasSpaceForQuad()) {
                 console.warn('[Renderer] Sprite buffer capacity exceeded for this frame, quad dropped');
 
@@ -919,10 +919,10 @@ export class Renderer {
 
     /**
      * Gets or creates a bind group for a texture.
-     * Bind groups are cached for reuse.
+     * Bind groups are cached for the reuse.
      *
-     * @param texture - GPU texture to create bind group for.
-     * @returns Bind group containing uniform buffer, sampler, and texture.
+     * @param texture - GPU texture to create the bind group for.
+     * @returns Bind group containing uniform buffer, sampler and texture.
      */
     private getOrCreateBindGroup(texture: GPUTexture): GPUBindGroup {
         const existingBindGroup = this.textureBindGroups.get(texture);
@@ -983,7 +983,7 @@ export class Renderer {
 
     /**
      * Uploads primitive vertices to the GPU and resets the batch.
-     * Called automatically when buffer is full or frame ends.
+     * Called automatically when the buffer is full, or the frame ends.
      */
     private uploadPrimitiveVertices(): void {
         if (this.primitiveVertexCount === 0) return;
@@ -1125,7 +1125,7 @@ export class Renderer {
 
     /**
      * Resets all per-frame rendering state.
-     * Called at end of frame or when frame must be skipped.
+     * Called at the end of a frame or when the frame must be skipped.
      */
     private resetFrameState(): void {
         this.primitiveVertexCount = 0;
