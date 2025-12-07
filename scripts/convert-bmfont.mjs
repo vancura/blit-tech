@@ -39,7 +39,7 @@ function parseInfoTag(xmlData) {
     const infoMatch = xmlData.match(/<info[^>]+>/);
 
     if (!infoMatch) {
-        console.error('Error: Could not find <info> tag in font file');
+        console.error('Error: Couldn’t find <info> tag in font file');
 
         process.exit(1);
     }
@@ -68,7 +68,7 @@ function parseCommonTag(xmlData, fontSize) {
     const commonMatch = xmlData.match(/<common[^>]+>/);
 
     if (!commonMatch) {
-        console.error('Error: Could not find <common> tag in font file');
+        console.error('Error: Couldn’t find <common> tag in font file');
 
         process.exit(1);
     }
@@ -111,13 +111,13 @@ function parsePageTag(xmlData) {
     const pageMatches = [...xmlData.matchAll(/<page[^>]+>/g)];
 
     if (pageMatches.length === 0) {
-        console.error('Error: Could not find <page> tag in font file');
+        console.error('Error: Couldn’t find <page> tag in font file');
 
         process.exit(1);
     }
 
     if (pageMatches.length > 1) {
-        console.error(`Error: Multi-page BMFonts are not supported (found ${pageMatches.length} <page> tags)`);
+        console.error(`Error: Multi-page BMFonts aren’t supported (found ${pageMatches.length} <page> tags)`);
         console.error('This font uses multiple texture pages, which is not currently supported.');
 
         process.exit(1);
@@ -126,7 +126,7 @@ function parsePageTag(xmlData) {
     const textureFilename = parseXmlAttribute(pageMatches[0][0], 'file');
 
     if (!textureFilename) {
-        console.error('Error: Could not find texture filename in <page> tag');
+        console.error('Error: Couldn’t find texture filename in <page> tag');
 
         process.exit(1);
     }
