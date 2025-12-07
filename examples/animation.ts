@@ -326,7 +326,9 @@ class AnimationDemo implements IBlitTechGame {
      * Renders the animated character with the current frame and jump offset.
      */
     private renderCharacter(): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         // Calculate sprite position in the sheet.
         const stateRow = this.getStateRow(this.animation.state);
@@ -396,7 +398,9 @@ class AnimationDemo implements IBlitTechGame {
      * Renders UI showing timing information, animation state, and cooldowns.
      */
     private renderUI(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Title.
         BT.printFont(this.font, new Vector2i(10, 10), 'ANIMATION & TIMING DEMO', Color32.white());
@@ -432,7 +436,9 @@ class AnimationDemo implements IBlitTechGame {
      * Renders cooldown timer and progress bar.
      */
     private renderCooldownUI(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         const cooldownPercent = Math.max(0, this.abilityCooldownTicks / this.abilityCooldownDuration);
         const cooldownColor = cooldownPercent > 0 ? new Color32(255, 100, 100) : new Color32(100, 255, 100);
@@ -467,7 +473,9 @@ class AnimationDemo implements IBlitTechGame {
      * Renders spawn timer information.
      */
     private renderSpawnTimerUI(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Next spawn timer.
         const ticksUntilSpawn = this.spawnInterval - (BT.ticks() - this.lastSpawnTick);
@@ -492,7 +500,9 @@ class AnimationDemo implements IBlitTechGame {
      * Renders information box explaining tick-based animation.
      */
     private renderInfoBox(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 165), 'Tick-based Animation:', new Color32(255, 200, 100));
         BT.printFont(this.font, new Vector2i(10, 180), '- Deterministic frame timing', new Color32(180, 180, 180));

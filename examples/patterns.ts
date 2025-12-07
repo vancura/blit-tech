@@ -322,7 +322,9 @@ class PatternsDemo implements IBlitTechGame {
      * Renders text labels for each pattern demonstration.
      */
     private renderLabels(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(15, 95), 'Spiral', new Color32(200, 200, 200));
         BT.printFont(this.font, new Vector2i(90, 95), 'Radial', new Color32(200, 200, 200));

@@ -132,7 +132,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderColoredText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         BT.printFont(this.font, new Vector2i(10, y), 'Red Text', new Color32(255, 100, 100));
         y += lineHeight;
@@ -157,7 +159,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderRainbowText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const rainbowText = 'Rainbow Animation!';
         let x = 10;
@@ -184,7 +188,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderPulsingText(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const pulse = Math.sin(this.animTime * 3) * 0.5 + 0.5;
         const pulseColor = new Color32(Math.floor(100 + pulse * 155), Math.floor(100 + pulse * 155), 255);
@@ -202,7 +208,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderSpecialCharacters(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         BT.printFont(this.font, new Vector2i(10, y), 'Special: 3 x 4 = 12', Color32.white());
 
@@ -217,7 +225,9 @@ class FontDemo implements IBlitTechGame {
      * @returns Next Y position after rendering.
      */
     private renderTextMeasurement(y: number, lineHeight: number): number {
-        if (!this.font) return y;
+        if (!this.font) {
+            return y;
+        }
 
         const measureText = 'Measured Width';
         const textWidth = this.font.measureText(measureText);
@@ -241,7 +251,9 @@ class FontDemo implements IBlitTechGame {
      * @param lineHeight - Height between lines.
      */
     private renderFontInfo(y: number, lineHeight: number): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Font info.
         BT.printFont(

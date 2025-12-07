@@ -321,7 +321,9 @@ export class BTAPI {
         this.isRunning = true;
 
         const loop = (currentTime: number) => {
-            if (!this.isRunning) return;
+            if (!this.isRunning) {
+                return;
+            }
 
             // Calculate delta time.
             const deltaTime = currentTime - this.lastUpdateTime;

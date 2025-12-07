@@ -143,7 +143,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Row 2: Team colors and status effects (frozen, poisoned).
      */
     private renderEffectExamples(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         this.renderBasicEffects();
         this.renderTeamColorsAndStatus();
@@ -153,7 +155,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Renders basic tinting effects (row 1).
      */
     private renderBasicEffects(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const row1Y = 35;
         const spacing = 55;
@@ -188,7 +192,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Renders team colors and status effects (row 2).
      */
     private renderTeamColorsAndStatus(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const row2Y = 105;
         const spacing = 55;
@@ -258,7 +264,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Cycles through Day, Sunset, Night, and Dawn with ambient tinting.
      */
     private renderDayNightCycle(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const baseY = 175;
 
@@ -306,7 +314,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * @param ambientTint - Current ambient tint color.
      */
     private renderDayNightProgressBar(baseY: number, cycleTime: number, ambientTint: Color32): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         const barX = 60;
         const barY = baseY + 25;

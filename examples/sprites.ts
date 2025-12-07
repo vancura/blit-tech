@@ -153,7 +153,9 @@ class SpriteDemo implements IBlitTechGame {
      * Renders sprites with different solid colors.
      */
     private renderColoredSprites(): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row1Y = 45;
 
@@ -172,7 +174,9 @@ class SpriteDemo implements IBlitTechGame {
      * @param hue4 - Hue value for the fourth sprite (0-360).
      */
     private renderRainbowSprites(hue1: number, hue2: number, hue3: number, hue4: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row2Y = 100;
 
@@ -188,7 +192,9 @@ class SpriteDemo implements IBlitTechGame {
      * @param alpha - Alpha channel value (0-255).
      */
     private renderPulsingSprites(alpha: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row3Y = 155;
 
@@ -220,7 +226,9 @@ class SpriteDemo implements IBlitTechGame {
      * @param bounce3 - Vertical offset for the third sprite.
      */
     private renderBouncingSprites(bounce1: number, bounce2: number, bounce3: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const baseY = 210;
 
@@ -243,7 +251,9 @@ class SpriteDemo implements IBlitTechGame {
      * Renders text labels for each sprite row.
      */
     private renderLabels(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Title.
         BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH SPRITE DEMO', Color32.white());
@@ -259,7 +269,9 @@ class SpriteDemo implements IBlitTechGame {
      * Renders code usage instructions.
      */
     private renderInstructions(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(170, 30), 'Load your own', new Color32(150, 150, 150));
         BT.printFont(this.font, new Vector2i(170, 45), 'sprite sheets:', new Color32(150, 150, 150));

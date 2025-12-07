@@ -1,5 +1,3 @@
- 
-
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
@@ -636,7 +634,9 @@ export class Renderer {
             // Draw pixel directly without creating Vector2i.
             this.addPixelVertices(x0, y0, r, g, b, a);
 
-            if (x0 === x1 && y0 === y1) break;
+            if (x0 === x1 && y0 === y1) {
+                break;
+            }
 
             const e2 = 2 * err;
             if (e2 > -dy) {
@@ -990,7 +990,9 @@ export class Renderer {
      * Called automatically when the buffer is full, or the frame ends.
      */
     private uploadPrimitiveVertices(): void {
-        if (this.primitiveVertexCount === 0) return;
+        if (this.primitiveVertexCount === 0) {
+            return;
+        }
 
         // Safe assertion: primitiveVertexBuffer is created in initialize().
         this.device.queue.writeBuffer(
@@ -1009,7 +1011,9 @@ export class Renderer {
      * Called automatically when texture changes.
      */
     private batchSpriteVertices(): void {
-        if (this.spriteVertexCount === 0 || !this.currentBindGroup) return;
+        if (this.spriteVertexCount === 0 || !this.currentBindGroup) {
+            return;
+        }
 
         // Save this batch for rendering at endFrame.
         this.spriteBatches.push({

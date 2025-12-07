@@ -120,7 +120,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows animated rainbow-colored pixels in a pattern.
      */
     private renderPixelDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 30), 'Pixels:', new Color32(255, 200, 100));
 
@@ -139,7 +141,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows horizontal, vertical, diagonal, and rotating lines.
      */
     private renderLineDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 75), 'Lines:', new Color32(255, 200, 100));
 
@@ -163,7 +167,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows static rectangles and a pulsing animated rectangle.
      */
     private renderRectOutlineDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(90, 30), 'Rect Outlines:', new Color32(255, 200, 100));
 
@@ -182,7 +188,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows static filled rectangles and a sliding animated rectangle.
      */
     private renderRectFillDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(90, 90), 'Rect Fills:', new Color32(255, 200, 100));
 
@@ -201,7 +209,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows a background pattern with a moving cleared region.
      */
     private renderClearRectDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(10, 135), 'Clear Rect:', new Color32(255, 200, 100));
 
@@ -222,7 +232,9 @@ class PrimitivesDemo implements IBlitTechGame {
      * Shows an animated sine wave graph using multiple drawing functions.
      */
     private renderCombinedDemo(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(120, 150), 'Combined:', new Color32(255, 200, 100));
 
