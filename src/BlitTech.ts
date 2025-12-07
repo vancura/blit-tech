@@ -275,7 +275,7 @@ export const BT = {
 
     /**
      * Sets the camera offset for scrolling effects.
-     * All drawing operations are offset by this amount.
+     * This amount offsets all drawing operations.
      *
      * @param offset - Camera position offset in pixels.
      */

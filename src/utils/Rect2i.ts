@@ -286,7 +286,7 @@ export class Rect2i {
 
     // noinspection JSUnusedGlobalSymbols
     /**
-     * Tests if raw x,y coordinates lie within this rectangle.
+     * Tests if raw x, y coordinates lie within this rectangle.
      * Uses half-open interval: includes min, excludes max.
      * Zero allocation alternative to contains() when you have raw coordinates.
      *
