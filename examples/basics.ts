@@ -2,7 +2,7 @@
  * Basic Blit–Tech Example
  *
  * Demonstrates the minimal setup required for a Blit–Tech game.
- * This example creates a simple moving square that bounces around the screen.
+ * This example creates a simple moving square, bounding around the screen.
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
@@ -15,7 +15,7 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
 // #region Game Class
 
 /**
- * A minimal game demonstrating core Blit–Tech functionality.
+ * A minimal game demonstrating core Blit–Tech features.
  * Shows hardware configuration, game loop, and basic rendering.
  * Note: Input handling is planned but not yet implemented in Phase 1.
  */
@@ -91,7 +91,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Updates game logic each tick.
-     * Auto-moves the square and bounces off-screen edges.
+     * Automatically moves the square and bounces off-screen edges.
      * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
      */
     update(): void {
@@ -116,7 +116,7 @@ class BasicGame implements IBlitTechGame {
 
     /**
      * Renders game graphics each frame.
-     * Clears screen, draws player square, and displays UI text using bitmap font.
+     * Clears the screen, draws player square, and displays UI text using bitmap font.
      */
     render(): void {
         // Clear screen.
@@ -218,7 +218,7 @@ function getCanvasElement(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Validates WebGPU support, retrieves canvas element, creates game instance,
+ * Validates WebGPU support, retrieves the canvas element, creates a game instance,
  * and initializes the Blit–Tech engine.
  */
 async function initializeApplication(): Promise<void> {
@@ -232,7 +232,7 @@ async function initializeApplication(): Promise<void> {
                 '<strong>Supported browsers:</strong><br>' +
                 '• Chrome/Edge 113+<br>' +
                 '• Firefox Nightly (with the flag enabled)<br><br>' +
-                'Please update your browser or try a different one.',
+                'Update your browser or try a different one.',
         );
 
         console.error('[Main] WebGPU not supported');
@@ -251,10 +251,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new BasicGame();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Game started successfully!');
     } else {

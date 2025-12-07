@@ -58,7 +58,7 @@ function isInternalUrl(url) {
 
 /**
  * Sets Content Security Policy headers for all web requests.
- * Restricts resource loading to same-origin and allows necessary inline styles.
+ * Restricts resource loading to the same origin and allows necessary inline styles.
  * In production, WebSocket connections are restricted to same-origin only.
  *
  * @param {Electron.OnHeadersReceivedListenerDetails} details - Request details.
@@ -137,7 +137,7 @@ function onMainWindowClosed() {
  * Creates and configures the main application window.
  *
  * Sets up window dimensions optimized for Steam Deck, configures security settings,
- * applies Content Security Policy, and loads the appropriate content based on environment.
+ * applies Content Security Policy, and loads the appropriate content based on the environment.
  * Registers event handlers for navigation, window lifecycle, and crash events.
  *
  * @returns {BrowserWindow} The created main application window instance.
@@ -198,7 +198,7 @@ function createWindow() {
 app.whenReady().then(() => {
     createWindow();
 
-    // On macOS, recreate window when dock icon is clicked and no windows exist.
+    // On macOS, recreate the window when the dock icon is clicked and no windows exist.
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();

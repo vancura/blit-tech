@@ -3,12 +3,12 @@
  *
  * Showcases various animated patterns and effects using primitive drawing.
  * Demonstrates mathematical curves and visual effects:
- * - Spiral: Expanding point pattern
- * - Radial Lines: Animated sun-ray effect
- * - Wave: Sinusoidal interference patterns
- * - Circle: Polygon approximation with rainbow colors
- * - Lissajous: Classic parametric curve
- * - Tunnel: Concentric rotating rectangles
+ * - spiral: expanding point pattern,
+ * - radial lines: Animated sun-ray effect,
+ * - wave: sinusoidal interference patterns,
+ * - circle: polygon approximation with rainbow colors,
+ * - lissajous: Classic parametric curve,
+ * - tunnel: Concentric rotating rectangles.
  */
 
 // #region Imports
@@ -36,13 +36,13 @@ class PatternsDemo implements IBlitTechGame {
 
     // #region Pre-allocated Reusable Objects (Performance)
 
-    /** Reusable vector for drawing operations to avoid allocations. */
+    /** A reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec1 = new Vector2i(0, 0);
 
-    /** Reusable vector for drawing operations to avoid allocations. */
+    /** A reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec2 = new Vector2i(0, 0);
 
-    /** Reusable rectangle for drawing operations to avoid allocations. */
+    /** A reusable rectangle for drawing operations to avoid allocations. */
     private readonly tempRect = new Rect2i(0, 0, 0, 0);
 
     // #endregion
@@ -86,7 +86,7 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation timer for time-based effects.
      */
     update(): void {
@@ -160,7 +160,7 @@ class PatternsDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws animated radial lines from center like sun rays.
+     * Draws animated radial lines from the center like sun rays.
      * Line lengths pulse based on time offset for each ray.
      *
      * @param center - Center point of the radial pattern.
@@ -194,7 +194,7 @@ class PatternsDemo implements IBlitTechGame {
     private drawWavePattern(center: Vector2i): void {
         const width = 60;
 
-        // Pre-create colors outside loop to avoid allocations.
+        // Pre-create colors outside the loop to avoid allocations.
         const color1 = new Color32(100, 200, 255);
         const color2 = new Color32(255, 150, 100);
         const color3 = new Color32(150, 255, 150);
@@ -202,12 +202,12 @@ class PatternsDemo implements IBlitTechGame {
         for (let x = 0; x < width; x++) {
             const baseX = center.x - width / 2 + x;
 
-            // Primary wave.
+            // The primary wave.
             const y1 = Math.sin((x + this.animTime * 20) * 0.2) * 15;
             this.tempVec1.set(baseX, center.y + Math.floor(y1));
             BT.drawPixel(this.tempVec1, color1);
 
-            // Secondary wave.
+            // The secondary wave.
             const y2 = Math.cos((x + this.animTime * 15) * 0.15) * 10;
             this.tempVec1.set(baseX, center.y + Math.floor(y2));
             BT.drawPixel(this.tempVec1, color2);
@@ -385,7 +385,7 @@ function getCanvasElement(): HTMLCanvasElement | null {
 
 /**
  * Application entry point.
- * Validates WebGPU support, retrieves canvas, and initializes the patterns demo.
+ * Validates WebGPU support, retrieves canvas, and initializes the pattern demo.
  */
 async function initializeApplication(): Promise<void> {
     // Validate WebGPU support.
@@ -406,10 +406,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new PatternsDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Patterns demo started successfully!');
     } else {

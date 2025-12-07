@@ -456,7 +456,7 @@ export class Renderer {
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-        // Create sampler for sprites (nearest-neighbor for pixel-perfect rendering).
+        // Create a sampler for sprites (nearest-neighbor for pixel-perfect rendering).
         this.spriteSampler = this.device.createSampler({
             label: 'Sprite Sampler',
             magFilter: 'nearest', // Pixel-perfect rendering
@@ -717,7 +717,7 @@ export class Renderer {
 
     /**
      * Adds a single vertex to the primitive batch.
-     * Flushes the batch if buffer is full.
+     * Flushes the batch if the buffer is full.
      *
      * @param x - X position in pixels.
      * @param y - Y position in pixels.
@@ -799,7 +799,7 @@ export class Renderer {
     }
 
     /**
-     * Checks if there's enough buffer space for a complete quad (6 vertices).
+     * Checks if there is enough buffer space for a complete quad (6 vertices).
      *
      * @returns True if a quad can be added without splitting.
      */
@@ -953,7 +953,7 @@ export class Renderer {
 
     /**
      * Sets the camera offset for scrolling.
-     * All drawing operations are offset by this amount.
+     * This amount offsets all drawing operations.
      *
      * @param offset - Camera position in pixels.
      */
@@ -1019,7 +1019,7 @@ export class Renderer {
     }
 
     /**
-     * Ends the current frame and presents to screen.
+     * Ends the current frame and presents to the screen.
      * Uploads all batched vertices, executes render passes, and submits to GPU.
      */
     endFrame(): void {
@@ -1034,7 +1034,7 @@ export class Renderer {
             this.totalSpriteVertices += this.spriteVertexCount;
         }
 
-        // Get current texture to render to.
+        // Get the current texture to render to.
         let texture: GPUTexture;
 
         try {
@@ -1076,7 +1076,7 @@ export class Renderer {
             ],
         });
 
-        // Draw primitives if any were added this frame.
+        // Draw primitives if any were added to this frame.
         // Safe assertions: these resources are created in initialize() before any rendering.
         if (this.primitiveVertexCount > 0) {
             this.device.queue.writeBuffer(
@@ -1093,7 +1093,7 @@ export class Renderer {
             renderPass.draw(this.primitiveVertexCount);
         }
 
-        // Draw all sprite batches (supports multiple textures per frame).
+        // Draw all sprite batches (supports multiple textures per the frame).
         // Safe assertions: these resources are created in initialize() before any rendering.
         if (this.spriteBatches.length > 0 && this.totalSpriteVertices > 0) {
             // Upload all sprite vertices at once

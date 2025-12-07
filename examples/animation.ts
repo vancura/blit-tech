@@ -45,10 +45,10 @@ interface CharacterAnimation {
     /** Current frame index in the animation. */
     frameIndex: number;
 
-    /** Ticks per frame for animation speed. */
+    /** Ticks per a frame for animation speed. */
     frameDuration: number;
 
-    /** Tick when last frame change occurred. */
+    /** Tick when the last frame change occurred. */
     lastFrameChangeTick: number;
 }
 
@@ -132,7 +132,7 @@ class AnimationDemo implements IBlitTechGame {
 
     /**
      * Initializes the demo after the engine is ready.
-     * Loads font and creates animated sprite sheet.
+     * Loads font and creates an animated sprite sheet.
      *
      * @returns Promise resolving to true when initialization succeeds.
      */
@@ -150,7 +150,7 @@ class AnimationDemo implements IBlitTechGame {
             return false;
         }
 
-        // Create sprite sheet for character animation.
+        // Create a sprite sheet for character animation.
         this.spriteSheet = await this.createAnimatedSpriteSheet();
         console.log('[AnimationDemo] Created sprite sheet');
         console.log('[AnimationDemo] Initialization complete!');
@@ -159,7 +159,7 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Handles frame-based logic including animation, cooldowns, and periodic spawning.
      */
     update(): void {
@@ -187,7 +187,7 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders animated character, particles, and UI.
+     * Renders animated character, particles and UI.
      * Shows character animation with current state and timing information.
      */
     render(): void {
@@ -223,7 +223,7 @@ class AnimationDemo implements IBlitTechGame {
      * @param currentTick - Current game tick.
      */
     private updateAnimation(currentTick: number): void {
-        // Check if it's time to advance the frame.
+        // Check if it is time to advance the frame.
         if (currentTick - this.animation.lastFrameChangeTick >= this.animation.frameDuration) {
             this.animation.frameIndex = (this.animation.frameIndex + 1) % this.getFrameCount(this.animation.state);
             this.animation.lastFrameChangeTick = currentTick;
@@ -258,12 +258,12 @@ class AnimationDemo implements IBlitTechGame {
 
     /**
      * Auto-cycles through animation states for demonstration purposes.
-     * Cycles: Idle (2s) -> Walking (2s) -> Jumping (2s).
+     * Cycles: Idle (2s) → Walking (2s) → Jumping (2s).
      *
      * @param currentTick - Current game tick.
      */
     private autoCycleStates(currentTick: number): void {
-        const cycleTime = (currentTick % 360) / 60; // 6-second cycle.
+        const cycleTime = (currentTick % 360) / 60; // 6-second cycle
 
         if (cycleTime < 2) {
             if (this.animation.state !== AnimState.Idle) {
@@ -323,12 +323,12 @@ class AnimationDemo implements IBlitTechGame {
     // #region Rendering
 
     /**
-     * Renders the animated character with current frame and jump offset.
+     * Renders the animated character with the current frame and jump offset.
      */
     private renderCharacter(): void {
         if (!this.spriteSheet) return;
 
-        // Calculate sprite position in sheet.
+        // Calculate sprite position in the sheet.
         const stateRow = this.getStateRow(this.animation.state);
         const spriteSize = 32;
         const srcRect = new Rect2i(
@@ -372,7 +372,7 @@ class AnimationDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders particles with fade-out effect based on age.
+     * Renders particles with a fade-out effect based on age.
      */
     private renderParticles(): void {
         const currentTick = BT.ticks();
@@ -561,8 +561,8 @@ class AnimationDemo implements IBlitTechGame {
      * Draws an idle animation frame with subtle bobbing.
      *
      * @param ctx - Canvas 2D rendering context.
-     * @param x - Frame X position in sprite sheet.
-     * @param y - Frame Y position in sprite sheet.
+     * @param x - Frame X position in the sprite sheet.
+     * @param y - Frame Y position in the sprite sheet.
      * @param _size - Frame size (unused but kept for consistency).
      * @param frame - Frame index in animation.
      */
@@ -589,8 +589,8 @@ class AnimationDemo implements IBlitTechGame {
      * Draws a walking animation frame with alternating legs.
      *
      * @param ctx - Canvas 2D rendering context.
-     * @param x - Frame X position in sprite sheet.
-     * @param y - Frame Y position in sprite sheet.
+     * @param x - Frame X position in the sprite sheet.
+     * @param y - Frame Y position in the sprite sheet.
      * @param _size - Frame size (unused but kept for consistency).
      * @param frame - Frame index in animation.
      */
@@ -620,8 +620,8 @@ class AnimationDemo implements IBlitTechGame {
      * Draws a jumping animation frame with raised arms.
      *
      * @param ctx - Canvas 2D rendering context.
-     * @param x - Frame X position in sprite sheet.
-     * @param y - Frame Y position in sprite sheet.
+     * @param x - Frame X position in the sprite sheet.
+     * @param y - Frame Y position in the sprite sheet.
      * @param _size - Frame size (unused but kept for consistency).
      * @param _frame - Frame index (unused but kept for consistency).
      */
@@ -736,10 +736,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new AnimationDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Animation demo started successfully!');
     } else {

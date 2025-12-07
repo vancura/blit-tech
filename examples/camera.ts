@@ -1,12 +1,12 @@
 /**
  * Camera Demo
  *
- * Showcases camera scrolling functionality in Blit–Tech.
+ * Showcases camera scrolling feature in Blit–Tech.
  * Creates a large procedural world (800×600) that can be explored
  * via automatic camera panning, demonstrating:
- * - Camera offset for scrolling
- * - World-space vs. screen-space rendering
- * - Mini-map with viewport indicator
+ * - camera offset for scrolling,
+ * - world-space versus screen-space rendering
+ * - mini-map with viewport indicator.
  */
 
 // #region Imports
@@ -19,7 +19,7 @@ import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rec
 
 /**
  * Demonstrates camera scrolling with a procedurally generated city.
- * Buildings and trees are randomly placed, camera auto-scrolls in a smooth sinusoidal pattern.
+ * Buildings and trees are randomly placed, the camera automatically scrolls in a smooth sinusoidal pattern.
  */
 class CameraDemo implements IBlitTechGame {
     // #region Module State
@@ -49,13 +49,13 @@ class CameraDemo implements IBlitTechGame {
 
     // #region Pre-allocated Reusable Objects (Performance)
 
-    /** Reusable vector for drawing operations to avoid allocations. */
+    /** A reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec1 = new Vector2i(0, 0);
 
-    /** Reusable vector for drawing operations to avoid allocations. */
+    /** A reusable vector for drawing operations to avoid allocations. */
     private readonly tempVec2 = new Vector2i(0, 0);
 
-    /** Reusable rectangle for drawing operations to avoid allocations. */
+    /** A reusable rectangle for drawing operations to avoid allocations. */
     private readonly tempRect = new Rect2i(0, 0, 0, 0);
 
     // #endregion
@@ -112,10 +112,10 @@ class CameraDemo implements IBlitTechGame {
      * In a real game, you would use input to control camera movement.
      */
     update(): void {
-        // Note: Input not implemented yet, so we auto-scroll the camera.
+        // Note: Input not implemented yet, so the camera automatically scrolls for now.
         // In a real game, you would use BT.keyDown() here.
 
-        // Auto-scroll camera in a sinusoidal pattern.
+        // Automatically scroll camera in a sinusoidal pattern.
         const t = BT.ticks() * 0.02;
         this.cameraPos.x = Math.floor(200 + Math.sin(t) * 150);
         this.cameraPos.y = Math.floor(150 + Math.cos(t * 0.7) * 100);
@@ -137,13 +137,13 @@ class CameraDemo implements IBlitTechGame {
         // Clear to sky blue.
         BT.clear(new Color32(135, 206, 235));
 
-        // Draw world content (affected by camera).
+        // Draw world content (affected by the camera).
         this.renderWorld();
 
         // Reset camera for UI drawing (screen-space).
         BT.cameraReset();
 
-        // Draw UI overlay (not affected by camera).
+        // Draw UI overlay (not affected by the camera).
         this.renderUI();
     }
 
@@ -152,7 +152,7 @@ class CameraDemo implements IBlitTechGame {
     // #region World Generation
 
     /**
-     * Generates random building positions, sizes, and colors.
+     * Generates random building positions, sizes and colors.
      */
     private generateBuildings(): void {
         for (let i = 0; i < 20; i++) {
@@ -190,7 +190,7 @@ class CameraDemo implements IBlitTechGame {
     // #region World Rendering
 
     /**
-     * Renders all world elements in world coordinates (affected by camera).
+     * Renders all world elements in world coordinates (affected by the camera).
      */
     private renderWorld(): void {
         // Draw ground grid.
@@ -205,7 +205,7 @@ class CameraDemo implements IBlitTechGame {
             this.renderTree(tree.pos);
         }
 
-        // Pre-create colors outside loop to avoid allocations.
+        // Pre-create colors outside the loop to avoid allocations.
         const outlineColor = new Color32(50, 50, 50);
         const windowColor = new Color32(255, 255, 200, 200);
 
@@ -263,7 +263,7 @@ class CameraDemo implements IBlitTechGame {
     /**
      * Renders a single building with body, outline, and windows.
      *
-     * @param building - Building data containing position, size, and color.
+     * @param building - Building data containing position, size and color.
      * @param outlineColor - Color for building outline.
      * @param windowColor - Color for building windows.
      */
@@ -276,7 +276,7 @@ class CameraDemo implements IBlitTechGame {
         this.tempRect.set(building.pos.x, building.pos.y, building.size.x, building.size.y);
         BT.drawRectFill(this.tempRect, building.color);
 
-        // Building outline.
+        // The building outline.
         BT.drawRect(this.tempRect, outlineColor);
 
         // Windows.
@@ -304,13 +304,13 @@ class CameraDemo implements IBlitTechGame {
     // #region UI Rendering
 
     /**
-     * Renders the UI overlay in screen coordinates (not affected by camera).
+     * Renders the UI overlay in screen coordinates (not affected by the camera).
      * Includes title, camera info, instructions, mini-map, and FPS counter.
      */
     private renderUI(): void {
         if (!this.font) return;
 
-        // Semi-transparent background for UI.
+        // Semi-transparent background for the UI.
         this.tempRect.set(0, 0, 320, 40);
 
         BT.drawRectFill(this.tempRect, new Color32(0, 0, 0, 180));
@@ -352,7 +352,7 @@ class CameraDemo implements IBlitTechGame {
     }
 
     /**
-     * Renders a mini-map showing camera viewport position relative to world.
+     * Renders a mini-map showing camera viewport position relative to the world.
      * Buildings appear as dots, viewport as a yellow rectangle.
      */
     private renderMiniMap(): void {
@@ -381,7 +381,7 @@ class CameraDemo implements IBlitTechGame {
             BT.drawPixel(this.tempVec1, buildingColor);
         }
 
-        // Draw camera viewport on mini-map.
+        // Draw a camera viewport on a mini-map.
         const displaySize = BT.displaySize();
         const viewX = mapX + Math.floor((this.cameraPos.x / this.worldWidth) * mapW);
         const viewY = mapY + Math.floor((this.cameraPos.y / this.worldHeight) * mapH);
@@ -477,10 +477,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new CameraDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Camera demo started successfully!');
     } else {

@@ -85,7 +85,7 @@ class SpriteDemo implements IBlitTechGame {
     async initialize(): Promise<boolean> {
         console.log('[SpriteDemo] Initializing...');
 
-        // Create sprite sheet programmatically for demonstration.
+        // Create a sprite sheet programmatically for demonstration.
         this.spriteSheet = await this.createDemoSpriteSheet();
         console.log('[SpriteDemo] Sprite sheet created successfully!');
 
@@ -103,7 +103,7 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation timer for time-based effects.
      */
     update(): void {
@@ -166,10 +166,10 @@ class SpriteDemo implements IBlitTechGame {
     /**
      * Renders sprites with animated rainbow tints.
      *
-     * @param hue1 - Hue value for first sprite (0-360).
-     * @param hue2 - Hue value for second sprite (0-360).
-     * @param hue3 - Hue value for third sprite (0-360).
-     * @param hue4 - Hue value for fourth sprite (0-360).
+     * @param hue1 - Hue value for the first sprite (0-360).
+     * @param hue2 - Hue value for the second sprite (0-360).
+     * @param hue3 - Hue value for the third sprite (0-360).
+     * @param hue4 - Hue value for the fourth sprite (0-360).
      */
     private renderRainbowSprites(hue1: number, hue2: number, hue3: number, hue4: number): void {
         if (!this.spriteSheet) return;
@@ -215,9 +215,9 @@ class SpriteDemo implements IBlitTechGame {
     /**
      * Renders bouncing animated sprites.
      *
-     * @param bounce1 - Vertical offset for first sprite.
-     * @param bounce2 - Vertical offset for second sprite.
-     * @param bounce3 - Vertical offset for third sprite.
+     * @param bounce1 - Vertical offset for the first sprite.
+     * @param bounce2 - Vertical offset for the second sprite.
+     * @param bounce3 - Vertical offset for the third sprite.
      */
     private renderBouncingSprites(bounce1: number, bounce2: number, bounce3: number): void {
         if (!this.spriteSheet) return;
@@ -299,7 +299,7 @@ class SpriteDemo implements IBlitTechGame {
             throw new Error('[SpriteDemo] Failed to acquire 2D canvas context');
         }
 
-        // Fill with transparent background.
+        // Fill with a transparent background.
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -392,7 +392,7 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws a heart shape using bezier curves.
+     * Draws a heart shape using Bézier curves.
      *
      * @param ctx - Canvas 2D rendering context.
      * @param cx - Center X coordinate.
@@ -504,10 +504,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new SpriteDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite demo started successfully!');
     } else {

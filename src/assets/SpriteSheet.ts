@@ -123,7 +123,7 @@ export class SpriteSheet {
 
         device.queue.copyExternalImageToTexture({ source }, { texture: this.texture }, [this.size.x, this.size.y]);
 
-        // Close ImageBitmap after upload to free resources.
+        // Close ImageBitmap after the upload to free resources.
         if (this.imageBitmap) {
             this.imageBitmap.close();
             this.imageBitmap = null;

@@ -5,29 +5,29 @@
  * Performance notes:
  * - Use static direction constants (zero, one, up, etc.) - they return cached singletons
  * - Use fromXYUnchecked() for trusted integer values in hot paths
- * - Use "To" methods (addTo, subTo, cloneTo, etc.) for zero-allocation output
+ * - Use “To” methods (addTo, subTo, cloneTo, etc.) for zero-allocation output
  * - Use in-place methods (*InPlace) when you can mutate the source vector
  * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
  */
 export class Vector2i {
     // #region Cached Static Vectors
 
-    /** Cached singleton for zero vector. */
+    /** The cached singleton for zero vector. */
     private static readonly _zero: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 0));
 
-    /** Cached singleton for one vector. */
+    /** The cached singleton for one vector. */
     private static readonly _one: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 1));
 
-    /** Cached singleton for up direction. */
+    /** The cached singleton for up direction. */
     private static readonly _up: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, -1));
 
-    /** Cached singleton for down direction. */
+    /** The cached singleton for down direction. */
     private static readonly _down: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 1));
 
-    /** Cached singleton for left direction. */
+    /** The cached singleton for left direction. */
     private static readonly _left: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(-1, 0));
 
-    /** Cached singleton for right direction. */
+    /** The cached singleton for right direction. */
     private static readonly _right: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 0));
 
     // #endregion
@@ -38,7 +38,7 @@ export class Vector2i {
      * Creates a new integer 2D vector.
      * Values are truncated to integers using |0 (truncates toward zero).
      *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., -1.7 becomes -1).
+     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
      * If you need floor behavior for negative values, use Math.floor before passing.
      *
      * @param x - Horizontal component (defaults to 0).
@@ -224,7 +224,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with component-wise minimum of this and other.
+     * Returns a new vector with the component-wise minimum of this and other.
      *
      * Note: Creates a new Vector2i. Use minInPlace() in hot paths.
      *
@@ -290,12 +290,12 @@ export class Vector2i {
     }
 
     /**
-     * Calculates the 2D cross product (perpendicular dot product).
-     * Returns the z-component of the 3D cross product if vectors were in XY plane.
-     * Useful for determining which side of a line a point is on.
+     * Calculates the 2D cross-product (perpendicular dot product).
+     * Returns the z-component of the 3D cross-product if vectors were in XY plane.
+     * Useful for determining, which side of a line a point is on.
      *
      * @param other - Vector to cross with.
-     * @returns Scalar cross product (positive = other is counter-clockwise from this).
+     * @returns Scalar cross-product (positive = other is counter-clockwise from this).
      */
     cross(other: Vector2i): number {
         return this.x * other.y - this.y * other.x;
@@ -324,11 +324,11 @@ export class Vector2i {
     // #region Zero-Allocation Output Methods
 
     /**
-     * Adds another vector and writes result to an existing vector.
+     * Adds another vector and writes the result to an existing vector.
      * Zero allocation alternative to add().
      *
      * @param other - Vector to add.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     addTo(other: Vector2i, out: Vector2i): Vector2i {
@@ -339,11 +339,11 @@ export class Vector2i {
     }
 
     /**
-     * Subtracts another vector and writes result to an existing vector.
+     * Subtracts another vector and writes the result to an existing vector.
      * Zero allocation alternative to sub().
      *
      * @param other - Vector to subtract.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     subTo(other: Vector2i, out: Vector2i): Vector2i {
@@ -354,11 +354,11 @@ export class Vector2i {
     }
 
     /**
-     * Multiplies by scalar and writes result to an existing vector.
+     * Multiplies by scalar and writes the result to an existing vector.
      * Zero allocation alternative to mul().
      *
      * @param scalar - Value to multiply by.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     mulTo(scalar: number, out: Vector2i): Vector2i {
@@ -369,11 +369,11 @@ export class Vector2i {
     }
 
     /**
-     * Divides by scalar and writes result to an existing vector.
+     * Divides by scalar and writes the result to an existing vector.
      * Zero allocation alternative to div().
      *
      * @param scalar - Value to divide by.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      * @throws Error if scalar is zero.
      */
@@ -487,7 +487,7 @@ export class Vector2i {
      * Adds another vector to this one in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to add.
      * @returns This vector for chaining.
@@ -503,7 +503,7 @@ export class Vector2i {
      * Adds x and y values to this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - X offset to add.
      * @param y - Y offset to add.
@@ -520,7 +520,7 @@ export class Vector2i {
      * Subtracts another vector from this one in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to subtract.
      * @returns This vector for chaining.
@@ -536,7 +536,7 @@ export class Vector2i {
      * Subtracts x and y values from this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - X offset to subtract.
      * @param y - Y offset to subtract.
@@ -553,7 +553,7 @@ export class Vector2i {
      * Multiplies this vector by a scalar in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param scalar - Value to multiply both components by.
      * @returns This vector for chaining.
@@ -569,7 +569,7 @@ export class Vector2i {
      * Component-wise multiplication with another vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to multiply with.
      * @returns This vector for chaining.
@@ -585,7 +585,7 @@ export class Vector2i {
      * Divides this vector by a scalar in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param scalar - Value to divide both components by.
      * @returns This vector for chaining.
@@ -606,7 +606,7 @@ export class Vector2i {
      * Negates this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @returns This vector for chaining.
      */
@@ -621,7 +621,7 @@ export class Vector2i {
      * Applies absolute value to components in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @returns This vector for chaining.
      */
@@ -633,10 +633,10 @@ export class Vector2i {
     }
 
     /**
-     * Sets components to minimum of this and other in place.
+     * Sets components to the minimum of this and other in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to compare with.
      * @returns This vector for chaining.
@@ -649,10 +649,10 @@ export class Vector2i {
     }
 
     /**
-     * Sets components to maximum of this and other in place.
+     * Sets components to the maximum of this and other in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to compare with.
      * @returns This vector for chaining.
@@ -668,7 +668,7 @@ export class Vector2i {
      * Clamps components to the given range in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param minVal - Minimum value for both components.
      * @param maxVal - Maximum value for both components.
@@ -688,7 +688,7 @@ export class Vector2i {
      * Clamps components to vector bounds in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param minVec - Vector with minimum values.
      * @param maxVec - Vector with maximum values.
@@ -705,7 +705,7 @@ export class Vector2i {
      * Sets both components of this vector.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - New x component.
      * @param y - New y component.
@@ -722,7 +722,7 @@ export class Vector2i {
      * Copies values from another vector.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to copy from.
      * @returns This vector for chaining.
@@ -748,7 +748,7 @@ export class Vector2i {
     }
 
     /**
-     * Calculates the squared magnitude (avoids sqrt for performance).
+     * Calculates the squared magnitude (avoids the sqrt for performance).
      * Useful for distance comparisons without the sqrt overhead.
      *
      * @returns Squared distance from origin.
@@ -787,7 +787,7 @@ export class Vector2i {
 
     /**
      * Calculates the squared distance to another vector.
-     * Avoids sqrt for performance. Useful for distance comparisons.
+     * Avoids the sqrt for performance. Useful for distance comparisons.
      *
      * @param other - Target vector.
      * @returns Squared distance between this and other.
@@ -801,7 +801,7 @@ export class Vector2i {
 
     /**
      * Calculates the squared distance to raw coordinates.
-     * Avoids sqrt and temporary Vector2i allocation.
+     * Avoids the sqrt and temporary Vector2i allocation.
      *
      * @param x - Target X coordinate.
      * @param y - Target Y coordinate.
@@ -869,7 +869,7 @@ export class Vector2i {
      * Components are rounded to the nearest integer, producing one of 8 cardinal/diagonal
      * directions (or zero). Useful for grid-based movement and direction checks.
      *
-     * Note: Result is not a true unit vector since integers cannot represent
+     * Note: Result is not a true unit vector since integers can't represent
      * fractional components. Diagonal directions have magnitude ~1.41.
      *
      * @returns New direction vector, or zero vector if magnitude is 0.
@@ -942,7 +942,7 @@ export class Vector2i {
     /**
      * Formats the vector as a readable string.
      *
-     * @returns String in format "(x, y)".
+     * @returns String in format (x, y).
      */
     toString(): string {
         return `(${this.x}, ${this.y})`;
@@ -994,7 +994,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a left direction vector (-1, 0).
+     * Returns a left-direction vector (-1, 0).
      * Returns a cached frozen singleton - do not modify.
      *
      * @returns Vector pointing left (cached).
@@ -1004,7 +1004,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a right direction vector (1, 0).
+     * Returns a right-direction vector (1, 0).
      * Returns a cached frozen singleton - do not modify.
      *
      * @returns Vector pointing right (cached).
@@ -1022,7 +1022,7 @@ export class Vector2i {
      * Use this in hot paths when values are guaranteed to be integers.
      *
      * WARNING: Passing non-integer values will result in non-integer vector components.
-     * Only use when you are certain the values are already integers.
+     * Only use when you’re certain the values are already integers.
      *
      * @param x - Horizontal component (must be integer).
      * @param y - Vertical component (must be integer).
@@ -1041,7 +1041,7 @@ export class Vector2i {
      * Creates an integer vector from floating-point coordinates.
      * Both values are truncated to integers using |0.
      *
-     * Note: |0 truncates toward zero (e.g., -1.7 becomes -1, not -2).
+     * Note: |0 truncates toward zero (e.g., –1.7 becomes –1, not –2).
      *
      * @param x - Floating-point x coordinate.
      * @param y - Floating-point y coordinate.
@@ -1067,7 +1067,7 @@ export class Vector2i {
 
     /**
      * Calculates squared distance between two vectors.
-     * Avoids sqrt for performance.
+     * Avoids the sqrt for performance.
      *
      * @param a - First vector.
      * @param b - Second vector.
@@ -1082,7 +1082,7 @@ export class Vector2i {
 
     /**
      * Calculates dot product of two vectors.
-     * Static version - use instance method a.dot(b) when you have vector instances.
+     * The static version - use instance method a.dot(b) when you have vector instances.
      *
      * @param a - First vector.
      * @param b - Second vector.
@@ -1106,13 +1106,13 @@ export class Vector2i {
     }
 
     /**
-     * Linearly interpolates between two vectors and writes to existing vector.
+     * Linearly interpolates between two vectors and writes to the existing vector.
      * Zero allocation alternative to lerp().
      *
      * @param a - Start vector.
      * @param b - End vector.
      * @param t - Interpolation factor (0 = a, 1 = b).
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     static lerpTo(a: Vector2i, b: Vector2i, t: number, out: Vector2i): Vector2i {
