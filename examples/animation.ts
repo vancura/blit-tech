@@ -504,6 +504,7 @@ class AnimationDemo implements IBlitTechGame {
 
     // #region Sprite Sheet Creation
 
+    // noinspection FunctionWithMultipleLoopsJS
     /**
      * Creates a sprite sheet with animated character frames.
      * In production, you would load from an image file instead.
@@ -682,6 +683,7 @@ function displayErrorMessage(title: string, message: string): void {
 
         errorDiv.appendChild(consoleMsg);
 
+        // noinspection InnerHTMLJS
         container.innerHTML = '';
 
         container.appendChild(errorDiv);
@@ -761,6 +763,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

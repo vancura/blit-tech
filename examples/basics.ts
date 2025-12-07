@@ -102,12 +102,14 @@ class BasicGame implements IBlitTechGame {
         const displaySize = BT.displaySize();
 
         // Handle horizontal bounds.
+        // noinspection DuplicatedCode
         if (this.playerPos.x <= 0 || this.playerPos.x >= displaySize.x - this.playerSize.x) {
             this.playerVel.x = -this.playerVel.x;
             this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
         }
 
         // Handle vertical bounds.
+        // noinspection DuplicatedCode
         if (this.playerPos.y <= 0 || this.playerPos.y >= displaySize.y - this.playerSize.y) {
             this.playerVel.y = -this.playerVel.y;
             this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
@@ -180,6 +182,7 @@ function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
 
     if (container) {
+        // noinspection InnerHTMLJS
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border: 2px solid #ff0000; border-radius: 8px; max-width: 600px;">
                 <h2 style="margin-top: 0; font-size: 24px;">[X] ${title}</h2>
@@ -280,6 +283,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

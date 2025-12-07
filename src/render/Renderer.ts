@@ -1,3 +1,5 @@
+ 
+
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
@@ -22,6 +24,7 @@ const MAX_SPRITE_VERTICES = 50000;
 
 // #endregion
 
+// noinspection PointlessBitwiseExpressionJS
 /**
  * WebGPU renderer for Blit–Tech.
  * Handles all drawing operations including primitives (lines, rects) and sprites.
@@ -571,6 +574,7 @@ export class Renderer {
         this.drawRectFill(this.tempRect, color);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Draws a single pixel at raw coordinates.
      * More efficient than drawPixel() as it avoids Vector2i parameter.

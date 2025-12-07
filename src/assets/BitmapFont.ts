@@ -421,6 +421,7 @@ export class BitmapFont {
         return width;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Measures the pixel dimensions of a text string.
      * For single-line text, height equals lineHeight.
@@ -438,6 +439,7 @@ export class BitmapFont {
         return this.textSizeResult;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Measures the pixel dimensions of a text string and copies to the provided object.
      * Use this when you need to store the result.
@@ -453,6 +455,7 @@ export class BitmapFont {
         return result;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if the font contains a glyph for the given character.
      * Uses fast ASCII lookup when possible.
@@ -474,6 +477,7 @@ export class BitmapFont {
         return this.glyphs.has(char);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Clears the text measurement cache.
      * Call this if font metrics change or to free memory.
