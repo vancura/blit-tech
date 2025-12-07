@@ -248,7 +248,7 @@ pnpm test:coverage    # With coverage
 
 - Location: `tests/unit/`
 - Framework: Vitest
-- See [TESTING_GUIDE.md](TESTING_GUIDE.md) for detailed testing guide
+- See [testing-guide.md](testing-guide.md) for detailed testing guide
 
 ### E2E Tests
 
@@ -264,7 +264,7 @@ pnpm test:e2e:debug   # Debug mode
 
 - Location: `tests/e2e/`
 - Framework: Playwright
-- See [TESTING_GUIDE.md](TESTING_GUIDE.md) for examples
+- See [testing-guide.md](testing-guide.md) for examples
 
 ### Coverage
 

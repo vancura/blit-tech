@@ -14,9 +14,9 @@ Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 ## Inspiration
 
 Blit–Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html), a retro
-pixel game framework for Unity created by **Martin Cietwierkowski**. RetroBlit provides an ideal environment for making
-pixel-perfect retro games through a traditional game loop and code-only development, discarding the Unity Editor in
-favor of a clean, low-level API.
+pixel game framework for Unity created by Martin Cietwierkowski ([@daafu](https://github.com/daafu)). RetroBlit provides
+an ideal environment for making pixel-perfect retro games through a traditional game loop and code-only development,
+discarding the Unity Editor in favor of a clean, low-level API.
 
 Blit–Tech brings a similar philosophy to the web using WebGPU: no scene graphs, no complex frameworks – just sprites,
 primitives, and fonts.
@@ -60,7 +60,7 @@ Start the development server with a hot module replacement (HMR):
 pnpm dev
 ```
 
-The browser opens automatically at `http://localhost:5173/` and redirects to the examples gallery.
+The browser opens automatically at `http://localhost:5173/` and redirects to the example gallery.
 
 ## Scripts
 
@@ -134,8 +134,9 @@ class MyGame implements IBlitTechGame {
    * Renders game graphics.
    */
   render(): void {
-    BT.clear(Color32.fromRGB(20, 30, 40));
-    BT.drawRectFill(new Rect2i(100, 100, 50, 50), Color32.fromRGB(255, 100, 50));
+    BT.clear(new Color32(20, 30, 40)); // Custom colors
+    BT.drawRectFill(new Rect2i(100, 100, 50, 50), new Color32(255, 100, 50));
+    // Use cached colors when possible: Color32.white(), Color32.red(), etc.
   }
 }
 
@@ -154,7 +155,8 @@ blit-tech/
 │   ├── _partials/              # Shared Handlebars templates
 │   │   ├── layout-top.hbs      # Common HTML head and styles
 │   │   ├── layout-bottom.hbs   # Common HTML footer
-│   │   └── font-attribution.hbs
+│   │   ├── font-attribution.hbs
+│   │   └── plausible-analytics.hbs
 │   ├── index.html              # Examples gallery
 │   ├── basics.html             # Basic example
 │   ├── primitives.html         # Drawing primitives demo
@@ -248,10 +250,19 @@ Vector2i(x, y); // Integer 2D vector
 Rect2i(x, y, width, height); // Integer rectangle
 
 // Colors
-Color32.fromRGB(r, g, b); // Create color from RGB (0-255)
-Color32.fromRGBA(r, g, b, a); // Create color with alpha (0-255)
-Color32.white(); // Predefined colors
+new Color32(r, g, b); // Create color from RGB (0-255)
+new Color32(r, g, b, a); // Create color with alpha (0-255)
+
+// Cached color constants (recommended for common colors)
+Color32.white();
 Color32.black();
+Color32.red();
+Color32.green();
+Color32.blue();
+Color32.yellow();
+Color32.cyan();
+Color32.magenta();
+Color32.transparent();
 
 // Assets
 SpriteSheet.load(url); // Load sprite sheet (static method)
@@ -265,13 +276,13 @@ implemented. They currently return `false`. See the examples for workarounds.
 
 ## Examples
 
-Run `pnpm dev` and visit the examples' gallery:
+Run `pnpm dev` and visit the examples’ gallery:
 
 ### Learning Path
 
-We recommend exploring the examples in this order:
+Please explore the examples in this order:
 
-1. **basics.ts** — Start here! Core concepts and game loop
+1. **basics.ts** — Start here. Core concepts and game loop
 2. **primitives.ts** — Drawing shapes and lines
 3. **fonts.ts** — Text rendering and colors
 4. **sprites.ts** — Sprite sheets and textures
@@ -281,7 +292,7 @@ We recommend exploring the examples in this order:
 8. **camera.ts** — Camera scrolling and world management (performance-optimized)
 
 **Note:** Earlier examples prioritize clarity and readability. Later examples (patterns, camera) demonstrate performance
-optimization techniques when working with hundreds of operations per frame. See
+optimization techniques when working with hundreds of operations per a frame. See
 [Performance Best Practices](docs/performance-best-practices.md) for details.
 
 ### Example Descriptions
@@ -326,7 +337,7 @@ pnpm electron:dist
 ```
 
 **Note**: When running `pnpm install` for the first time, pnpm may prompt to approve build scripts for Electron. Select
-`electron` from the list and press enter to allow it to download the binary. If Electron fails to install, try running
+`electron` from the list and press `Enter` to allow it to download the binary. If Electron fails to install, try running
 `pnpm rebuild electron` or `pnpm install electron --force`.
 
 **Why Electron?**
