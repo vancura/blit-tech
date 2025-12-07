@@ -24,7 +24,7 @@ function validateFunction(value, paramName) {
  * Handles GPU crash events from the main process.
  * Safely wraps IPC listener with validation and cleanup.
  *
- * @param {Function} callback - Function to call when GPU crash occurs.
+ * @param {Function} callback - Function to call when the GPU crash occurs.
  * @throws {TypeError} If callback is not a function.
  */
 function handleGPUCrashed(callback) {
@@ -49,13 +49,13 @@ function handleGPUCrashed(callback) {
  * All exposed functions are validated and safely wrapped.
  */
 contextBridge.exposeInMainWorld('electronAPI', {
-    /** Current platform (e.g., 'darwin', 'linux', 'win32'). */
+    /** The current platform (e.g., 'darwin', 'linux', 'win32'). */
     platform: process.platform,
 
     /** Indicates that the app is running in Electron. */
     isElectron: true,
 
-    /** Version information for Electron, Chrome, and Node.js. */
+    /** Version information for Electron, Chrome and Node.js. */
     versions: {
         electron: process.versions.electron,
         chrome: process.versions.chrome,

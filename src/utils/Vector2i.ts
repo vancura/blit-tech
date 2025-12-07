@@ -1,3 +1,4 @@
+// noinspection PointlessBitwiseExpressionJS
 /**
  * Integer 2D vector for pixel-perfect positioning.
  * Inspired by RetroBlit's Vector2i.
@@ -5,29 +6,29 @@
  * Performance notes:
  * - Use static direction constants (zero, one, up, etc.) - they return cached singletons
  * - Use fromXYUnchecked() for trusted integer values in hot paths
- * - Use "To" methods (addTo, subTo, cloneTo, etc.) for zero-allocation output
+ * - Use “To” methods (addTo, subTo, cloneTo, etc.) for zero-allocation output
  * - Use in-place methods (*InPlace) when you can mutate the source vector
  * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
  */
 export class Vector2i {
     // #region Cached Static Vectors
 
-    /** Cached singleton for zero vector. */
+    /** The cached singleton for zero vector. */
     private static readonly _zero: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 0));
 
-    /** Cached singleton for one vector. */
+    /** The cached singleton for one vector. */
     private static readonly _one: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 1));
 
-    /** Cached singleton for up direction. */
+    /** The cached singleton for up direction. */
     private static readonly _up: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, -1));
 
-    /** Cached singleton for down direction. */
+    /** The cached singleton for down direction. */
     private static readonly _down: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 1));
 
-    /** Cached singleton for left direction. */
+    /** The cached singleton for left direction. */
     private static readonly _left: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(-1, 0));
 
-    /** Cached singleton for right direction. */
+    /** The cached singleton for right direction. */
     private static readonly _right: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 0));
 
     // #endregion
@@ -38,7 +39,7 @@ export class Vector2i {
      * Creates a new integer 2D vector.
      * Values are truncated to integers using |0 (truncates toward zero).
      *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., -1.7 becomes -1).
+     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
      * If you need floor behavior for negative values, use Math.floor before passing.
      *
      * @param x - Horizontal component (defaults to 0).
@@ -114,6 +115,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x + other.x, this.y + other.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Adds x and y values to this vector, returning a new vector.
      * Avoids creating a temporary Vector2i for the offset.
@@ -129,6 +131,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x + (x | 0), this.y + (y | 0));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Subtracts another vector from this one, returning a new vector.
      *
@@ -142,6 +145,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x - other.x, this.y - other.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Subtracts x and y values from this vector, returning a new vector.
      * Avoids creating a temporary Vector2i for the offset.
@@ -157,6 +161,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x - (x | 0), this.y - (y | 0));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Multiplies this vector by a scalar, returning a new vector.
      *
@@ -169,6 +174,7 @@ export class Vector2i {
         return new Vector2i(this.x * scalar, this.y * scalar);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Component-wise multiplication with another vector.
      *
@@ -182,6 +188,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x * other.x, this.y * other.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Divides this vector by a scalar, truncating the result toward zero.
      *
@@ -199,6 +206,7 @@ export class Vector2i {
         return new Vector2i((this.x / scalar) | 0, (this.y / scalar) | 0);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector with negated components.
      *
@@ -211,6 +219,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(-this.x, -this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector with absolute values of components.
      *
@@ -223,8 +232,9 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(Math.abs(this.x), Math.abs(this.y));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Returns a new vector with component-wise minimum of this and other.
+     * Returns a new vector with the component-wise minimum of this and other.
      *
      * Note: Creates a new Vector2i. Use minInPlace() in hot paths.
      *
@@ -235,6 +245,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(Math.min(this.x, other.x), Math.min(this.y, other.y));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector with component-wise maximum of this and other.
      *
@@ -247,6 +258,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(Math.max(this.x, other.x), Math.max(this.y, other.y));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector with components clamped to the given range.
      *
@@ -263,6 +275,7 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(Math.max(min, Math.min(max, this.x)), Math.max(min, Math.min(max, this.y)));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector with components clamped to the given vector bounds.
      *
@@ -279,6 +292,7 @@ export class Vector2i {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the dot product with another vector.
      *
@@ -289,33 +303,38 @@ export class Vector2i {
         return this.x * other.x + this.y * other.y;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Calculates the 2D cross product (perpendicular dot product).
-     * Returns the z-component of the 3D cross product if vectors were in XY plane.
-     * Useful for determining which side of a line a point is on.
+     * Calculates the 2D cross-product (perpendicular dot product).
+     * Returns the z-component of the 3D cross-product if vectors were in XY plane.
+     * Useful for determining, which side of a line a point is on.
      *
      * @param other - Vector to cross with.
-     * @returns Scalar cross product (positive = other is counter-clockwise from this).
+     * @returns Scalar cross-product (positive = other is counter-clockwise from this).
      */
     cross(other: Vector2i): number {
         return this.x * other.y - this.y * other.x;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector perpendicular to this one (rotated 90 degrees counter-clockwise).
      *
      * @returns New perpendicular vector.
      */
     perpendicular(): Vector2i {
+        // noinspection JSSuspiciousNameCombination
         return Vector2i.fromXYUnchecked(-this.y, this.x);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a new vector perpendicular to this one (rotated 90 degrees clockwise).
      *
      * @returns New perpendicular vector.
      */
     perpendicularCW(): Vector2i {
+        // noinspection JSSuspiciousNameCombination
         return Vector2i.fromXYUnchecked(this.y, -this.x);
     }
 
@@ -323,12 +342,13 @@ export class Vector2i {
 
     // #region Zero-Allocation Output Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Adds another vector and writes result to an existing vector.
+     * Adds another vector and writes the result to an existing vector.
      * Zero allocation alternative to add().
      *
      * @param other - Vector to add.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     addTo(other: Vector2i, out: Vector2i): Vector2i {
@@ -338,12 +358,13 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Subtracts another vector and writes result to an existing vector.
+     * Subtracts another vector and writes the result to an existing vector.
      * Zero allocation alternative to sub().
      *
      * @param other - Vector to subtract.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     subTo(other: Vector2i, out: Vector2i): Vector2i {
@@ -353,12 +374,13 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Multiplies by scalar and writes result to an existing vector.
+     * Multiplies by scalar and writes the result to an existing vector.
      * Zero allocation alternative to mul().
      *
      * @param scalar - Value to multiply by.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     mulTo(scalar: number, out: Vector2i): Vector2i {
@@ -368,12 +390,13 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Divides by scalar and writes result to an existing vector.
+     * Divides by scalar and writes the result to an existing vector.
      * Zero allocation alternative to div().
      *
      * @param scalar - Value to divide by.
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      * @throws Error if scalar is zero.
      */
@@ -388,6 +411,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies this vector's values to an existing vector.
      * Zero allocation alternative to clone().
@@ -402,6 +426,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes negated values to an existing vector.
      * Zero allocation alternative to negate().
@@ -416,6 +441,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes absolute values to an existing vector.
      * Zero allocation alternative to abs().
@@ -430,6 +456,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes component-wise minimum to an existing vector.
      * Zero allocation alternative to min().
@@ -445,6 +472,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes component-wise maximum to an existing vector.
      * Zero allocation alternative to max().
@@ -460,6 +488,7 @@ export class Vector2i {
         return out;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Writes clamped values to an existing vector.
      * Zero allocation alternative to clamp().
@@ -483,11 +512,12 @@ export class Vector2i {
 
     // #region In-Place Mutation Methods
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Adds another vector to this one in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to add.
      * @returns This vector for chaining.
@@ -499,11 +529,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Adds x and y values to this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - X offset to add.
      * @param y - Y offset to add.
@@ -516,11 +547,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Subtracts another vector from this one in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to subtract.
      * @returns This vector for chaining.
@@ -532,11 +564,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Subtracts x and y values from this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - X offset to subtract.
      * @param y - Y offset to subtract.
@@ -549,11 +582,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Multiplies this vector by a scalar in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param scalar - Value to multiply both components by.
      * @returns This vector for chaining.
@@ -565,11 +599,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Component-wise multiplication with another vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to multiply with.
      * @returns This vector for chaining.
@@ -581,11 +616,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Divides this vector by a scalar in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param scalar - Value to divide both components by.
      * @returns This vector for chaining.
@@ -602,11 +638,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Negates this vector in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @returns This vector for chaining.
      */
@@ -617,11 +654,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Applies absolute value to components in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @returns This vector for chaining.
      */
@@ -632,11 +670,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Sets components to minimum of this and other in place.
+     * Sets components to the minimum of this and other in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to compare with.
      * @returns This vector for chaining.
@@ -648,11 +687,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Sets components to maximum of this and other in place.
+     * Sets components to the maximum of this and other in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to compare with.
      * @returns This vector for chaining.
@@ -664,11 +704,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Clamps components to the given range in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param minVal - Minimum value for both components.
      * @param maxVal - Maximum value for both components.
@@ -684,11 +725,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Clamps components to vector bounds in place.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param minVec - Vector with minimum values.
      * @param maxVec - Vector with maximum values.
@@ -705,7 +747,7 @@ export class Vector2i {
      * Sets both components of this vector.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param x - New x component.
      * @param y - New y component.
@@ -718,11 +760,12 @@ export class Vector2i {
         return this;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Copies values from another vector.
      * Modifies this vector directly for maximum performance.
      *
-     * WARNING: Mutates this vector. Do not use on frozen/cached singletons.
+     * WARNING: Mutates this vector. Don't use on frozen/cached singletons.
      *
      * @param other - Vector to copy from.
      * @returns This vector for chaining.
@@ -738,6 +781,7 @@ export class Vector2i {
 
     // #region Distance Calculations
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Euclidean length of this vector.
      *
@@ -747,8 +791,9 @@ export class Vector2i {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Calculates the squared magnitude (avoids sqrt for performance).
+     * Calculates the squared magnitude (avoids the sqrt for performance).
      * Useful for distance comparisons without the sqrt overhead.
      *
      * @returns Squared distance from origin.
@@ -757,6 +802,7 @@ export class Vector2i {
         return this.x * this.x + this.y * this.y;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Euclidean distance to another vector.
      *
@@ -770,6 +816,7 @@ export class Vector2i {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Euclidean distance to raw coordinates.
      * Avoids creating a temporary Vector2i.
@@ -785,9 +832,10 @@ export class Vector2i {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the squared distance to another vector.
-     * Avoids sqrt for performance. Useful for distance comparisons.
+     * Avoids the sqrt for performance. Useful for distance comparisons.
      *
      * @param other - Target vector.
      * @returns Squared distance between this and other.
@@ -799,9 +847,10 @@ export class Vector2i {
         return dx * dx + dy * dy;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the squared distance to raw coordinates.
-     * Avoids sqrt and temporary Vector2i allocation.
+     * Avoids the sqrt and temporary Vector2i allocation.
      *
      * @param x - Target X coordinate.
      * @param y - Target Y coordinate.
@@ -814,6 +863,7 @@ export class Vector2i {
         return dx * dx + dy * dy;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Manhattan (taxicab) distance to another vector.
      * Useful for tile-based movement costs.
@@ -825,6 +875,7 @@ export class Vector2i {
         return Math.abs(other.x - this.x) + Math.abs(other.y - this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Manhattan distance to raw coordinates.
      * Avoids creating a temporary Vector2i.
@@ -837,6 +888,7 @@ export class Vector2i {
         return Math.abs((x | 0) - this.x) + Math.abs((y | 0) - this.y);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Chebyshev distance to another vector.
      * Useful for 8-directional movement (king's move in chess).
@@ -848,6 +900,7 @@ export class Vector2i {
         return Math.max(Math.abs(other.x - this.x), Math.abs(other.y - this.y));
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates the Chebyshev distance to raw coordinates.
      * Avoids creating a temporary Vector2i.
@@ -864,12 +917,13 @@ export class Vector2i {
 
     // #region Normalization
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a direction vector pointing in the same direction.
      * Components are rounded to the nearest integer, producing one of 8 cardinal/diagonal
      * directions (or zero). Useful for grid-based movement and direction checks.
      *
-     * Note: Result is not a true unit vector since integers cannot represent
+     * Note: Result is not a true unit vector since integers can't represent
      * fractional components. Diagonal directions have magnitude ~1.41.
      *
      * @returns New direction vector, or zero vector if magnitude is 0.
@@ -892,6 +946,7 @@ export class Vector2i {
 
     // #region Comparison
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this vector equals another vector component-wise.
      *
@@ -902,6 +957,7 @@ export class Vector2i {
         return this.x === other.x && this.y === other.y;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this vector equals raw coordinates.
      * Avoids creating a temporary Vector2i for comparison.
@@ -914,6 +970,7 @@ export class Vector2i {
         return this.x === (x | 0) && this.y === (y | 0);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Checks if this vector is the zero vector.
      *
@@ -942,7 +999,7 @@ export class Vector2i {
     /**
      * Formats the vector as a readable string.
      *
-     * @returns String in format "(x, y)".
+     * @returns String in format (x, y).
      */
     toString(): string {
         return `(${this.x}, ${this.y})`;
@@ -972,8 +1029,9 @@ export class Vector2i {
         return Vector2i._one;
     }
 
+    // noinspection FunctionNamingConventionJS
     /**
-     * Returns an up direction vector (0, -1).
+     * Returns an up direction vector (0, –1).
      * In screen coordinates, Y increases downward, so up is negative.
      * Returns a cached frozen singleton - do not modify.
      *
@@ -983,6 +1041,7 @@ export class Vector2i {
         return Vector2i._up;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a down direction vector (0, 1).
      * Returns a cached frozen singleton - do not modify.
@@ -994,7 +1053,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a left direction vector (-1, 0).
+     * Returns a left-direction vector (-1, 0).
      * Returns a cached frozen singleton - do not modify.
      *
      * @returns Vector pointing left (cached).
@@ -1003,8 +1062,9 @@ export class Vector2i {
         return Vector2i._left;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Returns a right direction vector (1, 0).
+     * Returns a right-direction vector (1, 0).
      * Returns a cached frozen singleton - do not modify.
      *
      * @returns Vector pointing right (cached).
@@ -1022,7 +1082,7 @@ export class Vector2i {
      * Use this in hot paths when values are guaranteed to be integers.
      *
      * WARNING: Passing non-integer values will result in non-integer vector components.
-     * Only use when you are certain the values are already integers.
+     * Only use when you’re certain the values are already integers.
      *
      * @param x - Horizontal component (must be integer).
      * @param y - Vertical component (must be integer).
@@ -1037,11 +1097,12 @@ export class Vector2i {
         return v;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Creates an integer vector from floating-point coordinates.
      * Both values are truncated to integers using |0.
      *
-     * Note: |0 truncates toward zero (e.g., -1.7 becomes -1, not -2).
+     * Note: |0 truncates toward zero (e.g., –1.7 becomes –1, not –2).
      *
      * @param x - Floating-point x coordinate.
      * @param y - Floating-point y coordinate.
@@ -1051,6 +1112,7 @@ export class Vector2i {
         return new Vector2i(x | 0, y | 0);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates distance between two vectors.
      *
@@ -1065,9 +1127,10 @@ export class Vector2i {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates squared distance between two vectors.
-     * Avoids sqrt for performance.
+     * Avoids the sqrt for performance.
      *
      * @param a - First vector.
      * @param b - Second vector.
@@ -1080,9 +1143,10 @@ export class Vector2i {
         return dx * dx + dy * dy;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Calculates dot product of two vectors.
-     * Static version - use instance method a.dot(b) when you have vector instances.
+     * The static version - use instance method a.dot(b) when you have vector instances.
      *
      * @param a - First vector.
      * @param b - Second vector.
@@ -1092,6 +1156,7 @@ export class Vector2i {
         return a.x * b.x + a.y * b.y;
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Linearly interpolates between two vectors.
      * Result is truncated to integers.
@@ -1105,14 +1170,15 @@ export class Vector2i {
         return new Vector2i(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     /**
-     * Linearly interpolates between two vectors and writes to existing vector.
+     * Linearly interpolates between two vectors and writes to the existing vector.
      * Zero allocation alternative to lerp().
      *
      * @param a - Start vector.
      * @param b - End vector.
      * @param t - Interpolation factor (0 = a, 1 = b).
-     * @param out - Vector to write result to.
+     * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     static lerpTo(a: Vector2i, b: Vector2i, t: number, out: Vector2i): Vector2i {

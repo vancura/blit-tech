@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document provides comprehensive guidance for implementing testing infrastructure for Blit-Tech.
+This document provides comprehensive guidance for implementing testing infrastructure for Blit–Tech.
 
 ## Table of Contents
 
@@ -233,41 +233,41 @@ describe('Vector2i', () => {
     });
   });
 
-  describe('subtract', () => {
+  describe('sub', () => {
     it('should subtract two vectors correctly', () => {
       const v1 = new Vector2i(10, 20);
       const v2 = new Vector2i(5, 15);
-      const result = v1.subtract(v2);
+      const result = v1.sub(v2);
       expect(result.x).toBe(5);
       expect(result.y).toBe(5);
     });
   });
 
-  describe('multiply', () => {
+  describe('mul', () => {
     it('should multiply vector by scalar', () => {
       const vec = new Vector2i(10, 20);
-      const result = vec.multiply(2);
+      const result = vec.mul(2);
       expect(result.x).toBe(20);
       expect(result.y).toBe(40);
     });
 
     it('should handle negative scalar', () => {
       const vec = new Vector2i(10, 20);
-      const result = vec.multiply(-1);
+      const result = vec.mul(-1);
       expect(result.x).toBe(-10);
       expect(result.y).toBe(-20);
     });
   });
 
-  describe('length', () => {
+  describe('magnitude', () => {
     it('should calculate magnitude correctly', () => {
       const vec = new Vector2i(3, 4);
-      expect(vec.length()).toBe(5); // 3-4-5 triangle
+      expect(vec.magnitude()).toBe(5); // 3-4-5 triangle
     });
 
     it('should return 0 for zero vector', () => {
       const vec = new Vector2i(0, 0);
-      expect(vec.length()).toBe(0);
+      expect(vec.magnitude()).toBe(0);
     });
   });
 
@@ -297,48 +297,50 @@ import { describe, expect, it } from 'vitest';
 import { Color32 } from '../../../src/utils/Color32';
 
 describe('Color32', () => {
-  describe('fromRGB', () => {
+  describe('constructor', () => {
     it('should create color from RGB values', () => {
-      const color = Color32.fromRGB(255, 128, 64);
-      expect(color).toBeDefined();
-      // Test packed value if accessor exists
+      const color = new Color32(255, 128, 64);
+      expect(color.r).toBe(255);
+      expect(color.g).toBe(128);
+      expect(color.b).toBe(64);
+      expect(color.a).toBe(255); // Default alpha
     });
 
     it('should handle full white', () => {
-      const white = Color32.fromRGB(255, 255, 255);
+      const white = new Color32(255, 255, 255);
       expect(white).toBeDefined();
     });
 
     it('should handle full black', () => {
-      const black = Color32.fromRGB(0, 0, 0);
+      const black = new Color32(0, 0, 0);
       expect(black).toBeDefined();
     });
   });
 
-  describe('fromRGBA', () => {
+  describe('constructor with alpha', () => {
     it('should create color with alpha channel', () => {
-      const color = Color32.fromRGBA(255, 128, 64, 128);
-      expect(color).toBeDefined();
+      const color = new Color32(255, 128, 64, 128);
+      expect(color.a).toBe(128);
     });
 
     it('should handle fully transparent', () => {
-      const transparent = Color32.fromRGBA(0, 0, 0, 0);
-      expect(transparent).toBeDefined();
+      const transparent = new Color32(0, 0, 0, 0);
+      expect(transparent.a).toBe(0);
     });
 
     it('should handle fully opaque', () => {
-      const opaque = Color32.fromRGBA(255, 128, 64, 255);
-      expect(opaque).toBeDefined();
+      const opaque = new Color32(255, 128, 64, 255);
+      expect(opaque.a).toBe(255);
     });
   });
 
   describe('predefined colors', () => {
     it('should have common color constants', () => {
-      expect(Color32.Black).toBeDefined();
-      expect(Color32.White).toBeDefined();
-      expect(Color32.Red).toBeDefined();
-      expect(Color32.Green).toBeDefined();
-      expect(Color32.Blue).toBeDefined();
+      expect(Color32.black()).toBeDefined();
+      expect(Color32.white()).toBeDefined();
+      expect(Color32.red()).toBeDefined();
+      expect(Color32.green()).toBeDefined();
+      expect(Color32.blue()).toBeDefined();
     });
   });
 });
@@ -537,16 +539,16 @@ Create `tests/e2e/examples.spec.ts`:
 import { expect, test } from '@playwright/test';
 
 const examples = [
-  { name: 'Gallery', path: '/examples/examples-index.html' },
-  { name: 'Basic', path: '/examples/index.html' },
+  { name: 'Gallery', path: '/examples/index.html' },
+  { name: 'Basic', path: '/examples/basics.html' },
   { name: 'Primitives', path: '/examples/primitives.html' },
   { name: 'Camera', path: '/examples/camera.html' },
   { name: 'Patterns', path: '/examples/patterns.html' },
-  { name: 'Sprite', path: '/examples/sprite.html' },
-  { name: 'Font', path: '/examples/font.html' },
+  { name: 'Sprites', path: '/examples/sprites.html' },
+  { name: 'Fonts', path: '/examples/fonts.html' },
 ];
 
-test.describe('Blit-Tech Examples', () => {
+test.describe('Blit–Tech Examples', () => {
   for (const example of examples) {
     test(`${example.name} example loads without errors`, async ({ page }) => {
       // Track console errors
@@ -814,7 +816,7 @@ After implementing the testing infrastructure:
 3. Enable test job in CI (remove `if: false`)
 4. Add coverage badge to README.md
 5. Document test writing in CONTRIBUTING.md
-6. See [DEVELOPER_EXPERIENCE_GUIDE.md](DEVELOPER_EXPERIENCE_GUIDE.md) for next steps
+6. See [developer-experience-guide.md](developer-experience-guide.md) for next steps
 
 ---
 

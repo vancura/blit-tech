@@ -3,12 +3,12 @@
  *
  * Demonstrates practical sprite tinting effects commonly used in 2D games.
  * Shows how to use BT.drawSprite() with tint colors for various visual effects:
- * - Damage flash (red/white pulse on hit)
- * - Silhouettes and shadows (black tint)
- * - Ghost/fade effects (white tint + alpha)
- * - Environmental color grading (ambient lighting)
- * - Team colors (palette swaps via tinting)
- * - Day/night cycle color shifts
+ * - damage flash (red/white pulse on hit),
+ * - silhouettes and shadows (black tint),
+ * - ghost/fade effects (white tint and alpha),
+ * - environmental color grading (ambient lighting),
+ * - team colors (palette swaps via tinting),
+ * - day/night cycle color shifts.
  */
 
 // #region Imports
@@ -47,7 +47,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
     /** Damage flash trigger timer (tick when damage occurred). */
     private damageFlashTick: number = 0;
 
-    /** Source rectangle for character sprite in sheet. */
+    /** Source rectangle for character sprite in the sheet. */
     private readonly charSprite = new Rect2i(0, 0, 32, 32);
 
     // #endregion
@@ -56,7 +56,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this demo.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
@@ -86,7 +86,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
             return false;
         }
 
-        // Create character sprite sheet.
+        // Create the character sprite sheet.
         this.spriteSheet = await this.createCharacterSprite();
         console.log('[SpriteEffectsDemo] Created sprite sheet');
 
@@ -95,7 +95,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Updates animation timer and triggers periodic damage flashes.
      */
     update(): void {
@@ -126,7 +126,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         // Draw all effect demonstrations.
         this.renderEffectExamples();
 
-        // Draw day/night cycle demo.
+        // Draw the day / night cycle demo.
         this.renderDayNightCycle();
 
         // FPS counter.
@@ -143,7 +143,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Row 2: Team colors and status effects (frozen, poisoned).
      */
     private renderEffectExamples(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         this.renderBasicEffects();
         this.renderTeamColorsAndStatus();
@@ -153,7 +155,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Renders basic tinting effects (row 1).
      */
     private renderBasicEffects(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const row1Y = 35;
         const spacing = 55;
@@ -171,7 +175,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 2, row1Y), new Color32(0, 0, 0));
         BT.printFont(this.font, new Vector2i(10 + spacing * 2, row1Y + 36), 'Shadow', new Color32(150, 150, 150));
 
-        // Ghost effect (white tint + reduced alpha).
+        // Ghost effect (white tint and reduced alpha).
         const ghostPulse = Math.sin(this.animTime * 3) * 0.3 + 0.5;
         const ghostTint = new Color32(200, 200, 255, Math.floor(ghostPulse * 255));
         BT.drawSprite(this.spriteSheet, this.charSprite, new Vector2i(15 + spacing * 3, row1Y), ghostTint);
@@ -188,7 +192,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Renders team colors and status effects (row 2).
      */
     private renderTeamColorsAndStatus(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const row2Y = 105;
         const spacing = 55;
@@ -235,7 +241,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         const flashAge = BT.ticks() - this.damageFlashTick;
 
         if (flashAge < 30) {
-            // Flash effect: alternate red and white rapidly.
+            // Flash effect: alternate red and white.
             const flashPhase = Math.floor(flashAge / 3) % 2;
             return flashPhase === 0 ? new Color32(255, 255, 255) : new Color32(255, 50, 50);
         }
@@ -244,7 +250,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
     }
 
     /**
-     * Calculates the poison tint color with pulsing effect.
+     * Calculates the poison tint color with a pulsing effect.
      *
      * @returns Tint color for poison effect.
      */
@@ -258,13 +264,15 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * Cycles through Day, Sunset, Night, and Dawn with ambient tinting.
      */
     private renderDayNightCycle(): void {
-        if (!this.spriteSheet || !this.font) return;
+        if (!this.spriteSheet || !this.font) {
+            return;
+        }
 
         const baseY = 175;
 
         BT.printFont(this.font, new Vector2i(10, baseY), 'Day/Night Cycle:', new Color32(255, 200, 100));
 
-        // Cycle through different times of day (4 phases, 6 second total cycle).
+        // Cycle through different times of day (4 phases, 6-second total cycle).
         const cycleTime = (this.animTime * 0.5) % 4;
 
         const { timeName, ambientTint } = this.getDayNightPhase(cycleTime);
@@ -275,7 +283,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         // Time label.
         BT.printFont(this.font, new Vector2i(10, baseY + 56), timeName, ambientTint);
 
-        // Draw progression bar.
+        // Draw the progression bar.
         this.renderDayNightProgressBar(baseY, cycleTime, ambientTint);
     }
 
@@ -306,7 +314,9 @@ class SpriteEffectsDemo implements IBlitTechGame {
      * @param ambientTint - Current ambient tint color.
      */
     private renderDayNightProgressBar(baseY: number, cycleTime: number, ambientTint: Color32): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         const barX = 60;
         const barY = baseY + 25;
@@ -357,7 +367,7 @@ class SpriteEffectsDemo implements IBlitTechGame {
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
         ctx.fillRect(0, 0, size, size);
 
-        // Draw simple character in white.
+        // Draw a simple character in white.
         ctx.fillStyle = 'white';
 
         // Head.
@@ -422,6 +432,7 @@ function displayErrorMessage(title: string, message: string): void {
         consoleMsg.textContent = 'Check the browser console for more details.';
         errorDiv.appendChild(consoleMsg);
 
+        // noinspection InnerHTMLJS
         container.innerHTML = '';
         container.appendChild(errorDiv);
     }
@@ -472,10 +483,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new SpriteEffectsDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite effects demo started successfully!');
     } else {
@@ -497,6 +508,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

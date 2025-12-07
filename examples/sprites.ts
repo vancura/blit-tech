@@ -63,7 +63,7 @@ class SpriteDemo implements IBlitTechGame {
 
     /**
      * Configures hardware settings for this demo.
-     * Sets up a 320×240 internal resolution with 2x CSS upscaling.
+     * Sets up a 320×240 internal resolution with 2× CSS upscaling.
      *
      * @returns Hardware configuration specifying display size and target FPS.
      */
@@ -85,7 +85,7 @@ class SpriteDemo implements IBlitTechGame {
     async initialize(): Promise<boolean> {
         console.log('[SpriteDemo] Initializing...');
 
-        // Create sprite sheet programmatically for demonstration.
+        // Create a sprite sheet programmatically for demonstration.
         this.spriteSheet = await this.createDemoSpriteSheet();
         console.log('[SpriteDemo] Sprite sheet created successfully!');
 
@@ -103,7 +103,7 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Updates animation state each tick.
+     * Updates the animation state each tick.
      * Increments the animation timer for time-based effects.
      */
     update(): void {
@@ -153,7 +153,9 @@ class SpriteDemo implements IBlitTechGame {
      * Renders sprites with different solid colors.
      */
     private renderColoredSprites(): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row1Y = 45;
 
@@ -166,13 +168,15 @@ class SpriteDemo implements IBlitTechGame {
     /**
      * Renders sprites with animated rainbow tints.
      *
-     * @param hue1 - Hue value for first sprite (0-360).
-     * @param hue2 - Hue value for second sprite (0-360).
-     * @param hue3 - Hue value for third sprite (0-360).
-     * @param hue4 - Hue value for fourth sprite (0-360).
+     * @param hue1 - Hue value for the first sprite (0-360).
+     * @param hue2 - Hue value for the second sprite (0-360).
+     * @param hue3 - Hue value for the third sprite (0-360).
+     * @param hue4 - Hue value for the fourth sprite (0-360).
      */
     private renderRainbowSprites(hue1: number, hue2: number, hue3: number, hue4: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row2Y = 100;
 
@@ -188,7 +192,9 @@ class SpriteDemo implements IBlitTechGame {
      * @param alpha - Alpha channel value (0-255).
      */
     private renderPulsingSprites(alpha: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const row3Y = 155;
 
@@ -215,12 +221,14 @@ class SpriteDemo implements IBlitTechGame {
     /**
      * Renders bouncing animated sprites.
      *
-     * @param bounce1 - Vertical offset for first sprite.
-     * @param bounce2 - Vertical offset for second sprite.
-     * @param bounce3 - Vertical offset for third sprite.
+     * @param bounce1 - Vertical offset for the first sprite.
+     * @param bounce2 - Vertical offset for the second sprite.
+     * @param bounce3 - Vertical offset for the third sprite.
      */
     private renderBouncingSprites(bounce1: number, bounce2: number, bounce3: number): void {
-        if (!this.spriteSheet) return;
+        if (!this.spriteSheet) {
+            return;
+        }
 
         const baseY = 210;
 
@@ -243,10 +251,12 @@ class SpriteDemo implements IBlitTechGame {
      * Renders text labels for each sprite row.
      */
     private renderLabels(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Title.
-        BT.printFont(this.font, new Vector2i(10, 10), 'BLITTECH SPRITE DEMO', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 10), 'BLIT–TECH SPRITE DEMO', Color32.white());
 
         // Row labels.
         BT.printFont(this.font, new Vector2i(10, 30), 'Colored Sprites:', new Color32(200, 200, 200));
@@ -259,7 +269,9 @@ class SpriteDemo implements IBlitTechGame {
      * Renders code usage instructions.
      */
     private renderInstructions(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         BT.printFont(this.font, new Vector2i(170, 30), 'Load your own', new Color32(150, 150, 150));
         BT.printFont(this.font, new Vector2i(170, 45), 'sprite sheets:', new Color32(150, 150, 150));
@@ -299,7 +311,7 @@ class SpriteDemo implements IBlitTechGame {
             throw new Error('[SpriteDemo] Failed to acquire 2D canvas context');
         }
 
-        // Fill with transparent background.
+        // Fill with a transparent background.
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -392,7 +404,7 @@ class SpriteDemo implements IBlitTechGame {
     }
 
     /**
-     * Draws a heart shape using bezier curves.
+     * Draws a heart shape using Bézier curves.
      *
      * @param ctx - Canvas 2D rendering context.
      * @param cx - Center X coordinate.
@@ -448,6 +460,7 @@ class SpriteDemo implements IBlitTechGame {
 function displayErrorMessage(title: string, message: string): void {
     const container = document.getElementById('canvas-container');
     if (container) {
+        // noinspection InnerHTMLJS
         container.innerHTML = `
             <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
                 <h2>[X] ${title}</h2>
@@ -504,10 +517,10 @@ async function initializeApplication(): Promise<void> {
         return;
     }
 
-    // Create game instance.
+    // Create a game instance.
     const game = new SpriteDemo();
 
-    // Initialize engine.
+    // Initialize the engine.
     if (await BT.initialize(game, canvas)) {
         console.log('[Main] Sprite demo started successfully!');
     } else {
@@ -529,6 +542,7 @@ async function initializeApplication(): Promise<void> {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApplication);
 } else {
+    // noinspection JSIgnoredPromiseFromCall
     initializeApplication();
 }
 

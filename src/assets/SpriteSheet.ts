@@ -11,7 +11,7 @@ export class SpriteSheet {
     // #region Module State
 
     /** Source HTML image element. */
-    private image: HTMLImageElement;
+    private readonly image: HTMLImageElement;
 
     /** Pre-decoded image bitmap for GPU upload (created by load()). */
     private imageBitmap: ImageBitmap | null = null;
@@ -75,6 +75,7 @@ export class SpriteSheet {
 
     // #region Accessors
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the source HTMLImageElement.
      *
@@ -86,7 +87,7 @@ export class SpriteSheet {
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
-     * Texture is created on first access and cached for reuse.
+     * Texture is created on first access and cached for the reuse.
      *
      * @param device - WebGPU device for texture creation.
      * @returns GPU texture ready for rendering.
@@ -123,7 +124,7 @@ export class SpriteSheet {
 
         device.queue.copyExternalImageToTexture({ source }, { texture: this.texture }, [this.size.x, this.size.y]);
 
-        // Close ImageBitmap after upload to free resources.
+        // Close ImageBitmap after the upload to free resources.
         if (this.imageBitmap) {
             this.imageBitmap.close();
             this.imageBitmap = null;
@@ -154,6 +155,7 @@ export class SpriteSheet {
 
     // #region Cleanup
 
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Releases the GPU texture from memory.
      * Call when the sprite sheet is no longer needed.
