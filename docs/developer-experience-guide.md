@@ -83,6 +83,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
    ```
 ````
 
+````markdown
 3. Install dependencies:
 
    ```bash
@@ -147,7 +148,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### Format
 
-```
+```text
 type(scope): description
 
 [optional body]
@@ -333,7 +334,7 @@ The project uses **dual formatters** for optimal coverage:
 
 ## Project Structure
 
-```
+```text
 src/
 ├── BlitTech.ts          # Main API export
 ├── main.ts              # Dev entry
@@ -383,7 +384,6 @@ pnpm changeset
 ## License
 
 By contributing, you agree that your contributions will be licensed under the ISC License.
-
 ````
 
 ---
@@ -396,7 +396,7 @@ Create `.github/ISSUE_TEMPLATE/` directory:
 
 ```bash
 mkdir -p .github/ISSUE_TEMPLATE
-````
+```
 
 ### Bug Report Template
 
@@ -923,7 +923,7 @@ updates:
 
 When ready to create a documentation site, use Astro Starlight:
 
-**Step 1: Create docs directory**
+### Step 1: Create docs directory
 
 ```bash
 mkdir docs
@@ -931,7 +931,7 @@ cd docs
 pnpm create astro@latest . -- --template starlight
 ```
 
-**Step 2: Configure Astro**
+### Step 2: Configure Astro
 
 `docs/astro.config.mjs`:
 
@@ -983,9 +983,9 @@ export default defineConfig({
 });
 ```
 
-**Step 3: Placeholder Structure**
+### Step 3: Placeholder Structure
 
-```bash
+```text
 docs/
 ├── astro.config.mjs
 ├── package.json
@@ -1010,7 +1010,7 @@ docs/
 
 **Topics:** Add GitHub topics for discoverability
 
-```
+```text
 webgpu, typescript, game-engine, retro, pixel-art, 2d-game,
 fantasy-console, vite, game-development
 ```
