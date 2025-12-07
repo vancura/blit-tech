@@ -308,7 +308,9 @@ class CameraDemo implements IBlitTechGame {
      * Includes title, camera info, instructions, mini-map, and FPS counter.
      */
     private renderUI(): void {
-        if (!this.font) return;
+        if (!this.font) {
+            return;
+        }
 
         // Semi-transparent background for the UI.
         this.tempRect.set(0, 0, 320, 40);
