@@ -36,8 +36,8 @@ importers:
         specifier: ^8.48.0
         version: 8.48.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@webgpu/types':
-        specifier: ^0.1.66
-        version: 0.1.66
+        specifier: ^0.1.67
+        version: 0.1.67
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
@@ -1231,8 +1231,8 @@ packages:
   '@vue/shared@3.5.25':
     resolution: {integrity: sha512-AbOPdQQnAnzs58H2FrrDxYj/TJfmeS2jdfEEhgiKINy+bnOANmVizIEgq1r+C5zsbs6l1CCQxtcj71rwNQ4jWg==}
 
-  '@webgpu/types@0.1.66':
-    resolution: {integrity: sha512-YA2hLrwLpDsRueNDXIMqN9NTzD6bCDkuXbOSe0heS+f8YE8usA6Gbv1prj81pzVHrbaAma7zObnIC+I6/sXJgA==}
+  '@webgpu/types@0.1.67':
+    resolution: {integrity: sha512-uk53+2ECGUkWoDFez/hymwpRfdgdIn6y1ref70fEecGMe5607f4sozNFgBk0oxlr7j2CRGWBEc3IBYMmFdGGTQ==}
 
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
@@ -4724,7 +4724,7 @@ snapshots:
 
   '@vue/shared@3.5.25': {}
 
-  '@webgpu/types@0.1.66': {}
+  '@webgpu/types@0.1.67': {}
 
   '@xmldom/xmldom@0.8.11': {}
 
