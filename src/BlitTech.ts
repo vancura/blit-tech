@@ -11,6 +11,8 @@ import { BitmapFont } from './assets/BitmapFont';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import type { HardwareSettings, IBlitTechGame } from './core/IBlitTechGame';
+import type { BootstrapOptions, GameConstructor } from './utils/Bootstrap';
+import { bootstrap, checkWebGPUSupport, displayError, getCanvas } from './utils/Bootstrap';
 import { Color32 } from './utils/Color32';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
@@ -466,7 +468,18 @@ export const BT = {
 
 // #region Exports
 
-export { AssetLoader, BitmapFont, Color32, Rect2i, SpriteSheet, Vector2i };
-export type { HardwareSettings, IBlitTechGame, TextSize };
+export {
+    AssetLoader,
+    BitmapFont,
+    bootstrap,
+    checkWebGPUSupport,
+    Color32,
+    displayError,
+    getCanvas,
+    Rect2i,
+    SpriteSheet,
+    Vector2i,
+};
+export type { BootstrapOptions, GameConstructor, HardwareSettings, IBlitTechGame, TextSize };
 
 // #endregion
