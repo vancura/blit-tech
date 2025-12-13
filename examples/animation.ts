@@ -9,10 +9,9 @@
  * - Deterministic frame-based logic
  */
 
-// #region Imports
-
 import {
     BitmapFont,
+    bootstrap,
     BT,
     Color32,
     type HardwareSettings,
@@ -21,8 +20,6 @@ import {
     SpriteSheet,
     Vector2i,
 } from '../src/BlitTech';
-
-// #endregion
 
 // #region Types
 
@@ -656,125 +653,10 @@ class AnimationDemo implements IBlitTechGame {
 
 // #endregion
 
-// #region Helper Functions
-
-/**
- * Displays an error message in the page UI.
- * Replaces the canvas container with a styled error box.
- *
- * @param title - Error heading text.
- * @param message - Detailed error description.
- */
-function displayErrorMessage(title: string, message: string): void {
-    const container = document.getElementById('canvas-container');
-    if (container) {
-        const errorDiv = document.createElement('div');
-
-        errorDiv.style.cssText =
-            'padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;';
-
-        const heading = document.createElement('h2');
-
-        heading.textContent = `[X] ${title}`;
-
-        errorDiv.appendChild(heading);
-
-        const msg = document.createElement('p');
-
-        msg.style.cssText = 'margin: 20px 0;';
-        msg.textContent = message;
-
-        errorDiv.appendChild(msg);
-
-        const consoleMsg = document.createElement('p');
-
-        consoleMsg.style.cssText = 'font-size: 0.9em; color: #ff9999;';
-        consoleMsg.textContent = 'Check the browser console for more details.';
-
-        errorDiv.appendChild(consoleMsg);
-
-        // noinspection InnerHTMLJS
-        container.innerHTML = '';
-
-        container.appendChild(errorDiv);
-    }
-}
-
-/**
- * Checks if WebGPU is supported in the current browser.
- *
- * @returns True if WebGPU is available, false otherwise.
- */
-function checkWebGPUSupport(): boolean {
-    return typeof navigator !== 'undefined' && 'gpu' in navigator;
-}
-
-/**
- * Retrieves the game canvas element from the DOM.
- *
- * @returns The canvas element if found and valid, null otherwise.
- */
-function getCanvasElement(): HTMLCanvasElement | null {
-    const canvas = document.getElementById('game-canvas');
-
-    return canvas instanceof HTMLCanvasElement ? canvas : null;
-}
-
-// #endregion
-
-// #region Main Logic
-
-/**
- * Application entry point.
- * Validates WebGPU support, retrieves canvas, and initializes the animation demo.
- */
-async function initializeApplication(): Promise<void> {
-    // Validate WebGPU support.
-    if (!checkWebGPUSupport()) {
-        displayErrorMessage(
-            'WebGPU Not Supported',
-            'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly.',
-        );
-
-        return;
-    }
-
-    // Retrieve canvas element.
-    const canvas = getCanvasElement();
-
-    if (!canvas) {
-        console.error('[Main] Canvas element not found or is not a <canvas>');
-
-        return;
-    }
-
-    // Create a game instance.
-    const game = new AnimationDemo();
-
-    // Initialize the engine.
-    if (await BT.initialize(game, canvas)) {
-        console.log('[Main] Animation demo started successfully!');
-    } else {
-        displayErrorMessage(
-            'Initialization Failed',
-            'Failed to initialize Blit–Tech engine. Check console for details.',
-        );
-    }
-}
-
-// #endregion
-
 // #region App Lifecycle
 
-/**
- * Handles DOM ready state and starts the application.
- * Waits for DOM to be ready if still loading, otherwise starts immediately.
- */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApplication);
-} else {
-    // noinspection JSIgnoredPromiseFromCall
-    initializeApplication();
-}
+// Bootstrap the game with default settings.
+// noinspection JSIgnoredPromiseFromCall
+bootstrap(AnimationDemo);
 
 // #endregion
