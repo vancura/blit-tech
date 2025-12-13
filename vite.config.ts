@@ -40,6 +40,10 @@ export default defineConfig(({ mode, command }) => {
                 include: ['src/**/*.ts'],
                 exclude: ['src/main.ts'],
                 rollupTypes: true,
+                beforeWriteFile: (filePath, content) => ({
+                    filePath: filePath.replace(/BlitTech\.d\.ts$/, 'blit-tech.d.ts'),
+                    content,
+                }),
             }),
             // Copy static assets (fonts) to dist for Electron builds
             ...(!isLibBuild
