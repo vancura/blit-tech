@@ -107,14 +107,12 @@ class BasicGame implements IBlitTechGame {
         const displaySize = BT.displaySize();
 
         // Handle horizontal bounds.
-        // noinspection DuplicatedCode
         if (this.playerPos.x <= 0 || this.playerPos.x >= displaySize.x - this.playerSize.x) {
             this.playerVel.x = -this.playerVel.x;
             this.playerPos.x = Math.max(0, Math.min(displaySize.x - this.playerSize.x, this.playerPos.x));
         }
 
         // Handle vertical bounds.
-        // noinspection DuplicatedCode
         if (this.playerPos.y <= 0 || this.playerPos.y >= displaySize.y - this.playerSize.y) {
             this.playerVel.y = -this.playerVel.y;
             this.playerPos.y = Math.max(0, Math.min(displaySize.y - this.playerSize.y, this.playerPos.y));
@@ -177,7 +175,6 @@ class BasicGame implements IBlitTechGame {
 // #region App Lifecycle
 
 // Bootstrap the game with default settings.
-// noinspection JSIgnoredPromiseFromCall
 bootstrap(BasicGame);
 
 // #endregion

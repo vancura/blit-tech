@@ -237,8 +237,6 @@ export class BTAPI {
             console.error('[BlitTech]   1. Your GPU/drivers are too old');
             console.error('[BlitTech]   2. WebGPU is disabled in browser settings');
             console.error('[BlitTech]   3. Running in incompatible environment (VM, remote desktop, etc.)');
-
-            // noinspection PlatformDetectionJS
             console.error('[BlitTech] Browser:', navigator.userAgent);
 
             return false;
@@ -365,7 +363,6 @@ export class BTAPI {
         });
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * Stops the game loop.
      * The loop will exit after the current frame completes.
@@ -409,7 +406,6 @@ export class BTAPI {
 
     // #region WebGPU Resource Accessors
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the WebGPU device for advanced rendering operations.
      *
@@ -419,7 +415,6 @@ export class BTAPI {
         return this.device;
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the WebGPU canvas context.
      *
@@ -429,7 +424,6 @@ export class BTAPI {
         return this.context;
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the canvas element.
      *
@@ -439,7 +433,6 @@ export class BTAPI {
         return this.canvas;
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * Gets the renderer instance for advanced rendering operations.
      *

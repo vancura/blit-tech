@@ -324,7 +324,6 @@ function validateCanvas(
     return { canvas, result };
 }
 
-// noinspection ParameterNamingConventionJS
 /**
  * Initializes the game engine with the provided game and canvas.
  *
@@ -367,7 +366,6 @@ async function initializeGame(
 
 // #region Bootstrap Function
 
-// noinspection ParameterNamingConventionJS
 /**
  * One-liner bootstrap function for Blit-Tech games.
  * Handles WebGPU detection, canvas retrieval, and engine initialization.

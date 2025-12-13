@@ -320,7 +320,6 @@ function parseGlyphs(xmlData) {
 
 // #region Output Functions
 
-// noinspection OverlyComplexFunctionJS
 /**
  * Writes the given font data to a file and logs the conversion details.
  *

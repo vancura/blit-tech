@@ -47,7 +47,6 @@ function warnOnce(funcName: string, message: string): void {
 
 // #region Public API
 
-// noinspection JSUnusedGlobalSymbols
 /**
  * Main Blit–Tech API module.
  * All engine features are accessed through BT.* methods.
