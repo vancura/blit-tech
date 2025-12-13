@@ -20,7 +20,12 @@
   "hard_tabs": false,
   "preferred_line_length": 120,
   "format_on_save": "on",
-  "formatter": "language_server",
+  "formatter": {
+    "external": {
+      "command": "biome",
+      "arguments": ["format", "--stdin-file-path", "{buffer_path}"]
+    }
+  },
   "code_actions_on_format": {
     "source.organizeImports": true,
     "source.fixAll": true
@@ -29,12 +34,24 @@
     "TypeScript": {
       "tab_size": 4,
       "preferred_line_length": 120,
-      "format_on_save": "on"
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "biome",
+          "arguments": ["format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
     },
     "JavaScript": {
       "tab_size": 4,
       "preferred_line_length": 120,
-      "format_on_save": "on"
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "biome",
+          "arguments": ["format", "--stdin-file-path", "{buffer_path}"]
+        }
+      }
     },
     "WGSL": {
       "tab_size": 4,
