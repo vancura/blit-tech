@@ -11,11 +11,16 @@
  * - tunnel: Concentric rotating rectangles.
  */
 
-// #region Imports
-
-import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
-
-// #endregion
+import {
+    BitmapFont,
+    bootstrap,
+    BT,
+    Color32,
+    type HardwareSettings,
+    type IBlitTechGame,
+    Rect2i,
+    Vector2i,
+} from '../src/BlitTech';
 
 // #region Game Class
 
@@ -339,103 +344,10 @@ class PatternsDemo implements IBlitTechGame {
 
 // #endregion
 
-// #region Helper Functions
-
-/**
- * Displays an error message in the page UI.
- * Replaces the canvas container with a styled error box.
- *
- * @param title - Error heading text.
- * @param message - Detailed error description.
- */
-function displayErrorMessage(title: string, message: string): void {
-    const container = document.getElementById('canvas-container');
-
-    if (container) {
-        // noinspection InnerHTMLJS
-        container.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border-radius: 8px;">
-                <h2>[X] ${title}</h2>
-                <p style="margin: 20px 0;">${message}</p>
-                <p style="font-size: 0.9em; color: #ff9999;">Check the browser console for more details.</p>
-            </div>
-        `;
-    }
-}
-
-/**
- * Checks if WebGPU is supported in the current browser.
- *
- * @returns True if WebGPU is available, false otherwise.
- */
-function checkWebGPUSupport(): boolean {
-    return typeof navigator !== 'undefined' && 'gpu' in navigator;
-}
-
-/**
- * Retrieves the game canvas element from the DOM.
- *
- * @returns The canvas element if found and valid, null otherwise.
- */
-function getCanvasElement(): HTMLCanvasElement | null {
-    const canvas = document.getElementById('game-canvas');
-    return canvas instanceof HTMLCanvasElement ? canvas : null;
-}
-
-// #endregion
-
-// #region Main Logic
-
-/**
- * Application entry point.
- * Validates WebGPU support, retrieves canvas, and initializes the pattern demo.
- */
-async function initializeApplication(): Promise<void> {
-    // Validate WebGPU support.
-    if (!checkWebGPUSupport()) {
-        displayErrorMessage(
-            'WebGPU Not Supported',
-            'Your browser does not support WebGPU. Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.',
-        );
-
-        return;
-    }
-
-    // Retrieve canvas element.
-    const canvas = getCanvasElement();
-
-    if (!canvas) {
-        console.error('[Main] Canvas element not found or is not a <canvas>');
-        return;
-    }
-
-    // Create a game instance.
-    const game = new PatternsDemo();
-
-    // Initialize the engine.
-    if (await BT.initialize(game, canvas)) {
-        console.log('[Main] Patterns demo started successfully!');
-    } else {
-        displayErrorMessage(
-            'Initialization Failed',
-            'Failed to initialize the Blit–Tech engine. Check console for details.',
-        );
-    }
-}
-
-// #endregion
-
 // #region App Lifecycle
 
-/**
- * Handles DOM ready state and starts the application.
- * Waits for DOM to be ready if still loading, otherwise starts immediately.
- */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApplication);
-} else {
-    // noinspection JSIgnoredPromiseFromCall
-    initializeApplication();
-}
+// Bootstrap the game with default settings.
+// noinspection JSIgnoredPromiseFromCall
+bootstrap(PatternsDemo);
 
 // #endregion
