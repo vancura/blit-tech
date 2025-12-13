@@ -29,10 +29,10 @@
   },
   "main": "./dist/blit-tech.cjs",
   "module": "./dist/blit-tech.js",
-  "types": "./dist/BlitTech.d.ts",
+  "types": "./dist/blit-tech.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/BlitTech.d.ts",
+      "types": "./dist/blit-tech.d.ts",
       "import": "./dist/blit-tech.js",
       "require": "./dist/blit-tech.cjs"
     }
