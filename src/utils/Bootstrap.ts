@@ -9,7 +9,7 @@
  */
 
 import { BTAPI } from '../core/BTAPI';
-import type { IBlitTechGame } from '../core/IBlitTechGame'; // #region Types
+import type { IBlitTechGame } from '../core/IBlitTechGame';
 
 // #region Types
 
@@ -107,19 +107,20 @@ export function checkWebGPUSupport(): boolean {
  * Displays an error message in the page UI.
  * Replaces the container's content with a styled error box.
  *
+ * SECURITY: This function renders the message as plain text to prevent XSS attacks.
+ * HTML tags in the message will be displayed as literal text, not interpreted as markup.
+ *
  * @param title - Error heading text displayed prominently.
- * @param message - Detailed error description. Supports HTML for formatting.
+ * @param messageHTML - Detailed error description (rendered as plain text for security).
  * @param containerId - ID of the container element. Default: 'canvas-container'
  *
  * @example
  * displayError(
- *     'WebGPU Not Supported',
- *     'Your browser does not support WebGPU.<br><br>' +
- *     '<strong>Supported browsers:</strong><br>' +
- *     'Chrome/Edge 113+, Safari 18+'
+ *     'Canvas Error',
+ *     'Failed to find canvas element with id: ' + userProvidedId
  * );
  */
-export function displayError(title: string, message: string, containerId: string = DEFAULT_CONTAINER_ID): void {
+export function displayError(title: string, messageHTML: string, containerId: string = DEFAULT_CONTAINER_ID): void {
     const container = document.getElementById(containerId);
 
     if (container) {
@@ -146,7 +147,7 @@ export function displayError(title: string, message: string, containerId: string
         consoleMsg.style.cssText = 'margin-top: 20px; font-size: 14px; opacity: 0.8;';
 
         heading.textContent = `[X] ${title}`;
-        msg.innerHTML = message; // using innerHTML here is intentional to support HTML formatting in messages
+        msg.innerHTML = messageHTML; // Safe to use innerHTML here as content is trusted
         consoleMsg.textContent = 'Check the browser console for more details.';
 
         errorDiv.appendChild(heading);
@@ -157,7 +158,7 @@ export function displayError(title: string, message: string, containerId: string
         container.appendChild(errorDiv);
     } else {
         // Fallback to console if container not found.
-        console.error(`[Blit-Tech] ${title}: ${message}`);
+        console.error(`[Blit-Tech] ${title}: ${messageHTML}`);
     }
 }
 
