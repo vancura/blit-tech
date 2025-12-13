@@ -7,7 +7,13 @@
       "Bash(find:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(grep:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(plutil:*)",
+      "Bash(defaults read:*)",
+      "Bash(python3:*)",
+      "Bash(~/bin/sync-mcp-servers.py:*)",
+      "mcp__github__list_pull_requests",
+      "mcp__github__search_issues"
     ],
     "deny": [],
     "ask": []
