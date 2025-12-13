@@ -71,17 +71,17 @@ const DEFAULT_CONTAINER_ID = 'canvas-container';
 
 /** Error message for WebGPU not supported. */
 const WEBGPU_NOT_SUPPORTED_MESSAGE =
-    'Your browser does not support WebGPU.<br><br>' +
-    '<strong>Supported browsers:</strong><br>' +
-    'Chrome/Edge 113+<br>' +
-    'Firefox Nightly (with the flag enabled)<br>' +
-    'Safari 18+<br><br>' +
+    'Your browser does not support WebGPU.\n\n' +
+    'Supported browsers:\n' +
+    'Chrome/Edge 113+\n' +
+    'Firefox Nightly (with the flag enabled)\n' +
+    'Safari 18+\n\n' +
     'Please update your browser or try a different one.';
 
 /** Error message for initialization failure. */
 const INIT_FAILED_MESSAGE =
-    'The game engine failed to initialize.<br><br>' +
-    'This usually means WebGPU could not access your GPU.<br>' +
+    'The game engine failed to initialize.\n\n' +
+    'This usually means WebGPU could not access your GPU.\n' +
     'Check the console for detailed error messages.';
 
 // #endregion
@@ -143,11 +143,11 @@ export function displayError(title: string, messageHTML: string, containerId: st
         const consoleMsg = document.createElement('p');
 
         heading.style.cssText = 'margin-top: 0; font-size: 24px;';
-        msg.style.cssText = 'margin: 20px 0; line-height: 1.6;';
+        msg.style.cssText = 'margin: 20px 0; line-height: 1.6; white-space: pre-line;';
         consoleMsg.style.cssText = 'margin-top: 20px; font-size: 14px; opacity: 0.8;';
 
         heading.textContent = `[X] ${title}`;
-        msg.innerHTML = messageHTML; // Safe to use innerHTML here as content is trusted
+        msg.textContent = messageHTML; // Plain text rendering as documented
         consoleMsg.textContent = 'Check the browser console for more details.';
 
         errorDiv.appendChild(heading);
@@ -272,7 +272,7 @@ function validateCanvas(
     } else {
         result = handleBootstrapError(
             'Canvas Error',
-            `Failed to find the canvas element with the id '${canvasId}'.<br><br>` +
+            `Failed to find the canvas element with the id '${canvasId}'.\n\n` +
                 'Make sure your HTML includes a canvas element with the correct ID.',
             new Error(`Canvas element '${canvasId}' not found`),
             containerId,
@@ -396,7 +396,7 @@ export async function bootstrap(GameClass: GameConstructor, options: BootstrapOp
 
         handleBootstrapError(
             'Unexpected Error',
-            `An unexpected error occurred during initialization:<br><br><code>${error.message}</code>`,
+            `An unexpected error occurred during initialization:\n\n${error.message}`,
             error,
             containerId,
             onError,
