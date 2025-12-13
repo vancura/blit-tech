@@ -1,21 +1,26 @@
 /**
- * Basic Blit–Tech Example
+ * Basic Blit-Tech Example
  *
- * Demonstrates the minimal setup required for a Blit–Tech game.
+ * Demonstrates the minimal setup required for a Blit-Tech game.
  * This example creates a simple moving square, bounding around the screen.
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
 
-// #region Imports
-
-import { BitmapFont, BT, Color32, type HardwareSettings, type IBlitTechGame, Rect2i, Vector2i } from '../src/BlitTech';
-
-// #endregion
+import {
+    BitmapFont,
+    bootstrap,
+    BT,
+    Color32,
+    type HardwareSettings,
+    type IBlitTechGame,
+    Rect2i,
+    Vector2i,
+} from '../src/BlitTech';
 
 // #region Game Class
 
 /**
- * A minimal game demonstrating core Blit–Tech features.
+ * A minimal game demonstrating core Blit-Tech features.
  * Shows hardware configuration, game loop, and basic rendering.
  * Note: Input handling is planned but not yet implemented in Phase 1.
  */
@@ -169,122 +174,10 @@ class BasicGame implements IBlitTechGame {
 
 // #endregion
 
-// #region Helper Functions
-
-/**
- * Displays an error message in the page UI.
- * Replaces the canvas container with a styled error box showing the title and message.
- *
- * @param title - Error heading text displayed prominently.
- * @param message - Detailed error description (HTML supported).
- */
-function displayErrorMessage(title: string, message: string): void {
-    const container = document.getElementById('canvas-container');
-
-    if (container) {
-        // noinspection InnerHTMLJS
-        container.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #ff6b6b; background: #2a0000; border: 2px solid #ff0000; border-radius: 8px; max-width: 600px;">
-                <h2 style="margin-top: 0; font-size: 24px;">[X] ${title}</h2>
-                <p style="margin: 20px 0; line-height: 1.6;">${message}</p>
-                <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">Check the browser console for more details.</p>
-            </div>
-        `;
-    }
-}
-
-/**
- * Checks if WebGPU is supported in the current browser environment.
- * Tests for the presence of the navigator.gpu API.
- *
- * @returns True if WebGPU is available, false otherwise.
- */
-function checkWebGPUSupport(): boolean {
-    return typeof navigator !== 'undefined' && 'gpu' in navigator;
-}
-
-/**
- * Retrieves the game canvas element from the DOM.
- * Looks for an element with ID 'game-canvas' and validates it is a canvas element.
- *
- * @returns The canvas element if found and valid, null otherwise.
- */
-function getCanvasElement(): HTMLCanvasElement | null {
-    const element = document.getElementById('game-canvas');
-
-    return element instanceof HTMLCanvasElement ? element : null;
-}
-
-// #endregion
-
-// #region Main Logic
-
-/**
- * Application entry point.
- * Validates WebGPU support, retrieves the canvas element, creates a game instance,
- * and initializes the Blit–Tech engine.
- */
-async function initializeApplication(): Promise<void> {
-    console.log('[Main] Starting Basic Example...');
-
-    // Validate WebGPU support.
-    if (!checkWebGPUSupport()) {
-        displayErrorMessage(
-            'WebGPU Not Supported',
-            'Your browser does not support WebGPU.<br><br>' +
-                '<strong>Supported browsers:</strong><br>' +
-                '• Chrome/Edge 113+<br>' +
-                '• Firefox Nightly (with the flag enabled)<br><br>' +
-                'Update your browser or try a different one.',
-        );
-
-        console.error('[Main] WebGPU not supported');
-
-        return;
-    }
-
-    // Retrieve canvas element.
-    const canvas = getCanvasElement();
-
-    if (!canvas) {
-        console.error('[Main] Canvas element not found!');
-
-        displayErrorMessage('Canvas Error', 'Failed to find canvas element.');
-
-        return;
-    }
-
-    // Create a game instance.
-    const game = new BasicGame();
-
-    // Initialize the engine.
-    if (await BT.initialize(game, canvas)) {
-        console.log('[Main] Game started successfully!');
-    } else {
-        console.error('[Main] Failed to initialize game');
-
-        displayErrorMessage(
-            'Initialization Failed',
-            'The game engine failed to initialize.<br><br>' +
-                'This usually means WebGPU couldn’t access your GPU.<br>' +
-                'Check the console for detailed error messages.',
-        );
-    }
-}
-
-// #endregion
-
 // #region App Lifecycle
 
-/**
- * Handles DOM ready state and starts the application.
- * Waits for DOM to be ready if still loading, otherwise starts immediately.
- */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApplication);
-} else {
-    // noinspection JSIgnoredPromiseFromCall
-    initializeApplication();
-}
+// Bootstrap the game with default settings.
+// noinspection JSIgnoredPromiseFromCall
+bootstrap(BasicGame);
 
 // #endregion
