@@ -104,14 +104,25 @@ export function checkWebGPUSupport(): boolean {
 }
 
 /**
+ * Content that can be displayed in an error message.
+ * Use string for plain text, or object for text with code formatting.
+ */
+export type ErrorContent =
+    | string
+    | {
+          text: string;
+          code?: string;
+      };
+
+/**
  * Displays an error message in the page UI.
  * Replaces the container's content with a styled error box.
  *
- * SECURITY: This function renders the message as plain text to prevent XSS attacks.
- * HTML tags in the message will be displayed as literal text, not interpreted as markup.
+ * SECURITY: This function renders content safely using textContent to prevent XSS attacks.
+ * All text (including code) is treated as plain text, not interpreted as markup.
  *
  * @param title - Error heading text displayed prominently.
- * @param messageHTML - Detailed error description (rendered as plain text for security).
+ * @param content - Error message content (string or object with optional code formatting).
  * @param containerId - ID of the container element. Default: 'canvas-container'
  *
  * @example
@@ -119,8 +130,14 @@ export function checkWebGPUSupport(): boolean {
  *     'Canvas Error',
  *     'Failed to find canvas element with id: ' + userProvidedId
  * );
+ *
+ * @example
+ * displayError(
+ *     'Initialization Error',
+ *     { text: 'An error occurred:', code: error.message }
+ * );
  */
-export function displayError(title: string, messageHTML: string, containerId: string = DEFAULT_CONTAINER_ID): void {
+export function displayError(title: string, content: ErrorContent, containerId: string = DEFAULT_CONTAINER_ID): void {
     const container = document.getElementById(containerId);
 
     if (container) {
@@ -147,7 +164,29 @@ export function displayError(title: string, messageHTML: string, containerId: st
         consoleMsg.style.cssText = 'margin-top: 20px; font-size: 14px; opacity: 0.8;';
 
         heading.textContent = `[X] ${title}`;
-        msg.textContent = messageHTML; // Plain text rendering as documented
+
+        // Handle content - either plain string or object with code formatting.
+        if (typeof content === 'string') {
+            msg.textContent = content; // Plain text rendering
+        } else {
+            msg.textContent = content.text; // Plain text rendering
+
+            if (content.code) {
+                // Add code block using DOM for safety.
+                const codeBlock = document.createElement('code');
+
+                codeBlock.style.cssText =
+                    'display: block; margin-top: 10px; padding: 10px; ' +
+                    'background: #1a0000; border: 1px solid #ff0000; ' +
+                    'border-radius: 4px; font-family: monospace; font-size: 12px; ' +
+                    'text-align: left; overflow-x: auto; white-space: pre-wrap; word-break: break-all;';
+
+                codeBlock.textContent = content.code; // Safe - uses textContent
+
+                msg.appendChild(codeBlock);
+            }
+        }
+
         consoleMsg.textContent = 'Check the browser console for more details.';
 
         errorDiv.appendChild(heading);
@@ -158,7 +197,9 @@ export function displayError(title: string, messageHTML: string, containerId: st
         container.appendChild(errorDiv);
     } else {
         // Fallback to console if container not found.
-        console.error(`[Blit-Tech] ${title}: ${messageHTML}`);
+        const message = typeof content === 'string' ? content : `${content.text}\n${content.code ?? ''}`;
+
+        console.error(`[Blit-Tech] ${title}: ${message}`);
     }
 }
 
@@ -216,7 +257,7 @@ async function waitForDOM(): Promise<void> {
  */
 function handleBootstrapError(
     title: string,
-    message: string,
+    message: ErrorContent,
     error: Error,
     containerId: string,
     onError?: (error: Error) => void,
@@ -396,7 +437,10 @@ export async function bootstrap(GameClass: GameConstructor, options: BootstrapOp
 
         handleBootstrapError(
             'Unexpected Error',
-            `An unexpected error occurred during initialization:\n\n${error.message}`,
+            {
+                text: 'An unexpected error occurred during initialization:',
+                code: error.message,
+            },
             error,
             containerId,
             onError,
