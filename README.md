@@ -95,7 +95,7 @@ The browser opens automatically at `http://localhost:5173/` and redirects to the
 Create a game by implementing the `IBlitTechGame` interface:
 
 ```typescript
-import { BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
 
 class MyGame implements IBlitTechGame {
   /**
@@ -140,9 +140,24 @@ class MyGame implements IBlitTechGame {
   }
 }
 
-// Initialize and run
-const canvas = document.getElementById('game') as HTMLCanvasElement;
-BT.initialize(new MyGame(), canvas);
+// One-liner bootstrap - handles WebGPU detection, DOM ready, and error display
+bootstrap(MyGame);
+```
+
+For more control over initialization:
+
+```typescript
+import { BT, checkWebGPUSupport, displayError, getCanvas } from '../src/BlitTech';
+
+// Manual initialization with custom error handling
+if (!checkWebGPUSupport()) {
+  displayError('WebGPU Not Supported', 'Please use Chrome 113+ or Safari 18+');
+} else {
+  const canvas = getCanvas('my-canvas-id');
+  if (canvas) {
+    await BT.initialize(new MyGame(), canvas);
+  }
+}
 ```
 
 ## Project Structure
@@ -178,6 +193,7 @@ blit-tech/
 │   ├── render/
 │   │   └── Renderer.ts         # WebGPU renderer
 │   └── utils/
+│       ├── Bootstrap.ts        # Game bootstrap utilities
 │       ├── Color32.ts          # 32-bit color type
 │       ├── Rect2i.ts           # Integer rectangle
 │       └── Vector2i.ts         # Integer 2D vector
@@ -189,10 +205,33 @@ blit-tech/
 
 ## API Reference
 
+### Bootstrap Utilities
+
+The bootstrap utilities provide a streamlined way to initialize games with automatic WebGPU detection and error
+handling:
+
+```typescript
+// One-liner game startup (recommended)
+bootstrap(MyGame); // Uses defaults: canvas='game-canvas', container='canvas-container'
+
+// With custom options
+bootstrap(MyGame, {
+  canvasId: 'custom-canvas',
+  containerId: 'error-container',
+  onSuccess: () => console.log('Game started!'),
+  onError: (err) => trackError(err),
+});
+
+// Individual utilities for manual control
+checkWebGPUSupport(); // Returns true if WebGPU is available
+displayError(title, message, containerId?); // Show styled error in DOM
+getCanvas(canvasId?); // Get canvas element safely
+```
+
 ### Initialization
 
 ```typescript
-BT.initialize(game, canvas); // Start the engine
+BT.initialize(game, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
 BT.ticks(); // Get current tick count
