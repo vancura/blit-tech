@@ -50,14 +50,7 @@
     "build": "tsc --noEmit && vite build",
     "build:lib": "vite build --mode lib",
     "build:deploy": "tsc --noEmit && cross-env VITE_DEPLOY_WEB=true vite build",
-    "build:electron": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm dev\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173/examples/ BLIT_DEV=1 electron electron/main.cjs\"",
-    "electron:build": "pnpm build && electron-builder --config electron-builder.json",
-    "electron:dist": "pnpm build && electron-builder --config electron-builder.json --publish never",
-    "electron:dist:linux": "pnpm build && electron-builder --linux --config electron-builder.json",
-    "electron:dist:win": "pnpm build && electron-builder --win --config electron-builder.json",
-    "electron:dist:mac": "pnpm build && electron-builder --mac --config electron-builder.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
@@ -67,7 +60,7 @@
     "typecheck": "tsc --noEmit",
     "spellcheck": "cspell \"src/**/*.{ts,md,mdx}\" \"docs/**/*.{md,mdx}\" \"README.md\" --no-progress",
     "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck",
-    "clean": "rm -rf dist node_modules/.vite dist-electron",
+    "clean": "rm -rf dist node_modules/.vite",
     "changeset": "changeset",
     "changeset:check": "changeset status --since=origin/main",
     "changeset:version": "changeset version",
@@ -78,11 +71,6 @@
     "prepare": "husky"
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron"
-    ]
-  },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
     "@changesets/cli": "^2.29.8",
@@ -94,11 +82,8 @@
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "@webgpu/types": "^0.1.68",
-    "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "cspell": "^9.1.2",
-    "electron": "^39.2.7",
-    "electron-builder": "^26.0.12",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsdoc": "^61.5.0",

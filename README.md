@@ -64,31 +64,26 @@ The browser opens automatically at `http://localhost:5173/` and redirects to the
 
 ## Scripts
 
-| Command                    | Description                               |
-| -------------------------- | ----------------------------------------- |
-| `pnpm dev`                 | Start dev server with HMR                 |
-| `pnpm build`               | Type-check and build examples             |
-| `pnpm build:lib`           | Build the library for npm distribution    |
-| `pnpm build:deploy`        | Build examples for deployment             |
-| `pnpm preview`             | Preview the production build              |
-| `pnpm electron:dev`        | Run Electron with hot-reload              |
-| `pnpm electron:dist`       | Build Electron app for current platform   |
-| `pnpm electron:dist:linux` | Build Electron app for Linux (Steam Deck) |
-| `pnpm electron:dist:win`   | Build Electron app for Windows            |
-| `pnpm electron:dist:mac`   | Build Electron app for macOS              |
-| `pnpm lint`                | Run ESLint                                |
-| `pnpm lint:fix`            | Run ESLint with auto-fix                  |
-| `pnpm format`              | Format all code (Biome + Prettier)        |
-| `pnpm format:check`        | Check all formatting without changes      |
-| `pnpm format:biome`        | Format TS/JS/JSON/CSS only (Biome)        |
-| `pnpm format:prettier`     | Format Markdown/YAML/HTML/HBS (Prettier)  |
-| `pnpm typecheck`           | Run TypeScript type checking              |
-| `pnpm clean`               | Remove dist and cache directories         |
-| `pnpm convert-font`        | Convert BMFont to .btfont format          |
-| `pnpm sync-rules`          | Sync AI assistant rules across files      |
-| `pnpm changeset`           | Create a changeset for version bump       |
-| `pnpm version:bump`        | Bump version based on changesets          |
-| `pnpm release`             | Build library and publish to npm          |
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `pnpm dev`             | Start dev server with HMR                |
+| `pnpm build`           | Type-check and build examples            |
+| `pnpm build:lib`       | Build the library for npm distribution   |
+| `pnpm build:deploy`    | Build examples for deployment            |
+| `pnpm preview`         | Preview the production build             |
+| `pnpm lint`            | Run ESLint                               |
+| `pnpm lint:fix`        | Run ESLint with auto-fix                 |
+| `pnpm format`          | Format all code (Biome + Prettier)       |
+| `pnpm format:check`    | Check all formatting without changes     |
+| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)       |
+| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier) |
+| `pnpm typecheck`       | Run TypeScript type checking             |
+| `pnpm clean`           | Remove dist and cache directories        |
+| `pnpm convert-font`    | Convert BMFont to .btfont format         |
+| `pnpm sync-rules`      | Sync AI assistant rules across files     |
+| `pnpm changeset`       | Create a changeset for version bump      |
+| `pnpm version:bump`    | Bump version based on changesets         |
+| `pnpm release`         | Build library and publish to npm         |
 
 ## Quick Start
 
@@ -359,34 +354,6 @@ pnpm build:deploy
 ```
 
 The `dist/` directory contains a ready-to-deploy static site with all examples.
-
-### Desktop/Steam Deck Deployment
-
-**NEW**: Package Blit–Tech as a native desktop app with Electron (optimized for Steam Deck):
-
-```bash
-# Run in development mode with hot-reload
-pnpm electron:dev
-
-# Build for Linux (AppImage, .deb, .tar.gz)
-pnpm electron:dist:linux
-
-# Build for current platform
-pnpm electron:dist
-```
-
-**Note**: When running `pnpm install` for the first time, pnpm may prompt to approve build scripts for Electron. Select
-`electron` from the list and press `Enter` to allow it to download the binary. If Electron fails to install, try running
-`pnpm rebuild electron` or `pnpm install electron --force`.
-
-**Why Electron?**
-
-- WebGPU support on Linux/Steam Deck (via Vulkan)
-- Works in Steam Deck Game Mode
-- Native app feel; appears in the Steam library
-- Cross-platform (Linux, Windows, macOS)
-
-Output location: `dist-electron/`
 
 ## Browser Compatibility
 
