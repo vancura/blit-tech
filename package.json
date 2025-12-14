@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/vancura/blit-tech.git"
   },
-  "homepage": "https://github.com/vancura/blit-tech#readme",
+  "homepage": "https://ambilab.com/blit-tech",
   "bugs": {
     "url": "https://github.com/vancura/blit-tech/issues"
   },
@@ -49,7 +49,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:lib": "vite build --mode lib",
-    "build:deploy": "pnpm build",
+    "build:deploy": "tsc --noEmit && cross-env VITE_DEPLOY_WEB=true vite build",
+    "build:electron": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm dev\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173/examples/ BLIT_DEV=1 electron electron/main.cjs\"",
     "electron:build": "pnpm build && electron-builder --config electron-builder.json",
