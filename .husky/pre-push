@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "Running pre-push checks..."
 
 # Run format check on entire project (same as CI)
