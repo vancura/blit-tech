@@ -101,3 +101,35 @@ jobs:
         if: always()
         with:
           files: ./coverage/coverage-final.json
+
+  deploy-web:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [quality, build-library]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for web deployment
+        run: pnpm build:deploy
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: web-dist
+          path: dist/
+          retention-days: 7

@@ -2,7 +2,7 @@ import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import dts from 'vite-plugin-dts';
 import handlebars from 'vite-plugin-handlebars';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -23,12 +23,14 @@ function getPageContext(pagePath: string): Record<string, string> {
 }
 
 export default defineConfig(({ mode, command }) => {
+    const env = loadEnv(mode, __dirname, '');
     const isLibBuild = mode === 'lib';
     const isProduction = command === 'build';
 
     return {
         // Use relative paths for assets (required for Electron file:// protocol)
-        base: isProduction && !isLibBuild ? './' : '/',
+        // For web deployment, use /blit-tech/ base path
+        base: isProduction && !isLibBuild ? (env.VITE_DEPLOY_WEB === 'true' ? '/blit-tech/' : './') : '/',
 
         plugins: [
             tailwindcss(),
