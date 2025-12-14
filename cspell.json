@@ -105,7 +105,6 @@
     "CHANGELOG.md",
     "coverage",
     "dist",
-    "dist-electron",
     "node_modules",
     "pnpm-lock.yaml"
   ],

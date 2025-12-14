@@ -9,14 +9,6 @@ node_modules/
 # Build outputs
 dist/
 build/
-dist-electron/
-
-# Electron packaged apps
-*.AppImage
-*.deb
-*.dmg
-*.exe
-*.snap
 
 # Environment variables
 .env
