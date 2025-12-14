@@ -65,7 +65,7 @@
     "format:biome": "biome format --write .",
     "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
-    "spellcheck": "cspell \"src/**/*.ts\" \"docs/**/*.md\" \"README.md\" --no-progress",
+    "spellcheck": "cspell \"src/**/*.{ts,md,mdx}\" \"docs/**/*.{md,mdx}\" \"README.md\" --no-progress",
     "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck",
     "clean": "rm -rf dist node_modules/.vite dist-electron",
     "changeset": "changeset",
