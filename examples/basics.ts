@@ -1,7 +1,7 @@
 /**
- * Basic Blit-Tech Example
+ * Basic Blit–Tech Example
  *
- * Demonstrates the minimal setup required for a Blit-Tech game.
+ * Demonstrates the minimal setup required for a Blit–Tech game.
  * This example creates a simple moving square, bounding around the screen.
  * Note: Keyboard input (WASD, Arrow Keys) is planned but not yet implemented.
  */
@@ -20,7 +20,7 @@ import {
 // #region Game Class
 
 /**
- * A minimal game demonstrating core Blit-Tech features.
+ * A minimal game demonstrating core Blit–Tech features.
  * Shows hardware configuration, game loop, and basic rendering.
  * Note: Input handling is planned but not yet implemented in Phase 1.
  */

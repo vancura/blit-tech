@@ -4,12 +4,12 @@
 
 <ul class="info-list list-none pl-0">
     <li class="py-1 pl-5 relative">
-        <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">SpriteSheet.load(url)</code>
+        <code class="bg-surface-code px-1.5 py-0.5">SpriteSheet.load(url)</code>
         — Load sprite sheets from images
     </li>
 
     <li class="py-1 pl-5 relative">
-        <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.drawSprite(sheet, srcRect, destPos, tint)</code>
+        <code class="bg-surface-code px-1.5 py-0.5">BT.drawSprite(sheet, srcRect, destPos, tint)</code>
         — Render textured sprites
     </li>
 
@@ -26,12 +26,12 @@
     </li>
 </ul>
 
-<div class="bg-sky-500/20 border-l-4 border-sky-400 p-2.5 mt-4 rounded">
+<div class="bg-sky-500/20 border-l-4 border-sky-400 p-2.5 mt-4">
     <strong>How to use your own sprites:</strong><br />
 
-    1. Load your sprite sheet: <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">const sheet = await SpriteSheet.load('path/to/sprites.png')</code><br />
-    2. Define sprite regions: <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">const sprite = new Rect2i(x, y, width, height)</code><br />
-    3. Render: <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.drawSprite(sheet, sprite, position, tintColor)</code>
+    1. Load your sprite sheet: <code class="bg-surface-code px-1.5 py-0.5">const sheet = await SpriteSheet.load('path/to/sprites.png')</code><br />
+    2. Define sprite regions: <code class="bg-surface-code px-1.5 py-0.5">const sprite = new Rect2i(x, y, width, height)</code><br />
+    3. Render: <code class="bg-surface-code px-1.5 py-0.5">BT.drawSprite(sheet, sprite, position, tintColor)</code>
 </div>
 
 {{> font-attribution}} {{> layout-bottom}}

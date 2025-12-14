@@ -1,67 +1,61 @@
 <!doctype html>
+
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Blit–Tech - WebGPU Retro Game Engine</title>
-        <meta
-            name="description"
-            content="A lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit. Build pixel-perfect 2D games with a clean, fantasy-console-style API."
-        />
+        <meta name="description" content="A lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit. Build pixel-perfect 2D games with a clean, fantasy-console-style API." />
         <link rel="stylesheet" href="./examples/styles.css" />
         {{> plausible-analytics}}
     </head>
 
-    <body
-        class="font-mono bg-linear-to-br from-bg-from to-bg-to min-h-screen flex items-center justify-center text-white p-5">
+    <body class="bg-black min-h-screen flex items-center justify-center text-white p-10 pb-20">
         <div class="max-w-5xl w-full">
-            <!-- Header -->
             <div class="text-center mb-10">
                 <h1 class="text-6xl mb-5 drop-shadow-lg">Blit–Tech</h1>
+
                 <p class="text-2xl opacity-90 mb-8">WebGPU Retro Game Engine for TypeScript</p>
-                <p class="text-lg opacity-75 max-w-3xl mx-auto leading-relaxed">
+
+                <p class="text-lg opacity-75 max-w-3xl mx-auto leading-relaxed text-balance">
                     A lightweight pixel-perfect 2D game engine inspired by RetroBlit. Build retro games with a clean,
                     fantasy-console-style API powered by WebGPU.
                 </p>
             </div>
 
-            <!-- Quick Links -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-                <a
-                    href="./examples/"
-                    class="bg-accent/20 border-2 border-accent/40 rounded-xl p-6 no-underline text-white transition-all duration-300 hover:bg-accent/30 hover:border-accent/60 hover:-translate-y-1 hover:shadow-xl text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10 select-none">
+                <a href="./examples/" class="bg-accent/20 border-2 border-accent/40 p-6 text-white hover:bg-accent/30 hover:border-accent/60 hover:shadow-xl text-center">
                     <div class="text-4xl mb-3">▶</div>
-                    <div class="text-xl font-bold mb-2">Examples</div>
+
+                    <div class="text-xl mb-2">Examples</div>
+
                     <div class="text-sm opacity-80">Live demos and code samples</div>
                 </a>
 
-                <a
-                    href="https://github.com/vancura/blit-tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="bg-white/10 border-2 border-white/20 rounded-xl p-6 no-underline text-white transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl text-center">
+                <a href="https://github.com/vancura/blit-tech" target="_blank" rel="noopener noreferrer" class="bg-white/10 border-2 border-white/20 p-6 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-xl text-center">
                     <div class="text-4xl mb-3">&lt;/&gt;</div>
-                    <div class="text-xl font-bold mb-2">GitHub</div>
+
+                    <div class="text-xl mb-2">GitHub</div>
+
                     <div class="text-sm opacity-80">Source code and documentation</div>
                 </a>
 
-                <a
-                    href="https://www.npmjs.com/package/blit-tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="bg-white/10 border-2 border-white/20 rounded-xl p-6 no-underline text-white transition-all duration-300 hover:bg-white/20 hover:border-white/40 hover:-translate-y-1 hover:shadow-xl text-center">
+                <a href="https://www.npmjs.com/package/blit-tech" target="_blank" rel="noopener noreferrer" class="bg-white/10 border-2 border-white/20 p-6 text-white hover:bg-white/20 hover:border-white/40 hover:shadow-xl text-center pointer-events-none opacity-35">
                     <div class="text-4xl mb-3">📦</div>
-                    <div class="text-xl font-bold mb-2">npm Package</div>
+
+                    <div class="text-xl mb-2">npm Package</div>
+
                     <div class="text-sm opacity-80">Install and use in your project</div>
                 </a>
             </div>
 
-            <!-- Features -->
-            <div class="bg-surface rounded-xl p-8 mb-8">
-                <h2 class="text-3xl mb-6 text-accent">Features</h2>
+            <div class="bg-surface p-8 pt-6 mb-8">
+                <h2 class="text-3xl mb-6">Features</h2>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h3 class="text-xl mb-3 font-bold">Core Rendering</h3>
+                        <h3 class="text-xl mb-3">Core Rendering</h3>
+
                         <ul class="check-list list-none pl-0 space-y-2">
                             <li class="pl-6 relative">WebGPU dual-pipeline architecture</li>
                             <li class="pl-6 relative">Pixel-perfect integer coordinates</li>
@@ -70,8 +64,10 @@
                             <li class="pl-6 relative">Bitmap font system</li>
                         </ul>
                     </div>
+
                     <div>
-                        <h3 class="text-xl mb-3 font-bold">Game Features</h3>
+                        <h3 class="text-xl mb-3">Game Features</h3>
+
                         <ul class="check-list list-none pl-0 space-y-2">
                             <li class="pl-6 relative">Fixed 60 FPS timestep</li>
                             <li class="pl-6 relative">Camera scrolling system</li>
@@ -84,18 +80,19 @@
             </div>
 
             <!-- Getting Started -->
-            <div class="bg-surface rounded-xl p-8 mb-8">
-                <h2 class="text-3xl mb-6 text-accent">Getting Started</h2>
+            <div class="bg-surface p-8 mb-8">
+                <h2 class="text-3xl mb-6">Getting Started</h2>
 
                 <div class="mb-6">
-                    <h3 class="text-xl mb-3 font-bold">Installation</h3>
-                    <pre
-                        class="bg-black/30 p-4 rounded overflow-x-auto"><code>npm install blit-tech</code></pre>
+                    <h3 class="text-xl mb-3">Installation</h3>
+
+                    <pre class="bg-surface-code p-4 overflow-x-auto"><code>npm install blit-tech</code></pre>
                 </div>
 
                 <div class="mb-6">
-                    <h3 class="text-xl mb-3 font-bold">Quick Example</h3>
-                    <pre class="bg-black/30 p-4 rounded overflow-x-auto text-sm"><code>import { BlitTech, BT, Color32, Vector2i } from 'blit-tech';
+                    <h3 class="text-xl mb-3">Quick Example</h3>
+
+                    <pre class="bg-surface-code p-4 overflow-x-auto text-sm"><code>import { BlitTech, BT, Color32, Vector2i } from 'blit-tech';
 
 class MyGame {
     queryHardware() {
@@ -129,8 +126,9 @@ await blitTech.run(new MyGame());</code></pre>
             </div>
 
             <!-- Requirements -->
-            <div class="bg-surface rounded-xl p-8 mb-8">
-                <h2 class="text-3xl mb-6 text-accent">Requirements</h2>
+            <div class="bg-surface p-8 mb-8">
+                <h2 class="text-3xl mb-6">Requirements</h2>
+
                 <ul class="check-list list-none pl-0 space-y-2">
                     <li class="pl-6 relative">Chrome/Edge 113+ (Windows, macOS, Linux, Android)</li>
                     <li class="pl-6 relative">Firefox Nightly (with WebGPU enabled)</li>
@@ -140,20 +138,15 @@ await blitTech.run(new MyGame());</code></pre>
             </div>
 
             <!-- Inspiration -->
-            <div class="bg-surface rounded-xl p-8 mb-8">
-                <h2 class="text-3xl mb-6 text-accent">Inspiration</h2>
+            <div class="bg-surface p-8 mb-8">
+                <h2 class="text-3xl mb-6">Inspiration</h2>
+
                 <p class="opacity-90 leading-relaxed mb-4">
-                    Blit–Tech is heavily inspired by
-                    <a
-                        href="https://www.badcastle.com/retroblit/docs/doc/index.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-accent hover:text-accent-hover">
-                        RetroBlit
-                    </a>
-                    , a retro pixel game framework for Unity by Martin Cietwierkowski. RetroBlit provides an ideal
+                    Blit–Tech is heavily inspired by <a href="https://www.badcastle.com/retroblit/docs/doc/index.html" target="_blank" rel="noopener noreferrer" class="text-accent underline">RetroBlit</a>,
+                    a retro pixel game framework for Unity by Martin Cietwierkowski. RetroBlit provides an ideal
                     environment for pixel-perfect retro games through a traditional game loop and code-only development.
                 </p>
+
                 <p class="opacity-90 leading-relaxed">
                     Blit–Tech brings this philosophy to the web using WebGPU: no scene graphs, no complex frameworks –
                     just sprites, primitives, and fonts.
@@ -161,26 +154,24 @@ await blitTech.run(new MyGame());</code></pre>
             </div>
 
             <!-- Open Source -->
-            <div class="bg-accent/10 border-2 border-accent/30 rounded-xl p-8 text-center">
+            <div class="bg-accent/10 border-2 border-accent/30 p-8 text-center">
                 <h2 class="text-3xl mb-4">Open Source & MIT Licensed</h2>
+
                 <p class="text-lg opacity-90 mb-6">
                     Blit–Tech is free and open source. Contributions welcome!
                 </p>
-                <a
-                    href="https://github.com/vancura/blit-tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-block bg-accent text-white px-8 py-3 rounded-lg font-bold no-underline transition-all duration-300 hover:bg-accent-hover hover:shadow-lg">
+
+                <a href="https://github.com/vancura/blit-tech" target="_blank" rel="noopener noreferrer" class="inline-block bg-accent text-black px-8 py-3 hover:bg-accent-hover hover:shadow-lg">
                     View on GitHub
                 </a>
             </div>
 
             <!-- Footer -->
-            <div class="text-center mt-10 opacity-60 text-sm">
-                <p></p>Built with WebGPU | Inspired by RetroBlit</p>
+            <div class="text-center mt-10 text-sm">
+                <p></p>Built with WebGPU</p>
+
                 <p class="mt-2">
-                    Part of the <a href="/" class="text-accent hover:text-accent-hover">Ambilab</a> collection of retro
-                    game development tools
+                    Part of the <a href="https://ambilab.com" class="text-accent underline">Ambilab</a> collection of retro game development tools
                 </p>
             </div>
         </div>
