@@ -138,4 +138,3 @@ jobs:
           config-file: '.github/markdown-link-check.json'
           folder-path: 'docs/'
           file-path: './README.md'
-        continue-on-error: true
