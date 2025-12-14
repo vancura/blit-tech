@@ -36,6 +36,9 @@ jobs:
       - name: Type check
         run: pnpm typecheck
 
+      - name: Spell check
+        run: pnpm spellcheck
+
   build-library:
     name: Build Library
     runs-on: ubuntu-latest
