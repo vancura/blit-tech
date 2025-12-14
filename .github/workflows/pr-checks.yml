@@ -1,0 +1,140 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  commitlint:
+    name: Lint Commits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate PR commits
+        run: pnpm commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  bundle-size:
+    name: Check Bundle Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build library
+        run: pnpm build:lib
+
+      - name: Check bundle size
+        id: size
+        run: |
+          ESM_SIZE=$(stat -c%s dist/blit-tech.js 2>/dev/null || stat -f%z dist/blit-tech.js)
+          CJS_SIZE=$(stat -c%s dist/blit-tech.cjs 2>/dev/null || stat -f%z dist/blit-tech.cjs)
+          ESM_GZIP=$(gzip -c dist/blit-tech.js | wc -c | tr -d ' ')
+          CJS_GZIP=$(gzip -c dist/blit-tech.cjs | wc -c | tr -d ' ')
+
+          echo "esm_size=$ESM_SIZE" >> $GITHUB_OUTPUT
+          echo "cjs_size=$CJS_SIZE" >> $GITHUB_OUTPUT
+          echo "esm_gzip=$ESM_GZIP" >> $GITHUB_OUTPUT
+          echo "cjs_gzip=$CJS_GZIP" >> $GITHUB_OUTPUT
+
+          # Convert to KB for display
+          ESM_KB=$(echo "scale=2; $ESM_SIZE / 1024" | bc)
+          CJS_KB=$(echo "scale=2; $CJS_SIZE / 1024" | bc)
+          ESM_GZIP_KB=$(echo "scale=2; $ESM_GZIP / 1024" | bc)
+          CJS_GZIP_KB=$(echo "scale=2; $CJS_GZIP / 1024" | bc)
+
+          echo "esm_kb=$ESM_KB" >> $GITHUB_OUTPUT
+          echo "cjs_kb=$CJS_KB" >> $GITHUB_OUTPUT
+          echo "esm_gzip_kb=$ESM_GZIP_KB" >> $GITHUB_OUTPUT
+          echo "cjs_gzip_kb=$CJS_GZIP_KB" >> $GITHUB_OUTPUT
+
+      - name: Bundle size report
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Format | Raw | Gzipped |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-----|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ESM (.js) | ${{ steps.size.outputs.esm_kb }} KB | ${{ steps.size.outputs.esm_gzip_kb }} KB |" >> $GITHUB_STEP_SUMMARY
+          echo "| CJS (.cjs) | ${{ steps.size.outputs.cjs_kb }} KB | ${{ steps.size.outputs.cjs_gzip_kb }} KB |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check size limits
+        run: |
+          # Fail if gzipped ESM exceeds 50 KB (adjust as needed)
+          ESM_GZIP=${{ steps.size.outputs.esm_gzip }}
+          MAX_SIZE=51200  # 50 KB in bytes
+
+          if [ "$ESM_GZIP" -gt "$MAX_SIZE" ]; then
+            echo "::error::Bundle size (${{ steps.size.outputs.esm_gzip_kb }} KB gzipped) exceeds limit (50 KB)"
+            exit 1
+          fi
+
+          echo "Bundle size is within limits"
+
+  build-examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build full project (with examples)
+        run: pnpm build
+
+  docs-links:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/markdown-link-check.json'
+          folder-path: 'docs/'
+          file-path: './README.md'

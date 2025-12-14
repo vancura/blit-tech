@@ -63,7 +63,3 @@ temp/
 
 # Husky runtime
 .husky/_/
-
-# Reference materials (not part of the library)
-retroblit-conversion/
-retroblit-unity/
