@@ -12,13 +12,9 @@
  * Run this script whenever you update rules in .cursor/rules/
  */
 
-// #region Imports
-
-import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-// #endregion
 
 // #region Configuration
 

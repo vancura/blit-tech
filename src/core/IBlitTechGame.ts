@@ -161,7 +161,6 @@ export interface IBlitTechGame {
 
 // #region Helper Functions
 
-// noinspection JSUnusedGlobalSymbols
 /**
  * Creates default hardware settings for quick prototyping.
  * Provides a 320×240 display at 60 FPS (classic retro resolution).

@@ -511,7 +511,6 @@ class AnimationDemo implements IBlitTechGame {
 
     // #region Sprite Sheet Creation
 
-    // noinspection FunctionWithMultipleLoopsJS
     /**
      * Creates a sprite sheet with animated character frames.
      * In production, you would load from an image file instead.
@@ -656,7 +655,6 @@ class AnimationDemo implements IBlitTechGame {
 // #region App Lifecycle
 
 // Bootstrap the game with default settings.
-// noinspection JSIgnoredPromiseFromCall
 bootstrap(AnimationDemo);
 
 // #endregion

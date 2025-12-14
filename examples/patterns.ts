@@ -347,7 +347,6 @@ class PatternsDemo implements IBlitTechGame {
 // #region App Lifecycle
 
 // Bootstrap the game with default settings.
-// noinspection JSIgnoredPromiseFromCall
 bootstrap(PatternsDemo);
 
 // #endregion
