@@ -2,16 +2,12 @@
 
 @theme {
     /* Accent color - unified blue theme */
-    --color-accent: #4a90e2;
-    --color-accent-hover: #5da0f2;
+    --color-accent: #5da0f2;
+    --color-accent-hover: #7db4f5;
 
     /* Surface colors */
-    --color-surface: oklch(0% 0 0 / 0.3);
-    --color-surface-hover: oklch(100% 0 0 / 0.2);
-
-    /* Background gradient */
-    --color-bg-from: #1e3c72;
-    --color-bg-to: #2a5298;
+    --color-surface: #111;
+    --color-surface-code: black;
 
     /* Note/warning colors */
     --color-note-bg: oklch(85% 0.1 85 / 0.2);

@@ -4,12 +4,12 @@
 
 <ul class="info-list list-none pl-0">
     <li class="py-1 pl-5 relative">
-        <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BitmapFont.load()</code>
+        <code class="bg-surface-code px-1.5 py-0.5">BitmapFont.load()</code>
         — Load bitmap fonts from .btfont files
     </li>
 
     <li class="py-1 pl-5 relative">
-        <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.printFont(font, pos, text, color)</code>
+        <code class="bg-surface-code px-1.5 py-0.5">BT.printFont(font, pos, text, color)</code>
         — Render bitmap text
     </li>
 
@@ -26,12 +26,12 @@
     </li>
 </ul>
 
-<div class="bg-note-bg border-l-4 border-note-border p-2.5 mt-4 rounded">
+<div class="bg-note-bg border-l-4 border-note-border p-2.5 mt-4">
     <strong>How to use your own bitmap font:</strong><br />
 
     1. Create a .btfont file (JSON) with glyph data and texture<br />
-    2. Use <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">const font = await BitmapFont.load('path/to/font.btfont')</code><br />
-    3. Render with <code class="bg-white/10 px-1.5 py-0.5 rounded font-mono">BT.printFont(font, position, text, color)</code>
+    2. Use <code class="bg-surface-code px-1.5 py-0.5">const font = await BitmapFont.load('path/to/font.btfont')</code><br />
+    3. Render with <code class="bg-surface-code px-1.5 py-0.5">BT.printFont(font, position, text, color)</code>
 </div>
 
 {{> font-attribution}} {{> layout-bottom}}
