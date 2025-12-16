@@ -30,15 +30,18 @@ if [ -z "$(command -v pnpm)" ]; then
         export PATH="$VOLTA_HOME/bin:$PATH"
     fi
 
-    # Try Homebrew Node on macOS
+    # Try Homebrew Node on macOS (Apple Silicon)
     if [ -d "/opt/homebrew/bin" ]; then
         export PATH="/opt/homebrew/bin:$PATH"
     fi
 
+    # Try Homebrew Node on macOS (Intel)
+    if [ -d "/usr/local/bin" ]; then
+        export PATH="/usr/local/bin:$PATH"
+    fi
+
     # Try common global npm/pnpm locations
-    export PATH="$HOME/.local/share/pnpm:$PATH"
-    export PATH="$HOME/.pnpm-global/bin:$PATH"
-    export PATH="$HOME/Library/pnpm:$PATH"
+    export PATH="$HOME/.local/share/pnpm:$HOME/.pnpm-global/bin:$HOME/Library/pnpm:$PATH"
 fi
 
 # Final check for pnpm
