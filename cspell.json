@@ -55,6 +55,7 @@
     "multipage",
     "nanos",
     "nsis",
+    "onuncapturederror",
     "palettized",
     "pnpm",
     "prealloc",
