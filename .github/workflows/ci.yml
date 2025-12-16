@@ -64,7 +64,7 @@ jobs:
         run: pnpm build:lib
 
       - name: Upload library artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: library-dist
           path: dist/
@@ -131,7 +131,7 @@ jobs:
         run: pnpm build:deploy
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: web-dist
           path: dist/
