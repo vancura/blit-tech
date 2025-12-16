@@ -23,7 +23,7 @@ const MAX_SPRITE_VERTICES = 50000;
 // #endregion
 
 /**
- * WebGPU renderer for Blit–Tech.
+ * WebGPU renderer for Blit-Tech.
  * Handles all drawing operations including primitives (lines, rects) and sprites.
  * Uses batched rendering for performance - vertices are accumulated and drawn at the frame end.
  */

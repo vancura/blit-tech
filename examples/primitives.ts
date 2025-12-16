@@ -1,7 +1,7 @@
 /**
  * Primitives Demo
  *
- * Showcases all basic drawing functions in Blit–Tech:
+ * Showcases all basic drawing functions in Blit-Tech:
  * - drawPixel: Single pixel rendering
  * - drawLine: Bresenham line algorithm
  * - drawRect: Rectangle outlines
@@ -97,7 +97,7 @@ class PrimitivesDemo implements IBlitTechGame {
         }
 
         // Title.
-        BT.printFont(this.font, new Vector2i(10, 10), 'Blit–Tech - Primitives Demo', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 10), 'Blit-Tech - Primitives Demo', Color32.white());
 
         // Draw demonstration sections.
         this.renderPixelDemo();

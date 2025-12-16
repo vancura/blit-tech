@@ -1,7 +1,7 @@
 # Developer Experience Guide
 
 This document provides comprehensive guidance for improving developer experience, community tools, and documentation for
-Blit–Tech.
+Blit-Tech.
 
 ## Table of Contents
 
@@ -45,9 +45,9 @@ This file guides new contributors through the development workflow.
 **Content:**
 
 ````markdown
-# Contributing to Blit–Tech
+# Contributing to Blit-Tech
 
-Thank you for your interest in contributing to Blit–Tech. This document provides guidelines and instructions for
+Thank you for your interest in contributing to Blit-Tech. This document provides guidelines and instructions for
 contributing.
 
 ## Table of Contents
@@ -453,7 +453,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Blit–Tech Version
+      label: Blit-Tech Version
       description: Which version are you using?
       placeholder: 0.0.1
     validations:
@@ -593,7 +593,7 @@ body:
 
 ```yaml
 name: Question
-description: Ask a question about using Blit–Tech
+description: Ask a question about using Blit-Tech
 title: '[Question]: '
 labels: ['question']
 body:
@@ -942,7 +942,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   integrations: [
     starlight({
-      title: 'Blit–Tech Docs',
+      title: 'Blit-Tech Docs',
       description: 'WebGPU retro game engine for TypeScript',
       logo: {
         src: './public/logo.svg',

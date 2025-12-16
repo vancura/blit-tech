@@ -1,5 +1,5 @@
 /**
- * Blit–Tech - WebGPU Retro Game Engine
+ * Blit-Tech - WebGPU Retro Game Engine
  *
  * Main static API inspired by RetroBlit's RB namespace.
  * All game code interacts with the engine through this interface.
@@ -48,7 +48,7 @@ function warnOnce(funcName: string, message: string): void {
 // #region Public API
 
 /**
- * Main Blit–Tech API module.
+ * Main Blit-Tech API module.
  * All engine features are accessed through BT.* methods.
  */
 export const BT = {
@@ -124,7 +124,7 @@ export const BT = {
 
     /**
      * Initializes the engine with a game instance and canvas element.
-     * This is the entry point for all Blit–Tech games.
+     * This is the entry point for all Blit-Tech games.
      *
      * Setup sequence:
      * 1. Calls game.queryHardware() to get display settings
@@ -146,7 +146,7 @@ export const BT = {
      * const success = await BT.initialize(game, canvas);
      *
      * if (!success) {
-     *   console.error('Failed to initialize Blit–Tech');
+     *   console.error('Failed to initialize Blit-Tech');
      * }
      */
     initialize: async (game: IBlitTechGame, canvas: HTMLCanvasElement): Promise<boolean> => {

@@ -1,6 +1,6 @@
-# Bitmap Fonts in Blit–Tech
+# Bitmap Fonts in Blit-Tech
 
-Blit–Tech uses a modern `.btfont` JSON format for bitmap fonts. This format supports variable-width glyphs,
+Blit-Tech uses a modern `.btfont` JSON format for bitmap fonts. This format supports variable-width glyphs,
 per-character offsets, Unicode characters, and either embedded or external textures.
 
 ## Quick Start
@@ -188,7 +188,7 @@ If you prefer to convert manually:
 
 4. **Custom Font Editor** (Coming Soon)
 
-- Blit–Tech will include its own font editor.
+- Blit-Tech will include its own font editor.
 - Native `.btfont` export with embedded textures.
 
 ### Tips for Creating Fonts

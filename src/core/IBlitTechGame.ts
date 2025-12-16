@@ -23,7 +23,7 @@ export interface HardwareSettings {
 }
 
 /**
- * Main game interface that all Blit–Tech games must implement.
+ * Main game interface that all Blit-Tech games must implement.
  * Inspired by RetroBlit's IRetroBlitGame.
  *
  * LIFECYCLE ORDER:

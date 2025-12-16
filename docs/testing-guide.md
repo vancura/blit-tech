@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document provides comprehensive guidance for implementing testing infrastructure for Blit–Tech.
+This document provides comprehensive guidance for implementing testing infrastructure for Blit-Tech.
 
 ## Table of Contents
 
@@ -548,7 +548,7 @@ const examples = [
   { name: 'Fonts', path: '/examples/fonts.html' },
 ];
 
-test.describe('Blit–Tech Examples', () => {
+test.describe('Blit-Tech Examples', () => {
   for (const example of examples) {
     test(`${example.name} example loads without errors`, async ({ page }) => {
       // Track console errors

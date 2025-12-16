@@ -112,7 +112,7 @@ class PatternsDemo implements IBlitTechGame {
         }
 
         // Title.
-        BT.printFont(this.font, new Vector2i(10, 5), 'Blit–Tech - Patterns Demo', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 5), 'Blit-Tech - Patterns Demo', Color32.white());
 
         // Draw pattern demonstrations.
         this.drawSpiral(new Vector2i(40, 50));

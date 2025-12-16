@@ -1,7 +1,7 @@
 /**
  * Camera Demo
  *
- * Showcases camera scrolling feature in Blit–Tech.
+ * Showcases camera scrolling feature in Blit-Tech.
  * Creates a large procedural world (800×600) that can be explored
  * via automatic camera panning, demonstrating:
  * - camera offset for scrolling,
