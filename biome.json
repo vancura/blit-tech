@@ -83,12 +83,6 @@
           }
         }
       }
-    },
-    {
-      "includes": ["tools/**/*.mjs"],
-      "linter": {
-        "rules": {}
-      }
     }
   ]
 }

@@ -1,7 +1,7 @@
 /**
  * Animation & Timing Demo
  *
- * Demonstrates tick-based animation and timing mechanics in Blit–Tech.
+ * Demonstrates tick-based animation and timing mechanics in Blit-Tech.
  * Shows how to use BT.ticks() for frame-based game logic including:
  * - Sprite animation with frame cycling
  * - Animation state machines

@@ -1,4 +1,4 @@
-# Blit–Tech
+# Blit-Tech
 
 [![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
@@ -9,16 +9,16 @@
 A lightweight WebGPU retro game engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit).
 Build pixel-perfect 2D games with a clean, fantasy-console-style API.
 
-![Blit–Tech logo](assets/logo.png)
+![Blit-Tech logo](assets/logo.png)
 
 ## Inspiration
 
-Blit–Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html), a retro
+Blit-Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html), a retro
 pixel game framework for Unity created by Martin Cietwierkowski ([@daafu](https://github.com/daafu)). RetroBlit provides
 an ideal environment for making pixel-perfect retro games through a traditional game loop and code-only development,
 discarding the Unity Editor in favor of a clean, low-level API.
 
-Blit–Tech brings a similar philosophy to the web using WebGPU: no scene graphs, no complex frameworks – just sprites,
+Blit-Tech brings a similar philosophy to the web using WebGPU: no scene graphs, no complex frameworks – just sprites,
 primitives, and fonts.
 
 ## Features
@@ -44,7 +44,7 @@ primitives, and fonts.
 
 ## Installation
 
-**Note:** Blit–Tech is currently in development and not yet published to npm. Clone the repository to use it:
+**Note:** Blit-Tech is currently in development and not yet published to npm. Clone the repository to use it:
 
 ```bash
 git clone https://github.com/vancura/blit-tech.git
@@ -387,7 +387,7 @@ BT.drawSprite(spriteSheet, new Rect2i(0, 0, 32, 32), new Vector2i(100, 100));
 
 ### Bitmap Fonts
 
-Blit–Tech uses a custom `.btfont` JSON format for bitmap fonts. The format supports:
+Blit-Tech uses a custom `.btfont` JSON format for bitmap fonts. The format supports:
 
 - Variable-width glyphs with per-character offsets
 - Unicode character support

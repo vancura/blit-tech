@@ -1,7 +1,7 @@
 /**
  * Sprite Demo
  *
- * Shows how to use sprite sheets and textured rendering in Blit–Tech.
+ * Shows how to use sprite sheets and textured rendering in Blit-Tech.
  * Demonstrates:
  * - Loading/creating sprite sheets
  * - Drawing sprites with source rectangles
@@ -253,7 +253,7 @@ class SpriteDemo implements IBlitTechGame {
         }
 
         // Title.
-        BT.printFont(this.font, new Vector2i(10, 10), 'BLIT–TECH SPRITE DEMO', Color32.white());
+        BT.printFont(this.font, new Vector2i(10, 10), 'BLIT-TECH SPRITE DEMO', Color32.white());
 
         // Row labels.
         BT.printFont(this.font, new Vector2i(10, 30), 'Colored Sprites:', new Color32(200, 200, 200));
