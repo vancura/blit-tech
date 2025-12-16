@@ -114,10 +114,6 @@
     {
       "filename": "**/*.ts",
       "words": ["instanceof", "keyof", "readonly", "typeof"]
-    },
-    {
-      "filename": "**/electron/**",
-      "words": ["contextbridge", "ipcmain", "ipcrenderer", "nodeintegration", "preload", "webcontents"]
     }
   ]
 }
