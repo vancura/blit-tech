@@ -10,9 +10,18 @@ if [ -z "$(command -v pnpm)" ]; then
         . "$HOME/.nvm/nvm.sh"
     fi
 
-    # Try fnm
-    if [ -s "$HOME/.fnm/fnm" ]; then
+    # Try fnm (default installation path)
+    if [ -d "$HOME/.local/share/fnm" ]; then
+        export PATH="$HOME/.local/share/fnm:$PATH"
         eval "$(fnm env)"
+    fi
+
+    # Try fnm (alternative installation path)
+    if [ -d "$HOME/.fnm" ]; then
+        export PATH="$HOME/.fnm:$PATH"
+        if [ -n "$(command -v fnm)" ]; then
+            eval "$(fnm env)"
+        fi
     fi
 
     # Try volta
