@@ -1,21 +1,22 @@
 # Source files (only dist/ should be published)
 src/
 examples/
-tests/
-*.test.ts
-*.spec.ts
 
 # Configuration files
 .husky/
 .github/
 .vscode/
+.zed/
 .idea/
 .changeset/
 
 # AI assistant configs (development only)
+ai-rules/
 .cursor/
 .rules
+CLAUDE.md
 .claude/
+
 *.config.js
 *.config.ts
 tsconfig.json
@@ -23,19 +24,15 @@ tsconfig.json
 .gitignore
 .gitattributes
 .prettierignore
-prettier.config.js
-biome.json
 .lintstagedrc.json
-commitlint.config.js
+biome.json
+wrangler.jsonc
 
 # Development files
 vite.config.*.timestamp-*
-*.tsbuildinfo
 .eslintcache
 
 # Documentation (keep README.md and LICENSE)
-CONTRIBUTING.md
-CODE_OF_CONDUCT.md
 docs/
 
 # Build artifacts
@@ -56,6 +53,5 @@ Thumbs.db
 
 # Temporary files
 tmp/
-temp/
 *.tmp
 *.tgz
