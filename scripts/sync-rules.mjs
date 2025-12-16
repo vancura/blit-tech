@@ -1,205 +1,263 @@
 #!/usr/bin/env node
 
+/* eslint-disable security/detect-object-injection */
+
 /**
  * Sync AI assistant rules across different tools.
  *
- * This script reads the master rules from .cursor/rules/*.mdc files
- * and generates tool-specific configuration files:
- * - .rules (for Zed context server)
- * - .clauderc (for Claude Code)
- * - .idea/ai-assistant.xml (for WebStorm AI Assistant)
+ * Reads master rules from ai-rules/*.mdc files and generates tool-specific
+ * configuration files. Configuration is read from the package.json "syncRules" field.
  *
- * Run this script whenever you update rules in .cursor/rules/
+ * Supported targets:
+ * - cursor:   .cursor/rules/*.mdc (copies with frontmatter)
+ * - webstorm: .aiassistant/rules/*.md (strips frontmatter)
+ * - zed:      .rules (combined markdown)
+ * - claude:   CLAUDE.md (combined markdown)
+ *
+ * Usage:
+ *   pnpm sync-rules         # Sync rules based on package.json config
+ *   pnpm sync-rules --help  # Show help
+ *
+ * @see https://docs.cursor.com/context/rules
+ * @see https://www.jetbrains.com/help/ai-assistant/configure-project-rules.html
+ * @see https://zed.dev/docs/ai/rules
+ * @see https://claude.com/blog/using-claude-md-files
  */
 
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// #region Configuration
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT_DIR = join(__dirname, '..');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const rootDir = join(__dirname, '..');
-
-// #endregion
-
-// #region Helper Functions
+const TARGETS = {
+    cursor: {
+        description: '.cursor/rules/*.mdc',
+        generate: generateCursor,
+    },
+    webstorm: {
+        description: '.aiassistant/rules/*.md',
+        generate: generateWebStorm,
+    },
+    zed: {
+        description: '.rules',
+        generate: generateZed,
+    },
+    claude: {
+        description: 'CLAUDE.md',
+        generate: generateClaude,
+    },
+};
 
 /**
- * Reads all MDC files from .cursor/rules/ directory.
- * Strips frontmatter from each file (content between --- markers).
- *
- * @returns Array of rule files with the name and content.
+ * Shows help message and exits.
  */
-function readCursorRules() {
-    const rulesDir = join(rootDir, '.cursor', 'rules');
+function showHelp() {
+    const targetList = Object.entries(TARGETS)
+        .map(([name, { description }]) => `  - ${name}: ${description}`)
+        .join('\n');
 
-    try {
-        const files = readdirSync(rulesDir);
-        const mdcFiles = files.filter((file) => file.endsWith('.mdc'));
+    console.log(`
+Usage: pnpm sync-rules [--help]
 
-        if (mdcFiles.length === 0) {
-            throw new Error('No .mdc files found in .cursor/rules directory');
-        }
+Syncs AI assistant rules from ai-rules/*.mdc to tool-specific locations.
+Configuration is read from package.json "syncRules" field.
 
-        return mdcFiles.map((file) => {
-            const fullPath = join(rulesDir, file);
-            const content = readFileSync(fullPath, 'utf-8');
-            const name = file.replace('.mdc', '');
+Targets:
+${targetList}
 
-            // Strip frontmatter (between --- markers), handle both Unix and Windows line endings.
-            const contentWithoutFrontmatter = content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
-
-            return { name, content: contentWithoutFrontmatter };
-        });
-    } catch (error) {
-        console.error(`Error reading rules: ${error.message}`);
-        process.exit(1);
+Configuration example in package.json:
+  "syncRules": {
+    "source": "ai-rules",
+    "targets": {
+      "cursor": true,
+      "webstorm": true,
+      "zed": true,
+      "claude": true
     }
+  }
+`);
+    process.exit(0);
+}
+
+/**
+ * Loads and validates configuration from package.json.
+ * Throws if the configuration is missing or invalid.
+ *
+ * @returns {{ source: string, targets: string[] }} Validated configuration.
+ */
+function loadConfig() {
+    const packageJsonPath = join(ROOT_DIR, 'package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+
+    // noinspection JSUnresolvedReference
+    if (!packageJson.syncRules) {
+        throw new Error('Missing "syncRules" configuration in package.json');
+    }
+
+    const { source, targets } = packageJson.syncRules;
+
+    if (!source || typeof source !== 'string') {
+        throw new Error('Missing or invalid "syncRules.source" in package.json');
+    }
+
+    if (!targets || typeof targets !== 'object') {
+        throw new Error('Missing or invalid "syncRules.targets" in package.json');
+    }
+
+    // Filter enabled targets and validate they exist
+    const enabledTargets = Object.entries(targets)
+        .filter(([, enabled]) => enabled)
+        .map(([name]) => {
+            if (!TARGETS[name]) {
+                throw new Error(`Unknown target "${name}" in syncRules.targets`);
+            }
+            return name;
+        });
+
+    if (enabledTargets.length === 0) {
+        throw new Error('No targets enabled in syncRules.targets');
+    }
+
+    return { source, targets: enabledTargets };
+}
+
+/**
+ * Reads all .mdc files from the source directory.
+ *
+ * @param {string} sourceDir - Source directory relative to root.
+ * @returns {Array<{ name: string, filename: string, content: string, contentClean: string }>}
+ */
+function readSourceRules(sourceDir) {
+    const rulesDir = join(ROOT_DIR, sourceDir);
+    const files = readdirSync(rulesDir);
+    const mdcFiles = files.filter((file) => file.endsWith('.mdc'));
+
+    if (mdcFiles.length === 0) {
+        throw new Error(`No .mdc files found in ${sourceDir}/`);
+    }
+
+    return mdcFiles.map((file) => {
+        const content = readFileSync(join(rulesDir, file), 'utf-8');
+        const name = file.replace('.mdc', '');
+
+        // Strip YAML frontmatter (between --- markers) for tools that don't support it
+        const contentClean = content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+
+        return { name, filename: file, content, contentClean };
+    });
+}
+
+/**
+ * Writes content to a file and logs the action.
+ *
+ * @param {string} filePath - Absolute path to write to.
+ * @param {string} content - Content to write.
+ * @param {string} displayPath - Path to display in logs.
+ */
+function writeRuleFile(filePath, content, displayPath) {
+    writeFileSync(filePath, content, 'utf-8');
+    console.log(`   - ${displayPath}`);
 }
 
 /**
  * Combines all rule files into a single Markdown document.
- * Adds a header with a project description and generation notice.
  *
- * @param rules - Array of rule files to combine.
- * @returns Combined Markdown document.
+ * @param {Array<{ contentClean: string }>} rules - Rule files to combine.
+ * @returns {string} Combined Markdown.
  */
 function combineRules(rules) {
-    const header = `# Blit–Tech WebGPU Game Engine - Project Rules
+    const header = `# Project Rules
 
-You are working on Blit–Tech, a lightweight WebGPU retro game engine for
-TypeScript inspired by RetroBlit. It provides pixel-perfect 2D rendering with
-a clean, fantasy-console-style API.
-
----
-
-> **Note**: This file is auto-generated from .cursor/rules/*.mdc files.
-> To update these rules, edit the .mdc files and run: \`pnpm run sync-rules\`
+> Auto-generated from ai-rules/*.mdc files.
+> To update, edit the source files and run: \`pnpm sync-rules\`
 
 ---
 
 `;
-
-    const combined = rules.map((rule) => rule.content.trim()).join('\n\n---\n\n');
-
+    const combined = rules.map((rule) => rule.contentClean.trim()).join('\n\n---\n\n');
     return header + combined;
 }
 
 /**
- * Creates a condensed version for WebStorm XML by removing code examples.
- * Keeps inline code but replaces large code blocks with a reference.
- *
- * @param markdown - Original markdown content.
- * @returns Condensed markdown without code examples.
+ * Generates Cursor rules: .cursor/rules/*.mdc
+ * Copies files as-is since Cursor uses the same .mdc format with frontmatter.
  */
-function condenseForWebStorm(markdown) {
-    // Remove large code blocks but keep inline code.
-    const condensed = markdown
-        .replace(/```[\s\S]*?```/g, '(see .rules for examples)')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
+function generateCursor(rules) {
+    const dir = join(ROOT_DIR, '.cursor', 'rules');
+    mkdirSync(dir, { recursive: true });
 
-    return condensed;
-}
-
-/**
- * Generates WebStorm AI Assistant XML configuration.
- * Creates a properly formatted XML file with a CDATA section containing the rules.
- *
- * @param markdown - Markdown content to include in XML.
- * @returns XML document string.
- */
-function generateWebStormXml(markdown) {
-    const condensed = condenseForWebStorm(markdown);
-    const safe = condensed.replace(/\]\]>/g, ']]]]><![CDATA[>');
-
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="AIAssistantSettings">
-    <option name="instructions">
-      <value>
-        <![CDATA[
-${safe}
-        ]]>
-      </value>
-    </option>
-  </component>
-</project>
-`;
-}
-
-/**
- * Writes content to a file and logs the operation.
- *
- * @param filePath - Path to write to.
- * @param content - Content to write.
- * @param description - Description for logging.
- */
-function writeRuleFile(filePath, content, description) {
-    try {
-        writeFileSync(filePath, content, 'utf-8');
-        console.log(`   ✓ Written to ${description}\n`);
-    } catch (error) {
-        console.error(`   ✗ Failed to write to ${description} (${filePath}): ${error.message}`);
-        process.exit(1);
+    for (const rule of rules) {
+        writeRuleFile(join(dir, rule.filename), rule.content, `.cursor/rules/${rule.filename}`);
     }
 }
 
-// #endregion
-
-// #region Main Logic
-
 /**
- * Main execution function.
- * Orchestrates the entire rule syncing process.
+ * Generates WebStorm rules: .aiassistant/rules/*.md
+ * Strips frontmatter since WebStorm uses plain Markdown.
  */
-function main() {
-    console.log('Syncing AI assistant rules...\n');
+function generateWebStorm(rules) {
+    const dir = join(ROOT_DIR, '.aiassistant', 'rules');
+    mkdirSync(dir, { recursive: true });
 
-    // Step 1: Read master rules from Cursor.
-    console.log('1. Reading master rules from .cursor/rules/*.mdc');
-    const rules = readCursorRules();
-    console.log(`   Found ${rules.length} rule files: ${rules.map((r) => r.name).join(', ')}\n`);
-
-    // Step 2: Combine into a single Markdown document.
-    console.log('2. Combining rules into unified format');
-    const combinedMarkdown = combineRules(rules);
-    console.log(`   Generated ${combinedMarkdown.split('\n').length} lines of markdown\n`);
-
-    // Step 3: Generate .rules (for Zed).
-    console.log('3. Generating .rules (for Zed)');
-    const rulesPath = join(rootDir, '.rules');
-    writeRuleFile(rulesPath, combinedMarkdown, '.rules');
-
-    // Step 4: Generate .clauderc (for Claude Code).
-    console.log('4. Generating .clauderc (for Claude Code)');
-    const claudercPath = join(rootDir, '.clauderc');
-    writeRuleFile(claudercPath, combinedMarkdown, '.clauderc');
-
-    // Step 5: Generate WebStorm XML.
-    console.log('5. Generating .idea/ai-assistant.xml (for WebStorm)');
-    const ideaDir = join(rootDir, '.idea');
-    mkdirSync(ideaDir, { recursive: true });
-
-    const webstormXml = generateWebStormXml(combinedMarkdown);
-    const webstormPath = join(ideaDir, 'ai-assistant.xml');
-    writeRuleFile(webstormPath, webstormXml, '.idea/ai-assistant.xml');
-
-    // Summary.
-    console.log('✓ All rules synced successfully!');
-    console.log('\nFiles generated:');
-    console.log('  - .rules (Zed)');
-    console.log('  - .clauderc (Claude Code)');
-    console.log('  - .idea/ai-assistant.xml (WebStorm)');
-    console.log('\nSource of truth: .cursor/rules/*.mdc');
+    for (const rule of rules) {
+        writeRuleFile(join(dir, `${rule.name}.md`), rule.contentClean.trim(), `.aiassistant/rules/${rule.name}.md`);
+    }
 }
 
-// #endregion
+/**
+ * Generates Zed rules: .rules
+ * Creates a single combined Markdown file at the project root.
+ */
+function generateZed(rules) {
+    writeRuleFile(join(ROOT_DIR, '.rules'), combineRules(rules), '.rules');
+}
 
-// #region Execution
+/**
+ * Generates Claude Code rules: CLAUDE.md
+ * Creates a single combined Markdown file at the project root.
+ */
+function generateClaude(rules) {
+    writeRuleFile(join(ROOT_DIR, 'CLAUDE.md'), combineRules(rules), 'CLAUDE.md');
+}
+
+/**
+ * Main entry point.
+ */
+function main() {
+    if (process.argv.includes('--help') || process.argv.includes('-h')) {
+        showHelp();
+    }
+
+    console.log('Syncing AI assistant rules...\n');
+
+    const config = loadConfig();
+
+    console.log(`Source: ${config.source}/`);
+    console.log(`Targets: ${config.targets.join(', ')}\n`);
+
+    // Read source rules
+    console.log(`1. Reading source rules from ${config.source}/*.mdc`);
+    const rules = readSourceRules(config.source);
+    console.log(`   Found ${rules.length} files: ${rules.map((r) => r.name).join(', ')}\n`);
+
+    // Generate each target
+    let step = 2;
+    for (const targetName of config.targets) {
+        const target = TARGETS[targetName];
+        console.log(`${step}. Generating ${target.description}`);
+        target.generate(rules);
+        step++;
+    }
+
+    // Summary
+    console.log('\nDone! Rules synced successfully.');
+    console.log('\nGenerated:');
+    for (const targetName of config.targets) {
+        console.log(`  - ${TARGETS[targetName].description}`);
+    }
+    console.log(`\nSource of truth: ${config.source}/*.mdc`);
+}
 
 main();
-
-// #endregion
