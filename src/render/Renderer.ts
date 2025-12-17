@@ -9,9 +9,12 @@ import { Vector2i } from '../utils/Vector2i';
 /**
  * Maximum number of primitive vertices per a frame.
  * Each vertex uses 6 floats (x, y, r, g, b, a).
- * 100k vertices = ~2.4 MB buffer, supports ~16.6k quads per a frame.
+ * 50k vertices = ~1.2 MB buffer, supports ~8.3k quads per a frame.
+ *
+ * Note: Axis-aligned lines are optimized to use 6 vertices total instead of
+ * 6 vertices per pixel, dramatically reducing buffer requirements.
  */
-const MAX_PRIMITIVE_VERTICES = 100000;
+const MAX_PRIMITIVE_VERTICES = 50000;
 
 /**
  * Maximum number of sprite vertices per a frame.
@@ -132,13 +135,7 @@ export class Renderer {
      * Pre-allocated reusable vector for internal drawing operations.
      * Avoids per-call allocations in hot paths.
      */
-    private readonly tempVec1: Vector2i = new Vector2i(0, 0);
-
-    /**
-     * Pre-allocated reusable vector for internal drawing operations.
-     * Avoids per-call allocations in hot paths.
-     */
-    private readonly tempVec2: Vector2i = new Vector2i(0, 0);
+    private readonly tempVec: Vector2i = new Vector2i(0, 0);
 
     /**
      * Pre-allocated reusable vector for sprite size.
@@ -602,8 +599,21 @@ export class Renderer {
     }
 
     /**
-     * Draws a line using Bresenham's line algorithm.
-     * Produces pixel-perfect lines without the antialiasing.
+     * Draws a line using optimized quad rendering for axis-aligned lines,
+     * falling back to Bresenham's algorithm for diagonal lines.
+     *
+     * Performance Characteristics
+     *   - Axis-aligned lines (horizontal/vertical): Optimized to use a single quad
+     *     (6 vertices total). A 600px horizontal line uses 6 vertices.
+     *   - Diagonal lines: Use Bresenham's algorithm for pixel-perfect retro rendering.
+     *     Each pixel along the line is rendered as a separate quad (6 vertices per pixel).
+     *     A 100px diagonal line may use 600+ vertices. This is intentional for authentic
+     *     pixel-art aesthetics but should be considered when drawing many diagonal lines.
+     *
+     * For complex curves or many diagonal lines, consider:
+     *   - Using filled rectangles where possible
+     *   - Reducing the number of line segments
+     *   - Pre-rendering to a texture for static content
      *
      * @param p0 - Start point.
      * @param p1 - End point.
@@ -611,11 +621,58 @@ export class Renderer {
      */
     drawLine(p0: Vector2i, p1: Vector2i, color: Color32): void {
         // Vector2i already guarantees integers, but |0 ensures the 32-bit int for bitwise ops.
-        let x0 = p0.x | 0;
-        let y0 = p0.y | 0;
+        const x0 = p0.x | 0;
+        const y0 = p0.y | 0;
         const x1 = p1.x | 0;
         const y1 = p1.y | 0;
 
+        // Optimization: Axis-aligned lines use a single quad (6 vertices total).
+        // This provides ~600× vertex reduction for typical grid lines.
+        if (y0 === y1) {
+            // Horizontal line: single 1px-tall quad.
+            const minX = Math.min(x0, x1);
+            const maxX = Math.max(x0, x1);
+
+            this.tempRect.set(minX, y0, maxX - minX + 1, 1);
+            this.drawRectFill(this.tempRect, color);
+
+            return;
+        }
+
+        if (x0 === x1) {
+            // Vertical line: single 1px-wide quad.
+            const minY = Math.min(y0, y1);
+            const maxY = Math.max(y0, y1);
+
+            this.tempRect.set(x0, minY, 1, maxY - minY + 1);
+            this.drawRectFill(this.tempRect, color);
+
+            return;
+        }
+
+        // Diagonal lines: fall back to Bresenham for pixel-perfect rendering.
+        this.drawLineBresenham(x0, y0, x1, y1, color);
+    }
+
+    /**
+     * Draws a diagonal line using Bresenham's line algorithm.
+     * Produces pixel-perfect lines without antialiasing, matching classic retro aesthetics.
+     *
+     * ## Performance Note
+     *
+     * This method renders each pixel as a separate 1×1 quad (6 vertices per pixel).
+     * A 100px diagonal line generates ~600 vertices. This approach is intentional
+     * to achieve authentic pixel-art rendering where each pixel is a discrete unit,
+     * but it means diagonal lines are significantly more expensive than axis-aligned
+     * lines (which use only 6 vertices total regardless of length).
+     *
+     * @param x0 - Start X coordinate.
+     * @param y0 - Start Y coordinate.
+     * @param x1 - End X coordinate.
+     * @param y1 - End Y coordinate.
+     * @param color - Line color.
+     */
+    private drawLineBresenham(x0: number, y0: number, x1: number, y1: number, color: Color32): void {
         const dx = Math.abs(x1 - x0);
         const dy = Math.abs(y1 - y0);
         const sx = x0 < x1 ? 1 : -1;
@@ -673,7 +730,9 @@ export class Renderer {
     }
 
     /**
-     * Draws a rectangle outline using four lines.
+     * Draws a rectangle outline using four 1-pixel quads.
+     * Optimized to directly emit quads instead of calling drawLine 4 times,
+     * reducing function call overhead.
      *
      * @param rect - Rectangle bounds.
      * @param color - Outline color.
@@ -684,26 +743,30 @@ export class Renderer {
         const x1 = rect.x + rect.width - 1;
         const y1 = rect.y + rect.height - 1;
 
-        // Use pre-allocated vectors to avoid allocation per call.
-        // Top line.
-        this.tempVec1.set(x0, y0);
-        this.tempVec2.set(x1, y0);
-        this.drawLine(this.tempVec1, this.tempVec2, color);
+        // Draw 4 line quads directly using the pre-allocated tempRect.
+        // This avoids 4 function calls to drawLine and their overhead.
 
-        // Right line.
-        this.tempVec1.set(x1, y0);
-        this.tempVec2.set(x1, y1);
-        this.drawLine(this.tempVec1, this.tempVec2, color);
+        // Top line (horizontal): from (x0, y0) to (x1, y0), 1px tall.
+        this.tempRect.set(x0, y0, x1 - x0 + 1, 1);
+        this.drawRectFill(this.tempRect, color);
 
-        // Bottom line.
-        this.tempVec1.set(x1, y1);
-        this.tempVec2.set(x0, y1);
-        this.drawLine(this.tempVec1, this.tempVec2, color);
+        // Bottom line (horizontal): from (x0, y1) to (x1, y1), 1px tall.
+        this.tempRect.set(x0, y1, x1 - x0 + 1, 1);
+        this.drawRectFill(this.tempRect, color);
 
-        // Left line.
-        this.tempVec1.set(x0, y1);
-        this.tempVec2.set(x0, y0);
-        this.drawLine(this.tempVec1, this.tempVec2, color);
+        // Left line (vertical): from (x0, y0+1) to (x0, y1-1), 1px wide.
+        // Shortened to avoid corner overlap with top/bottom lines.
+        if (y1 - y0 > 1) {
+            this.tempRect.set(x0, y0 + 1, 1, y1 - y0 - 1);
+            this.drawRectFill(this.tempRect, color);
+        }
+
+        // Right line (vertical): from (x1, y0+1) to (x1, y1-1), 1px wide.
+        // Shortened to avoid corner overlap with top/bottom lines.
+        if (y1 - y0 > 1) {
+            this.tempRect.set(x1, y0 + 1, 1, y1 - y0 - 1);
+            this.drawRectFill(this.tempRect, color);
+        }
     }
 
     /**
@@ -794,8 +857,8 @@ export class Renderer {
 
             if (glyph) {
                 // Use a pre-allocated vector to avoid allocation per character.
-                this.tempVec1.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
-                this.drawSprite(spriteSheet, glyph.rect, this.tempVec1, color);
+                this.tempVec.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
+                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, color);
                 cursorX += glyph.advance;
             }
         }

@@ -162,6 +162,50 @@ BT.drawSprite(sheet, sprite, pos, new Color32(255, 100, 100, 200));
 
 Use tinting liberally for visual effects - it doesn't impact performance.
 
+### Line Rendering Costs
+
+The Renderer has been optimized to reduce vertex overhead: axis-aligned lines now render as single quads (6 vertices),
+while diagonal lines use Bresenham's algorithm. This section explains the cost tradeoffs and when optimization matters.
+
+Line rendering performance varies significantly based on line orientation:
+
+| Line Type             | Vertices Used           | Example (100px line) |
+| --------------------- | ----------------------- | -------------------- |
+| Horizontal / Vertical | 6 (single quad)         | 6 vertices           |
+| Diagonal              | 6 per pixel (Bresenham) | ~600 vertices        |
+
+**Why diagonal lines cost more:**
+
+Diagonal lines use Bresenham's algorithm to achieve authentic pixel-art rendering where each pixel is a discrete unit.
+This produces the classic "staircase" look expected in retro games but requires rendering each pixel as a separate quad.
+
+**Optimization tips for diagonal lines:**
+
+```typescript
+// GOOD: Grid lines (axis-aligned) are very cheap
+for (let x = 0; x < 800; x += 40) {
+  BT.drawLine(new Vector2i(x, 0), new Vector2i(x, 600), color); // 6 vertices each
+}
+
+// EXPENSIVE: Many diagonal lines (e.g., Lissajous curves, circles)
+// Each segment uses ~6 vertices per pixel
+for (let i = 0; i < 200; i++) {
+  BT.drawLine(p1, p2, color); // Could be 600+ vertices per line
+}
+
+// ALTERNATIVE: Use filled rectangles for thick diagonal lines
+// Or pre-render complex patterns to a texture
+```
+
+**When diagonal line cost matters:**
+
+- Drawing 10-20 short diagonal lines per frame: Fine
+- Drawing 100+ diagonal line segments (curves, circles): Consider alternatives
+- Static complex patterns: Pre-render to a sprite sheet
+
+**Real-world case:** The [Camera example](../examples/camera.ts) demonstrates this tradeoff – reducing complex diagonal
+rendering in favor of axis-aligned grid lines helped stabilize frame times.
+
 ---
 
 ## Game Loop Best Practices
