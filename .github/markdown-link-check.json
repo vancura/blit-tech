@@ -17,6 +17,9 @@
     },
     {
       "pattern": "^https?://fsd\\.it/"
+    },
+    {
+      "pattern": "^https?://www\\.angelcode\\.com/"
     }
   ],
   "replacementPatterns": [
