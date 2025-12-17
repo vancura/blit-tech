@@ -164,6 +164,9 @@ Use tinting liberally for visual effects - it doesn't impact performance.
 
 ### Line Rendering Costs
 
+The Renderer has been optimized to reduce vertex overhead: axis-aligned lines now render as single quads (6 vertices),
+while diagonal lines use Bresenham's algorithm. This section explains the cost tradeoffs and when optimization matters.
+
 Line rendering performance varies significantly based on line orientation:
 
 | Line Type             | Vertices Used           | Example (100px line) |
@@ -199,6 +202,9 @@ for (let i = 0; i < 200; i++) {
 - Drawing 10-20 short diagonal lines per frame: Fine
 - Drawing 100+ diagonal line segments (curves, circles): Consider alternatives
 - Static complex patterns: Pre-render to a sprite sheet
+
+**Real-world case:** The [Camera example](../examples/camera.ts) demonstrates this tradeoff – reducing complex diagonal
+rendering in favor of axis-aligned grid lines helped stabilize frame times.
 
 ---
 
