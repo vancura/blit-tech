@@ -135,7 +135,7 @@ export class Renderer {
      * Pre-allocated reusable vector for internal drawing operations.
      * Avoids per-call allocations in hot paths.
      */
-    private readonly tempVec1: Vector2i = new Vector2i(0, 0);
+    private readonly tempVec: Vector2i = new Vector2i(0, 0);
 
     /**
      * Pre-allocated reusable vector for sprite size.
@@ -857,8 +857,8 @@ export class Renderer {
 
             if (glyph) {
                 // Use a pre-allocated vector to avoid allocation per character.
-                this.tempVec1.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
-                this.drawSprite(spriteSheet, glyph.rect, this.tempVec1, color);
+                this.tempVec.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
+                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, color);
                 cursorX += glyph.advance;
             }
         }
