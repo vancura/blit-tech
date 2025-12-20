@@ -61,7 +61,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build library
-        run: pnpm build:lib
+        run: pnpm build
 
       - name: Upload library artifacts
         uses: actions/upload-artifact@v6
