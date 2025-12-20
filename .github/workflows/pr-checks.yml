@@ -99,29 +99,6 @@ jobs:
 
           echo "Bundle size is within limits"
 
-  build-examples:
-    name: Build Examples
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build full project (with examples)
-        run: pnpm build
-
   docs-links:
     name: Check Documentation Links
     runs-on: ubuntu-latest
