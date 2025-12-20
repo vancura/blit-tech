@@ -53,13 +53,7 @@
     }
   },
   "scripts": {
-    "convert-font": "node scripts/convert-bmfont.mjs",
-    "sync-rules": "node scripts/sync-rules.mjs",
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "build:lib": "vite build --mode lib",
-    "build:deploy": "tsc --noEmit && cross-env VITE_DEPLOY_WEB=true vite build",
-    "preview": "vite preview",
+    "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
@@ -76,6 +70,8 @@
     "changeset:publish": "pnpm build:lib && changeset publish",
     "version:bump": "pnpm changeset:version && pnpm install --no-frozen-lockfile",
     "release": "pnpm build:lib && pnpm changeset:publish",
+    "convert-font": "node scripts/convert-bmfont.mjs",
+    "sync-rules": "node scripts/sync-rules.mjs",
     "prepublishOnly": "pnpm run build:lib",
     "prepare": "husky"
   },
