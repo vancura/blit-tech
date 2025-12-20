@@ -148,19 +148,6 @@ export default [
         },
     },
 
-    // Examples - relaxed rules (demo code doesn't need strict JSDoc)
-    {
-        files: ['examples/**/*.ts'],
-        rules: {
-            'jsdoc/require-jsdoc': 'off',
-            'jsdoc/require-param': 'off',
-            'jsdoc/require-returns': 'off',
-            'jsdoc/require-description': 'off',
-            'jsdoc/check-param-names': 'off',
-            '@typescript-eslint/no-non-null-assertion': 'off',
-        },
-    },
-
     // Config files - relaxed rules
     {
         files: ['*.config.js', '*.config.ts', '*.config.mjs'],

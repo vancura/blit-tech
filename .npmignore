@@ -1,6 +1,5 @@
 # Source files (only dist/ should be published)
 src/
-examples/
 
 # Configuration files
 .husky/
