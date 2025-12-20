@@ -696,7 +696,7 @@ Closes #
 
 - [ ] Tested locally with `pnpm dev`
 - [ ] Tested build with `pnpm build`
-- [ ] Tested library build with `pnpm build:lib`
+- [ ] Tested library build with `pnpm build`
 - [ ] Verified in WebGPU-compatible browser
 
 ### Automated Testing
