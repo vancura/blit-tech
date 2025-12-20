@@ -52,25 +52,16 @@ cd blit-tech
 pnpm install
 ```
 
-## Development
+## Examples & Demos
 
-Start the development server with a hot module replacement (HMR):
-
-```bash
-pnpm dev
-```
-
-The browser opens automatically at `http://localhost:5173/` and redirects to the example gallery.
+For interactive examples and demos, visit the `blit-tech-demos` repository. The demos showcase all engine features with
+a guided learning path from basic concepts to advanced techniques.
 
 ## Scripts
 
 | Command                | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
-| `pnpm dev`             | Start dev server with HMR                                    |
-| `pnpm build`           | Type-check and build examples                                |
-| `pnpm build:lib`       | Build the library for npm distribution                       |
-| `pnpm build:deploy`    | Build examples for deployment                                |
-| `pnpm preview`         | Preview the production build                                 |
+| `pnpm build`           | Build the library for npm distribution                       |
 | `pnpm lint`            | Run ESLint                                                   |
 | `pnpm lint:fix`        | Run ESLint with auto-fix                                     |
 | `pnpm format`          | Format all code (Biome + Prettier)                           |
@@ -81,12 +72,12 @@ The browser opens automatically at `http://localhost:5173/` and redirects to the
 | `pnpm spellcheck`      | Check spelling in source files                               |
 | `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck) |
 | `pnpm clean`           | Remove dist and cache directories                            |
-| `pnpm convert-font`    | Convert BMFont to .btfont format                             |
-| `pnpm sync-rules`      | Sync AI assistant rules across files                         |
 | `pnpm changeset`       | Create a changeset for version bump                          |
 | `pnpm changeset:check` | Check for pending changesets                                 |
 | `pnpm version:bump`    | Bump version based on changesets                             |
 | `pnpm release`         | Build library and publish to npm                             |
+| `pnpm convert-font`    | Convert BMFont to .btfont format                             |
+| `pnpm sync-rules`      | Sync AI assistant rules across files                         |
 
 ## Quick Start
 
@@ -163,23 +154,6 @@ if (!checkWebGPUSupport()) {
 
 ```text
 blit-tech/
-├── examples/                   # Interactive examples
-│   ├── _config/
-│   │   └── contexts.ts         # Page-specific template data
-│   ├── _partials/              # Shared Handlebars templates
-│   │   ├── layout-top.hbs      # Common HTML head and styles
-│   │   ├── layout-bottom.hbs   # Common HTML footer
-│   │   ├── font-attribution.hbs
-│   │   └── plausible-analytics.hbs
-│   ├── index.html              # Examples gallery
-│   ├── basics.html             # Basic example
-│   ├── primitives.html         # Drawing primitives demo
-│   ├── fonts.html              # Bitmap font demo
-│   ├── sprites.html            # Sprite rendering demo
-│   ├── sprite-effects.html     # Sprite tinting effects demo
-│   ├── animation.html          # Animation & timing demo
-│   ├── patterns.html           # Animated patterns demo
-│   └── camera.html             # Camera scrolling demo
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
@@ -196,6 +170,8 @@ blit-tech/
 │       ├── Color32.ts          # 32-bit color type
 │       ├── Rect2i.ts           # Integer rectangle
 │       └── Vector2i.ts         # Integer 2D vector
+├── dist/                       # Built library output
+├── docs/                       # Library documentation
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
@@ -319,54 +295,7 @@ BitmapFont.load(url); // Load bitmap font (static method)
 
 **Note:** Keyboard and gamepad input methods (`BT.keyDown()`, `BT.keyPressed()`, `BT.buttonDown()`, etc.) are planned
 but not yet implemented. They currently return `false`. Button constants (`BT.BTN_UP`, `BT.BTN_A`, etc.) are defined for
-future use. See the examples for workarounds using browser APIs directly.
-
-## Examples
-
-Run `pnpm dev` and visit the examples’ gallery:
-
-### Learning Path
-
-Please explore the examples in this order:
-
-1. **basics.ts** — Start here. Core concepts and game loop
-2. **primitives.ts** — Drawing shapes and lines
-3. **fonts.ts** — Text rendering and colors
-4. **sprites.ts** — Sprite sheets and textures
-5. **sprite-effects.ts** — Practical tinting effects (NEW)
-6. **animation.ts** — Timing and frame-based logic (NEW)
-7. **patterns.ts** — Complex animations (performance-optimized)
-8. **camera.ts** — Camera scrolling and world management (performance-optimized)
-
-**Note:** Earlier examples prioritize clarity and readability. Later examples (patterns, camera) demonstrate performance
-optimization techniques when working with hundreds of operations per a frame. See
-[Performance Best Practices](docs/performance-best-practices.md) for details.
-
-### Example Descriptions
-
-- **Basic Example** — Simple game setup with a moving square
-- **Primitives** — All drawing primitives showcase
-- **Bitmap Fonts** — Text rendering with custom fonts
-- **Sprites** — Texture rendering with tinting
-- **Sprite Effects** — Practical tinting use cases (damage flash, shadows, team colors)
-- **Animation & Timing** — Tick-based animation, state machines, cooldowns
-- **Patterns** — Animated mathematical patterns
-- **Camera** — Scrolling world with a mini-map
-
-## Deployment
-
-### Web Deployment
-
-The examples are automatically deployed to Cloudflare Pages on every push to the main branch. Pull requests receive
-preview deployments for testing before merging.
-
-Build the examples for deployment:
-
-```bash
-pnpm build:deploy
-```
-
-The `dist/` directory contains a ready-to-deploy static site with all examples.
+future use. See the `blit-tech-demos` repository for workarounds using browser APIs directly.
 
 ## Browser Compatibility
 
@@ -424,7 +353,7 @@ const size = font.measureTextSize('Hello'); // Get width and height
 - Font creation tips and tools
 - API reference and examples
 
-The bitmap font examples use **PragmataPro** by Fabrizio Schiavi, available at
+The bitmap font demos use **PragmataPro** by Fabrizio Schiavi, available at
 [https://fsd.it/shop/fonts/pragmatapro/](https://fsd.it/shop/fonts/pragmatapro/).
 
 ## Documentation

@@ -109,7 +109,6 @@ Read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 ### 1. Make Changes
 
 - Edit source files in `src/`
-- Add/update examples in `examples/`
 - Write tests in `tests/`
 
 ### 2. Test Locally
@@ -343,7 +342,6 @@ src/
 ├── render/              # Rendering
 └── utils/               # Utilities
 
-examples/                # Interactive examples
 tests/                   # Unit & E2E tests
 .github/workflows/       # CI/CD
 ```
@@ -696,7 +694,7 @@ Closes #
 
 - [ ] Tested locally with `pnpm dev`
 - [ ] Tested build with `pnpm build`
-- [ ] Tested library build with `pnpm build:lib`
+- [ ] Tested library build with `pnpm build`
 - [ ] Verified in WebGPU-compatible browser
 
 ### Automated Testing
@@ -997,7 +995,6 @@ docs/
     │       ├── guides/
     │       ├── concepts/
     │       ├── api/
-    │       └── examples/
     └── styles/
         └── custom.css
 ```

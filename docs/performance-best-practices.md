@@ -203,9 +203,6 @@ for (let i = 0; i < 200; i++) {
 - Drawing 100+ diagonal line segments (curves, circles): Consider alternatives
 - Static complex patterns: Pre-render to a sprite sheet
 
-**Real-world case:** The [Camera example](../examples/camera.ts) demonstrates this tradeoff – reducing complex diagonal
-rendering in favor of axis-aligned grid lines helped stabilize frame times.
-
 ---
 
 ## Game Loop Best Practices
