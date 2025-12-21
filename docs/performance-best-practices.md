@@ -380,5 +380,3 @@ These demonstrate **when and how to optimize** for performance-critical scenario
 4. Keep UI and one-time code simple
 
 Remember: **Clear code that runs at 60 FPS is better than complex code that runs at 65 FPS.**
-
-Happy coding! 🎮

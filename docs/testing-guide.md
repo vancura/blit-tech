@@ -1,5 +1,8 @@
 # Testing Guide
 
+> **Status:** This document describes planned testing infrastructure. The testing setup (Vitest, Playwright) is not yet
+> implemented. It serves as a roadmap for adding tests to the project.
+
 This document provides comprehensive guidance for implementing testing infrastructure for Blit-Tech.
 
 ## Table of Contents

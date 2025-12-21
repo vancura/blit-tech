@@ -1,5 +1,8 @@
 # Developer Experience Guide
 
+> **Status:** This document describes planned developer experience improvements. Not all features described here are
+> currently implemented. It serves as a roadmap and reference for future development.
+
 This document provides comprehensive guidance for improving developer experience, community tools, and documentation for
 Blit-Tech.
 

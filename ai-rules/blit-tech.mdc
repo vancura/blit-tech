@@ -338,7 +338,6 @@ app.whenReady().then(() => {
 ```text
 src/
   BlitTech.ts          # Public API (BT namespace exports)
-  main.ts              # Dev entry point
   core/
     BTAPI.ts           # Internal singleton
     IBlitTechGame.ts   # Game interface
@@ -349,6 +348,7 @@ src/
     SpriteSheet.ts     # GPU texture wrapper
     BitmapFont.ts      # Bitmap font system
   utils/
+    Bootstrap.ts       # Game bootstrap utilities
     Vector2i.ts        # Integer 2D vector
     Rect2i.ts          # Integer rectangle
     Color32.ts         # 32-bit color
