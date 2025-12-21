@@ -6,6 +6,8 @@ alwaysApply: false
 
 # File Structure and Region Organization
 
+> See also: [blit-tech.mdc](blit-tech.mdc) for project-wide rules, architecture, and API conventions.
+
 This document defines the `// #region` patterns used throughout the Blit-Tech codebase. All TypeScript files should
 follow these conventions for consistent code organization.
 
