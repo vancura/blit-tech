@@ -20,6 +20,9 @@
     },
     {
       "pattern": "^https?://www\\.angelcode\\.com/"
+    },
+    {
+      "pattern": "^https?://renderhjs\\.net/"
     }
   ],
   "replacementPatterns": [
