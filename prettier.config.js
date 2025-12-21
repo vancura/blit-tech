@@ -3,7 +3,6 @@
  *
  * NOTE: Prettier is used for Markdown and YAML files only.
  * TypeScript, JavaScript, JSON, and CSS are formatted by Biome.
- * HTML files are excluded (they use Handlebars syntax).
  *
  * @type {import('prettier').Config}
  */

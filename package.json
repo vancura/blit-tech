@@ -82,12 +82,10 @@
     "@commitlint/cli": "^20.2.0",
     "@commitlint/config-conventional": "^20.2.0",
     "@eslint/js": "^9.39.2",
-    "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^25.0.2",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "@webgpu/types": "^0.1.68",
-    "cross-env": "^10.1.0",
     "cspell": "^9.1.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -100,12 +98,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
-    "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^7.2.7",
-    "vite-plugin-dts": "^4.5.4",
-    "vite-plugin-handlebars": "^2.0.0",
-    "vite-plugin-static-copy": "^3.1.4",
-    "wait-on": "^9.0.3"
+    "vite-plugin-dts": "^4.5.4"
   }
 }
