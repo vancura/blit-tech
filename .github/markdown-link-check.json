@@ -13,13 +13,16 @@
       "pattern": "^#"
     },
     {
-      "pattern": "^https?://www\\.w3\\.org/"
+      "pattern": "^https?://www\\.w3\\.org(/|$)"
     },
     {
-      "pattern": "^https?://fsd\\.it/"
+      "pattern": "^https?://fsd\\.it(/|$)"
     },
     {
-      "pattern": "^https?://www\\.angelcode\\.com/"
+      "pattern": "^https?://www\\.angelcode\\.com(/|$)"
+    },
+    {
+      "pattern": "^https?://renderhjs\\.net(/|$)"
     }
   ],
   "replacementPatterns": [
