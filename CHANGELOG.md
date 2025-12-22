@@ -8,7 +8,6 @@
 
 ### Patch Changes
 
-- Remove unused dependencies and update configuration
 - Add comprehensive CI checks and local development safeguards
   - Add changeset verification workflow to enforce changelog entries on PRs
   - Add PR checks for commit message linting, bundle size monitoring, and documentation links
