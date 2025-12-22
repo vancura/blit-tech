@@ -1,5 +1,32 @@
 # Blit-Tech
 
+## 0.2.0
+
+### Minor Changes
+
+- Add bootstrap utilities for streamlined game initialization
+
+### Patch Changes
+
+- Remove unused dependencies and update configuration
+- Add comprehensive CI checks and local development safeguards
+  - Add changeset verification workflow to enforce changelog entries on PRs
+  - Add PR checks for commit message linting, bundle size monitoring, and documentation links
+  - Add spell checking with cspell to CI and pre-commit hooks
+  - Add pre-push hook to run full project checks before pushing
+  - Add `preflight` script for running all checks locally before creating PRs
+
+- Fix the miscellaneous issues like project naming, ignore files, and rule descriptions
+- Remove Electron support from the repo
+- Refactor AI rules
+- Optimize line drawing and update vertex limits
+- Fix the Biome formatting on Windows
+- Improve project documentation
+- Clean up the repo for cleaner public consumption
+- Move examples to Blit-Tech Demos
+- Remove unused dependencies and update configuration
+- Unify examples styling with main landing page
+
 ## 0.1.0
 
 ### Minor Changes
