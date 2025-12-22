@@ -1,4 +1,4 @@
-# blit-tech
+# Blit-Tech
 
 ## 0.1.0
 

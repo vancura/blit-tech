@@ -2,4 +2,4 @@
 'blit-tech': patch
 ---
 
-Move examples to blit-tech-demos
+Move examples to Blit-Tech Demos
