@@ -54,8 +54,10 @@ pnpm install
 
 ## Examples & Demos
 
-For interactive examples and demos, visit the `blit-tech-demos` repository. The demos showcase all engine features with
-a guided learning path from basic concepts to advanced techniques.
+For interactive examples and demos, visit the [Blit-Tech Demos repository](https://github.com/vancura/blit-tech-demos).
+The demos showcase all engine features with a guided learning path from basic concepts to advanced techniques.
+
+You can also try the demos online at [blit-tech-demos.ambilab.com](https://blit-tech-demos.ambilab.com).
 
 ## Scripts
 
@@ -295,7 +297,7 @@ BitmapFont.load(url); // Load bitmap font (static method)
 
 **Note:** Keyboard and gamepad input methods (`BT.keyDown()`, `BT.keyPressed()`, `BT.buttonDown()`, etc.) are planned
 but not yet implemented. They currently return `false`. Button constants (`BT.BTN_UP`, `BT.BTN_A`, etc.) are defined for
-future use. See the `blit-tech-demos` repository for workarounds using browser APIs directly.
+future use. See the Blit-Tech Demos repository for workarounds using browser APIs directly.
 
 ## Browser Compatibility
 
