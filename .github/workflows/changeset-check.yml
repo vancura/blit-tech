@@ -8,6 +8,7 @@ jobs:
   changeset:
     name: Verify Changeset
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
 
     steps:
       - name: Checkout code
