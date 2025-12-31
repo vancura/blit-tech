@@ -72,7 +72,7 @@ jobs:
             echo "     git push --force-with-lease"
             echo ""
             echo "  2. Sign off all commits in your branch:"
-            echo "     git rebase --signoff origin/main"
+            echo "     git rebase --signoff origin/${{ github.event.pull_request.base.ref }}"
             echo "     git push --force-with-lease"
             echo ""
             echo "For more information, see CONTRIBUTING.md"
@@ -94,8 +94,8 @@ jobs:
 
           # Handle initial push or force push
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            # Initial push, check the last commit only
-            COMMITS=$(git log --format="%H" -n 1 "$AFTER")
+            # Initial push, check all commits on the branch
+            COMMITS=$(git log --format="%H" "$AFTER" --not --remotes=origin)
           else
             COMMITS=$(git log --format="%H" "${BEFORE}..${AFTER}")
           fi
@@ -129,9 +129,14 @@ jobs:
             echo "To sign off your commits, use:"
             echo "  git commit -s -m \"your commit message\""
             echo ""
-            echo "To fix existing commits:"
-            echo "  git commit --amend --signoff"
-            echo "  git push --force-with-lease"
+            echo "To fix existing commits, you can:"
+            echo "  1. Amend the last commit:"
+            echo "     git commit --amend --signoff"
+            echo "     git push --force-with-lease"
+            echo ""
+            echo "  2. Sign off all commits in your branch:"
+            echo "     git rebase --signoff origin/${{ github.ref_name }}"
+            echo "     git push --force-with-lease"
             echo ""
             echo "For more information, see CONTRIBUTING.md"
             echo ""
