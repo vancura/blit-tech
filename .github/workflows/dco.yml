@@ -1,0 +1,142 @@
+name: DCO Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  dco:
+    name: Developer Certificate of Origin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check DCO for Pull Request
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Checking DCO for pull request..."
+
+          # Get the base branch
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          # Get the list of commits in this PR
+          COMMITS=$(git log --format="%H" ${BASE_SHA}..${HEAD_SHA})
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits to check"
+            exit 0
+          fi
+
+          # Check each commit for sign-off
+          FAILED=0
+          echo "Checking commits:"
+          for commit in $COMMITS; do
+            SUBJECT=$(git log --format=%s -n 1 $commit)
+            if git log --format=%B -n 1 $commit | grep -q "^Signed-off-by: "; then
+              echo "[PASS] $commit: $SUBJECT"
+            else
+              echo "[FAIL] $commit: $SUBJECT (missing DCO sign-off)"
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "[FAILED] DCO Check Failed"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "All commits must be signed off with a DCO (Developer Certificate of Origin)."
+            echo ""
+            echo "To sign off your commits, use:"
+            echo "  git commit -s -m \"your commit message\""
+            echo ""
+            echo "To fix existing commits, you can:"
+            echo "  1. Amend the last commit:"
+            echo "     git commit --amend --signoff"
+            echo "     git push --force-with-lease"
+            echo ""
+            echo "  2. Sign off all commits in your branch:"
+            echo "     git rebase --signoff origin/main"
+            echo "     git push --force-with-lease"
+            echo ""
+            echo "For more information, see CONTRIBUTING.md"
+            echo ""
+            exit 1
+          fi
+
+          echo ""
+          echo "[PASS] All commits are properly signed off"
+
+      - name: Check DCO for Push
+        if: github.event_name == 'push'
+        run: |
+          echo "Checking DCO for push event..."
+
+          # Get the list of commits in this push
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.event.after }}"
+
+          # Handle initial push or force push
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            # Initial push, check the last commit only
+            COMMITS=$(git log --format="%H" -n 1 $AFTER)
+          else
+            COMMITS=$(git log --format="%H" ${BEFORE}..${AFTER})
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits to check"
+            exit 0
+          fi
+
+          # Check each commit for sign-off
+          FAILED=0
+          echo "Checking commits:"
+          for commit in $COMMITS; do
+            SUBJECT=$(git log --format=%s -n 1 $commit)
+            if git log --format=%B -n 1 $commit | grep -q "^Signed-off-by: "; then
+              echo "[PASS] $commit: $SUBJECT"
+            else
+              echo "[FAIL] $commit: $SUBJECT (missing DCO sign-off)"
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "[FAILED] DCO Check Failed"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "All commits must be signed off with a DCO (Developer Certificate of Origin)."
+            echo ""
+            echo "To sign off your commits, use:"
+            echo "  git commit -s -m \"your commit message\""
+            echo ""
+            echo "To fix existing commits:"
+            echo "  git commit --amend --signoff"
+            echo "  git push --force-with-lease"
+            echo ""
+            echo "For more information, see CONTRIBUTING.md"
+            echo ""
+            exit 1
+          fi
+
+          echo ""
+          echo "[PASS] All commits are properly signed off"

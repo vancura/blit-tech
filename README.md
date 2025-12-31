@@ -367,6 +367,17 @@ Additional documentation is available in the `docs/` directory:
 - **[Testing Guide](docs/testing-guide.md)** — Testing infrastructure setup and best practices
 - **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+
+- Developer Certificate of Origin (DCO) requirements
+- Commit message format (Conventional Commits)
+- Code style guidelines
+- Pull request process
+
+All commits must be signed off with a DCO. Use `git commit -s` to automatically add the sign-off.
+
 ## License
 
 ISC

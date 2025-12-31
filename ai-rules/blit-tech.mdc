@@ -415,7 +415,35 @@ All commits must include a sign-off line (DCO - Developer Certificate of Origin)
 Signed-off-by: Your Name <your.email@example.com>
 ```
 
-Use `git commit -s` to automatically add the sign-off.
+**How to Sign Off:**
+
+Use `git commit -s` to automatically add the sign-off:
+
+```bash
+git commit -s -m "feat(renderer): add circle primitive drawing"
+```
+
+**Amending Existing Commits:**
+
+If you forgot to sign off a commit:
+
+```bash
+git commit --amend --signoff
+git push --force-with-lease
+```
+
+**Signing Off Multiple Commits:**
+
+To sign off all commits in a branch:
+
+```bash
+git rebase --signoff origin/main
+git push --force-with-lease
+```
+
+**Automated DCO Check:**
+
+All pull requests are automatically checked for DCO compliance via GitHub Actions. If any commit is missing the sign-off, the check will fail and you'll need to add it before the PR can be merged.
 
 ### AI-Assisted Commits
 
