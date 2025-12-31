@@ -47,6 +47,14 @@ jobs:
           echo "Checking commits:"
           for commit in $COMMITS; do
             SUBJECT=$(git log --format=%s -n 1 "$commit")
+
+            # Skip merge commits (they have 2+ parents and are created by GitHub)
+            PARENT_COUNT=$(git log --format=%P -n 1 "$commit" | wc -w)
+            if [ "$PARENT_COUNT" -gt 1 ]; then
+              echo "[SKIP] $commit: $SUBJECT (merge commit)"
+              continue
+            fi
+
             if git log --format=%B -n 1 "$commit" | grep -q "^Signed-off-by: "; then
               echo "[PASS] $commit: $SUBJECT"
             else
@@ -110,6 +118,14 @@ jobs:
           echo "Checking commits:"
           for commit in $COMMITS; do
             SUBJECT=$(git log --format=%s -n 1 "$commit")
+
+            # Skip merge commits (they have 2+ parents and are created by GitHub)
+            PARENT_COUNT=$(git log --format=%P -n 1 "$commit" | wc -w)
+            if [ "$PARENT_COUNT" -gt 1 ]; then
+              echo "[SKIP] $commit: $SUBJECT (merge commit)"
+              continue
+            fi
+
             if git log --format=%B -n 1 "$commit" | grep -q "^Signed-off-by: "; then
               echo "[PASS] $commit: $SUBJECT"
             else
