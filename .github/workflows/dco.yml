@@ -35,7 +35,7 @@ jobs:
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
 
           # Get the list of commits in this PR
-          COMMITS=$(git log --format="%H" ${BASE_SHA}..${HEAD_SHA})
+          COMMITS=$(git log --format="%H" "${BASE_SHA}..${HEAD_SHA}")
 
           if [ -z "$COMMITS" ]; then
             echo "No commits to check"
@@ -46,8 +46,8 @@ jobs:
           FAILED=0
           echo "Checking commits:"
           for commit in $COMMITS; do
-            SUBJECT=$(git log --format=%s -n 1 $commit)
-            if git log --format=%B -n 1 $commit | grep -q "^Signed-off-by: "; then
+            SUBJECT=$(git log --format=%s -n 1 "$commit")
+            if git log --format=%B -n 1 "$commit" | grep -q "^Signed-off-by: "; then
               echo "[PASS] $commit: $SUBJECT"
             else
               echo "[FAIL] $commit: $SUBJECT (missing DCO sign-off)"
@@ -95,9 +95,9 @@ jobs:
           # Handle initial push or force push
           if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
             # Initial push, check the last commit only
-            COMMITS=$(git log --format="%H" -n 1 $AFTER)
+            COMMITS=$(git log --format="%H" -n 1 "$AFTER")
           else
-            COMMITS=$(git log --format="%H" ${BEFORE}..${AFTER})
+            COMMITS=$(git log --format="%H" "${BEFORE}..${AFTER}")
           fi
 
           if [ -z "$COMMITS" ]; then
@@ -109,8 +109,8 @@ jobs:
           FAILED=0
           echo "Checking commits:"
           for commit in $COMMITS; do
-            SUBJECT=$(git log --format=%s -n 1 $commit)
-            if git log --format=%B -n 1 $commit | grep -q "^Signed-off-by: "; then
+            SUBJECT=$(git log --format=%s -n 1 "$commit")
+            if git log --format=%B -n 1 "$commit" | grep -q "^Signed-off-by: "; then
               echo "[PASS] $commit: $SUBJECT"
             else
               echo "[FAIL] $commit: $SUBJECT (missing DCO sign-off)"
