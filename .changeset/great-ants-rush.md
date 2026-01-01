@@ -2,4 +2,4 @@
 'blit-tech': patch
 ---
 
-Update CIs
+Pin PNPM version and use environment variables for commitlint
