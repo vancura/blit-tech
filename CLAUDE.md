@@ -13,7 +13,6 @@ fantasy-console-style API.
 - **Spelling:** cspell
 - **Dead code:** knip
 - **Commits:** Conventional Commits + DCO sign-off + commitlint
-- **Versioning:** Changesets
 - **Package manager:** pnpm
 
 ## Architecture
@@ -84,8 +83,6 @@ pnpm typecheck          # TypeScript type checking
 pnpm spellcheck         # cspell check
 pnpm knip               # Find unused exports/deps
 pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip)
-pnpm changeset          # Create a changeset
-pnpm changeset:check    # Check changeset status
 ```
 
 ## Git
