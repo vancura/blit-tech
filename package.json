@@ -43,15 +43,6 @@
     "LICENSE"
   ],
   "sideEffects": false,
-  "syncRules": {
-    "source": "ai-rules",
-    "targets": {
-      "cursor": true,
-      "webstorm": true,
-      "zed": true,
-      "claude": true
-    }
-  },
   "scripts": {
     "build": "vite build",
     "lint": "eslint .",
@@ -71,7 +62,6 @@
     "version:bump": "pnpm changeset:version && pnpm install --no-frozen-lockfile",
     "release": "pnpm build && pnpm changeset:publish",
     "convert-font": "node scripts/convert-bmfont.mjs",
-    "sync-rules": "node scripts/sync-rules.mjs",
     "prepublishOnly": "pnpm run build",
     "prepare": "husky",
     "security:audit": "pnpm audit --audit-level=moderate",
