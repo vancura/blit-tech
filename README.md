@@ -57,29 +57,27 @@ pnpm install
 For interactive examples and demos, visit the [Blit-Tech Demos repository](https://github.com/vancura/blit-tech-demos).
 The demos showcase all engine features with a guided learning path from basic concepts to advanced techniques.
 
-You can also try the demos online at [blit-tech-demos.ambilab.com](https://blit-tech-demos.ambilab.com).
-
 ## Scripts
 
-| Command                | Description                                                  |
-| ---------------------- | ------------------------------------------------------------ |
-| `pnpm build`           | Build the library for npm distribution                       |
-| `pnpm lint`            | Run ESLint                                                   |
-| `pnpm lint:fix`        | Run ESLint with auto-fix                                     |
-| `pnpm format`          | Format all code (Biome + Prettier)                           |
-| `pnpm format:check`    | Check all formatting without changes                         |
-| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)                           |
-| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier)                     |
-| `pnpm typecheck`       | Run TypeScript type checking                                 |
-| `pnpm spellcheck`      | Check spelling in source files                               |
-| `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck) |
-| `pnpm clean`           | Remove dist and cache directories                            |
-| `pnpm changeset`       | Create a changeset for version bump                          |
-| `pnpm changeset:check` | Check for pending changesets                                 |
-| `pnpm version:bump`    | Bump version based on changesets                             |
-| `pnpm release`         | Build library and publish to npm                             |
-| `pnpm convert-font`    | Convert BMFont to .btfont format                             |
-| `pnpm sync-rules`      | Sync AI assistant rules across files                         |
+| Command                | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------ |
+| `pnpm build`           | Build the library for npm distribution                             |
+| `pnpm lint`            | Run ESLint                                                         |
+| `pnpm lint:fix`        | Run ESLint with auto-fix                                           |
+| `pnpm format`          | Format all code (Biome + Prettier)                                 |
+| `pnpm format:check`    | Check all formatting without changes                               |
+| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)                                 |
+| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier)                           |
+| `pnpm typecheck`       | Run TypeScript type checking                                       |
+| `pnpm spellcheck`      | Check spelling in source files                                     |
+| `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck, knip) |
+| `pnpm knip`            | Find unused exports and dependencies                               |
+| `pnpm clean`           | Remove dist and cache directories                                  |
+| `pnpm changeset`       | Create a changeset for version bump                                |
+| `pnpm changeset:check` | Check for pending changesets                                       |
+| `pnpm version:bump`    | Bump version based on changesets                                   |
+| `pnpm release`         | Build library and publish to npm                                   |
+| `pnpm convert-font`    | Convert BMFont to .btfont format                                   |
 
 ## Quick Start
 
@@ -377,6 +375,9 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for det
 - Pull request process
 
 All commits must be signed off with a DCO. Use `git commit -s` to automatically add the sign-off.
+
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before participating. To report a security vulnerability, follow
+the process in [SECURITY.md](SECURITY.md).
 
 ## License
 
