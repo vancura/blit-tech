@@ -15,7 +15,6 @@
     "Bresenham",
     "BTAPI",
     "btfont",
-    "changesets",
     "Chebyshev",
     "Cietwierkowski",
     "codecov",
@@ -57,18 +56,7 @@
     "yoffset"
   ],
   "flagWords": ["cant", "dont", "hte", "teh", "wont"],
-  "ignorePaths": [
-    "*.map",
-    "*.min.js",
-    ".changeset/*.md",
-    ".git",
-    ".pnpm-store",
-    "CHANGELOG.md",
-    "coverage",
-    "dist",
-    "node_modules",
-    "pnpm-lock.yaml"
-  ],
+  "ignorePaths": ["*.map", "*.min.js", ".git", ".pnpm-store", "coverage", "dist", "node_modules", "pnpm-lock.yaml"],
   "ignoreRegExpList": ["/#[0-9A-Fa-f]{3,8}/", "/0x[0-9A-Fa-f]+/", "/@[a-zA-Z0-9_-]+\\/[a-zA-Z0-9_-]+/"],
   "overrides": [
     {

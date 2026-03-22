@@ -73,9 +73,6 @@ The demos showcase all engine features with a guided learning path from basic co
 | `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck, knip) |
 | `pnpm knip`            | Find unused exports and dependencies                               |
 | `pnpm clean`           | Remove dist and cache directories                                  |
-| `pnpm changeset`       | Create a changeset for version bump                                |
-| `pnpm changeset:check` | Check for pending changesets                                       |
-| `pnpm version:bump`    | Bump version based on changesets                                   |
 | `pnpm release`         | Build library and publish to npm                                   |
 | `pnpm convert-font`    | Convert BMFont to .btfont format                                   |
 

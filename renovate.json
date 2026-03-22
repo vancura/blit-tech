@@ -31,11 +31,6 @@
       "groupName": "type definitions"
     },
     {
-      "description": "Changesets",
-      "matchPackageNames": ["^@changesets/"],
-      "groupName": "changesets"
-    },
-    {
       "description": "GitHub Actions",
       "matchManagers": ["github-actions"],
       "groupName": "github actions",

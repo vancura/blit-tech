@@ -10,7 +10,6 @@
 
 - [ ] `pnpm preflight` passes
 - [ ] Manual testing completed
-- [ ] Changeset added (if user-facing)
 
 ## Checklist
 
