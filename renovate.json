@@ -1,43 +1,39 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":dependencyDashboard", ":semanticCommits", ":prHourlyLimitNone"],
+  "extends": ["config:recommended", ":dependencyDashboard", ":semanticCommits"],
   "timezone": "Europe/Prague",
   "schedule": ["before 6am on Monday"],
   "rangeStrategy": "bump",
   "labels": ["dependencies"],
   "commitMessagePrefix": "chore(deps):",
   "prConcurrentLimit": 5,
+  "prHourlyLimit": 4,
   "automerge": false,
   "packageRules": [
     {
       "description": "Core build tools",
       "matchPackageNames": ["vite", "typescript"],
-      "groupName": "core build tools",
-      "schedule": ["before 6am on Monday"]
+      "groupName": "core build tools"
     },
     {
       "description": "Vite plugins",
-      "matchPackagePatterns": ["^vite-plugin-"],
-      "groupName": "vite plugins",
-      "schedule": ["before 6am on Monday"]
+      "matchPackageNames": ["^vite-plugin-"],
+      "groupName": "vite plugins"
     },
     {
       "description": "Linting and formatting tools",
-      "matchPackagePatterns": ["eslint", "prettier", "biome"],
-      "groupName": "linting and formatting",
-      "schedule": ["before 6am on Monday"]
+      "matchPackageNames": ["eslint", "prettier", "biome"],
+      "groupName": "linting and formatting"
     },
     {
       "description": "TypeScript type definitions",
-      "matchPackagePatterns": ["^@types/"],
-      "groupName": "type definitions",
-      "schedule": ["before 6am on Monday"]
+      "matchPackageNames": ["^@types/"],
+      "groupName": "type definitions"
     },
     {
       "description": "Changesets",
-      "matchPackagePatterns": ["^@changesets/"],
-      "groupName": "changesets",
-      "schedule": ["before 6am on Monday"]
+      "matchPackageNames": ["^@changesets/"],
+      "groupName": "changesets"
     },
     {
       "description": "GitHub Actions",
@@ -48,9 +44,9 @@
       "minimumReleaseAge": "3 days"
     },
     {
-      "description": "Security patches - automerge",
+      "description": "All patches - automerge",
       "matchUpdateTypes": ["patch"],
-      "matchPackagePatterns": ["*"],
+      "matchPackageNames": ["*"],
       "automerge": true,
       "automergeType": "pr",
       "minimumReleaseAge": "3 days"
@@ -65,6 +61,14 @@
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "labels": ["dependencies", "major-update"]
+    },
+    {
+      "description": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "automerge": true,
+      "automergeType": "pr",
+      "minimumReleaseAge": "3 days"
     },
     {
       "description": "Pin pnpm version",
