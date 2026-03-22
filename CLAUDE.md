@@ -21,7 +21,7 @@ fantasy-console-style API.
 All engine functionality is accessed through the static `BT` namespace. Games implement the `IBlitTechGame` interface
 (`queryHardware`, `initialize`, `update`, `render`).
 
-```
+```text
 src/
   BlitTech.ts              # Public API (BT namespace exports)
   core/
@@ -65,7 +65,7 @@ Dual WebGPU pipeline architecture:
 
 ## Code Style
 
-- 4-space indent, 120 char line width
+- 4-space indent, 120-char line width
 - Single quotes, always semicolons, always trailing commas
 - Always arrow parens
 - Named exports only (no default exports)
@@ -92,6 +92,6 @@ pnpm changeset:check    # Check changeset status
 
 - Conventional Commits format: `<type>(<scope>): <description>`
 - All commits require DCO sign-off (`git commit -s`)
-- AI-assisted commits include `Co-Authored-By` trailer
+- AI-assisted commits include `Co-Authored-By: Claude <noreply@anthropic.com>` trailer
 - Types: feat, fix, refactor, docs, test, chore, perf, ci
 - Scopes: renderer, camera, assets, api, utils, examples, ci, docs
