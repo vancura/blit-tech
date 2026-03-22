@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/vancura/blit-tech.git"
   },
-  "homepage": "https://ambilab.com/blit-tech",
+  "homepage": "https://vancura.com/blit-tech",
   "bugs": {
     "url": "https://github.com/vancura/blit-tech/issues"
   },
@@ -43,15 +43,6 @@
     "LICENSE"
   ],
   "sideEffects": false,
-  "syncRules": {
-    "source": "ai-rules",
-    "targets": {
-      "cursor": true,
-      "webstorm": true,
-      "zed": true,
-      "claude": true
-    }
-  },
   "scripts": {
     "build": "vite build",
     "lint": "eslint .",
@@ -62,7 +53,7 @@
     "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
     "spellcheck": "cspell \"src/**/*.{ts,md,mdx}\" \"docs/**/*.{md,mdx}\" \"README.md\" --no-progress",
-    "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck",
+    "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck && pnpm knip",
     "clean": "rm -rf dist node_modules/.vite",
     "changeset": "changeset",
     "changeset:check": "changeset status --since=origin/main",
@@ -70,8 +61,9 @@
     "changeset:publish": "pnpm build && changeset publish",
     "version:bump": "pnpm changeset:version && pnpm install --no-frozen-lockfile",
     "release": "pnpm build && pnpm changeset:publish",
+    "knip": "knip",
+    "knip:fix": "knip --fix",
     "convert-font": "node scripts/convert-bmfont.mjs",
-    "sync-rules": "node scripts/sync-rules.mjs",
     "prepublishOnly": "pnpm run build",
     "prepare": "husky",
     "security:audit": "pnpm audit --audit-level=moderate",
@@ -104,6 +96,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
+    "knip": "^5.56.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",

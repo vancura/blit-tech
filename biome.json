@@ -38,9 +38,8 @@
   },
   "css": {
     "parser": {
-      "cssModules": false,
-      "allowWrongLineComments": false,
-      "tailwindDirectives": true
+      "cssModules": true,
+      "allowWrongLineComments": false
     },
     "formatter": {
       "indentWidth": 4,
