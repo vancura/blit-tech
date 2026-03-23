@@ -1,6 +1,6 @@
 # Blit-Tech
 
-Lightweight WebGPU retro game engine for TypeScript, inspired by RetroBlit. Pixel-perfect 2D rendering with a
+Lightweight WebGPU retro engine for TypeScript, inspired by RetroBlit. Pixel-perfect 2D rendering with a
 fantasy-console-style API.
 
 ## Tech Stack
@@ -17,7 +17,7 @@ fantasy-console-style API.
 
 ## Architecture
 
-All engine functionality is accessed through the static `BT` namespace. Games implement the `IBlitTechGame` interface
+All engine functionality is accessed through the static `BT` namespace. Demos implement the `IBlitTechDemo` interface
 (`queryHardware`, `initialize`, `update`, `render`).
 
 ```text
@@ -25,7 +25,7 @@ src/
   BlitTech.ts              # Public API (BT namespace exports)
   core/
     BTAPI.ts               # Internal singleton managing subsystems
-    IBlitTechGame.ts       # Game interface + HardwareSettings
+    IBlitTechDemo.ts       # Demo interface + HardwareSettings
   render/
     Renderer.ts            # WebGPU renderer (dual pipelines)
   assets/
@@ -33,7 +33,7 @@ src/
     SpriteSheet.ts         # GPU texture wrapper
     BitmapFont.ts          # Bitmap font system (.btfont)
   utils/
-    Bootstrap.ts           # Game bootstrap utilities
+    Bootstrap.ts           # Demo bootstrap utilities
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
@@ -58,7 +58,7 @@ Dual WebGPU pipeline architecture:
 1. **No emoji** - nowhere: code, docs, commits, PR titles, errors, logs
 2. **Integer coordinates** - all rendering uses `Vector2i`/`Rect2i`, never floats
 3. **Performance first** - minimize allocations in update/render, reuse buffers, batch draws
-4. **Use BT namespace** - never access `BTAPI` directly from game code
+4. **Use BT namespace** - never access `BTAPI` directly from demo code
 5. **No `any` types** - use `unknown` or proper types
 6. **Type-only imports** - `import type { ... }` for types
 

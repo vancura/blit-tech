@@ -332,7 +332,7 @@ The project uses **dual formatters** for optimal coverage:
 - **Functions:** camelCase (`drawPixel`, `loadImage`)
 - **Constants:** UPPER_SNAKE_CASE (`FLIP_H`, `ROT_90_CW`)
 - **Private members:** prefix with `_` (`_internalState`)
-- **Types/Interfaces:** PascalCase with `I` prefix for interfaces (`IBlitTechGame`)
+- **Types/Interfaces:** PascalCase with `I` prefix for interfaces (`IBlitTechDemo`)
 
 ## Project Structure
 
@@ -944,7 +944,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Blit-Tech Docs',
-      description: 'WebGPU retro game engine for TypeScript',
+      description: 'WebGPU retro engine for TypeScript',
       logo: {
         src: './public/logo.svg',
       },
@@ -963,7 +963,7 @@ export default defineConfig({
         {
           label: 'Core Concepts',
           items: [
-            { label: 'Game Loop', link: '/concepts/game-loop/' },
+            { label: 'Loop', link: '/concepts/loop/' },
             { label: 'Rendering', link: '/concepts/rendering/' },
             { label: 'Camera', link: '/concepts/camera/' },
             { label: 'Assets', link: '/concepts/assets/' },
@@ -1011,8 +1011,8 @@ docs/
 **Topics:** Add GitHub topics for discoverability
 
 ```text
-webgpu, typescript, game-engine, retro, pixel-art, 2d-game,
-fantasy-console, vite, game-development
+webgpu, typescript, demo-engine, retro, pixel-art, 2d-demo,
+fantasy-console, vite, demo-development
 ```
 
 **About:** Add description and website address
