@@ -4,14 +4,14 @@ import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
-import type { HardwareSettings, IBlitTechGame } from './IBlitTechGame';
+import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 
 /**
  * Internal API coordinator for all Blit-Tech subsystems.
  * This is similar to RetroBlit's RBAPI class.
  *
  * Manages the lifecycle of all engine subsystems and coordinates
- * the game loop. This is a singleton - use BTAPI.instance to access.
+ * the loop. This is a singleton - use BTAPI.instance to access.
  */
 export class BTAPI {
     // #region Version Constants
@@ -27,7 +27,7 @@ export class BTAPI {
     public static readonly VERSION_MAJOR = 0;
 
     /** Minor version number. */
-    public static readonly VERSION_MINOR = 1;
+    public static readonly VERSION_MINOR = 2;
 
     /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
@@ -41,12 +41,12 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Module State - Game Instance
+    // #region Module State - Demo Instance
 
-    /** Current game instance implementing IBlitTechGame. */
-    private game: IBlitTechGame | null = null;
+    /** Current demo instance implementing IBlitTechDemo. */
+    private demo: IBlitTechDemo | null = null;
 
-    /** Hardware configuration settings from the game. */
+    /** Hardware configuration settings from the demo. */
     private hwSettings: HardwareSettings | null = null;
 
     // #endregion
@@ -74,9 +74,9 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Module State - Game Loop
+    // #region Module State - Loop
 
-    /** Whether the game loop is currently running. */
+    /** Whether the loop is currently running. */
     private isRunning: boolean = false;
 
     /** Current tick count (increments each update). */
@@ -127,25 +127,25 @@ export class BTAPI {
     // #region Initialization
 
     /**
-     * Initializes the engine with a game instance and canvas element.
-     * Sets up WebGPU, creates the renderer, and starts the game loop.
+     * Initializes the engine with a demo instance and canvas element.
+     * Sets up WebGPU, creates the renderer, and starts the loop.
      *
-     * @param game - Game implementing the IBlitTechGame interface.
+     * @param demo - Demo implementing the IBlitTechDemo interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
      * @returns Promise resolving to true if initialization succeeded.
      */
-    public async initialize(game: IBlitTechGame, canvas: HTMLCanvasElement): Promise<boolean> {
+    public async initialize(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
         console.log(
             `[BlitTech] Initializing engine v${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`,
         );
 
-        this.game = game;
+        this.demo = demo;
         this.canvas = canvas;
 
-        // Query hardware settings from the game.
+        // Query hardware settings from the demo.
         console.log('[BlitTech] Querying hardware settings...');
 
-        this.hwSettings = game.queryHardware();
+        this.hwSettings = demo.queryHardware();
         this.updateInterval = 1000 / this.hwSettings.targetFPS;
 
         console.log('[BlitTech] Hardware settings:', {
@@ -182,11 +182,11 @@ export class BTAPI {
 
         // TODO: Initialize input, audio, etc.
 
-        // Initialize the game.
-        console.log('[BlitTech] Initializing game...');
+        // Initialize the demo.
+        console.log('[BlitTech] Initializing demo...');
 
-        if (!(await game.initialize())) {
-            console.error('[BlitTech] Game initialization failed');
+        if (!(await demo.initialize())) {
+            console.error('[BlitTech] Demo initialization failed');
 
             return false;
         }
@@ -201,8 +201,8 @@ export class BTAPI {
             });
         });
 
-        // Start the game loop.
-        this.startGameLoop();
+        // Start the loop.
+        this.startLoop();
 
         console.log('[BlitTech] Initialization complete!');
 
@@ -215,7 +215,7 @@ export class BTAPI {
 
     /**
      * Initializes the WebGPU adapter, device and canvas context.
-     * Configures the canvas for the game's display resolution.
+     * Configures the canvas for the demo's display resolution.
      *
      * @returns Promise resolving to true if WebGPU setup succeeded.
      */
@@ -297,10 +297,10 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Game Loop
+    // #region Loop
 
     /**
-     * Starts the main game loop using requestAnimationFrame.
+     * Starts the main loop using requestAnimationFrame.
      * Implements a fixed timestep for update() and variable rate for render().
      * Uses a double requestAnimationFrame wait to ensure canvas is fully ready.
      *
@@ -310,12 +310,12 @@ export class BTAPI {
      * - render() runs as fast as the browser allows (variable rate)
      *
      * The accumulator pattern ensures update() is called the correct number of times
-     * even if frame timing is irregular. This guarantees consistent game simulation.
+     * even if frame timing is irregular. This guarantees consistent demo simulation.
      *
      * The double RAF wait fixes timing issues in Electron where the canvas
      * may not be fully initialized on the first frame.
      */
-    private startGameLoop(): void {
+    private startLoop(): void {
         this.isRunning = true;
 
         const loop = (currentTime: number) => {
@@ -332,8 +332,8 @@ export class BTAPI {
 
             // Fixed update loop (run at target FPS).
             while (this.accumulator >= this.updateInterval) {
-                if (this.game) {
-                    this.game.update();
+                if (this.demo) {
+                    this.demo.update();
                 }
 
                 this.ticks++;
@@ -341,9 +341,9 @@ export class BTAPI {
             }
 
             // Variable render loop.
-            if (this.game && this.renderer) {
+            if (this.demo && this.renderer) {
                 this.renderer.beginFrame();
-                this.game.render();
+                this.demo.render();
                 this.renderer.endFrame();
             }
 
@@ -364,7 +364,7 @@ export class BTAPI {
     }
 
     /**
-     * Stops the game loop.
+     * Stops the loop.
      * The loop will exit after the current frame completes.
      */
     public stop(): void {
@@ -373,7 +373,7 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Game State Accessors
+    // #region Demo State Accessors
 
     /**
      * Gets the current tick count.
@@ -387,7 +387,7 @@ export class BTAPI {
 
     /**
      * Resets the tick counter to zero.
-     * Useful for timing-based game events and animations.
+     * Useful for timing-based demo events and animations.
      */
     public resetTicks(): void {
         this.ticks = 0;
