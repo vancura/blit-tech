@@ -1,6 +1,6 @@
 # Performance Best Practices
 
-This guide explains when and how to optimize your Blit-Tech games for performance, with a focus on object allocation
+This guide explains when and how to optimize your Blit-Tech demos for performance, with a focus on object allocation
 patterns and rendering efficiency.
 
 ## Table of Contents
@@ -8,7 +8,7 @@ patterns and rendering efficiency.
 - [Introduction](#introduction)
 - [Object Allocation Patterns](#object-allocation-patterns)
 - [Drawing Performance](#drawing-performance)
-- [Game Loop Best Practices](#game-loop-best-practices)
+- [Loop Best Practices](#loop-best-practices)
 - [Common Pitfalls](#common-pitfalls)
 - [Performance Rules of Thumb](#performance-rules-of-thumb)
 - [Example References](#example-references)
@@ -71,7 +71,7 @@ BT.printFont(font, new Vector2i(10, 20), 'Hello', Color32.white());
 **When to use:** Tight loops that run 50+ times per frame.
 
 ```typescript
-class MyGame implements IBlitTechGame {
+class MyDemo implements IBlitTechDemo {
   // Pre-allocate reusable objects
   private readonly tempVec = new Vector2i(0, 0);
   private readonly tempRect = new Rect2i(0, 0, 0, 0);
@@ -177,7 +177,7 @@ Line rendering performance varies significantly based on line orientation:
 **Why diagonal lines cost more:**
 
 Diagonal lines use Bresenham's algorithm to achieve authentic pixel-art rendering where each pixel is a discrete unit.
-This produces the classic "staircase" look expected in retro games but requires rendering each pixel as a separate quad.
+This produces the classic "staircase" look expected in retro demos but requires rendering each pixel as a separate quad.
 
 **Optimization tips for diagonal lines:**
 
@@ -205,7 +205,7 @@ for (let i = 0; i < 200; i++) {
 
 ---
 
-## Game Loop Best Practices
+## Loop Best Practices
 
 ### Fixed Timestep
 
@@ -232,7 +232,7 @@ if (elapsedTime >= 1.0) {
 }
 ```
 
-**Ticks are simpler and more deterministic** for most game logic.
+**Ticks are simpler and more deterministic** for most demo logic.
 
 ### Frame Budget Management
 

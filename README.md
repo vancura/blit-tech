@@ -6,16 +6,16 @@
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
 
-A lightweight WebGPU retro game engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit).
-Build pixel-perfect 2D games with a clean, fantasy-console-style API.
+A lightweight WebGPU retro engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit). Build
+pixel-perfect 2D demos with a clean, fantasy-console-style API.
 
 ![Blit-Tech logo](assets/logo.png)
 
 ## Inspiration
 
 Blit-Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html), a retro
-pixel game framework for Unity created by Martin Cietwierkowski ([@daafu](https://github.com/daafu)). RetroBlit provides
-an ideal environment for making pixel-perfect retro games through a traditional game loop and code-only development,
+pixel demo framework for Unity created by Martin Cietwierkowski ([@daafu](https://github.com/daafu)). RetroBlit provides
+an ideal environment for making pixel-perfect retro demos through a traditional demo loop and code-only development,
 discarding the Unity Editor in favor of a clean, low-level API.
 
 Blit-Tech brings a similar philosophy to the web using WebGPU: no scene graphs, no complex frameworks – just sprites,
@@ -29,7 +29,7 @@ primitives, and fonts.
 - **Bitmap fonts**: variable-width font rendering with color support and text measurement
 - **Camera system**: scrolling with offset and reset
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
-- **Fixed timestep**: deterministic 60 FPS game loop with tick counter
+- **Fixed timestep**: deterministic 60 FPS loop with tick counter
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: optional CSS upscaling via `canvasDisplaySize` for crisp pixel art
 
@@ -78,14 +78,14 @@ The demos showcase all engine features with a guided learning path from basic co
 
 ## Quick Start
 
-Create a game by implementing the `IBlitTechGame` interface:
+Create a demo by implementing the `IBlitTechDemo` interface:
 
 ```typescript
-import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechGame } from '../src/BlitTech';
+import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechDemo } from '../src/BlitTech';
 
-class MyGame implements IBlitTechGame {
+class MyDemo implements IBlitTechDemo {
   /**
-   * Configures hardware settings for this game.
+   * Configures hardware settings for this demo.
    * Sets up a 320×240 internal resolution with optional CSS upscaling.
    *
    * @returns Hardware configuration specifying display size and target FPS.
@@ -99,7 +99,7 @@ class MyGame implements IBlitTechGame {
   }
 
   /**
-   * Initializes game state after the engine is ready.
+   * Initializes demo state after the engine is ready.
    *
    * @returns Promise resolving to true when initialization succeeds.
    */
@@ -113,12 +113,12 @@ class MyGame implements IBlitTechGame {
    * Updates animation state based on ticks.
    */
   update(): void {
-    // Game logic at fixed timestep (60 FPS)
+    // Demo logic at fixed timestep (60 FPS)
     // Note: Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
   }
 
   /**
-   * Renders game graphics.
+   * Renders demo graphics.
    */
   render(): void {
     BT.clear(new Color32(20, 30, 40)); // Custom colors
@@ -128,7 +128,7 @@ class MyGame implements IBlitTechGame {
 }
 
 // One-liner bootstrap - handles WebGPU detection, DOM ready, and error display
-bootstrap(MyGame);
+bootstrap(MyDemo);
 ```
 
 For more control over initialization:
@@ -142,7 +142,7 @@ if (!checkWebGPUSupport()) {
 } else {
   const canvas = getCanvas('my-canvas-id');
   if (canvas) {
-    await BT.initialize(new MyGame(), canvas);
+    await BT.initialize(new MyDemo(), canvas);
   }
 }
 ```
@@ -159,11 +159,11 @@ blit-tech/
 │   │   └── SpriteSheet.ts      # Sprite sheet handling
 │   ├── core/
 │   │   ├── BTAPI.ts            # Internal API implementation
-│   │   └── IBlitTechGame.ts    # Game interface
+│   │   └── IBlitTechDemo.ts    # Demo interface
 │   ├── render/
 │   │   └── Renderer.ts         # WebGPU renderer
 │   └── utils/
-│       ├── Bootstrap.ts        # Game bootstrap utilities
+│       ├── Bootstrap.ts        # Demo bootstrap utilities
 │       ├── Color32.ts          # 32-bit color type
 │       ├── Rect2i.ts           # Integer rectangle
 │       └── Vector2i.ts         # Integer 2D vector
@@ -179,18 +179,18 @@ blit-tech/
 
 ### Bootstrap Utilities
 
-The bootstrap utilities provide a streamlined way to initialize games with automatic WebGPU detection and error
+The bootstrap utilities provide a streamlined way to initialize demos with automatic WebGPU detection and error
 handling:
 
 ```typescript
-// One-liner game startup (recommended)
-bootstrap(MyGame); // Uses defaults: canvas='game-canvas', container='canvas-container'
+// One-liner demo startup (recommended)
+bootstrap(MyDemo); // Uses defaults: canvas='blit-tech-canvas', container='canvas-container'
 
 // With custom options
-bootstrap(MyGame, {
+bootstrap(MyDemo, {
   canvasId: 'custom-canvas',
   containerId: 'error-container',
-  onSuccess: () => console.log('Game started!'),
+  onSuccess: () => console.log('Demo started!'),
   onError: (err) => trackError(err),
 });
 
@@ -203,7 +203,7 @@ getCanvas(canvasId?); // Get canvas element safely
 ### Initialization
 
 ```typescript
-BT.initialize(game, canvas); // Start the engine (low-level)
+BT.initialize(demo, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
 BT.ticks(); // Get current tick count

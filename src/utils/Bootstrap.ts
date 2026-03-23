@@ -1,15 +1,15 @@
 /**
  * Bootstrap Utilities for Blit-Tech
  *
- * Provides common initialization helpers for WebGPU games:
+ * Provides common initialization helpers for WebGPU demos:
  * - WebGPU support detection
  * - Error display in DOM
  * - Canvas element retrieval
- * - One-liner game bootstrap
+ * - One-liner demo bootstrap
  */
 
 import { BTAPI } from '../core/BTAPI';
-import type { IBlitTechGame } from '../core/IBlitTechGame';
+import type { IBlitTechDemo } from '../core/IBlitTechDemo';
 
 // #region Types
 
@@ -19,7 +19,7 @@ import type { IBlitTechGame } from '../core/IBlitTechGame';
 export interface BootstrapOptions {
     /**
      * Canvas element ID to use.
-     * Default: 'game-canvas'
+     * Default: 'blit-tech-canvas'
      */
     canvasId?: string;
 
@@ -43,9 +43,9 @@ export interface BootstrapOptions {
 }
 
 /**
- * Constructor type for game classes.
+ * Constructor type for demo classes.
  */
-export type GameConstructor = new () => IBlitTechGame;
+export type DemoConstructor = new () => IBlitTechDemo;
 
 /**
  * Internal result type for bootstrap steps.
@@ -60,7 +60,7 @@ interface BootstrapResult {
 // #region Constants
 
 /** Default canvas element ID. */
-const DEFAULT_CANVAS_ID = 'game-canvas';
+const DEFAULT_CANVAS_ID = 'blit-tech-canvas';
 
 /** Default container element ID for error display. */
 const DEFAULT_CONTAINER_ID = 'canvas-container';
@@ -80,7 +80,7 @@ const WEBGPU_NOT_SUPPORTED_MESSAGE =
 
 /** Error message for initialization failure. */
 const INIT_FAILED_MESSAGE =
-    'The game engine failed to initialize.\n\n' +
+    'The engine failed to initialize.\n\n' +
     'This usually means WebGPU could not access your GPU.\n' +
     'Check the console for detailed error messages.';
 
@@ -147,23 +147,23 @@ export function displayError(title: string, content: ErrorContent, containerId: 
         errorDiv.style.cssText = `
             padding: 40px;
             text-align: center;
-            color: #ff6b6b;
-            background: #2a0000;
-            border: 2px solid #ff0000;
-            border-radius: 8px;
+            color: white;
+            background: oklch(44.4% 0.177 26.899);
+            box-shadow: 0 0 0 4px black inset;
             max-width: 600px;
             margin: 0 auto;
+            font-family: monospace;
         `;
 
         const heading = document.createElement('h2');
         const msg = document.createElement('p');
         const consoleMsg = document.createElement('p');
 
-        heading.style.cssText = 'margin-top: 0; font-size: 24px;';
-        msg.style.cssText = 'margin: 20px 0; line-height: 1.6; white-space: pre-line;';
-        consoleMsg.style.cssText = 'margin-top: 20px; font-size: 14px; opacity: 0.8;';
+        heading.style.cssText = 'margin-top: 0; font-size: 18px;';
+        msg.style.cssText = 'margin: 20px 0; line-height: 1.6;';
+        consoleMsg.style.cssText = 'margin-top: 20px; font-size: 12px; opacity: 0.66;';
 
-        heading.textContent = `[X] ${title}`;
+        heading.textContent = title;
 
         // Handle content - either plain string or object with code formatting.
         if (typeof content === 'string') {
@@ -178,7 +178,7 @@ export function displayError(title: string, content: ErrorContent, containerId: 
                 codeBlock.style.cssText =
                     'display: block; margin-top: 10px; padding: 10px; ' +
                     'background: #1a0000; border: 1px solid #ff0000; ' +
-                    'border-radius: 4px; font-family: monospace; font-size: 12px; ' +
+                    'font-family: monospace; font-size: 12px; ' +
                     'text-align: left; overflow-x: auto; white-space: pre-wrap; word-break: break-all;';
 
                 codeBlock.textContent = content.code; // Safe - uses textContent
@@ -207,11 +207,11 @@ export function displayError(title: string, content: ErrorContent, containerId: 
  * Retrieves a canvas element from the DOM by ID.
  * Validates that the element exists and is a canvas element.
  *
- * @param canvasId - ID of the canvas element. Default: 'game-canvas'
+ * @param canvasId - ID of the canvas element. Default: 'blit-tech-canvas'
  * @returns The canvas element if found and valid, null otherwise.
  *
  * @example
- * const canvas = getCanvas('my-game-canvas');
+ * const canvas = getCanvas('my-demo-canvas');
  * if (!canvas) {
  *     displayError('Canvas Error', 'Failed to find a canvas element.');
  *     return;
@@ -325,28 +325,28 @@ function validateCanvas(
 }
 
 /**
- * Initializes the game engine with the provided game and canvas.
+ * Initializes the engine with the provided demo and canvas.
  *
- * @param GameClass - Game class constructor.
+ * @param DemoClass - Demo class constructor.
  * @param canvas - Canvas element.
  * @param containerId - Container ID for error display.
  * @param onSuccess - Optional success callback.
  * @param onError - Optional error callback.
  * @returns BootstrapResult with success status.
  */
-async function initializeGame(
-    GameClass: GameConstructor,
+async function initializeDemo(
+    DemoClass: DemoConstructor,
     canvas: HTMLCanvasElement,
     containerId: string,
     onSuccess?: () => void,
     onError?: (error: Error) => void,
 ): Promise<BootstrapResult> {
-    const game = new GameClass();
-    const initialized = await BTAPI.instance.initialize(game, canvas);
+    const demo = new DemoClass();
+    const initialized = await BTAPI.instance.initialize(demo, canvas);
     let result: BootstrapResult;
 
     if (initialized) {
-        console.log('[Blit-Tech] Game started successfully!');
+        console.log('[Blit-Tech] Demo started successfully!');
         onSuccess?.();
         result = { success: true };
     } else {
@@ -367,37 +367,37 @@ async function initializeGame(
 // #region Bootstrap Function
 
 /**
- * One-liner bootstrap function for Blit-Tech games.
+ * One-liner bootstrap function for Blit-Tech demos.
  * Handles WebGPU detection, canvas retrieval, and engine initialization.
  *
- * This function provides a streamlined way to start a game with sensible defaults
+ * This function provides a streamlined way to start a demo with sensible defaults
  * while allowing customization through options.
  *
- * @param GameClass - Game class constructor implementing IBlitTechGame.
+ * @param DemoClass - Demo class constructor implementing IBlitTechDemo.
  * @param options - Optional configuration for IDs and callbacks.
  * @returns Promise resolving to true if initialization succeeded, false otherwise.
  *
  * @example
  * // Simplest usage - uses default IDs.
- * bootstrap(MyGame);
+ * bootstrap(MyDemo);
  *
  * @example
  * // With custom options.
- * bootstrap(MyGame, {
+ * bootstrap(MyDemo, {
  *     canvasId: 'custom-canvas',
  *     containerId: 'custom-container',
- *     onSuccess: () => console.log('Game started!'),
+ *     onSuccess: () => console.log('Demo started!'),
  *     onError: (err) => analytics.trackError(err),
  * });
  *
  * @example
  * // Await the result.
- * const success = await bootstrap(MyGame);
+ * const success = await bootstrap(MyDemo);
  * if (success) {
- *     console.log('Game is running');
+ *     console.log('Demo is running');
  * }
  */
-export async function bootstrap(GameClass: GameConstructor, options: BootstrapOptions = {}): Promise<boolean> {
+export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOptions = {}): Promise<boolean> {
     const {
         canvasId = DEFAULT_CANVAS_ID,
         containerId = DEFAULT_CONTAINER_ID,
@@ -423,9 +423,9 @@ export async function bootstrap(GameClass: GameConstructor, options: BootstrapOp
             const { canvas, result: canvasResult } = validateCanvas(canvasId, containerId, onError);
             success = canvasResult.success;
 
-            // Initialize the game.
+            // Initialize the demo.
             if (success && canvas) {
-                const initResult = await initializeGame(GameClass, canvas, containerId, onSuccess, onError);
+                const initResult = await initializeDemo(DemoClass, canvas, containerId, onSuccess, onError);
                 success = initResult.success;
             }
         }

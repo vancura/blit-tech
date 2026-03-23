@@ -4,7 +4,7 @@ import { Vector2i } from '../utils/Vector2i';
 
 /**
  * Hardware configuration settings for the engine.
- * Returned by IBlitTechGame.queryHardware().
+ * Returned by IBlitTechDemo.queryHardware().
  */
 export interface HardwareSettings {
     /** Display resolution in pixels (internal rendering resolution, e.g., 320×240). */
@@ -23,8 +23,8 @@ export interface HardwareSettings {
 }
 
 /**
- * Main game interface that all Blit-Tech games must implement.
- * Inspired by RetroBlit's IRetroBlitGame.
+ * Main demo interface that all Blit-Tech demos must implement.
+ * Inspired by RetroBlit's IRetroBlitDemo.
  *
  * LIFECYCLE ORDER:
  * 1. queryHardware() - Called first to configure display/FPS
@@ -33,7 +33,7 @@ export interface HardwareSettings {
  * 4. render() - Called at variable rate (as fast as possible)
  *
  * @example
- * class MyGame implements IBlitTechGame {
+ * class MyDemo implements IBlitTechDemo {
  *   queryHardware(): HardwareSettings {
  *     return {
  *       displaySize: new Vector2i(320, 240),
@@ -42,20 +42,20 @@ export interface HardwareSettings {
  *   }
  *
  *   async initialize(): Promise<boolean> {
- *     // Load assets, initialize state.
+ *     // Load assets, initialize demo state.
  *     return true;
  *   }
  *
  *   update(): void {
- *     // Update game logic (called at 60 FPS).
+ *     // Update demo logic (called at 60 FPS).
  *   }
  *
  *   render(): void {
- *     // Draw graphics (called as fast as possible).
+ *     // Draw demo graphics (called as fast as possible).
  *   }
  * }
  */
-export interface IBlitTechGame {
+export interface IBlitTechDemo {
     /**
      * Called once at the startup to query hardware settings.
      * This is the first method called, before any initialization.
@@ -63,7 +63,7 @@ export interface IBlitTechGame {
      * Define your display resolution and target framerate here.
      * The engine will configure WebGPU based on these settings.
      *
-     * @returns Hardware configuration for this game.
+     * @returns Hardware configuration for this demo.
      *
      * @example
      * queryHardware(): HardwareSettings {
@@ -78,7 +78,7 @@ export interface IBlitTechGame {
 
     /**
      * Called once after hardware initialization.
-     * Load assets and set up the initial game state here.
+     * Load assets and set up the initial demo state here.
      *
      * WebGPU is fully initialized at this point.
      * Use AssetLoader to load textures and fonts.
@@ -97,7 +97,7 @@ export interface IBlitTechGame {
 
     /**
      * Called at a fixed rate (default 60 times per second).
-     * Update game logic, handle input and advance simulation here.
+     * Update demo logic, handle input and advance simulation here.
      *
      * IMPORTANT: This runs at a fixed timestep for deterministic physics.
      * The timestep is controlled by targetFPS in HardwareSettings.
@@ -115,7 +115,7 @@ export interface IBlitTechGame {
      *     this.playerX += 2;
      *   }
      *
-     *   // Update game state.
+     *   // Update demo state.
      *   this.enemyPosition.addXYInPlace(this.enemyVelocity.x, this.enemyVelocity.y);
      * }
      */
@@ -123,9 +123,9 @@ export interface IBlitTechGame {
 
     /**
      * Called at variable rate (as fast as possible).
-     * Render game graphics here.
+     * Render demo graphics here.
      *
-     * IMPORTANT: Don't update game logic in this method.
+     * IMPORTANT: Don't update demo logic in this method.
      * Only drawing calls should be made here.
      * The renderer automatically batches sprites for performance.
      *
@@ -166,7 +166,7 @@ export interface IBlitTechGame {
  * Provides a 320×240 display at 60 FPS (classic retro resolution).
  *
  * RECOMMENDED FOR: Quick tests, examples and prototypes.
- * NOT RECOMMENDED FOR: Production games (define explicit settings instead).
+ * NOT RECOMMENDED FOR: Production demos (define explicit settings instead).
  *
  * @returns Default HardwareSettings configuration.
  *

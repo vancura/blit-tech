@@ -1,8 +1,8 @@
 /**
- * Blit-Tech - WebGPU Retro Game Engine
+ * Blit-Tech - WebGPU Retro Engine
  *
  * Main static API inspired by RetroBlit's RB namespace.
- * All game code interacts with the engine through this interface.
+ * All demo code interacts with the engine through this interface.
  */
 
 import { AssetLoader } from './assets/AssetLoader';
@@ -10,8 +10,8 @@ import type { TextSize } from './assets/BitmapFont';
 import { BitmapFont } from './assets/BitmapFont';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
-import type { HardwareSettings, IBlitTechGame } from './core/IBlitTechGame';
-import type { BootstrapOptions, GameConstructor } from './utils/Bootstrap';
+import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
+import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap, checkWebGPUSupport, displayError, getCanvas } from './utils/Bootstrap';
 import { Color32 } from './utils/Color32';
 import { Rect2i } from './utils/Rect2i';
@@ -123,34 +123,34 @@ export const BT = {
     // #region Initialization
 
     /**
-     * Initializes the engine with a game instance and canvas element.
-     * This is the entry point for all Blit-Tech games.
+     * Initializes the engine with a demo instance and canvas element.
+     * This is the entry point for all Blit-Tech demos.
      *
      * Setup sequence:
-     * 1. Calls game.queryHardware() to get display settings
+     * 1. Calls demo.queryHardware() to get display settings
      * 2. Initializes WebGPU device and context
      * 3. Creates a renderer with a configured display size
-     * 4. Calls game.initialize() to load assets
-     * 5. Starts the game loop (fixed update, variable render)
+     * 4. Calls demo.initialize() to load assets
+     * 5. Starts the loop (fixed update, variable render)
      *
      * IMPORTANT: Canvas must be attached to DOM before calling this.
      * In Electron, wait for DOM ready before initializing.
      *
-     * @param game - Game implementing IBlitTechGame interface.
+     * @param demo - Demo implementing IBlitTechDemo interface.
      * @param canvas - HTML canvas element to render to.
      * @returns Promise that resolves to true if successful, false on error.
      *
      * @example
-     * const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-     * const game = new MyGame();
-     * const success = await BT.initialize(game, canvas);
+     * const canvas = document.getElementById('blit-tech-canvas') as HTMLCanvasElement;
+     * const demo = new MyDemo();
+     * const success = await BT.initialize(demo, canvas);
      *
      * if (!success) {
      *   console.error('Failed to initialize Blit-Tech');
      * }
      */
-    initialize: async (game: IBlitTechGame, canvas: HTMLCanvasElement): Promise<boolean> => {
-        return await BTAPI.instance.initialize(game, canvas);
+    initialize: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
+        return await BTAPI.instance.initialize(demo, canvas);
     },
 
     // #endregion
@@ -159,7 +159,7 @@ export const BT = {
 
     /**
      * Gets the current display size in pixels.
-     * Returns the internal rendering resolution configured by the game.
+     * Returns the internal rendering resolution configured by the demo.
      *
      * @returns Display size as Vector2i, or zero vector if not initialized.
      */
@@ -193,7 +193,7 @@ export const BT = {
 
     /**
      * Resets the tick counter to zero.
-     * Useful for timing-based game events and animations.
+     * Useful for timing-based demo events and animations.
      */
     ticksReset: (): void => {
         BTAPI.instance.resetTicks();
@@ -479,6 +479,6 @@ export {
     SpriteSheet,
     Vector2i,
 };
-export type { BootstrapOptions, GameConstructor, HardwareSettings, IBlitTechGame, TextSize };
+export type { BootstrapOptions, HardwareSettings, IBlitTechDemo, TextSize };
 
 // #endregion
