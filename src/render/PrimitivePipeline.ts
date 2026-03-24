@@ -523,6 +523,8 @@ export class PrimitivePipeline {
         const sx = x0 < x1 ? 1 : -1;
         const sy = y0 < y1 ? 1 : -1;
         let err = dx - dy;
+        let cx = x0;
+        let cy = y0;
 
         // Pre-compute color values once for the entire line.
         const r = color.r / 255;
@@ -532,20 +534,20 @@ export class PrimitivePipeline {
 
         while (true) {
             // Draw pixel directly without creating Vector2i.
-            this.addPixelVertices(x0, y0, r, g, b, a);
+            this.addPixelVertices(cx, cy, r, g, b, a);
 
-            if (x0 === x1 && y0 === y1) {
+            if (cx === x1 && cy === y1) {
                 break;
             }
 
             const e2 = 2 * err;
             if (e2 > -dy) {
                 err -= dy;
-                x0 += sx;
+                cx += sx;
             }
             if (e2 < dx) {
                 err += dx;
-                y0 += sy;
+                cy += sy;
             }
         }
     }

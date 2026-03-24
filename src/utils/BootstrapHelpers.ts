@@ -136,7 +136,7 @@ export function displayError(title: string, content: ErrorContent, containerId: 
         // Fallback to console if container not found.
         const message = typeof content === 'string' ? content : `${content.text}\n${content.code ?? ''}`;
 
-        console.error(`[Blit-Tech] ${title}: ${message}`);
+        console.error(`[BT] ${title}: ${message}`);
     }
 }
 
@@ -159,9 +159,9 @@ export function getCanvas(canvasId: string = DEFAULT_CANVAS_ID): HTMLCanvasEleme
     let canvas: HTMLCanvasElement | null = null;
 
     if (!element) {
-        console.error(`[Blit-Tech] Canvas element with id '${canvasId}' not found`);
+        console.error(`[BT] Canvas element with id '${canvasId}' not found`);
     } else if (!(element instanceof HTMLCanvasElement)) {
-        console.error(`[Blit-Tech] Element with id '${canvasId}' is not a canvas element`);
+        console.error(`[BT] Element with id '${canvasId}' is not a canvas element`);
     } else {
         canvas = element;
     }
