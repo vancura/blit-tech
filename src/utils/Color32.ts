@@ -341,45 +341,46 @@ export class Color32 {
      * @returns New color converted from HSL values.
      */
     static fromHSL(h: number, s: number, l: number, a: number = 255): Color32 {
-        h = h / 360;
-        s = s / 100;
-        l = l / 100;
+        const hNorm = h / 360;
+        const sNorm = s / 100;
+        const lNorm = l / 100;
 
         let r, g, b;
 
-        if (s === 0) {
-            r = g = b = l;
+        if (sNorm === 0) {
+            r = g = b = lNorm;
         } else {
             const hue2rgb = (p: number, q: number, t: number) => {
-                if (t < 0) {
-                    t += 1;
+                let tc = t;
+                if (tc < 0) {
+                    tc += 1;
                 }
 
-                if (t > 1) {
-                    t -= 1;
+                if (tc > 1) {
+                    tc -= 1;
                 }
 
-                if (t < 1 / 6) {
-                    return p + (q - p) * 6 * t;
+                if (tc < 1 / 6) {
+                    return p + (q - p) * 6 * tc;
                 }
 
-                if (t < 1 / 2) {
+                if (tc < 1 / 2) {
                     return q;
                 }
 
-                if (t < 2 / 3) {
-                    return p + (q - p) * (2 / 3 - t) * 6;
+                if (tc < 2 / 3) {
+                    return p + (q - p) * (2 / 3 - tc) * 6;
                 }
 
                 return p;
             };
 
-            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            const p = 2 * l - q;
+            const q = lNorm < 0.5 ? lNorm * (1 + sNorm) : lNorm + sNorm - lNorm * sNorm;
+            const p = 2 * lNorm - q;
 
-            r = hue2rgb(p, q, h + 1 / 3);
-            g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1 / 3);
+            r = hue2rgb(p, q, hNorm + 1 / 3);
+            g = hue2rgb(p, q, hNorm);
+            b = hue2rgb(p, q, hNorm - 1 / 3);
         }
 
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255), a);
@@ -563,16 +564,16 @@ export class Color32 {
      */
     lerp(other: Color32, t: number): Color32 {
         // Clamp t to [0, 1] ranges using branchless-style ternary (avoids Math.max/min calls).
-        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const tc = t < 0 ? 0 : t > 1 ? 1 : t;
 
         // Optimized lerp: use formula a * (1-t) + b * t to reduce operations.
-        const oneMinusT = 1 - t;
+        const oneMinusT = 1 - tc;
 
         return Color32.fromRGBAUnchecked(
-            (this.r * oneMinusT + other.r * t) | 0,
-            (this.g * oneMinusT + other.g * t) | 0,
-            (this.b * oneMinusT + other.b * t) | 0,
-            (this.a * oneMinusT + other.a * t) | 0,
+            (this.r * oneMinusT + other.r * tc) | 0,
+            (this.g * oneMinusT + other.g * tc) | 0,
+            (this.b * oneMinusT + other.b * tc) | 0,
+            (this.a * oneMinusT + other.a * tc) | 0,
         );
     }
 
@@ -585,14 +586,14 @@ export class Color32 {
      * @returns This color instance for chaining.
      */
     lerpInPlace(other: Color32, t: number): this {
-        t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const tc = t < 0 ? 0 : t > 1 ? 1 : t;
 
-        const oneMinusT = 1 - t;
+        const oneMinusT = 1 - tc;
 
-        this.r = (this.r * oneMinusT + other.r * t) | 0;
-        this.g = (this.g * oneMinusT + other.g * t) | 0;
-        this.b = (this.b * oneMinusT + other.b * t) | 0;
-        this.a = (this.a * oneMinusT + other.a * t) | 0;
+        this.r = (this.r * oneMinusT + other.r * tc) | 0;
+        this.g = (this.g * oneMinusT + other.g * tc) | 0;
+        this.b = (this.b * oneMinusT + other.b * tc) | 0;
+        this.a = (this.a * oneMinusT + other.a * tc) | 0;
 
         return this;
     }
