@@ -160,7 +160,8 @@ export class Renderer {
         renderPass.end();
         this.device.queue.submit([commandEncoder.finish()]);
 
-        // Reset for next frame.
+        // Defensive reset so pipeline state is clean even if beginFrame() is not called next.
+        // beginFrame() also resets; this prevents stale data from persisting across frames.
         this.primitives.reset();
         this.sprites.reset();
     }
