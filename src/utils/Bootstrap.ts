@@ -79,10 +79,7 @@ const WEBGPU_NOT_SUPPORTED_MESSAGE =
     'Please update your browser or try a different one.';
 
 /** Error message for initialization failure. */
-const INIT_FAILED_MESSAGE =
-    'The engine failed to initialize.\n\n' +
-    'This usually means WebGPU could not access your GPU.\n' +
-    'Check the console for detailed error messages.';
+const INIT_FAILED_MESSAGE = 'The engine failed to initialize. Check the console for details.';
 
 // #endregion
 
@@ -342,7 +339,16 @@ async function initializeDemo(
     onError?: (error: Error) => void,
 ): Promise<BootstrapResult> {
     const demo = new DemoClass();
-    const initialized = await BTAPI.instance.initialize(demo, canvas);
+    let initialized: boolean;
+    let initError: Error | undefined;
+
+    try {
+        initialized = await BTAPI.instance.initialize(demo, canvas);
+    } catch (err) {
+        initialized = false;
+        initError = err instanceof Error ? err : new Error(String(err));
+    }
+
     let result: BootstrapResult;
 
     if (initialized) {
@@ -350,10 +356,14 @@ async function initializeDemo(
         onSuccess?.();
         result = { success: true };
     } else {
+        const displayMessage: ErrorContent = initError
+            ? { text: INIT_FAILED_MESSAGE, code: initError.message }
+            : INIT_FAILED_MESSAGE;
+
         result = handleBootstrapError(
             'Initialization Failed',
-            INIT_FAILED_MESSAGE,
-            new Error('Engine initialization failed'),
+            displayMessage,
+            initError ?? new Error('Engine initialization failed'),
             containerId,
             onError,
         );
