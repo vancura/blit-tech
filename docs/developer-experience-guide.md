@@ -197,11 +197,13 @@ test(vector): add tests for magnitude calculation
 
 1. Ensure all tests pass
 2. Update documentation if needed
-3. Add changeset if making library changes:
+3. Run preflight checks:
 
    ```bash
-   pnpm changeset
+   pnpm preflight
    ```
+
+   This runs format check, lint, typecheck, spellcheck, and knip.
 
 4. Rebase on latest main:
 
@@ -365,15 +367,6 @@ Update README.md if you:
 - Change public API
 - Add new examples
 - Update prerequisites
-
-### Changelog
-
-Changesets automatically generate CHANGELOG.md:
-
-```bash
-pnpm changeset
-# Follow prompts to describe changes
-```
 
 ## Getting Help
 
@@ -721,16 +714,8 @@ Closes #
 ## Documentation
 
 - [ ] Updated README.md if needed
-- [ ] Updated CHANGELOG.md (via changeset)
 - [ ] Added code comments for complex logic
 - [ ] Updated TypeScript types/interfaces
-
-## Changeset
-
-<!-- Required for library changes -->
-
-- [ ] Created changeset (`pnpm changeset`)
-- [ ] Or this change doesn't affect the published library
 
 ## Screenshots/Videos
 
@@ -1078,11 +1063,6 @@ playwright-report/
 test-results/
 coverage/
 
-# Changesets (keep config, ignore temp files)
-.changeset/*.md
-!.changeset/README.md
-!.changeset/config.json
-
 # Docs build (when added)
 docs/.astro/
 docs/dist/
@@ -1109,7 +1089,6 @@ docs/dist/
 ### Before Releases
 
 - [ ] Run a full test suite
-- [ ] Update CHANGELOG.md (via changesets)
 - [ ] Bump version
 - [ ] Test library build
 - [ ] Test examples deployment
