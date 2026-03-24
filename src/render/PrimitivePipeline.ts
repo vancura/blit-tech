@@ -605,11 +605,16 @@ export class PrimitivePipeline {
         const index = (this.totalVertices + this.vertexCount) * 6;
 
         if (index + 6 > this.vertices.length) {
-            console.warn('[PrimitivePipeline] Primitive buffer full, flushing early');
-
             this.earlyFlush();
 
-            return this.addVertex(x, y, r, g, b, a);
+            // Re-check after flush - if still no space, buffer is exhausted for this frame.
+            const newIndex = (this.totalVertices + this.vertexCount) * 6;
+            if (newIndex + 6 > this.vertices.length) {
+                console.warn('[PrimitivePipeline] Primitive buffer capacity exceeded for this frame, vertex dropped');
+                return;
+            }
+
+            // Space available after flush, continue with vertex addition below.
         }
 
         // eslint-disable-next-line security/detect-object-injection
