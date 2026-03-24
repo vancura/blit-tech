@@ -52,8 +52,13 @@ export class GameLoop {
      * @param updateInterval - Milliseconds between fixed update steps (1000 / targetFPS).
      * @param onUpdate - Called once per fixed update step at the target rate.
      * @param onRender - Called once per rendered frame at the browser's refresh rate.
+     * @throws {Error} If updateInterval is not a finite positive number.
      */
     constructor(updateInterval: number, onUpdate: () => void, onRender: () => void) {
+        if (!Number.isFinite(updateInterval) || updateInterval <= 0) {
+            throw new Error(`GameLoop updateInterval must be a finite positive number, got: ${updateInterval}`);
+        }
+
         this.updateInterval = updateInterval;
         this.onUpdate = onUpdate;
         this.onRender = onRender;
