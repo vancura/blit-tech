@@ -313,7 +313,6 @@ The engine displays an error message if the browser doesn’t support WebGPU.
 - **Vite** — Fast build tool with HMR
 - **WGSL** — WebGPU Shading Language
 - **Biome** — Fast formatter and linter
-- **Changesets** — Version management and changelog generation
 
 ## Assets & Fonts
 
