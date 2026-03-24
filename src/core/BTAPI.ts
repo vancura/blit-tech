@@ -150,7 +150,9 @@ export class BTAPI {
         const { targetFPS } = this.hwSettings;
 
         if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
-            throw new Error(`[BlitTech] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+            console.error(`[BlitTech] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+
+            return false;
         }
 
         this.updateInterval = 1000 / targetFPS;

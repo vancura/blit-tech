@@ -345,8 +345,9 @@ async function initializeDemo(
     try {
         initialized = await BTAPI.instance.initialize(demo, canvas);
     } catch (err) {
-        initialized = false;
         initError = err instanceof Error ? err : new Error(String(err));
+        console.error('[Blit-Tech] Engine initialization threw an unexpected error:', initError);
+        initialized = false;
     }
 
     let result: BootstrapResult;
