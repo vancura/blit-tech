@@ -146,7 +146,14 @@ export class BTAPI {
         console.log('[BlitTech] Querying hardware settings...');
 
         this.hwSettings = demo.queryHardware();
-        this.updateInterval = 1000 / this.hwSettings.targetFPS;
+
+        const { targetFPS } = this.hwSettings;
+
+        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
+            throw new Error(`[BlitTech] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+        }
+
+        this.updateInterval = 1000 / targetFPS;
 
         console.log('[BlitTech] Hardware settings:', {
             displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
