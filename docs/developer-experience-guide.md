@@ -936,7 +936,7 @@ pnpm create astro@latest . -- --template starlight
 
 `docs/astro.config.mjs`:
 
-```javascript
+```js
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 

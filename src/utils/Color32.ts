@@ -769,16 +769,4 @@ export function clampByte(n: number): number {
     return n < 0 ? 0 : n > 255 ? 255 : n | 0;
 }
 
-/**
- * Converts a single channel value to a 2-digit hex string.
- * Defined at module level to avoid closure allocation in toHex().
- * Exported for use in other utilities that need hex conversion.
- *
- * @param n - Channel value (0-255).
- * @returns Two-character hex string.
- */
-export function channelToHex(n: number): string {
-    return n.toString(16).padStart(2, '0');
-}
-
 // #endregion
