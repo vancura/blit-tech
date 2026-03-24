@@ -54,10 +54,12 @@ export async function initializeWebGPU(
     }
 
     // Request device.
-    const device = await adapter.requestDevice();
+    let device: GPUDevice;
 
-    if (!device) {
-        console.error('[BlitTech] Failed to get WebGPU device');
+    try {
+        device = await adapter.requestDevice();
+    } catch (err) {
+        console.error('[BlitTech] Failed to get WebGPU device:', err);
 
         return null;
     }

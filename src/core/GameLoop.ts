@@ -70,6 +70,10 @@ export class GameLoop {
      * browsers where the canvas may not be initialized on the first frame.
      */
     public start(): void {
+        if (this.isRunning) {
+            return;
+        }
+
         this.isRunning = true;
 
         requestAnimationFrame(() => {
