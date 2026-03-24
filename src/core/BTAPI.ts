@@ -146,7 +146,16 @@ export class BTAPI {
         console.log('[BlitTech] Querying hardware settings...');
 
         this.hwSettings = demo.queryHardware();
-        this.updateInterval = 1000 / this.hwSettings.targetFPS;
+
+        const { targetFPS } = this.hwSettings;
+
+        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
+            console.error(`[BlitTech] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+
+            return false;
+        }
+
+        this.updateInterval = 1000 / targetFPS;
 
         console.log('[BlitTech] Hardware settings:', {
             displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
@@ -330,15 +339,26 @@ export class BTAPI {
             // Accumulator for fixed timestep.
             this.accumulator += deltaTime;
 
-            // Fixed update loop (run at target FPS).
-            while (this.accumulator >= this.updateInterval) {
+            // Clamp accumulator to prevent spiral-of-death after long pauses.
+            const MAX_STEPS = 8;
+            const maxAccumulator = this.updateInterval * MAX_STEPS;
+
+            if (this.accumulator > maxAccumulator) {
+                this.accumulator = maxAccumulator;
+            }
+
+            // Fixed update loop (run at target FPS, capped at MAX_STEPS per frame).
+            const steps = Math.min(Math.floor(this.accumulator / this.updateInterval), MAX_STEPS);
+
+            for (let i = 0; i < steps; i++) {
                 if (this.demo) {
                     this.demo.update();
                 }
 
                 this.ticks++;
-                this.accumulator -= this.updateInterval;
             }
+
+            this.accumulator -= steps * this.updateInterval;
 
             // Variable render loop.
             if (this.demo && this.renderer) {

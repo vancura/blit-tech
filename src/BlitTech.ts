@@ -11,6 +11,7 @@ import { BitmapFont } from './assets/BitmapFont';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
+import { defaultHardwareSettings } from './core/IBlitTechDemo';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap, checkWebGPUSupport, displayError, getCanvas } from './utils/Bootstrap';
 import { Color32 } from './utils/Color32';
@@ -473,6 +474,7 @@ export {
     bootstrap,
     checkWebGPUSupport,
     Color32,
+    defaultHardwareSettings,
     displayError,
     getCanvas,
     Rect2i,
