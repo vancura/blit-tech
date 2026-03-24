@@ -58,8 +58,8 @@ export class SpritePipeline {
     /** Currently bound bind group for sprite rendering. */
     private currentBindGroup: GPUBindGroup | null = null;
 
-    /** Cache of texture bind groups for reuse. */
-    private readonly textureBindGroups: Map<GPUTexture, GPUBindGroup> = new Map();
+    /** Cache of texture bind groups for reuse. WeakMap allows GC to collect destroyed textures. */
+    private readonly textureBindGroups: WeakMap<GPUTexture, GPUBindGroup> = new WeakMap();
 
     /** Sprite batches to render (one per texture). */
     private batches: Array<{ bindGroup: GPUBindGroup; vertexStart: number; vertexCount: number }> = [];
