@@ -197,7 +197,15 @@ test(vector): add tests for magnitude calculation
 
 1. Ensure all tests pass
 2. Update documentation if needed
-3. Rebase on latest main:
+3. Run preflight checks:
+
+   ```bash
+   pnpm preflight
+   ```
+
+   This runs format check, lint, typecheck, spellcheck, and knip.
+
+4. Rebase on latest main:
 
    ```bash
    git fetch upstream
