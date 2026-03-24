@@ -42,11 +42,21 @@ export class PrimitivePipeline {
     /** CPU-side vertex data (6 floats per vertex: x, y, r, g, b, a). */
     private readonly vertices: Float32Array;
 
-    /** Number of vertices accumulated this frame. */
+    /** Number of vertices in the current (unflushed) batch. */
     private vertexCount: number = 0;
 
     /** Camera offset applied to all drawing operations. */
     private cameraOffset: Vector2i = Vector2i.zero();
+
+    // #endregion
+
+    // #region Batching State
+
+    /** Primitive batches recorded after each early flush. */
+    private batches: Array<{ vertexStart: number; vertexCount: number }> = [];
+
+    /** Total primitive vertices across all flushed batches. */
+    private totalVertices: number = 0;
 
     // #endregion
 
@@ -449,23 +459,30 @@ export class PrimitivePipeline {
      * @param renderPass - Active render pass encoder.
      */
     encodePass(renderPass: GPURenderPassEncoder): void {
-        if (this.vertexCount === 0) {
+        // Flush any remaining vertices into the batch queue.
+        this.earlyFlush();
+
+        if (this.batches.length === 0 || this.totalVertices === 0) {
             return;
         }
 
+        // Upload all vertex data at once.
         // Safe assertions: these resources are created in initialize() before any rendering.
         (this.device as GPUDevice).queue.writeBuffer(
             this.vertexBuffer as GPUBuffer,
             0,
             this.vertices.buffer,
             0,
-            this.vertexCount * 6 * 4,
+            this.totalVertices * 6 * 4,
         );
 
         renderPass.setPipeline(this.pipeline as GPURenderPipeline);
         renderPass.setBindGroup(0, this.bindGroup as GPUBindGroup);
         renderPass.setVertexBuffer(0, this.vertexBuffer as GPUBuffer);
-        renderPass.draw(this.vertexCount);
+
+        for (const batch of this.batches) {
+            renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
+        }
     }
 
     /**
@@ -474,6 +491,8 @@ export class PrimitivePipeline {
      */
     reset(): void {
         this.vertexCount = 0;
+        this.totalVertices = 0;
+        this.batches = [];
     }
 
     // #endregion
@@ -568,7 +587,7 @@ export class PrimitivePipeline {
      * @returns Nothing.
      */
     private addVertex(x: number, y: number, r: number, g: number, b: number, a: number): void {
-        const index = this.vertexCount * 6;
+        const index = (this.totalVertices + this.vertexCount) * 6;
 
         if (index + 6 > this.vertices.length) {
             console.warn('[PrimitivePipeline] Primitive buffer full, flushing early');
@@ -590,23 +609,17 @@ export class PrimitivePipeline {
     }
 
     /**
-     * Writes current vertex data to the GPU buffer and resets the vertex count.
+     * Records the current vertex batch and resets the vertex count.
      * Used for early flush when the buffer is full mid-frame.
+     * Does not write to GPU — encodePass() uploads all batches at once.
      */
     private earlyFlush(): void {
         if (this.vertexCount === 0) {
             return;
         }
 
-        // Safe assertion: vertexBuffer is created in initialize().
-        (this.device as GPUDevice).queue.writeBuffer(
-            this.vertexBuffer as GPUBuffer,
-            0,
-            this.vertices.buffer,
-            0,
-            this.vertexCount * 6 * 4,
-        );
-
+        this.batches.push({ vertexStart: this.totalVertices, vertexCount: this.vertexCount });
+        this.totalVertices += this.vertexCount;
         this.vertexCount = 0;
     }
 
