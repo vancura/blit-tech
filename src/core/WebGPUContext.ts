@@ -32,9 +32,9 @@ export async function initializeWebGPU(
     canvasDisplaySize?: Vector2i,
 ): Promise<WebGPUContextResult | null> {
     if (!navigator.gpu) {
-        console.error('[BlitTech] WebGPU is not supported in this browser.');
-        console.error('[BlitTech] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');
-        console.error('[BlitTech] See: https://caniuse.com/webgpu');
+        console.error('[BT] WebGPU is not supported in this browser.');
+        console.error('[BT] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');
+        console.error('[BT] See: https://caniuse.com/webgpu');
 
         return null;
     }
@@ -43,12 +43,12 @@ export async function initializeWebGPU(
     const adapter = await navigator.gpu.requestAdapter();
 
     if (!adapter) {
-        console.error('[BlitTech] Failed to get WebGPU adapter.');
-        console.error('[BlitTech] This could mean:');
-        console.error('[BlitTech]   1. Your GPU/drivers are too old');
-        console.error('[BlitTech]   2. WebGPU is disabled in browser settings');
-        console.error('[BlitTech]   3. Running in incompatible environment (VM, remote desktop, etc.)');
-        console.error('[BlitTech] Browser:', navigator.userAgent);
+        console.error('[BT] Failed to get WebGPU adapter.');
+        console.error('[BT] This could mean:');
+        console.error('[BT]   1. Your GPU/drivers are too old');
+        console.error('[BT]   2. WebGPU is disabled in browser settings');
+        console.error('[BT]   3. Running in incompatible environment (VM, remote desktop, etc.)');
+        console.error('[BT] Browser:', navigator.userAgent);
 
         return null;
     }
@@ -59,7 +59,7 @@ export async function initializeWebGPU(
     try {
         device = await adapter.requestDevice();
     } catch (err) {
-        console.error('[BlitTech] Failed to get WebGPU device:', err);
+        console.error('[BT] Failed to get WebGPU device:', err);
 
         return null;
     }
@@ -74,13 +74,13 @@ export async function initializeWebGPU(
         canvas.style.width = `${canvasDisplaySize.x}px`;
         canvas.style.height = `${canvasDisplaySize.y}px`;
 
-        console.log(`[BlitTech] Canvas display size: ${canvasDisplaySize.x}x${canvasDisplaySize.y}`);
+        console.log(`[BT] Canvas display size: ${canvasDisplaySize.x}x${canvasDisplaySize.y}`);
     }
 
     const context = canvas.getContext('webgpu') as GPUCanvasContext;
 
     if (!context) {
-        console.error('[BlitTech] Failed to get WebGPU context');
+        console.error('[BT] Failed to get WebGPU context');
 
         return null;
     }
@@ -93,7 +93,7 @@ export async function initializeWebGPU(
         alphaMode: 'premultiplied',
     });
 
-    console.log('[BlitTech] WebGPU initialized successfully');
+    console.log('[BT] WebGPU initialized successfully');
 
     return { device, context };
 }

@@ -197,14 +197,14 @@ async function initializeDemo(
         initialized = await BTAPI.instance.initialize(demo, canvas);
     } catch (err) {
         initError = err instanceof Error ? err : new Error(String(err));
-        console.error('[Blit-Tech] Engine initialization threw an unexpected error:', initError);
+        console.error('[BT] Engine initialization threw an unexpected error:', initError);
         initialized = false;
     }
 
     let result: BootstrapResult;
 
     if (initialized) {
-        console.log('[Blit-Tech] Demo started successfully!');
+        console.log('[BT] Demo started successfully!');
         onSuccess?.();
         result = { success: true };
     } else {
@@ -293,7 +293,7 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
         }
     } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error('[Blit-Tech] Bootstrap error:', error);
+        console.error('[BT] Bootstrap error:', error);
 
         handleBootstrapError(
             'Unexpected Error',

@@ -121,29 +121,27 @@ export class BTAPI {
      * @returns Promise resolving to true if initialization succeeded.
      */
     public async initialize(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
-        console.log(
-            `[BlitTech] Initializing engine v${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`,
-        );
+        console.log(`[BT] Initializing engine v${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
 
         this.demo = demo;
         this.canvas = canvas;
 
         // Query hardware settings from the demo.
-        console.log('[BlitTech] Querying hardware settings...');
+        console.log('[BT] Querying hardware settings...');
 
         this.hwSettings = demo.queryHardware();
 
         const { targetFPS } = this.hwSettings;
 
         if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
-            console.error(`[BlitTech] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+            console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
 
             return false;
         }
 
         const updateInterval = 1000 / targetFPS;
 
-        console.log('[BlitTech] Hardware settings:', {
+        console.log('[BT] Hardware settings:', {
             displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
             targetFPS: this.hwSettings.targetFPS,
         });
@@ -156,7 +154,7 @@ export class BTAPI {
         );
 
         if (!webGPUResult) {
-            console.error('[BlitTech] Failed to initialize WebGPU');
+            console.error('[BT] Failed to initialize WebGPU');
 
             return false;
         }
@@ -165,25 +163,25 @@ export class BTAPI {
         this.context = webGPUResult.context;
 
         // Initialize subsystems.
-        console.log('[BlitTech] Initializing renderer...');
+        console.log('[BT] Initializing renderer...');
 
         this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
 
         if (!(await this.renderer.initialize())) {
-            console.error('[BlitTech] Failed to initialize renderer');
+            console.error('[BT] Failed to initialize renderer');
 
             return false;
         }
 
-        console.log('[BlitTech] Renderer initialized');
+        console.log('[BT] Renderer initialized');
 
         // TODO: Initialize input, audio, etc.
 
         // Initialize the demo.
-        console.log('[BlitTech] Initializing demo...');
+        console.log('[BT] Initializing demo...');
 
         if (!(await demo.initialize())) {
-            console.error('[BlitTech] Demo initialization failed');
+            console.error('[BT] Demo initialization failed');
 
             return false;
         }
@@ -204,7 +202,7 @@ export class BTAPI {
 
         this.loop.start();
 
-        console.log('[BlitTech] Initialization complete!');
+        console.log('[BT] Initialization complete!');
 
         return true;
     }
