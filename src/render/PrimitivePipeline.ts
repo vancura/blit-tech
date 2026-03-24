@@ -562,6 +562,21 @@ export class PrimitivePipeline {
      * @param a - Alpha component (0-1).
      */
     private addPixelVertices(x: number, y: number, r: number, g: number, b: number, a: number): void {
+        // Ensure space for complete pixel (6 vertices) to prevent partial geometry
+        const index = (this.totalVertices + this.vertexCount) * 6;
+        if (index + 36 > this.vertices.length) {
+            // 6 vertices * 6 floats
+            if (this.vertexCount > 0) {
+                this.earlyFlush();
+            }
+
+            // Check again after flush - if still no space, buffer is exhausted
+            if ((this.totalVertices + this.vertexCount) * 6 + 36 > this.vertices.length) {
+                console.warn('[PrimitivePipeline] Buffer exhausted, pixel dropped');
+                return;
+            }
+        }
+
         const x1 = x + 1;
         const y1 = y + 1;
 
