@@ -82,8 +82,29 @@ pnpm format:check       # Check formatting
 pnpm typecheck          # TypeScript type checking
 pnpm spellcheck         # cspell check
 pnpm knip               # Find unused exports/deps
-pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip)
+pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test)
 ```
+
+## Testing
+
+Test files are colocated next to source: `src/utils/Vector2i.test.ts`.
+
+```bash
+pnpm test               # Run all unit tests
+pnpm test:watch          # Watch mode for development
+pnpm test:coverage       # Coverage report (80% minimum threshold)
+pnpm test:visual         # Playwright visual regression (requires Chrome)
+pnpm test:visual:update  # Update visual test baselines
+```
+
+**Test tiers:**
+
+1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, GameLoop
+2. **Integration tests** (Vitest, happy-dom + GPU mocks) - DOM and GPU code
+3. **Visual regression** (Playwright, Chromium) - Rendering output verification
+
+**WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See `docs/testing.md`
+for full details.
 
 ## Git
 
