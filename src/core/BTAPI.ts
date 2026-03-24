@@ -4,7 +4,9 @@ import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
+import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
+import { initializeWebGPU } from './WebGPUContext';
 
 /**
  * Internal API coordinator for all Blit-Tech subsystems.
@@ -69,27 +71,11 @@ export class BTAPI {
     /** Renderer subsystem for all drawing operations. */
     private renderer: Renderer | null = null;
 
+    /** Game loop managing fixed-timestep updates and variable-rate rendering. */
+    private loop: GameLoop | null = null;
+
     // TODO: Additional subsystems for future implementation:
     // InputManager, AudioManager, EffectsManager, AssetManager
-
-    // #endregion
-
-    // #region Module State - Loop
-
-    /** Whether the loop is currently running. */
-    private isRunning: boolean = false;
-
-    /** Current tick count (increments each update). */
-    private ticks: number = 0;
-
-    /** Timestamp of the last update call. */
-    private lastUpdateTime: number = 0;
-
-    /** Update interval in milliseconds (calculated from target FPS). */
-    private updateInterval: number = 1000 / 60; // 60 FPS default
-
-    /** Accumulated time for fixed timestep updates. */
-    private accumulator: number = 0;
 
     // #endregion
 
@@ -155,7 +141,7 @@ export class BTAPI {
             return false;
         }
 
-        this.updateInterval = 1000 / targetFPS;
+        const updateInterval = 1000 / targetFPS;
 
         console.log('[BlitTech] Hardware settings:', {
             displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
@@ -163,21 +149,23 @@ export class BTAPI {
         });
 
         // Initialize WebGPU.
-        if (!(await this.initializeWebGPU())) {
+        const webGPUResult = await initializeWebGPU(
+            canvas,
+            this.hwSettings.displaySize,
+            this.hwSettings.canvasDisplaySize,
+        );
+
+        if (!webGPUResult) {
             console.error('[BlitTech] Failed to initialize WebGPU');
 
             return false;
         }
 
+        this.device = webGPUResult.device;
+        this.context = webGPUResult.context;
+
         // Initialize subsystems.
         console.log('[BlitTech] Initializing renderer...');
-
-        // Defensive check: Ensure WebGPU resources were initialized successfully.
-        if (!this.device || !this.context) {
-            console.error('[BlitTech] WebGPU resources not initialized');
-
-            return false;
-        }
 
         this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
 
@@ -200,187 +188,25 @@ export class BTAPI {
             return false;
         }
 
-        // Wait for the next frame to ensure canvas is fully ready.
-        // This helps with Electron and some browser timing issues.
-        await new Promise<void>((resolve) => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    resolve();
-                });
-            });
-        });
+        // Start the loop. The GameLoop's double-RAF delay ensures the canvas is
+        // fully ready before the first tick.
+        this.loop = new GameLoop(
+            updateInterval,
+            () => this.demo?.update(),
+            () => {
+                if (this.renderer) {
+                    this.renderer.beginFrame();
+                    this.demo?.render();
+                    this.renderer.endFrame();
+                }
+            },
+        );
 
-        // Start the loop.
-        this.startLoop();
+        this.loop.start();
 
         console.log('[BlitTech] Initialization complete!');
 
         return true;
-    }
-
-    // #endregion
-
-    // #region WebGPU Initialization
-
-    /**
-     * Initializes the WebGPU adapter, device and canvas context.
-     * Configures the canvas for the demo's display resolution.
-     *
-     * @returns Promise resolving to true if WebGPU setup succeeded.
-     */
-    private async initializeWebGPU(): Promise<boolean> {
-        if (!navigator.gpu) {
-            console.error('[BlitTech] WebGPU is not supported in this browser.');
-            console.error('[BlitTech] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');
-            console.error('[BlitTech] See: https://caniuse.com/webgpu');
-
-            return false;
-        }
-
-        // Request adapter.
-        const adapter = await navigator.gpu.requestAdapter();
-
-        if (!adapter) {
-            console.error('[BlitTech] Failed to get WebGPU adapter.');
-            console.error('[BlitTech] This could mean:');
-            console.error('[BlitTech]   1. Your GPU/drivers are too old');
-            console.error('[BlitTech]   2. WebGPU is disabled in browser settings');
-            console.error('[BlitTech]   3. Running in incompatible environment (VM, remote desktop, etc.)');
-            console.error('[BlitTech] Browser:', navigator.userAgent);
-
-            return false;
-        }
-
-        // Request device.
-        this.device = await adapter.requestDevice();
-
-        if (!this.device) {
-            console.error('[BlitTech] Failed to get WebGPU device');
-
-            return false;
-        }
-
-        // Configure canvas.
-        // Guard: canvas is set in initialize() before this method is called.
-        if (!this.canvas || !this.hwSettings) {
-            console.error('[BlitTech] Canvas or hardware settings not initialized');
-
-            return false;
-        }
-
-        // Set canvas resolution BEFORE getting WebGPU context.
-        // This ensures getCurrentTexture() returns valid textures.
-        this.canvas.width = this.hwSettings.displaySize.x;
-        this.canvas.height = this.hwSettings.displaySize.y;
-
-        // Set CSS display size if specified (for upscaling).
-        if (this.hwSettings.canvasDisplaySize) {
-            this.canvas.style.width = `${this.hwSettings.canvasDisplaySize.x}px`;
-            this.canvas.style.height = `${this.hwSettings.canvasDisplaySize.y}px`;
-
-            console.log(
-                `[BlitTech] Canvas display size: ${this.hwSettings.canvasDisplaySize.x}x${this.hwSettings.canvasDisplaySize.y}`,
-            );
-        }
-
-        this.context = this.canvas.getContext('webgpu') as GPUCanvasContext;
-
-        if (!this.context) {
-            console.error('[BlitTech] Failed to get WebGPU context');
-
-            return false;
-        }
-
-        const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
-
-        this.context.configure({
-            device: this.device,
-            format: canvasFormat,
-            alphaMode: 'premultiplied',
-        });
-
-        console.log('[BlitTech] WebGPU initialized successfully');
-
-        return true;
-    }
-
-    // #endregion
-
-    // #region Loop
-
-    /**
-     * Starts the main loop using requestAnimationFrame.
-     * Implements a fixed timestep for update() and variable rate for render().
-     * Uses a double requestAnimationFrame wait to ensure canvas is fully ready.
-     *
-     * PERFORMANCE CRITICAL: This runs every frame at 60+ FPS.
-     * The loop implements fixed timestep updates to ensure deterministic physics:
-     * - update() runs at exactly targetFPS (default 60 Hz)
-     * - render() runs as fast as the browser allows (variable rate)
-     *
-     * The accumulator pattern ensures update() is called the correct number of times
-     * even if frame timing is irregular. This guarantees consistent demo simulation.
-     *
-     * The double RAF wait fixes timing issues in Electron where the canvas
-     * may not be fully initialized on the first frame.
-     */
-    private startLoop(): void {
-        this.isRunning = true;
-
-        const loop = (currentTime: number) => {
-            if (!this.isRunning) {
-                return;
-            }
-
-            // Calculate delta time.
-            const deltaTime = currentTime - this.lastUpdateTime;
-            this.lastUpdateTime = currentTime;
-
-            // Accumulator for fixed timestep.
-            this.accumulator += deltaTime;
-
-            // Clamp accumulator to prevent spiral-of-death after long pauses.
-            const MAX_STEPS = 8;
-            const maxAccumulator = this.updateInterval * MAX_STEPS;
-
-            if (this.accumulator > maxAccumulator) {
-                this.accumulator = maxAccumulator;
-            }
-
-            // Fixed update loop (run at target FPS, capped at MAX_STEPS per frame).
-            const steps = Math.min(Math.floor(this.accumulator / this.updateInterval), MAX_STEPS);
-
-            for (let i = 0; i < steps; i++) {
-                if (this.demo) {
-                    this.demo.update();
-                }
-
-                this.ticks++;
-            }
-
-            this.accumulator -= steps * this.updateInterval;
-
-            // Variable render loop.
-            if (this.demo && this.renderer) {
-                this.renderer.beginFrame();
-                this.demo.render();
-                this.renderer.endFrame();
-            }
-
-            // Continue loop.
-            requestAnimationFrame(loop);
-        };
-
-        // Double requestAnimationFrame wait ensures canvas is fully ready.
-        // This fixes timing issues in Electron and certain browsers where.
-        // The canvas may not be fully initialized on the first frame.
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                this.lastUpdateTime = performance.now();
-
-                requestAnimationFrame(loop);
-            });
-        });
     }
 
     /**
@@ -388,7 +214,7 @@ export class BTAPI {
      * The loop will exit after the current frame completes.
      */
     public stop(): void {
-        this.isRunning = false;
+        this.loop?.stop();
     }
 
     // #endregion
@@ -402,7 +228,7 @@ export class BTAPI {
      * @returns Number of update ticks since initialization or last reset.
      */
     public getTicks(): number {
-        return this.ticks;
+        return this.loop?.getTicks() ?? 0;
     }
 
     /**
@@ -410,7 +236,7 @@ export class BTAPI {
      * Useful for timing-based demo events and animations.
      */
     public resetTicks(): void {
-        this.ticks = 0;
+        this.loop?.resetTicks();
     }
 
     /**
