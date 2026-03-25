@@ -1,13 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
 import { Rect2i } from '../utils/Rect2i';
 import { SpriteSheet } from './SpriteSheet';
 
-// #region UV Calculation
-
 describe('SpriteSheet', () => {
     const mockImage = { width: 256, height: 256 } as HTMLImageElement;
+
+    // #region UV Calculation
 
     describe('getUVs', () => {
         it('should return (0, 0, 1, 1) for a full-size rect', () => {
@@ -54,7 +54,7 @@ describe('SpriteSheet', () => {
 
             const texture = sheet.getTexture(device);
             expect(texture).toBeDefined();
-            expect(texture.label).toBe('MockTexture');
+            expect(texture.label).toBe('Sprite Sheet Texture');
         });
 
         it('should return the same cached texture on subsequent calls', () => {
@@ -81,6 +81,17 @@ describe('SpriteSheet', () => {
 
             const second = sheet.getTexture(device);
             expect(second).not.toBe(first);
+        });
+
+        it('should call GPUTexture.destroy on the GPU texture', () => {
+            const sheet = new SpriteSheet(mockImage);
+            const device = createMockGPUDevice();
+
+            const texture = sheet.getTexture(device);
+            const destroySpy = vi.spyOn(texture, 'destroy');
+
+            sheet.destroy();
+            expect(destroySpy).toHaveBeenCalledOnce();
         });
     });
 

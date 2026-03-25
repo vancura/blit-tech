@@ -189,7 +189,7 @@ describe('Rect2i', () => {
 
         it('should truncate to integer', () => {
             const r = new Rect2i(0, 0, 100, 200);
-            r.position = new Vector2i(1, 2);
+            r.position = Vector2i.fromXYUnchecked(1.9, 2.7);
             expect(r.x).toBe(1);
             expect(r.y).toBe(2);
         });
@@ -221,7 +221,7 @@ describe('Rect2i', () => {
 
         it('should truncate to integer', () => {
             const r = new Rect2i(0, 0, 0, 0);
-            r.size = new Vector2i(7, 9);
+            r.size = Vector2i.fromXYUnchecked(7.8, 9.3);
             expect(r.width).toBe(7);
             expect(r.height).toBe(9);
         });

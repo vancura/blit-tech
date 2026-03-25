@@ -46,6 +46,7 @@ describe('GameLoop', () => {
     describe('resetTicks', () => {
         it('should reset tick count to 0', () => {
             const loop = new GameLoop(16.67, vi.fn(), vi.fn());
+            (loop as unknown as { ticks: number }).ticks = 5;
             loop.resetTicks();
             expect(loop.getTicks()).toBe(0);
         });

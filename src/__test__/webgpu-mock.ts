@@ -10,9 +10,10 @@
  *
  * @param width - Texture width in pixels.
  * @param height - Texture height in pixels.
+ * @param label - Texture label.
  * @returns Mock GPUTexture stub.
  */
-export function createMockGPUTexture(width = 256, height = 256): GPUTexture {
+export function createMockGPUTexture(width = 256, height = 256, label = 'MockTexture'): GPUTexture {
     return {
         width,
         height,
@@ -22,7 +23,7 @@ export function createMockGPUTexture(width = 256, height = 256): GPUTexture {
         dimension: '2d',
         format: 'rgba8unorm',
         usage: 0,
-        label: 'MockTexture',
+        label,
         createView: () => ({ label: 'MockTextureView' }) as unknown as GPUTextureView,
         destroy: () => {},
     } as unknown as GPUTexture;
@@ -78,13 +79,23 @@ export function createMockGPUDevice(): GPUDevice {
             }) as unknown as GPUBuffer,
         createBindGroup: () => ({ label: 'MockBindGroup' }) as unknown as GPUBindGroup,
         createSampler: () => ({ label: 'MockSampler' }) as unknown as GPUSampler,
-        createTexture: (desc: GPUTextureDescriptor) =>
-            createMockGPUTexture(
-                typeof desc.size === 'object' && 'width' in desc.size ? (desc.size as GPUExtent3DDict).width : 256,
-                typeof desc.size === 'object' && 'height' in desc.size
-                    ? ((desc.size as GPUExtent3DDict).height ?? 256)
-                    : 256,
-            ),
+        createTexture: (desc: GPUTextureDescriptor) => {
+            let width = 256;
+            let height = 256;
+
+            if (typeof desc.size === 'number') {
+                width = desc.size;
+                height = desc.size;
+            } else if (Array.isArray(desc.size)) {
+                width = desc.size[0] ?? 256;
+                height = desc.size[1] ?? 256;
+            } else {
+                width = (desc.size as GPUExtent3DDict).width;
+                height = (desc.size as GPUExtent3DDict).height ?? 256;
+            }
+
+            return createMockGPUTexture(width, height, desc.label ?? 'MockTexture');
+        },
         createCommandEncoder: () => ({
             beginRenderPass: () => createMockRenderPassEncoder(),
             finish: () => ({ label: 'MockCommandBuffer' }) as unknown as GPUCommandBuffer,

@@ -27,12 +27,13 @@ describe('BootstrapHelpers', () => {
         });
 
         it('should return true when navigator.gpu is present', () => {
-            (navigator as any).gpu = {};
+            const nav = navigator as unknown as { gpu?: unknown };
+            nav.gpu = {};
 
             try {
                 expect(checkWebGPUSupport()).toBe(true);
             } finally {
-                delete (navigator as any).gpu;
+                delete nav.gpu;
             }
         });
     });

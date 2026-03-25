@@ -130,7 +130,6 @@ describe('with initialized renderer', () => {
 
     it('initialize returns true on success', async () => {
         const r = new Renderer(device, context, displaySize);
-        installMockNavigatorGPU();
         const result = await r.initialize();
         expect(result).toBe(true);
     });

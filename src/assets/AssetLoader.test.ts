@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AssetLoader } from './AssetLoader';
 
@@ -35,14 +35,66 @@ describe('AssetLoader', () => {
     // #region Image Loading
 
     describe('image loading', () => {
-        // Image loading tests are skipped in Node/happy-dom because
-        // Image.onload does not fire for data URIs in this environment.
-        // These are covered by Playwright visual regression tests.
+        let createCount = 0;
 
-        it.todo('should load a single image from a URL');
-        it.todo('should return the cached image on subsequent calls');
-        it.todo('should load multiple images in parallel');
-        it.todo('should deduplicate concurrent requests');
+        beforeEach(() => {
+            createCount = 0;
+
+            vi.stubGlobal(
+                'Image',
+                class {
+                    onload: (() => void) | null = null;
+                    onerror: (() => void) | null = null;
+                    width = 100;
+                    height = 100;
+
+                    private _src = '';
+
+                    get src(): string {
+                        return this._src;
+                    }
+
+                    set src(value: string) {
+                        this._src = value;
+                        createCount++;
+                        this.onload?.();
+                    }
+                },
+            );
+        });
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('should load a single image from a URL', async () => {
+            const img = await AssetLoader.loadImage('test.png');
+            expect(img).toBeDefined();
+            expect(AssetLoader.isLoaded('test.png')).toBe(true);
+        });
+
+        it('should return the cached image on subsequent calls', async () => {
+            const first = await AssetLoader.loadImage('cached.png');
+            const second = await AssetLoader.loadImage('cached.png');
+            expect(second).toBe(first);
+            expect(createCount).toBe(1);
+        });
+
+        it('should load multiple images in parallel', async () => {
+            const images = await AssetLoader.loadImages(['img-a.png', 'img-b.png']);
+            expect(images).toHaveLength(2);
+            expect(AssetLoader.isLoaded('img-a.png')).toBe(true);
+            expect(AssetLoader.isLoaded('img-b.png')).toBe(true);
+        });
+
+        it('should deduplicate concurrent requests for the same URL', async () => {
+            const [first, second] = await Promise.all([
+                AssetLoader.loadImage('shared.png'),
+                AssetLoader.loadImage('shared.png'),
+            ]);
+            expect(first).toBe(second);
+            expect(createCount).toBe(1);
+        });
     });
 
     // #endregion
