@@ -33,7 +33,7 @@ export default defineConfig({
     ],
 
     webServer: {
-        command: 'pnpm exec vite serve tests/visual/fixtures --port 5174',
+        command: 'pnpm exec vite serve tests/visual/fixtures --config tests/visual/fixtures/vite.config.ts --port 5174',
         port: 5174,
         reuseExistingServer: !process.env.CI,
         timeout: 30_000,

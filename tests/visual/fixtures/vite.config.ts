@@ -1,10 +1,14 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
     root: '.',
     resolve: {
         alias: {
-            'blit-tech': '/Users/vancura/Repos/_BLIT_TECH_/blit-tech/src/BlitTech.ts',
+            'blit-tech': path.resolve(__dirname, '../../../src/BlitTech.ts'),
         },
     },
 });

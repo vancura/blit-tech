@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+// Delay after render-complete signal before taking a screenshot, to allow the
+// GPU to present the frame. Override via GPU_PRESENT_DELAY env var for CI tuning.
+const GPU_PRESENT_DELAY = Number(process.env.GPU_PRESENT_DELAY ?? 100);
+
 test.describe('Primitive Rendering', () => {
     test('should render known primitive patterns', async ({ page }) => {
         await page.goto('/primitives.html');
@@ -21,8 +25,8 @@ test.describe('Primitive Rendering', () => {
             return;
         }
 
-        // Small delay for GPU present.
-        await page.waitForTimeout(100);
+        // Wait for the GPU to present the rendered frame before capturing.
+        await page.waitForTimeout(GPU_PRESENT_DELAY);
 
         await expect(page.locator('canvas')).toHaveScreenshot('primitives.png', {
             maxDiffPixelRatio: 0.01,
