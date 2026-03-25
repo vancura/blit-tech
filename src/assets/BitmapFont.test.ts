@@ -270,6 +270,75 @@ describe('BitmapFont', () => {
     });
 
     // #endregion
+
+    // #region Default metadata fallbacks
+
+    describe('default metadata fallbacks', () => {
+        it('should use defaults when name, size, lineHeight, baseline are missing', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: vi.fn().mockResolvedValue({
+                        texture: 'data:image/png;base64,aGVsbG8=',
+                        glyphs: { A: { x: 0, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 } },
+                    }),
+                }),
+            );
+            const f = await BitmapFont.load('minimal.btfont');
+            expect(f.name).toBe('Unknown');
+            expect(f.size).toBe(12);
+            expect(f.lineHeight).toBe(12);
+            expect(f.baseline).toBe(12);
+        });
+
+        it('should use size as fallback for lineHeight and baseline', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: vi.fn().mockResolvedValue({
+                        name: 'CustomFont',
+                        size: 16,
+                        texture: 'data:image/png;base64,aGVsbG8=',
+                        glyphs: { A: { x: 0, y: 0, w: 8, h: 16, ox: 0, oy: 0, adv: 9 } },
+                    }),
+                }),
+            );
+            const f = await BitmapFont.load('partial.btfont');
+            expect(f.name).toBe('CustomFont');
+            expect(f.size).toBe(16);
+            expect(f.lineHeight).toBe(16); // Falls back to size
+            expect(f.baseline).toBe(16); // Falls back to size
+        });
+    });
+
+    // #endregion
+
+    // #region Edge cases
+
+    describe('edge cases', () => {
+        it('should return 0 for measureText with empty string', () => {
+            expect(font.measureText('')).toBe(0);
+        });
+
+        it('should measure mixed ASCII and Unicode text', () => {
+            // A(9) + e-acute(7) + B(8) = 24
+            const width = font.measureText('A\u00e9B');
+            expect(width).toBe(24);
+        });
+
+        it('should return reusable object from measureTextSize', () => {
+            const size1 = font.measureTextSize('A');
+            const size2 = font.measureTextSize('AB');
+            // Same reference (reused object)
+            expect(size1).toBe(size2);
+            // But values reflect the latest measurement
+            expect(size2.width).toBe(17);
+        });
+    });
+
+    // #endregion
 });
 
 // #endregion

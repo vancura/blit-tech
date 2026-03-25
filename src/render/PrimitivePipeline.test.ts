@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUDevice,
@@ -223,6 +223,178 @@ describe('with initialized pipeline', () => {
             pipeline.encodePass(createMockRenderPassEncoder());
         }).not.toThrow();
         pipeline.setCameraOffset(Vector2i.zero());
+    });
+});
+
+// #endregion
+
+// #region Vertex Count Verification
+
+describe('vertex count verification', () => {
+    const device = createMockGPUDevice();
+    const pipeline = new PrimitivePipeline();
+
+    beforeAll(async () => {
+        installMockNavigatorGPU();
+        await pipeline.initialize(device, new Vector2i(320, 240));
+    });
+
+    afterAll(() => {
+        uninstallMockNavigatorGPU();
+    });
+
+    it('drawRectFill produces 6 vertices (two triangles)', () => {
+        pipeline.reset();
+        pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(6);
+    });
+
+    it('drawPixel produces 6 vertices (1x1 filled rect)', () => {
+        pipeline.reset();
+        pipeline.drawPixel(new Vector2i(5, 5), Color32.green());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(6);
+    });
+
+    it('horizontal line uses a single quad (6 vertices)', () => {
+        pipeline.reset();
+        pipeline.drawLine(new Vector2i(0, 10), new Vector2i(100, 10), Color32.white());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(6);
+    });
+
+    it('vertical line uses a single quad (6 vertices)', () => {
+        pipeline.reset();
+        pipeline.drawLine(new Vector2i(10, 0), new Vector2i(10, 50), Color32.white());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(6);
+    });
+
+    it('diagonal line uses 6 vertices per pixel (Bresenham)', () => {
+        pipeline.reset();
+        // A 45-degree diagonal from (0,0) to (4,4) = 5 pixels
+        pipeline.drawLine(new Vector2i(0, 0), new Vector2i(4, 4), Color32.white());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(5 * 6); // 5 pixels * 6 vertices each
+    });
+
+    it('drawRect with height <= 2 skips vertical side lines', () => {
+        pipeline.reset();
+        // height=2 means y1-y0 = 1, which is NOT > 1, so no vertical sides
+        pipeline.drawRect(new Rect2i(0, 0, 10, 2), Color32.red());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        // Only top + bottom lines = 2 quads = 12 vertices (no left/right)
+        expect(totalVertices).toBe(12);
+    });
+
+    it('drawRect with height > 2 includes all four sides', () => {
+        pipeline.reset();
+        pipeline.drawRect(new Rect2i(0, 0, 10, 10), Color32.red());
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        // 4 sides = 4 quads = 24 vertices
+        expect(totalVertices).toBe(24);
+    });
+
+    it('drawText produces 6 vertices per character', () => {
+        pipeline.reset();
+        pipeline.drawText(new Vector2i(0, 0), Color32.white(), 'Hi');
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(2 * 6); // 2 characters * 6 vertices each
+    });
+
+    it('buffer overflow triggers console.warn and does not crash', () => {
+        pipeline.reset();
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        // Fill buffer: 50000 max vertices, each drawRectFill uses 6 vertices
+        // ~8333 rects fill the buffer; drawing more should trigger warn
+        for (let i = 0; i < 8400; i++) {
+            pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), Color32.white());
+        }
+
+        expect(warnSpy).toHaveBeenCalled();
+        const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
+        expect(msg).toBeDefined();
+
+        // encodePass should still work without crashing
+        expect(() => {
+            pipeline.encodePass(createMockRenderPassEncoder());
+        }).not.toThrow();
+
+        warnSpy.mockRestore();
     });
 });
 

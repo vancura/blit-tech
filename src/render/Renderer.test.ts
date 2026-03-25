@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUCanvasContext,
@@ -229,6 +229,97 @@ describe('with initialized renderer', () => {
         expect(() => {
             renderer.endFrame();
         }).not.toThrow();
+    });
+});
+
+// #endregion
+
+// #region Error Paths
+
+describe('endFrame error paths', () => {
+    it('recovers gracefully when getCurrentTexture throws', async () => {
+        const device = createMockGPUDevice();
+        const throwingContext = {
+            ...createMockGPUCanvasContext(),
+            getCurrentTexture: () => {
+                throw new Error('Context lost');
+            },
+        } as unknown as GPUCanvasContext;
+
+        const renderer = new Renderer(device, throwingContext, new Vector2i(320, 240));
+        installMockNavigatorGPU();
+        await renderer.initialize();
+
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        renderer.beginFrame();
+        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+        expect(() => {
+            renderer.endFrame();
+        }).not.toThrow();
+
+        expect(errorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Failed to get current texture'),
+            expect.any(Error),
+        );
+
+        // Should be able to start a new frame after error
+        expect(() => {
+            renderer.beginFrame();
+        }).not.toThrow();
+
+        errorSpy.mockRestore();
+        uninstallMockNavigatorGPU();
+    });
+
+    it('skips frame when texture has zero dimensions', async () => {
+        const device = createMockGPUDevice();
+        const zeroTextureContext = {
+            ...createMockGPUCanvasContext(),
+            getCurrentTexture: () => ({
+                width: 0,
+                height: 0,
+                createView: () => ({ label: 'MockView' }),
+            }),
+        } as unknown as GPUCanvasContext;
+
+        const renderer = new Renderer(device, zeroTextureContext, new Vector2i(320, 240));
+        installMockNavigatorGPU();
+        await renderer.initialize();
+
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        renderer.beginFrame();
+        expect(() => {
+            renderer.endFrame();
+        }).not.toThrow();
+
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('zero dimensions'));
+
+        warnSpy.mockRestore();
+        uninstallMockNavigatorGPU();
+    });
+});
+
+describe('initialize error paths', () => {
+    it('returns false when pipeline creation throws', async () => {
+        const throwingDevice = {
+            ...createMockGPUDevice(),
+            createShaderModule: () => {
+                throw new Error('Shader compilation failed');
+            },
+        } as unknown as GPUDevice;
+
+        const renderer = new Renderer(throwingDevice, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        installMockNavigatorGPU();
+
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const result = await renderer.initialize();
+        expect(result).toBe(false);
+        expect(errorSpy).toHaveBeenCalled();
+
+        errorSpy.mockRestore();
+        uninstallMockNavigatorGPU();
     });
 });
 
