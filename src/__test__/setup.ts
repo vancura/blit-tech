@@ -17,6 +17,13 @@ if (typeof GPUBufferUsage === 'undefined') {
     };
 }
 
+if (typeof GPUMapMode === 'undefined') {
+    (globalThis as unknown as Record<string, unknown>).GPUMapMode = {
+        READ: 0x0001,
+        WRITE: 0x0002,
+    };
+}
+
 if (typeof GPUTextureUsage === 'undefined') {
     (globalThis as unknown as Record<string, unknown>).GPUTextureUsage = {
         COPY_SRC: 0x01,

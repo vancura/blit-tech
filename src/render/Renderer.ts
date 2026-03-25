@@ -1,6 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
+import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { PrimitivePipeline } from './PrimitivePipeline';
@@ -28,6 +29,9 @@ export class Renderer {
 
     /** Camera offset for scrolling effects. */
     private cameraOffset: Vector2i = Vector2i.zero();
+
+    /** Frame capture manager for PNG export. */
+    private readonly frameCapture = new FrameCapture();
 
     // #endregion
 
@@ -158,7 +162,20 @@ export class Renderer {
         this.sprites.encodePass(renderPass);
 
         renderPass.end();
+
+        // If a frame capture is pending, add the texture-to-buffer copy before submit.
+        const capturing = this.frameCapture.hasPendingCapture();
+
+        if (capturing) {
+            this.frameCapture.executeCaptureInEncoder(this.device, texture, commandEncoder);
+        }
+
         this.device.queue.submit([commandEncoder.finish()]);
+
+        // Resolve the capture asynchronously (does not block the game loop).
+        if (capturing) {
+            void this.frameCapture.resolveCapture(this.device);
+        }
 
         // Defensive reset so pipeline state is clean even if beginFrame() is not called next.
         // beginFrame() also resets; this prevents stale data from persisting across frames.
@@ -275,6 +292,21 @@ export class Renderer {
      */
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
         this.sprites.drawBitmapText(font, pos, text, color);
+    }
+
+    // #endregion
+
+    // #region Frame Capture
+
+    /**
+     * Captures the next rendered frame as a PNG blob.
+     * The capture happens on the next `endFrame()` call.
+     * If a capture is already pending, the previous one is rejected.
+     *
+     * @returns Promise resolving to a PNG Blob of the rendered frame.
+     */
+    captureFrame(): Promise<Blob> {
+        return this.frameCapture.requestCapture();
     }
 
     // #endregion
