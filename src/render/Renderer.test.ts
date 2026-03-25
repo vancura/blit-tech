@@ -252,24 +252,26 @@ describe('endFrame error paths', () => {
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-        renderer.beginFrame();
-        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
-        expect(() => {
-            renderer.endFrame();
-        }).not.toThrow();
-
-        expect(errorSpy).toHaveBeenCalledWith(
-            expect.stringContaining('Failed to get current texture'),
-            expect.any(Error),
-        );
-
-        // Should be able to start a new frame after error
-        expect(() => {
+        try {
             renderer.beginFrame();
-        }).not.toThrow();
+            renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+            expect(() => {
+                renderer.endFrame();
+            }).not.toThrow();
 
-        errorSpy.mockRestore();
-        uninstallMockNavigatorGPU();
+            expect(errorSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to get current texture'),
+                expect.any(Error),
+            );
+
+            // Should be able to start a new frame after error
+            expect(() => {
+                renderer.beginFrame();
+            }).not.toThrow();
+        } finally {
+            errorSpy.mockRestore();
+            uninstallMockNavigatorGPU();
+        }
     });
 
     it('skips frame when texture has zero dimensions', async () => {
@@ -289,15 +291,17 @@ describe('endFrame error paths', () => {
 
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-        renderer.beginFrame();
-        expect(() => {
-            renderer.endFrame();
-        }).not.toThrow();
+        try {
+            renderer.beginFrame();
+            expect(() => {
+                renderer.endFrame();
+            }).not.toThrow();
 
-        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('zero dimensions'));
-
-        warnSpy.mockRestore();
-        uninstallMockNavigatorGPU();
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('zero dimensions'));
+        } finally {
+            warnSpy.mockRestore();
+            uninstallMockNavigatorGPU();
+        }
     });
 });
 
@@ -314,12 +318,15 @@ describe('initialize error paths', () => {
         installMockNavigatorGPU();
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        const result = await renderer.initialize();
-        expect(result).toBe(false);
-        expect(errorSpy).toHaveBeenCalled();
 
-        errorSpy.mockRestore();
-        uninstallMockNavigatorGPU();
+        try {
+            const result = await renderer.initialize();
+            expect(result).toBe(false);
+            expect(errorSpy).toHaveBeenCalled();
+        } finally {
+            errorSpy.mockRestore();
+            uninstallMockNavigatorGPU();
+        }
     });
 });
 

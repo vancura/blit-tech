@@ -379,22 +379,24 @@ describe('vertex count verification', () => {
         pipeline.reset();
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-        // Fill buffer: 50000 max vertices, each drawRectFill uses 6 vertices
-        // ~8333 rects fill the buffer; drawing more should trigger warn
-        for (let i = 0; i < 8400; i++) {
-            pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), Color32.white());
+        try {
+            // Fill buffer: 50000 max vertices, each drawRectFill uses 6 vertices
+            // ~8333 rects fill the buffer; drawing more should trigger warn
+            for (let i = 0; i < 8400; i++) {
+                pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), Color32.white());
+            }
+
+            expect(warnSpy).toHaveBeenCalled();
+            const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
+            expect(msg).toBeDefined();
+
+            // encodePass should still work without crashing
+            expect(() => {
+                pipeline.encodePass(createMockRenderPassEncoder());
+            }).not.toThrow();
+        } finally {
+            warnSpy.mockRestore();
         }
-
-        expect(warnSpy).toHaveBeenCalled();
-        const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
-        expect(msg).toBeDefined();
-
-        // encodePass should still work without crashing
-        expect(() => {
-            pipeline.encodePass(createMockRenderPassEncoder());
-        }).not.toThrow();
-
-        warnSpy.mockRestore();
     });
 });
 

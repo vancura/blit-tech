@@ -283,21 +283,23 @@ describe('drawSprite', () => {
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         const sheet = new SpriteSheet(mockImage);
 
-        // MAX_SPRITE_VERTICES = 50000, each sprite = 6 vertices * 8 floats
-        // 50000 / 6 = ~8333 sprites max; draw more to trigger overflow
-        for (let i = 0; i < 8400; i++) {
-            pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));
+        try {
+            // MAX_SPRITE_VERTICES = 50000, each sprite = 6 vertices * 8 floats
+            // 50000 / 6 = ~8333 sprites max; draw more to trigger overflow
+            for (let i = 0; i < 8400; i++) {
+                pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));
+            }
+
+            expect(warnSpy).toHaveBeenCalled();
+            const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
+            expect(msg).toBeDefined();
+
+            expect(() => {
+                pipeline.encodePass(createMockRenderPassEncoder());
+            }).not.toThrow();
+        } finally {
+            warnSpy.mockRestore();
         }
-
-        expect(warnSpy).toHaveBeenCalled();
-        const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
-        expect(msg).toBeDefined();
-
-        expect(() => {
-            pipeline.encodePass(createMockRenderPassEncoder());
-        }).not.toThrow();
-
-        warnSpy.mockRestore();
     });
 });
 
