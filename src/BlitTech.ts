@@ -430,6 +430,49 @@ export const BT = {
 
     // #endregion
 
+    // #region Frame Capture
+
+    /**
+     * Captures the next rendered frame as a PNG blob.
+     * The capture happens on the next render cycle after this call.
+     *
+     * @returns Promise resolving to a PNG Blob of the rendered frame.
+     *
+     * @example
+     * const blob = await BT.captureFrame();
+     * const url = URL.createObjectURL(blob);
+     * console.log('Captured frame:', url);
+     */
+    captureFrame: async (): Promise<Blob> => {
+        return await BTAPI.instance.captureFrame();
+    },
+
+    /**
+     * Captures the next rendered frame and triggers a browser file download.
+     * Convenience wrapper around captureFrame() that handles the download flow.
+     *
+     * @param filename - Download filename (defaults to "blit-tech-capture.png").
+     *
+     * @example
+     * // Download with default filename
+     * await BT.downloadFrame();
+     *
+     * // Download with custom filename
+     * await BT.downloadFrame('screenshot-001.png');
+     */
+    downloadFrame: async (filename: string = 'blit-tech-capture.png'): Promise<void> => {
+        const blob = await BTAPI.instance.captureFrame();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+    },
+
+    // #endregion
+
     // #region Sprite Rendering
 
     /**

@@ -399,6 +399,25 @@ export class BTAPI {
 
     // #endregion
 
+    // #region Frame Capture API
+
+    /**
+     * Captures the next rendered frame as a PNG blob.
+     * The capture occurs on the next render cycle.
+     *
+     * @returns Promise resolving to a PNG Blob.
+     * @throws Error if the renderer is not initialized.
+     */
+    public captureFrame(): Promise<Blob> {
+        if (!this.renderer) {
+            return Promise.reject(new Error('[BT] Cannot capture frame: renderer not initialized'));
+        }
+
+        return this.renderer.captureFrame();
+    }
+
+    // #endregion
+
     // #region Camera API
 
     /**
