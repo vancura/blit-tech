@@ -878,12 +878,12 @@ describe('Rect2i', () => {
             expect(r.height).toBe(40);
         });
 
-        it('should not truncate non-integer values (by design)', () => {
-            const r = Rect2i.fromValuesUnchecked(1.5, 2.5, 3.5, 4.5);
-            expect(r.x).toBe(1.5);
-            expect(r.y).toBe(2.5);
-            expect(r.width).toBe(3.5);
-            expect(r.height).toBe(4.5);
+        it('should preserve integer values without extra truncation', () => {
+            const r = Rect2i.fromValuesUnchecked(1, 2, 3, 4);
+            expect(r.x).toBe(1);
+            expect(r.y).toBe(2);
+            expect(r.width).toBe(3);
+            expect(r.height).toBe(4);
         });
 
         it('should produce a valid Rect2i instance', () => {

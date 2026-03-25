@@ -6,9 +6,9 @@ afterEach(() => {
     AssetLoader.clear();
 });
 
-// #region Cache Management
-
 describe('AssetLoader', () => {
+    // #region Cache Management
+
     describe('cache management', () => {
         it('should report isLoaded as false for an unloaded URL', () => {
             expect(AssetLoader.isLoaded('never-loaded.png')).toBe(false);
@@ -24,9 +24,28 @@ describe('AssetLoader', () => {
             expect(AssetLoader.isLoaded('test.png')).toBe(false);
         });
 
-        it('should report getImage as null after clear', () => {
-            AssetLoader.clear();
-            expect(AssetLoader.getImage('any-url.png')).toBeNull();
+        it('should report getImage as null after clear', async () => {
+            vi.stubGlobal(
+                'Image',
+                class {
+                    onload: (() => void) | null = null;
+                    onerror: (() => void) | null = null;
+                    width = 100;
+                    height = 100;
+                    set src(_: string) {
+                        this.onload?.();
+                    }
+                },
+            );
+
+            try {
+                await AssetLoader.loadImage('before-clear.png');
+                expect(AssetLoader.isLoaded('before-clear.png')).toBe(true);
+                AssetLoader.clear();
+                expect(AssetLoader.getImage('before-clear.png')).toBeNull();
+            } finally {
+                vi.unstubAllGlobals();
+            }
         });
     });
 
