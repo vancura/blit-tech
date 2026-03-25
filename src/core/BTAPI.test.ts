@@ -26,6 +26,7 @@ function makeMockDemo(targetFPS = 60, initResult = true): IBlitTechDemo {
     return {
         queryHardware: vi.fn().mockReturnValue({
             displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
             targetFPS,
         }),
         initialize: vi.fn().mockResolvedValue(initResult),
