@@ -26,6 +26,7 @@ export default [
             '.pnpm-store/**',
             '**/.pnpm-store/**',
             'vite.config.ts.timestamp-*',
+            'tests/**',
         ],
     },
 
@@ -154,8 +155,27 @@ export default [
     // Config files - relaxed rules
     {
         files: ['*.config.js', '*.config.ts', '*.config.mjs'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
         rules: {
             'jsdoc/require-jsdoc': 'off',
+        },
+    },
+
+    // Test files - relaxed rules
+    {
+        files: ['**/*.test.ts', 'src/__test__/**/*.ts'],
+        rules: {
+            'jsdoc/require-jsdoc': 'off',
+            'jsdoc/require-param': 'off',
+            'jsdoc/require-returns': 'off',
+            'jsdoc/require-description': 'off',
+            '@typescript-eslint/no-non-null-assertion': 'off',
+            '@typescript-eslint/no-explicit-any': 'off',
+            'no-undef': 'off',
         },
     },
 
