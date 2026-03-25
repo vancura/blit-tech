@@ -52,14 +52,14 @@ pnpm test:visual:update # Update visual test baselines
 
 Tests are colocated next to their source files:
 
-```
+```text
 src/utils/Vector2i.ts       # Source
 src/utils/Vector2i.test.ts  # Test
 ```
 
 Visual regression tests live in a separate directory:
 
-```
+```text
 tests/visual/
   fixtures/           # HTML pages and Vite config
   __snapshots__/      # Git-tracked reference screenshots

@@ -1,8 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/BlitTech.ts", "src/**/*.test.ts", "vitest.config.ts"],
+  "entry": ["src/**/*.test.ts"],
   "project": ["src/**/*.ts"],
-  "ignore": ["src/__test__/**"],
   "ignoreExportsUsedInFile": true,
   "typescript": {
     "config": ["tsconfig.json"]
