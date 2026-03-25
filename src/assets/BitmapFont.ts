@@ -113,7 +113,7 @@ const ASCII_CACHE_SIZE = 128;
  * - Optimized loops using charCodeAt for ASCII text
  *
  * @example
- * ```typescript
+ * ```ts
  * const font = await BitmapFont.load('fonts/MyFont.btfont');
  * BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
  * ```

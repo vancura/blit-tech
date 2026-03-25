@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUDevice,
@@ -6,6 +6,7 @@ import {
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
+import type { BitmapFont, Glyph } from '../assets/BitmapFont';
 import { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
@@ -274,6 +275,155 @@ describe('drawSprite', () => {
                 pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(i * 16, 0));
                 pipeline.encodePass(createMockRenderPassEncoder());
             }
+        }).not.toThrow();
+    });
+
+    it('buffer overflow triggers console.warn and does not crash', () => {
+        pipeline.reset();
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const sheet = new SpriteSheet(mockImage);
+
+        try {
+            // MAX_SPRITE_VERTICES = 50000, each sprite = 6 vertices * 8 floats
+            // 50000 / 6 = ~8333 sprites max; draw more to trigger overflow
+            for (let i = 0; i < 8400; i++) {
+                pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));
+            }
+
+            expect(warnSpy).toHaveBeenCalled();
+            const msg = warnSpy.mock.calls.find((c) => String(c[0]).includes('capacity exceeded'));
+            expect(msg).toBeDefined();
+
+            expect(() => {
+                pipeline.encodePass(createMockRenderPassEncoder());
+            }).not.toThrow();
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+});
+
+// #endregion
+
+// #region drawBitmapText
+
+describe('drawBitmapText', () => {
+    const device = createMockGPUDevice();
+    const pipeline = new SpritePipeline();
+    const mockImage = { width: 64, height: 16 } as HTMLImageElement;
+
+    /** Creates a mock glyph. */
+    function makeGlyph(x: number, w: number, offsetX: number, offsetY: number, advance: number): Glyph {
+        return {
+            rect: new Rect2i(x, 0, w, 12),
+            offsetX,
+            offsetY,
+            advance,
+        };
+    }
+
+    /** Creates a mock BitmapFont. */
+    function makeMockFont(glyphMap: Record<string, Glyph>, sheet: SpriteSheet): BitmapFont {
+        return {
+            getSpriteSheet: () => sheet,
+            getGlyphByCode: (code: number) => glyphMap[String.fromCharCode(code)] ?? null,
+        } as unknown as BitmapFont;
+    }
+
+    beforeAll(async () => {
+        installMockNavigatorGPU();
+        await pipeline.initialize(device, new Vector2i(320, 240));
+    });
+
+    afterAll(() => {
+        uninstallMockNavigatorGPU();
+    });
+
+    it('renders characters that have glyphs', () => {
+        pipeline.reset();
+        const sheet = new SpriteSheet(mockImage);
+        const font = makeMockFont(
+            {
+                A: makeGlyph(0, 8, 0, 0, 9),
+                B: makeGlyph(8, 7, 0, 0, 8),
+            },
+            sheet,
+        );
+
+        pipeline.drawBitmapText(font, new Vector2i(10, 20), 'AB');
+
+        let drawCallCount = 0;
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                drawCallCount++;
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(drawCallCount).toBe(1); // Same texture = 1 batch
+        expect(totalVertices).toBe(12); // 2 characters * 6 vertices
+    });
+
+    it('silently skips characters without glyphs', () => {
+        pipeline.reset();
+        const sheet = new SpriteSheet(mockImage);
+        const font = makeMockFont(
+            {
+                A: makeGlyph(0, 8, 0, 0, 9),
+            },
+            sheet,
+        );
+
+        // 'Z' has no glyph - should be silently skipped
+        pipeline.drawBitmapText(font, new Vector2i(0, 0), 'AZA');
+
+        let totalVertices = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: (vertexCount: number) => {
+                totalVertices += vertexCount;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(totalVertices).toBe(12); // Only 2 'A' glyphs rendered
+    });
+
+    it('empty string produces no draw calls', () => {
+        pipeline.reset();
+        const sheet = new SpriteSheet(mockImage);
+        const font = makeMockFont({}, sheet);
+
+        pipeline.drawBitmapText(font, new Vector2i(0, 0), '');
+
+        let drawCallCount = 0;
+        const renderPass = {
+            ...createMockRenderPassEncoder(),
+            draw: () => {
+                drawCallCount++;
+            },
+        } as unknown as GPURenderPassEncoder;
+
+        pipeline.encodePass(renderPass);
+        expect(drawCallCount).toBe(0);
+    });
+
+    it('applies custom tint color without error', () => {
+        pipeline.reset();
+        const sheet = new SpriteSheet(mockImage);
+        const font = makeMockFont(
+            {
+                X: makeGlyph(0, 8, 0, 0, 9),
+            },
+            sheet,
+        );
+
+        expect(() => {
+            pipeline.drawBitmapText(font, new Vector2i(0, 0), 'X', Color32.red());
+            pipeline.encodePass(createMockRenderPassEncoder());
         }).not.toThrow();
     });
 });

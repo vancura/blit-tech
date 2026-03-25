@@ -117,4 +117,59 @@ describe('AssetLoader', () => {
     });
 
     // #endregion
+
+    // #region Error Handling
+
+    describe('error handling', () => {
+        beforeEach(() => {
+            vi.stubGlobal(
+                'Image',
+                class {
+                    onload: (() => void) | null = null;
+                    onerror: (() => void) | null = null;
+                    private _src = '';
+
+                    get src(): string {
+                        return this._src;
+                    }
+
+                    set src(value: string) {
+                        this._src = value;
+                        // Simulate error for URLs containing 'fail'
+                        if (value.includes('fail')) {
+                            this.onerror?.();
+                        } else {
+                            this.onload?.();
+                        }
+                    }
+                },
+            );
+        });
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('should reject when image fails to load', async () => {
+            await expect(AssetLoader.loadImage('fail.png')).rejects.toThrow('Failed to load image: fail.png');
+        });
+
+        it('should not cache images that failed to load', async () => {
+            try {
+                await AssetLoader.loadImage('fail.png');
+            } catch {
+                // Expected
+            }
+            expect(AssetLoader.isLoaded('fail.png')).toBe(false);
+            expect(AssetLoader.getImage('fail.png')).toBeNull();
+        });
+
+        it('should reject loadImages when any image fails', async () => {
+            await expect(AssetLoader.loadImages(['ok.png', 'fail.png'])).rejects.toThrow(
+                'Failed to load image: fail.png',
+            );
+        });
+    });
+
+    // #endregion
 });
