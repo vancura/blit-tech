@@ -234,6 +234,110 @@ describe('with initialized renderer', () => {
 
 // #endregion
 
+// #region Frame Capture
+
+describe('frame capture', () => {
+    it('captureFrame returns a promise', async () => {
+        const device = createMockGPUDevice();
+        const context = createMockGPUCanvasContext();
+        const renderer = new Renderer(device, context, new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+        await renderer.initialize();
+
+        const promise = renderer.captureFrame();
+        expect(promise).toBeInstanceOf(Promise);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame triggers capture when pending', async () => {
+        const copyTextureToBufferFn = vi.fn();
+        const device = createMockGPUDevice();
+
+        // Override createCommandEncoder to include copyTextureToBuffer.
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = copyTextureToBufferFn;
+
+            return encoder;
+        });
+
+        const context = createMockGPUCanvasContext();
+        const renderer = new Renderer(device, context, new Vector2i(4, 4));
+
+        installMockNavigatorGPU();
+        await renderer.initialize();
+
+        // Stub browser APIs for PNG conversion.
+        vi.stubGlobal(
+            'ImageData',
+            class MockImageData {
+                constructor(
+                    public data: Uint8ClampedArray,
+                    public width: number,
+                    public height: number,
+                ) {}
+            },
+        );
+
+        vi.stubGlobal(
+            'OffscreenCanvas',
+            class MockOffscreenCanvas {
+                getContext(): { putImageData: ReturnType<typeof vi.fn> } {
+                    return { putImageData: vi.fn() };
+                }
+                async convertToBlob(): Promise<Blob> {
+                    return new Blob(['test'], { type: 'image/png' });
+                }
+            },
+        );
+
+        const capturePromise = renderer.captureFrame();
+
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        const blob = await capturePromise;
+
+        expect(copyTextureToBufferFn).toHaveBeenCalledOnce();
+        expect(blob).toBeInstanceOf(Blob);
+        expect(blob.type).toBe('image/png');
+
+        vi.unstubAllGlobals();
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame does not call copyTextureToBuffer without pending capture', async () => {
+        const copyTextureToBufferFn = vi.fn();
+        const device = createMockGPUDevice();
+
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = copyTextureToBufferFn;
+
+            return encoder;
+        });
+
+        const context = createMockGPUCanvasContext();
+        const renderer = new Renderer(device, context, new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+        await renderer.initialize();
+
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        expect(copyTextureToBufferFn).not.toHaveBeenCalled();
+
+        uninstallMockNavigatorGPU();
+    });
+});
+
+// #endregion
+
 // #region Error Paths
 
 describe('endFrame error paths', () => {
