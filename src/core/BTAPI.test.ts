@@ -16,6 +16,9 @@ import type { IBlitTechDemo } from './IBlitTechDemo';
 // #region Helpers
 
 function resetSingleton(): void {
+    // BTAPI._instance is private; the cast is intentional — there is no public
+    // reset API and this is the least-invasive way to isolate singleton state
+    // between tests without modifying production code.
     (BTAPI as unknown as { _instance: BTAPI | null })._instance = null;
 }
 

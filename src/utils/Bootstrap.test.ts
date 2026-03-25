@@ -3,13 +3,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BTAPI } from '../core/BTAPI';
+import type { IBlitTechDemo } from '../core/IBlitTechDemo';
 import { bootstrap } from './Bootstrap';
 import { DEFAULT_CANVAS_ID, DEFAULT_CONTAINER_ID } from './BootstrapHelpers';
 import { Vector2i } from './Vector2i';
 
 // #region Test Demo
 
-class MockDemo {
+class MockDemo implements IBlitTechDemo {
     queryHardware() {
         return { displaySize: new Vector2i(320, 240), targetFPS: 60 };
     }

@@ -32,8 +32,18 @@ describe('initializeWebGPU', () => {
 
     it('should return null when navigator.gpu is absent', async () => {
         const canvas = createMockCanvas();
-        const result = await initializeWebGPU(canvas, displaySize);
-        expect(result).toBeNull();
+        const nav = globalThis.navigator as unknown as Record<string, unknown>;
+        const originalGpu = nav?.gpu;
+
+        try {
+            delete nav.gpu;
+            const result = await initializeWebGPU(canvas, displaySize);
+            expect(result).toBeNull();
+        } finally {
+            if (originalGpu !== undefined) {
+                nav.gpu = originalGpu;
+            }
+        }
     });
 
     // #endregion
