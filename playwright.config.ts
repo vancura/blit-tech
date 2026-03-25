@@ -7,11 +7,11 @@ export default defineConfig({
     snapshotPathTemplate: '{snapshotDir}/{testFilePath}/{testName}/{projectName}{ext}',
 
     fullyParallel: true,
-    forbidOnly: !!process.env['CI'],
-    retries: process.env['CI'] ? 2 : 0,
-    workers: process.env['CI'] ? 1 : 2,
+    forbidOnly: !!process.env.CI,
+    retries: process.env.CI ? 2 : 0,
+    workers: process.env.CI ? 1 : 2,
 
-    reporter: process.env['CI'] ? 'github' : 'html',
+    reporter: process.env.CI ? 'github' : 'html',
 
     use: {
         baseURL: 'http://localhost:5174',
@@ -33,9 +33,9 @@ export default defineConfig({
     ],
 
     webServer: {
-        command: 'pnpm exec vite serve tests/visual/fixtures --port 5174',
+        command: 'pnpm exec vite serve tests/visual/fixtures --config tests/visual/fixtures/vite.config.ts --port 5174',
         port: 5174,
-        reuseExistingServer: !process.env['CI'],
+        reuseExistingServer: !process.env.CI,
         timeout: 30_000,
     },
 });
