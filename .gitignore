@@ -23,6 +23,8 @@ vite.config.*.timestamp-*
 
 # Testing & coverage
 coverage/
+coverage-visual/
+.nyc_output/
 *.lcov
 playwright-report/
 test-results/

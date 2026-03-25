@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Sprites</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+    <script type="module">
+        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+
+        // Signal test readiness regardless of success/failure.
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+
+        // Create a minimal 16x16 sprite sheet from a canvas.
+        // 4 tiles of 8x8: red, green, blue, yellow.
+        function createSpriteImage() {
+            const c = document.createElement('canvas');
+            c.width = 16;
+            c.height = 16;
+            const ctx = c.getContext('2d');
+
+            // Top-left 8x8: red
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(0, 0, 8, 8);
+
+            // Top-right 8x8: green
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(8, 0, 8, 8);
+
+            // Bottom-left 8x8: blue
+            ctx.fillStyle = '#0000ff';
+            ctx.fillRect(0, 8, 8, 8);
+
+            // Bottom-right 8x8: yellow
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(8, 8, 8, 8);
+
+            const img = new Image();
+            return new Promise((resolve) => {
+                img.onload = () => resolve(img);
+                img.src = c.toDataURL();
+            });
+        }
+
+        class SpritesTest {
+            spriteSheet = null;
+
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                const img = await createSpriteImage();
+                this.spriteSheet = new SpriteSheet(img);
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(Color32.black());
+
+                const sheet = this.spriteSheet;
+                if (!sheet) return;
+
+                // Draw red tile at (10, 10) - default white tint (no color change).
+                BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(10, 10));
+
+                // Draw green tile at (30, 10) - default tint.
+                BT.drawSprite(sheet, new Rect2i(8, 0, 8, 8), new Vector2i(30, 10));
+
+                // Draw blue tile at (50, 10) - with red tint (should become dark/purple).
+                BT.drawSprite(sheet, new Rect2i(0, 8, 8, 8), new Vector2i(50, 10), Color32.red());
+
+                // Draw yellow tile at (70, 10) - default tint.
+                BT.drawSprite(sheet, new Rect2i(8, 8, 8, 8), new Vector2i(70, 10));
+
+                // Draw red tile at (10, 30) - with semi-transparent tint.
+                BT.drawSprite(
+                    sheet,
+                    new Rect2i(0, 0, 8, 8),
+                    new Vector2i(10, 30),
+                    new Color32(255, 255, 255, 128),
+                );
+
+                // Draw multiple tiles in a row (batch test).
+                for (let i = 0; i < 4; i++) {
+                    BT.drawSprite(
+                        sheet,
+                        new Rect2i((i % 2) * 8, Math.floor(i / 2) * 8, 8, 8),
+                        new Vector2i(10 + i * 12, 50),
+                    );
+                }
+
+                // Signal render complete.
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(SpritesTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+</html>

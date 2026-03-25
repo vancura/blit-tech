@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Bitmap Fonts</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+    <script type="module">
+        import { bootstrap, BT, Color32, Vector2i } from 'blit-tech';
+
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+
+        class FontsTest {
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(Color32.black());
+
+                // Use placeholder text rendering (drawText via PrimitivePipeline).
+                // Each character is rendered as a 6x8 colored block.
+                BT.print(new Vector2i(10, 10), Color32.white(), 'Hello World');
+                BT.print(new Vector2i(10, 30), Color32.red(), 'Red Text');
+                BT.print(new Vector2i(10, 50), Color32.green(), 'Green Text');
+                BT.print(new Vector2i(10, 70), Color32.cyan(), 'ABCDEFGHIJ');
+                BT.print(new Vector2i(10, 90), Color32.yellow(), '0123456789');
+
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(FontsTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+</html>
