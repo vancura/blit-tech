@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Primitives</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+    <script type="module">
+        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
+
+        // Signal test readiness regardless of success/failure.
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+
+        class PrimitivesTest {
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(Color32.black());
+
+                // Draw known patterns for visual regression.
+                // Red pixel at (10, 10).
+                BT.drawPixel(new Vector2i(10, 10), Color32.red());
+
+                // Green horizontal line from (20, 20) to (100, 20).
+                BT.drawLine(new Vector2i(20, 20), new Vector2i(100, 20), Color32.green());
+
+                // Blue vertical line from (120, 10) to (120, 100).
+                BT.drawLine(new Vector2i(120, 10), new Vector2i(120, 100), Color32.blue());
+
+                // Yellow filled rect at (140, 10, 40, 30).
+                BT.drawRectFill(new Rect2i(140, 10, 40, 30), Color32.yellow());
+
+                // Cyan rect outline at (200, 10, 50, 40).
+                BT.drawRect(new Rect2i(200, 10, 50, 40), Color32.cyan());
+
+                // White diagonal line.
+                BT.drawLine(new Vector2i(10, 50), new Vector2i(60, 100), Color32.white());
+
+                // Signal render complete.
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(PrimitivesTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+</html>
