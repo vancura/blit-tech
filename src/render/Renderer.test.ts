@@ -239,15 +239,53 @@ describe('with initialized renderer', () => {
 describe('frame capture', () => {
     it('captureFrame returns a promise', async () => {
         const device = createMockGPUDevice();
+
+        // Add copyTextureToBuffer to mock command encoder.
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = vi.fn();
+
+            return encoder;
+        });
+
         const context = createMockGPUCanvasContext();
-        const renderer = new Renderer(device, context, new Vector2i(320, 240));
+        const renderer = new Renderer(device, context, new Vector2i(4, 4));
 
         installMockNavigatorGPU();
+
+        vi.stubGlobal(
+            'ImageData',
+            class MockImageData {
+                constructor(
+                    public data: Uint8ClampedArray,
+                    public width: number,
+                    public height: number,
+                ) {}
+            },
+        );
+
+        vi.stubGlobal(
+            'OffscreenCanvas',
+            class MockOffscreenCanvas {
+                getContext(): { putImageData: ReturnType<typeof vi.fn> } {
+                    return { putImageData: vi.fn() };
+                }
+                async convertToBlob(): Promise<Blob> {
+                    return new Blob(['test'], { type: 'image/png' });
+                }
+            },
+        );
+
         await renderer.initialize();
 
         const promise = renderer.captureFrame();
         expect(promise).toBeInstanceOf(Promise);
 
+        renderer.endFrame();
+        await promise;
+
+        vi.unstubAllGlobals();
         uninstallMockNavigatorGPU();
     });
 

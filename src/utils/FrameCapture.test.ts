@@ -224,13 +224,38 @@ describe('FrameCapture', () => {
         expect(result.type).toBe('image/png');
     });
 
-    it('should detect BGRA format from texture', () => {
+    it('should swizzle BGRA pixels to RGBA during resolve', async () => {
         const capture = new FrameCapture();
-
-        void capture.requestCapture();
+        const capturePromise = capture.requestCapture();
 
         const device = createMockGPUDevice();
         const bgraTexture = { ...createMockGPUTexture(4, 4), format: 'bgra8unorm' } as unknown as GPUTexture;
+
+        // Prepare a buffer with known BGRA pixel data.
+        const paddedBytesPerRow = alignedBytesPerRow(4);
+        const bufferSize = paddedBytesPerRow * 4;
+        const pixelBuffer = new ArrayBuffer(bufferSize);
+        const view = new Uint8Array(pixelBuffer);
+
+        // Fill first pixel of each row with BGRA = [10, 20, 30, 255].
+        for (let y = 0; y < 4; y++) {
+            const offset = y * paddedBytesPerRow;
+            // eslint-disable-next-line security/detect-object-injection -- typed array indexed by loop counter
+            view[offset] = 10; // B
+            view[offset + 1] = 20; // G
+            view[offset + 2] = 30; // R
+            view[offset + 3] = 255; // A
+        }
+
+        // Override createBuffer to return a buffer with our pixel data.
+        const originalCreateBuffer = device.createBuffer.bind(device);
+        vi.spyOn(device, 'createBuffer').mockImplementation((desc: GPUBufferDescriptor) => {
+            const buf = originalCreateBuffer(desc);
+            (buf as unknown as Record<string, unknown>).getMappedRange = () => pixelBuffer;
+
+            return buf;
+        });
+
         const encoder = {
             ...device.createCommandEncoder(),
             copyTextureToBuffer: vi.fn(),
@@ -238,9 +263,53 @@ describe('FrameCapture', () => {
 
         capture.executeCaptureInEncoder(device, bgraTexture, encoder);
 
-        // The BGRA flag is stored internally -- we verify it indirectly
-        // through the resolveCapture flow. For now, just verify no error.
-        expect(capture.hasPendingCapture()).toBe(true);
+        // Capture the pixel data passed to ImageData to verify swizzle.
+        let capturedPixels: Uint8ClampedArray | null = null;
+
+        vi.stubGlobal(
+            'ImageData',
+            class MockImageData {
+                constructor(
+                    public data: Uint8ClampedArray,
+                    public width: number,
+                    public height: number,
+                ) {
+                    capturedPixels = data;
+                }
+            },
+        );
+
+        vi.stubGlobal(
+            'OffscreenCanvas',
+            class MockOffscreenCanvas {
+                getContext(): { putImageData: ReturnType<typeof vi.fn> } {
+                    return { putImageData: vi.fn() };
+                }
+                async convertToBlob(): Promise<Blob> {
+                    return new Blob(['png'], { type: 'image/png' });
+                }
+            },
+        );
+
+        await capture.resolveCapture(device);
+        await capturePromise;
+
+        expect(capture.hasPendingCapture()).toBe(false);
+        expect(capturedPixels).not.toBeNull();
+
+        // After swizzle, first pixel of each row should be RGBA = [30, 20, 10, 255].
+        const pixels = capturedPixels!;
+
+        for (let y = 0; y < 4; y++) {
+            const offset = y * 4 * 4; // 4 pixels per row, 4 bytes per pixel (no padding in output)
+            // eslint-disable-next-line security/detect-object-injection -- typed array indexed by loop counter
+            expect(pixels[offset]).toBe(30); // R (was B=10, swapped with R=30)
+            expect(pixels[offset + 1]).toBe(20); // G (unchanged)
+            expect(pixels[offset + 2]).toBe(10); // B (was R=30, swapped with B=10)
+            expect(pixels[offset + 3]).toBe(255); // A (unchanged)
+        }
+
+        vi.unstubAllGlobals();
     });
 
     it('should not throw when resolveCapture is called without pending capture', async () => {
