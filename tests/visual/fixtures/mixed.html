@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Mixed Rendering</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+    <script type="module">
+        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+
+        // Create a small checkerboard sprite.
+        function createCheckerImage() {
+            const c = document.createElement('canvas');
+            c.width = 8;
+            c.height = 8;
+            const ctx = c.getContext('2d');
+
+            // Checkerboard pattern.
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    ctx.fillStyle = (x + y) % 2 === 0 ? '#ffffff' : '#888888';
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+
+            const img = new Image();
+            return new Promise((resolve) => {
+                img.onload = () => resolve(img);
+                img.src = c.toDataURL();
+            });
+        }
+
+        class MixedTest {
+            spriteSheet = null;
+
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                const img = await createCheckerImage();
+                this.spriteSheet = new SpriteSheet(img);
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(new Color32(32, 32, 64, 255));
+
+                // Draw primitives first (these render in the primitives pipeline).
+                // Red filled rect as background.
+                BT.drawRectFill(new Rect2i(10, 10, 100, 80), new Color32(128, 0, 0, 255));
+
+                // Green rect outline.
+                BT.drawRect(new Rect2i(8, 8, 104, 84), Color32.green());
+
+                // Yellow horizontal line.
+                BT.drawLine(new Vector2i(10, 100), new Vector2i(110, 100), Color32.yellow());
+
+                // White diagonal line.
+                BT.drawLine(new Vector2i(120, 10), new Vector2i(180, 70), Color32.white());
+
+                // Cyan pixels.
+                for (let i = 0; i < 10; i++) {
+                    BT.drawPixel(new Vector2i(130 + i * 5, 80), Color32.cyan());
+                }
+
+                // Placeholder text.
+                BT.print(new Vector2i(10, 110), Color32.white(), 'Mixed Test');
+
+                // Draw sprites on top (these render in the sprite pipeline, after primitives).
+                const sheet = this.spriteSheet;
+                if (sheet) {
+                    // Sprite at (20, 20) - should overlap the red filled rect.
+                    BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(20, 20));
+
+                    // Row of sprites.
+                    for (let i = 0; i < 8; i++) {
+                        BT.drawSprite(
+                            sheet,
+                            new Rect2i(0, 0, 8, 8),
+                            new Vector2i(10 + i * 10, 130),
+                        );
+                    }
+
+                    // Tinted sprite.
+                    BT.drawSprite(
+                        sheet,
+                        new Rect2i(0, 0, 8, 8),
+                        new Vector2i(50, 20),
+                        Color32.red(),
+                    );
+                }
+
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(MixedTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+</html>

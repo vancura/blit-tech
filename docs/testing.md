@@ -33,9 +33,11 @@ stub objects.
 
 Actual GPU rendering verified via screenshot comparison. Requires Chrome with WebGPU flags enabled.
 
-- Pixel, line, and rectangle rendering
-- Sprite rendering with tinting
-- Color output accuracy
+- **Primitives** - pixel, line, and rectangle rendering
+- **Sprites** - sprite rendering with tinting, batching, alpha blending
+- **Camera** - camera offset transforms applied to all geometry
+- **Fonts** - placeholder text rendering at known positions
+- **Mixed** - primitives and sprites combined with correct layering
 
 ## Commands
 
@@ -44,8 +46,9 @@ pnpm test               # Run all unit tests
 pnpm test:unit          # Same as above
 pnpm test:watch         # Watch mode for development
 pnpm test:coverage      # Coverage report (80% minimum threshold)
-pnpm test:visual        # Playwright visual regression (requires Chrome)
-pnpm test:visual:update # Update visual test baselines
+pnpm test:visual           # Playwright visual regression (requires Chrome)
+pnpm test:visual:update    # Update visual test baselines
+pnpm test:visual:coverage  # Visual tests with Istanbul coverage report
 ```
 
 ## Test File Location
@@ -61,9 +64,14 @@ Visual regression tests live in a separate directory:
 
 ```text
 tests/visual/
-  fixtures/           # HTML pages and Vite config
-  __snapshots__/      # Git-tracked reference screenshots
-  primitives.spec.ts  # Visual test specs
+  fixtures/              # HTML pages and Vite config
+  __snapshots__/         # Git-tracked reference screenshots
+  coverage-fixture.ts    # Playwright fixture for Istanbul coverage
+  primitives.spec.ts     # Primitive rendering visual test
+  sprites.spec.ts        # Sprite rendering visual test
+  camera.spec.ts         # Camera transform visual test
+  fonts.spec.ts          # Text rendering visual test
+  mixed.spec.ts          # Combined rendering visual test
 ```
 
 ## Writing a New Test
@@ -120,6 +128,18 @@ Minimum thresholds enforced in `vitest.config.ts`:
 - Lines: 80%
 
 Run `pnpm test:coverage` to check. Coverage reports are generated in `coverage/`.
+
+### Visual Test Coverage
+
+Visual test coverage uses Istanbul instrumentation via `vite-plugin-istanbul`. It is separate from unit test coverage
+(different provider: Istanbul vs V8) and generates reports in `coverage-visual/`.
+
+```bash
+pnpm test:visual:coverage  # Runs visual tests with instrumented code, then generates lcov report
+```
+
+Coverage is collected via a custom Playwright fixture (`tests/visual/coverage-fixture.ts`) that captures
+`window.__coverage__` from each page after tests complete. The `VISUAL_COVERAGE=1` env var activates instrumentation.
 
 ## Visual Test Workflow
 

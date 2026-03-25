@@ -54,10 +54,11 @@
     "spellcheck": "cspell \"src/**/*.{ts,md,mdx}\" \"docs/**/*.{md,mdx}\" \"README.md\" --no-progress",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage",
+    "test:unit:watch": "vitest watch",
+    "test:unit:coverage": "vitest run --coverage",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:coverage": "VISUAL_COVERAGE=1 playwright test && nyc report --reporter=lcov --reporter=text-summary --temp-dir=.nyc_output --report-dir=coverage-visual",
     "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck && pnpm knip && pnpm test:unit",
     "clean": "rm -rf dist node_modules/.vite",
     "release": "pnpm build && pnpm publish",
@@ -100,10 +101,12 @@
     "husky": "^9.1.7",
     "knip": "^5.56.0",
     "lint-staged": "^16.2.7",
+    "nyc": "^18.0.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vite": "^7.2.7",
     "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-istanbul": "^8.0.0",
     "vitest": "^4.1.1"
   }
 }

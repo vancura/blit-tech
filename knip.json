@@ -3,6 +3,7 @@
   "entry": ["src/**/*.test.ts"],
   "project": ["src/**/*.ts"],
   "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": ["vite-plugin-istanbul"],
   "typescript": {
     "config": ["tsconfig.json"]
   }

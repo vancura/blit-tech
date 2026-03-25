@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Camera</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+    <script type="module">
+        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
+
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+
+        class CameraTest {
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(Color32.black());
+
+                // Apply camera offset: shift everything left by 50px and up by 30px.
+                BT.cameraSet(new Vector2i(50, 30));
+
+                // Draw a grid of colored rectangles at known world positions.
+                // With camera (50, 30), a rect at world (60, 40) appears at screen (10, 10).
+                BT.drawRectFill(new Rect2i(60, 40, 20, 20), Color32.red());
+
+                // World (110, 40) -> screen (60, 10).
+                BT.drawRectFill(new Rect2i(110, 40, 20, 20), Color32.green());
+
+                // World (60, 90) -> screen (10, 60).
+                BT.drawRectFill(new Rect2i(60, 90, 20, 20), Color32.blue());
+
+                // World (110, 90) -> screen (60, 60).
+                BT.drawRectFill(new Rect2i(110, 90, 20, 20), Color32.yellow());
+
+                // Draw a line crossing the viewport.
+                // World (50, 30) -> screen (0, 0) to world (370, 270) -> screen (320, 240).
+                BT.drawLine(new Vector2i(50, 30), new Vector2i(370, 270), Color32.white());
+
+                // Draw a rect outline at the edge of the viewport.
+                BT.drawRect(new Rect2i(55, 35, 260, 200), Color32.cyan());
+
+                // Reset camera after drawing.
+                BT.cameraReset();
+
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(CameraTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+</html>
