@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
 import { Rect2i } from '../utils/Rect2i';
+import { AssetLoader } from './AssetLoader';
 import { SpriteSheet } from './SpriteSheet';
 
 describe('SpriteSheet', () => {
@@ -92,6 +93,77 @@ describe('SpriteSheet', () => {
 
             sheet.destroy();
             expect(destroySpy).toHaveBeenCalledOnce();
+        });
+
+        it('should not throw when destroyed before getTexture is called', () => {
+            const sheet = new SpriteSheet(mockImage);
+            expect(() => sheet.destroy()).not.toThrow();
+        });
+    });
+
+    // #endregion
+
+    // #region getImage
+
+    describe('getImage', () => {
+        it('should return the source HTMLImageElement', () => {
+            const sheet = new SpriteSheet(mockImage);
+            expect(sheet.getImage()).toBe(mockImage);
+        });
+    });
+
+    // #endregion
+
+    // #region load
+
+    describe('load', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+            vi.unstubAllGlobals();
+        });
+
+        it('should create a SpriteSheet with an ImageBitmap when createImageBitmap succeeds', async () => {
+            const mockBitmap = { close: vi.fn() } as unknown as ImageBitmap;
+            vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue(mockBitmap));
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue(mockImage);
+
+            const sheet = await SpriteSheet.load('test.png');
+            expect(sheet).toBeInstanceOf(SpriteSheet);
+            expect(sheet.size.x).toBe(256);
+        });
+
+        it('should fall back to HTMLImageElement when createImageBitmap throws', async () => {
+            vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(new Error('Not supported')));
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue(mockImage);
+
+            const sheet = await SpriteSheet.load('test.png');
+            expect(sheet).toBeInstanceOf(SpriteSheet);
+        });
+
+        it('should close imageBitmap after getTexture uploads it to the GPU', async () => {
+            const closeSpy = vi.fn();
+            vi.stubGlobal(
+                'createImageBitmap',
+                vi.fn().mockResolvedValue({ close: closeSpy } as unknown as ImageBitmap),
+            );
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue(mockImage);
+
+            const sheet = await SpriteSheet.load('test.png');
+            sheet.getTexture(createMockGPUDevice());
+            expect(closeSpy).toHaveBeenCalledOnce();
+        });
+
+        it('should close imageBitmap on destroy when getTexture was never called', async () => {
+            const closeSpy = vi.fn();
+            vi.stubGlobal(
+                'createImageBitmap',
+                vi.fn().mockResolvedValue({ close: closeSpy } as unknown as ImageBitmap),
+            );
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue(mockImage);
+
+            const sheet = await SpriteSheet.load('test.png');
+            sheet.destroy();
+            expect(closeSpy).toHaveBeenCalledOnce();
         });
     });
 
