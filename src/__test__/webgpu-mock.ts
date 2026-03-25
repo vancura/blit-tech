@@ -1,0 +1,165 @@
+/**
+ * Lightweight WebGPU mock factories for unit and integration tests.
+ * Provides stub objects that track calls without requiring a real GPU.
+ */
+
+// #region GPUTexture
+
+/**
+ * Creates a mock GPUTexture.
+ *
+ * @param width - Texture width in pixels.
+ * @param height - Texture height in pixels.
+ * @returns Mock GPUTexture stub.
+ */
+export function createMockGPUTexture(width = 256, height = 256): GPUTexture {
+    return {
+        width,
+        height,
+        depthOrArrayLayers: 1,
+        mipLevelCount: 1,
+        sampleCount: 1,
+        dimension: '2d',
+        format: 'rgba8unorm',
+        usage: 0,
+        label: 'MockTexture',
+        createView: () => ({ label: 'MockTextureView' }) as unknown as GPUTextureView,
+        destroy: () => {},
+    } as unknown as GPUTexture;
+}
+
+// #endregion
+
+// #region GPURenderPassEncoder
+
+/**
+ * Creates a mock GPURenderPassEncoder that records calls.
+ *
+ * @returns Mock render pass encoder with call tracking.
+ */
+export function createMockRenderPassEncoder(): GPURenderPassEncoder {
+    return {
+        setPipeline: () => {},
+        setBindGroup: () => {},
+        setVertexBuffer: () => {},
+        draw: () => {},
+        end: () => {},
+        label: 'MockRenderPass',
+    } as unknown as GPURenderPassEncoder;
+}
+
+// #endregion
+
+// #region GPUDevice
+
+/**
+ * Creates a mock GPUDevice with stub methods.
+ *
+ * @returns Mock GPUDevice stub.
+ */
+export function createMockGPUDevice(): GPUDevice {
+    const mockPipeline = {
+        getBindGroupLayout: () => ({ label: 'MockBindGroupLayout' }),
+        label: 'MockPipeline',
+    } as unknown as GPURenderPipeline;
+
+    return {
+        createShaderModule: () => ({ label: 'MockShaderModule' }) as unknown as GPUShaderModule,
+        createRenderPipeline: () => mockPipeline,
+        createBuffer: (desc: GPUBufferDescriptor) =>
+            ({
+                size: desc.size,
+                usage: desc.usage,
+                label: desc.label ?? 'MockBuffer',
+                mapAsync: () => Promise.resolve(),
+                getMappedRange: () => new ArrayBuffer(desc.size),
+                unmap: () => {},
+                destroy: () => {},
+            }) as unknown as GPUBuffer,
+        createBindGroup: () => ({ label: 'MockBindGroup' }) as unknown as GPUBindGroup,
+        createSampler: () => ({ label: 'MockSampler' }) as unknown as GPUSampler,
+        createTexture: (desc: GPUTextureDescriptor) =>
+            createMockGPUTexture(
+                typeof desc.size === 'object' && 'width' in desc.size ? (desc.size as GPUExtent3DDict).width : 256,
+                typeof desc.size === 'object' && 'height' in desc.size
+                    ? ((desc.size as GPUExtent3DDict).height ?? 256)
+                    : 256,
+            ),
+        createCommandEncoder: () => ({
+            beginRenderPass: () => createMockRenderPassEncoder(),
+            finish: () => ({ label: 'MockCommandBuffer' }) as unknown as GPUCommandBuffer,
+            label: 'MockCommandEncoder',
+        }),
+        queue: {
+            writeBuffer: () => {},
+            copyExternalImageToTexture: () => {},
+            submit: () => {},
+            onSubmittedWorkDone: () => Promise.resolve(),
+            label: 'MockQueue',
+        },
+        features: new Set(),
+        limits: {} as GPUSupportedLimits,
+        lost: Promise.resolve({ reason: undefined, message: '' } as unknown as GPUDeviceLostInfo),
+        destroy: () => {},
+        label: 'MockDevice',
+    } as unknown as GPUDevice;
+}
+
+// #endregion
+
+// #region GPUCanvasContext
+
+/**
+ * Creates a mock GPUCanvasContext.
+ *
+ * @returns Mock GPUCanvasContext stub.
+ */
+export function createMockGPUCanvasContext(): GPUCanvasContext {
+    return {
+        configure: () => {},
+        unconfigure: () => {},
+        getCurrentTexture: () => createMockGPUTexture(),
+        canvas: {} as HTMLCanvasElement,
+    } as unknown as GPUCanvasContext;
+}
+
+// #endregion
+
+// #region Navigator GPU
+
+/**
+ * Installs a mock navigator.gpu on globalThis for tests.
+ * Call in beforeEach/beforeAll for tests needing WebGPU API presence.
+ */
+export function installMockNavigatorGPU(): void {
+    const mockGPU = {
+        requestAdapter: async () => ({
+            requestDevice: async () => createMockGPUDevice(),
+            features: new Set(),
+            limits: {} as GPUSupportedLimits,
+            info: { vendor: 'mock', architecture: 'mock', device: 'mock', description: 'Mock GPU' },
+        }),
+        getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+    };
+
+    // Use Object.defineProperty to override navigator (may be a getter in Node.js).
+    const existingNav = typeof navigator !== 'undefined' ? navigator : {};
+    Object.defineProperty(globalThis, 'navigator', {
+        value: { ...existingNav, gpu: mockGPU },
+        writable: true,
+        configurable: true,
+    });
+}
+
+/**
+ * Removes the mock navigator.gpu from globalThis.
+ * Call in afterEach/afterAll to clean up.
+ */
+export function uninstallMockNavigatorGPU(): void {
+    if ('navigator' in globalThis) {
+        const nav = globalThis.navigator as unknown as Record<string, unknown>;
+        delete nav.gpu;
+    }
+}
+
+// #endregion
