@@ -170,7 +170,7 @@ describe('GameLoop', () => {
             expect(onUpdate).toHaveBeenCalledTimes(8);
         });
 
-        it('should call onRender exactly once per a frame regardless of update step count', () => {
+        it('should call onRender exactly once per frame regardless of update step count', () => {
             const onRender = vi.fn();
             const loop = new GameLoop(10, vi.fn(), onRender);
             const p = loop as unknown as PrivateLoop;
