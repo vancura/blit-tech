@@ -14,20 +14,23 @@ Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
 - **GameLoop** - constructor validation, tick counter
 - **IBlitTechDemo** - default hardware settings
 
-### Tier 2: Integration Tests (Vitest, happy-dom + GPU mocks)
+### Tier 2: Integration Tests (Vitest, Node + GPU mocks)
 
-Code that requires DOM APIs or WebGPU. Uses `happy-dom` for browser globals and `src/__test__/webgpu-mock.ts` for GPU
-stub objects.
+Code that requires WebGPU objects or DOM APIs. Most tests run in Node with `src/__test__/webgpu-mock.ts` for GPU stubs
+and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, BootstrapHelpers) opt into `happy-dom` via the
+`// @vitest-environment happy-dom` directive.
 
-- **AssetLoader** - image caching and deduplication
-- **SpriteSheet** - UV calculation, lazy texture creation
-- **BitmapFont** - glyph lookup, text measurement
-- **BootstrapHelpers** - WebGPU support detection, canvas lookup
-- **Renderer** - frame lifecycle, camera, pipeline delegation
-- **PrimitivePipeline** - vertex buffer math, line algorithm
-- **SpritePipeline** - texture batching, UV coordinates
-- **WebGPUContext** - initialization with mock adapter/device
-- **BTAPI** - singleton coordinator
+- **AssetLoader** - image caching and deduplication (Node + vi stubs)
+- **SpriteSheet** - UV calculation, lazy texture creation (Node + GPU mocks)
+- **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
+- **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
+- **Bootstrap** - full bootstrap lifecycle (happy-dom)
+- **Renderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
+- **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
+- **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
+- **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
+- **BTAPI** - singleton coordinator (Node + GPU mocks)
+- **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
 
 ### Tier 3: Visual Regression (Playwright, Chromium)
 
@@ -42,13 +45,13 @@ Actual GPU rendering verified via screenshot comparison. Requires Chrome with We
 ## Commands
 
 ```bash
-pnpm test               # Run all unit tests
-pnpm test:unit          # Same as above
-pnpm test:watch         # Watch mode for development
-pnpm test:coverage      # Coverage report (80% minimum threshold)
-pnpm test:visual           # Playwright visual regression (requires Chrome)
-pnpm test:visual:update    # Update visual test baselines
-pnpm test:visual:coverage  # Visual tests with Istanbul coverage report
+pnpm test                # Run all unit tests (alias for test:unit)
+pnpm test:unit           # Run all unit tests
+pnpm test:unit:watch     # Watch mode for development
+pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
+pnpm test:visual            # Playwright visual regression (requires Chrome)
+pnpm test:visual:update     # Update visual test baselines
+pnpm test:visual:coverage   # Visual tests with Istanbul coverage report
 ```
 
 ## Test File Location
@@ -127,7 +130,7 @@ Minimum thresholds enforced in `vitest.config.ts`:
 - Functions: 80%
 - Lines: 80%
 
-Run `pnpm test:coverage` to check. Coverage reports are generated in `coverage/`.
+Run `pnpm test:unit:coverage` to check. Coverage reports are generated in `coverage/`.
 
 ### Visual Test Coverage
 

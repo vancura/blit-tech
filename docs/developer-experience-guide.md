@@ -1,7 +1,8 @@
-# Developer Experience Guide
+# Developer Experience Guide (Roadmap)
 
-> **Status:** This document describes planned developer experience improvements. Not all features described here are
-> currently implemented. It serves as a roadmap and reference for future development.
+> **Status: Roadmap / Planning Document.** Most features described below are **not yet implemented**. This document
+> serves as a wishlist and reference for future development. Commands, paths, and configurations listed here may not
+> exist in the current codebase. Check `package.json` and the actual project structure for what is currently available.
 
 This document provides comprehensive guidance for improving developer experience, community tools, and documentation for
 Blit-Tech.

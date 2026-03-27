@@ -4,7 +4,7 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
-[![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
 
 A lightweight WebGPU retro engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit). Build
 pixel-perfect 2D demos with a clean, fantasy-console-style API.
@@ -36,7 +36,7 @@ primitives, and fonts.
 ## Prerequisites
 
 - **Node.js** v20 or higher (LTS)
-- **pnpm** v10.24.0 or higher
+- **pnpm** v10.26.2 or higher
 - A **WebGPU-compatible browser**:
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
   - Firefox Nightly (with `dom.webgpu.enabled` in `about:config`)
@@ -59,22 +59,29 @@ The demos showcase all engine features with a guided learning path from basic co
 
 ## Scripts
 
-| Command                | Description                                                        |
-| ---------------------- | ------------------------------------------------------------------ |
-| `pnpm build`           | Build the library for npm distribution                             |
-| `pnpm lint`            | Run ESLint                                                         |
-| `pnpm lint:fix`        | Run ESLint with auto-fix                                           |
-| `pnpm format`          | Format all code (Biome + Prettier)                                 |
-| `pnpm format:check`    | Check all formatting without changes                               |
-| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)                                 |
-| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier)                           |
-| `pnpm typecheck`       | Run TypeScript type checking                                       |
-| `pnpm spellcheck`      | Check spelling in source files                                     |
-| `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck, knip) |
-| `pnpm knip`            | Find unused exports and dependencies                               |
-| `pnpm clean`           | Remove dist and cache directories                                  |
-| `pnpm release`         | Build library and publish to npm                                   |
-| `pnpm convert-font`    | Convert BMFont to .btfont format                                   |
+| Command                   | Description                                                              |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `pnpm build`              | Build the library for npm distribution                                   |
+| `pnpm lint`               | Run ESLint                                                               |
+| `pnpm lint:fix`           | Run ESLint with auto-fix                                                 |
+| `pnpm format`             | Format all code (Biome + Prettier)                                       |
+| `pnpm format:check`       | Check all formatting without changes                                     |
+| `pnpm format:biome`       | Format TS/JS/JSON/CSS only (Biome)                                       |
+| `pnpm format:prettier`    | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
+| `pnpm typecheck`          | Run TypeScript type checking                                             |
+| `pnpm spellcheck`         | Check spelling in source files                                           |
+| `pnpm test`               | Run all unit tests (alias for `test:unit`)                               |
+| `pnpm test:unit`          | Run all unit tests                                                       |
+| `pnpm test:unit:watch`    | Run unit tests in watch mode                                             |
+| `pnpm test:unit:coverage` | Run unit tests with coverage report (80% threshold)                      |
+| `pnpm test:visual`        | Playwright visual regression tests (requires Chrome with WebGPU)         |
+| `pnpm test:visual:update` | Update visual test baseline screenshots                                  |
+| `pnpm preflight`          | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
+| `pnpm knip`               | Find unused exports and dependencies                                     |
+| `pnpm clean`              | Remove dist and cache directories                                        |
+| `pnpm release`            | Build library and publish to npm                                         |
+| `pnpm convert-font`       | Convert BMFont to .btfont format                                         |
+| `pnpm security:audit`     | Run dependency security audit                                            |
 
 ## Quick Start
 
@@ -154,24 +161,37 @@ blit-tech/
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
-│   │   ├── AssetLoader.ts      # Image/asset loading
-│   │   ├── BitmapFont.ts       # Bitmap font system
-│   │   └── SpriteSheet.ts      # Sprite sheet handling
+│   │   ├── AssetLoader.ts      # Image loading with caching
+│   │   ├── BitmapFont.ts       # Bitmap font system (.btfont)
+│   │   └── SpriteSheet.ts      # GPU texture wrapper
 │   ├── core/
-│   │   ├── BTAPI.ts            # Internal API implementation
-│   │   └── IBlitTechDemo.ts    # Demo interface
+│   │   ├── BTAPI.ts            # Internal API singleton
+│   │   ├── GameLoop.ts         # Fixed-timestep game loop
+│   │   ├── IBlitTechDemo.ts    # Demo interface + HardwareSettings
+│   │   └── WebGPUContext.ts    # WebGPU adapter/device/context setup
 │   ├── render/
-│   │   └── Renderer.ts         # WebGPU renderer
-│   └── utils/
-│       ├── Bootstrap.ts        # Demo bootstrap utilities
-│       ├── Color32.ts          # 32-bit color type
-│       ├── Rect2i.ts           # Integer rectangle
-│       └── Vector2i.ts         # Integer 2D vector
+│   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines)
+│   │   ├── PrimitivePipeline.ts # Batched colored geometry
+│   │   └── SpritePipeline.ts   # Batched textured quads
+│   ├── utils/
+│   │   ├── Bootstrap.ts        # Demo bootstrap utilities
+│   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
+│   │   ├── Color32.ts          # 32-bit RGBA color
+│   │   ├── FrameCapture.ts     # GPU readback + PNG export
+│   │   ├── Rect2i.ts           # Integer rectangle
+│   │   └── Vector2i.ts         # Integer 2D vector
+│   └── __test__/
+│       ├── webgpu-mock.ts      # WebGPU mock factories
+│       └── setup.ts            # Vitest global setup
+├── tests/
+│   └── visual/                 # Playwright visual regression tests
 ├── dist/                       # Built library output
 ├── docs/                       # Library documentation
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
+├── vitest.config.ts
+├── playwright.config.ts
 └── eslint.config.js
 ```
 
@@ -234,7 +254,7 @@ const font = await BitmapFont.load('fonts/MyFont.btfont');
 const images = await AssetLoader.loadImages(['sprite1.png', 'sprite2.png']);
 
 // Check if asset is already cached
-if (AssetLoader.isCached('path/to/sprites.png')) {
+if (AssetLoader.isLoaded('path/to/sprites.png')) {
   // Asset already loaded
 }
 ```
@@ -358,8 +378,8 @@ Additional documentation is available in the `docs/` directory:
 
 - **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
 - **[Bitmap Fonts](docs/bitmap-fonts.md)** — Complete guide to creating and using bitmap fonts
-- **[Testing Guide](docs/testing-guide.md)** — Testing infrastructure setup and best practices
-- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling
+- **[Testing](docs/testing.md)** — Testing infrastructure, tiers, and WebGPU mocks
+- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Contributing
 
