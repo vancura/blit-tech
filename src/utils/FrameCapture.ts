@@ -1,7 +1,8 @@
 /**
- * GPU frame capture utility for Blit-Tech.
- * Captures the rendered frame from a WebGPU texture to a PNG blob
- * using GPU readback (copyTextureToBuffer + mapAsync).
+ * Utilities for capturing a rendered WebGPU frame as a PNG blob.
+ *
+ * The module handles row alignment, optional BGRA swizzling, GPU readback, and
+ * browser-side PNG encoding.
  */
 
 // #region Constants
@@ -27,11 +28,9 @@ type CaptureReject = (reason: Error) => void;
 // #region Helper Functions
 
 /**
- * Calculates the aligned bytes-per-row for a given pixel width.
- * WebGPU requires `bytesPerRow` in copyTextureToBuffer to be a multiple of 256.
- *
- * @param width - Width in pixels.
- * @returns Aligned bytes per row.
+ * Calculates the `bytesPerRow` value required by `copyTextureToBuffer()`.
+ * @param width
+ * @returns Aligned bytes per row (multiple of 256).
  */
 export function alignedBytesPerRow(width: number): number {
     const unaligned = width * BYTES_PER_PIXEL;
@@ -40,10 +39,8 @@ export function alignedBytesPerRow(width: number): number {
 }
 
 /**
- * Swizzles BGRA pixel data to RGBA in place.
- * Many platforms use `bgra8unorm` as the preferred canvas format.
- *
- * @param data - Pixel data buffer (modified in place).
+ * Swaps BGRA pixel data into RGBA order in place.
+ * @param data
  */
 export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
     for (let i = 0; i < data.length; i += BYTES_PER_PIXEL) {
@@ -58,14 +55,15 @@ export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
 }
 
 /**
- * Converts raw pixel data from a GPU readback buffer into a PNG Blob.
- * Handles row padding removal and BGRA-to-RGBA swizzle.
+ * Converts mapped GPU pixel data into a PNG blob.
  *
- * @param buffer - Mapped GPU buffer containing pixel data.
- * @param width - Image width in pixels.
- * @param height - Image height in pixels.
- * @param paddedBytesPerRow - Aligned bytes per row (may include padding).
- * @param isBGRA - Whether the source format is BGRA (needs swizzle).
+ * Removes row padding introduced by WebGPU alignment requirements and
+ * optionally swizzles BGRA input into RGBA before encoding.
+ * @param buffer
+ * @param width
+ * @param height
+ * @param paddedBytesPerRow
+ * @param isBGRA
  * @returns Promise resolving to a PNG Blob.
  */
 export async function pixelBufferToPNG(
@@ -109,9 +107,11 @@ export async function pixelBufferToPNG(
 // #region FrameCapture Class
 
 /**
- * Manages deferred frame capture from a WebGPU render target.
- * Call `requestCapture()` to queue a capture, then integrate with the
- * renderer's `endFrame()` to execute the GPU readback.
+ * Coordinates deferred capture of the next rendered frame.
+ *
+ * A capture request is queued ahead of frame submission, the renderer records a
+ * texture-to-buffer copy during `endFrame()`, and the captured data is resolved
+ * asynchronously after GPU work completes.
  */
 export class FrameCapture {
     /** Resolve callback for the pending capture. */
@@ -145,14 +145,15 @@ export class FrameCapture {
     }
 
     /**
-     * Queues a capture for the next rendered frame.
-     * If a capture is already pending, the previous one is rejected.
+     * Queues capture of the next submitted frame.
+     * If another request is already pending, that earlier request is rejected.
      *
      * @returns Promise resolving to the captured PNG Blob.
      */
     requestCapture(): Promise<Blob> {
         if (this.pendingResolve) {
             this.pendingReject?.(new Error('[FrameCapture] Capture superseded by a new request'));
+
             this.cleanup();
         }
 
@@ -163,8 +164,8 @@ export class FrameCapture {
     }
 
     /**
-     * Adds a texture-to-buffer copy command to the given command encoder.
-     * Must be called after the render pass ends but before `device.queue.submit()`.
+     * Records the texture-to-buffer copy needed for a pending frame capture.
+     * Call after the render pass ends but before submitting the command buffer.
      *
      * @param device - WebGPU device for buffer creation.
      * @param texture - The rendered canvas texture to capture.
@@ -192,8 +193,7 @@ export class FrameCapture {
     }
 
     /**
-     * Maps the staging buffer, converts pixels to PNG, and resolves the pending promise.
-     * Call this after `device.queue.submit()`. This is async but does not block the game loop.
+     * Waits for GPU completion, reads back the staging buffer, and resolves the pending capture.
      *
      * @param device - WebGPU device (used for onSubmittedWorkDone).
      */
@@ -233,7 +233,7 @@ export class FrameCapture {
         }
     }
 
-    /** Cleans up pending state without resolving or rejecting. */
+    /** Clears the pending capture state and destroys any staging buffer. */
     private cleanup(): void {
         this.pendingResolve = null;
         this.pendingReject = null;
