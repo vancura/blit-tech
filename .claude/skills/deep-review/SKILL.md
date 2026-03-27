@@ -1,5 +1,5 @@
 ---
-description: Comprehensive code review with AI analysis, security audit, and PR-ready summary
+description: Comprehensive code review with AI analysis, security audit, and PR-ready summary.
 ---
 
 # Deep Review
@@ -25,7 +25,7 @@ pushing significant changes or creating pull requests.
    - Report any vulnerabilities found (moderate and above)
 
 3. **Gather change context**
-   - Run `git diff origin/main...HEAD` to see all changes vs main
+   - Run `git diff origin/main...HEAD` to see all changes vs. main
    - Run `git log origin/main..HEAD --oneline` to see commit history
    - Identify which files changed and their purpose
 
@@ -73,7 +73,7 @@ pushing significant changes or creating pull requests.
 
 #### Critical Issues
 
-- [File:Line] Description (must fix before merge)
+- [File:Line] Description (must fix before the merge)
 
 #### Warnings
 
