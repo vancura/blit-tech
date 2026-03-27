@@ -4,8 +4,7 @@ import { SpriteSheet } from './SpriteSheet';
 // #region Type Definitions
 
 /**
- * Glyph data for a single character in a bitmap font.
- * Contains texture coordinates, dimensions, rendering offsets, and advance width.
+ * Runtime glyph metadata used by the renderer.
  */
 export interface Glyph {
     /** Source rectangle in the font texture atlas. */
@@ -22,8 +21,7 @@ export interface Glyph {
 }
 
 /**
- * Raw glyph data as stored in the .btfont JSON file.
- * Uses short property names for compact file size.
+ * Serialized glyph entry stored in `.btfont` files.
  */
 interface GlyphData {
     /** X position in texture atlas. */
@@ -49,8 +47,7 @@ interface GlyphData {
 }
 
 /**
- * Font file format (.btfont) structure.
- * JSON file with texture reference (embedded base64 or relative path).
+ * Serialized bitmap-font descriptor loaded from disk.
  */
 interface FontFileData {
     /** Font display name. */
@@ -77,8 +74,7 @@ interface FontFileData {
 }
 
 /**
- * Result object for text size measurements.
- * Reused to avoid allocations in hot paths.
+ * Measured text dimensions in pixels.
  */
 export interface TextSize {
     /** Width of the text in pixels. */
@@ -92,34 +88,44 @@ export interface TextSize {
 
 // #region Constants
 
-/** Maximum number of cached measurement results. */
+/**
+ * Maximum number of cached string-width measurements retained at once.
+ *
+ * The cache uses insertion order and evicts the oldest entry when it reaches
+ * this limit.
+ */
 const MAX_MEASURE_CACHE_SIZE = 256;
 
-/** Number of ASCII characters to cache for fast lookup. */
+/**
+ * Size of the direct lookup table used for ASCII glyphs (`0-127`).
+ */
 const ASCII_CACHE_SIZE = 128;
 
 // #endregion
 
 /**
- * Modern bitmap font for variable-width text rendering.
+ * Bitmap font backed by a sprite-sheet texture atlas.
  *
- * Loads from `.btfont` JSON files with embedded base64 textures.
- * Supports Unicode characters and per-glyph rendering offsets.
- *
- * Performance optimizations:
- * - ASCII glyphs cached in a direct array for O(1) lookup
- * - Text measurement results cached with LRU eviction
- * - Reusable result objects to minimize allocations
- * - Optimized loops using charCodeAt for ASCII text
- *
- * @example
- * ```ts
- * const font = await BitmapFont.load('fonts/MyFont.btfont');
- * BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
- * ```
+ * The class is responsible for:
+ * - loading `.btfont` metadata and its referenced texture
+ * - exposing glyph lookup by character or character code
+ * - measuring string widths with a small reusable cache
+ * - providing the underlying {@link SpriteSheet} used for rendering glyph quads
  */
 export class BitmapFont {
     // #region Module State
+
+    /** Font display name. */
+    public readonly name: string;
+
+    /** Original font size in points. */
+    public readonly size: number;
+
+    /** Pixels between baselines for multi-line text. */
+    public readonly lineHeight: number;
+
+    /** Pixels from top of line to baseline. */
+    public readonly baseline: number;
 
     /** Sprite sheet containing the font texture atlas. */
     private readonly spriteSheet: SpriteSheet;
@@ -135,18 +141,6 @@ export class BitmapFont {
 
     /** Reusable result object for measureTextSize to avoid allocations. */
     private readonly textSizeResult: TextSize = { width: 0, height: 0 };
-
-    /** Font display name. */
-    public readonly name: string;
-
-    /** Original font size in points. */
-    public readonly size: number;
-
-    /** Pixels between baselines for multi-line text. */
-    public readonly lineHeight: number;
-
-    /** Pixels from top of line to baseline. */
-    public readonly baseline: number;
 
     // #endregion
 
@@ -184,22 +178,30 @@ export class BitmapFont {
 
     // #endregion
 
-    // #region Static Factory
+    // #region Metadata
 
     /**
-     * Loads a bitmap font from a .btfont JSON file.
+     * Returns the total number of glyphs loaded into the font.
      *
-     * The file format is a JSON object with:
-     * - `name`: Font display name
-     * - `size`: Original font size in points
-     * - `lineHeight`: Pixels between baselines
-     * - `baseline`: Pixels from top to baseline
-     * - `texture`: Base64 data URI or relative path to PNG
-     * - `glyphs`: Map of character to glyph data
+     * @returns Total glyph count.
+     */
+    get glyphCount(): number {
+        return this.glyphs.size;
+    }
+
+    // #endregion
+
+    // #region Loading
+
+    /**
+     * Loads a bitmap font from a `.btfont` JSON file.
+     *
+     * The font descriptor can reference either an embedded data URI or a
+     * texture file path relative to the font JSON file.
      *
      * @param url - Path to the .btfont file.
-     * @returns Promise resolving to the loaded BitmapFont.
-     * @throws Error if the file can't be loaded or parsed.
+     * @returns Loaded bitmap font instance.
+     * @throws Error if the font descriptor or texture cannot be loaded.
      */
     static async load(url: string): Promise<BitmapFont> {
         // Fetch and parse the JSON file.
@@ -256,16 +258,14 @@ export class BitmapFont {
         );
     }
 
-    // #endregion
-
-    // #region Helper Functions
+    // #region Loading Helpers
 
     /**
      * Loads a texture from either a base64 data URI or a relative path.
      *
      * @param texture - Data URI (starts with "data:") or relative path.
      * @param fontUrl - URL of the .btfont file (used to resolve relative paths).
-     * @returns Promise resolving to the loaded HTMLImageElement.
+     * @returns Loaded texture image for the font atlas.
      */
     private static loadTexture(texture: string, fontUrl: string): Promise<HTMLImageElement> {
         // Check if it's a data URI (embedded base64).
@@ -280,33 +280,35 @@ export class BitmapFont {
         return BitmapFont.loadImage(textureUrl);
     }
 
+    // #endregion
+
+    // #region Glyph Access
+
     /**
      * Loads an image from a URL or data URI.
      *
      * @param src - Image source (URL or data URI).
-     * @returns Promise resolving to the loaded HTMLImageElement.
+     * @returns Loaded image element for the font texture.
      */
     private static loadImage(src: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
             const image = new Image();
 
             image.onload = () => resolve(image);
-            image.onerror = () => reject(new Error(`Failed to load font texture: ${src.substring(0, 50)}...`));
+            image.onerror = () => reject(new Error(`Failed to load font texture: ${src.substring(0, 50)}`));
 
             image.src = src;
         });
     }
 
-    // #endregion
-
-    // #region Accessors
-
     /**
-     * Gets glyph information for a specific character.
-     * Uses fast array lookup for ASCII characters, falls back to Map for Unicode.
+     * Returns glyph data for a character.
+     *
+     * Uses the ASCII lookup table for single-byte characters and falls back to
+     * the Unicode glyph map for everything else.
      *
      * @param char - Single character to look up (supports Unicode).
-     * @returns Glyph data with source rect, offsets and advance, or null if not found.
+     * @returns Glyph metadata, or `null` when the font does not contain the character.
      */
     getGlyph(char: string): Glyph | null {
         // Fast path for ASCII characters.
@@ -324,11 +326,13 @@ export class BitmapFont {
     }
 
     /**
-     * Gets glyph information by character code.
-     * Optimized for hot paths where character code is already known.
+     * Returns glyph data by numeric character code.
+     *
+     * Uses the ASCII lookup table for codes below `128` and falls back to the
+     * Unicode glyph map for all other values.
      *
      * @param charCode - Character code to look up.
-     * @returns Glyph data or null if not found.
+     * @returns Glyph metadata, or `null` when no glyph exists for the code.
      */
     getGlyphByCode(charCode: number): Glyph | null {
         // Fast path for ASCII.
@@ -342,21 +346,12 @@ export class BitmapFont {
     }
 
     /**
-     * Gets the underlying sprite sheet for rendering.
+     * Returns the sprite sheet that owns the font texture atlas.
      *
-     * @returns The font's texture atlas as a SpriteSheet.
+     * @returns Sprite sheet used when rendering glyph quads.
      */
     getSpriteSheet(): SpriteSheet {
         return this.spriteSheet;
-    }
-
-    /**
-     * Gets the number of glyphs in this font.
-     *
-     * @returns Total glyph count.
-     */
-    get glyphCount(): number {
-        return this.glyphs.size;
     }
 
     // #endregion
@@ -364,9 +359,10 @@ export class BitmapFont {
     // #region Text Measurement
 
     /**
-     * Measures the pixel width of a text string.
-     * Results are cached for frequently measured strings.
-     * Uses optimized charCodeAt loop for better performance.
+     * Measures the horizontal pixel width of a text string.
+     *
+     * Results are cached for repeated measurements and use an optimized ASCII
+     * fast path during width calculation.
      *
      * @param text - String to measure.
      * @returns Total width in pixels.
@@ -422,14 +418,13 @@ export class BitmapFont {
     }
 
     /**
-     * Measures the pixel dimensions of a text string.
-     * For single-line text, height equals lineHeight.
+     * Measures the pixel size of a single-line text string.
      *
-     * WARNING: Returns a reusable internal object to avoid allocations.
-     * Don't store the returned reference – copy the values if needed.
+     * Returns a reusable internal object to avoid allocations. Copy the values
+     * before calling `measureTextSize()` again if you need to retain them.
      *
      * @param text - String to measure.
-     * @returns Object with width and height in pixels (reused, don't store reference).
+     * @returns Reused width/height pair for the measured text.
      */
     measureTextSize(text: string): TextSize {
         this.textSizeResult.width = this.measureText(text);
@@ -439,12 +434,11 @@ export class BitmapFont {
     }
 
     /**
-     * Measures the pixel dimensions of a text string and copies to the provided object.
-     * Use this when you need to store the result.
+     * Measures the pixel size of a single-line text string into a caller-owned object.
      *
      * @param text - String to measure.
-     * @param result - Object to store the result in.
-     * @returns The result object with width and height populated.
+     * @param result - Object that receives the measured width and height.
+     * @returns The same `result` object after being populated.
      */
     measureTextSizeInto(text: string, result: TextSize): TextSize {
         result.width = this.measureText(text);
@@ -454,11 +448,12 @@ export class BitmapFont {
     }
 
     /**
-     * Checks if the font contains a glyph for the given character.
-     * Uses fast ASCII lookup when possible.
+     * Checks whether the font contains a glyph for a character.
+     *
+     * Uses the same ASCII fast path as `getGlyph()` for single-byte characters.
      *
      * @param char - Character to check.
-     * @returns True if the font can render this character.
+     * @returns `true` if the font can render the character.
      */
     hasGlyph(char: string): boolean {
         // Fast path for ASCII.
@@ -475,8 +470,10 @@ export class BitmapFont {
     }
 
     /**
-     * Clears the text measurement cache.
-     * Call this if font metrics change or to free memory.
+     * Clears cached text measurement results.
+     *
+     * Useful after profiling, tests, or when you want to bound cache growth
+     * across distinct text workloads.
      */
     clearMeasureCache(): void {
         this.measureCache.clear();
