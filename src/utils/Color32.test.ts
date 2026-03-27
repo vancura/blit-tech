@@ -226,7 +226,7 @@ describe('fromUint32', () => {
     it('unpacks ABGR correctly', () => {
         // ABGR: A=255, B=0, G=0, R=255 -> opaque red
         const packed = (255 << 24) | 255;
-        const c = Color32.fromUint32(packed);
+        const c = Color32.fromUint32(packed >>> 0);
 
         expect(c.r).toBe(255);
         expect(c.g).toBe(0);

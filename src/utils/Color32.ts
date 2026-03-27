@@ -401,7 +401,7 @@ export class Color32 {
     writeToFloat32Array(target: Float32Array, offset: number = 0): void {
         // Using direct index assignment for the best performance.
         // This is safe: offset is truncated to integer, the target is a typed Float32Array.
-        const i = offset;
+        const i = offset | 0;
 
         // eslint-disable-next-line security/detect-object-injection
         target[i] = this.r * INV_255;
@@ -555,10 +555,10 @@ export class Color32 {
         const oneMinusT = 1 - tc;
 
         return Color32.fromRGBAUnchecked(
-            this.r * oneMinusT + other.r * tc,
-            this.g * oneMinusT + other.g * tc,
-            this.b * oneMinusT + other.b * tc,
-            this.a * oneMinusT + other.a * tc,
+            (this.r * oneMinusT + other.r * tc) | 0,
+            (this.g * oneMinusT + other.g * tc) | 0,
+            (this.b * oneMinusT + other.b * tc) | 0,
+            (this.a * oneMinusT + other.a * tc) | 0,
         );
     }
 
@@ -575,10 +575,10 @@ export class Color32 {
 
         const oneMinusT = 1 - tc;
 
-        this.r = this.r * oneMinusT + other.r * tc;
-        this.g = this.g * oneMinusT + other.g * tc;
-        this.b = this.b * oneMinusT + other.b * tc;
-        this.a = this.a * oneMinusT + other.a * tc;
+        this.r = (this.r * oneMinusT + other.r * tc) | 0;
+        this.g = (this.g * oneMinusT + other.g * tc) | 0;
+        this.b = (this.b * oneMinusT + other.b * tc) | 0;
+        this.a = (this.a * oneMinusT + other.a * tc) | 0;
 
         return this;
     }
@@ -592,10 +592,10 @@ export class Color32 {
      */
     multiply(other: Color32): Color32 {
         return Color32.fromRGBAUnchecked(
-            this.r * other.r * INV_255,
-            this.g * other.g * INV_255,
-            this.b * other.b * INV_255,
-            this.a * other.a * INV_255,
+            (this.r * other.r * INV_255) | 0,
+            (this.g * other.g * INV_255) | 0,
+            (this.b * other.b * INV_255) | 0,
+            (this.a * other.a * INV_255) | 0,
         );
     }
 
@@ -607,10 +607,10 @@ export class Color32 {
      * @returns This color instance for chaining.
      */
     multiplyInPlace(other: Color32): this {
-        this.r = this.r * other.r * INV_255;
-        this.g = this.g * other.g * INV_255;
-        this.b = this.b * other.b * INV_255;
-        this.a = this.a * other.a * INV_255;
+        this.r = (this.r * other.r * INV_255) | 0;
+        this.g = (this.g * other.g * INV_255) | 0;
+        this.b = (this.b * other.b * INV_255) | 0;
+        this.a = (this.a * other.a * INV_255) | 0;
 
         return this;
     }
@@ -651,7 +651,12 @@ export class Color32 {
     premultiplyAlpha(): Color32 {
         const alphaMul = this.a * INV_255;
 
-        return Color32.fromRGBAUnchecked(this.r * alphaMul, this.g * alphaMul, this.b * alphaMul, this.a);
+        return Color32.fromRGBAUnchecked(
+            (this.r * alphaMul) | 0,
+            (this.g * alphaMul) | 0,
+            (this.b * alphaMul) | 0,
+            this.a,
+        );
     }
 
     // #endregion
@@ -747,7 +752,7 @@ export class Color32 {
 export function clampByte(n: number): number {
     // Bitwise operations: if n < 0, use 0; if n > 255, use 255; else truncate n.
     // This is faster than Math.max(0, Math.min(255, n)) | 0.
-    return n < 0 ? 0 : n > 255 ? 255 : n;
+    return n < 0 ? 0 : n > 255 ? 255 : n | 0;
 }
 
 // #endregion
