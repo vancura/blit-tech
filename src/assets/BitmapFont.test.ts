@@ -124,10 +124,16 @@ describe('BitmapFont', () => {
             font.measureText(`str-${i}`);
         }
 
-        // The 257th entry triggers FIFO eviction of the first entry.
-        expect(() => font.measureText('overflow')).not.toThrow();
+        // The 257th entry triggers FIFO eviction of 'str-0' (oldest).
+        font.measureText('overflow');
 
-        // Font still measures correctly after eviction.
+        // Verify the oldest entry was actually removed from the cache.
+        const cache = (font as unknown as { measureCache: Map<string, number> }).measureCache;
+
+        expect(cache.has('str-0')).toBe(false);
+        expect(cache.has('overflow')).toBe(true);
+
+        // Font still measures correctly after eviction (recomputed on cache miss).
         expect(font.measureText('A')).toBe(9);
     });
 
@@ -292,6 +298,30 @@ describe('BitmapFont', () => {
         });
 
         it('should resolve a relative texture path relative to the font URL', async () => {
+            let capturedSrc = '';
+
+            vi.stubGlobal(
+                'Image',
+                class {
+                    onload: (() => void) | null = null;
+                    onerror: (() => void) | null = null;
+                    width = 64;
+                    height = 16;
+
+                    private _src = '';
+
+                    get src(): string {
+                        return this._src;
+                    }
+
+                    set src(value: string) {
+                        this._src = value;
+                        capturedSrc = value;
+                        this.onload?.();
+                    }
+                },
+            );
+
             vi.stubGlobal(
                 'fetch',
                 vi.fn().mockResolvedValue({
@@ -303,6 +333,7 @@ describe('BitmapFont', () => {
             const loaded = await BitmapFont.load('fonts/test.btfont');
 
             expect(loaded).toBeDefined();
+            expect(capturedSrc).toBe('fonts/font-atlas.png');
         });
     });
 
