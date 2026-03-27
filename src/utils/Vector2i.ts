@@ -1,13 +1,9 @@
 /**
  * Integer 2D vector for pixel-perfect positioning.
- * Inspired by RetroBlit's Vector2i.
  *
- * Performance notes:
- * - Use static direction constants (zero, one, up, etc.) - they return cached singletons
- * - Use fromXYUnchecked() for trusted integer values in hot paths
- * - Use “To” methods (addTo, subTo, cloneTo, etc.) for zero-allocation output
- * - Use in-place methods (*InPlace) when you can mutate the source vector
- * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
+ * Used for points, sizes, directions, and camera offsets throughout the engine.
+ * The API includes both allocation-free `*To()` / `*InPlace()` variants and
+ * convenience methods that return new vectors.
  */
 export class Vector2i {
     // #region Cached Static Vectors
@@ -18,16 +14,16 @@ export class Vector2i {
     /** The cached singleton for one vector. */
     private static readonly _one: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 1));
 
-    /** The cached singleton for up direction. */
+    /** The cached singleton for the up direction. */
     private static readonly _up: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, -1));
 
-    /** The cached singleton for down direction. */
+    /** The cached singleton for the down direction. */
     private static readonly _down: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 1));
 
-    /** The cached singleton for left direction. */
+    /** The cached singleton for the left direction. */
     private static readonly _left: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(-1, 0));
 
-    /** The cached singleton for right direction. */
+    /** The cached singleton for the right direction. */
     private static readonly _right: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 0));
 
     // #endregion
@@ -35,11 +31,7 @@ export class Vector2i {
     // #region Constructor
 
     /**
-     * Creates a new integer 2D vector.
-     * Values are truncated to integers using |0 (truncates toward zero).
-     *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
-     * If you need floor behavior for negative values, use Math.floor before passing.
+     * Creates an integer 2D vector, truncating inputs toward zero.
      *
      * @param x - Horizontal component (defaults to 0).
      * @param y - Vertical component (defaults to 0).
@@ -62,8 +54,7 @@ export class Vector2i {
     // #region Property Aliases
 
     /**
-     * Alias for x component, useful when treating vector as dimensions.
-     *
+     * Alias for `x` when treating the vector as a size.
      * @returns The x component as width.
      */
     get width(): number {
@@ -80,8 +71,7 @@ export class Vector2i {
     }
 
     /**
-     * Alias for y component, useful when treating vector as dimensions.
-     *
+     * Alias for `y` when treating the vector as a size.
      * @returns The y component as height.
      */
     get height(): number {
@@ -102,9 +92,173 @@ export class Vector2i {
     // #region Vector Operations
 
     /**
-     * Adds another vector to this one, returning a new vector.
+     * Returns a zero vector (0, 0).
+     * Returns a cached frozen singleton - do not modify.
      *
-     * Note: Creates a new Vector2i. Use addTo() or addInPlace() in hot paths.
+     * @returns Vector at origin (cached).
+     */
+    static zero(): Vector2i {
+        return Vector2i._zero;
+    }
+
+    /**
+     * Returns a unit vector (1, 1).
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Vector with both components set to 1 (cached).
+     */
+    static one(): Vector2i {
+        return Vector2i._one;
+    }
+
+    /**
+     * Returns an up direction vector (0, –1).
+     * In screen coordinates, Y increases downward, so up is negative.
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Vector pointing up (cached).
+     */
+    static up(): Vector2i {
+        return Vector2i._up;
+    }
+
+    /**
+     * Returns a down direction vector (0, 1).
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Vector pointing down (cached).
+     */
+    static down(): Vector2i {
+        return Vector2i._down;
+    }
+
+    /**
+     * Returns a left-direction vector (-1, 0).
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Vector pointing left (cached).
+     */
+    static left(): Vector2i {
+        return Vector2i._left;
+    }
+
+    /**
+     * Returns a right-direction vector (1, 0).
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Vector pointing right (cached).
+     */
+    static right(): Vector2i {
+        return Vector2i._right;
+    }
+
+    /**
+     * Creates a Vector2i from integer values without truncation.
+     * Use this in hot paths when values are guaranteed to be integers.
+     *
+     * WARNING: Passing non-integer values will result in non-integer vector components.
+     * Only use when you’re certain the values are already integers.
+     *
+     * @param x - Horizontal component (must be integer).
+     * @param y - Vertical component (must be integer).
+     * @returns New Vector2i with the specified values.
+     */
+    static fromXYUnchecked(x: number, y: number): Vector2i {
+        const v = Object.create(Vector2i.prototype) as Vector2i;
+
+        v.x = x;
+        v.y = y;
+
+        return v;
+    }
+
+    /**
+     * Creates an integer vector from floating-point coordinates.
+     * Both values are truncated to integers using |0.
+     *
+     * Note: |0 truncates toward zero (e.g., –1.7 becomes –1, not –2).
+     *
+     * @param x - Floating-point x coordinate.
+     * @param y - Floating-point y coordinate.
+     * @returns New integer vector.
+     */
+    static fromFloat(x: number, y: number): Vector2i {
+        return new Vector2i(x | 0, y | 0);
+    }
+
+    /**
+     * Calculates distance between two vectors.
+     *
+     * @param a - First vector.
+     * @param b - Second vector.
+     * @returns Euclidean distance between a and b.
+     */
+    static distance(a: Vector2i, b: Vector2i): number {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Calculates squared distance between two vectors.
+     * Avoids the sqrt for performance.
+     *
+     * @param a - First vector.
+     * @param b - Second vector.
+     * @returns Squared distance between a and b.
+     */
+    static sqrDistance(a: Vector2i, b: Vector2i): number {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+
+        return dx * dx + dy * dy;
+    }
+
+    /**
+     * Calculates dot product of two vectors.
+     * The static version - use instance method a.dot(b) when you have vector instances.
+     *
+     * @param a - First vector.
+     * @param b - Second vector.
+     * @returns Scalar dot product.
+     */
+    static dotProduct(a: Vector2i, b: Vector2i): number {
+        return a.x * b.x + a.y * b.y;
+    }
+
+    /**
+     * Linearly interpolates between two vectors.
+     * Result is truncated to integers.
+     *
+     * @param a - Start vector.
+     * @param b - End vector.
+     * @param t - Interpolation factor (0 = a, 1 = b).
+     * @returns New interpolated vector.
+     */
+    static lerp(a: Vector2i, b: Vector2i, t: number): Vector2i {
+        return new Vector2i(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+    }
+
+    /**
+     * Linearly interpolates between two vectors and writes to the existing vector.
+     * Zero allocation alternative to lerp().
+     *
+     * @param a - Start vector.
+     * @param b - End vector.
+     * @param t - Interpolation factor (0 = a, 1 = b).
+     * @param out - Vector to write the result to.
+     * @returns The out vector for chaining.
+     */
+    static lerpTo(a: Vector2i, b: Vector2i, t: number, out: Vector2i): Vector2i {
+        out.x = (a.x + (b.x - a.x) * t) | 0;
+        out.y = (a.y + (b.y - a.y) * t) | 0;
+
+        return out;
+    }
+
+    /**
+     * Adds another vector and returns the result as a new vector.
      *
      * @param other - Vector to add.
      * @returns New vector with summed components.
@@ -115,10 +269,7 @@ export class Vector2i {
     }
 
     /**
-     * Adds x and y values to this vector, returning a new vector.
-     * Avoids creating a temporary Vector2i for the offset.
-     *
-     * Note: Creates a new Vector2i. Use addXYInPlace() in hot paths.
+     * Adds raw `x` and `y` offsets and returns the result as a new vector.
      *
      * @param x - X offset to add.
      * @param y - Y offset to add.
@@ -130,9 +281,7 @@ export class Vector2i {
     }
 
     /**
-     * Subtracts another vector from this one, returning a new vector.
-     *
-     * Note: Creates a new Vector2i. Use subTo() or subInPlace() in hot paths.
+     * Subtracts another vector and returns the result as a new vector.
      *
      * @param other - Vector to subtract.
      * @returns New vector with difference of components.
@@ -143,10 +292,7 @@ export class Vector2i {
     }
 
     /**
-     * Subtracts x and y values from this vector, returning a new vector.
-     * Avoids creating a temporary Vector2i for the offset.
-     *
-     * Note: Creates a new Vector2i. Use subXYInPlace() in hot paths.
+     * Subtracts raw `x` and `y` offsets and returns the result as a new vector.
      *
      * @param x - X offset to subtract.
      * @param y - Y offset to subtract.
@@ -157,10 +303,12 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x - (x | 0), this.y - (y | 0));
     }
 
+    // #endregion
+
+    // #region Zero-Allocation Output Methods
+
     /**
-     * Multiplies this vector by a scalar, returning a new vector.
-     *
-     * Note: Creates a new Vector2i. Use mulInPlace() in hot paths.
+     * Multiplies both components by a scalar and returns a new vector.
      *
      * @param scalar - Value to multiply both components by.
      * @returns New vector with scaled components.
@@ -170,9 +318,7 @@ export class Vector2i {
     }
 
     /**
-     * Component-wise multiplication with another vector.
-     *
-     * Note: Creates a new Vector2i. Use mulVecInPlace() in hot paths.
+     * Performs component-wise multiplication with another vector.
      *
      * @param other - Vector to multiply with.
      * @returns New vector with multiplied components.
@@ -183,9 +329,7 @@ export class Vector2i {
     }
 
     /**
-     * Divides this vector by a scalar, truncating the result toward zero.
-     *
-     * Note: Creates a new Vector2i. Use divInPlace() in hot paths.
+     * Divides both components by a scalar and truncates toward zero.
      *
      * @param scalar - Value to divide both components by.
      * @returns New vector with divided and truncated components.
@@ -200,11 +344,8 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with negated components.
-     *
-     * Note: Creates a new Vector2i. Use negateInPlace() in hot paths.
-     *
-     * @returns New vector pointing in opposite direction.
+     * Returns a new vector with both components negated.
+     * @returns New negated vector.
      */
     negate(): Vector2i {
         // Negating integers stays integer, use unchecked.
@@ -212,11 +353,8 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with absolute values of components.
-     *
-     * Note: Creates a new Vector2i. Use absInPlace() in hot paths.
-     *
-     * @returns New vector with positive components.
+     * Returns a new vector with absolute component values.
+     * @returns New vector with abs(x), abs(y).
      */
     abs(): Vector2i {
         // Math.abs of integers stays integer, use unchecked.
@@ -224,9 +362,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with the component-wise minimum of this and other.
-     *
-     * Note: Creates a new Vector2i. Use minInPlace() in hot paths.
+     * Returns the component-wise minimum of this vector and another.
      *
      * @param other - Vector to compare with.
      * @returns New vector with minimum components.
@@ -236,9 +372,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with component-wise maximum of this and other.
-     *
-     * Note: Creates a new Vector2i. Use maxInPlace() in hot paths.
+     * Returns the component-wise maximum of this vector and another.
      *
      * @param other - Vector to compare with.
      * @returns New vector with maximum components.
@@ -248,9 +382,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with components clamped to the given range.
-     *
-     * Note: Creates a new Vector2i. Use clampInPlace() in hot paths.
+     * Clamps both components into a numeric range.
      *
      * @param minVal - Minimum value for both components.
      * @param maxVal - Maximum value for both components.
@@ -264,9 +396,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns a new vector with components clamped to the given vector bounds.
-     *
-     * Note: Creates a new Vector2i. Use clampVecInPlace() in hot paths.
+     * Clamps both components into per-axis vector bounds.
      *
      * @param minVec - Vector with minimum values.
      * @param maxVec - Vector with maximum values.
@@ -292,7 +422,7 @@ export class Vector2i {
     /**
      * Calculates the 2D cross-product (perpendicular dot product).
      * Returns the z-component of the 3D cross-product if vectors were in XY plane.
-     * Useful for determining, which side of a line a point is on.
+     * Useful for determining which side of a line a point is on.
      *
      * @param other - Vector to cross with.
      * @returns Scalar cross-product (positive = other is counter-clockwise from this).
@@ -318,10 +448,6 @@ export class Vector2i {
     perpendicularCW(): Vector2i {
         return Vector2i.fromXYUnchecked(this.y, -this.x);
     }
-
-    // #endregion
-
-    // #region Zero-Allocation Output Methods
 
     /**
      * Adds another vector and writes the result to an existing vector.
@@ -701,6 +827,10 @@ export class Vector2i {
         return this;
     }
 
+    // #endregion
+
+    // #region Comparison
+
     /**
      * Sets both components of this vector.
      * Modifies this vector directly for maximum performance.
@@ -734,10 +864,6 @@ export class Vector2i {
         return this;
     }
 
-    // #endregion
-
-    // #region Distance Calculations
-
     /**
      * Calculates the Euclidean length of this vector.
      *
@@ -746,6 +872,10 @@ export class Vector2i {
     magnitude(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
+
+    // #endregion
+
+    // #region Utility
 
     /**
      * Calculates the squared magnitude (avoids the sqrt for performance).
@@ -769,6 +899,10 @@ export class Vector2i {
 
         return Math.sqrt(dx * dx + dy * dy);
     }
+
+    // #endregion
+
+    // #region Static Constructors
 
     /**
      * Calculates the Euclidean distance to raw coordinates.
@@ -848,6 +982,10 @@ export class Vector2i {
         return Math.max(Math.abs(other.x - this.x), Math.abs(other.y - this.y));
     }
 
+    // #endregion
+
+    // #region Static Factories
+
     /**
      * Calculates the Chebyshev distance to raw coordinates.
      * Avoids creating a temporary Vector2i.
@@ -859,10 +997,6 @@ export class Vector2i {
     chebyshevDistanceToXY(x: number, y: number): number {
         return Math.max(Math.abs((x | 0) - this.x), Math.abs((y | 0) - this.y));
     }
-
-    // #endregion
-
-    // #region Normalization
 
     /**
      * Returns a direction vector pointing in the same direction.
@@ -887,10 +1021,6 @@ export class Vector2i {
         // Truncation would collapse most vectors to (0, 0).
         return new Vector2i(Math.round(this.x / mag), Math.round(this.y / mag));
     }
-
-    // #endregion
-
-    // #region Comparison
 
     /**
      * Checks if this vector equals another vector component-wise.
@@ -923,10 +1053,6 @@ export class Vector2i {
         return this.x === 0 && this.y === 0;
     }
 
-    // #endregion
-
-    // #region Utility
-
     /**
      * Creates an independent copy of this vector.
      *
@@ -946,180 +1072,6 @@ export class Vector2i {
      */
     toString(): string {
         return `(${this.x}, ${this.y})`;
-    }
-
-    // #endregion
-
-    // #region Static Constructors
-
-    /**
-     * Returns a zero vector (0, 0).
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector at origin (cached).
-     */
-    static zero(): Vector2i {
-        return Vector2i._zero;
-    }
-
-    /**
-     * Returns a unit vector (1, 1).
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector with both components set to 1 (cached).
-     */
-    static one(): Vector2i {
-        return Vector2i._one;
-    }
-
-    /**
-     * Returns an up direction vector (0, –1).
-     * In screen coordinates, Y increases downward, so up is negative.
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector pointing up (cached).
-     */
-    static up(): Vector2i {
-        return Vector2i._up;
-    }
-
-    /**
-     * Returns a down direction vector (0, 1).
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector pointing down (cached).
-     */
-    static down(): Vector2i {
-        return Vector2i._down;
-    }
-
-    /**
-     * Returns a left-direction vector (-1, 0).
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector pointing left (cached).
-     */
-    static left(): Vector2i {
-        return Vector2i._left;
-    }
-
-    /**
-     * Returns a right-direction vector (1, 0).
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Vector pointing right (cached).
-     */
-    static right(): Vector2i {
-        return Vector2i._right;
-    }
-
-    // #endregion
-
-    // #region Static Factories
-
-    /**
-     * Creates a Vector2i from integer values without truncation.
-     * Use this in hot paths when values are guaranteed to be integers.
-     *
-     * WARNING: Passing non-integer values will result in non-integer vector components.
-     * Only use when you’re certain the values are already integers.
-     *
-     * @param x - Horizontal component (must be integer).
-     * @param y - Vertical component (must be integer).
-     * @returns New Vector2i with the specified values.
-     */
-    static fromXYUnchecked(x: number, y: number): Vector2i {
-        const v = Object.create(Vector2i.prototype) as Vector2i;
-
-        v.x = x;
-        v.y = y;
-
-        return v;
-    }
-
-    /**
-     * Creates an integer vector from floating-point coordinates.
-     * Both values are truncated to integers using |0.
-     *
-     * Note: |0 truncates toward zero (e.g., –1.7 becomes –1, not –2).
-     *
-     * @param x - Floating-point x coordinate.
-     * @param y - Floating-point y coordinate.
-     * @returns New integer vector.
-     */
-    static fromFloat(x: number, y: number): Vector2i {
-        return new Vector2i(x | 0, y | 0);
-    }
-
-    /**
-     * Calculates distance between two vectors.
-     *
-     * @param a - First vector.
-     * @param b - Second vector.
-     * @returns Euclidean distance between a and b.
-     */
-    static distance(a: Vector2i, b: Vector2i): number {
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    /**
-     * Calculates squared distance between two vectors.
-     * Avoids the sqrt for performance.
-     *
-     * @param a - First vector.
-     * @param b - Second vector.
-     * @returns Squared distance between a and b.
-     */
-    static sqrDistance(a: Vector2i, b: Vector2i): number {
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-
-        return dx * dx + dy * dy;
-    }
-
-    /**
-     * Calculates dot product of two vectors.
-     * The static version - use instance method a.dot(b) when you have vector instances.
-     *
-     * @param a - First vector.
-     * @param b - Second vector.
-     * @returns Scalar dot product.
-     */
-    static dotProduct(a: Vector2i, b: Vector2i): number {
-        return a.x * b.x + a.y * b.y;
-    }
-
-    /**
-     * Linearly interpolates between two vectors.
-     * Result is truncated to integers.
-     *
-     * @param a - Start vector.
-     * @param b - End vector.
-     * @param t - Interpolation factor (0 = a, 1 = b).
-     * @returns New interpolated vector.
-     */
-    static lerp(a: Vector2i, b: Vector2i, t: number): Vector2i {
-        return new Vector2i(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
-    }
-
-    /**
-     * Linearly interpolates between two vectors and writes to the existing vector.
-     * Zero allocation alternative to lerp().
-     *
-     * @param a - Start vector.
-     * @param b - End vector.
-     * @param t - Interpolation factor (0 = a, 1 = b).
-     * @param out - Vector to write the result to.
-     * @returns The out vector for chaining.
-     */
-    static lerpTo(a: Vector2i, b: Vector2i, t: number, out: Vector2i): Vector2i {
-        out.x = (a.x + (b.x - a.x) * t) | 0;
-        out.y = (a.y + (b.y - a.y) * t) | 0;
-
-        return out;
     }
 
     // #endregion

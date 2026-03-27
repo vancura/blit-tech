@@ -1,8 +1,8 @@
 /**
- * Blit-Tech - WebGPU Retro Engine
+ * Public Blit-Tech entrypoint.
  *
- * Main static API inspired by RetroBlit's RB namespace.
- * All demo code interacts with the engine through this interface.
+ * This module re-exports the main runtime types and exposes the `BT` facade
+ * used by demos for rendering, timing, bootstrap, and future input helpers.
  */
 
 import { AssetLoader } from './assets/AssetLoader';
@@ -21,10 +21,7 @@ import { Vector2i } from './utils/Vector2i';
 
 // #region Module State
 
-/**
- * Tracks which warning messages have been displayed to avoid console spam.
- * Each function name is stored after its first warning is shown.
- */
+/** Tracks one-time facade warnings to avoid repeated console noise. */
 const _warnedFunctions = new Set<string>();
 
 // #endregion
@@ -32,8 +29,7 @@ const _warnedFunctions = new Set<string>();
 // #region Helper Functions
 
 /**
- * Displays a warning message once per function to avoid console spam.
- * Further calls with the same function name will be silently ignored.
+ * Emits a warning message only once for a named facade function.
  *
  * @param funcName - Unique identifier for the function (used for deduplication).
  * @param message - Warning message to display in the console.
@@ -41,6 +37,7 @@ const _warnedFunctions = new Set<string>();
 function warnOnce(funcName: string, message: string): void {
     if (!_warnedFunctions.has(funcName)) {
         console.warn(message);
+
         _warnedFunctions.add(funcName);
     }
 }
@@ -49,10 +46,7 @@ function warnOnce(funcName: string, message: string): void {
 
 // #region Public API
 
-/**
- * Main Blit-Tech API module.
- * All engine features are accessed through BT.* methods.
- */
+/** Main Blit-Tech API namespace used by runtime demos. */
 export const BT = {
     // #region Constants - Sprite Transform Flags
 
@@ -125,31 +119,11 @@ export const BT = {
     // #region Initialization
 
     /**
-     * Initializes the engine with a demo instance and canvas element.
-     * This is the entry point for all Blit-Tech demos.
+     * Initializes the engine against a demo instance and target canvas.
      *
-     * Setup sequence:
-     * 1. Calls demo.queryHardware() to get display settings
-     * 2. Initializes WebGPU device and context
-     * 3. Creates a renderer with a configured display size
-     * 4. Calls demo.initialize() to load assets
-     * 5. Starts the loop (fixed update, variable render)
-     *
-     * IMPORTANT: Canvas must be attached to DOM before calling this.
-     * In Electron, wait for DOM ready before initializing.
-     *
-     * @param demo - Demo implementing IBlitTechDemo interface.
-     * @param canvas - HTML canvas element to render to.
-     * @returns Promise that resolves to true if successful, false on error.
-     *
-     * @example
-     * const canvas = document.getElementById('blit-tech-canvas') as HTMLCanvasElement;
-     * const demo = new MyDemo();
-     * const success = await BT.initialize(demo, canvas);
-     *
-     * if (!success) {
-     *   console.error('Failed to initialize Blit-Tech');
-     * }
+     * @param demo - Demo implementation that provides lifecycle hooks.
+     * @param canvas - Canvas used as the engine render target.
+     * @returns `true` when initialization succeeds; otherwise `false`.
      */
     initialize: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
         return await BTAPI.instance.initialize(demo, canvas);
@@ -160,10 +134,12 @@ export const BT = {
     // #region Hardware Information
 
     /**
-     * Gets the current display size in pixels.
-     * Returns the internal rendering resolution configured by the demo.
+     * Returns the active internal display resolution in pixels.
      *
-     * @returns Display size as Vector2i, or zero vector if not initialized.
+     * This is the logical render size configured by the demo, not the canvas
+     * element's CSS size.
+     *
+     * @returns Configured display size, or `Vector2i.zero()` before initialization.
      */
     displaySize: (): Vector2i => {
         const settings = BTAPI.instance.getHardwareSettings();
@@ -172,10 +148,12 @@ export const BT = {
     },
 
     /**
-     * Gets the target frames per second for update() calls.
-     * Update() runs at this fixed rate, while render() runs at a variable rate.
+     * Returns the fixed update rate.
      *
-     * @returns Target frames per second, or 60 if not initialized.
+     * `update()` runs at this target frequency, while rendering may occur at a
+     * different cadence.
+     *
+     * @returns Target updates per second, or `60` before initialization.
      */
     fps: (): number => {
         const settings = BTAPI.instance.getHardwareSettings();
@@ -184,18 +162,19 @@ export const BT = {
     },
 
     /**
-     * Gets the current tick count (increments each update).
-     * Ticks increment once per fixed update call (e.g., 60 times/second at 60 FPS).
+     * Returns the current fixed-update tick counter.
      *
-     * @returns Current tick count since initialization or last reset.
+     * The counter increments once per engine update and is typically used for
+     * frame-based timing.
+     *
+     * @returns Tick count since initialization or the last {@link BT.ticksReset}.
      */
     ticks: (): number => {
         return BTAPI.instance.getTicks();
     },
 
     /**
-     * Resets the tick counter to zero.
-     * Useful for timing-based demo events and animations.
+     * Resets the fixed-update tick counter back to zero.
      */
     ticksReset: (): void => {
         BTAPI.instance.resetTicks();
@@ -206,21 +185,22 @@ export const BT = {
     // #region Rendering - Clear Operations
 
     /**
-     * Clears the screen with a solid color.
-     * Called at the start of each frame to set the background color.
+     * Sets the frame clear color.
      *
-     * @param color - Fill color for the entire screen.
+     * The renderer uses this color when clearing the full display at the start
+     * of the next frame.
+     *
+     * @param color - Color used for the full-screen clear pass.
      */
     clear: (color: Color32): void => {
         BTAPI.instance.setClearColor(color);
     },
 
     /**
-     * Clears a rectangular region with a solid color.
-     * Useful for erasing specific areas of the screen.
+     * Fills a rectangular display region with a solid color.
      *
-     * @param color - Fill color for the region.
-     * @param rect - Region to clear in pixel coordinates.
+     * @param color - Fill color applied to the region.
+     * @param rect - Rectangle in display pixel coordinates.
      */
     clearRect: (color: Color32, rect: Rect2i): void => {
         BTAPI.instance.clearRect(color, rect);
@@ -231,9 +211,9 @@ export const BT = {
     // #region Rendering - Primitives
 
     /**
-     * Draws a single pixel at the specified position.
+     * Draws a single pixel.
      *
-     * @param pos - Pixel coordinates.
+     * @param pos - Target pixel in display coordinates.
      * @param color - Pixel color.
      */
     drawPixel: (pos: Vector2i, color: Color32): void => {
@@ -241,11 +221,12 @@ export const BT = {
     },
 
     /**
-     * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without the antialiasing.
+     * Draws a pixel-perfect line between two points.
      *
-     * @param p0 - Start point.
-     * @param p1 - End point.
+     * Uses rasterized line drawing without antialiasing.
+     *
+     * @param p0 - Start position in display coordinates.
+     * @param p1 - End position in display coordinates.
      * @param color - Line color.
      */
     drawLine: (p0: Vector2i, p1: Vector2i, color: Color32): void => {
@@ -253,9 +234,9 @@ export const BT = {
     },
 
     /**
-     * Draws a rectangle outline (unfilled).
+     * Draws an unfilled rectangle outline.
      *
-     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param rect - Rectangle bounds in display coordinates.
      * @param color - Outline color.
      */
     drawRect: (rect: Rect2i, color: Color32): void => {
@@ -265,7 +246,7 @@ export const BT = {
     /**
      * Draws a filled rectangle.
      *
-     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param rect - Rectangle bounds in display coordinates.
      * @param color - Fill color.
      */
     drawRectFill: (rect: Rect2i, color: Color32): void => {
@@ -277,26 +258,25 @@ export const BT = {
     // #region Camera
 
     /**
-     * Sets the camera offset for scrolling effects.
-     * This amount offsets all drawing operations.
+     * Sets the global camera offset applied to subsequent draw calls.
      *
-     * @param offset - Camera position offset in pixels.
+     * @param offset - Camera translation in display pixels.
      */
     cameraSet: (offset: Vector2i): void => {
         BTAPI.instance.setCameraOffset(offset);
     },
 
     /**
-     * Gets the current camera offset.
+     * Returns the current global camera offset.
      *
-     * @returns Current camera position offset.
+     * @returns Camera translation in display pixels.
      */
     cameraGet: (): Vector2i => {
         return BTAPI.instance.getCameraOffset();
     },
 
     /**
-     * Resets the camera offset to (0, 0).
+     * Resets the global camera offset to `(0, 0)`.
      */
     cameraReset: (): void => {
         BTAPI.instance.resetCamera();
@@ -307,12 +287,13 @@ export const BT = {
     // #region Input - Gamepad Buttons
 
     /**
-     * Checks if a gamepad button is currently held down.
-     * Returns true for every frame the button remains pressed.
+     * Checks whether a gamepad button is currently held.
      *
-     * @param _button - Button constant (BTN_*).
-     * @param _player - Player index (0-3).
-     * @returns True if button is held down, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _button - Button constant from the `BTN_*` set.
+     * @param _player - Zero-based player index.
+     * @returns `true` while the button remains pressed. Returns `false` until the input system is implemented.
      */
     buttonDown: (_button: number, _player: number = 0): boolean => {
         // TODO: Implement input system.
@@ -320,12 +301,13 @@ export const BT = {
     },
 
     /**
-     * Checks if a gamepad button was just pressed this frame.
-     * Returns true only on the first frame the button is pressed.
+     * Checks whether a gamepad button was pressed on the current frame.
      *
-     * @param _button - Button constant (BTN_*).
-     * @param _player - Player index (0-3).
-     * @returns True if button was just pressed, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _button - Button constant from the `BTN_*` set.
+     * @param _player - Zero-based player index.
+     * @returns `true` on the transition frame. Returns `false` until the input system is implemented.
      */
     buttonPressed: (_button: number, _player: number = 0): boolean => {
         // TODO: Implement input system.
@@ -333,12 +315,13 @@ export const BT = {
     },
 
     /**
-     * Checks if a gamepad button was just released this frame.
-     * Returns true only on the first frame the button is released.
+     * Checks whether a gamepad button was released on the current frame.
      *
-     * @param _button - Button constant (BTN_*).
-     * @param _player - Player index (0-3).
-     * @returns True if button was just released, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _button - Button constant from the `BTN_*` set.
+     * @param _player - Zero-based player index.
+     * @returns `true` on the release frame. Returns `false` until the input system is implemented.
      */
     buttonReleased: (_button: number, _player: number = 0): boolean => {
         // TODO: Implement input system.
@@ -350,11 +333,12 @@ export const BT = {
     // #region Input - Keyboard
 
     /**
-     * Checks if a keyboard key is currently held down.
-     * Returns true for every frame the key remains pressed.
+     * Checks whether a keyboard key is currently held.
      *
-     * @param _key - Key code (e.g., "KeyW", "Space", "ArrowUp").
-     * @returns True if key is held down, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
+     * @returns `true` while the key remains pressed. Returns `false` until the input system is implemented.
      */
     keyDown: (_key: string): boolean => {
         // TODO: Implement input system.
@@ -362,11 +346,12 @@ export const BT = {
     },
 
     /**
-     * Checks if a keyboard key was just pressed this frame.
-     * Returns true only on the first frame the key is pressed.
+     * Checks whether a keyboard key was pressed on the current frame.
      *
-     * @param _key - Key code (e.g., "KeyW", "Space", "ArrowUp").
-     * @returns True if key was just pressed, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
+     * @returns `true` on the transition frame. Returns `false` until the input system is implemented.
      */
     keyPressed: (_key: string): boolean => {
         // TODO: Implement input system.
@@ -374,11 +359,12 @@ export const BT = {
     },
 
     /**
-     * Checks if a keyboard key was just released this frame.
-     * Returns true only on the first frame the key is released.
+     * Checks whether a keyboard key was released on the current frame.
      *
-     * @param _key - Key code (e.g., "KeyW", "Space", "ArrowUp").
-     * @returns True if key was just released, false otherwise.
+     * This API is currently a stub and always returns `false`.
+     *
+     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
+     * @returns `true` on the release frame. Returns `false` until the input system is implemented.
      */
     keyReleased: (_key: string): boolean => {
         // TODO: Implement input system.
@@ -390,24 +376,26 @@ export const BT = {
     // #region Text Rendering
 
     /**
-     * Prints placeholder text at the specified position.
-     * Each character is rendered as a simple colored block.
-     * For proper text rendering, use printFont() instead.
+     * Draws basic placeholder text.
      *
-     * @param pos - Text position (top-left corner).
+     * This uses the engine's fallback text rendering. For authored bitmap fonts,
+     * prefer {@link BT.printFont}.
+     *
+     * @param pos - Text origin in display coordinates.
      * @param color - Text color.
-     * @param text - String to display.
+     * @param text - String to render.
      */
     print: (pos: Vector2i, color: Color32, text: string): void => {
         BTAPI.instance.drawText(pos, color, text);
     },
 
     /**
-     * Measures the pixel dimensions of text.
-     * Currently, returns zero vector - implementation pending.
+     * Measures fallback text dimensions.
+     *
+     * This API is not implemented yet and currently returns `Vector2i.zero()`.
      *
      * @param _text - Text string to measure.
-     * @returns Size of text in pixels (currently always zero).
+     * @returns Text size in pixels. Returns `Vector2i.zero()` until measurement support is implemented.
      */
     printMeasure: (_text: string): Vector2i => {
         warnOnce('printMeasure', '[BT.printMeasure] Not yet implemented');
@@ -416,13 +404,15 @@ export const BT = {
     },
 
     /**
-     * Draws text using a bitmap font with variable-width glyphs.
-     * Supports Unicode characters and per-glyph rendering offsets.
+     * Draws text with a bitmap font.
      *
-     * @param font - Bitmap font to use for rendering.
-     * @param pos - Text position (top-left corner).
+     * Supports proportional glyph widths and glyph-level offsets defined by the
+     * supplied {@link BitmapFont}.
+     *
+     * @param font - Font asset used for rendering.
+     * @param pos - Text origin in display coordinates.
      * @param text - String to render.
-     * @param color - Optional text color (defaults to white).
+     * @param color - Optional tint color. Defaults to white when omitted.
      */
     printFont: (font: BitmapFont, pos: Vector2i, text: string, color?: Color32): void => {
         BTAPI.instance.drawBitmapText(font, pos, text, color);
@@ -434,9 +424,10 @@ export const BT = {
 
     /**
      * Captures the next rendered frame as a PNG blob.
-     * The capture happens on the next render cycle after this call.
      *
-     * @returns Promise resolving to a PNG Blob of the rendered frame.
+     * The returned promise resolves after the next render pass has completed.
+     *
+     * @returns PNG image data for the captured frame.
      *
      * @example
      * const blob = await BT.captureFrame();
@@ -448,16 +439,15 @@ export const BT = {
     },
 
     /**
-     * Captures the next rendered frame and triggers a browser file download.
-     * Convenience wrapper around captureFrame() that handles the download flow.
+     * Captures the next rendered frame and downloads it from the browser.
      *
-     * @param filename - Download filename (defaults to "blit-tech-capture.png").
+     * Convenience wrapper around {@link BT.captureFrame} that creates a temporary
+     * object URL and clicks a synthetic anchor element.
+     *
+     * @param filename - Target download filename.
      *
      * @example
-     * // Download with default filename
      * await BT.downloadFrame();
-     *
-     * // Download with custom filename
      * await BT.downloadFrame('screenshot-001.png');
      */
     downloadFrame: async (filename: string = 'blit-tech-capture.png'): Promise<void> => {
@@ -477,29 +467,20 @@ export const BT = {
 
     /**
      * Draws a sprite region from a sprite sheet.
-     * Supports texture batching for optimal performance.
      *
-     * The renderer automatically batches sprites by texture.
-     * Drawing sprites from the same SpriteSheet consecutively
-     * is more efficient than interleaving different textures.
+     * Textures internally batch sprite draws. Grouping draws from the
+     * same {@link SpriteSheet} minimizes batch flushes and reduces GPU state
+     * changes.
      *
-     * PERFORMANCE TIP: Group draw calls by texture to minimize GPU state changes.
-     *
-     * @param spriteSheet - Sprite sheet containing the source texture.
-     * @param srcRect - Source rectangle in the sprite sheet (pixel coordinates).
-     * @param destPos - Destination position on screen (top-left corner).
-     * @param tint - Optional tint color multiplied with texture (defaults to white).
+     * @param spriteSheet - Sprite sheet that owns the source texture.
+     * @param srcRect - Source rectangle within the sprite sheet, in pixels.
+     * @param destPos - Destination top-left position in display coordinates.
+     * @param tint - Optional multiplicative tint. Defaults to white.
      *
      * @example
-     * // Efficient: All from the same sprite sheet.
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10));
      * BT.drawSprite(sheet, new Rect2i(16, 0, 16, 16), new Vector2i(26, 10));
      * BT.drawSprite(sheet, new Rect2i(32, 0, 16, 16), new Vector2i(42, 10));
-     *
-     * // Less efficient: Interleaving textures causes batch flushes.
-     * BT.drawSprite(sheet1, ...);
-     * BT.drawSprite(sheet2, ...); // Flush + texture change
-     * BT.drawSprite(sheet1, ...); // Flush + texture change
      */
     drawSprite: (spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void => {
         BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, tint);
