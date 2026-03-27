@@ -66,12 +66,12 @@ interface BootstrapResult {
 
 /** Error message for WebGPU not supported. */
 const WEBGPU_NOT_SUPPORTED_MESSAGE =
-    'Your browser does not support WebGPU.\n\n' +
+    'The browser does not support WebGPU.\n\n' +
     'Supported browsers:\n' +
     'Chrome/Edge 113+\n' +
     'Firefox Nightly (with the flag enabled)\n' +
     'Safari 18+\n\n' +
-    'Please update your browser or try a different one.';
+    'Please update the browser or try a different one.';
 
 /** Error message for initialization failure. */
 const INIT_FAILED_MESSAGE = 'The engine failed to initialize. Check the console for details.';
@@ -162,7 +162,7 @@ function validateCanvas(
         result = handleBootstrapError(
             'Canvas Error',
             `Failed to find the canvas element with the id '${canvasId}'.\n\n` +
-                'Make sure your HTML includes a canvas element with the correct ID.',
+                'Make sure the HTML includes a canvas element with the correct ID.',
             new Error(`Canvas element '${canvasId}' not found`),
             containerId,
             onError,
@@ -204,8 +204,10 @@ async function initializeDemo(
     let result: BootstrapResult;
 
     if (initialized) {
-        console.log('[BT] Demo started successfully!');
+        console.log('[BT] Demo started successfully');
+
         onSuccess?.();
+
         result = { success: true };
     } else {
         const displayMessage: ErrorContent = initError
@@ -237,7 +239,7 @@ async function initializeDemo(
  *
  * @param DemoClass - Demo class constructor implementing IBlitTechDemo.
  * @param options - Optional configuration for IDs and callbacks.
- * @returns Promise resolving to true if initialization succeeded, false otherwise.
+ * @returns `true` when the demo boots successfully; otherwise `false`.
  *
  * @example
  * // Simplest usage - uses default IDs.
@@ -278,21 +280,25 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
     try {
         // Validate WebGPU support.
         const webGPUResult = validateWebGPU(containerId, onError);
+
         success = webGPUResult.success;
 
         // Validate canvas element.
         if (success) {
             const { canvas, result: canvasResult } = validateCanvas(canvasId, containerId, onError);
+
             success = canvasResult.success;
 
             // Initialize the demo.
             if (success && canvas) {
                 const initResult = await initializeDemo(DemoClass, canvas, containerId, onSuccess, onError);
+
                 success = initResult.success;
             }
         }
     } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
+
         console.error('[BT] Bootstrap error:', error);
 
         handleBootstrapError(
