@@ -2,13 +2,11 @@ import { Vector2i } from './Vector2i';
 
 /**
  * Integer rectangle for pixel-perfect bounds and regions.
- * Inspired by RetroBlit's Rect2i.
  *
- * Performance notes:
- * - Use fromValuesUnchecked() for trusted integer values in hot paths
- * - Use raw value getters (centerX, centerY, right, bottom) to avoid allocations
- * - Use “To” methods (centerTo, minTo, maxTo, etc.) for zero-allocation output
- * - Bitwise |0 is used for integer truncation (truncates toward zero, not floor)
+ * Used throughout the engine for sprite regions, display-space bounds, and
+ * zero-allocation geometry helpers. Both convenience getters and allocation-free
+ * `*To()` helpers are provided so callers can choose between readability and
+ * hot-path efficiency.
  */
 export class Rect2i {
     // #region Cached Static Rectangles
@@ -21,11 +19,7 @@ export class Rect2i {
     // #region Constructor
 
     /**
-     * Creates a new integer rectangle.
-     * All values are truncated to integers using |0.
-     *
-     * Note: For negative non-integers, |0 truncates toward zero (e.g., –1.7 becomes –1).
-     * If you need floor behavior for negative values, use Math.floor before passing.
+     * Creates an integer rectangle, truncating all inputs toward zero.
      *
      * @param x - Left-edge X coordinate (defaults to 0).
      * @param y - Top-edge Y coordinate (defaults to 0).
@@ -57,40 +51,32 @@ export class Rect2i {
     // #region Raw Value Getters (Zero Allocation)
 
     /**
-     * Gets the right edge X coordinate (x + width).
-     * Use this instead of max.x in hot paths to avoid allocation.
-     *
-     * @returns Right edge coordinate.
+     * Gets the exclusive right edge (`x + width`).
+     * @returns Right edge X coordinate.
      */
     get right(): number {
         return this.x + this.width;
     }
 
     /**
-     * Gets the bottom edge Y coordinate (y + height).
-     * Use this instead of max.y in hot paths to avoid allocation.
-     *
-     * @returns Bottom edge coordinate.
+     * Gets the exclusive bottom edge (`y + height`).
+     * @returns Bottom edge Y coordinate.
      */
     get bottom(): number {
         return this.y + this.height;
     }
 
     /**
-     * Gets the center X coordinate.
-     * Use this instead of center.x in hot paths to avoid allocation.
-     *
-     * @returns Center X coordinate (truncated toward zero).
+     * Gets the truncated horizontal center coordinate.
+     * @returns Center X coordinate.
      */
     get centerX(): number {
         return (this.x + this.width / 2) | 0;
     }
 
     /**
-     * Gets the center Y coordinate.
-     * Use this instead of center.y in hot paths to avoid allocation.
-     *
-     * @returns Center Y coordinate (truncated toward zero).
+     * Gets the truncated vertical center coordinate.
+     * @returns Center Y coordinate.
      */
     get centerY(): number {
         return (this.y + this.height / 2) | 0;
@@ -101,44 +87,32 @@ export class Rect2i {
     // #region Computed Properties
 
     /**
-     * Gets the top-left corner of the rectangle.
-     *
-     * Note: Creates a new Vector2i. Use minTo() in hot paths.
-     *
-     * @returns Vector2i representing (x, y).
+     * Gets the top-left corner as a new vector.
+     * @returns Vector2i at (x, y).
      */
     get min(): Vector2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
     }
 
     /**
-     * Gets the bottom-right corner of the rectangle (exclusive).
-     *
-     * Note: Creates a new Vector2i. Use maxTo() in hot paths.
-     *
-     * @returns Vector2i representing (x + width, y + height).
+     * Gets the exclusive bottom-right corner as a new vector.
+     * @returns Vector2i at (x + width, y + height).
      */
     get max(): Vector2i {
         return Vector2i.fromXYUnchecked(this.x + this.width, this.y + this.height);
     }
 
     /**
-     * Gets the center point of the rectangle.
-     *
-     * Note: Creates a new Vector2i. Use centerTo() or centerX/centerY in hot paths.
-     *
-     * @returns Vector2i at the rectangle's center (truncated toward zero).
+     * Gets the truncated center point as a new vector.
+     * @returns Vector2i at the rectangle center.
      */
     get center(): Vector2i {
         return Vector2i.fromXYUnchecked((this.x + this.width / 2) | 0, (this.y + this.height / 2) | 0);
     }
 
     /**
-     * Gets the position (top-left corner) as a vector.
-     *
-     * Note: Creates a new Vector2i. Use x/y directly or positionTo() in hot paths.
-     *
-     * @returns Vector2i representing (x, y).
+     * Gets the top-left position as a new vector.
+     * @returns Vector2i at (x, y).
      */
     get position(): Vector2i {
         return Vector2i.fromXYUnchecked(this.x, this.y);
@@ -155,11 +129,8 @@ export class Rect2i {
     }
 
     /**
-     * Gets the size (width, height) as a vector.
-     *
-     * Note: Creates a new Vector2i. Use width/height directly or sizeTo() in hot paths.
-     *
-     * @returns Vector2i representing (width, height).
+     * Gets the size as a new vector.
+     * @returns Vector2i at (width, height).
      */
     get size(): Vector2i {
         return Vector2i.fromXYUnchecked(this.width, this.height);
@@ -173,6 +144,115 @@ export class Rect2i {
     set size(value: Vector2i) {
         this.width = value.x | 0;
         this.height = value.y | 0;
+    }
+
+    // #endregion
+
+    // #region Static Factory Methods
+
+    /**
+     * Returns a zero-sized rectangle at origin.
+     * Returns a cached frozen singleton - do not modify.
+     *
+     * @returns Rectangle at (0, 0) with size (0, 0) (cached).
+     */
+    static zero(): Rect2i {
+        return Rect2i._zero;
+    }
+
+    /**
+     * Creates a rectangle from two corner points.
+     *
+     * Note: min must be less than or equal to max component-wise.
+     * If min > max on any axis, the resulting width/height will be negative,
+     * which may cause unexpected behavior in intersection/containment tests.
+     *
+     * @param min - Top-left corner.
+     * @param max - Bottom-right corner.
+     * @returns New rectangle spanning from min to max.
+     */
+    static fromMinMax(min: Vector2i, max: Vector2i): Rect2i {
+        // Vector2i values are already integers, use unchecked.
+        return Rect2i.fromValuesUnchecked(min.x, min.y, max.x - min.x, max.y - min.y);
+    }
+
+    /**
+     * Creates a rectangle from two corner points specified as raw coordinates.
+     * Zero allocation alternative to fromMinMax() when you have raw coordinates.
+     *
+     * Note: min coordinates must be less than or equal to max coordinates.
+     * If min > max on any axis, the resulting width/height will be negative.
+     *
+     * @param minX - Left-edge X coordinate.
+     * @param minY - Top-edge Y coordinate.
+     * @param maxX - Right-edge X coordinate.
+     * @param maxY - Bottom-edge Y coordinate.
+     * @returns New rectangle spanning from (minX, minY) to (maxX, maxY).
+     */
+    static fromMinMaxXY(minX: number, minY: number, maxX: number, maxY: number): Rect2i {
+        const x = minX | 0;
+        const y = minY | 0;
+
+        return Rect2i.fromValuesUnchecked(x, y, (maxX | 0) - x, (maxY | 0) - y);
+    }
+
+    /**
+     * Creates a rectangle centered on a point with a given size.
+     *
+     * @param center - Center point of the rectangle.
+     * @param size - Width and height as a vector.
+     * @returns New rectangle centered on the given point.
+     */
+    static fromCenterSize(center: Vector2i, size: Vector2i): Rect2i {
+        // Use |0 to truncate division results.
+        const halfWidth = (size.x / 2) | 0;
+        const halfHeight = (size.y / 2) | 0;
+
+        // All arithmetic on integers, use unchecked.
+        return Rect2i.fromValuesUnchecked(center.x - halfWidth, center.y - halfHeight, size.x, size.y);
+    }
+
+    /**
+     * Creates a rectangle centered on raw coordinates with a given size.
+     * Zero allocation alternative to fromCenterSize() when you have raw coordinates.
+     *
+     * @param centerX - Center X coordinate.
+     * @param centerY - Center Y coordinate.
+     * @param width - Width of the rectangle.
+     * @param height - Height of the rectangle.
+     * @returns New rectangle centered on the given point.
+     */
+    static fromCenterSizeXY(centerX: number, centerY: number, width: number, height: number): Rect2i {
+        const w = width | 0;
+        const h = height | 0;
+        const halfWidth = (w / 2) | 0;
+        const halfHeight = (h / 2) | 0;
+
+        return Rect2i.fromValuesUnchecked((centerX | 0) - halfWidth, (centerY | 0) - halfHeight, w, h);
+    }
+
+    /**
+     * Creates a Rect2i from integer values without truncation.
+     * Use this in hot paths when values are guaranteed to be integers.
+     *
+     * WARNING: Passing non-integer values will result in non-integer rect components.
+     * Only use when you’re certain the values are already integers.
+     *
+     * @param x - Left-edge X coordinate (must be integer).
+     * @param y - Top-edge Y coordinate (must be integer).
+     * @param width - Width in pixels (must be integer).
+     * @param height - Height in pixels (must be integer).
+     * @returns New Rect2i with the specified values.
+     */
+    static fromValuesUnchecked(x: number, y: number, width: number, height: number): Rect2i {
+        const r = Object.create(Rect2i.prototype) as Rect2i;
+
+        r.x = x;
+        r.y = y;
+        r.width = width;
+        r.height = height;
+
+        return r;
     }
 
     // #endregion
@@ -267,9 +347,7 @@ export class Rect2i {
     }
 
     /**
-     * Tests if raw x, y coordinates lie within this rectangle.
-     * Uses half-open interval: includes min, excludes max.
-     * Zero allocation alternative to contains() when you have raw coordinates.
+     * Tests raw coordinates against this rectangle without allocating a vector.
      *
      * @param px - X coordinate to test.
      * @param py - Y coordinate to test.
@@ -297,8 +375,6 @@ export class Rect2i {
     /**
      * Calculates the overlapping region of two rectangles.
      *
-     * Note: Creates a new Rect2i. Use intersectionTo() in hot paths.
-     *
      * @param other - Rectangle to intersect with.
      * @returns New rectangle representing the overlap, or null if no overlap.
      */
@@ -317,8 +393,7 @@ export class Rect2i {
     }
 
     /**
-     * Calculates the overlapping region and writes to an existing rectangle.
-     * Zero allocation alternative to intersection().
+     * Calculates the overlapping region and writes it into an existing rectangle.
      *
      * @param other - Rectangle to intersect with.
      * @param out - Rectangle to write the result to.
@@ -395,7 +470,7 @@ export class Rect2i {
 
     // #endregion
 
-    // #region Utility
+    // #region Utility Methods
 
     /**
      * Checks if this rectangle equals another (all components match).
@@ -576,119 +651,6 @@ export class Rect2i {
         this.height += v * 2;
 
         return this;
-    }
-
-    // #endregion
-
-    // #region Static Constructors
-
-    /**
-     * Returns a zero-sized rectangle at origin.
-     * Returns a cached frozen singleton - do not modify.
-     *
-     * @returns Rectangle at (0, 0) with size (0, 0) (cached).
-     */
-    static zero(): Rect2i {
-        return Rect2i._zero;
-    }
-
-    /**
-     * Creates a rectangle from two corner points.
-     *
-     * Note: min must be less than or equal to max component-wise.
-     * If min > max on any axis, the resulting width/height will be negative,
-     * which may cause unexpected behavior in intersection/containment tests.
-     *
-     * @param min - Top-left corner.
-     * @param max - Bottom-right corner.
-     * @returns New rectangle spanning from min to max.
-     */
-    static fromMinMax(min: Vector2i, max: Vector2i): Rect2i {
-        // Vector2i values are already integers, use unchecked.
-        return Rect2i.fromValuesUnchecked(min.x, min.y, max.x - min.x, max.y - min.y);
-    }
-
-    /**
-     * Creates a rectangle from two corner points specified as raw coordinates.
-     * Zero allocation alternative to fromMinMax() when you have raw coordinates.
-     *
-     * Note: min coordinates must be less than or equal to max coordinates.
-     * If min > max on any axis, the resulting width/height will be negative.
-     *
-     * @param minX - Left-edge X coordinate.
-     * @param minY - Top-edge Y coordinate.
-     * @param maxX - Right-edge X coordinate.
-     * @param maxY - Bottom-edge Y coordinate.
-     * @returns New rectangle spanning from (minX, minY) to (maxX, maxY).
-     */
-    static fromMinMaxXY(minX: number, minY: number, maxX: number, maxY: number): Rect2i {
-        const x = minX | 0;
-        const y = minY | 0;
-
-        return Rect2i.fromValuesUnchecked(x, y, (maxX | 0) - x, (maxY | 0) - y);
-    }
-
-    /**
-     * Creates a rectangle centered on a point with a given size.
-     *
-     * @param center - Center point of the rectangle.
-     * @param size - Width and height as a vector.
-     * @returns New rectangle centered on the given point.
-     */
-    static fromCenterSize(center: Vector2i, size: Vector2i): Rect2i {
-        // Use |0 to truncate division results.
-        const halfWidth = (size.x / 2) | 0;
-        const halfHeight = (size.y / 2) | 0;
-
-        // All arithmetic on integers, use unchecked.
-        return Rect2i.fromValuesUnchecked(center.x - halfWidth, center.y - halfHeight, size.x, size.y);
-    }
-
-    /**
-     * Creates a rectangle centered on raw coordinates with a given size.
-     * Zero allocation alternative to fromCenterSize() when you have raw coordinates.
-     *
-     * @param centerX - Center X coordinate.
-     * @param centerY - Center Y coordinate.
-     * @param width - Width of the rectangle.
-     * @param height - Height of the rectangle.
-     * @returns New rectangle centered on the given point.
-     */
-    static fromCenterSizeXY(centerX: number, centerY: number, width: number, height: number): Rect2i {
-        const w = width | 0;
-        const h = height | 0;
-        const halfWidth = (w / 2) | 0;
-        const halfHeight = (h / 2) | 0;
-
-        return Rect2i.fromValuesUnchecked((centerX | 0) - halfWidth, (centerY | 0) - halfHeight, w, h);
-    }
-
-    // #endregion
-
-    // #region Static Factories
-
-    /**
-     * Creates a Rect2i from integer values without truncation.
-     * Use this in hot paths when values are guaranteed to be integers.
-     *
-     * WARNING: Passing non-integer values will result in non-integer rect components.
-     * Only use when you’re certain the values are already integers.
-     *
-     * @param x - Left-edge X coordinate (must be integer).
-     * @param y - Top-edge Y coordinate (must be integer).
-     * @param width - Width in pixels (must be integer).
-     * @param height - Height in pixels (must be integer).
-     * @returns New Rect2i with the specified values.
-     */
-    static fromValuesUnchecked(x: number, y: number, width: number, height: number): Rect2i {
-        const r = Object.create(Rect2i.prototype) as Rect2i;
-
-        r.x = x;
-        r.y = y;
-        r.width = width;
-        r.height = height;
-
-        return r;
     }
 
     // #endregion
