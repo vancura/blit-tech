@@ -148,7 +148,7 @@ export class Rect2i {
 
     // #endregion
 
-    // #region Zero-Allocation Output Methods
+    // #region Static Factory Methods
 
     /**
      * Returns a zero-sized rectangle at origin.
@@ -231,10 +231,6 @@ export class Rect2i {
         return Rect2i.fromValuesUnchecked((centerX | 0) - halfWidth, (centerY | 0) - halfHeight, w, h);
     }
 
-    // #endregion
-
-    // #region Intersection Tests
-
     /**
      * Creates a Rect2i from integer values without truncation.
      * Use this in hot paths when values are guaranteed to be integers.
@@ -258,6 +254,10 @@ export class Rect2i {
 
         return r;
     }
+
+    // #endregion
+
+    // #region Zero-Allocation Output Methods
 
     /**
      * Writes the top-left corner (min) to an existing vector.
@@ -344,7 +344,7 @@ export class Rect2i {
 
     // #endregion
 
-    // #region Utility
+    // #region Intersection Tests
 
     /**
      * Tests raw coordinates against this rectangle without allocating a vector.
@@ -415,10 +415,6 @@ export class Rect2i {
         return true;
     }
 
-    // #endregion
-
-    // #region In-Place Mutation Methods
-
     /**
      * Calculates intersection depth for collision resolution.
      * Returns how much the rectangles overlap in each axis.
@@ -472,6 +468,10 @@ export class Rect2i {
         return out;
     }
 
+    // #endregion
+
+    // #region Utility Methods
+
     /**
      * Checks if this rectangle equals another (all components match).
      *
@@ -517,6 +517,10 @@ export class Rect2i {
         return `Rect2i(${this.x}, ${this.y}, ${this.width}, ${this.height})`;
     }
 
+    // #endregion
+
+    // #region In-Place Mutation Methods
+
     /**
      * Sets all components of this rectangle.
      * Modifies this rectangle directly for maximum performance.
@@ -537,10 +541,6 @@ export class Rect2i {
 
         return this;
     }
-
-    // #endregion
-
-    // #region Static Constructors
 
     /**
      * Sets only the position of this rectangle, keeping the size unchanged.
@@ -630,10 +630,6 @@ export class Rect2i {
 
         return this;
     }
-
-    // #endregion
-
-    // #region Static Factories
 
     /**
      * Expands this rectangle by different amounts horizontally and vertically.
