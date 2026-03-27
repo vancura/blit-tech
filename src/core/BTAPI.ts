@@ -31,14 +31,14 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Singleton Instance
+    // #region Module State - Demo Instance
 
     /** Current demo instance implementing IBlitTechDemo. */
     private demo: IBlitTechDemo | null = null;
 
     // #endregion
 
-    // #region Module State - Demo Instance
+    // #region Module State - Hardware Settings
 
     /** Hardware configuration settings from the demo. */
     private hwSettings: HardwareSettings | null = null;
@@ -66,20 +66,20 @@ export class BTAPI {
     /** Game loop managing fixed-timestep updates and variable-rate rendering. */
     private loop: GameLoop | null = null;
 
-    /**
-     * Private constructor to enforce singleton access via `BTAPI.instance`.
-     */
-    private constructor() {}
-
     // TODO: Additional subsystems for future implementation:
     // InputManager, AudioManager, EffectsManager, AssetManager
 
     // #endregion
 
-    // #region Constructor
+    // #region Singleton / Constructor
 
     /** Singleton instance of BTAPI. */
     private static _instance: BTAPI | null = null;
+
+    /**
+     * Private constructor to enforce singleton access via `BTAPI.instance`.
+     */
+    private constructor() {}
 
     // #endregion
 
