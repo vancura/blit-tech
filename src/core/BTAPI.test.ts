@@ -1,3 +1,17 @@
+/**
+ * Unit tests for {@link BTAPI}.
+ *
+ * Covers the public engine facade exposed to demos:
+ * - singleton lifecycle and version constants
+ * - safe accessor behavior before initialization
+ * - no-op drawing and camera APIs before renderer setup
+ * - initialization failure cases for invalid hardware settings and WebGPU setup
+ * - successful initialization, accessor population, and loop startup
+ *
+ * The suite isolates global browser and singleton state with WebGPU mocks,
+ * stubbed animation-frame scheduling, and per-test singleton reset helpers.
+ */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -17,7 +31,7 @@ import type { IBlitTechDemo } from './IBlitTechDemo';
 
 function resetSingleton(): void {
     // BTAPI._instance is private; the cast is intentional — there is no public
-    // reset API and this is the least-invasive way to isolate singleton state
+    // reset API, and this is the least-invasive way to isolate singleton state
     // between tests without modifying production code.
     (BTAPI as unknown as { _instance: BTAPI | null })._instance = null;
 }
@@ -49,14 +63,18 @@ function makeMockCanvas(): HTMLCanvasElement {
 describe('BTAPI', () => {
     beforeEach(() => {
         resetSingleton();
+
         vi.resetAllMocks();
         vi.stubGlobal('requestAnimationFrame', vi.fn());
+
         installMockNavigatorGPU();
     });
 
     afterEach(() => {
         resetSingleton();
+
         uninstallMockNavigatorGPU();
+
         vi.unstubAllGlobals();
     });
 
@@ -84,13 +102,17 @@ describe('BTAPI', () => {
         it('should return the same instance on multiple accesses', () => {
             const a = BTAPI.instance;
             const b = BTAPI.instance;
+
             expect(a).toBe(b);
         });
 
         it('should create a new instance after singleton reset', () => {
             const a = BTAPI.instance;
+
             resetSingleton();
+
             const b = BTAPI.instance;
+
             expect(a).not.toBe(b);
         });
     });
@@ -130,6 +152,7 @@ describe('BTAPI', () => {
 
         it('getCameraOffset should return a zero vector before init', () => {
             const offset = BTAPI.instance.getCameraOffset();
+
             expect(offset.x).toBe(0);
             expect(offset.y).toBe(0);
         });
@@ -202,22 +225,27 @@ describe('BTAPI', () => {
     describe('initialize', () => {
         it('should return false for NaN targetFPS', async () => {
             const result = await BTAPI.instance.initialize(makeMockDemo(NaN), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
         it('should return false for zero targetFPS', async () => {
             const result = await BTAPI.instance.initialize(makeMockDemo(0), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
         it('should return false for negative targetFPS', async () => {
             const result = await BTAPI.instance.initialize(makeMockDemo(-30), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
         it('should return false when navigator.gpu is absent', async () => {
             uninstallMockNavigatorGPU();
+
             const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
@@ -233,7 +261,9 @@ describe('BTAPI', () => {
                 writable: true,
                 configurable: true,
             });
+
             const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
@@ -245,7 +275,7 @@ describe('BTAPI', () => {
                         requestAdapter: async () => ({
                             requestDevice: async () => ({
                                 createShaderModule: () => {
-                                    throw new Error('GPU not available');
+                                    throw new Error("GPU isn't available");
                                 },
                             }),
                         }),
@@ -256,12 +286,15 @@ describe('BTAPI', () => {
                 writable: true,
                 configurable: true,
             });
+
             const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
         it('should return false when demo.initialize() returns false', async () => {
             const result = await BTAPI.instance.initialize(makeMockDemo(60, false), makeMockCanvas());
+
             expect(result).toBe(false);
         });
 
@@ -279,11 +312,13 @@ describe('BTAPI', () => {
 
         it('should start the game loop on success', async () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
             expect(requestAnimationFrame).toHaveBeenCalled();
         });
 
         it('stop should not throw after successful initialization', async () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
             expect(() => BTAPI.instance.stop()).not.toThrow();
         });
     });
