@@ -80,7 +80,7 @@ The demos showcase all engine features with a guided learning path from basic co
 
 Create a demo by implementing the `IBlitTechDemo` interface:
 
-```typescript
+```ts
 import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechDemo } from '../src/BlitTech';
 
 class MyDemo implements IBlitTechDemo {
@@ -133,7 +133,7 @@ bootstrap(MyDemo);
 
 For more control over initialization:
 
-```typescript
+```ts
 import { BT, checkWebGPUSupport, displayError, getCanvas } from '../src/BlitTech';
 
 // Manual initialization with custom error handling
@@ -182,7 +182,7 @@ blit-tech/
 The bootstrap utilities provide a streamlined way to initialize demos with automatic WebGPU detection and error
 handling:
 
-```typescript
+```ts
 // One-liner demo startup (recommended)
 bootstrap(MyDemo); // Uses defaults: canvas='blit-tech-canvas', container='canvas-container'
 
@@ -202,7 +202,7 @@ getCanvas(canvasId?); // Get canvas element safely
 
 ### Initialization
 
-```typescript
+```ts
 BT.initialize(demo, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
@@ -212,7 +212,7 @@ BT.ticksReset(); // Reset tick counter
 
 ### Drawing Primitives
 
-```typescript
+```ts
 BT.clear(color); // Clear screen
 BT.clearRect(color, rect); // Clear rectangular region
 BT.drawPixel(pos, color); // Draw single pixel
@@ -223,7 +223,7 @@ BT.drawRectFill(rect, color); // Draw filled rectangle
 
 ### Asset Loading
 
-```typescript
+```ts
 // Load sprite sheet from image (automatically cached)
 const spriteSheet = await SpriteSheet.load('path/to/sprites.png');
 
@@ -241,7 +241,7 @@ if (AssetLoader.isCached('path/to/sprites.png')) {
 
 ### Sprites and Text
 
-```typescript
+```ts
 BT.drawSprite(sheet, srcRect, destPos, tint?); // Draw sprite from sprite sheet
 BT.printFont(font, pos, text, color?); // Draw text using bitmap font
 BT.print(pos, color, text); // Draw placeholder text (colored blocks)
@@ -255,7 +255,7 @@ implemented in `drawSprite()`. They are planned for a future release.
 
 ### Camera
 
-```typescript
+```ts
 BT.cameraSet(offset); // Set camera offset
 BT.cameraGet(); // Get current offset
 BT.cameraReset(); // Reset to (0, 0)
@@ -263,7 +263,7 @@ BT.cameraReset(); // Reset to (0, 0)
 
 ### Core Types
 
-```typescript
+```ts
 // Vectors and rectangles
 Vector2i(x, y); // Integer 2D vector
 Rect2i(x, y, width, height); // Integer rectangle
@@ -320,7 +320,7 @@ The engine displays an error message if the browser doesn’t support WebGPU.
 
 Load sprite sheets from PNG images:
 
-```typescript
+```ts
 const spriteSheet = await SpriteSheet.load('assets/sprites.png');
 BT.drawSprite(spriteSheet, new Rect2i(0, 0, 32, 32), new Vector2i(100, 100));
 ```
@@ -335,7 +335,7 @@ Blit-Tech uses a custom `.btfont` JSON format for bitmap fonts. The format suppo
 
 **Quick example:**
 
-```typescript
+```ts
 const font = await BitmapFont.load('fonts/MyFont.btfont');
 BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
 const width = font.measureText('Hello'); // Measure text width

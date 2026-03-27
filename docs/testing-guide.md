@@ -85,7 +85,7 @@ pnpm add -D vitest @vitest/ui @vitest/coverage-v8 happy-dom
 
 Create `vitest.config.ts`:
 
-```typescript
+```ts
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -192,7 +192,7 @@ tests/
 
 Create `tests/unit/utils/Vector2i.test.ts`:
 
-```typescript
+```ts
 import { describe, expect, it } from 'vitest';
 
 import { Vector2i } from '../../../src/utils/Vector2i';
@@ -294,7 +294,7 @@ describe('Vector2i', () => {
 
 Create `tests/unit/utils/Color32.test.ts`:
 
-```typescript
+```ts
 import { describe, expect, it } from 'vitest';
 
 import { Color32 } from '../../../src/utils/Color32';
@@ -353,7 +353,7 @@ describe('Color32', () => {
 
 Create `tests/unit/utils/Rect2i.test.ts`:
 
-```typescript
+```ts
 import { describe, expect, it } from 'vitest';
 
 import { Rect2i } from '../../../src/utils/Rect2i';
@@ -411,7 +411,7 @@ describe('Rect2i', () => {
 
 Create `tests/unit/mocks/webgpu.ts`:
 
-```typescript
+```ts
 import { vi } from 'vitest';
 
 /**
@@ -470,7 +470,7 @@ pnpm exec playwright install chromium
 
 Create `playwright.config.ts`:
 
-```typescript
+```ts
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
@@ -538,7 +538,7 @@ mkdir -p tests/e2e
 
 Create `tests/e2e/examples.spec.ts`:
 
-```typescript
+```ts
 import { expect, test } from '@playwright/test';
 
 const examples = [
@@ -597,7 +597,7 @@ test.describe('Blit-Tech Examples', () => {
 
 Create `tests/e2e/interactions.spec.ts`:
 
-```typescript
+```ts
 import { expect, test } from '@playwright/test';
 
 test.describe('Interactive Features', () => {
@@ -764,7 +764,7 @@ Coverage reports generated in `coverage/`:
 
 **Solution:** Playwright Chromium may not have WebGPU enabled:
 
-```typescript
+```ts
 // playwright.config.ts
 launchOptions: {
   args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan'];
@@ -775,7 +775,7 @@ launchOptions: {
 
 **Solution:** Use happy-dom environment:
 
-```typescript
+```ts
 // vitest.config.ts
 test: {
   environment: 'happy-dom';

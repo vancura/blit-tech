@@ -76,7 +76,7 @@ tests/visual/
 
 ## Writing a New Test
 
-```typescript
+```ts
 import { describe, expect, it } from 'vitest';
 
 import { MyClass } from './MyClass';
@@ -103,7 +103,7 @@ Conventions:
 
 For tests that need GPU objects, import from the mock factory:
 
-```typescript
+```ts
 import { createMockGPUDevice, createMockGPUTexture } from '../__test__/webgpu-mock';
 
 const device = createMockGPUDevice();

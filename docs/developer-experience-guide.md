@@ -317,7 +317,7 @@ The project uses **dual formatters** for optimal coverage:
 - ESLint enforces code quality
 - JSDoc required for public APIs:
 
-  ```typescript
+  ```ts
   /**
    * Description of the function
    * @param param1 - Description

@@ -5,7 +5,7 @@ per-character offsets, Unicode characters, and either embedded or external textu
 
 ## Quick Start
 
-```typescript
+```ts
 import { BitmapFont, BT, Color32, Vector2i } from 'blit-tech';
 
 // Load a font
@@ -207,7 +207,7 @@ If you prefer to convert manually:
 
 ### BitmapFont
 
-```typescript
+```ts
 class BitmapFont {
   // Load from .btfont file
   static async load(url: string): Promise<BitmapFont>;
@@ -230,7 +230,7 @@ class BitmapFont {
 
 ### BT.printFont()
 
-```typescript
+```ts
 BT.printFont(
   font: BitmapFont,    // The loaded font
   pos: Vector2i,       // Position (top-left corner)
@@ -243,7 +243,7 @@ BT.printFont(
 
 ### Multi-line Text
 
-```typescript
+```ts
 const lines = ['Line 1', 'Line 2', 'Line 3'];
 let y = 10;
 
@@ -255,7 +255,7 @@ for (const line of lines) {
 
 ### Centered Text
 
-```typescript
+```ts
 const text = 'Centered';
 const textWidth = font.measureText(text);
 const screenWidth = BT.displaySize().x;
@@ -266,7 +266,7 @@ BT.printFont(font, new Vector2i(x, 10), text, Color32.white());
 
 ### Rainbow Text Effect
 
-```typescript
+```ts
 let x = 10;
 for (let i = 0; i < text.length; i++) {
   const hue = (i * 30 + animTime * 100) % 360;
