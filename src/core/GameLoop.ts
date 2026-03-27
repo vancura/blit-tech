@@ -6,10 +6,8 @@
  * Implements the accumulator pattern to ensure update() runs at a deterministic
  * rate regardless of frame timing irregularities. render() runs at the browser's
  * native refresh rate.
- *
- * PERFORMANCE CRITICAL: The inner loop runs every frame at 60+ FPS.
- * The accumulator prevents the spiral-of-death by capping the number of update
- * steps per frame to MAX_STEPS.
+ * The accumulator prevents a spiral-of-death catch-up burst by capping the
+ * number of fixed updates processed in a single frame.
  */
 export class GameLoop {
     // #region Constants
@@ -70,9 +68,9 @@ export class GameLoop {
 
     /**
      * Starts the loop.
-     * Uses a double requestAnimationFrame delay before the first tick to ensure
-     * the canvas is fully ready. This fixes timing issues in Electron and some
-     * browsers where the canvas may not be initialized on the first frame.
+     *
+     * Uses a double `requestAnimationFrame` delay before the first tick, so the
+     * surrounding rendering surface is fully ready before timing begins.
      */
     public start(): void {
         if (this.isRunning) {
@@ -92,7 +90,7 @@ export class GameLoop {
 
     /**
      * Stops the loop.
-     * The current frame will complete before the loop exits.
+     * The current frame, if already running, is allowed to finish.
      */
     public stop(): void {
         this.isRunning = false;
@@ -100,7 +98,7 @@ export class GameLoop {
 
     /**
      * Gets the current tick count.
-     * Ticks increment once per fixed update call (e.g., 60 times/second at 60 FPS).
+     * Ticks increment once per fixed update step.
      *
      * @returns Number of update ticks since the loop started or since the last reset.
      */
@@ -120,7 +118,10 @@ export class GameLoop {
     // #region Private Loop
 
     /**
-     * Single frame tick — called by requestAnimationFrame each frame.
+     * Processes one animation frame.
+     *
+     * Advances the accumulator, runs zero or more fixed updates, renders once,
+     * and schedules the next frame while the loop remains active.
      *
      * @param currentTime - High-resolution timestamp provided by rAF, in milliseconds.
      */
