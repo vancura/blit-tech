@@ -16,7 +16,7 @@ pushing significant changes or creating pull requests.
 ## Steps
 
 1. **Run preflight checks**
-   - Execute `pnpm preflight` (format, lint, typecheck, spellcheck, knip)
+   - Execute `pnpm preflight` (format, lint, typecheck, spellcheck, knip, test:unit)
    - If any check fails, report issues and stop
    - All automated checks must pass before AI review
 
