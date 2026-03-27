@@ -9,22 +9,17 @@ import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { initializeWebGPU } from './WebGPUContext';
 
 /**
- * Internal API coordinator for all Blit-Tech subsystems.
- * This is similar to RetroBlit's RBAPI class.
+ * Central runtime facade for Blit-Tech engine services.
  *
- * Manages the lifecycle of all engine subsystems and coordinates
- * the loop. This is a singleton - use BTAPI.instance to access.
+ * `BTAPI` owns engine initialization, keeps references to the active WebGPU
+ * objects and renderer, and exposes the drawing/camera methods used by demos.
+ * It is a singleton; access it through `BTAPI.instance`.
  */
 export class BTAPI {
     // #region Version Constants
 
     /**
-     * Major version number.
-     * Combined with MINOR and PATCH to form a semantic version string.
-     *
-     * @example
-     * const version = `${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`;
-     * console.log(`Blit-Tech v${version}`);
+     * Major semantic-version component.
      */
     public static readonly VERSION_MAJOR = 0;
 
@@ -36,27 +31,24 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Singleton Instance
-
-    /** Singleton instance of BTAPI. */
-    private static _instance: BTAPI | null = null;
-
-    // #endregion
-
     // #region Module State - Demo Instance
 
     /** Current demo instance implementing IBlitTechDemo. */
     private demo: IBlitTechDemo | null = null;
 
+    // #endregion
+
+    // #region Module State - Hardware Settings
+
     /** Hardware configuration settings from the demo. */
     private hwSettings: HardwareSettings | null = null;
+
+    /** WebGPU device for GPU operations. */
+    private device: GPUDevice | null = null;
 
     // #endregion
 
     // #region Module State - WebGPU Resources
-
-    /** WebGPU device for GPU operations. */
-    private device: GPUDevice | null = null;
 
     /** WebGPU canvas context for presenting frames. */
     private context: GPUCanvasContext | null = null;
@@ -64,12 +56,12 @@ export class BTAPI {
     /** HTML canvas element used for rendering. */
     private canvas: HTMLCanvasElement | null = null;
 
+    /** Renderer subsystem for all drawing operations. */
+    private renderer: Renderer | null = null;
+
     // #endregion
 
     // #region Module State - Subsystems
-
-    /** Renderer subsystem for all drawing operations. */
-    private renderer: Renderer | null = null;
 
     /** Game loop managing fixed-timestep updates and variable-rate rendering. */
     private loop: GameLoop | null = null;
@@ -79,11 +71,13 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Constructor
+    // #region Singleton / Constructor
+
+    /** Singleton instance of BTAPI. */
+    private static _instance: BTAPI | null = null;
 
     /**
-     * The private constructor to enforce the singleton pattern.
-     * Use BTAPI.instance to access the singleton.
+     * Private constructor to enforce singleton access via `BTAPI.instance`.
      */
     private constructor() {}
 
@@ -92,11 +86,7 @@ export class BTAPI {
     // #region Singleton Access
 
     /**
-     * Gets the singleton BTAPI instance.
-     * Creates the instance on first access if it doesn't exist (lazy initialization).
-     *
-     * Thread-safe in JavaScript's single-threaded environment.
-     * The instance is created once and reused for all following calls.
+     * Gets the lazily created singleton instance.
      *
      * @returns The global BTAPI instance.
      */
@@ -113,12 +103,17 @@ export class BTAPI {
     // #region Initialization
 
     /**
-     * Initializes the engine with a demo instance and canvas element.
-     * Sets up WebGPU, creates the renderer, and starts the loop.
+     * Initializes the engine for a demo and starts the main loop on success.
+     *
+     * The initialization sequence is:
+     * - query hardware settings from the demo
+     * - initialize WebGPU and create the renderer
+     * - run the demo's async `initialize()`
+     * - start the fixed-timestep game loop
      *
      * @param demo - Demo implementing the IBlitTechDemo interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
-     * @returns Promise resolving to true if initialization succeeded.
+     * @returns `true` when initialization succeeds; otherwise `false`.
      */
     public async initialize(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
         console.log(`[BT] Initializing engine v${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
@@ -127,7 +122,7 @@ export class BTAPI {
         this.canvas = canvas;
 
         // Query hardware settings from the demo.
-        console.log('[BT] Querying hardware settings...');
+        console.log('[BT] Querying hardware settings');
 
         this.hwSettings = demo.queryHardware();
 
@@ -163,7 +158,7 @@ export class BTAPI {
         this.context = webGPUResult.context;
 
         // Initialize subsystems.
-        console.log('[BT] Initializing renderer...');
+        console.log('[BT] Initializing renderer');
 
         this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
 
@@ -178,7 +173,7 @@ export class BTAPI {
         // TODO: Initialize input, audio, etc.
 
         // Initialize the demo.
-        console.log('[BT] Initializing demo...');
+        console.log('[BT] Initializing demo');
 
         if (!(await demo.initialize())) {
             console.error('[BT] Demo initialization failed');
@@ -202,14 +197,13 @@ export class BTAPI {
 
         this.loop.start();
 
-        console.log('[BT] Initialization complete!');
+        console.log('[BT] Initialization complete');
 
         return true;
     }
 
     /**
-     * Stops the loop.
-     * The loop will exit after the current frame completes.
+     * Stops the active game loop if one exists.
      */
     public stop(): void {
         this.loop?.stop();
@@ -238,7 +232,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the current hardware settings.
+     * Gets the hardware settings returned by the active demo.
      *
      * @returns Hardware configuration, or null if not initialized.
      */
@@ -251,7 +245,7 @@ export class BTAPI {
     // #region WebGPU Resource Accessors
 
     /**
-     * Gets the WebGPU device for advanced rendering operations.
+     * Gets the initialized WebGPU device.
      *
      * @returns GPU device, or null if not initialized.
      */
@@ -260,7 +254,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the WebGPU canvas context.
+     * Gets the configured WebGPU canvas context.
      *
      * @returns Canvas context, or null if not initialized.
      */
@@ -269,7 +263,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the canvas element.
+     * Gets the canvas bound during initialization.
      *
      * @returns HTML canvas element, or null if not initialized.
      */
@@ -278,7 +272,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the renderer instance for advanced rendering operations.
+     * Gets the renderer created during initialization.
      *
      * @returns Renderer instance, or null if not initialized.
      */
@@ -325,7 +319,7 @@ export class BTAPI {
 
     /**
      * Draws a line between two points using Bresenham's algorithm.
-     * Produces pixel-perfect lines without the antialiasing.
+     * Produces pixel-perfect lines without antialiasing.
      *
      * @param p0 - Start point.
      * @param p1 - End point.
@@ -373,7 +367,7 @@ export class BTAPI {
 
     /**
      * Draws a sprite region from a sprite sheet.
-     * Supports texture batching for optimal performance.
+     * The renderer may batch compatible sprite draws internally.
      *
      * @param spriteSheet - Source sprite sheet texture.
      * @param srcRect - Region to copy from the sprite sheet.
@@ -386,7 +380,7 @@ export class BTAPI {
 
     /**
      * Draws text using a bitmap font with variable-width glyphs.
-     * Supports Unicode characters and per-glyph rendering offsets.
+     * Supports Unicode characters and per-glyph render offsets.
      *
      * @param font - Bitmap font containing character glyphs.
      * @param pos - Text position (top-left corner).
@@ -403,14 +397,14 @@ export class BTAPI {
 
     /**
      * Captures the next rendered frame as a PNG blob.
-     * The capture occurs on the next render cycle.
+     * The capture occurs on the next completed render cycle.
      *
      * @returns Promise resolving to a PNG Blob.
      * @throws Error if the renderer is not initialized.
      */
     public captureFrame(): Promise<Blob> {
         if (!this.renderer) {
-            return Promise.reject(new Error('[BT] Cannot capture frame: renderer not initialized'));
+            return Promise.reject(new Error("[BT] Can't capture frame: renderer not initialized"));
         }
 
         return this.renderer.captureFrame();
@@ -422,7 +416,7 @@ export class BTAPI {
 
     /**
      * Sets the camera offset for scrolling effects.
-     * This amount offsets all drawing operations.
+     * The offset is applied to subsequent renderer draw calls.
      *
      * @param offset - Camera position offset in pixels.
      */
