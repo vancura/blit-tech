@@ -1,3 +1,18 @@
+/**
+ * Unit tests for {@link SpriteSheet}.
+ *
+ * Covers the responsibilities that sit between loaded image assets and GPU
+ * rendering:
+ * - normalized UV calculation from pixel-space rectangles
+ * - reported sheet dimensions and source image access
+ * - lazy GPU texture creation, caching, and recreation after destroy
+ * - cleanup of GPU textures and temporary `ImageBitmap` instances
+ * - `load()` behavior when bitmap decoding succeeds or falls back
+ *
+ * GPU-facing behavior is verified with the local WebGPU mock helpers and
+ * stubbed asset-loading/browser APIs.
+ */
+
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';

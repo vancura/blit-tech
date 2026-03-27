@@ -3,12 +3,18 @@ import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 
 /**
- * Sprite sheet asset for GPU-accelerated sprite rendering.
- * Manages an image and its corresponding GPU texture.
- * Provides UV coordinate calculation for sprite regions.
+ * Sprite-sheet wrapper around a loaded image asset.
+ *
+ * The class keeps the original image available for CPU-side inspection while
+ * lazily creating and caching a GPU texture for rendering. When possible,
+ * `load()` also pre-decodes the source into an `ImageBitmap` so texture uploads
+ * preserve pixel-art alpha and color values more reliably.
  */
 export class SpriteSheet {
     // #region Module State
+
+    /** Sprite sheet dimensions in pixels. */
+    public readonly size: Vector2i;
 
     /** Source HTML image element. */
     private readonly image: HTMLImageElement;
@@ -18,9 +24,6 @@ export class SpriteSheet {
 
     /** GPU texture created lazily on first use. */
     private texture: GPUTexture | null = null;
-
-    /** Sprite sheet dimensions in pixels. */
-    public readonly size: Vector2i;
 
     // #endregion
 
@@ -43,7 +46,10 @@ export class SpriteSheet {
 
     /**
      * Loads a sprite sheet from an image URL.
-     * Creates an ImageBitmap with proper alpha handling for pixel-perfect rendering.
+     *
+     * Attempts to create an `ImageBitmap` with explicit alpha and color-space
+     * settings for more predictable GPU uploads. If bitmap creation fails, the
+     * instance still works and falls back to uploading the `HTMLImageElement`.
      *
      * @param url - Path or URL to the image file.
      * @returns Promise resolving to the loaded SpriteSheet.
@@ -86,7 +92,8 @@ export class SpriteSheet {
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
-     * Texture is created on first access and cached for the reuse.
+     * Texture is created on first access and cached for reuse until `destroy()`
+     * is called.
      *
      * @param device - WebGPU device for texture creation.
      * @returns GPU texture ready for rendering.
@@ -98,36 +105,6 @@ export class SpriteSheet {
 
         // Safe assertion: createTexture always initializes this.texture.
         return this.texture as GPUTexture;
-    }
-
-    // #endregion
-
-    // #region Texture Creation
-
-    /**
-     * Creates and uploads the GPU texture from the image.
-     * Uses ImageBitmap if available (from load()), otherwise falls back to HTMLImageElement.
-     *
-     * @param device - WebGPU device for texture creation.
-     */
-    private createTexture(device: GPUDevice): void {
-        this.texture = device.createTexture({
-            label: 'Sprite Sheet Texture',
-            size: [this.size.x, this.size.y, 1],
-            format: 'rgba8unorm',
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-        });
-
-        // Prefer ImageBitmap (correct alpha handling) over HTMLImageElement.
-        const source = this.imageBitmap ?? this.image;
-
-        device.queue.copyExternalImageToTexture({ source }, { texture: this.texture }, [this.size.x, this.size.y]);
-
-        // Close ImageBitmap after the upload to free resources.
-        if (this.imageBitmap) {
-            this.imageBitmap.close();
-            this.imageBitmap = null;
-        }
     }
 
     // #endregion
@@ -156,9 +133,10 @@ export class SpriteSheet {
 
     /**
      * Releases the GPU texture from memory.
-     * Call when the sprite sheet is no longer needed.
      *
-     * @returns void
+     * Also closes any retained `ImageBitmap` that has not yet been uploaded.
+     * After calling this method, a subsequent `getTexture()` call will recreate
+     * the GPU texture from the original image.
      */
     destroy(): void {
         if (this.texture) {
@@ -166,6 +144,38 @@ export class SpriteSheet {
             this.texture = null;
         }
 
+        if (this.imageBitmap) {
+            this.imageBitmap.close();
+            this.imageBitmap = null;
+        }
+    }
+
+    // #endregion
+
+    // #region Texture Creation
+
+    /**
+     * Creates and uploads the GPU texture from the image.
+     *
+     * Uses `ImageBitmap` when available, then releases it immediately after the
+     * upload to avoid holding duplicate image resources in memory.
+     *
+     * @param device - WebGPU device for texture creation.
+     */
+    private createTexture(device: GPUDevice): void {
+        this.texture = device.createTexture({
+            label: 'Sprite Sheet Texture',
+            size: [this.size.x, this.size.y, 1],
+            format: 'rgba8unorm',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+
+        // Prefer ImageBitmap (correct alpha handling) over HTMLImageElement.
+        const source = this.imageBitmap ?? this.image;
+
+        device.queue.copyExternalImageToTexture({ source }, { texture: this.texture }, [this.size.x, this.size.y]);
+
+        // Close ImageBitmap after the upload to free resources.
         if (this.imageBitmap) {
             this.imageBitmap.close();
             this.imageBitmap = null;
