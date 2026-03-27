@@ -7,19 +7,17 @@ import { Vector2i } from '../utils/Vector2i';
 // #region Configuration
 
 /**
- * Maximum number of sprite vertices per a frame.
- * Each vertex uses 8 floats (x, y, u, v, r, g, b, a).
- * 50k vertices = ~1.6 MB buffer, supports ~8.3k sprites per a frame.
+ * Maximum number of sprite vertices retained for a frame.
  */
 const MAX_SPRITE_VERTICES = 50000;
 
 // #endregion
 
 /**
- * WebGPU sprite rendering pipeline.
- * Handles textured quads (sprites, bitmap text) with tinting.
- * Batches draws by texture to minimize GPU state changes.
- * Vertices are accumulated per-frame and drawn at frame end via encodePass().
+ * Batched WebGPU pipeline for textured quads.
+ *
+ * The pipeline collects sprite and bitmap-text vertices during a frame, groups
+ * them by texture, and emits one draw call per texture batch in `encodePass()`.
  */
 export class SpritePipeline {
     // #region State
@@ -55,7 +53,7 @@ export class SpritePipeline {
     /** Currently bound texture for sprite rendering. */
     private currentTexture: GPUTexture | null = null;
 
-    /** Currently bound bind group for sprite rendering. */
+    /** Currently bound group for sprite rendering. */
     private currentBindGroup: GPUBindGroup | null = null;
 
     /** Cache of texture bind groups for reuse. WeakMap allows GC to collect destroyed textures. */
@@ -82,8 +80,8 @@ export class SpritePipeline {
     // #region Constructor
 
     /**
-     * Creates a new SpritePipeline.
-     * Call initialize() before any drawing operations.
+     * Creates an empty sprite pipeline.
+     * Call `initialize()` before encoding GPU work.
      */
     constructor() {
         this.vertices = new Float32Array(MAX_SPRITE_VERTICES * 8);
@@ -94,20 +92,132 @@ export class SpritePipeline {
     // #region Initialization
 
     /**
-     * Initializes the WebGPU pipeline, GPU buffers, and sampler.
-     * Must be called before any drawing operations.
+     * Initializes the GPU pipeline state, vertex buffer, and sampler.
      *
      * @param device - WebGPU device for GPU operations.
      * @param displaySize - Render target resolution in pixels.
      */
     async initialize(device: GPUDevice, displaySize: Vector2i): Promise<void> {
         this.device = device;
+
         await this.createPipeline(displaySize);
     }
 
+    // #endregion
+
+    // #region Camera
+
     /**
-     * Creates the WGSL shader, render pipeline, GPU buffers, and sampler for textured sprites.
-     * Vertices contain position, UV coordinates, and tint color.
+     * Sets the camera offset applied to all drawing operations.
+     *
+     * @param offset - Camera position in pixels.
+     */
+    setCameraOffset(offset: Vector2i): void {
+        this.cameraOffset = offset;
+    }
+
+    /**
+     * Draws a sprite region from a sprite sheet.
+     *
+     * @param spriteSheet - Source sprite sheet.
+     * @param srcRect - Region to copy from the sprite sheet.
+     * @param destPos - Screen position to draw at.
+     * @param tint - Tint color multiplied with texture (defaults to white).
+     */
+    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint: Color32 = Color32.white()): void {
+        const texture = spriteSheet.getTexture(this.device as GPUDevice);
+        const uvs = spriteSheet.getUVs(srcRect);
+
+        // Use a pre-allocated vector for size to avoid allocation.
+        this.tempSize.set(srcRect.width, srcRect.height);
+
+        this.drawTexturedQuad(texture, destPos, this.tempSize, uvs.u0, uvs.v0, uvs.u1, uvs.v1, tint);
+    }
+
+    /**
+     * Draws text using a bitmap font.
+     * Renders each character as a textured sprite using glyph metadata from the font.
+     *
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param color - Text color multiplied with font texture.
+     */
+    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
+        const spriteSheet = font.getSpriteSheet();
+        let cursorX = pos.x;
+        const len = text.length;
+
+        // The optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
+        for (let i = 0; i < len; i++) {
+            const code = text.charCodeAt(i);
+            const glyph = font.getGlyphByCode(code);
+
+            if (glyph) {
+                // Use a pre-allocated vector to avoid allocation per character.
+                this.tempVec.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
+                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, color);
+
+                cursorX += glyph.advance;
+            }
+        }
+    }
+
+    // #endregion
+
+    // #region Drawing
+
+    /**
+     * Uploads accumulated sprite data and encodes draw calls for each texture batch.
+     * No-op when nothing has been queued for the current frame.
+     *
+     * @param renderPass - Active render pass encoder.
+     */
+    encodePass(renderPass: GPURenderPassEncoder): void {
+        // Flush any remaining vertices into the batch queue.
+        this.flushCurrentBatch();
+
+        if (this.batches.length === 0 || this.totalVertices === 0) {
+            return;
+        }
+
+        // Upload all sprite vertices at once.
+        // Safe assertions: these resources are created in initialize() before any rendering.
+        (this.device as GPUDevice).queue.writeBuffer(
+            this.vertexBuffer as GPUBuffer,
+            0,
+            this.vertices.buffer,
+            0,
+            this.totalVertices * 8 * 4,
+        );
+
+        renderPass.setPipeline(this.pipeline as GPURenderPipeline);
+        renderPass.setVertexBuffer(0, this.vertexBuffer as GPUBuffer);
+
+        // Draw each batch with its own bind group (texture).
+        for (const batch of this.batches) {
+            renderPass.setBindGroup(0, batch.bindGroup);
+            renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
+        }
+    }
+
+    // #endregion
+
+    // #region Frame Rendering
+
+    /**
+     * Clears all per-frame batching state.
+     */
+    reset(): void {
+        this.vertexCount = 0;
+        this.totalVertices = 0;
+        this.batches = [];
+        this.currentTexture = null;
+        this.currentBindGroup = null;
+    }
+
+    /**
+     * Creates shader modules, pipeline state, GPU buffers, and the sprite sampler.
      *
      * @param displaySize - Render target resolution in pixels.
      */
@@ -233,126 +343,12 @@ export class SpritePipeline {
 
     // #endregion
 
-    // #region Camera
-
-    /**
-     * Sets the camera offset applied to all drawing operations.
-     *
-     * @param offset - Camera position in pixels.
-     */
-    setCameraOffset(offset: Vector2i): void {
-        this.cameraOffset = offset;
-    }
-
-    // #endregion
-
-    // #region Drawing
-
-    /**
-     * Draws a sprite region from a sprite sheet.
-     *
-     * @param spriteSheet - Source sprite sheet.
-     * @param srcRect - Region to copy from the sprite sheet.
-     * @param destPos - Screen position to draw at.
-     * @param tint - Tint color multiplied with texture (defaults to white).
-     */
-    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint: Color32 = Color32.white()): void {
-        const texture = spriteSheet.getTexture(this.device as GPUDevice);
-        const uvs = spriteSheet.getUVs(srcRect);
-
-        // Use a pre-allocated vector for size to avoid allocation.
-        this.tempSize.set(srcRect.width, srcRect.height);
-
-        this.drawTexturedQuad(texture, destPos, this.tempSize, uvs.u0, uvs.v0, uvs.u1, uvs.v1, tint);
-    }
-
-    /**
-     * Draws text using a bitmap font.
-     * Renders each character as a textured sprite.
-     *
-     * @param font - Bitmap font with character glyphs.
-     * @param pos - Text position (top-left corner).
-     * @param text - String to render.
-     * @param color - Text color multiplied with font texture.
-     */
-    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
-        const spriteSheet = font.getSpriteSheet();
-        let cursorX = pos.x;
-        const len = text.length;
-
-        // The optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
-        for (let i = 0; i < len; i++) {
-            const code = text.charCodeAt(i);
-            const glyph = font.getGlyphByCode(code);
-
-            if (glyph) {
-                // Use a pre-allocated vector to avoid allocation per character.
-                this.tempVec.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
-                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, color);
-                cursorX += glyph.advance;
-            }
-        }
-    }
-
-    // #endregion
-
-    // #region Frame Rendering
-
-    /**
-     * Encodes all accumulated sprite batches into the given render pass.
-     * Flushes the current batch, uploads all vertex data to GPU, and issues draw calls.
-     * No-op if no sprites were accumulated this frame.
-     *
-     * @param renderPass - Active render pass encoder.
-     */
-    encodePass(renderPass: GPURenderPassEncoder): void {
-        // Flush any remaining vertices into the batch queue.
-        this.flushCurrentBatch();
-
-        if (this.batches.length === 0 || this.totalVertices === 0) {
-            return;
-        }
-
-        // Upload all sprite vertices at once.
-        // Safe assertions: these resources are created in initialize() before any rendering.
-        (this.device as GPUDevice).queue.writeBuffer(
-            this.vertexBuffer as GPUBuffer,
-            0,
-            this.vertices.buffer,
-            0,
-            this.totalVertices * 8 * 4,
-        );
-
-        renderPass.setPipeline(this.pipeline as GPURenderPipeline);
-        renderPass.setVertexBuffer(0, this.vertexBuffer as GPUBuffer);
-
-        // Draw each batch with its own bind group (texture).
-        for (const batch of this.batches) {
-            renderPass.setBindGroup(0, batch.bindGroup);
-            renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
-        }
-    }
-
-    /**
-     * Resets all per-frame state.
-     * Call at the start and end of each frame.
-     */
-    reset(): void {
-        this.vertexCount = 0;
-        this.totalVertices = 0;
-        this.batches = [];
-        this.currentTexture = null;
-        this.currentBindGroup = null;
-    }
-
-    // #endregion
-
     // #region Private Helpers
 
     /**
      * Draws a textured quad (two triangles) to the screen.
-     * Handles texture switching and batch flushing.
-     * Ensures complete quads are added atomically to prevent partial geometry.
+     * Handles texture switching and keeps quad emission atomic, so partial quads
+     * are never left in the frame buffer.
      *
      * @param texture - GPU texture to sample from.
      * @param pos - Screen position (top-left corner).
@@ -427,12 +423,13 @@ export class SpritePipeline {
     private hasSpaceForQuad(): boolean {
         const index = (this.totalVertices + this.vertexCount) * 8;
         const quadSize = 6 * 8; // 6 vertices * 8 floats per vertex
+
         return index + quadSize <= this.vertices.length;
     }
 
     /**
      * Saves the current sprite batch and prepares for a new texture.
-     * Called automatically when texture changes or at frame end.
+     * Called automatically when the active texture changes or before encoding.
      */
     private flushCurrentBatch(): void {
         if (this.vertexCount === 0 || !this.currentBindGroup) {
@@ -452,7 +449,7 @@ export class SpritePipeline {
 
     /**
      * Adds a sprite vertex to the batch.
-     * Assumes buffer space was pre-checked via hasSpaceForQuad() in drawTexturedQuad().
+     * Assumes buffer space has already been reserved by `drawTexturedQuad()`.
      *
      * @param x - X position in pixels.
      * @param y - Y position in pixels.
@@ -482,10 +479,10 @@ export class SpritePipeline {
 
     /**
      * Gets or creates a bind group for a texture.
-     * Bind groups are cached for reuse.
+     * Bind groups are cached per texture for reuse across frames.
      *
      * @param texture - GPU texture to create the bind group for.
-     * @returns Bind group containing uniform buffer, sampler and texture.
+     * @returns Bind group containing uniform buffer, sampler, and texture.
      */
     private getOrCreateBindGroup(texture: GPUTexture): GPUBindGroup {
         const existingBindGroup = this.textureBindGroups.get(texture);
