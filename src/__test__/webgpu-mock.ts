@@ -80,8 +80,8 @@ export function createMockGPUDevice(): GPUDevice {
         createBindGroup: () => ({ label: 'MockBindGroup' }) as unknown as GPUBindGroup,
         createSampler: () => ({ label: 'MockSampler' }) as unknown as GPUSampler,
         createTexture: (desc: GPUTextureDescriptor) => {
-            let width = 256;
-            let height = 256;
+            let width: number;
+            let height: number;
 
             if (typeof desc.size === 'number') {
                 width = desc.size;
@@ -128,7 +128,6 @@ export function createMockGPUDevice(): GPUDevice {
 export function createMockGPUCanvasContext(): GPUCanvasContext {
     return {
         configure: () => {},
-        unconfigure: () => {},
         getCurrentTexture: () => createMockGPUTexture(),
         canvas: {} as HTMLCanvasElement,
     } as unknown as GPUCanvasContext;
@@ -154,7 +153,7 @@ export function installMockNavigatorGPU(): void {
     };
 
     // Use Object.defineProperty to override navigator (may be a getter in Node.js).
-    const existingNav = typeof navigator !== 'undefined' ? navigator : {};
+    const existingNav = typeof navigator === 'undefined' ? {} : navigator;
     Object.defineProperty(globalThis, 'navigator', {
         value: { ...existingNav, gpu: mockGPU },
         writable: true,
