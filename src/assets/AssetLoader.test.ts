@@ -1,3 +1,17 @@
+/**
+ * Unit tests for {@link AssetLoader}.
+ *
+ * Verifies the image-loading contract exposed to the rest of the asset
+ * pipeline:
+ * - cache inspection and reset helpers
+ * - single, batched, and concurrent image loads
+ * - deduplication of in-flight requests
+ * - rejection and cache cleanup when loads fail
+ *
+ * Browser image loading is simulated with stubbed `Image` globals so the suite
+ * stays deterministic and does not depend on network or DOM behavior.
+ */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AssetLoader } from './AssetLoader';
@@ -33,6 +47,7 @@ describe('AssetLoader', () => {
                     onerror: (() => void) | null = null;
                     width = 100;
                     height = 100;
+
                     set src(_: string) {
                         this.onload?.();
                     }
@@ -79,7 +94,9 @@ describe('AssetLoader', () => {
 
                     set src(value: string) {
                         this._src = value;
+
                         createCount++;
+
                         this.onload?.();
                     }
                 },
@@ -159,7 +176,7 @@ describe('AssetLoader', () => {
             vi.unstubAllGlobals();
         });
 
-        it('should reject when image fails to load', async () => {
+        it('should reject when the image fails to load', async () => {
             await expect(AssetLoader.loadImage('fail.png')).rejects.toThrow('Failed to load image: fail.png');
         });
 

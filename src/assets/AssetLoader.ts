@@ -1,34 +1,44 @@
 // #region Module State
 
 /**
- * Cache of loaded images by URL.
- * Prevents reloading the same image multiple times.
+ * Successfully loaded images keyed by request URL.
+ *
+ * This acts as the resolved asset cache for callers that want instant reuse of
+ * images that have already completed loading.
  */
 const loadedImages = new Map<string, HTMLImageElement>();
 
 /**
- * Map of in-progress image load promises by URL.
- * Deduplicates concurrent requests for the same image.
+ * In-flight image requests keyed by request URL.
+ *
+ * Keeping pending promises here lets concurrent callers share the same browser
+ * load rather than creating duplicate `Image` instances for the same asset.
  */
 const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
 
 // #endregion
 
 /**
- * Simple asset loader for images and other resources.
- * Provides caching and parallel loading capabilities.
+ * Shared image-loading utility for runtime asset code.
+ *
+ * `AssetLoader` exposes a small static API that:
+ * - loads individual images or batches of images
+ * - caches successfully resolved `HTMLImageElement` instances by URL
+ * - deduplicates concurrent requests for the same URL
+ * - exposes cache inspection and reset helpers for engine code and tests
  */
 export class AssetLoader {
     // #region Image loading
 
     /**
-     * Loads an image from a URL with automatic caching.
-     * Returns cached image immediately if already loaded.
-     * Deduplicates concurrent requests for the same URL.
+     * Loads an image and caches the resolved element by URL.
+     *
+     * Reuses an already-cached image immediately and shares a single in-flight
+     * promise when multiple callers request the same URL concurrently.
      *
      * @param url - Path or URL to the image file.
-     * @returns Promise resolving to the loaded HTMLImageElement.
-     * @throws Error if image fails to load.
+     * @returns Loaded image element for the requested URL.
+     * @throws Error if the image cannot be loaded.
      */
     static async loadImage(url: string): Promise<HTMLImageElement> {
         // Return cached image if available.
@@ -51,15 +61,12 @@ export class AssetLoader {
 
             img.onload = () => {
                 loadedImages.set(url, img);
-
                 loadingPromises.delete(url);
-
                 resolve(img);
             };
 
             img.onerror = () => {
                 loadingPromises.delete(url);
-
                 reject(new Error(`Failed to load image: ${url}`));
             };
 
@@ -72,11 +79,11 @@ export class AssetLoader {
     }
 
     /**
-     * Loads multiple images in parallel for faster loading.
-     * All images are loaded concurrently using Promise.all.
+     * Loads multiple images concurrently.
      *
      * @param urls - Array of image paths or URLs.
-     * @returns Promise resolving to an array of loaded images in same order.
+     * @returns Loaded image elements in the same order as `urls`.
+     * @throws Error if any requested image fails to load.
      */
     static async loadImages(urls: string[]): Promise<HTMLImageElement[]> {
         return Promise.all(urls.map((url) => AssetLoader.loadImage(url)));
@@ -90,26 +97,27 @@ export class AssetLoader {
      * Checks if an image is already loaded and cached.
      *
      * @param url - Path or URL to check.
-     * @returns True if image is in cache and ready to use.
+     * @returns `true` if the image is already cached and ready to use.
      */
     static isLoaded(url: string): boolean {
         return loadedImages.has(url);
     }
 
     /**
-     * Gets a previously loaded image from the cache.
-     * Doesn't trigger a new load if not found.
+     * Returns a previously loaded image from the cache without starting a new request.
      *
      * @param url - Path or URL of the cached image.
      * @returns The cached image, or null if not loaded.
      */
     static getImage(url: string): HTMLImageElement | null {
-        return loadedImages.get(url) || null;
+        return loadedImages.get(url) ?? null;
     }
 
     /**
      * Clears all in-memory caches. In-flight image requests aren't aborted
      * and may repopulate the cache once complete.
+     *
+     * Primarily intended for tests or explicit asset-lifecycle resets.
      */
     static clear(): void {
         loadedImages.clear();
