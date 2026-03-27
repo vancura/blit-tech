@@ -419,10 +419,6 @@ export class Vector2i {
         return this.x * other.x + this.y * other.y;
     }
 
-    // #endregion
-
-    // #region In-Place Mutation Methods
-
     /**
      * Calculates the 2D cross-product (perpendicular dot product).
      * Returns the z-component of the 3D cross-product if vectors were in XY plane.
@@ -609,6 +605,10 @@ export class Vector2i {
         return out;
     }
 
+    // #endregion
+
+    // #region In-Place Mutation Methods
+
     /**
      * Adds another vector to this one in place.
      * Modifies this vector directly for maximum performance.
@@ -641,10 +641,6 @@ export class Vector2i {
 
         return this;
     }
-
-    // #endregion
-
-    // #region Distance Calculations
 
     /**
      * Subtracts another vector from this one in place.
@@ -813,10 +809,6 @@ export class Vector2i {
 
         return this;
     }
-
-    // #endregion
-
-    // #region Normalization
 
     /**
      * Clamps components to vector bounds in place.

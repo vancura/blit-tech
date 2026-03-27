@@ -451,7 +451,6 @@ describe('BT.drawSprite', () => {
         expect(spy).toHaveBeenCalledWith(sheet, srcRect, destPos, undefined);
     });
 
-    //
     it('forwards the tint argument', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawSprite').mockReturnValue(undefined);
         const sheet = new SpriteSheet(mockImage);
