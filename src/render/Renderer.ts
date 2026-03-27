@@ -59,7 +59,7 @@ export class Renderer {
     constructor(device: GPUDevice, context: GPUCanvasContext, displaySize: Vector2i) {
         this.device = device;
         this.context = context;
-        this.displaySize = displaySize;
+        this.displaySize = displaySize.clone();
         this.primitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
     }
@@ -118,7 +118,7 @@ export class Renderer {
         try {
             texture = this.context.getCurrentTexture();
         } catch (error) {
-            console.error('[Renderer] Failed to get the current texture:', error);
+            console.error('[Renderer] Failed to get current texture:', error);
 
             this.primitives.reset();
             this.sprites.reset();
