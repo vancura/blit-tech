@@ -329,6 +329,10 @@ export class Rect2i {
         return out;
     }
 
+    // #endregion
+
+    // #region Intersection Tests
+
     /**
      * Tests if a point lies within this rectangle.
      * Uses half-open interval: includes min, excludes max.
@@ -341,10 +345,6 @@ export class Rect2i {
             point.x >= this.x && point.x < this.x + this.width && point.y >= this.y && point.y < this.y + this.height
         );
     }
-
-    // #endregion
-
-    // #region Intersection Tests
 
     /**
      * Tests raw coordinates against this rectangle without allocating a vector.
