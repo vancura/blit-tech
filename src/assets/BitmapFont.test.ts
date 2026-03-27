@@ -18,13 +18,23 @@ import { BitmapFont } from './BitmapFont';
 
 // #region Test Fixtures
 
+type GlyphData = { x: number; y: number; w: number; h: number; ox: number; oy: number; adv: number };
+type FontData = {
+    name: string;
+    size: number;
+    lineHeight: number;
+    baseline: number;
+    texture: string;
+    glyphs: Record<string, GlyphData>;
+};
+
 /**
  * Canonical fixture returned by mocked font fetches.
  *
  * Includes ASCII glyphs plus one extended Unicode glyph so the tests can cover
  * both the fast ASCII lookup table and the fallback Unicode map path.
  */
-const MOCK_FONT_DATA: object = {
+const MOCK_FONT_DATA: FontData = {
     name: 'TestFont',
     size: 12,
     lineHeight: 14,
