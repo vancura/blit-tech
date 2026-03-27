@@ -1,27 +1,18 @@
 /**
- * 32-bit RGBA color with 8-bit channels (0-255).
- * Inspired by RetroBlit's Color32.
+ * 32-bit RGBA color with 8-bit channels.
  *
- * Performance notes:
- * - Use static color constants like white or black—they return cached singletons.
- * - Use fromRGBAUnchecked() for trusted values in hot paths to skip validation.
- * - Use writeToFloat32Array() to write to pre-allocated buffers instead of allocating.
+ * The type provides cached singleton colors, packing and conversion helpers,
+ * and a mix of allocation-free and convenience APIs for renderer code.
  */
 
 // #region Constants
 
-/**
- * Reciprocal of 255 for fast normalization (1/255).
- * Multiplication is faster than division in most JavaScript engines.
- * Exported for use in other color-related utilities.
- */
+/** Reciprocal of 255 used for fast byte-to-float normalization. */
 export const INV_255 = 1 / 255;
 
-/**
- * Pre-computed hex lookup table for fast byte-to-hex conversion.
- * Trades ~2 KB memory for faster hex string generation.
- */
+/** Precomputed lookup table for byte-to-hex conversion. */
 const HEX_TABLE: string[] = new Array(256);
+
 for (let i = 0; i < 256; i++) {
     // eslint-disable-next-line security/detect-object-injection
     HEX_TABLE[i] = i.toString(16).padStart(2, '0');
@@ -31,10 +22,7 @@ for (let i = 0; i < 256; i++) {
 
 // #region Color32 Class
 
-/**
- * 32-bit RGBA color with 8-bit channels (0-255).
- * Provides comprehensive color manipulation and conversion utilities.
- */
+/** Mutable 32-bit RGBA color value with 8-bit channels. */
 export class Color32 {
     // #region Static Color Constants
 
@@ -86,8 +74,7 @@ export class Color32 {
     // #region Constructor
 
     /**
-     * Creates a new 32-bit RGBA color.
-     * All values are clamped to 0-255 range and truncated to integers.
+     * Creates a clamped 8-bit RGBA color.
      *
      * @param r - Red channel (0-255, defaults to 255).
      * @param g - Green channel (0-255, defaults to 255).
@@ -211,11 +198,10 @@ export class Color32 {
     // #region Static Factory Methods
 
     /**
-     * Creates a Color32 from RGBA values without validation or clamping.
-     * Use this in hot paths when values are guaranteed to be valid integers 0-255.
+     * Creates a color without clamping or validation.
      *
-     * WARNING: Passing invalid values will result in undefined behavior.
-     * Only use when certain the values are valid.
+     * Intended for trusted hot paths where channel values are already known to
+     * be valid byte-range numbers.
      *
      * @param r - Red channel (must be integer 0-255).
      * @param g - Green channel (must be integer 0-255).
@@ -225,6 +211,7 @@ export class Color32 {
      */
     static fromRGBAUnchecked(r: number, g: number, b: number, a: number): Color32 {
         const color = Object.create(Color32.prototype) as Color32;
+
         color.r = r;
         color.g = g;
         color.b = b;
@@ -250,8 +237,8 @@ export class Color32 {
     }
 
     /**
-     * Parses a CSS hex color string into a Color32.
-     * Supports formats: #RGB, #RGBA, #RRGGBB, #RRGGBBAA.
+     * Parses a CSS-style hex color string.
+     * Supports `#RGB`, `#RGBA`, `#RRGGBB`, and `#RRGGBBAA`.
      *
      * @param hex - Hex color string with or without leading #.
      * @returns Parsed color.
@@ -317,8 +304,7 @@ export class Color32 {
     }
 
     /**
-     * Creates a color from normalized float values (0.0-1.0 range).
-     * Useful when working with shader outputs or HDR values.
+     * Creates a color from normalized float components in the `0.0-1.0` range.
      *
      * @param r - Red channel (0.0-1.0).
      * @param g - Green channel (0.0-1.0).
@@ -331,8 +317,7 @@ export class Color32 {
     }
 
     /**
-     * Creates a color from HSL (Hue, Saturation, Lightness) values.
-     * Useful for generating colors based on color-wheel positions.
+     * Creates a color from HSL values.
      *
      * @param h - Hue in degrees (0-360).
      * @param s - Saturation as percentage (0-100).
@@ -416,7 +401,7 @@ export class Color32 {
     writeToFloat32Array(target: Float32Array, offset: number = 0): void {
         // Using direct index assignment for the best performance.
         // This is safe: offset is truncated to integer, the target is a typed Float32Array.
-        const i = offset | 0;
+        const i = offset;
 
         // eslint-disable-next-line security/detect-object-injection
         target[i] = this.r * INV_255;
@@ -570,10 +555,10 @@ export class Color32 {
         const oneMinusT = 1 - tc;
 
         return Color32.fromRGBAUnchecked(
-            (this.r * oneMinusT + other.r * tc) | 0,
-            (this.g * oneMinusT + other.g * tc) | 0,
-            (this.b * oneMinusT + other.b * tc) | 0,
-            (this.a * oneMinusT + other.a * tc) | 0,
+            this.r * oneMinusT + other.r * tc,
+            this.g * oneMinusT + other.g * tc,
+            this.b * oneMinusT + other.b * tc,
+            this.a * oneMinusT + other.a * tc,
         );
     }
 
@@ -590,10 +575,10 @@ export class Color32 {
 
         const oneMinusT = 1 - tc;
 
-        this.r = (this.r * oneMinusT + other.r * tc) | 0;
-        this.g = (this.g * oneMinusT + other.g * tc) | 0;
-        this.b = (this.b * oneMinusT + other.b * tc) | 0;
-        this.a = (this.a * oneMinusT + other.a * tc) | 0;
+        this.r = this.r * oneMinusT + other.r * tc;
+        this.g = this.g * oneMinusT + other.g * tc;
+        this.b = this.b * oneMinusT + other.b * tc;
+        this.a = this.a * oneMinusT + other.a * tc;
 
         return this;
     }
@@ -607,10 +592,10 @@ export class Color32 {
      */
     multiply(other: Color32): Color32 {
         return Color32.fromRGBAUnchecked(
-            (this.r * other.r * INV_255) | 0,
-            (this.g * other.g * INV_255) | 0,
-            (this.b * other.b * INV_255) | 0,
-            (this.a * other.a * INV_255) | 0,
+            this.r * other.r * INV_255,
+            this.g * other.g * INV_255,
+            this.b * other.b * INV_255,
+            this.a * other.a * INV_255,
         );
     }
 
@@ -622,10 +607,10 @@ export class Color32 {
      * @returns This color instance for chaining.
      */
     multiplyInPlace(other: Color32): this {
-        this.r = (this.r * other.r * INV_255) | 0;
-        this.g = (this.g * other.g * INV_255) | 0;
-        this.b = (this.b * other.b * INV_255) | 0;
-        this.a = (this.a * other.a * INV_255) | 0;
+        this.r = this.r * other.r * INV_255;
+        this.g = this.g * other.g * INV_255;
+        this.b = this.b * other.b * INV_255;
+        this.a = this.a * other.a * INV_255;
 
         return this;
     }
@@ -666,12 +651,7 @@ export class Color32 {
     premultiplyAlpha(): Color32 {
         const alphaMul = this.a * INV_255;
 
-        return Color32.fromRGBAUnchecked(
-            (this.r * alphaMul) | 0,
-            (this.g * alphaMul) | 0,
-            (this.b * alphaMul) | 0,
-            this.a,
-        );
+        return Color32.fromRGBAUnchecked(this.r * alphaMul, this.g * alphaMul, this.b * alphaMul, this.a);
     }
 
     // #endregion
@@ -767,7 +747,7 @@ export class Color32 {
 export function clampByte(n: number): number {
     // Bitwise operations: if n < 0, use 0; if n > 255, use 255; else truncate n.
     // This is faster than Math.max(0, Math.min(255, n)) | 0.
-    return n < 0 ? 0 : n > 255 ? 255 : n | 0;
+    return n < 0 ? 0 : n > 255 ? 255 : n;
 }
 
 // #endregion
