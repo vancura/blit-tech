@@ -3,156 +3,61 @@ import { Vector2i } from '../utils/Vector2i';
 // #region Type Definitions
 
 /**
- * Hardware configuration settings for the engine.
- * Returned by IBlitTechDemo.queryHardware().
+ * Engine-facing hardware configuration returned by `queryHardware()`.
  */
 export interface HardwareSettings {
     /** Display resolution in pixels (internal rendering resolution, e.g., 320×240). */
     displaySize: Vector2i;
 
     /**
-     * Canvas display size in pixels (CSS size, optional).
-     * If specified, sets the canvas CSS width/height for upscaling.
-     * If omitted, uses the HTML/CSS size or defaults to displaySize.
-     * Example: displaySize=320×240, canvasDisplaySize=640×480 = 2× scaling.
+     * Optional CSS display size used to upscale the canvas independently of the
+     * internal render resolution.
      */
     canvasDisplaySize?: Vector2i;
 
-    /** Target frames per second for the update() calls (default: 60). */
+    /** Target fixed-update rate in frames per second. */
     targetFPS: number;
 }
 
 /**
- * Main demo interface that all Blit-Tech demos must implement.
- * Inspired by RetroBlit's IRetroBlitDemo.
+ * Demo contract implemented by Blit-Tech applications.
  *
- * LIFECYCLE ORDER:
+ * Engine lifecycle order:
  * 1. queryHardware() - Called first to configure display/FPS
  * 2. initialize() - Called after WebGPU setup, load assets here
- * 3. update() - Called at fixed rate (e.g., 60 times/second)
+ * 3. update() - Called at a fixed rate (e.g., 60 times/second)
  * 4. render() - Called at variable rate (as fast as possible)
- *
- * @example
- * class MyDemo implements IBlitTechDemo {
- *   queryHardware(): HardwareSettings {
- *     return {
- *       displaySize: new Vector2i(320, 240),
- *       targetFPS: 60
- *     };
- *   }
- *
- *   async initialize(): Promise<boolean> {
- *     // Load assets, initialize demo state.
- *     return true;
- *   }
- *
- *   update(): void {
- *     // Update demo logic (called at 60 FPS).
- *   }
- *
- *   render(): void {
- *     // Draw demo graphics (called as fast as possible).
- *   }
- * }
  */
 export interface IBlitTechDemo {
     /**
-     * Called once at the startup to query hardware settings.
-     * This is the first method called, before any initialization.
-     *
-     * Define your display resolution and target framerate here.
-     * The engine will configure WebGPU based on these settings.
+     * Called first to declare display size, optional CSS canvas size, and the
+     * target fixed-update rate.
      *
      * @returns Hardware configuration for this demo.
-     *
-     * @example
-     * queryHardware(): HardwareSettings {
-     *   return {
-     *     displaySize: new Vector2i(320, 240), // 320×240 internal resolution
-     *     canvasDisplaySize: new Vector2i(640, 480), // 2× scaled display (optional)
-     *     targetFPS: 60 // 60 updates per second
-     *   };
-     * }
      */
     queryHardware(): HardwareSettings;
 
     /**
-     * Called once after hardware initialization.
-     * Load assets and set up the initial demo state here.
-     *
-     * WebGPU is fully initialized at this point.
-     * Use AssetLoader to load textures and fonts.
+     * Called once after WebGPU and the renderer have been initialized.
+     * Load assets and prepare a demo state here.
      *
      * @returns Promise that resolves to true if successful, false to abort.
-     *
-     * @example
-     * async initialize(): Promise<boolean> {
-     *   this.spriteSheet = await SpriteSheet.load('assets/sprites.png');
-     *   this.font = await BitmapFont.load('fonts/MyFont.btfont');
-     *
-     *   return true;
-     * }
      */
     initialize(): Promise<boolean>;
 
     /**
-     * Called at a fixed rate (default 60 times per second).
-     * Update demo logic, handle input and advance simulation here.
+     * Called at the fixed rate declared by `targetFPS`.
+     * Update simulation, timers, and input-driven state here.
      *
-     * IMPORTANT: This runs at a fixed timestep for deterministic physics.
-     * The timestep is controlled by targetFPS in HardwareSettings.
-     * Don't perform rendering in this method - use render() instead.
-     *
-     * PERFORMANCE: This is a HOT PATH. Avoid allocations where possible.
-     * - Reuse objects instead of creating new ones
-     * - Use object pools for frequently created/destroyed entities
-     * - Prefer in-place vector operations (addInPlace, etc.)
-     *
-     * @example
-     * update(): void {
-     *   // Handle input.
-     *   if (BT.keyDown('ArrowRight')) {
-     *     this.playerX += 2;
-     *   }
-     *
-     *   // Update demo state.
-     *   this.enemyPosition.addXYInPlace(this.enemyVelocity.x, this.enemyVelocity.y);
-     * }
+     * Avoid rendering work here; draw in `render()` instead.
      */
     update(): void;
 
     /**
-     * Called at variable rate (as fast as possible).
-     * Render demo graphics here.
+     * Called once per rendered frame.
+     * Issue all draw calls for the current frame here.
      *
-     * IMPORTANT: Don't update demo logic in this method.
-     * Only drawing calls should be made here.
-     * The renderer automatically batches sprites for performance.
-     *
-     * PERFORMANCE: This is a HOT PATH (60+ times per second).
-     * - Batch draw calls by texture to minimize GPU state changes
-     * - Avoid creating new Color32/Vector2i instances - reuse them
-     * - Use cached references for frequently used colors/positions
-     *
-     * @example
-     * render(): void {
-     *   // Clear screen.
-     *   BT.clear(Color32.black());
-     *
-     *   // Draw sprites.
-     *   BT.drawSprite(
-     *     this.spriteSheet,
-     *     new Rect2i(0, 0, 16, 16),
-     *     this.playerPosition
-     *   );
-     *
-     *   // Draw text.
-     *   BT.printFont(
-     *     this.font,
-     *     new Vector2i(10, 10),
-     *     `Score: ${this.score}`
-     *   );
-     * }
+     * Avoid mutating the simulation state here unless it is strictly visual.
      */
     render(): void;
 }
@@ -162,28 +67,11 @@ export interface IBlitTechDemo {
 // #region Helper Functions
 
 /**
- * Creates default hardware settings for quick prototyping.
- * Provides a 320×240 display at 60 FPS (classic retro resolution).
+ * Creates a fresh default hardware-settings object for quick demos.
  *
- * RECOMMENDED FOR: Quick tests, examples and prototypes.
- * NOT RECOMMENDED FOR: Production demos (define explicit settings instead).
+ * The defaults are a `320x240` internal resolution and a `60` FPS update rate.
  *
  * @returns Default HardwareSettings configuration.
- *
- * @example
- * // Quick prototyping.
- * queryHardware(): HardwareSettings {
- *   return defaultHardwareSettings();
- * }
- *
- * // Production (recommended).
- * queryHardware(): HardwareSettings {
- *   return {
- *     displaySize: new Vector2i(320, 240),
- *     canvasDisplaySize: new Vector2i(960, 720), // 3x upscale
- *     targetFPS: 60
- *   };
- * }
  */
 export function defaultHardwareSettings(): HardwareSettings {
     return {
