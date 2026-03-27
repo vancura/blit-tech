@@ -154,16 +154,13 @@ export class Vector2i {
 
     /**
      * Creates a Vector2i from integer values without truncation.
-     * Use this in hot paths when values are guaranteed to be integers.
-     *
-     * WARNING: Passing non-integer values will result in non-integer vector components.
-     * Only use when you’re certain the values are already integers.
+     * Used internally in hot paths where values are guaranteed to be integers.
      *
      * @param x - Horizontal component (must be integer).
      * @param y - Vertical component (must be integer).
      * @returns New Vector2i with the specified values.
      */
-    static fromXYUnchecked(x: number, y: number): Vector2i {
+    private static fromXYUnchecked(x: number, y: number): Vector2i {
         const v = Object.create(Vector2i.prototype) as Vector2i;
 
         v.x = x;
@@ -229,30 +226,34 @@ export class Vector2i {
 
     /**
      * Linearly interpolates between two vectors.
-     * Result is truncated to integers.
+     * Result is truncated to integers. t is clamped to [0, 1].
      *
      * @param a - Start vector.
      * @param b - End vector.
-     * @param t - Interpolation factor (0 = a, 1 = b).
+     * @param t - Interpolation factor, clamped to [0, 1] (0 = a, 1 = b).
      * @returns New interpolated vector.
      */
     static lerp(a: Vector2i, b: Vector2i, t: number): Vector2i {
-        return new Vector2i(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+        const tc = Math.max(0, Math.min(1, t));
+
+        return new Vector2i(a.x + (b.x - a.x) * tc, a.y + (b.y - a.y) * tc);
     }
 
     /**
      * Linearly interpolates between two vectors and writes to the existing vector.
-     * Zero allocation alternative to lerp().
+     * Zero allocation alternative to lerp(). t is clamped to [0, 1].
      *
      * @param a - Start vector.
      * @param b - End vector.
-     * @param t - Interpolation factor (0 = a, 1 = b).
+     * @param t - Interpolation factor, clamped to [0, 1] (0 = a, 1 = b).
      * @param out - Vector to write the result to.
      * @returns The out vector for chaining.
      */
     static lerpTo(a: Vector2i, b: Vector2i, t: number, out: Vector2i): Vector2i {
-        out.x = (a.x + (b.x - a.x) * t) | 0;
-        out.y = (a.y + (b.y - a.y) * t) | 0;
+        const tc = Math.max(0, Math.min(1, t));
+
+        out.x = (a.x + (b.x - a.x) * tc) | 0;
+        out.y = (a.y + (b.y - a.y) * tc) | 0;
 
         return out;
     }
@@ -305,7 +306,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region Zero-Allocation Output Methods
+    // #region Instance Arithmetic Methods
 
     /**
      * Multiplies both components by a scalar and returns a new vector.
@@ -421,7 +422,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region In-Place Mutation Methods
+    // #region Geometric Operations and Write-To-Out Methods
 
     /**
      * Calculates the 2D cross-product (perpendicular dot product).
@@ -644,7 +645,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region Distance Calculations
+    // #region In-Place Mutation Methods
 
     /**
      * Subtracts another vector from this one in place.
@@ -814,10 +815,6 @@ export class Vector2i {
         return this;
     }
 
-    // #endregion
-
-    // #region Normalization
-
     /**
      * Clamps components to vector bounds in place.
      * Modifies this vector directly for maximum performance.
@@ -837,7 +834,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region Comparison
+    // #region Setters and Scalar Geometry
 
     /**
      * Sets both components of this vector.
@@ -883,7 +880,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region Utility
+    // #region Distance Methods
 
     /**
      * Calculates the squared magnitude (avoids the sqrt for performance).
@@ -907,10 +904,6 @@ export class Vector2i {
 
         return Math.sqrt(dx * dx + dy * dy);
     }
-
-    // #endregion
-
-    // #region Static Constructors
 
     /**
      * Calculates the Euclidean distance to raw coordinates.
@@ -992,7 +985,7 @@ export class Vector2i {
 
     // #endregion
 
-    // #region Static Factories
+    // #region Comparison and Utility
 
     /**
      * Calculates the Chebyshev distance to raw coordinates.
