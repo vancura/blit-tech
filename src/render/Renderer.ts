@@ -8,9 +8,11 @@ import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
 
 /**
- * WebGPU renderer for Blit-Tech.
- * Orchestrates the primitive and sprite pipelines.
- * Handles frame lifecycle, camera, and delegates all drawing to the appropriate pipeline.
+ * High-level renderer that coordinates primitive and sprite pipelines.
+ *
+ * `Renderer` owns frame begin/end, clear color, camera state, and frame capture.
+ * Actual draw batching is delegated to {@link PrimitivePipeline} and
+ * {@link SpritePipeline}.
  */
 export class Renderer {
     // #region State
@@ -22,7 +24,7 @@ export class Renderer {
     private context: GPUCanvasContext;
 
     /** Render target resolution in pixels. */
-    private displaySize: Vector2i;
+    private readonly displaySize: Vector2i;
 
     /** Current clear color for the background. */
     private currentClearColor: Color32 = Color32.black();
@@ -48,8 +50,7 @@ export class Renderer {
     // #region Constructor
 
     /**
-     * Creates a new renderer instance.
-     * Call initialize() before using.
+     * Creates a renderer bound to an initialized device and canvas context.
      *
      * @param device - WebGPU device for GPU operations.
      * @param context - WebGPU canvas context for presenting frames.
@@ -58,7 +59,7 @@ export class Renderer {
     constructor(device: GPUDevice, context: GPUCanvasContext, displaySize: Vector2i) {
         this.device = device;
         this.context = context;
-        this.displaySize = displaySize;
+        this.displaySize = displaySize.clone();
         this.primitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
     }
@@ -68,10 +69,9 @@ export class Renderer {
     // #region Initialization
 
     /**
-     * Initializes GPU resources: pipelines, buffers and samplers.
-     * Must be called before any rendering operations.
+     * Initializes the underlying render pipelines and GPU resources.
      *
-     * @returns Promise resolving to true if initialization succeeded.
+     * @returns `true` when GPU resources are ready; otherwise `false`.
      */
     async initialize(): Promise<boolean> {
         try {
@@ -91,9 +91,7 @@ export class Renderer {
     // #region Frame Management
 
     /**
-     * Begins a new render frame.
-     * Resets all frame states, including vertex counts, sprite batches, and texture bindings.
-     * Safe to call multiple times - defensively resets all states to prevent corruption.
+     * Begins a new frame by clearing all per-frame batching state.
      */
     beginFrame(): void {
         this.primitives.reset();
@@ -111,7 +109,7 @@ export class Renderer {
 
     /**
      * Ends the current frame and presents to the screen.
-     * Executes render passes for both pipelines and submits to GPU.
+     * Encodes both pipelines into a render pass and submits the command buffer.
      */
     endFrame(): void {
         // Get the current texture to render to.
@@ -163,7 +161,7 @@ export class Renderer {
 
         renderPass.end();
 
-        // If a frame capture is pending, add the texture-to-buffer copy before submit.
+        // If a frame capture is pending, add the texture-to-buffer copy before submitting.
         const capturing = this.frameCapture.hasPendingCapture();
 
         if (capturing) {
@@ -177,7 +175,7 @@ export class Renderer {
             void this.frameCapture.resolveCapture(this.device);
         }
 
-        // Defensive reset so pipeline state is clean even if beginFrame() is not called next.
+        // Defensive reset so the pipeline state is clean even if beginFrame() is not called next.
         // beginFrame() also resets; this prevents stale data from persisting across frames.
         this.primitives.reset();
         this.sprites.reset();
@@ -221,13 +219,11 @@ export class Renderer {
 
     /**
      * Draws a single pixel at raw coordinates.
-     * More efficient than drawPixel() as it avoids Vector2i parameter.
-     * Use this in hot paths where you have x, y values directly.
+     * More efficient than `drawPixel()` when coordinates are already unpacked.
      *
      * @param x - X position.
      * @param y - Y position.
      * @param color - Pixel color.
-     * @returns Nothing.
      */
     drawPixelXY(x: number, y: number, color: Color32): void {
         this.primitives.drawPixelXY(x, y, color);
@@ -315,7 +311,7 @@ export class Renderer {
 
     /**
      * Sets the camera offset for scrolling.
-     * This amount offsets all drawing operations.
+     * The offset is propagated to both internal pipelines.
      *
      * @param offset - Camera position in pixels.
      */

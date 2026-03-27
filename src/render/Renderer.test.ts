@@ -1,3 +1,17 @@
+/**
+ * Unit tests for {@link Renderer}.
+ *
+ * Exercises the engine's render coordinator:
+ * - constructor behavior and pre-initialization safety
+ * - camera state ownership and copy semantics
+ * - successful renderer initialization and repeated frame lifecycles
+ * - delegation of primitive drawing calls during active frames
+ * - frame capture flow and error handling during presentation
+ *
+ * The suite uses mocked WebGPU devices, contexts, and browser image APIs so
+ * frame submission and capture paths can be validated without real GPU access.
+ */
+
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -18,8 +32,8 @@ describe('Renderer constructor', () => {
         const device = createMockGPUDevice();
         const context = createMockGPUCanvasContext();
         const displaySize = new Vector2i(320, 240);
-
         const renderer = new Renderer(device, context, displaySize);
+
         expect(renderer).toBeDefined();
         expect(renderer).toBeInstanceOf(Renderer);
     });
@@ -32,6 +46,7 @@ describe('Renderer constructor', () => {
 describe('pre-initialization methods', () => {
     it('setClearColor does not throw', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         expect(() => {
             renderer.setClearColor(Color32.blue());
         }).not.toThrow();
@@ -39,6 +54,7 @@ describe('pre-initialization methods', () => {
 
     it('setCameraOffset does not throw', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         expect(() => {
             renderer.setCameraOffset(new Vector2i(10, 20));
         }).not.toThrow();
@@ -47,21 +63,26 @@ describe('pre-initialization methods', () => {
     it('getCameraOffset returns a zero vector initially', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
         const offset = renderer.getCameraOffset();
+
         expect(offset.x).toBe(0);
         expect(offset.y).toBe(0);
     });
 
     it('resetCamera sets camera back to zero', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         renderer.setCameraOffset(new Vector2i(50, 75));
         renderer.resetCamera();
+
         const offset = renderer.getCameraOffset();
+
         expect(offset.x).toBe(0);
         expect(offset.y).toBe(0);
     });
 
     it('beginFrame does not throw before initialize', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         expect(() => {
             renderer.beginFrame();
         }).not.toThrow();
@@ -75,22 +96,30 @@ describe('pre-initialization methods', () => {
 describe('camera operations', () => {
     it('getCameraOffset returns a copy, not the internal reference', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         renderer.setCameraOffset(new Vector2i(42, 84));
+
         const offset = renderer.getCameraOffset();
+
         expect(offset.x).toBe(42);
         expect(offset.y).toBe(84);
 
         // Modifying the returned copy should not change the internal state.
         offset.set(999, 999);
+
         const offsetAgain = renderer.getCameraOffset();
+
         expect(offsetAgain.x).toBe(42);
         expect(offsetAgain.y).toBe(84);
     });
 
     it('setCameraOffset stores the offset correctly', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         renderer.setCameraOffset(new Vector2i(100, 200));
+
         const offset = renderer.getCameraOffset();
+
         expect(offset.x).toBe(100);
         expect(offset.y).toBe(200);
     });
@@ -98,11 +127,14 @@ describe('camera operations', () => {
     it('setCameraOffset clones the input vector', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
         const input = new Vector2i(30, 60);
+
         renderer.setCameraOffset(input);
 
         // Modifying the input vector should not affect the renderer.
         input.set(999, 999);
+
         const offset = renderer.getCameraOffset();
+
         expect(offset.x).toBe(30);
         expect(offset.y).toBe(60);
     });
@@ -120,7 +152,9 @@ describe('with initialized renderer', () => {
 
     beforeAll(async () => {
         installMockNavigatorGPU();
+
         const result = await renderer.initialize();
+
         expect(result).toBe(true);
     });
 
@@ -131,11 +165,13 @@ describe('with initialized renderer', () => {
     it('initialize returns true on success', async () => {
         const r = new Renderer(device, context, displaySize);
         const result = await r.initialize();
+
         expect(result).toBe(true);
     });
 
     it('endFrame completes without error', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.endFrame();
         }).not.toThrow();
@@ -159,65 +195,81 @@ describe('with initialized renderer', () => {
 
     it('drawPixel delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawPixel(new Vector2i(10, 10), Color32.red());
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('drawPixelXY delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawPixelXY(15, 25, Color32.green());
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('drawRectFill delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawRectFill(new Rect2i(5, 5, 20, 20), Color32.blue());
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('drawLine delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawLine(new Vector2i(0, 0), new Vector2i(50, 50), Color32.yellow());
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('drawRect delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawRect(new Rect2i(10, 10, 30, 30), Color32.cyan());
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('clearRect delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.clearRect(Color32.black(), new Rect2i(0, 0, 320, 240));
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('drawText delegates without throwing', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.drawText(new Vector2i(10, 10), Color32.white(), 'Test');
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
     it('setClearColor works within a frame', () => {
         renderer.beginFrame();
+
         expect(() => {
             renderer.setClearColor(new Color32(64, 128, 192, 255));
         }).not.toThrow();
+
         renderer.endFrame();
     });
 
@@ -226,6 +278,7 @@ describe('with initialized renderer', () => {
         renderer.setCameraOffset(new Vector2i(50, 50));
         renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
         renderer.resetCamera();
+
         expect(() => {
             renderer.endFrame();
         }).not.toThrow();
@@ -242,6 +295,7 @@ describe('frame capture', () => {
 
         // Add copyTextureToBuffer to mock command encoder.
         const originalCreate = device.createCommandEncoder.bind(device);
+
         vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
             const encoder = originalCreate();
             (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = vi.fn();
@@ -280,12 +334,15 @@ describe('frame capture', () => {
         await renderer.initialize();
 
         const promise = renderer.captureFrame();
+
         expect(promise).toBeInstanceOf(Promise);
 
         renderer.endFrame();
+
         await promise;
 
         vi.unstubAllGlobals();
+
         uninstallMockNavigatorGPU();
     });
 
@@ -295,8 +352,10 @@ describe('frame capture', () => {
 
         // Override createCommandEncoder to include copyTextureToBuffer.
         const originalCreate = device.createCommandEncoder.bind(device);
+
         vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
             const encoder = originalCreate();
+
             (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = copyTextureToBufferFn;
 
             return encoder;
@@ -306,6 +365,7 @@ describe('frame capture', () => {
         const renderer = new Renderer(device, context, new Vector2i(4, 4));
 
         installMockNavigatorGPU();
+
         await renderer.initialize();
 
         // Stub browser APIs for PNG conversion.
@@ -344,6 +404,7 @@ describe('frame capture', () => {
         expect(blob.type).toBe('image/png');
 
         vi.unstubAllGlobals();
+
         uninstallMockNavigatorGPU();
     });
 
@@ -352,6 +413,7 @@ describe('frame capture', () => {
         const device = createMockGPUDevice();
 
         const originalCreate = device.createCommandEncoder.bind(device);
+
         vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
             const encoder = originalCreate();
             (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = copyTextureToBufferFn;
@@ -363,6 +425,7 @@ describe('frame capture', () => {
         const renderer = new Renderer(device, context, new Vector2i(320, 240));
 
         installMockNavigatorGPU();
+
         await renderer.initialize();
 
         renderer.beginFrame();
@@ -381,6 +444,7 @@ describe('frame capture', () => {
 describe('endFrame error paths', () => {
     it('recovers gracefully when getCurrentTexture throws', async () => {
         const device = createMockGPUDevice();
+
         const throwingContext = {
             ...createMockGPUCanvasContext(),
             getCurrentTexture: () => {
@@ -389,7 +453,9 @@ describe('endFrame error paths', () => {
         } as unknown as GPUCanvasContext;
 
         const renderer = new Renderer(device, throwingContext, new Vector2i(320, 240));
+
         installMockNavigatorGPU();
+
         await renderer.initialize();
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -397,6 +463,7 @@ describe('endFrame error paths', () => {
         try {
             renderer.beginFrame();
             renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+
             expect(() => {
                 renderer.endFrame();
             }).not.toThrow();
@@ -412,6 +479,7 @@ describe('endFrame error paths', () => {
             }).not.toThrow();
         } finally {
             errorSpy.mockRestore();
+
             uninstallMockNavigatorGPU();
         }
     });
@@ -428,13 +496,16 @@ describe('endFrame error paths', () => {
         } as unknown as GPUCanvasContext;
 
         const renderer = new Renderer(device, zeroTextureContext, new Vector2i(320, 240));
+
         installMockNavigatorGPU();
+
         await renderer.initialize();
 
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
         try {
             renderer.beginFrame();
+
             expect(() => {
                 renderer.endFrame();
             }).not.toThrow();
@@ -442,6 +513,7 @@ describe('endFrame error paths', () => {
             expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('zero dimensions'));
         } finally {
             warnSpy.mockRestore();
+
             uninstallMockNavigatorGPU();
         }
     });
@@ -457,16 +529,19 @@ describe('initialize error paths', () => {
         } as unknown as GPUDevice;
 
         const renderer = new Renderer(throwingDevice, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
         installMockNavigatorGPU();
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         try {
             const result = await renderer.initialize();
+
             expect(result).toBe(false);
             expect(errorSpy).toHaveBeenCalled();
         } finally {
             errorSpy.mockRestore();
+
             uninstallMockNavigatorGPU();
         }
     });
