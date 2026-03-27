@@ -334,50 +334,12 @@ The engine displays an error message if the browser doesn’t support WebGPU.
 - **WGSL** — WebGPU Shading Language
 - **Biome** — Fast formatter and linter
 
-## Assets & Fonts
-
-### Sprite Sheets
-
-Load sprite sheets from PNG images:
-
-```ts
-const spriteSheet = await SpriteSheet.load('assets/sprites.png');
-BT.drawSprite(spriteSheet, new Rect2i(0, 0, 32, 32), new Vector2i(100, 100));
-```
-
-### Bitmap Fonts
-
-Blit-Tech uses a custom `.btfont` JSON format for bitmap fonts. The format supports:
-
-- Variable-width glyphs with per-character offsets
-- Unicode character support
-- Embedded or external textures (base64 or relative paths)
-
-**Quick example:**
-
-```ts
-const font = await BitmapFont.load('fonts/MyFont.btfont');
-BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
-const width = font.measureText('Hello'); // Measure text width
-const size = font.measureTextSize('Hello'); // Get width and height
-```
-
-**Full documentation:** See [docs/bitmap-fonts.md](docs/bitmap-fonts.md) for:
-
-- Complete `.btfont` format specification
-- Converting from BMFont format using `pnpm convert-font`
-- Font creation tips and tools
-- API reference and examples
-
-The bitmap font demos use **PragmataPro** by Fabrizio Schiavi, available at
-[https://fsd.it/shop/fonts/pragmatapro/](https://fsd.it/shop/fonts/pragmatapro/).
-
 ## Documentation
 
 Additional documentation is available in the `docs/` directory:
 
 - **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
-- **[Bitmap Fonts](docs/bitmap-fonts.md)** — Complete guide to creating and using bitmap fonts
+- **[Bitmap Fonts](docs/bitmap-fonts.md)** — `.btfont` format spec, BMFont conversion, and font rendering API
 - **[Testing](docs/testing.md)** — Testing infrastructure, tiers, and WebGPU mocks
 - **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
