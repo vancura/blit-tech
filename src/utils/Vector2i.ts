@@ -160,7 +160,7 @@ export class Vector2i {
      * @param y - Vertical component (must be integer).
      * @returns New Vector2i with the specified values.
      */
-    private static fromXYUnchecked(x: number, y: number): Vector2i {
+    public static fromXYUnchecked(x: number, y: number): Vector2i {
         const v = Object.create(Vector2i.prototype) as Vector2i;
 
         v.x = x;
