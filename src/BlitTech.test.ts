@@ -48,6 +48,7 @@ describe('BT.initialize', () => {
 
     it('forwards a failure result from BTAPI', async () => {
         vi.spyOn(BTAPI.instance, 'initialize').mockResolvedValue(false);
+
         const demo = {
             queryHardware: vi.fn(),
             initialize: vi.fn(),

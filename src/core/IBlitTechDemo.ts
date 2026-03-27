@@ -11,7 +11,8 @@ export interface HardwareSettings {
 
     /**
      * Optional CSS display size used to upscale the canvas independently of the
-     * internal render resolution.
+     * internal render resolution (e.g., `640x480` with a `320x240` displaySize
+     * gives 2x scaling).
      */
     canvasDisplaySize?: Vector2i;
 
@@ -25,8 +26,8 @@ export interface HardwareSettings {
  * Engine lifecycle order:
  * 1. queryHardware() - Called first to configure display/FPS
  * 2. initialize() - Called after WebGPU setup, load assets here
- * 3. update() - Called at a fixed rate (e.g., 60 times/second)
- * 4. render() - Called at variable rate (as fast as possible)
+ * 3. update() - Fixed timestep via accumulator (may run 0..N times per frame)
+ * 4. render() - Called once per requestAnimationFrame (browser refresh rate)
  */
 export interface IBlitTechDemo {
     /**
@@ -46,16 +47,24 @@ export interface IBlitTechDemo {
     initialize(): Promise<boolean>;
 
     /**
-     * Called at the fixed rate declared by `targetFPS`.
-     * Update simulation, timers, and input-driven state here.
+     * Called zero or more times per frame at the fixed timestep declared by
+     * `targetFPS`. The accumulator pattern ensures the target rate is met on
+     * average, but a single frame may invoke this multiple times (catch-up) or
+     * not at all. Update simulation, timers, and input-driven state here.
+     *
+     * This is a hot path. Minimize allocations, reuse objects, and prefer
+     * in-place vector operations where possible.
      *
      * Avoid rendering work here; draw in `render()` instead.
      */
     update(): void;
 
     /**
-     * Called once per rendered frame.
+     * Called once per `requestAnimationFrame` tick (browser refresh rate).
      * Issue all draw calls for the current frame here.
+     *
+     * This is a hot path. Batch draws by texture to reduce GPU state changes
+     * and reuse Color32/Vector2i instances instead of allocating per frame.
      *
      * Avoid mutating the simulation state here unless it is strictly visual.
      */

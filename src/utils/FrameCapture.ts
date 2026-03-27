@@ -7,56 +7,20 @@
 
 // #region Constants
 
-/**
- * Represents the required byte alignment for the number of bytes per row
- * in a data buffer. This value ensures that each row of data starts at a
- * memory address divisible by the specified alignment.
- *
- * Alignment is crucial for optimizing memory access and ensuring compatibility
- * with hardware requirements, such as in graphics or compute operations.
- *
- * The value is typically a power of 2, which simplifies calculations and
- * aligns with common hardware constraints.
- */
+/** WebGPU row alignment requirement (bytes per row must be a multiple of 256). */
 const BYTES_PER_ROW_ALIGNMENT = 256;
 
-/**
- * Represents the number of bytes used to store a single pixel in an image or graphics context.
- * This constant is typically used in image processing or graphics-related computations to
- * determine memory requirements or to process pixel data.
- *
- * The value of 4 signifies that each pixel is represented using 4 bytes, which is commonly
- * associated with RGBA color models, where each component (Red, Green, Blue, and Alpha)
- * occupies one byte.
- */
+/** Bytes per pixel for RGBA/BGRA pixel data. */
 const BYTES_PER_PIXEL = 4;
 
 // #endregion
 
 // #region Pending Capture State
 
-/**
- * Represents a function type that processes a `Blob` object.
- *
- * This type is commonly used for asynchronous operations where a `Blob`
- * result needs to be captured or processed, such as handling media streams
- * or creating output from captured data.
- *
- * @callback CaptureResolve
- * @param {Blob} blob - The `Blob` object to be processed.
- */
+/** Promise resolve callback for a pending frame capture. */
 type CaptureResolve = (blob: Blob) => void;
 
-/**
- * A type alias representing a function used to handle rejection scenarios during an operation.
- *
- * This function is typically invoked to signal that an operation has failed.
- * The function accepts an Error object as a parameter, which provides details
- * regarding the reason for the failure.
- *
- * @callback CaptureReject
- * @param {Error} reason - The error object representing the reason for the rejection.
- */
+/** Promise reject callback for a pending frame capture. */
 type CaptureReject = (reason: Error) => void;
 
 // #endregion
@@ -64,12 +28,10 @@ type CaptureReject = (reason: Error) => void;
 // #region Helper Functions
 
 /**
- * Calculates the aligned byte size per row for a given image width.
+ * Calculates the WebGPU-aligned byte size per row for a given image width.
  *
- * The alignment ensures that the byte size per row is compliant with the specified row alignment boundary.
- *
- * @param {number} width - The width of the image in pixels.
- * @returns {number} The aligned byte size per row.
+ * @param width - Image width in pixels.
+ * @returns Byte count per row, padded to the GPU alignment boundary.
  */
 export function alignedBytesPerRow(width: number): number {
     const unaligned = width * BYTES_PER_PIXEL;
@@ -78,10 +40,9 @@ export function alignedBytesPerRow(width: number): number {
 }
 
 /**
- * Converts a pixel array from BGRA format to RGBA format by swapping the blue and red color channels.
+ * Swaps blue and red channels in a BGRA pixel array to produce RGBA (in place).
  *
- * @param {Uint8ClampedArray} data - The pixel array in BGRA format. Each pixel is represented by 4 consecutive bytes (blue, green, red, alpha).
- * @returns {void} This function modifies the input array in place and does not return a value.
+ * @param data - Pixel array in BGRA order (4 bytes per pixel).
  */
 export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
     for (let i = 0; i < data.length; i += BYTES_PER_PIXEL) {
@@ -96,14 +57,14 @@ export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
 }
 
 /**
- * Converts a pixel buffer into a PNG image Blob.
+ * Converts a raw pixel buffer into a PNG image Blob.
  *
- * @param {ArrayBuffer} buffer - The input pixel buffer containing the raw image data.
- * @param {number} width - The width of the image in pixels.
- * @param {number} height - The height of the image in pixels.
- * @param {number} paddedBytesPerRow - The number of bytes per row in the buffer, including padding bytes.
- * @param {boolean} isBGRA - Indicates whether the pixel data is in BGRA format and needs to be converted to RGBA.
- * @returns {Promise<Blob>} A promise that resolves to a Blob containing the PNG image.
+ * @param buffer - Raw pixel data (potentially padded and in BGRA order).
+ * @param width - Image width in pixels.
+ * @param height - Image height in pixels.
+ * @param paddedBytesPerRow - Bytes per row including GPU alignment padding.
+ * @param isBGRA - Whether the pixel data needs BGRA-to-RGBA swizzling.
+ * @returns PNG-encoded Blob.
  */
 export async function pixelBufferToPNG(
     buffer: ArrayBuffer,
@@ -146,7 +107,11 @@ export async function pixelBufferToPNG(
 // #region FrameCapture Class
 
 /**
- * Class responsible for capturing a single frame from a WebGPU rendering pipeline and converting it to a PNG Blob.
+ * Manages single-frame capture from the WebGPU rendering pipeline.
+ *
+ * A capture request is queued via {@link requestCapture}, executed during the
+ * next render pass via {@link executeCaptureInEncoder}, and resolved
+ * asynchronously in {@link resolveCapture}.
  */
 export class FrameCapture {
     /** Resolve callback for the pending capture. */
