@@ -91,6 +91,10 @@ export class PrimitivePipeline {
         await this.createPipeline(displaySize);
     }
 
+    // #endregion
+
+    // #region Camera
+
     /**
      * Sets the camera offset applied to all drawing operations.
      *
@@ -102,7 +106,7 @@ export class PrimitivePipeline {
 
     // #endregion
 
-    // #region Camera
+    // #region Drawing
 
     /**
      * Draws a filled rectangle using two triangles.
@@ -129,10 +133,6 @@ export class PrimitivePipeline {
         this.addVertex(x1, y1, r, g, b, a);
         this.addVertex(x0, y1, r, g, b, a);
     }
-
-    // #endregion
-
-    // #region Drawing
 
     /**
      * Draws placeholder text as colored blocks.
@@ -401,12 +401,12 @@ export class PrimitivePipeline {
                  * Vertex shader main function.
                  */
                 @vertex
-                fn vs_main(input: VertexInput) → VertexOutput {
+                fn vs_main(input: VertexInput) -> VertexOutput {
                     // Output vertex.
                     var output: VertexOutput;
 
                     // Convert from pixel coordinates to clip space (-1 to 1).
-                    let clipX = (input.position.x / uniforms.resolution.x) * 2.0–1.0;
+                    let clipX = (input.position.x / uniforms.resolution.x) * 2.0 - 1.0;
                     let clipY = 1.0 - (input.position.y / uniforms.resolution.y) * 2.0;
 
                     // Set the position of the vertex in clip space.
