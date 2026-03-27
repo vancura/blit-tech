@@ -29,6 +29,51 @@ type FontData = {
 };
 
 /**
+ * Creates a stub Image class for use with `vi.stubGlobal('Image', ...)`.
+ *
+ * @param opts           - Configuration options.
+ * @param opts.fireError - When true, fires `onerror` instead of `onload` on src assignment.
+ * @param opts.onSrcSet  - Optional callback invoked with the assigned src value before the load/error event.
+ * @param opts.width     - Reported image width (default 64).
+ * @param opts.height    - Reported image height (default 16).
+ */
+function createStubImage({
+    fireError = false,
+    onSrcSet,
+    width = 64,
+    height = 16,
+}: {
+    fireError?: boolean;
+    onSrcSet?: (src: string) => void;
+    width?: number;
+    height?: number;
+} = {}) {
+    return class {
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        width = width;
+        height = height;
+
+        private _src = '';
+
+        get src(): string {
+            return this._src;
+        }
+
+        set src(value: string) {
+            this._src = value;
+            onSrcSet?.(value);
+
+            if (fireError) {
+                this.onerror?.();
+            } else {
+                this.onload?.();
+            }
+        }
+    };
+}
+
+/**
  * Canonical fixture returned by mocked font fetches.
  *
  * Includes ASCII glyphs plus one extended Unicode glyph so the tests can cover
@@ -56,26 +101,7 @@ describe('BitmapFont', () => {
 
     beforeEach(async () => {
         // Stub Image to fire onload synchronously.
-        vi.stubGlobal(
-            'Image',
-            class {
-                onload: (() => void) | null = null;
-                onerror: (() => void) | null = null;
-                width = 64;
-                height = 16;
-
-                private _src = '';
-
-                get src(): string {
-                    return this._src;
-                }
-
-                set src(value: string) {
-                    this._src = value;
-                    this.onload?.();
-                }
-            },
-        );
+        vi.stubGlobal('Image', createStubImage());
 
         // Stub fetch to return the mock font data.
         vi.stubGlobal(
@@ -279,23 +305,7 @@ describe('BitmapFont', () => {
         });
 
         it('should throw when the font texture image fails to load', async () => {
-            vi.stubGlobal(
-                'Image',
-                class {
-                    onload: (() => void) | null = null;
-                    onerror: (() => void) | null = null;
-                    private _src = '';
-
-                    get src(): string {
-                        return this._src;
-                    }
-
-                    set src(value: string) {
-                        this._src = value;
-                        this.onerror?.(); // fire error instead of load
-                    }
-                },
-            );
+            vi.stubGlobal('Image', createStubImage({ fireError: true }));
             vi.stubGlobal(
                 'fetch',
                 vi.fn().mockResolvedValue({
@@ -312,24 +322,11 @@ describe('BitmapFont', () => {
 
             vi.stubGlobal(
                 'Image',
-                class {
-                    onload: (() => void) | null = null;
-                    onerror: (() => void) | null = null;
-                    width = 64;
-                    height = 16;
-
-                    private _src = '';
-
-                    get src(): string {
-                        return this._src;
-                    }
-
-                    set src(value: string) {
-                        this._src = value;
-                        capturedSrc = value;
-                        this.onload?.();
-                    }
-                },
+                createStubImage({
+                    onSrcSet: (src) => {
+                        capturedSrc = src;
+                    },
+                }),
             );
 
             vi.stubGlobal(
