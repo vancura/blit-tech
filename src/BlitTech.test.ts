@@ -1,7 +1,11 @@
+// noinspection DuplicatedCode
+
 /**
- * Tests for the BT public API facade in BlitTech.ts.
- * Verifies that each BT.* method delegates correctly to BTAPI.instance,
- * and that the warnOnce helper suppresses duplicate warnings.
+ * Unit tests for the public `BT` facade exported from `BlitTech.ts`.
+ *
+ * Covers delegation from top-level `BT.*` calls into `BTAPI.instance`,
+ * default return behavior for hardware-dependent queries, and the warning
+ * suppression behavior used by facade helpers.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -393,7 +397,7 @@ describe('BT.printMeasure', () => {
         BT.printMeasure('again');
         BT.printMeasure('again');
 
-        // warnOnce suppresses duplicates; total warn calls across both invocations is 0 or 1.
+        // warnOnce suppresses duplicates; total warn calls across both invocations are 0 or 1.
         expect(warnSpy.mock.calls.length).toBeLessThanOrEqual(1);
     });
 });
@@ -447,6 +451,7 @@ describe('BT.drawSprite', () => {
         expect(spy).toHaveBeenCalledWith(sheet, srcRect, destPos, undefined);
     });
 
+    //
     it('forwards the tint argument', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawSprite').mockReturnValue(undefined);
         const sheet = new SpriteSheet(mockImage);
@@ -468,6 +473,7 @@ describe('BT.drawSprite', () => {
 
     it('does not throw when called multiple times', () => {
         vi.spyOn(BTAPI.instance, 'drawSprite').mockReturnValue(undefined);
+
         const sheet = new SpriteSheet(mockImage);
 
         expect(() => {
