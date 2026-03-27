@@ -1,3 +1,16 @@
+/**
+ * Unit tests for {@link initializeWebGPU}.
+ *
+ * Covers the WebGPU bootstrap path used during engine initialization:
+ * - graceful failure when WebGPU support, adapters, devices, or canvas context
+ *   creation are unavailable
+ * - successful device/context initialization with mocked GPU objects
+ * - canvas pixel sizing and optional CSS display sizing
+ *
+ * Browser GPU capabilities are simulated with the local WebGPU mock helpers so
+ * the suite can validate setup logic deterministically.
+ */
+
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -37,7 +50,9 @@ describe('initializeWebGPU', () => {
 
         try {
             delete nav.gpu;
+
             const result = await initializeWebGPU(canvas, displaySize);
+
             expect(result).toBeNull();
         } finally {
             if (originalGpu !== undefined) {
@@ -65,6 +80,7 @@ describe('initializeWebGPU', () => {
 
         const canvas = createMockCanvas();
         const result = await initializeWebGPU(canvas, displaySize);
+
         expect(result).toBeNull();
     });
 
@@ -87,6 +103,7 @@ describe('initializeWebGPU', () => {
 
         const canvas = createMockCanvas();
         const result = await initializeWebGPU(canvas, displaySize);
+
         expect(result).toBeNull();
     });
 
@@ -96,8 +113,10 @@ describe('initializeWebGPU', () => {
 
     it('should return null when canvas.getContext returns null', async () => {
         installMockNavigatorGPU();
+
         const canvas = createMockCanvas(null);
         const result = await initializeWebGPU(canvas, displaySize);
+
         expect(result).toBeNull();
     });
 
@@ -107,8 +126,11 @@ describe('initializeWebGPU', () => {
 
     it('should return device and context on success', async () => {
         installMockNavigatorGPU();
+
         const canvas = createMockCanvas();
+
         const result = await initializeWebGPU(canvas, displaySize);
+
         expect(result).not.toBeNull();
         expect(result?.device).toBeDefined();
         expect(result?.context).toBeDefined();
@@ -116,25 +138,34 @@ describe('initializeWebGPU', () => {
 
     it('should set canvas resolution from displaySize', async () => {
         installMockNavigatorGPU();
+
         const canvas = createMockCanvas();
+
         await initializeWebGPU(canvas, displaySize);
+
         expect(canvas.width).toBe(320);
         expect(canvas.height).toBe(240);
     });
 
     it('should set CSS size when canvasDisplaySize is provided', async () => {
         installMockNavigatorGPU();
+
         const canvas = createMockCanvas();
         const canvasDisplaySize = new Vector2i(640, 480);
+
         await initializeWebGPU(canvas, displaySize, canvasDisplaySize);
+
         expect(canvas.style.width).toBe('640px');
         expect(canvas.style.height).toBe('480px');
     });
 
     it('should not set CSS size when canvasDisplaySize is not provided', async () => {
         installMockNavigatorGPU();
+
         const canvas = createMockCanvas();
+
         await initializeWebGPU(canvas, displaySize);
+
         expect(canvas.style.width).toBe('');
         expect(canvas.style.height).toBe('');
     });

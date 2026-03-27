@@ -1,3 +1,11 @@
+/**
+ * Unit tests for {@link FrameCapture} and its supporting pixel helpers.
+ *
+ * Covers row-alignment math, BGRA-to-RGBA swizzling, pending-capture state
+ * management, texture-to-buffer copy encoding, and PNG conversion using stubbed
+ * browser-only APIs such as `ImageData` and `OffscreenCanvas`.
+ */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice, createMockGPUTexture } from '../__test__/webgpu-mock';
@@ -33,6 +41,7 @@ function installBrowserMocks(): void {
             getContext(): { putImageData: ReturnType<typeof vi.fn> } {
                 return { putImageData: vi.fn() };
             }
+
             async convertToBlob(): Promise<Blob> {
                 return mockBlob;
             }
@@ -106,13 +115,14 @@ describe('swizzleBGRAtoRGBA', () => {
         // Pixel 1: RGBA (blue channel stays, red channel swapped)
         expect(data[0]).toBe(0); // R (was B=255, now R from position 2)
         expect(data[2]).toBe(255); // B (was R=0, now B from position 0)
+
         // Pixel 2: green channel unchanged
         expect(data[4]).toBe(0);
         expect(data[5]).toBe(255);
         expect(data[6]).toBe(0);
     });
 
-    it('should handle empty array', () => {
+    it('should handle an empty array', () => {
         const data = new Uint8ClampedArray([]);
 
         swizzleBGRAtoRGBA(data);
@@ -140,7 +150,7 @@ describe('FrameCapture', () => {
         expect(capture.hasPendingCapture()).toBe(false);
     });
 
-    it('should set pending flag after requestCapture', () => {
+    it('should set a pending flag after requestCapture', () => {
         const capture = new FrameCapture();
 
         // Don't await -- just queue the request.
@@ -149,7 +159,7 @@ describe('FrameCapture', () => {
         expect(capture.hasPendingCapture()).toBe(true);
     });
 
-    it('should reject previous capture when a new one is requested', async () => {
+    it('should reject the previous capture when a new one is requested', async () => {
         const capture = new FrameCapture();
 
         const firstCapture = capture.requestCapture();
@@ -159,7 +169,7 @@ describe('FrameCapture', () => {
         await expect(firstCapture).rejects.toThrow('superseded');
     });
 
-    it('should clear pending flag after resolveCapture', async () => {
+    it('should clear the pending flag after resolveCapture', async () => {
         const capture = new FrameCapture();
 
         void capture.requestCapture();
@@ -249,8 +259,10 @@ describe('FrameCapture', () => {
 
         // Override createBuffer to return a buffer with our pixel data.
         const originalCreateBuffer = device.createBuffer.bind(device);
+
         vi.spyOn(device, 'createBuffer').mockImplementation((desc: GPUBufferDescriptor) => {
             const buf = originalCreateBuffer(desc);
+
             (buf as unknown as Record<string, unknown>).getMappedRange = () => pixelBuffer;
 
             return buf;
@@ -285,6 +297,7 @@ describe('FrameCapture', () => {
                 getContext(): { putImageData: ReturnType<typeof vi.fn> } {
                     return { putImageData: vi.fn() };
                 }
+
                 async convertToBlob(): Promise<Blob> {
                     return new Blob(['png'], { type: 'image/png' });
                 }
@@ -302,6 +315,7 @@ describe('FrameCapture', () => {
 
         for (let y = 0; y < 4; y++) {
             const offset = y * 4 * 4; // 4 pixels per row, 4 bytes per pixel (no padding in output)
+
             // eslint-disable-next-line security/detect-object-injection -- typed array indexed by loop counter
             expect(pixels[offset]).toBe(30); // R (was B=10, swapped with R=30)
             expect(pixels[offset + 1]).toBe(20); // G (unchanged)
