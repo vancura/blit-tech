@@ -3,7 +3,7 @@ import type { Vector2i } from '../utils/Vector2i';
 // #region Types
 
 /**
- * Result of a successful WebGPU context initialization.
+ * Result returned when WebGPU canvas initialization succeeds.
  */
 export interface WebGPUContextResult {
     /** Initialized WebGPU device. */
@@ -18,8 +18,11 @@ export interface WebGPUContextResult {
 // #region WebGPU Initialization
 
 /**
- * Initializes the WebGPU adapter, device, and canvas context.
- * Configures the canvas resolution and optional CSS display size for upscaling.
+ * Initializes the WebGPU adapter, device, and canvas context for a canvas.
+ *
+ * The function configures the canvas pixel resolution first, optionally applies
+ * a separate CSS display size, then configures the WebGPU context using the
+ * browser's preferred canvas format.
  *
  * @param canvas - HTML canvas element to configure for WebGPU rendering.
  * @param displaySize - Internal rendering resolution in pixels.
@@ -32,7 +35,7 @@ export async function initializeWebGPU(
     canvasDisplaySize?: Vector2i,
 ): Promise<WebGPUContextResult | null> {
     if (!navigator.gpu) {
-        console.error('[BT] WebGPU is not supported in this browser.');
+        console.error("[BT] WebGPU isn't supported in this browser.");
         console.error('[BT] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');
         console.error('[BT] See: https://caniuse.com/webgpu');
 
@@ -45,9 +48,9 @@ export async function initializeWebGPU(
     if (!adapter) {
         console.error('[BT] Failed to get WebGPU adapter.');
         console.error('[BT] This could mean:');
-        console.error('[BT]   1. Your GPU/drivers are too old');
+        console.error('[BT]   1. The GPU/drivers are too old');
         console.error('[BT]   2. WebGPU is disabled in browser settings');
-        console.error('[BT]   3. Running in incompatible environment (VM, remote desktop, etc.)');
+        console.error('[BT]   3. Running in an incompatible environment (VM, remote desktop, etc.)');
         console.error('[BT] Browser:', navigator.userAgent);
 
         return null;
