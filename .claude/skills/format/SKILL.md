@@ -1,10 +1,10 @@
 ---
-description: Format all code files using Biome and Prettier, then verify formatting passes
+description: Format all code files using Biome and Prettier, then verify formatting passes.
 ---
 
 # Format Code
 
-Format all code files using the project's formatters and verify results.
+Format all code files using the project’s formatters and verify results.
 
 ## Usage
 
@@ -37,7 +37,7 @@ Format all code files using the project's formatters and verify results.
 
 ## Formatting Rules
 
-- Indent: 4 spaces (2 for JSON/YAML/Markdown)
+- Indent: four spaces (two for JSON/YAML/Markdown)
 - Line width: 120 characters
 - Quotes: Single quotes
 - Semicolons: Always

@@ -1,5 +1,5 @@
 ---
-description: Run tests - unit tests, coverage, visual regression, or watch mode
+description: Run tests - unit tests, coverage, visual regression, or watch mode.
 ---
 
 # Run Tests
@@ -18,7 +18,7 @@ Run the test suite with various options.
 
 ## Steps
 
-1. **Determine test scope** from the user's arguments:
+1. **Determine test scope** from the user’s arguments:
    - No arguments: Run `pnpm test:unit` (all Vitest tests)
    - `coverage`: Run `pnpm test:coverage` (with coverage thresholds)
    - `watch`: Run `pnpm test:watch` (interactive watch mode)
@@ -28,10 +28,10 @@ Run the test suite with various options.
 2. **Report results**
    - If all tests pass: Confirm success with pass count
    - If tests fail: Report specific failures with file locations and assertion details
-   - If coverage: Report coverage percentages vs 80% threshold
+   - If coverage: Report coverage percentages vs. 80% threshold
 
 3. **Suggest fixes for failures**
-   - For assertion errors: Show expected vs actual values
+   - For assertion errors: Show expected vs. actual values
    - For type errors in tests: Check test imports and types
    - For coverage gaps: Identify untested functions/branches
    - For visual regression: Suggest `pnpm test:visual:update` if change is intentional
@@ -42,5 +42,5 @@ Run the test suite with various options.
 - Visual tests are in `tests/visual/`
 - Use `describe`/`it` from vitest (not `test`)
 - Use `// #region` / `// #endregion` in test files over ~100 lines
-- Follow the same code style as source (4-space indent, single quotes, semicolons)
+- Follow the same code style as the source (four-space indent, single quotes, semicolons)
 - No emoji in test descriptions

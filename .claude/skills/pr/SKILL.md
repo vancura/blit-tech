@@ -1,10 +1,10 @@
 ---
-description: Create a pull request with automatic quality checks, conventional commit, and gh CLI
+description: Create a pull request with automatic quality checks, conventional commit, and gh CLI.
 ---
 
 # Create Pull Request
 
-Create a pull request with automatic quality checks and proper commit message.
+Create a pull request with automatic quality checks, and a proper commit message.
 
 ## Usage
 
@@ -17,13 +17,13 @@ The description after `/pr` becomes the commit subject.
 ## Steps
 
 1. **Verify branch**
-   - Confirm current branch is not `main` or `master`
+   - Confirm the current branch is not `main` or `master`
    - Run `git status` to see all changes
 
 2. **Run quality checks**
    - Execute `pnpm preflight` (all checks)
    - If any check fails, stop and report errors
-   - Do not proceed with failing checks
+   - Don’t proceed with failing checks
 
 3. **Review changes**
    - Run `git diff` to review all modifications
@@ -32,7 +32,7 @@ The description after `/pr` becomes the commit subject.
 
 4. **Create commit**
    - Stage relevant files with `git add`
-   - Generate conventional commit message:
+   - Generate a conventional commit message:
      - Format: `<type>(<scope>): <description>`
      - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`
      - Scopes: `renderer`, `camera`, `assets`, `api`, `utils`, `ci`, `docs`
@@ -43,7 +43,7 @@ The description after `/pr` becomes the commit subject.
 5. **Push and create PR**
    - Push to remote: `git push -u origin HEAD`
    - Create PR using `gh pr create` with:
-     - Title matching commit message
+     - Title matching the commit message
      - Body with summary and test plan
      - Link to related issues if any
 
@@ -53,6 +53,6 @@ The description after `/pr` becomes the commit subject.
 ## Requirements
 
 - `gh` CLI must be installed and authenticated
-- Current branch must not be `main` or `master`
+- The current branch mustn’t be `main` or `master`
 - All quality checks must pass
 - All commits must be signed off (DCO)

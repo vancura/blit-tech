@@ -1,5 +1,5 @@
 ---
-description: Review current changes against project rules, conventions, and quality standards
+description: Review current changes against project rules, conventions, and quality standards.
 ---
 
 # Review Changes
@@ -54,5 +54,5 @@ Review current changes against project rules and quality standards.
 
 ## Summary
 
-Overall assessment of the changes and readiness for commit.
+Overall assessment of the changes and readiness for a commit.
 ```

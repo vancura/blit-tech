@@ -1,10 +1,10 @@
 ---
-description: Run cspell spellcheck across the project, fix typos and add legitimate words to the dictionary
+description: Run cspell spellcheck across the project, fix typos and add legitimate words to the dictionary.
 ---
 
 # Spellcheck
 
-Run project-wide spellcheck, then fix all reported errors.
+Run the project-wide spellcheck, then fix all reported errors.
 
 ## Usage
 
@@ -19,17 +19,17 @@ Run project-wide spellcheck, then fix all reported errors.
    - Capture the full error output
 
 2. **Analyze each error** For every word flagged by cspell, determine if it is:
-   - **A typo** -- a misspelled word in source code, comments, strings, or content
-   - **A legitimate term** -- a technical term, brand name, abbreviation, or proper noun that cspell does not know
+   - **A typo** – a misspelled word in source code, comments, strings, or content
+   - **A legitimate term** – a technical term, brand name, abbreviation, or proper noun that cspell doesn’t know
 
 3. **Fix typos in source files**
    - Open the file and fix the misspelled word in place
-   - Do NOT add typos to the dictionary
+   - Don’t add typos to the dictionary
 
 4. **Add legitimate words to `cspell.json`**
    - Add the word to the `words` array in `cspell.json`
    - Keep the array sorted alphabetically (case-insensitive)
-   - Do not add duplicates
+   - Don’t add duplicates
 
 5. **Re-run spellcheck**
    - Execute `pnpm spellcheck` again to confirm all errors are resolved
