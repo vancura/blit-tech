@@ -118,7 +118,7 @@ function parsePageTag(xmlData) {
 
     if (pageMatches.length > 1) {
         console.error(`Error: Multi-page BMFonts aren’t supported (found ${pageMatches.length} <page> tags)`);
-        console.error('This font uses multiple texture pages, which is not currently supported.');
+        console.error('This font uses multiple texture pages, which is not supported.');
 
         process.exit(1);
     }
@@ -161,7 +161,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     const normalizedFntDir = resolvedFntDir.endsWith(sep) ? resolvedFntDir : resolvedFntDir + sep;
 
     if (!resolvedTexturePath.startsWith(normalizedFntDir)) {
-        console.error(`Error: Texture path escapes font directory: ${textureFilename}`);
+        console.error(`Error: The texture path escapes the font directory: ${textureFilename}`);
 
         process.exit(1);
     }
@@ -169,7 +169,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     if (embedTexture) {
         // Validate texture file existence.
         if (!existsSync(resolvedTexturePath)) {
-            console.error(`Error: Texture file not found: ${resolvedTexturePath}`);
+            console.error(`Error: The texture file was not found: ${resolvedTexturePath}`);
 
             process.exit(1);
         }
@@ -184,7 +184,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 
             textureValue = `data:image/png;base64,${base64}`;
         } catch (error) {
-            console.error(`Error reading texture file: ${error.message}`);
+            console.error(`Error reading the texture file: ${error.message}`);
 
             process.exit(1);
         }
@@ -195,7 +195,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 
         // Validate texture file existence.
         if (!existsSync(resolvedTexturePath)) {
-            console.error(`Error: Texture file not found: ${resolvedTexturePath}`);
+            console.error(`Error: The texture file was not found: ${resolvedTexturePath}`);
 
             process.exit(1);
         }
@@ -253,7 +253,7 @@ function parseGlyphData(glyphs, char, tag, charCode) {
 
     for (const { name, value, attr } of attributes) {
         if (Number.isNaN(value)) {
-            console.error(`Error: Invalid ${name} attribute for glyph (char code ${charCode}): "${attr}"`);
+            console.error(`Error: Invalid ${name} attribute for the glyph (char code ${charCode}): "${attr}"`);
 
             process.exit(1);
         }
@@ -287,7 +287,7 @@ function parseGlyphs(xmlData) {
 
         // Validate that the ID attribute exists and is numeric.
         if (!idAttr) {
-            console.error('Error: Glyph missing required "id" attribute');
+            console.error('Error: The glyph is missing a required id attribute');
 
             process.exit(1);
         }
@@ -295,7 +295,7 @@ function parseGlyphs(xmlData) {
         const charCode = parseInt(idAttr, 10);
 
         if (Number.isNaN(charCode)) {
-            console.error(`Error: Glyph has non-numeric id: ${idAttr}`);
+            console.error(`Error: The glyph has a non-numeric id: ${idAttr}`);
 
             process.exit(1);
         }
@@ -308,7 +308,7 @@ function parseGlyphs(xmlData) {
     }
 
     if (glyphCount === 0) {
-        console.error('Error: No glyphs found in font file');
+        console.error('Error: No glyphs are found in the font file');
 
         process.exit(1);
     }
@@ -358,7 +358,7 @@ function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baselin
 function convertBMFont(fntPath, outputPath, embedTexture = false) {
     // Validate input file exists.
     if (!existsSync(fntPath)) {
-        console.error(`Error: Input file not found: ${fntPath}`);
+        console.error(`Error: The input file was not found: ${fntPath}`);
 
         process.exit(1);
     }
