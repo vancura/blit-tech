@@ -161,7 +161,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     const normalizedFntDir = resolvedFntDir.endsWith(sep) ? resolvedFntDir : resolvedFntDir + sep;
 
     if (!resolvedTexturePath.startsWith(normalizedFntDir)) {
-        console.error(`Error: The texture path escapes font directory: ${textureFilename}`);
+        console.error(`Error: The texture path escapes the font directory: ${textureFilename}`);
 
         process.exit(1);
     }
@@ -169,7 +169,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
     if (embedTexture) {
         // Validate texture file existence.
         if (!existsSync(resolvedTexturePath)) {
-            console.error(`Error: The texture file not found: ${resolvedTexturePath}`);
+            console.error(`Error: The texture file was not found: ${resolvedTexturePath}`);
 
             process.exit(1);
         }
@@ -195,7 +195,7 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 
         // Validate texture file existence.
         if (!existsSync(resolvedTexturePath)) {
-            console.error(`Error: The texture file not found: ${resolvedTexturePath}`);
+            console.error(`Error: The texture file was not found: ${resolvedTexturePath}`);
 
             process.exit(1);
         }
@@ -295,7 +295,7 @@ function parseGlyphs(xmlData) {
         const charCode = parseInt(idAttr, 10);
 
         if (Number.isNaN(charCode)) {
-            console.error(`Error: The glyph has non-numeric id: ${idAttr}`);
+            console.error(`Error: The glyph has a non-numeric id: ${idAttr}`);
 
             process.exit(1);
         }
@@ -358,7 +358,7 @@ function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baselin
 function convertBMFont(fntPath, outputPath, embedTexture = false) {
     // Validate input file exists.
     if (!existsSync(fntPath)) {
-        console.error(`Error: The input file not found: ${fntPath}`);
+        console.error(`Error: The input file was not found: ${fntPath}`);
 
         process.exit(1);
     }
