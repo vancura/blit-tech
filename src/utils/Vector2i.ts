@@ -610,6 +610,10 @@ export class Vector2i {
         return out;
     }
 
+    // #endregion
+
+    // #region In-Place Mutation Methods
+
     /**
      * Adds another vector to this one in place.
      * Modifies this vector directly for maximum performance.
@@ -642,10 +646,6 @@ export class Vector2i {
 
         return this;
     }
-
-    // #endregion
-
-    // #region In-Place Mutation Methods
 
     /**
      * Subtracts another vector from this one in place.
@@ -983,10 +983,6 @@ export class Vector2i {
         return Math.max(Math.abs(other.x - this.x), Math.abs(other.y - this.y));
     }
 
-    // #endregion
-
-    // #region Comparison and Utility
-
     /**
      * Calculates the Chebyshev distance to raw coordinates.
      * Avoids creating a temporary Vector2i.
@@ -998,6 +994,10 @@ export class Vector2i {
     chebyshevDistanceToXY(x: number, y: number): number {
         return Math.max(Math.abs((x | 0) - this.x), Math.abs((y | 0) - this.y));
     }
+
+    // #endregion
+
+    // #region Comparison and Utility
 
     /**
      * Returns a direction vector pointing in the same direction.
