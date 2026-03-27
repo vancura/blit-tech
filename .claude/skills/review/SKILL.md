@@ -17,7 +17,7 @@ Review current changes against project rules and quality standards.
 1. **Gather changes**
    - Run `git diff` to see all unstaged modifications
    - Run `git diff --cached` to see staged changes
-   - List, which files were modified and what changed
+   - List which files were modified and what changed
 
 2. **Run automated checks**
    - `pnpm lint` - Report any lint issues
