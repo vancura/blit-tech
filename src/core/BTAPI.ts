@@ -215,7 +215,7 @@ export class BTAPI {
 
     /**
      * Gets the current tick count.
-     * Ticks increment once per the fixed update (e.g., 60 times/second at 60 FPS).
+     * Ticks increment once per fixed update step (target rate set by `targetFPS`).
      *
      * @returns Number of update ticks since initialization or last reset.
      */

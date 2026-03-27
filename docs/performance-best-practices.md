@@ -48,7 +48,7 @@ patterns for managing allocations:
 
 **When to use:** UI code, one-time operations, and anywhere readability matters more than performance.
 
-```typescript
+```ts
 // Clear and readable
 BT.drawPixel(new Vector2i(x, y), color);
 BT.drawRect(new Rect2i(10, 10, 50, 50), Color32.white());
@@ -70,7 +70,7 @@ BT.printFont(font, new Vector2i(10, 20), 'Hello', Color32.white());
 
 **When to use:** Tight loops that run 50+ times per frame.
 
-```typescript
+```ts
 class MyDemo implements IBlitTechDemo {
   // Pre-allocate reusable objects
   private readonly tempVec = new Vector2i(0, 0);
@@ -124,7 +124,7 @@ Blit-Tech automatically batches draw calls for optimal GPU performance:
 
 **Optimization tips:**
 
-```typescript
+```ts
 // Good: All sprites from same sheet
 for (const enemy of enemies) {
   BT.drawSprite(enemySheet, enemy.sprite, enemy.pos, enemy.tint);
@@ -154,7 +154,7 @@ Less optimal:
 
 **Tinting is essentially free!** All color multiplication happens in the GPU shader, so:
 
-```typescript
+```ts
 // Both have the same performance
 BT.drawSprite(sheet, sprite, pos, Color32.white());
 BT.drawSprite(sheet, sprite, pos, new Color32(255, 100, 100, 200));
@@ -181,7 +181,7 @@ This produces the classic "staircase" look expected in retro demos but requires 
 
 **Optimization tips for diagonal lines:**
 
-```typescript
+```ts
 // GOOD: Grid lines (axis-aligned) are very cheap
 for (let x = 0; x < 800; x += 40) {
   BT.drawLine(new Vector2i(x, 0), new Vector2i(x, 600), color); // 6 vertices each
@@ -217,7 +217,7 @@ Blit-Tech uses a fixed 60 FPS timestep by default. This provides:
 
 ### Using Ticks for Timing
 
-```typescript
+```ts
 // Frame-based timer (recommended)
 if (BT.ticks() - lastActionTick >= 60) {
   performAction();
@@ -249,7 +249,7 @@ If your `update()` or `render()` takes too long:
 
 ### 1. Premature Optimization
 
-```typescript
+```ts
 // BAD: Over-engineering simple UI code
 private readonly uiVec = new Vector2i(0, 0);
 
@@ -274,7 +274,7 @@ Don't guess what's slow - **measure it**. Use:
 
 ### 3. Allocating in Hot Paths
 
-```typescript
+```ts
 // BAD: Creating colors in tight loop
 for (let i = 0; i < 1000; i++) {
   BT.drawPixel(pos, new Color32(255, 0, 0)); // 60,000 allocations/sec!
@@ -289,7 +289,7 @@ for (let i = 0; i < 1000; i++) {
 
 ### 4. Excessive String Concatenation
 
-```typescript
+```ts
 // BAD: Creates new string every frame
 render(): void {
     BT.printFont(font, pos, "Score: " + this.score); // String allocation!

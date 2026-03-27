@@ -30,12 +30,14 @@ export const test = baseTest.extend({
             try {
                 const coverage = await page.evaluate(() => {
                     const w = window as unknown as Record<string, unknown>;
+
                     return w.__coverage__ ? JSON.stringify(w.__coverage__) : null;
                 });
 
                 if (coverage) {
                     const id = crypto.randomUUID();
                     const filename = path.join(NYC_OUTPUT_DIR, `playwright-${id}.json`);
+
                     fs.writeFileSync(filename, coverage);
                 }
             } catch {

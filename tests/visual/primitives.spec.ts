@@ -22,6 +22,7 @@ test.describe('Primitive Rendering', () => {
 
         if (initFailed) {
             test.skip(true, 'WebGPU not available in this environment');
+
             return;
         }
 

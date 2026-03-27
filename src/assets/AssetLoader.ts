@@ -51,12 +51,15 @@ export class AssetLoader {
 
             img.onload = () => {
                 loadedImages.set(url, img);
+
                 loadingPromises.delete(url);
+
                 resolve(img);
             };
 
             img.onerror = () => {
                 loadingPromises.delete(url);
+
                 reject(new Error(`Failed to load image: ${url}`));
             };
 
@@ -107,8 +110,6 @@ export class AssetLoader {
     /**
      * Clears all in-memory caches. In-flight image requests aren't aborted
      * and may repopulate the cache once complete.
-     *
-     * @returns void
      */
     static clear(): void {
         loadedImages.clear();

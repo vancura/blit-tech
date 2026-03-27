@@ -21,6 +21,7 @@ describe('AssetLoader', () => {
         it('should clear the cache', () => {
             // Verify clear doesn't throw on empty cache.
             AssetLoader.clear();
+
             expect(AssetLoader.isLoaded('test.png')).toBe(false);
         });
 
@@ -40,8 +41,11 @@ describe('AssetLoader', () => {
 
             try {
                 await AssetLoader.loadImage('before-clear.png');
+
                 expect(AssetLoader.isLoaded('before-clear.png')).toBe(true);
+
                 AssetLoader.clear();
+
                 expect(AssetLoader.getImage('before-clear.png')).toBeNull();
             } finally {
                 vi.unstubAllGlobals();
@@ -88,6 +92,7 @@ describe('AssetLoader', () => {
 
         it('should load a single image from a URL', async () => {
             const img = await AssetLoader.loadImage('test.png');
+
             expect(img).toBeDefined();
             expect(AssetLoader.isLoaded('test.png')).toBe(true);
         });
@@ -95,12 +100,14 @@ describe('AssetLoader', () => {
         it('should return the cached image on subsequent calls', async () => {
             const first = await AssetLoader.loadImage('cached.png');
             const second = await AssetLoader.loadImage('cached.png');
+
             expect(second).toBe(first);
             expect(createCount).toBe(1);
         });
 
         it('should load multiple images in parallel', async () => {
             const images = await AssetLoader.loadImages(['img-a.png', 'img-b.png']);
+
             expect(images).toHaveLength(2);
             expect(AssetLoader.isLoaded('img-a.png')).toBe(true);
             expect(AssetLoader.isLoaded('img-b.png')).toBe(true);
@@ -111,6 +118,7 @@ describe('AssetLoader', () => {
                 AssetLoader.loadImage('shared.png'),
                 AssetLoader.loadImage('shared.png'),
             ]);
+
             expect(first).toBe(second);
             expect(createCount).toBe(1);
         });
@@ -135,6 +143,7 @@ describe('AssetLoader', () => {
 
                     set src(value: string) {
                         this._src = value;
+
                         // Simulate error for URLs containing 'fail'
                         if (value.includes('fail')) {
                             this.onerror?.();
@@ -160,6 +169,7 @@ describe('AssetLoader', () => {
             } catch {
                 // Expected
             }
+
             expect(AssetLoader.isLoaded('fail.png')).toBe(false);
             expect(AssetLoader.getImage('fail.png')).toBeNull();
         });

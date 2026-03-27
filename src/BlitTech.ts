@@ -121,6 +121,9 @@ export const BT = {
     /**
      * Initializes the engine against a demo instance and target canvas.
      *
+     * The canvas element must be attached to the DOM before this call.
+     * In Electron environments, wait for DOM-ready first.
+     *
      * @param demo - Demo implementation that provides lifecycle hooks.
      * @param canvas - Canvas used as the engine render target.
      * @returns `true` when initialization succeeds; otherwise `false`.
@@ -458,6 +461,7 @@ export const BT = {
         link.href = url;
         link.download = filename;
         link.click();
+
         URL.revokeObjectURL(url);
     },
 

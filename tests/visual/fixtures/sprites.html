@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <title>Visual Test: Sprites</title>
@@ -8,10 +9,12 @@
         canvas { image-rendering: pixelated; }
     </style>
 </head>
+
 <body>
     <div id="canvas-container">
         <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
     </div>
+
     <script type="module">
         import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
 
@@ -44,6 +47,7 @@
             ctx.fillRect(8, 8, 8, 8);
 
             const img = new Image();
+
             return new Promise((resolve) => {
                 img.onload = () => resolve(img);
                 img.src = c.toDataURL();
@@ -62,7 +66,9 @@
 
             async initialize() {
                 const img = await createSpriteImage();
+
                 this.spriteSheet = new SpriteSheet(img);
+
                 return true;
             }
 
@@ -115,4 +121,5 @@
         });
     </script>
 </body>
+
 </html>

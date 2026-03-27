@@ -4,7 +4,7 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
-[![pnpm](https://img.shields.io/badge/pnpm-10.24.0-yellow.svg)](https://pnpm.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
 
 A lightweight WebGPU retro engine for TypeScript, inspired by [RetroBlit](https://badcastle.itch.io/retroblit). Build
 pixel-perfect 2D demos with a clean, fantasy-console-style API.
@@ -36,7 +36,7 @@ primitives, and fonts.
 ## Prerequisites
 
 - **Node.js** v20 or higher (LTS)
-- **pnpm** v10.24.0 or higher
+- **pnpm** v10.26.2 or higher
 - A **WebGPU-compatible browser**:
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
   - Firefox Nightly (with `dom.webgpu.enabled` in `about:config`)
@@ -59,28 +59,35 @@ The demos showcase all engine features with a guided learning path from basic co
 
 ## Scripts
 
-| Command                | Description                                                        |
-| ---------------------- | ------------------------------------------------------------------ |
-| `pnpm build`           | Build the library for npm distribution                             |
-| `pnpm lint`            | Run ESLint                                                         |
-| `pnpm lint:fix`        | Run ESLint with auto-fix                                           |
-| `pnpm format`          | Format all code (Biome + Prettier)                                 |
-| `pnpm format:check`    | Check all formatting without changes                               |
-| `pnpm format:biome`    | Format TS/JS/JSON/CSS only (Biome)                                 |
-| `pnpm format:prettier` | Format Markdown/YAML/HTML/HBS (Prettier)                           |
-| `pnpm typecheck`       | Run TypeScript type checking                                       |
-| `pnpm spellcheck`      | Check spelling in source files                                     |
-| `pnpm preflight`       | Run all quality checks (format, lint, typecheck, spellcheck, knip) |
-| `pnpm knip`            | Find unused exports and dependencies                               |
-| `pnpm clean`           | Remove dist and cache directories                                  |
-| `pnpm release`         | Build library and publish to npm                                   |
-| `pnpm convert-font`    | Convert BMFont to .btfont format                                   |
+| Command                   | Description                                                              |
+| ------------------------- | ------------------------------------------------------------------------ |
+| `pnpm build`              | Build the library for npm distribution                                   |
+| `pnpm lint`               | Run ESLint                                                               |
+| `pnpm lint:fix`           | Run ESLint with auto-fix                                                 |
+| `pnpm format`             | Format all code (Biome + Prettier)                                       |
+| `pnpm format:check`       | Check all formatting without changes                                     |
+| `pnpm format:biome`       | Format TS/JS/JSON/CSS only (Biome)                                       |
+| `pnpm format:prettier`    | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
+| `pnpm typecheck`          | Run TypeScript type checking                                             |
+| `pnpm spellcheck`         | Check spelling in source files                                           |
+| `pnpm test`               | Run all unit tests (alias for `test:unit`)                               |
+| `pnpm test:unit`          | Run all unit tests                                                       |
+| `pnpm test:unit:watch`    | Run unit tests in watch mode                                             |
+| `pnpm test:unit:coverage` | Run unit tests with coverage report (80% threshold)                      |
+| `pnpm test:visual`        | Playwright visual regression tests (requires Chrome with WebGPU)         |
+| `pnpm test:visual:update` | Update visual test baseline screenshots                                  |
+| `pnpm preflight`          | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
+| `pnpm knip`               | Find unused exports and dependencies                                     |
+| `pnpm clean`              | Remove dist and cache directories                                        |
+| `pnpm release`            | Build library and publish to npm                                         |
+| `pnpm convert-font`       | Convert BMFont to .btfont format                                         |
+| `pnpm security:audit`     | Run dependency security audit                                            |
 
 ## Quick Start
 
 Create a demo by implementing the `IBlitTechDemo` interface:
 
-```typescript
+```ts
 import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechDemo } from '../src/BlitTech';
 
 class MyDemo implements IBlitTechDemo {
@@ -133,7 +140,7 @@ bootstrap(MyDemo);
 
 For more control over initialization:
 
-```typescript
+```ts
 import { BT, checkWebGPUSupport, displayError, getCanvas } from '../src/BlitTech';
 
 // Manual initialization with custom error handling
@@ -154,24 +161,37 @@ blit-tech/
 ├── src/
 │   ├── BlitTech.ts             # Main API (BT namespace)
 │   ├── assets/
-│   │   ├── AssetLoader.ts      # Image/asset loading
-│   │   ├── BitmapFont.ts       # Bitmap font system
-│   │   └── SpriteSheet.ts      # Sprite sheet handling
+│   │   ├── AssetLoader.ts      # Image loading with caching
+│   │   ├── BitmapFont.ts       # Bitmap font system (.btfont)
+│   │   └── SpriteSheet.ts      # GPU texture wrapper
 │   ├── core/
-│   │   ├── BTAPI.ts            # Internal API implementation
-│   │   └── IBlitTechDemo.ts    # Demo interface
+│   │   ├── BTAPI.ts            # Internal API singleton
+│   │   ├── GameLoop.ts         # Fixed-timestep game loop
+│   │   ├── IBlitTechDemo.ts    # Demo interface + HardwareSettings
+│   │   └── WebGPUContext.ts    # WebGPU adapter/device/context setup
 │   ├── render/
-│   │   └── Renderer.ts         # WebGPU renderer
-│   └── utils/
-│       ├── Bootstrap.ts        # Demo bootstrap utilities
-│       ├── Color32.ts          # 32-bit color type
-│       ├── Rect2i.ts           # Integer rectangle
-│       └── Vector2i.ts         # Integer 2D vector
+│   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines)
+│   │   ├── PrimitivePipeline.ts # Batched colored geometry
+│   │   └── SpritePipeline.ts   # Batched textured quads
+│   ├── utils/
+│   │   ├── Bootstrap.ts        # Demo bootstrap utilities
+│   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
+│   │   ├── Color32.ts          # 32-bit RGBA color
+│   │   ├── FrameCapture.ts     # GPU readback + PNG export
+│   │   ├── Rect2i.ts           # Integer rectangle
+│   │   └── Vector2i.ts         # Integer 2D vector
+│   └── __test__/
+│       ├── webgpu-mock.ts      # WebGPU mock factories
+│       └── setup.ts            # Vitest global setup
+├── tests/
+│   └── visual/                 # Playwright visual regression tests
 ├── dist/                       # Built library output
 ├── docs/                       # Library documentation
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
+├── vitest.config.ts
+├── playwright.config.ts
 └── eslint.config.js
 ```
 
@@ -182,7 +202,7 @@ blit-tech/
 The bootstrap utilities provide a streamlined way to initialize demos with automatic WebGPU detection and error
 handling:
 
-```typescript
+```ts
 // One-liner demo startup (recommended)
 bootstrap(MyDemo); // Uses defaults: canvas='blit-tech-canvas', container='canvas-container'
 
@@ -202,7 +222,7 @@ getCanvas(canvasId?); // Get canvas element safely
 
 ### Initialization
 
-```typescript
+```ts
 BT.initialize(demo, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
@@ -212,7 +232,7 @@ BT.ticksReset(); // Reset tick counter
 
 ### Drawing Primitives
 
-```typescript
+```ts
 BT.clear(color); // Clear screen
 BT.clearRect(color, rect); // Clear rectangular region
 BT.drawPixel(pos, color); // Draw single pixel
@@ -223,7 +243,7 @@ BT.drawRectFill(rect, color); // Draw filled rectangle
 
 ### Asset Loading
 
-```typescript
+```ts
 // Load sprite sheet from image (automatically cached)
 const spriteSheet = await SpriteSheet.load('path/to/sprites.png');
 
@@ -234,14 +254,14 @@ const font = await BitmapFont.load('fonts/MyFont.btfont');
 const images = await AssetLoader.loadImages(['sprite1.png', 'sprite2.png']);
 
 // Check if asset is already cached
-if (AssetLoader.isCached('path/to/sprites.png')) {
+if (AssetLoader.isLoaded('path/to/sprites.png')) {
   // Asset already loaded
 }
 ```
 
 ### Sprites and Text
 
-```typescript
+```ts
 BT.drawSprite(sheet, srcRect, destPos, tint?); // Draw sprite from sprite sheet
 BT.printFont(font, pos, text, color?); // Draw text using bitmap font
 BT.print(pos, color, text); // Draw placeholder text (colored blocks)
@@ -255,7 +275,7 @@ implemented in `drawSprite()`. They are planned for a future release.
 
 ### Camera
 
-```typescript
+```ts
 BT.cameraSet(offset); // Set camera offset
 BT.cameraGet(); // Get current offset
 BT.cameraReset(); // Reset to (0, 0)
@@ -263,7 +283,7 @@ BT.cameraReset(); // Reset to (0, 0)
 
 ### Core Types
 
-```typescript
+```ts
 // Vectors and rectangles
 Vector2i(x, y); // Integer 2D vector
 Rect2i(x, y, width, height); // Integer rectangle
@@ -314,52 +334,14 @@ The engine displays an error message if the browser doesn’t support WebGPU.
 - **WGSL** — WebGPU Shading Language
 - **Biome** — Fast formatter and linter
 
-## Assets & Fonts
-
-### Sprite Sheets
-
-Load sprite sheets from PNG images:
-
-```typescript
-const spriteSheet = await SpriteSheet.load('assets/sprites.png');
-BT.drawSprite(spriteSheet, new Rect2i(0, 0, 32, 32), new Vector2i(100, 100));
-```
-
-### Bitmap Fonts
-
-Blit-Tech uses a custom `.btfont` JSON format for bitmap fonts. The format supports:
-
-- Variable-width glyphs with per-character offsets
-- Unicode character support
-- Embedded or external textures (base64 or relative paths)
-
-**Quick example:**
-
-```typescript
-const font = await BitmapFont.load('fonts/MyFont.btfont');
-BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
-const width = font.measureText('Hello'); // Measure text width
-const size = font.measureTextSize('Hello'); // Get width and height
-```
-
-**Full documentation:** See [docs/bitmap-fonts.md](docs/bitmap-fonts.md) for:
-
-- Complete `.btfont` format specification
-- Converting from BMFont format using `pnpm convert-font`
-- Font creation tips and tools
-- API reference and examples
-
-The bitmap font demos use **PragmataPro** by Fabrizio Schiavi, available at
-[https://fsd.it/shop/fonts/pragmatapro/](https://fsd.it/shop/fonts/pragmatapro/).
-
 ## Documentation
 
 Additional documentation is available in the `docs/` directory:
 
 - **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
-- **[Bitmap Fonts](docs/bitmap-fonts.md)** — Complete guide to creating and using bitmap fonts
-- **[Testing Guide](docs/testing-guide.md)** — Testing infrastructure setup and best practices
-- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling
+- **[Bitmap Fonts](docs/bitmap-fonts.md)** — `.btfont` format spec, BMFont conversion, and font rendering API
+- **[Testing](docs/testing.md)** — Testing infrastructure, tiers, and WebGPU mocks
+- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Contributing
 

@@ -16,11 +16,12 @@ Run comprehensive quality checks before committing or pushing code.
 
 1. **Run all checks**
    - Execute `pnpm preflight` which runs:
-     - `format:check` - Verify all files are formatted
-     - `lint` - Check for lint errors (Biome + ESLint)
+     - `format:check` - Verify formatting (Biome for TS/JS/JSON/CSS, Prettier for MD/YAML)
+     - `lint` - Check for lint errors (ESLint)
      - `typecheck` - Validate TypeScript types
      - `spellcheck` - Check spelling in code and docs
      - `knip` - Find unused exports and dependencies
+     - `test:unit` - Run all unit tests
 
 2. **Report results**
    - If all checks pass: Confirm code is ready for commit

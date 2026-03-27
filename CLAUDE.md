@@ -26,25 +26,34 @@ src/
   core/
     BTAPI.ts               # Internal singleton managing subsystems
     IBlitTechDemo.ts       # Demo interface + HardwareSettings
+    GameLoop.ts            # Fixed-timestep game loop
+    WebGPUContext.ts       # WebGPU adapter/device/context setup
   render/
-    Renderer.ts            # WebGPU renderer (dual pipelines)
+    Renderer.ts            # High-level renderer (coordinates pipelines)
+    PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
+    SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
   assets/
     AssetLoader.ts         # Image loading with caching
     SpriteSheet.ts         # GPU texture wrapper
     BitmapFont.ts          # Bitmap font system (.btfont)
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
+    BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
+    FrameCapture.ts        # GPU readback + PNG export
+  __test__/
+    webgpu-mock.ts         # WebGPU mock factories for tests
+    setup.ts               # Vitest global setup (GPU constants)
 ```
 
 ### Rendering
 
 Dual WebGPU pipeline architecture:
 
-1. **Primitives pipeline** - colored geometry (pixels, lines, rects). Max 100k vertices/frame.
-2. **Sprites pipeline** - textured quads with tinting. Max 50k vertices (4096 quads). Nearest-neighbor sampling.
+1. **Primitives pipeline** - colored geometry (pixels, lines, rects). Max 50k vertices/frame.
+2. **Sprites pipeline** - textured quads with tinting. Max 50k vertices (~8333 quads). Nearest-neighbor sampling.
    Auto-batched by texture.
 
 ### Core Types
@@ -77,12 +86,12 @@ Dual WebGPU pipeline architecture:
 pnpm build              # Build library
 pnpm lint               # ESLint
 pnpm lint:fix           # ESLint with auto-fix
-pnpm format             # Format all files
-pnpm format:check       # Check formatting
+pnpm format             # Format all files (Biome + Prettier)
+pnpm format:check       # Check formatting (Biome + Prettier)
 pnpm typecheck          # TypeScript type checking
 pnpm spellcheck         # cspell check
 pnpm knip               # Find unused exports/deps
-pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test)
+pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test:unit)
 ```
 
 ## Testing
@@ -90,9 +99,10 @@ pnpm preflight          # All checks (format + lint + typecheck + spellcheck + k
 Test files are colocated next to source: `src/utils/Vector2i.test.ts`.
 
 ```bash
-pnpm test               # Run all unit tests
-pnpm test:watch          # Watch mode for development
-pnpm test:coverage       # Coverage report (80% minimum threshold)
+pnpm test                # Run all unit tests (alias for test:unit)
+pnpm test:unit           # Run all unit tests
+pnpm test:unit:watch     # Watch mode for development
+pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
 pnpm test:visual         # Playwright visual regression (requires Chrome)
 pnpm test:visual:update  # Update visual test baselines
 ```
@@ -100,11 +110,11 @@ pnpm test:visual:update  # Update visual test baselines
 **Test tiers:**
 
 1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, GameLoop
-2. **Integration tests** (Vitest, happy-dom + GPU mocks) - DOM and GPU code
+2. **Integration tests** (Vitest, Node + GPU mocks; happy-dom for DOM tests) - DOM and GPU code
 3. **Visual regression** (Playwright, Chromium) - Rendering output verification
 
-**WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See `docs/testing.md`
-for full details.
+**WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See
+[docs/testing.md](docs/testing.md) for full details.
 
 ## Git
 

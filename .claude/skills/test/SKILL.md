@@ -10,7 +10,7 @@ Run the test suite with various options.
 
 ```text
 /test              # Run all unit tests
-/test coverage     # Run with coverage report
+/test coverage     # Run with coverage report (80% threshold)
 /test watch        # Run in watch mode
 /test visual       # Run visual regression tests (requires Chrome with WebGPU)
 /test <file>       # Run tests for a specific file
@@ -20,8 +20,8 @@ Run the test suite with various options.
 
 1. **Determine test scope** from the user’s arguments:
    - No arguments: Run `pnpm test:unit` (all Vitest tests)
-   - `coverage`: Run `pnpm test:coverage` (with coverage thresholds)
-   - `watch`: Run `pnpm test:watch` (interactive watch mode)
+   - `coverage`: Run `pnpm test:unit:coverage` (with coverage thresholds)
+   - `watch`: Run `pnpm test:unit:watch` (interactive watch mode)
    - `visual`: Run `pnpm test:visual` (Playwright visual regression)
    - File path: Run `pnpm exec vitest run <path>`
 
