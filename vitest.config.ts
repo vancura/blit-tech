@@ -27,5 +27,11 @@ export default defineConfig({
         setupFiles: ['src/__test__/setup.ts'],
         reporters: ['default'],
         testTimeout: 10_000,
+
+        benchmark: {
+            include: ['src/**/*.bench.ts'],
+            exclude: ['node_modules', 'dist'],
+            reporters: ['default'],
+        },
     },
 });

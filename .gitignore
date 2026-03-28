@@ -29,6 +29,7 @@ coverage-visual/
 playwright-report/
 test-results/
 .vitest/
+benchmark-results.json
 
 # Claude Code local settings
 .claude/settings.local.json
