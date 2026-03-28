@@ -26,7 +26,7 @@ export default [
             '.pnpm-store/**',
             '**/.pnpm-store/**',
             'vite.config.ts.timestamp-*',
-            'tests/**',
+            'tests/visual/**',
         ],
     },
 
@@ -167,7 +167,7 @@ export default [
 
     // Test files - relaxed rules
     {
-        files: ['**/*.test.ts', 'src/__test__/**/*.ts'],
+        files: ['**/*.test.ts', 'src/__test__/**/*.ts', 'tests/perf/**/*.ts'],
         rules: {
             'jsdoc/require-jsdoc': 'off',
             'jsdoc/require-param': 'off',

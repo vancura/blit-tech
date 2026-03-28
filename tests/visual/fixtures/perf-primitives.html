@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Perf Test: Primitives</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+
+    <script type="module">
+        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
+
+        import { initializePerfState, markInitFailed, readNumberParam, recordFrame } from './perf-common.js';
+
+        const rectCount = Math.max(0, readNumberParam('rects', 120) | 0);
+        const lineCount = Math.max(0, readNumberParam('lines', 80) | 0);
+        const pixelCount = Math.max(0, readNumberParam('pixels', 400) | 0);
+        const perf = initializePerfState('primitives', {
+            lines: lineCount,
+            pixels: pixelCount,
+            rects: rectCount,
+        });
+
+        class PerfPrimitivesTest {
+            rect = new Rect2i();
+            pixel = new Vector2i();
+            p0 = new Vector2i();
+            p1 = new Vector2i();
+
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                if (perf.completed) {
+                    return;
+                }
+
+                BT.clear(Color32.black());
+
+                for (let i = 0; i < rectCount; i++) {
+                    this.rect.set((i * 7) % 320, (i * 11) % 240, 6 + (i % 12), 4 + (i % 8));
+                    BT.drawRectFill(this.rect, Color32.red());
+                }
+
+                for (let i = 0; i < lineCount; i++) {
+                    this.p0.x = (i * 5) % 320;
+                    this.p0.y = (i * 3) % 240;
+                    this.p1.x = (this.p0.x + 24 + (i % 32)) % 320;
+                    this.p1.y = (this.p0.y + 24 + (i % 32)) % 240;
+                    BT.drawLine(this.p0, this.p1, Color32.green());
+                }
+
+                for (let i = 0; i < pixelCount; i++) {
+                    this.pixel.x = (i * 13) % 320;
+                    this.pixel.y = (i * 17) % 240;
+                    BT.drawPixel(this.pixel, Color32.white());
+                }
+
+                recordFrame(perf);
+            }
+        }
+
+        bootstrap(PerfPrimitivesTest, {
+            onError: markInitFailed,
+        });
+    </script>
+</body>
+
+</html>

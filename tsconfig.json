@@ -34,6 +34,14 @@
     /* Completeness */
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "*.d.ts"],
+  "include": [
+    "src/**/*",
+    "tests/perf/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "playwright.perf.config.ts",
+    "*.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
