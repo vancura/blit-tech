@@ -56,6 +56,8 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
     "test:unit:coverage": "vitest run --coverage",
+    "bench": "vitest bench",
+    "bench:json": "vitest bench --outputJson benchmark-results.json",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:coverage": "VISUAL_COVERAGE=1 playwright test && nyc report --reporter=lcov --reporter=text-summary --temp-dir=.nyc_output --report-dir=coverage-visual",
