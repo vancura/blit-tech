@@ -1,3 +1,5 @@
+/* global Image, document, window */
+
 export function readNumberParam(name, fallback) {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get(name);
@@ -85,6 +87,12 @@ export function createSpriteImage(primaryColor, secondaryColor) {
     canvas.height = 8;
     const context = canvas.getContext('2d');
 
+    if (!context) {
+        markInitFailed(new Error('Failed to create 2D canvas context for perf sprite fixture'));
+
+        return Promise.reject(new Error('Failed to create 2D canvas context for perf sprite fixture'));
+    }
+
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             context.fillStyle = (x + y) % 2 === 0 ? primaryColor : secondaryColor;
@@ -94,8 +102,14 @@ export function createSpriteImage(primaryColor, secondaryColor) {
 
     const image = new Image();
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         image.onload = () => resolve(image);
+        image.onerror = () => {
+            const error = new Error('Failed to load generated perf sprite image');
+
+            markInitFailed(error);
+            reject(error);
+        };
         image.src = canvas.toDataURL();
     });
 }

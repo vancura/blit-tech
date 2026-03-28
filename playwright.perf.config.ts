@@ -13,7 +13,7 @@ export default defineConfig({
     reporter: process.env.CI ? 'github' : 'list',
 
     use: {
-        baseURL: 'http://127.0.0.1:5174',
+        baseURL: 'http://127.0.0.1:5175',
         screenshot: 'only-on-failure',
         trace: 'on-first-retry',
     },
@@ -33,8 +33,8 @@ export default defineConfig({
 
     webServer: {
         command:
-            'pnpm exec vite serve tests/visual/fixtures --config tests/visual/fixtures/vite.config.ts --host 127.0.0.1 --port 5174',
-        port: 5174,
+            'pnpm exec vite serve tests/visual/fixtures --config tests/visual/fixtures/vite.config.ts --host 127.0.0.1 --port 5175',
+        port: 5175,
         reuseExistingServer: !process.env.CI,
         timeout: 30_000,
     },
