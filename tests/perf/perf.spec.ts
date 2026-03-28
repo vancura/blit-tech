@@ -138,9 +138,7 @@ function percentile(sorted: number[], percentileValue: number): number {
  * Writes the aggregated perf results to a machine-readable JSON file.
  */
 function writePerfResultsFile(): void {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Output path is a fixed test artifact location under test-results/perf
     fs.mkdirSync(path.dirname(PERF_RESULTS_FILE), { recursive: true });
-    // eslint-disable-next-line security/detect-non-literal-fs-filename -- Output path is a fixed test artifact location under test-results/perf
     fs.writeFileSync(
         PERF_RESULTS_FILE,
         JSON.stringify(

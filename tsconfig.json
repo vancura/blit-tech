@@ -37,6 +37,7 @@
   "include": [
     "src/**/*",
     "tests/perf/**/*.ts",
+    "tests/visual/**/*.ts",
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
