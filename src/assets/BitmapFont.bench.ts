@@ -1,8 +1,15 @@
+// #region Imports
+
 import { bench, describe } from 'vitest';
 
 import { Rect2i } from '../utils/Rect2i';
-import { BitmapFont, type Glyph } from './BitmapFont';
+import type { Glyph } from './BitmapFont';
+import { BitmapFont } from './BitmapFont';
 import { SpriteSheet } from './SpriteSheet';
+
+// #endregion
+
+// #region Constants
 
 const ASCII_CACHE_SIZE = 128;
 const CACHE_HALF_FULL = 128;
@@ -13,6 +20,10 @@ const BENCH_OPTIONS = {
     warmupTime: 25,
     warmupIterations: 50,
 };
+
+// #endregion
+
+// #region Helper Types
 
 /**
  * Constructor shape used to instantiate `BitmapFont` with synthetic data.
@@ -33,6 +44,10 @@ type BitmapFontCtor = new (
 type BitmapFontCacheView = {
     measureCache: Map<string, number>;
 };
+
+// #endregion
+
+// #region Helper Functions
 
 /**
  * Creates synthetic glyph metadata for benchmark-only font construction.
@@ -125,6 +140,10 @@ function createUniqueTexts(length: number, count: number): string[] {
     return texts;
 }
 
+// #endregion
+
+// #region Bench Registration
+
 /**
  * Registers a benchmark for cache-miss text measurement at a fixed text length.
  *
@@ -185,6 +204,10 @@ function benchMeasureTextSize(name: string, text: string): void {
         BENCH_OPTIONS,
     );
 }
+
+// #endregion
+
+// #region Benchmark Suites
 
 describe('BitmapFont glyph lookup benchmarks', () => {
     const font = createBenchmarkFont();
@@ -250,3 +273,5 @@ describe('BitmapFont cache fill level benchmarks', () => {
         );
     }
 });
+
+// #endregion
