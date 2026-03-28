@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Perf Test: Fonts</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+
+    <script type="module">
+        import { bootstrap, BT, Color32, Vector2i } from 'blit-tech';
+
+        import { initializePerfState, markInitFailed, readNumberParam, recordFrame, repeatText } from './perf-common.js';
+
+        const charCount = Math.max(1, readNumberParam('chars', 400) | 0);
+        const lineWidth = Math.max(1, readNumberParam('lineWidth', 40) | 0);
+        const text = repeatText('PERF TEXT 0123456789 ', charCount);
+        const lines = [];
+
+        for (let start = 0; start < text.length; start += lineWidth) {
+            lines.push(text.slice(start, start + lineWidth));
+        }
+
+        const perf = initializePerfState('fonts', {
+            charCount,
+            lineWidth,
+            lines: lines.length,
+        });
+
+        class PerfFontsTest {
+            pos = new Vector2i();
+
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                if (perf.completed) {
+                    return;
+                }
+
+                BT.clear(Color32.black());
+
+                for (let i = 0; i < lines.length; i++) {
+                    this.pos.x = 8;
+                    this.pos.y = 8 + i * 10;
+                    BT.print(this.pos, Color32.white(), lines[i]);
+                }
+
+                recordFrame(perf);
+            }
+        }
+
+        bootstrap(PerfFontsTest, {
+            onError: markInitFailed,
+        });
+    </script>
+</body>
+
+</html>
