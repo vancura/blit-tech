@@ -28,9 +28,9 @@ type BitmapFontCtor = new (
 ) => BitmapFont;
 
 /**
- * Internal type view exposing the private measurement cache for setup control.
+ * Structural view exposing the internal measurement cache for setup control.
  */
-type BitmapFontInternals = BitmapFont & {
+type BitmapFontCacheView = {
     measureCache: Map<string, number>;
 };
 
@@ -86,7 +86,7 @@ function createBenchmarkFont(): BitmapFont {
  * @param count - Number of synthetic entries to insert.
  */
 function fillMeasureCache(font: BitmapFont, count: number): void {
-    const cache = (font as BitmapFontInternals).measureCache;
+    const cache = (font as unknown as BitmapFontCacheView).measureCache;
 
     cache.clear();
 
