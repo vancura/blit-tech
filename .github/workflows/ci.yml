@@ -83,7 +83,7 @@ jobs:
     needs: quality
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'perf-tier-1')
     concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref }}-benchmark
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-benchmark
       cancel-in-progress: true
     permissions:
       actions: read
@@ -203,6 +203,7 @@ jobs:
             benchmark-comparison.json
             benchmark-comment.md
             benchmark-results.json
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Post benchmark PR comment
@@ -214,10 +215,6 @@ jobs:
           BENCHMARK_COMMENT_PATH: benchmark-comment.md
         with:
           script: |
-            if (context.payload.pull_request?.head?.repo?.fork || context.actor === 'dependabot[bot]') {
-              return;
-            }
-
             const fs = require('node:fs');
             const marker = '<!-- benchmark-comparison -->';
             const body = fs.readFileSync(process.env.BENCHMARK_COMMENT_PATH, 'utf8');
@@ -253,6 +250,10 @@ jobs:
         run: |
           node --input-type=module <<'EOF'
           import fs from 'node:fs';
+
+          if (!fs.existsSync('benchmark-comparison.json')) {
+              process.exit(0);
+          }
 
           const report = JSON.parse(fs.readFileSync('benchmark-comparison.json', 'utf8'));
 
