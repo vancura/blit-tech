@@ -11,6 +11,9 @@ jobs:
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    if:
+      github.event_name != 'pull_request' || !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
+      github.event.label.name == 'perf-tier-1'
 
     steps:
       - name: Checkout code
@@ -46,6 +49,9 @@ jobs:
     name: Build Library
     runs-on: ubuntu-latest
     needs: quality
+    if:
+      github.event_name != 'pull_request' || !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
+      github.event.label.name == 'perf-tier-1'
 
     steps:
       - name: Checkout code
@@ -126,7 +132,7 @@ jobs:
           name: benchmark-baseline
           path: benchmark-results.json
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
 
       - name: Find latest main benchmark baseline
         id: find-baseline
