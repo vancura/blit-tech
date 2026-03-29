@@ -71,16 +71,61 @@ function readJsonFile(filePath) {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function assert(condition, message) {
+    if (!condition) {
+        throw new Error(message);
+    }
+}
+
+function validateBenchmarkReport(report, sourceLabel) {
+    assert(
+        report !== null && typeof report === 'object',
+        `Invalid benchmark report in ${sourceLabel}: expected object`,
+    );
+    assert(Array.isArray(report.files), `Invalid benchmark report in ${sourceLabel}: report.files must be an array`);
+}
+
 function flattenBenchmarks(report) {
     const entries = [];
+    const reportLabel = report.__sourceLabel ?? 'benchmark report';
 
-    for (const file of report.files ?? []) {
-        for (const group of file.groups ?? []) {
-            for (const benchmark of group.benchmarks ?? []) {
-                const key = `${group.fullName} > ${benchmark.name}`;
+    validateBenchmarkReport(report, reportLabel);
+
+    for (const [fileIndex, file] of report.files.entries()) {
+        assert(file !== null && typeof file === 'object', `Invalid file entry at index ${fileIndex} in ${reportLabel}`);
+        assert(typeof file.filepath === 'string', `Invalid file.filepath at index ${fileIndex} in ${reportLabel}`);
+        assert(Array.isArray(file.groups), `Invalid file.groups for ${file.filepath} in ${reportLabel}`);
+
+        for (const [groupIndex, group] of file.groups.entries()) {
+            assert(
+                group !== null && typeof group === 'object',
+                `Invalid group entry at index ${groupIndex} for ${file.filepath} in ${reportLabel}`,
+            );
+            assert(
+                typeof group.fullName === 'string',
+                `Invalid group.fullName at index ${groupIndex} for ${file.filepath} in ${reportLabel}`,
+            );
+            assert(Array.isArray(group.benchmarks), `Invalid group.benchmarks for ${group.fullName} in ${reportLabel}`);
+
+            for (const [benchmarkIndex, benchmark] of group.benchmarks.entries()) {
+                assert(
+                    benchmark !== null && typeof benchmark === 'object',
+                    `Invalid benchmark entry at index ${benchmarkIndex} for ${group.fullName} in ${reportLabel}`,
+                );
+                assert(
+                    typeof benchmark.name === 'string',
+                    `Invalid benchmark.name at index ${benchmarkIndex} for ${group.fullName} in ${reportLabel}`,
+                );
+                assert(
+                    Number.isFinite(benchmark.hz),
+                    `Invalid benchmark.hz for ${group.fullName} > ${benchmark.name} in ${reportLabel}`,
+                );
+                const matchKey = `${file.filepath}::${group.fullName}::${benchmark.name}`;
+                const label = `${group.fullName} > ${benchmark.name}`;
 
                 entries.push({
-                    key,
+                    matchKey,
+                    label,
                     suite: group.fullName,
                     name: benchmark.name,
                     hz: benchmark.hz,
@@ -96,8 +141,8 @@ function flattenBenchmarks(report) {
 function compareReports(currentReport, baselineReport, thresholdPct) {
     const currentEntries = flattenBenchmarks(currentReport);
     const baselineEntries = baselineReport ? flattenBenchmarks(baselineReport) : [];
-    const currentByKey = new Map(currentEntries.map((entry) => [entry.key, entry]));
-    const baselineByKey = new Map(baselineEntries.map((entry) => [entry.key, entry]));
+    const currentByKey = new Map(currentEntries.map((entry) => [entry.matchKey, entry]));
+    const baselineByKey = new Map(baselineEntries.map((entry) => [entry.matchKey, entry]));
     const keys = [...new Set([...baselineByKey.keys(), ...currentByKey.keys()])].sort((left, right) =>
         left.localeCompare(right),
     );
@@ -108,7 +153,7 @@ function compareReports(currentReport, baselineReport, thresholdPct) {
 
         if (!baselineEntry) {
             return {
-                name: key,
+                name: currentEntry?.label ?? key,
                 suite: currentEntry?.suite ?? key,
                 baselineHz: null,
                 currentHz: currentEntry?.hz ?? null,
@@ -119,7 +164,7 @@ function compareReports(currentReport, baselineReport, thresholdPct) {
 
         if (!currentEntry) {
             return {
-                name: key,
+                name: baselineEntry.label,
                 suite: baselineEntry.suite,
                 baselineHz: baselineEntry.hz,
                 currentHz: null,
@@ -138,7 +183,7 @@ function compareReports(currentReport, baselineReport, thresholdPct) {
         }
 
         return {
-            name: key,
+            name: currentEntry.label,
             suite: currentEntry.suite,
             baselineHz: baselineEntry.hz,
             currentHz: currentEntry.hz,
@@ -250,7 +295,13 @@ function writeFile(filePath, content) {
 function main() {
     const args = parseArgs(process.argv.slice(2));
     const currentReport = readJsonFile(args.current);
+    currentReport.__sourceLabel = args.current;
     const baselineReport = args.baseline && fs.existsSync(args.baseline) ? readJsonFile(args.baseline) : null;
+
+    if (baselineReport !== null) {
+        baselineReport.__sourceLabel = args.baseline;
+    }
+
     const report = compareReports(currentReport, baselineReport, args.threshold);
 
     writeFile(args.jsonOut, JSON.stringify(report, null, 2));

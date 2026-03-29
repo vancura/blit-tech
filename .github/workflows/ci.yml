@@ -80,6 +80,9 @@ jobs:
     name: Tier 1 Benchmarks
     runs-on: ubuntu-latest
     needs: quality
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-benchmark
+      cancel-in-progress: true
     permissions:
       actions: read
       contents: read
@@ -199,12 +202,16 @@ jobs:
           retention-days: 14
 
       - name: Post benchmark PR comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
         uses: actions/github-script@v8
         env:
           BENCHMARK_COMMENT_PATH: benchmark-comment.md
         with:
           script: |
+            if (context.payload.pull_request?.head?.repo?.fork) {
+              return;
+            }
+
             const fs = require('node:fs');
             const marker = '<!-- benchmark-comparison -->';
             const body = fs.readFileSync(process.env.BENCHMARK_COMMENT_PATH, 'utf8');
