@@ -124,7 +124,7 @@ describe('Palette', () => {
         expect(() => Palette.fromJSON({ colors: ['#000000ff'] })).toThrow('Invalid palette JSON');
         expect(() => Palette.fromJSON({ size: 16 })).toThrow('Invalid palette JSON');
         expect(() => Palette.fromJSON({ colors: ['#00000000'], size: 16 })).toThrow(
-            "Palette JSON color count 1 doesn't match size 16",
+            'Palette JSON color count 1 does not match size 16',
         );
     });
 
@@ -156,10 +156,10 @@ describe('Palette', () => {
 
     it('rejects invalid raw RGB byte payloads', () => {
         expect(() => Palette.fromUint8Array(new Uint8Array([1, 2, 3, 4]))).toThrow(
-            "Palette byte array length 4 isn't divisible by 3",
+            'Palette byte array length 4 is not divisible by 3',
         );
         expect(() => Palette.fromUint8Array(new Uint8Array(48), 32)).toThrow(
-            "Palette byte array length 48 doesn't match palette size 32",
+            'Palette byte array length 48 does not match palette size 32',
         );
         expect(() => Palette.fromUint8Array(new Uint8Array(9))).toThrow(
             'Invalid palette size: 3. Must be 2, 4, 16, 32, 64, 128, or 256',
