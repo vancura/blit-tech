@@ -1,4 +1,5 @@
 import type { BitmapFont } from '../assets/BitmapFont';
+import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
@@ -58,6 +59,9 @@ export class BTAPI {
 
     /** Renderer subsystem for all drawing operations. */
     private renderer: Renderer | null = null;
+
+    /** Active engine palette used by palette-first rendering. */
+    private palette: Palette | null = null;
 
     // #endregion
 
@@ -278,6 +282,28 @@ export class BTAPI {
      */
     public getRenderer(): Renderer | null {
         return this.renderer;
+    }
+
+    /**
+     * Gets the active engine palette, creating the default VGA palette lazily.
+     *
+     * @returns Active palette instance.
+     */
+    public getPalette(): Palette {
+        if (!this.palette) {
+            this.palette = Palette.vga();
+        }
+
+        return this.palette;
+    }
+
+    /**
+     * Sets the active engine palette.
+     *
+     * @param palette - Palette to store as the active engine palette.
+     */
+    public setPalette(palette: Palette): void {
+        this.palette = palette;
     }
 
     // #endregion

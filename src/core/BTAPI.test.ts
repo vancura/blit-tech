@@ -20,6 +20,7 @@ import {
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
 import type { BitmapFont } from '../assets/BitmapFont';
+import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
@@ -150,6 +151,13 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getHardwareSettings()).toBeNull();
         });
 
+        it('getPalette should lazily create a VGA palette before init', () => {
+            const palette = BTAPI.instance.getPalette();
+
+            expect(palette).toBeInstanceOf(Palette);
+            expect(palette.size).toBe(256);
+        });
+
         it('getCameraOffset should return a zero vector before init', () => {
             const offset = BTAPI.instance.getCameraOffset();
 
@@ -215,6 +223,14 @@ describe('BTAPI', () => {
 
         it('resetCamera should not throw before init', () => {
             expect(() => BTAPI.instance.resetCamera()).not.toThrow();
+        });
+
+        it('setPalette should store the provided palette before init', () => {
+            const palette = new Palette(16);
+
+            BTAPI.instance.setPalette(palette);
+
+            expect(BTAPI.instance.getPalette()).toBe(palette);
         });
     });
 

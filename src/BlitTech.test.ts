@@ -11,7 +11,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BitmapFont, HardwareSettings } from './BlitTech';
-import { BT, Color32, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
+import { BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
 import { BTAPI } from './core/BTAPI';
 
 // #region Helpers
@@ -141,6 +141,48 @@ describe('BT.ticksReset', () => {
         BT.ticksReset();
 
         expect(spy).toHaveBeenCalledOnce();
+    });
+});
+
+// #endregion
+
+// #region BT.paletteCreate / BT.paletteSet / BT.paletteGet
+
+describe('BT.paletteCreate', () => {
+    it('creates a palette with the requested size', () => {
+        const palette = BT.paletteCreate(16);
+
+        expect(palette).toBeInstanceOf(Palette);
+        expect(palette.size).toBe(16);
+    });
+});
+
+describe('BT.paletteSet', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('delegates to BTAPI.instance.setPalette', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'setPalette').mockReturnValue(undefined);
+        const palette = new Palette(16);
+
+        BT.paletteSet(palette);
+
+        expect(spy).toHaveBeenCalledWith(palette);
+    });
+});
+
+describe('BT.paletteGet', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('delegates to BTAPI.instance.getPalette', () => {
+        const palette = new Palette(16);
+
+        vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(palette);
+
+        expect(BT.paletteGet()).toBe(palette);
     });
 });
 
