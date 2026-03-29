@@ -59,11 +59,14 @@ The demos showcase all engine features with a guided learning path from basic co
 
 ## Documentation
 
-- [Testing Guide](docs/testing.md)
-- [Performance Testing Guide](docs/performance-testing.md)
-- [Performance Best Practices](docs/performance-best-practices.md)
-- [Bitmap Fonts Guide](docs/bitmap-fonts.md)
-- [Developer Experience Guide](docs/developer-experience-guide.md)
+Additional documentation is available in the `docs/` directory:
+
+- **[Testing Guide](docs/testing.md)** — Testing infrastructure, tiers, and WebGPU mocks
+- **[Performance Testing Guide](docs/performance-testing.md)** — CPU benchmarks, browser frame-time tests, and CI perf
+  workflows
+- **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
+- **[Bitmap Fonts Guide](docs/bitmap-fonts.md)** — `.btfont` format spec, BMFont conversion, and font rendering API
+- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Scripts
 
@@ -341,15 +344,6 @@ The engine displays an error message if the browser doesn’t support WebGPU.
 - **Vite** — Fast build tool with HMR
 - **WGSL** — WebGPU Shading Language
 - **Biome** — Fast formatter and linter
-
-## Documentation
-
-Additional documentation is available in the `docs/` directory:
-
-- **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
-- **[Bitmap Fonts](docs/bitmap-fonts.md)** — `.btfont` format spec, BMFont conversion, and font rendering API
-- **[Testing](docs/testing.md)** — Testing infrastructure, tiers, and WebGPU mocks
-- **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Contributing
 

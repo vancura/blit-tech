@@ -63,7 +63,7 @@ Current benchmark files:
 - `src/utils/Rect2i.bench.ts`
 - `src/assets/BitmapFont.bench.ts`
 
-### What They Measure
+### Tier 1 Metrics
 
 CPU benchmarks report **ops/sec**. Higher numbers are better.
 
@@ -103,7 +103,7 @@ Current entrypoints:
 - `tests/visual/fixtures/perf-fonts.html`
 - `tests/visual/fixtures/perf-mixed.html`
 
-### What They Measure
+### Tier 2 Metrics
 
 GPU performance tests measure **frame time**, not ops/sec.
 
