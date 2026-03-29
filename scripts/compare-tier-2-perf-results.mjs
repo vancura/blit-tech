@@ -34,8 +34,8 @@ function parseArgs(argv) {
             continue;
         }
 
-        if (nextValue === undefined) {
-            throw new Error(`Missing value for argument: ${value}`);
+        if (nextValue === undefined || nextValue.startsWith('--') || nextValue.startsWith('-')) {
+            throw new Error(`Missing or invalid value for argument: ${value}`);
         }
 
         switch (value) {
