@@ -303,8 +303,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chrome for Playwright perf tests
-        run: pnpm exec playwright install --with-deps chrome
+      - name: Install pinned Chromium for Playwright perf tests
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Tier 2 GPU perf tests
         run: pnpm test:perf

@@ -23,7 +23,7 @@ export default defineConfig({
             name: 'chromium-webgpu',
             use: {
                 ...devices['Desktop Chrome'],
-                channel: 'chrome',
+                browserName: 'chromium',
                 launchOptions: {
                     args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--disable-gpu-sandbox'],
                 },
