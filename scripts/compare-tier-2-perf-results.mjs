@@ -160,12 +160,32 @@ function flattenPerfScenarios(report) {
             scenario.stats !== null && typeof scenario.stats === 'object',
             `Invalid scenario.stats for ${scenario.name} in ${reportLabel}`,
         );
-        assert(Number.isFinite(scenario.stats.frames), `Invalid stats.frames for ${scenario.name} in ${reportLabel}`);
-        assert(Number.isFinite(scenario.stats.median), `Invalid stats.median for ${scenario.name} in ${reportLabel}`);
-        assert(Number.isFinite(scenario.stats.p95), `Invalid stats.p95 for ${scenario.name} in ${reportLabel}`);
-        assert(Number.isFinite(scenario.stats.p99), `Invalid stats.p99 for ${scenario.name} in ${reportLabel}`);
-        assert(Number.isFinite(scenario.stats.min), `Invalid stats.min for ${scenario.name} in ${reportLabel}`);
-        assert(Number.isFinite(scenario.stats.max), `Invalid stats.max for ${scenario.name} in ${reportLabel}`);
+        assert(
+            Number.isFinite(scenario.stats.frames) &&
+                Number.isInteger(scenario.stats.frames) &&
+                scenario.stats.frames >= 0,
+            `Invalid stats.frames for ${scenario.name} in ${reportLabel}`,
+        );
+        assert(
+            Number.isFinite(scenario.stats.median) && scenario.stats.median >= 0,
+            `Invalid stats.median for ${scenario.name} in ${reportLabel}`,
+        );
+        assert(
+            Number.isFinite(scenario.stats.p95) && scenario.stats.p95 >= 0,
+            `Invalid stats.p95 for ${scenario.name} in ${reportLabel}`,
+        );
+        assert(
+            Number.isFinite(scenario.stats.p99) && scenario.stats.p99 >= 0,
+            `Invalid stats.p99 for ${scenario.name} in ${reportLabel}`,
+        );
+        assert(
+            Number.isFinite(scenario.stats.min) && scenario.stats.min >= 0,
+            `Invalid stats.min for ${scenario.name} in ${reportLabel}`,
+        );
+        assert(
+            Number.isFinite(scenario.stats.max) && scenario.stats.max >= 0,
+            `Invalid stats.max for ${scenario.name} in ${reportLabel}`,
+        );
 
         const matchKey = `${scenario.fixture}::${scenario.name}`;
         assert(
