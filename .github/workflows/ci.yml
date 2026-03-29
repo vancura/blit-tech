@@ -5,11 +5,15 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 jobs:
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    if:
+      github.event_name != 'pull_request' || !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
+      github.event.label.name == 'perf-tier-1'
 
     steps:
       - name: Checkout code
@@ -45,6 +49,9 @@ jobs:
     name: Build Library
     runs-on: ubuntu-latest
     needs: quality
+    if:
+      github.event_name != 'pull_request' || !contains(fromJSON('["labeled","unlabeled"]'), github.event.action) ||
+      github.event.label.name == 'perf-tier-1'
 
     steps:
       - name: Checkout code
@@ -75,6 +82,197 @@ jobs:
           name: library-dist
           path: dist/
           retention-days: 7
+
+  benchmark:
+    name: Tier 1 Benchmarks
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'perf-tier-1')
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-benchmark
+      cancel-in-progress: true
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Tier 1 benchmarks
+        run: pnpm bench:json
+
+      - name: Upload current benchmark results
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results-current
+          path: benchmark-results.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload main benchmark baseline
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-baseline
+          path: benchmark-results.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Find latest main benchmark baseline
+        id: find-baseline
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const workflowId = 'ci.yml';
+            const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: workflowId,
+              branch: 'main',
+              event: 'push',
+              status: 'completed',
+              per_page: 100,
+            });
+
+            for (const run of runs) {
+              if (run.conclusion !== 'success') {
+                continue;
+              }
+
+              const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+                per_page: 100,
+              });
+              const baselineArtifact = artifacts.find(
+                (artifact) => artifact.name === 'benchmark-baseline' && artifact.expired === false,
+              );
+
+              if (!baselineArtifact) {
+                continue;
+              }
+
+              core.setOutput('found', 'true');
+              core.setOutput('download-url', baselineArtifact.archive_download_url);
+              core.setOutput('artifact-id', String(baselineArtifact.id));
+              core.setOutput('run-id', String(run.id));
+              return;
+            }
+
+            core.setOutput('found', 'false');
+
+      - name: Download main benchmark baseline
+        if: github.event_name == 'pull_request' && steps.find-baseline.outputs.found == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BASELINE_URL: ${{ steps.find-baseline.outputs.download-url }}
+        run: |
+          mkdir -p baseline-artifact
+          curl --fail --location \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            "${BASELINE_URL}" \
+            --output baseline-artifact.zip
+          unzip -o baseline-artifact.zip -d baseline-artifact
+
+      - name: Compare benchmark results
+        if: github.event_name == 'pull_request'
+        run: >
+          node scripts/compare-benchmarks.mjs --current benchmark-results.json --baseline
+          baseline-artifact/benchmark-results.json --json-out benchmark-comparison.json --markdown-out
+          benchmark-comment.md --threshold 10
+
+      - name: Upload benchmark comparison artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-comparison
+          path: |
+            benchmark-comparison.json
+            benchmark-comment.md
+            benchmark-results.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Post benchmark PR comment
+        if:
+          github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor !=
+          'dependabot[bot]'
+        uses: actions/github-script@v8
+        env:
+          BENCHMARK_COMMENT_PATH: benchmark-comment.md
+        with:
+          script: |
+            const fs = require('node:fs');
+            const marker = '<!-- benchmark-comparison -->';
+            const body = fs.readFileSync(process.env.BENCHMARK_COMMENT_PATH, 'utf8');
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existingComment = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker),
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body,
+              });
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+      - name: Fail on benchmark regressions
+        if: github.event_name == 'pull_request'
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+
+          if (!fs.existsSync('benchmark-comparison.json')) {
+              process.exit(0);
+          }
+
+          const report = JSON.parse(fs.readFileSync('benchmark-comparison.json', 'utf8'));
+
+          if (!report.hasBaseline) {
+              process.exit(0);
+          }
+
+          const hasFailures = report.summary.regressions > 0 || report.summary.missingBenchmarks > 0;
+
+          if (hasFailures) {
+              process.exit(1);
+          }
+          EOF
 
   # Placeholder for tests - will run when tests are added
   test:
