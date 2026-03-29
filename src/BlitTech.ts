@@ -8,6 +8,7 @@
 import { AssetLoader } from './assets/AssetLoader';
 import type { TextSize } from './assets/BitmapFont';
 import { BitmapFont } from './assets/BitmapFont';
+import { Palette } from './assets/Palette';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
@@ -181,6 +182,36 @@ export const BT = {
      */
     ticksReset: (): void => {
         BTAPI.instance.resetTicks();
+    },
+
+    /**
+     * Creates a standalone palette instance.
+     *
+     * @param size - Palette size. Defaults to 256 colors.
+     * @returns New mutable palette.
+     */
+    paletteCreate: (size: number = 256): Palette => {
+        return new Palette(size);
+    },
+
+    /**
+     * Stores the active engine palette.
+     *
+     * @param palette - Palette to make active.
+     */
+    paletteSet: (palette: Palette): void => {
+        BTAPI.instance.setPalette(palette);
+    },
+
+    /**
+     * Gets the active engine palette.
+     *
+     * Lazily creates a default VGA palette if none has been set yet.
+     *
+     * @returns Active palette.
+     */
+    paletteGet: (): Palette => {
+        return BTAPI.instance.getPalette();
     },
 
     // #endregion
@@ -506,6 +537,7 @@ export {
     defaultHardwareSettings,
     displayError,
     getCanvas,
+    Palette,
     Rect2i,
     SpriteSheet,
     Vector2i,
