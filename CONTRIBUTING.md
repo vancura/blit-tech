@@ -146,6 +146,8 @@ This runs:
 - Linting
 - TypeScript type checks
 - Spell checking
+- Unused export and dependency checks (knip)
+- Unit tests
 
 ### Available Commands
 
@@ -157,8 +159,8 @@ pnpm format           # Format code
 pnpm format:check     # Check formatting
 pnpm typecheck        # Run TypeScript checks
 pnpm spellcheck       # Check spelling
+pnpm knip             # Find unused exports and dependencies
 pnpm preflight        # Run all quality checks
-pnpm sync-rules       # Sync AI rules to editor configs
 ```
 
 ## Pull Request Process

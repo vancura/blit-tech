@@ -1,8 +1,9 @@
 # Developer Experience Guide (Roadmap)
 
-> **Status: Roadmap / Planning Document.** Most features described below are **not yet implemented**. This document
+> **Status: Roadmap / Planning Document.** Many features described below are **not yet implemented**. This document
 > serves as a wishlist and reference for future development. Commands, paths, and configurations listed here may not
 > exist in the current codebase. Check `package.json` and the actual project structure for what is currently available.
+> Items marked **[done]** are already in place.
 
 This document provides comprehensive guidance for improving developer experience, community tools, and documentation for
 Blit-Tech.
@@ -28,10 +29,10 @@ automatically.
 
 **Deliverables:**
 
-1. Contributing guidelines (CONTRIBUTING.md).
+1. Contributing guidelines (CONTRIBUTING.md). **[done]**
 2. GitHub issue templates (bug, feature, question).
-3. Pull a request template with a checklist.
-4. Code of Conduct (CODE_OF_CONDUCT.md).
+3. Pull request template with a checklist.
+4. Code of Conduct (CODE_OF_CONDUCT.md). **[done]**
 5. Automated dependency updates (Dependabot/Renovate).
 6. Astro Starlight documentation site preparation.
 7. Additional DX improvements.
@@ -1110,8 +1111,8 @@ docs/dist/
 
 ## Implementation Order
 
-1. **CONTRIBUTING.md** – Guide for contributors
-2. **CODE_OF_CONDUCT.md** – Community standards
+1. **CONTRIBUTING.md** – Guide for contributors **[done]**
+2. **CODE_OF_CONDUCT.md** – Community standards **[done]**
 3. **Issue templates** – Bug reports, features, questions
 4. **PR template** – Pull request checklist
 5. **Dependabot/Renovate** – Automated updates
@@ -1133,4 +1134,4 @@ After completing this guide:
 
 ---
 
-**Last Updated:** 2025-11-28
+**Last Updated:** 2026-03-29
