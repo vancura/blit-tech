@@ -105,6 +105,9 @@ pnpm test:unit:watch     # Watch mode for development
 pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
 pnpm test:visual         # Playwright visual regression (requires Chrome)
 pnpm test:visual:update  # Update visual test baselines
+pnpm bench               # Run Tier 1 CPU benchmarks (Vitest bench)
+pnpm bench:json          # Run Tier 1 benchmarks and write benchmark-results.json
+pnpm test:perf           # Run Tier 2 browser/GPU frame-time benchmarks
 ```
 
 **Test tiers:**
@@ -112,9 +115,47 @@ pnpm test:visual:update  # Update visual test baselines
 1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, GameLoop
 2. **Integration tests** (Vitest, Node + GPU mocks; happy-dom for DOM tests) - DOM and GPU code
 3. **Visual regression** (Playwright, Chromium) - Rendering output verification
+4. **Performance tests**
+   - Tier 1 CPU benchmarks (Vitest bench, `*.bench.ts`) for hot methods and allocation patterns
+   - Tier 2 GPU perf tests (Playwright, `tests/perf/`) for browser frame-time workloads
 
 **WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See
 [docs/testing.md](docs/testing.md) for full details.
+
+## Performance Testing
+
+Use the benchmark system when the user asks about performance, throughput, regressions, hot paths, or CI benchmark
+coverage.
+
+- Prefer **Tier 1 CPU benchmarks** first for isolated methods, helpers, caches, and allocation patterns
+- Use **Tier 2 GPU perf tests** when the question is real browser frame time rather than raw method throughput
+- If a rendering change affects both inner-loop CPU work and full-frame behavior, add both
+- Tier 2 uses Playwright-managed pinned Chromium, not floating branded Chrome
+- Tier 2 CI currently runs on standard hosted runners, so its results are approximate and should be treated as a coarse
+  regression signal unless a self-hosted GPU runner is configured
+
+Recommended commands:
+
+```bash
+pnpm bench
+pnpm bench:json
+pnpm test:perf
+```
+
+CI status:
+
+- Tier 1 CPU benchmarks run in GitHub Actions on `main` pushes and on PRs labeled `perf-tier-1`
+- Labeled PR benchmark runs compare against the latest `main` baseline artifact
+- The benchmark job comments on the PR and fails on regressions greater than 10%
+- Tier 2 GPU perf tests run in GitHub Actions on `main` pushes and on PRs labeled `perf-tier-2`
+- Tier 2 PR perf runs compare against the latest `main` GPU perf baseline artifact
+- The GPU perf job comments on the PR and fails on median frame-time regressions greater than 50%
+- Tier 2 CI is browser/frame-time coverage on hosted Linux runners, not hardware-accurate GPU benchmarking
+
+Claude Code reusable skill:
+
+- Use `.claude/skills/perf/SKILL.md` for benchmark-related work
+- Use it when adding a new `*.bench.ts`, extending browser perf fixtures, or reasoning about benchmark CI behavior
 
 ## Git
 
