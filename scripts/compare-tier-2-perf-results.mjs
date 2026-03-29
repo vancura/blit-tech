@@ -142,6 +142,7 @@ function validatePerfReport(report, sourceLabel) {
 function flattenPerfScenarios(report) {
     const entries = [];
     const reportLabel = report.__sourceLabel ?? 'perf report';
+    const seenMatchKeys = new Set();
 
     validatePerfReport(report, reportLabel);
 
@@ -167,6 +168,11 @@ function flattenPerfScenarios(report) {
         assert(Number.isFinite(scenario.stats.max), `Invalid stats.max for ${scenario.name} in ${reportLabel}`);
 
         const matchKey = `${scenario.fixture}::${scenario.name}`;
+        assert(
+            !seenMatchKeys.has(matchKey),
+            `Duplicate perf scenario matchKey ${matchKey} encountered in ${reportLabel}`,
+        );
+        seenMatchKeys.add(matchKey);
 
         entries.push({
             fixture: scenario.fixture,
@@ -398,6 +404,7 @@ function escapeMarkdownCell(value) {
  *     missingScenarios: number,
  *   },
  *   scenarios: Array<{
+ *     fixture: string,
  *     name: string,
  *     baselineStats: { median: number } | null,
  *     currentStats: { median: number } | null,
@@ -428,13 +435,13 @@ function buildMarkdown(report) {
         '<details>',
         '<summary>Perf table</summary>',
         '',
-        '| Scenario | Baseline median | Current median | Median delta | P95 delta | P99 delta | Status |',
-        '| --- | ---: | ---: | ---: | ---: | ---: | --- |',
+        '| Fixture | Scenario | Baseline median | Current median | Median delta | P95 delta | P99 delta | Status |',
+        '| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |',
     );
 
     for (const scenario of report.scenarios) {
         lines.push(
-            `| ${escapeMarkdownCell(scenario.name)} | ${formatFrameTime(scenario.baselineStats?.median ?? null)} | ${formatFrameTime(scenario.currentStats?.median ?? null)} | ${formatDelta(scenario.deltas.median)} | ${formatDelta(scenario.deltas.p95)} | ${formatDelta(scenario.deltas.p99)} | ${formatStatus(scenario.status)} |`,
+            `| ${escapeMarkdownCell(scenario.fixture)} | ${escapeMarkdownCell(scenario.name)} | ${formatFrameTime(scenario.baselineStats?.median ?? null)} | ${formatFrameTime(scenario.currentStats?.median ?? null)} | ${formatDelta(scenario.deltas.median)} | ${formatDelta(scenario.deltas.p95)} | ${formatDelta(scenario.deltas.p99)} | ${formatStatus(scenario.status)} |`,
         );
     }
 
@@ -464,7 +471,12 @@ function main() {
     const args = parseArgs(process.argv.slice(2));
     const currentReport = readJsonFile(args.current);
     currentReport.__sourceLabel = args.current;
-    const baselineReport = args.baseline && fs.existsSync(args.baseline) ? readJsonFile(args.baseline) : null;
+    let baselineReport = null;
+
+    if (args.baseline) {
+        assert(fs.existsSync(args.baseline), `Missing baseline perf report: ${args.baseline}`);
+        baselineReport = readJsonFile(args.baseline);
+    }
 
     if (baselineReport !== null) {
         baselineReport.__sourceLabel = args.baseline;
