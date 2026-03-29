@@ -389,8 +389,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: >
           node scripts/compare-tier-2-perf-results.mjs --current test-results/perf/perf-results.json --baseline
-          perf-baseline-artifact/perf-results.json --json-out perf-comparison.json --markdown-out perf-comment.md
-          --threshold 50
+          perf-baseline-artifact/test-results/perf/perf-results.json --json-out perf-comparison.json --markdown-out
+          perf-comment.md --threshold 50
 
       - name: Upload perf comparison artifacts
         if: github.event_name == 'pull_request'

@@ -188,6 +188,14 @@ function flattenPerfScenarios(report) {
  * @returns {number} Percentage change where positive means slower.
  */
 function calculateRegressionPct(baselineValue, currentValue) {
+    if (baselineValue === 0) {
+        if (currentValue === 0) {
+            return 0;
+        }
+
+        return currentValue > 0 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+    }
+
     return ((currentValue - baselineValue) / baselineValue) * 100;
 }
 
