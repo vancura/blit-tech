@@ -57,6 +57,14 @@ pnpm install
 For interactive examples and demos, visit the [Blit-Tech Demos repository](https://github.com/vancura/blit-tech-demos).
 The demos showcase all engine features with a guided learning path from basic concepts to advanced techniques.
 
+## Documentation
+
+- [Testing Guide](docs/testing.md)
+- [Performance Testing Guide](docs/performance-testing.md)
+- [Performance Best Practices](docs/performance-best-practices.md)
+- [Bitmap Fonts Guide](docs/bitmap-fonts.md)
+- [Developer Experience Guide](docs/developer-experience-guide.md)
+
 ## Scripts
 
 | Command                   | Description                                                              |
