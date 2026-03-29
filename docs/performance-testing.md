@@ -41,7 +41,7 @@ Examples:
 
 ### GPU Performance Tests
 
-Use GPU performance tests when you want to measure whole-frame rendering cost in the browser.
+Use GPU performance tests to evaluate whole-frame rendering cost in the browser.
 
 Examples:
 
@@ -179,7 +179,7 @@ This is often the best approach for rendering code.
 
 If you add a new sprite-related method and it can run without a browser, start here.
 
-### File Location
+### CPU Benchmark File Location
 
 Create or extend a `*.bench.ts` file near the code being measured.
 
@@ -228,7 +228,7 @@ Good benchmark comparisons usually measure one meaningful tradeoff:
 - prefer stable setup outside the `bench(...)` callback
 - if mutation is involved, reset state inside the benchmark or in setup so each iteration is valid
 
-### Running It
+### Run CPU Benchmarks
 
 ```bash
 pnpm bench
@@ -245,7 +245,7 @@ pnpm bench:json
 
 Use this when the change is meaningful only in a browser render loop.
 
-### File Location
+### GPU Benchmark File Location
 
 Add or extend:
 
@@ -268,7 +268,7 @@ Add or extend:
 - mixed primitive + sprite workloads
 - stress cases that intentionally push batching or fill rate
 
-### Running It
+### Run GPU Benchmarks
 
 ```bash
 pnpm test:perf
