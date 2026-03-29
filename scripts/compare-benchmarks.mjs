@@ -4,6 +4,18 @@ import path from 'node:path';
 const COMMENT_MARKER = '<!-- benchmark-comparison -->';
 const DEFAULT_THRESHOLD = 10;
 
+/**
+ * Parses CLI arguments for the benchmark comparison command.
+ *
+ * @param {string[]} argv Raw CLI arguments after the node/script prefix.
+ * @returns {{
+ *   baseline: string | null,
+ *   current: string | null,
+ *   jsonOut: string,
+ *   markdownOut: string,
+ *   threshold: number,
+ * }} Parsed command options.
+ */
 function parseArgs(argv) {
     const args = {
         baseline: null,
@@ -63,20 +75,46 @@ function parseArgs(argv) {
     return args;
 }
 
+/**
+ * Ensures that the parent directory for an output file exists.
+ *
+ * @param {string} filePath Output file path.
+ * @returns {void}
+ */
 function ensureParentDirectory(filePath) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 }
 
+/**
+ * Reads and parses a JSON file from disk.
+ *
+ * @param {string} filePath JSON file path.
+ * @returns {unknown} Parsed JSON value.
+ */
 function readJsonFile(filePath) {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+/**
+ * Throws when a required condition is not met.
+ *
+ * @param {unknown} condition Condition to evaluate.
+ * @param {string} message Error message for failed assertions.
+ * @returns {void}
+ */
 function assert(condition, message) {
     if (!condition) {
         throw new Error(message);
     }
 }
 
+/**
+ * Validates the top-level shape of a Vitest benchmark report before deeper parsing.
+ *
+ * @param {unknown} report Parsed benchmark report JSON.
+ * @param {string} sourceLabel Human-readable source label for error messages.
+ * @returns {void}
+ */
 function validateBenchmarkReport(report, sourceLabel) {
     assert(
         report !== null && typeof report === 'object',
@@ -85,6 +123,19 @@ function validateBenchmarkReport(report, sourceLabel) {
     assert(Array.isArray(report.files), `Invalid benchmark report in ${sourceLabel}: report.files must be an array`);
 }
 
+/**
+ * Flattens the nested Vitest benchmark report into comparable benchmark entries.
+ *
+ * @param {{ files: unknown[], __sourceLabel?: string }} report Parsed benchmark report.
+ * @returns {Array<{
+ *   matchKey: string,
+ *   label: string,
+ *   suite: string,
+ *   name: string,
+ *   hz: number,
+ *   filepath: string,
+ * }>} Flattened benchmark entries.
+ */
 function flattenBenchmarks(report) {
     const entries = [];
     const reportLabel = report.__sourceLabel ?? 'benchmark report';
@@ -138,6 +189,35 @@ function flattenBenchmarks(report) {
     return entries;
 }
 
+/**
+ * Compares the current benchmark report against an optional baseline report.
+ *
+ * @param {{ files: unknown[], __sourceLabel?: string }} currentReport Current benchmark report.
+ * @param {{ files: unknown[], __sourceLabel?: string } | null} baselineReport Baseline benchmark report, if available.
+ * @param {number} thresholdPct Maximum allowed slowdown percentage before failure.
+ * @returns {{
+ *   generatedAt: string,
+ *   hasBaseline: boolean,
+ *   thresholdPct: number,
+ *   summary: {
+ *     total: number,
+ *     compared: number,
+ *     regressions: number,
+ *     improvements: number,
+ *     pass: number,
+ *     newBenchmarks: number,
+ *     missingBenchmarks: number,
+ *   },
+ *   benchmarks: Array<{
+ *     name: string,
+ *     suite: string,
+ *     baselineHz: number | null,
+ *     currentHz: number | null,
+ *     deltaPct: number | null,
+ *     status: string,
+ *   }>,
+ * }} Comparison report used by CI and PR comments.
+ */
 function compareReports(currentReport, baselineReport, thresholdPct) {
     const currentEntries = flattenBenchmarks(currentReport);
     const baselineEntries = baselineReport ? flattenBenchmarks(baselineReport) : [];
@@ -211,6 +291,12 @@ function compareReports(currentReport, baselineReport, thresholdPct) {
     };
 }
 
+/**
+ * Formats an ops/sec value for human-readable markdown output.
+ *
+ * @param {number | null} value Benchmark throughput value.
+ * @returns {string} Formatted throughput string.
+ */
 function formatHz(value) {
     if (value === null) {
         return 'n/a';
@@ -222,6 +308,12 @@ function formatHz(value) {
     });
 }
 
+/**
+ * Formats a benchmark delta percentage for markdown output.
+ *
+ * @param {number | null} value Percentage delta relative to baseline.
+ * @returns {string} Formatted delta string.
+ */
 function formatDelta(value) {
     if (value === null) {
         return 'n/a';
@@ -232,6 +324,12 @@ function formatDelta(value) {
     return `${sign}${value.toFixed(2)}%`;
 }
 
+/**
+ * Converts an internal benchmark status into the PR comment label.
+ *
+ * @param {string} status Internal benchmark status.
+ * @returns {string} Human-readable status label.
+ */
 function formatStatus(status) {
     switch (status) {
         case 'fail':
@@ -247,10 +345,39 @@ function formatStatus(status) {
     }
 }
 
+/**
+ * Escapes a markdown table cell value.
+ *
+ * @param {string} value Raw markdown cell content.
+ * @returns {string} Escaped markdown-safe value.
+ */
 function escapeMarkdownCell(value) {
     return value.replaceAll('|', '\\|');
 }
 
+/**
+ * Builds the markdown body for the benchmark PR comment.
+ *
+ * @param {{
+ *   hasBaseline: boolean,
+ *   thresholdPct: number,
+ *   summary: {
+ *     compared: number,
+ *     regressions: number,
+ *     improvements: number,
+ *     newBenchmarks: number,
+ *     missingBenchmarks: number,
+ *   },
+ *   benchmarks: Array<{
+ *     name: string,
+ *     baselineHz: number | null,
+ *     currentHz: number | null,
+ *     deltaPct: number | null,
+ *     status: string,
+ *   }>,
+ * }} report Comparison report.
+ * @returns {string} Markdown comment body.
+ */
 function buildMarkdown(report) {
     const lines = [COMMENT_MARKER, '## Tier 1 Benchmark Comparison', ''];
 
@@ -287,11 +414,23 @@ function buildMarkdown(report) {
     return `${lines.join('\n')}\n`;
 }
 
+/**
+ * Writes a file to disk, creating parent directories when needed.
+ *
+ * @param {string} filePath Output file path.
+ * @param {string} content File contents.
+ * @returns {void}
+ */
 function writeFile(filePath, content) {
     ensureParentDirectory(filePath);
     fs.writeFileSync(filePath, content);
 }
 
+/**
+ * Runs the benchmark comparison CLI.
+ *
+ * @returns {void}
+ */
 function main() {
     const args = parseArgs(process.argv.slice(2));
     const currentReport = readJsonFile(args.current);
