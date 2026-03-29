@@ -83,7 +83,7 @@ jobs:
     needs: quality
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'perf-tier-1')
     concurrency:
-      group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}-benchmark
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref }}-benchmark
       cancel-in-progress: true
     permissions:
       actions: read
@@ -116,6 +116,7 @@ jobs:
         with:
           name: benchmark-results-current
           path: benchmark-results.json
+          if-no-files-found: error
           retention-days: 14
 
       - name: Upload main benchmark baseline
@@ -124,6 +125,7 @@ jobs:
         with:
           name: benchmark-baseline
           path: benchmark-results.json
+          if-no-files-found: error
           retention-days: 30
 
       - name: Find latest main benchmark baseline
@@ -204,13 +206,15 @@ jobs:
           retention-days: 14
 
       - name: Post benchmark PR comment
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
+        if:
+          github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false && github.actor !=
+          'dependabot[bot]'
         uses: actions/github-script@v8
         env:
           BENCHMARK_COMMENT_PATH: benchmark-comment.md
         with:
           script: |
-            if (context.payload.pull_request?.head?.repo?.fork) {
+            if (context.payload.pull_request?.head?.repo?.fork || context.actor === 'dependabot[bot]') {
               return;
             }
 
