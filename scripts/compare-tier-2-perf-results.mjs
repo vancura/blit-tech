@@ -31,7 +31,7 @@ function parseArgs(argv) {
         const nextValue = argv[index + 1];
 
         if (!value.startsWith('--')) {
-            continue;
+            throw new Error(`Unexpected positional token: ${value}`);
         }
 
         if (nextValue === undefined || nextValue.startsWith('--') || nextValue.startsWith('-')) {
@@ -191,7 +191,7 @@ function flattenPerfScenarios(report) {
  *
  * @param {number} baselineValue Baseline frame-time value.
  * @param {number} currentValue Current frame-time value.
- * @returns {number} Percentage change where positive means slower.
+ * @returns {number | string} Percentage change where positive means slower.
  */
 function calculateRegressionPct(baselineValue, currentValue) {
     if (baselineValue === 0) {
@@ -199,10 +199,47 @@ function calculateRegressionPct(baselineValue, currentValue) {
             return 0;
         }
 
-        return currentValue > 0 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
+        return currentValue > 0 ? 'zero-baseline-positive' : 'zero-baseline-negative';
     }
 
     return ((currentValue - baselineValue) / baselineValue) * 100;
+}
+
+/**
+ * Checks whether a perf delta should count as a regression.
+ *
+ * @param {number | string | null} value Perf delta value.
+ * @param {number} thresholdPct Maximum allowed slowdown percentage before failure.
+ * @returns {boolean} True when the delta exceeds the allowed regression threshold.
+ */
+function isRegressionDelta(value, thresholdPct) {
+    if (value === 'zero-baseline-positive') {
+        return true;
+    }
+
+    if (typeof value === 'number') {
+        return value > thresholdPct;
+    }
+
+    return false;
+}
+
+/**
+ * Checks whether a perf delta should count as an improvement.
+ *
+ * @param {number | string | null} value Perf delta value.
+ * @returns {boolean} True when the delta indicates an improvement versus baseline.
+ */
+function isImprovementDelta(value) {
+    if (value === 'zero-baseline-negative') {
+        return true;
+    }
+
+    if (typeof value === 'number') {
+        return value < 0;
+    }
+
+    return false;
 }
 
 /**
@@ -244,9 +281,9 @@ function calculateRegressionPct(baselineValue, currentValue) {
  *       p99: number,
  *     } | null,
  *     deltas: {
- *       median: number | null,
- *       p95: number | null,
- *       p99: number | null,
+ *       median: number | string | null,
+ *       p95: number | string | null,
+ *       p99: number | string | null,
  *     },
  *     status: string,
  *   }>,
@@ -294,9 +331,9 @@ function comparePerfReports(currentReport, baselineReport, thresholdPct) {
         };
         let status = 'pass';
 
-        if (deltas.median > thresholdPct) {
+        if (isRegressionDelta(deltas.median, thresholdPct)) {
             status = 'fail';
-        } else if (deltas.median < 0) {
+        } else if (isImprovementDelta(deltas.median)) {
             status = 'improved';
         }
 
@@ -346,12 +383,20 @@ function formatFrameTime(value) {
 /**
  * Formats a regression delta percentage for markdown output.
  *
- * @param {number | null} value Percentage delta where positive means slower.
+ * @param {number | string | null} value Percentage delta where positive means slower.
  * @returns {string} Formatted delta string.
  */
 function formatDelta(value) {
     if (value === null) {
         return 'n/a';
+    }
+
+    if (value === 'zero-baseline-positive') {
+        return 'zero-baseline+';
+    }
+
+    if (value === 'zero-baseline-negative') {
+        return 'zero-baseline-';
     }
 
     const sign = value > 0 ? '+' : '';
@@ -408,7 +453,7 @@ function escapeMarkdownCell(value) {
  *     name: string,
  *     baselineStats: { median: number } | null,
  *     currentStats: { median: number } | null,
- *     deltas: { median: number | null, p95: number | null, p99: number | null },
+ *     deltas: { median: number | string | null, p95: number | string | null, p99: number | string | null },
  *     status: string,
  *   }>,
  * }} report Comparison report.
