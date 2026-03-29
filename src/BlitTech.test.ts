@@ -177,12 +177,18 @@ describe('BT.paletteGet', () => {
         vi.restoreAllMocks();
     });
 
-    it('delegates to BTAPI.instance.getPalette', () => {
+    it('returns palette when one is set', () => {
         const palette = new Palette(16);
 
         vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(palette);
 
         expect(BT.paletteGet()).toBe(palette);
+    });
+
+    it('throws when no palette is set', () => {
+        vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(null);
+
+        expect(() => BT.paletteGet()).toThrow('No active palette. Call BT.paletteSet() first.');
     });
 });
 
@@ -197,11 +203,10 @@ describe('BT.clear', () => {
 
     it('delegates to BTAPI.instance.setClearColor', () => {
         const spy = vi.spyOn(BTAPI.instance, 'setClearColor').mockReturnValue(undefined);
-        const color = Color32.black();
 
-        BT.clear(color);
+        BT.clear(1);
 
-        expect(spy).toHaveBeenCalledWith(color);
+        expect(spy).toHaveBeenCalledWith(1);
     });
 });
 
@@ -212,12 +217,11 @@ describe('BT.clearRect', () => {
 
     it('delegates to BTAPI.instance.clearRect', () => {
         const spy = vi.spyOn(BTAPI.instance, 'clearRect').mockReturnValue(undefined);
-        const color = Color32.black();
         const rect = new Rect2i(0, 0, 100, 100);
 
-        BT.clearRect(color, rect);
+        BT.clearRect(1, rect);
 
-        expect(spy).toHaveBeenCalledWith(color, rect);
+        expect(spy).toHaveBeenCalledWith(1, rect);
     });
 });
 
@@ -233,11 +237,10 @@ describe('BT.drawPixel', () => {
     it('delegates to BTAPI.instance.drawPixel', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawPixel').mockReturnValue(undefined);
         const pos = new Vector2i(5, 10);
-        const color = Color32.red();
 
-        BT.drawPixel(pos, color);
+        BT.drawPixel(pos, 2);
 
-        expect(spy).toHaveBeenCalledWith(pos, color);
+        expect(spy).toHaveBeenCalledWith(pos, 2);
     });
 });
 
@@ -250,11 +253,10 @@ describe('BT.drawLine', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawLine').mockReturnValue(undefined);
         const p0 = new Vector2i(0, 0);
         const p1 = new Vector2i(50, 50);
-        const color = Color32.green();
 
-        BT.drawLine(p0, p1, color);
+        BT.drawLine(p0, p1, 3);
 
-        expect(spy).toHaveBeenCalledWith(p0, p1, color);
+        expect(spy).toHaveBeenCalledWith(p0, p1, 3);
     });
 });
 
@@ -266,11 +268,10 @@ describe('BT.drawRect', () => {
     it('delegates to BTAPI.instance.drawRect', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawRect').mockReturnValue(undefined);
         const rect = new Rect2i(10, 10, 40, 30);
-        const color = Color32.blue();
 
-        BT.drawRect(rect, color);
+        BT.drawRect(rect, 4);
 
-        expect(spy).toHaveBeenCalledWith(rect, color);
+        expect(spy).toHaveBeenCalledWith(rect, 4);
     });
 });
 
@@ -282,11 +283,10 @@ describe('BT.drawRectFill', () => {
     it('delegates to BTAPI.instance.drawRectFill', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawRectFill').mockReturnValue(undefined);
         const rect = new Rect2i(0, 0, 20, 20);
-        const color = Color32.white();
 
-        BT.drawRectFill(rect, color);
+        BT.drawRectFill(rect, 8);
 
-        expect(spy).toHaveBeenCalledWith(rect, color);
+        expect(spy).toHaveBeenCalledWith(rect, 8);
     });
 });
 
@@ -406,11 +406,10 @@ describe('BT.print', () => {
     it('delegates to BTAPI.instance.drawText', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawText').mockReturnValue(undefined);
         const pos = new Vector2i(10, 10);
-        const color = Color32.white();
 
-        BT.print(pos, color, 'Hello');
+        BT.print(pos, 8, 'Hello');
 
-        expect(spy).toHaveBeenCalledWith(pos, color, 'Hello');
+        expect(spy).toHaveBeenCalledWith(pos, 8, 'Hello');
     });
 });
 

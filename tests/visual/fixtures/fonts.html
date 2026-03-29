@@ -16,10 +16,18 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Vector2i } from 'blit-tech';
 
         window.__RENDER_COMPLETE__ = false;
         window.__INIT_FAILED__ = false;
+
+        // Palette indices.
+        const BLACK = 1;
+        const RED = 2;
+        const GREEN = 3;
+        const YELLOW = 5;
+        const CYAN = 6;
+        const WHITE = 8;
 
         class FontsTest {
             queryHardware() {
@@ -30,21 +38,32 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(RED, Color32.red());
+                palette.set(GREEN, Color32.green());
+                palette.set(4, Color32.blue());
+                palette.set(YELLOW, Color32.yellow());
+                palette.set(CYAN, Color32.cyan());
+                palette.set(7, Color32.magenta());
+                palette.set(WHITE, Color32.white());
+                BT.paletteSet(palette);
+
                 return true;
             }
 
             update() {}
 
             render() {
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 // Use placeholder text rendering (drawText via PrimitivePipeline).
                 // Each character is rendered as a 6x8 colored block.
-                BT.print(new Vector2i(10, 10), Color32.white(), 'Hello World');
-                BT.print(new Vector2i(10, 30), Color32.red(), 'Red Text');
-                BT.print(new Vector2i(10, 50), Color32.green(), 'Green Text');
-                BT.print(new Vector2i(10, 70), Color32.cyan(), 'ABCDEFGHIJ');
-                BT.print(new Vector2i(10, 90), Color32.yellow(), '0123456789');
+                BT.print(new Vector2i(10, 10), WHITE, 'Hello World');
+                BT.print(new Vector2i(10, 30), RED, 'Red Text');
+                BT.print(new Vector2i(10, 50), GREEN, 'Green Text');
+                BT.print(new Vector2i(10, 70), CYAN, 'ABCDEFGHIJ');
+                BT.print(new Vector2i(10, 90), YELLOW, '0123456789');
 
                 window.__RENDER_COMPLETE__ = true;
             }

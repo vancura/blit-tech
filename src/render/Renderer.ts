@@ -1,4 +1,5 @@
 import type { BitmapFont } from '../assets/BitmapFont';
+import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { FrameCapture } from '../utils/FrameCapture';
@@ -7,12 +8,21 @@ import { Vector2i } from '../utils/Vector2i';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
 
+// #region Configuration
+
+/**
+ * GPU palette uniform buffer size: 256 entries x 4 floats x 4 bytes = 4096 bytes.
+ */
+const PALETTE_BUFFER_SIZE = 256 * 4 * 4;
+
+// #endregion
+
 /**
  * High-level renderer that coordinates primitive and sprite pipelines.
  *
- * `Renderer` owns frame begin/end, clear color, camera state, and frame capture.
- * Actual draw batching is delegated to {@link PrimitivePipeline} and
- * {@link SpritePipeline}.
+ * `Renderer` owns frame begin/end, clear color, camera state, palette buffer,
+ * and frame capture. Actual draw batching is delegated to
+ * {@link PrimitivePipeline} and {@link SpritePipeline}.
  */
 export class Renderer {
     // #region State
@@ -26,8 +36,8 @@ export class Renderer {
     /** Render target resolution in pixels. */
     private readonly displaySize: Vector2i;
 
-    /** Current clear color for the background. */
-    private currentClearColor: Color32 = Color32.black();
+    /** Palette index used for the frame clear color. Defaults to 0 (transparent). */
+    private clearPaletteIndex: number = 0;
 
     /** Camera offset for scrolling effects. */
     private cameraOffset: Vector2i = Vector2i.zero();
@@ -37,9 +47,19 @@ export class Renderer {
 
     // #endregion
 
+    // #region Palette State
+
+    /** Active palette for color lookups and GPU upload. */
+    private palette: Palette | null = null;
+
+    /** GPU uniform buffer for the 256-entry palette. */
+    private paletteBuffer: GPUBuffer | null = null;
+
+    // #endregion
+
     // #region Pipelines
 
-    /** Pipeline for colored geometry (pixels, lines, rectangles). */
+    /** Pipeline for palette-indexed geometry (pixels, lines, rectangles). */
     private readonly primitives: PrimitivePipeline;
 
     /** Pipeline for textured quads (sprites, bitmap text). */
@@ -75,8 +95,15 @@ export class Renderer {
      */
     async initialize(): Promise<boolean> {
         try {
-            await this.primitives.initialize(this.device, this.displaySize);
-            await this.sprites.initialize(this.device, this.displaySize);
+            // Create shared palette uniform buffer (256 entries x vec4f).
+            this.paletteBuffer = this.device.createBuffer({
+                label: 'Palette Uniform Buffer',
+                size: PALETTE_BUFFER_SIZE,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            });
+
+            await this.primitives.initialize(this.device, this.displaySize, this.paletteBuffer);
+            await this.sprites.initialize(this.device, this.displaySize, this.paletteBuffer);
 
             return true;
         } catch (error) {
@@ -88,28 +115,57 @@ export class Renderer {
 
     // #endregion
 
+    // #region Palette
+
+    /**
+     * Sets the active palette used for rendering.
+     *
+     * @param palette - Palette to use for color lookups and GPU upload.
+     */
+    setPalette(palette: Palette): void {
+        this.palette = palette;
+    }
+
+    /**
+     * Returns the active palette, or null if none has been set.
+     *
+     * @returns Active palette instance.
+     */
+    getPalette(): Palette | null {
+        return this.palette;
+    }
+
+    // #endregion
+
     // #region Frame Management
 
     /**
      * Begins a new frame by clearing all per-frame batching state.
+     *
+     * @throws Error if no palette has been set via {@link setPalette}.
      */
     beginFrame(): void {
+        if (!this.palette) {
+            throw new Error('Cannot begin frame: no active palette. Call BT.paletteSet() first.');
+        }
+
         this.primitives.reset();
         this.sprites.reset();
     }
 
     /**
-     * Sets the background clear color for this frame.
+     * Sets the background clear color for this frame using a palette index.
      *
-     * @param color - Color to clear the screen with.
+     * @param paletteIndex - Palette index for the clear color.
      */
-    setClearColor(color: Color32): void {
-        this.currentClearColor = color.clone();
+    setClearColor(paletteIndex: number): void {
+        this.clearPaletteIndex = paletteIndex;
     }
 
     /**
      * Ends the current frame and presents to the screen.
-     * Encodes both pipelines into a render pass and submits the command buffer.
+     * Uploads the palette uniform buffer, encodes both pipelines into a render
+     * pass, and submits the command buffer.
      */
     endFrame(): void {
         // Get the current texture to render to.
@@ -136,6 +192,16 @@ export class Renderer {
             return;
         }
 
+        // Upload palette to GPU before encoding the render pass.
+        if (this.palette && this.paletteBuffer) {
+            const paletteData = this.palette.toFloat32Array();
+
+            this.device.queue.writeBuffer(this.paletteBuffer, 0, paletteData.buffer);
+        }
+
+        // Resolve clear color from palette.
+        const clearColor = this.resolveClearColor();
+
         const textureView = texture.createView();
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
 
@@ -145,10 +211,10 @@ export class Renderer {
                 {
                     view: textureView,
                     clearValue: {
-                        r: this.currentClearColor.r / 255,
-                        g: this.currentClearColor.g / 255,
-                        b: this.currentClearColor.b / 255,
-                        a: this.currentClearColor.a / 255,
+                        r: clearColor.r / 255,
+                        g: clearColor.g / 255,
+                        b: clearColor.b / 255,
+                        a: clearColor.a / 255,
                     },
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -189,10 +255,10 @@ export class Renderer {
      * Draws a filled rectangle using two triangles.
      *
      * @param rect - Rectangle bounds in pixel coordinates.
-     * @param color - Fill color.
+     * @param paletteIndex - Palette color index.
      */
-    drawRectFill(rect: Rect2i, color: Color32): void {
-        this.primitives.drawRectFill(rect, color);
+    drawRectFill(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.drawRectFill(rect, paletteIndex);
     }
 
     /**
@@ -200,21 +266,21 @@ export class Renderer {
      * Each character is rendered as a small filled rectangle.
      *
      * @param pos - Text position (top-left corner).
-     * @param color - Text color.
+     * @param paletteIndex - Palette color index.
      * @param text - String to display.
      */
-    drawText(pos: Vector2i, color: Color32, text: string): void {
-        this.primitives.drawText(pos, color, text);
+    drawText(pos: Vector2i, paletteIndex: number, text: string): void {
+        this.primitives.drawText(pos, paletteIndex, text);
     }
 
     /**
      * Draws a single pixel as a 1x1 filled rectangle.
      *
      * @param pos - Pixel position.
-     * @param color - Pixel color.
+     * @param paletteIndex - Palette color index.
      */
-    drawPixel(pos: Vector2i, color: Color32): void {
-        this.primitives.drawPixel(pos, color);
+    drawPixel(pos: Vector2i, paletteIndex: number): void {
+        this.primitives.drawPixel(pos, paletteIndex);
     }
 
     /**
@@ -223,10 +289,10 @@ export class Renderer {
      *
      * @param x - X position.
      * @param y - Y position.
-     * @param color - Pixel color.
+     * @param paletteIndex - Palette color index.
      */
-    drawPixelXY(x: number, y: number, color: Color32): void {
-        this.primitives.drawPixelXY(x, y, color);
+    drawPixelXY(x: number, y: number, paletteIndex: number): void {
+        this.primitives.drawPixelXY(x, y, paletteIndex);
     }
 
     /**
@@ -235,30 +301,30 @@ export class Renderer {
      *
      * @param p0 - Start point.
      * @param p1 - End point.
-     * @param color - Line color.
+     * @param paletteIndex - Palette color index.
      */
-    drawLine(p0: Vector2i, p1: Vector2i, color: Color32): void {
-        this.primitives.drawLine(p0, p1, color);
+    drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
+        this.primitives.drawLine(p0, p1, paletteIndex);
     }
 
     /**
      * Draws a rectangle outline using four 1-pixel quads.
      *
      * @param rect - Rectangle bounds.
-     * @param color - Outline color.
+     * @param paletteIndex - Palette color index.
      */
-    drawRect(rect: Rect2i, color: Color32): void {
-        this.primitives.drawRect(rect, color);
+    drawRect(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.drawRect(rect, paletteIndex);
     }
 
     /**
-     * Fills a rectangular region with a solid color.
+     * Fills a rectangular region with a palette-indexed color.
      *
-     * @param color - Fill color.
-     * @param rect - Region to fill.
+     * @param paletteIndex - Palette color index.
+     * @param rect - Region to fill in pixel coordinates.
      */
-    clearRect(color: Color32, rect: Rect2i): void {
-        this.primitives.clearRect(color, rect);
+    clearRect(paletteIndex: number, rect: Rect2i): void {
+        this.primitives.clearRect(paletteIndex, rect);
     }
 
     // #endregion
@@ -337,6 +403,28 @@ export class Renderer {
         this.cameraOffset = Vector2i.zero();
         this.primitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
+    }
+
+    // #endregion
+
+    // #region Private Helpers
+
+    /**
+     * Resolves the clear palette index into a Color32 for the render pass.
+     * Falls back to black if no palette is available.
+     *
+     * @returns Resolved clear color.
+     */
+    private resolveClearColor(): Color32 {
+        if (!this.palette) {
+            return Color32.black();
+        }
+
+        try {
+            return this.palette.get(this.clearPaletteIndex);
+        } catch {
+            return Color32.black();
+        }
     }
 
     // #endregion

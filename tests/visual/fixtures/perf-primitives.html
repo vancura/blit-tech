@@ -16,7 +16,7 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i } from 'blit-tech';
 
         import { initializePerfState, markInitFailed, readNumberParam, recordFrame } from './perf-common.js';
 
@@ -28,6 +28,12 @@
             pixels: pixelCount,
             rects: rectCount,
         });
+
+        // Palette indices.
+        const BLACK = 1;
+        const RED = 2;
+        const GREEN = 3;
+        const WHITE = 8;
 
         class PerfPrimitivesTest {
             rect = new Rect2i();
@@ -43,6 +49,17 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(RED, Color32.red());
+                palette.set(GREEN, Color32.green());
+                palette.set(4, Color32.blue());
+                palette.set(5, Color32.yellow());
+                palette.set(6, Color32.cyan());
+                palette.set(7, Color32.magenta());
+                palette.set(WHITE, Color32.white());
+                BT.paletteSet(palette);
+
                 return true;
             }
 
@@ -53,11 +70,11 @@
                     return;
                 }
 
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 for (let i = 0; i < rectCount; i++) {
                     this.rect.set((i * 7) % 320, (i * 11) % 240, 6 + (i % 12), 4 + (i % 8));
-                    BT.drawRectFill(this.rect, Color32.red());
+                    BT.drawRectFill(this.rect, RED);
                 }
 
                 for (let i = 0; i < lineCount; i++) {
@@ -65,13 +82,13 @@
                     this.p0.y = (i * 3) % 240;
                     this.p1.x = (this.p0.x + 24 + (i % 32)) % 320;
                     this.p1.y = (this.p0.y + 24 + (i % 32)) % 240;
-                    BT.drawLine(this.p0, this.p1, Color32.green());
+                    BT.drawLine(this.p0, this.p1, GREEN);
                 }
 
                 for (let i = 0; i < pixelCount; i++) {
                     this.pixel.x = (i * 13) % 320;
                     this.pixel.y = (i * 17) % 240;
-                    BT.drawPixel(this.pixel, Color32.white());
+                    BT.drawPixel(this.pixel, WHITE);
                 }
 
                 recordFrame(perf);

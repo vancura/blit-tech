@@ -16,10 +16,19 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i } from 'blit-tech';
 
         window.__RENDER_COMPLETE__ = false;
         window.__INIT_FAILED__ = false;
+
+        // Palette indices for this test.
+        const BLACK = 1;
+        const RED = 2;
+        const GREEN = 3;
+        const BLUE = 4;
+        const YELLOW = 5;
+        const CYAN = 6;
+        const WHITE = 8;
 
         class CameraTest {
             queryHardware() {
@@ -30,36 +39,46 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(RED, Color32.red());
+                palette.set(GREEN, Color32.green());
+                palette.set(BLUE, Color32.blue());
+                palette.set(YELLOW, Color32.yellow());
+                palette.set(CYAN, Color32.cyan());
+                palette.set(8, Color32.white());
+                BT.paletteSet(palette);
+
                 return true;
             }
 
             update() {}
 
             render() {
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 // Apply camera offset: shift everything left by 50px and up by 30px.
                 BT.cameraSet(new Vector2i(50, 30));
 
                 // Draw a grid of colored rectangles at known world positions.
                 // With camera (50, 30), a rect at world (60, 40) appears at screen (10, 10).
-                BT.drawRectFill(new Rect2i(60, 40, 20, 20), Color32.red());
+                BT.drawRectFill(new Rect2i(60, 40, 20, 20), RED);
 
                 // World (110, 40) -> screen (60, 10).
-                BT.drawRectFill(new Rect2i(110, 40, 20, 20), Color32.green());
+                BT.drawRectFill(new Rect2i(110, 40, 20, 20), GREEN);
 
                 // World (60, 90) -> screen (10, 60).
-                BT.drawRectFill(new Rect2i(60, 90, 20, 20), Color32.blue());
+                BT.drawRectFill(new Rect2i(60, 90, 20, 20), BLUE);
 
                 // World (110, 90) -> screen (60, 60).
-                BT.drawRectFill(new Rect2i(110, 90, 20, 20), Color32.yellow());
+                BT.drawRectFill(new Rect2i(110, 90, 20, 20), YELLOW);
 
                 // Draw a line crossing the viewport.
                 // World (50, 30) -> screen (0, 0) to world (370, 270) -> screen (320, 240).
-                BT.drawLine(new Vector2i(50, 30), new Vector2i(370, 270), Color32.white());
+                BT.drawLine(new Vector2i(50, 30), new Vector2i(370, 270), WHITE);
 
                 // Draw a rect outline at the edge of the viewport.
-                BT.drawRect(new Rect2i(55, 35, 260, 200), Color32.cyan());
+                BT.drawRect(new Rect2i(55, 35, 260, 200), CYAN);
 
                 // Reset camera after drawing.
                 BT.cameraReset();

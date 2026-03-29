@@ -1,5 +1,5 @@
 import type { BitmapFont } from '../assets/BitmapFont';
-import { Palette } from '../assets/Palette';
+import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
@@ -285,25 +285,22 @@ export class BTAPI {
     }
 
     /**
-     * Gets the active engine palette, creating the default VGA palette lazily.
+     * Gets the active engine palette.
      *
-     * @returns Active palette instance.
+     * @returns Active palette, or null if none has been set.
      */
-    public getPalette(): Palette {
-        if (!this.palette) {
-            this.palette = Palette.vga();
-        }
-
+    public getPalette(): Palette | null {
         return this.palette;
     }
 
     /**
-     * Sets the active engine palette.
+     * Sets the active engine palette and propagates it to the renderer.
      *
      * @param palette - Palette to store as the active engine palette.
      */
     public setPalette(palette: Palette): void {
         this.palette = palette;
+        this.renderer?.setPalette(palette);
     }
 
     // #endregion
@@ -311,22 +308,24 @@ export class BTAPI {
     // #region Rendering API - Clear Operations
 
     /**
-     * Sets the background clear color for each frame.
+     * Sets the background clear color for each frame using a palette index.
      *
-     * @param color - Color to clear the screen with.
+     * @param paletteIndex - Palette index for the clear color.
      */
-    public setClearColor(color: Color32): void {
-        this.renderer?.setClearColor(color);
+    public setClearColor(paletteIndex: number): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.setClearColor(paletteIndex);
     }
 
     /**
-     * Fills a rectangular region with a solid color.
+     * Fills a rectangular region with a palette-indexed color.
      *
-     * @param color - Fill color.
+     * @param paletteIndex - Palette color index.
      * @param rect - Region to fill in pixel coordinates.
      */
-    public clearRect(color: Color32, rect: Rect2i): void {
-        this.renderer?.clearRect(color, rect);
+    public clearRect(paletteIndex: number, rect: Rect2i): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.clearRect(paletteIndex, rect);
     }
 
     // #endregion
@@ -337,10 +336,11 @@ export class BTAPI {
      * Draws a single pixel at the specified position.
      *
      * @param pos - Pixel coordinates.
-     * @param color - Pixel color.
+     * @param paletteIndex - Palette color index.
      */
-    public drawPixel(pos: Vector2i, color: Color32): void {
-        this.renderer?.drawPixel(pos, color);
+    public drawPixel(pos: Vector2i, paletteIndex: number): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.drawPixel(pos, paletteIndex);
     }
 
     /**
@@ -349,30 +349,33 @@ export class BTAPI {
      *
      * @param p0 - Start point.
      * @param p1 - End point.
-     * @param color - Line color.
+     * @param paletteIndex - Palette color index.
      */
-    public drawLine(p0: Vector2i, p1: Vector2i, color: Color32): void {
-        this.renderer?.drawLine(p0, p1, color);
+    public drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.drawLine(p0, p1, paletteIndex);
     }
 
     /**
      * Draws a rectangle outline (unfilled).
      *
      * @param rect - Rectangle bounds.
-     * @param color - Outline color.
+     * @param paletteIndex - Palette color index.
      */
-    public drawRect(rect: Rect2i, color: Color32): void {
-        this.renderer?.drawRect(rect, color);
+    public drawRect(rect: Rect2i, paletteIndex: number): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.drawRect(rect, paletteIndex);
     }
 
     /**
      * Draws a filled rectangle.
      *
      * @param rect - Rectangle bounds.
-     * @param color - Fill color.
+     * @param paletteIndex - Palette color index.
      */
-    public drawRectFill(rect: Rect2i, color: Color32): void {
-        this.renderer?.drawRectFill(rect, color);
+    public drawRectFill(rect: Rect2i, paletteIndex: number): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.drawRectFill(rect, paletteIndex);
     }
 
     /**
@@ -380,11 +383,12 @@ export class BTAPI {
      * For proper text rendering, use drawBitmapText() instead.
      *
      * @param pos - Text position (top-left corner).
-     * @param color - Text color.
+     * @param paletteIndex - Palette color index.
      * @param text - String to display.
      */
-    public drawText(pos: Vector2i, color: Color32, text: string): void {
-        this.renderer?.drawText(pos, color, text);
+    public drawText(pos: Vector2i, paletteIndex: number, text: string): void {
+        this.assertPaletteIndex(paletteIndex);
+        this.renderer?.drawText(pos, paletteIndex, text);
     }
 
     // #endregion
@@ -464,6 +468,26 @@ export class BTAPI {
      */
     public resetCamera(): void {
         this.renderer?.resetCamera();
+    }
+
+    // #endregion
+
+    // #region Private Helpers
+
+    /**
+     * Validates that a palette index is a non-negative integer within the active palette.
+     *
+     * @param index - Palette index to validate.
+     * @throws Error if no palette is set or the index is out of range.
+     */
+    private assertPaletteIndex(index: number): void {
+        if (!this.palette) {
+            return;
+        }
+
+        if (!Number.isInteger(index) || index < 0 || index >= this.palette.size) {
+            throw new Error(`Palette index ${index} out of range for palette of size ${this.palette.size}.`);
+        }
     }
 
     // #endregion

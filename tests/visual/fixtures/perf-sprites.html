@@ -16,7 +16,7 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
 
         import {
             createSpriteImage,
@@ -34,6 +34,9 @@
             textureMode,
         });
 
+        // Palette indices.
+        const BLACK = 1;
+
         class PerfSpritesTest {
             spriteSheets = [];
             sourceRect = new Rect2i(0, 0, 8, 8);
@@ -47,6 +50,11 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(2, Color32.white());
+                BT.paletteSet(palette);
+
                 const [firstImage, secondImage] = await Promise.all([
                     createSpriteImage('#ff3366', '#ffcc00'),
                     createSpriteImage('#33ccff', '#6633ff'),
@@ -64,7 +72,7 @@
                     return;
                 }
 
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 for (let i = 0; i < spriteCount; i++) {
                     this.destPos.x = (i * 9) % 320;

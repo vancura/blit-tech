@@ -20,10 +20,22 @@ import {
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
-import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { PrimitivePipeline } from './PrimitivePipeline';
+
+// #region Test Helpers
+
+/** Creates a mock palette buffer matching the real 4096-byte uniform layout. */
+function createMockPaletteBuffer(device: GPUDevice): GPUBuffer {
+    return device.createBuffer({
+        label: 'Test Palette Buffer',
+        size: 256 * 4 * 4,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+}
+
+// #endregion
 
 // #region Constructor
 
@@ -70,29 +82,26 @@ describe('pre-initialization safety', () => {
     it('drawRectFill() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(0, 0, 10, 10);
-        const color = Color32.red();
 
         expect(() => {
-            pipeline.drawRectFill(rect, color);
+            pipeline.drawRectFill(rect, 1);
         }).not.toThrow();
     });
 
     it('drawPixel() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
         const pos = new Vector2i(5, 5);
-        const color = Color32.green();
 
         expect(() => {
-            pipeline.drawPixel(pos, color);
+            pipeline.drawPixel(pos, 2);
         }).not.toThrow();
     });
 
     it('drawPixelXY() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
-        const color = Color32.blue();
 
         expect(() => {
-            pipeline.drawPixelXY(3, 7, color);
+            pipeline.drawPixelXY(3, 7, 3);
         }).not.toThrow();
     });
 
@@ -100,10 +109,9 @@ describe('pre-initialization safety', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(0, 10);
         const p1 = new Vector2i(100, 10);
-        const color = Color32.white();
 
         expect(() => {
-            pipeline.drawLine(p0, p1, color);
+            pipeline.drawLine(p0, p1, 4);
         }).not.toThrow();
     });
 
@@ -111,10 +119,9 @@ describe('pre-initialization safety', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(10, 0);
         const p1 = new Vector2i(10, 100);
-        const color = Color32.yellow();
 
         expect(() => {
-            pipeline.drawLine(p0, p1, color);
+            pipeline.drawLine(p0, p1, 5);
         }).not.toThrow();
     });
 
@@ -122,40 +129,36 @@ describe('pre-initialization safety', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(0, 0);
         const p1 = new Vector2i(50, 30);
-        const color = Color32.cyan();
 
         expect(() => {
-            pipeline.drawLine(p0, p1, color);
+            pipeline.drawLine(p0, p1, 6);
         }).not.toThrow();
     });
 
     it('drawRect() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(5, 5, 20, 20);
-        const color = Color32.magenta();
 
         expect(() => {
-            pipeline.drawRect(rect, color);
+            pipeline.drawRect(rect, 7);
         }).not.toThrow();
     });
 
     it('clearRect() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(0, 0, 100, 100);
-        const color = Color32.black();
 
         expect(() => {
-            pipeline.clearRect(color, rect);
+            pipeline.clearRect(1, rect);
         }).not.toThrow();
     });
 
     it('drawText() does not throw before initialize', () => {
         const pipeline = new PrimitivePipeline();
         const pos = new Vector2i(10, 10);
-        const color = Color32.white();
 
         expect(() => {
-            pipeline.drawText(pos, color, 'Hello');
+            pipeline.drawText(pos, 8, 'Hello');
         }).not.toThrow();
     });
 });
@@ -171,7 +174,9 @@ describe('with initialized pipeline', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240));
+        const paletteBuffer = createMockPaletteBuffer(device);
+
+        await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
     });
 
     afterAll(() => {
@@ -193,9 +198,9 @@ describe('with initialized pipeline', () => {
 
         const rect = new Rect2i(0, 0, 10, 10);
 
-        pipeline.drawRectFill(rect, Color32.red());
-        pipeline.drawPixel(new Vector2i(5, 5), Color32.green());
-        pipeline.drawLine(new Vector2i(0, 0), new Vector2i(20, 0), Color32.blue());
+        pipeline.drawRectFill(rect, 1);
+        pipeline.drawPixel(new Vector2i(5, 5), 2);
+        pipeline.drawLine(new Vector2i(0, 0), new Vector2i(20, 0), 3);
 
         const renderPass = createMockRenderPassEncoder();
 
@@ -207,7 +212,7 @@ describe('with initialized pipeline', () => {
     it('reset followed by encodePass produces no draw calls', () => {
         pipeline.reset();
 
-        pipeline.drawRectFill(new Rect2i(0, 0, 5, 5), Color32.white());
+        pipeline.drawRectFill(new Rect2i(0, 0, 5, 5), 1);
 
         pipeline.reset();
 
@@ -227,7 +232,7 @@ describe('with initialized pipeline', () => {
     it('encodePass calls draw on render pass when vertices exist', () => {
         pipeline.reset();
 
-        pipeline.drawRectFill(new Rect2i(10, 10, 20, 20), Color32.red());
+        pipeline.drawRectFill(new Rect2i(10, 10, 20, 20), 1);
 
         let drawCalled = false;
 
@@ -248,7 +253,7 @@ describe('with initialized pipeline', () => {
             for (let i = 0; i < 5; i++) {
                 pipeline.reset();
 
-                pipeline.drawPixel(new Vector2i(i, i), Color32.white());
+                pipeline.drawPixel(new Vector2i(i, i), 8);
                 pipeline.encodePass(createMockRenderPassEncoder());
 
                 pipeline.reset();
@@ -262,7 +267,7 @@ describe('with initialized pipeline', () => {
         pipeline.setCameraOffset(new Vector2i(100, 50));
 
         expect(() => {
-            pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+            pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), 1);
             pipeline.encodePass(createMockRenderPassEncoder());
         }).not.toThrow();
 
@@ -281,7 +286,9 @@ describe('vertex count verification', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240));
+        const paletteBuffer = createMockPaletteBuffer(device);
+
+        await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
     });
 
     afterAll(() => {
@@ -291,7 +298,7 @@ describe('vertex count verification', () => {
     it('drawRectFill produces six vertices (two triangles)', () => {
         pipeline.reset();
 
-        pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+        pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), 1);
 
         let totalVertices = 0;
         const renderPass = {
@@ -309,7 +316,7 @@ describe('vertex count verification', () => {
     it('drawPixel produces six vertices (1x1 filled rect)', () => {
         pipeline.reset();
 
-        pipeline.drawPixel(new Vector2i(5, 5), Color32.green());
+        pipeline.drawPixel(new Vector2i(5, 5), 2);
 
         let totalVertices = 0;
 
@@ -328,7 +335,7 @@ describe('vertex count verification', () => {
     it('horizontal line uses a single quad (six vertices)', () => {
         pipeline.reset();
 
-        pipeline.drawLine(new Vector2i(0, 10), new Vector2i(100, 10), Color32.white());
+        pipeline.drawLine(new Vector2i(0, 10), new Vector2i(100, 10), 4);
 
         let totalVertices = 0;
         const renderPass = {
@@ -345,7 +352,7 @@ describe('vertex count verification', () => {
     it('vertical line uses a single quad (six vertices)', () => {
         pipeline.reset();
 
-        pipeline.drawLine(new Vector2i(10, 0), new Vector2i(10, 50), Color32.white());
+        pipeline.drawLine(new Vector2i(10, 0), new Vector2i(10, 50), 4);
 
         let totalVertices = 0;
 
@@ -365,7 +372,7 @@ describe('vertex count verification', () => {
         pipeline.reset();
 
         // A 45-degree diagonal from (0,0) to (4,4) = 5 pixels
-        pipeline.drawLine(new Vector2i(0, 0), new Vector2i(4, 4), Color32.white());
+        pipeline.drawLine(new Vector2i(0, 0), new Vector2i(4, 4), 8);
 
         let totalVertices = 0;
 
@@ -385,7 +392,7 @@ describe('vertex count verification', () => {
         pipeline.reset();
 
         // height=2 means y1-y0 = 1, which is NOT > 1, so no vertical sides
-        pipeline.drawRect(new Rect2i(0, 0, 10, 2), Color32.red());
+        pipeline.drawRect(new Rect2i(0, 0, 10, 2), 1);
 
         let totalVertices = 0;
 
@@ -405,7 +412,7 @@ describe('vertex count verification', () => {
     it('drawRect with height > two includes all four sides', () => {
         pipeline.reset();
 
-        pipeline.drawRect(new Rect2i(0, 0, 10, 10), Color32.red());
+        pipeline.drawRect(new Rect2i(0, 0, 10, 10), 1);
 
         let totalVertices = 0;
 
@@ -425,7 +432,7 @@ describe('vertex count verification', () => {
     it('drawText produces six vertices per character', () => {
         pipeline.reset();
 
-        pipeline.drawText(new Vector2i(0, 0), Color32.white(), 'Hi');
+        pipeline.drawText(new Vector2i(0, 0), 8, 'Hi');
 
         let totalVertices = 0;
 
@@ -450,7 +457,7 @@ describe('vertex count verification', () => {
             // Fill buffer: 50,000 max vertices, each drawRectFill uses 6 vertices
             // ~8333 rects fill the buffer; drawing more should trigger a warning
             for (let i = 0; i < 8400; i++) {
-                pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), Color32.white());
+                pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), 1);
             }
 
             expect(warnSpy).toHaveBeenCalled();
