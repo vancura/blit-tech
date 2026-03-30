@@ -391,7 +391,7 @@ jobs:
           if [ "${{ steps.find-perf-baseline.outputs.found }}" = "true" ]; then
             node scripts/compare-tier-2-perf-results.mjs \
               --current test-results/perf/perf-results.json \
-              --baseline perf-baseline-artifact/test-results/perf/perf-results.json \
+              --baseline perf-baseline-artifact/perf-results.json \
               --json-out perf-comparison.json \
               --markdown-out perf-comment.md \
               --threshold 50
