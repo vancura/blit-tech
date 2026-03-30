@@ -55,6 +55,9 @@ export class Renderer {
     /** GPU uniform buffer for the 256-entry palette. */
     private paletteBuffer: GPUBuffer | null = null;
 
+    /** Reusable staging buffer for GPU palette uploads. Avoids per-frame allocation. */
+    private readonly paletteStaging = new Float32Array(256 * 4);
+
     /** True when the palette has changed and needs to be re-uploaded to the GPU. */
     private paletteDirty: boolean = false;
 
@@ -198,9 +201,8 @@ export class Renderer {
 
         // Upload palette to GPU only when it has changed.
         if (this.palette && this.paletteBuffer && this.paletteDirty) {
-            const paletteData = this.palette.toFloat32Array();
-
-            this.device.queue.writeBuffer(this.paletteBuffer, 0, paletteData.buffer);
+            this.palette.toFloat32ArrayInto(this.paletteStaging);
+            this.device.queue.writeBuffer(this.paletteBuffer, 0, this.paletteStaging);
             this.paletteDirty = false;
         }
 
