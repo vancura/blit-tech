@@ -21,7 +21,9 @@ import {
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
+import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
+import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
@@ -338,9 +340,83 @@ describe('with initialized renderer', () => {
             renderer.endFrame();
         }).not.toThrow();
     });
+
+    it('drawSprite delegates without throwing', () => {
+        renderer.beginFrame();
+
+        const mockTexture = {
+            createView: () => ({}),
+            width: 8,
+            height: 8,
+        } as unknown as GPUTexture;
+
+        const mockSheet = {
+            getTexture: () => mockTexture,
+            getUVs: () => ({ u0: 0, v0: 0, u1: 1, v1: 1 }),
+        } as unknown as SpriteSheet;
+
+        expect(() => {
+            renderer.drawSprite(mockSheet, new Rect2i(0, 0, 8, 8), new Vector2i(10, 10));
+        }).not.toThrow();
+
+        renderer.endFrame();
+    });
+
+    it('drawBitmapText delegates without throwing', () => {
+        renderer.beginFrame();
+
+        // Empty text — loop does not execute so glyph methods are never called.
+        const mockFont = {
+            getSpriteSheet: () => ({}),
+            getGlyphByCode: () => null,
+        } as unknown as BitmapFont;
+
+        expect(() => {
+            renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
+        }).not.toThrow();
+
+        renderer.endFrame();
+    });
 });
 
 // #endregion
+
+// #region resolveClearColor Fallbacks
+
+describe('resolveClearColor fallbacks', () => {
+    it('returns black (no throw) when no palette is set', async () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+
+        // No setPalette() call — endFrame() resolves clear color to black via fallback.
+        expect(() => r.endFrame()).not.toThrow();
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('returns black (no throw) when palette.get throws', async () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+
+        const palette = createTestPalette();
+
+        vi.spyOn(palette, 'get').mockImplementation(() => {
+            throw new Error('get error');
+        });
+
+        r.setPalette(palette);
+
+        expect(() => r.endFrame()).not.toThrow();
+
+        uninstallMockNavigatorGPU();
+    });
+});
 
 // #region Frame Capture
 

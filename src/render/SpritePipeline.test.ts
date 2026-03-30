@@ -16,6 +16,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUDevice,
+    createMockPaletteBuffer,
     createMockRenderPassEncoder,
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
@@ -26,19 +27,6 @@ import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { SpritePipeline } from './SpritePipeline';
-
-// #region Test Helpers
-
-/** Creates a mock palette buffer matching the real 4096-byte uniform layout. */
-function createMockPaletteBuffer(device: GPUDevice): GPUBuffer {
-    return device.createBuffer({
-        label: 'Test Palette Buffer',
-        size: 256 * 4 * 4,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-}
-
-// #endregion
 
 // #region Constructor
 
@@ -94,7 +82,7 @@ describe('with initialized pipeline', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer(device));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -162,7 +150,7 @@ describe('drawSprite', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer(device));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -408,7 +396,7 @@ describe('drawBitmapText', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer(device));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {

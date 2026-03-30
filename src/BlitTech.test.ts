@@ -1,4 +1,5 @@
 // noinspection DuplicatedCode
+// @vitest-environment happy-dom
 
 /**
  * Unit tests for the public `BT` facade exported from `BlitTech.ts`.
@@ -8,7 +9,7 @@
  * suppression behavior used by facade helpers.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BitmapFont, HardwareSettings } from './BlitTech';
 import { BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
@@ -467,6 +468,75 @@ describe('BT.printFont', () => {
         BT.printFont(font, new Vector2i(0, 0), 'Hi');
 
         expect(spy).toHaveBeenCalledWith(font, expect.anything(), 'Hi', undefined);
+    });
+});
+
+// #endregion
+
+// #region BT.captureFrame / BT.downloadFrame
+
+describe('BT.captureFrame', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('delegates to BTAPI.instance.captureFrame and returns its result', async () => {
+        const mockBlob = new Blob(['test'], { type: 'image/png' });
+        const spy = vi.spyOn(BTAPI.instance, 'captureFrame').mockResolvedValue(mockBlob);
+
+        const result = await BT.captureFrame();
+
+        expect(spy).toHaveBeenCalledOnce();
+        expect(result).toBe(mockBlob);
+    });
+});
+
+describe('BT.downloadFrame', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('calls captureFrame, creates object URL, clicks anchor, and revokes URL', async () => {
+        const mockBlob = new Blob(['test'], { type: 'image/png' });
+
+        vi.spyOn(BTAPI.instance, 'captureFrame').mockResolvedValue(mockBlob);
+
+        const mockUrl = 'blob:mock-url';
+        const createObjectURL = vi.fn().mockReturnValue(mockUrl);
+        const revokeObjectURL = vi.fn();
+
+        vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+
+        const mockAnchor = { href: '', download: '', click: vi.fn() };
+
+        vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as unknown as HTMLAnchorElement);
+
+        await BT.downloadFrame('screenshot.png');
+
+        expect(createObjectURL).toHaveBeenCalledWith(mockBlob);
+        expect(mockAnchor.href).toBe(mockUrl);
+        expect(mockAnchor.download).toBe('screenshot.png');
+        expect(mockAnchor.click).toHaveBeenCalledOnce();
+        expect(revokeObjectURL).toHaveBeenCalledWith(mockUrl);
+    });
+
+    it('uses the default filename when none is provided', async () => {
+        const mockBlob = new Blob(['test'], { type: 'image/png' });
+
+        vi.spyOn(BTAPI.instance, 'captureFrame').mockResolvedValue(mockBlob);
+        vi.stubGlobal('URL', { createObjectURL: vi.fn().mockReturnValue('blob:x'), revokeObjectURL: vi.fn() });
+
+        const mockAnchor = { href: '', download: '', click: vi.fn() };
+
+        vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as unknown as HTMLAnchorElement);
+
+        await BT.downloadFrame();
+
+        expect(mockAnchor.download).toBe('blit-tech-capture.png');
     });
 });
 

@@ -16,6 +16,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUDevice,
+    createMockPaletteBuffer,
     createMockRenderPassEncoder,
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
@@ -23,19 +24,6 @@ import {
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { PrimitivePipeline } from './PrimitivePipeline';
-
-// #region Test Helpers
-
-/** Creates a mock palette buffer matching the real 4096-byte uniform layout. */
-function createMockPaletteBuffer(device: GPUDevice): GPUBuffer {
-    return device.createBuffer({
-        label: 'Test Palette Buffer',
-        size: 256 * 4 * 4,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-}
-
-// #endregion
 
 // #region Constructor
 
@@ -174,7 +162,7 @@ describe('with initialized pipeline', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        const paletteBuffer = createMockPaletteBuffer(device);
+        const paletteBuffer = createMockPaletteBuffer();
 
         await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
     });
@@ -286,7 +274,7 @@ describe('vertex count verification', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        const paletteBuffer = createMockPaletteBuffer(device);
+        const paletteBuffer = createMockPaletteBuffer();
 
         await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
     });

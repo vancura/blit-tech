@@ -115,6 +115,43 @@ describe('GameLoop', () => {
 
     // #endregion
 
+    // #region start (RAF flush)
+
+    describe('start (RAF flush)', () => {
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('sets lastUpdateTime after flushing nested RAF callbacks', () => {
+            const rafCallbacks: Array<(time?: number) => void> = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((cb: (time?: number) => void) => {
+                    rafCallbacks.push(cb);
+
+                    return rafCallbacks.length;
+                }),
+            );
+
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn());
+            const p = loop as unknown as { lastUpdateTime: number };
+
+            loop.start();
+
+            // Execute outer RAF callback.
+            rafCallbacks[0]?.();
+
+            // Execute inner RAF callback — sets lastUpdateTime and schedules first tick.
+            rafCallbacks[1]?.();
+
+            expect(p.lastUpdateTime).toBeGreaterThan(0);
+            expect(rafCallbacks).toHaveLength(3);
+        });
+    });
+
+    // #endregion
+
     // #region tick (private)
 
     describe('tick (via type cast)', () => {
