@@ -185,7 +185,13 @@ describe('palette enforcement', () => {
 
         renderer.setPalette(palette);
 
-        expect(renderer.getPalette()).toEqual(palette);
+        const result = renderer.getPalette();
+
+        expect(result).not.toBeNull();
+        expect(result).not.toBe(palette);
+        expect(result!.size).toBe(palette.size);
+        expect(result!.get(1)).toEqual(palette.get(1));
+        expect(result!.get(8)).toEqual(palette.get(8));
     });
 
     it('getPalette returns null when no palette is set', () => {
@@ -250,7 +256,7 @@ describe('with initialized renderer', () => {
         }).not.toThrow();
     });
 
-    it('drawPixel delegates without throwing', () => {
+    it('drawPixel delegates without throwing at (10,10)', () => {
         renderer.beginFrame();
 
         expect(() => {
@@ -260,7 +266,7 @@ describe('with initialized renderer', () => {
         renderer.endFrame();
     });
 
-    it('drawPixel delegates without throwing', () => {
+    it('drawPixel delegates without throwing at (15,25)', () => {
         renderer.beginFrame();
 
         expect(() => {
@@ -404,16 +410,16 @@ describe('resolveClearColor fallbacks', () => {
 
         await r.initialize();
 
-        const palette = createTestPalette();
-
-        vi.spyOn(palette, 'get').mockImplementation(() => {
+        // Spy on the prototype so the clone stored by setPalette also throws.
+        const getSpy = vi.spyOn(Palette.prototype, 'get').mockImplementation(() => {
             throw new Error('get error');
         });
 
-        r.setPalette(palette);
+        r.setPalette(createTestPalette());
 
         expect(() => r.endFrame()).not.toThrow();
 
+        getSpy.mockRestore();
         uninstallMockNavigatorGPU();
     });
 });
