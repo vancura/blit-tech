@@ -16,11 +16,12 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
 
         import {
             createSpriteImage,
             initializePerfState,
+            installDefaultTestPalette,
             markInitFailed,
             readNumberParam,
             readStringParam,
@@ -50,10 +51,7 @@
             }
 
             async initialize() {
-                const palette = new Palette(16);
-                palette.set(BLACK, Color32.black());
-                palette.set(2, Color32.white());
-                BT.paletteSet(palette);
+                installDefaultTestPalette(BT, Color32);
 
                 const [firstImage, secondImage] = await Promise.all([
                     createSpriteImage('#ff3366', '#ffcc00'),

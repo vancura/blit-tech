@@ -16,9 +16,16 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Palette, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Vector2i } from 'blit-tech';
 
-        import { initializePerfState, markInitFailed, readNumberParam, recordFrame, repeatText } from './perf-common.js';
+        import {
+            initializePerfState,
+            installDefaultTestPalette,
+            markInitFailed,
+            readNumberParam,
+            recordFrame,
+            repeatText,
+        } from './perf-common.js';
 
         const charCount = Math.max(1, readNumberParam('chars', 400) | 0);
         const lineWidth = Math.max(1, readNumberParam('lineWidth', 40) | 0);
@@ -50,10 +57,7 @@
             }
 
             async initialize() {
-                const palette = new Palette(16);
-                palette.set(BLACK, Color32.black());
-                palette.set(WHITE, Color32.white());
-                BT.paletteSet(palette);
+                installDefaultTestPalette(BT, Color32);
 
                 return true;
             }

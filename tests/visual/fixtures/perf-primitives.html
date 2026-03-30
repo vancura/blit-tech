@@ -16,9 +16,15 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Rect2i, Vector2i } from 'blit-tech';
 
-        import { initializePerfState, markInitFailed, readNumberParam, recordFrame } from './perf-common.js';
+        import {
+            initializePerfState,
+            installDefaultTestPalette,
+            markInitFailed,
+            readNumberParam,
+            recordFrame,
+        } from './perf-common.js';
 
         const rectCount = Math.max(0, readNumberParam('rects', 120) | 0);
         const lineCount = Math.max(0, readNumberParam('lines', 80) | 0);
@@ -49,16 +55,7 @@
             }
 
             async initialize() {
-                const palette = new Palette(16);
-                palette.set(BLACK, Color32.black());
-                palette.set(RED, Color32.red());
-                palette.set(GREEN, Color32.green());
-                palette.set(4, Color32.blue());
-                palette.set(5, Color32.yellow());
-                palette.set(6, Color32.cyan());
-                palette.set(7, Color32.magenta());
-                palette.set(WHITE, Color32.white());
-                BT.paletteSet(palette);
+                installDefaultTestPalette(BT, Color32);
 
                 return true;
             }
