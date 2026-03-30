@@ -424,6 +424,8 @@ describe('resolveClearColor fallbacks', () => {
     });
 });
 
+// #endregion
+
 // #region Frame Capture
 
 describe('frame capture', () => {

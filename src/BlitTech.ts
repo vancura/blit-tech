@@ -3,6 +3,11 @@
  *
  * This module re-exports the main runtime types and exposes the `BT` facade
  * used by demos for rendering, timing, bootstrap, and future input helpers.
+ *
+ * Rendering is palette-first: every color on screen is identified by a numeric
+ * palette index rather than a direct RGBA value. Set an active palette with
+ * `BT.paletteSet()` before drawing anything, and call `spriteSheet.indexize(palette)`
+ * after loading each sprite sheet to convert its RGBA pixels to palette indices.
  */
 
 import { AssetLoader } from './assets/AssetLoader';
@@ -443,18 +448,19 @@ export const BT = {
     },
 
     /**
-     * Draws text with a bitmap font.
+     * Draws text with a bitmap font through the indexed sprite pipeline.
      *
      * Supports proportional glyph widths and glyph-level offsets defined by the
-     * supplied {@link BitmapFont}.
+     * supplied {@link BitmapFont}. The font's underlying sprite sheet must have
+     * been indexized before calling this.
      *
      * @param font - Font asset used for rendering.
      * @param pos - Text origin in display coordinates.
      * @param text - String to render.
-     * @param color - Optional tint color. Defaults to white when omitted.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
-    printFont: (font: BitmapFont, pos: Vector2i, text: string, color?: Color32): void => {
-        BTAPI.instance.drawBitmapText(font, pos, text, color);
+    printFont: (font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void => {
+        BTAPI.instance.drawBitmapText(font, pos, text, paletteOffset);
     },
 
     // #endregion
@@ -506,24 +512,37 @@ export const BT = {
     // #region Sprite Rendering
 
     /**
-     * Draws a sprite region from a sprite sheet.
+     * Draws a sprite region from an indexed sprite sheet.
      *
-     * Textures internally batch sprite draws. Grouping draws from the
-     * same {@link SpriteSheet} minimizes batch flushes and reduces GPU state
-     * changes.
+     * Sprite draws are batched internally. Grouping draws from the same
+     * {@link SpriteSheet} minimizes batch flushes and reduces GPU state changes.
      *
-     * @param spriteSheet - Sprite sheet that owns the source texture.
+     * The sprite sheet must have been converted to palette indices via
+     * `spriteSheet.indexize(palette)` before the first draw call.
+     *
+     * @param spriteSheet - Indexed sprite sheet.
      * @param srcRect - Source rectangle within the sprite sheet, in pixels.
      * @param destPos - Destination top-left position in display coordinates.
-     * @param tint - Optional multiplicative tint. Defaults to white.
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
      *
      * @example
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10));
-     * BT.drawSprite(sheet, new Rect2i(16, 0, 16, 16), new Vector2i(26, 10));
-     * BT.drawSprite(sheet, new Rect2i(32, 0, 16, 16), new Vector2i(42, 10));
+     * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10), 16); // blue team
      */
-    drawSprite: (spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void => {
-        BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, tint);
+    drawSprite: (spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset?: number): void => {
+        BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
+    },
+
+    /**
+     * Re-indexizes all tracked sprite sheets against the current active palette.
+     *
+     * Call after swapping or modifying the active palette to keep all loaded
+     * sprite sheets in sync with the new color-to-index mapping.
+     *
+     * @throws If no active palette has been set.
+     */
+    spritesRefresh: (): void => {
+        BTAPI.instance.spritesRefresh();
     },
 
     // #endregion

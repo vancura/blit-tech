@@ -5,7 +5,7 @@
  * - construction and pre-initialization safety
  * - encode/reset behavior with and without queued sprite data
  * - sprite draw batching for shared textures and texture switches
- * - camera-offset handling, transparent tinting, and overflow safety
+ * - camera-offset handling, paletteOffset, and overflow safety
  * - bitmap-font rendering paths, including skipped missing glyphs
  *
  * The tests rely on WebGPU mock helpers plus lightweight sprite-sheet/font
@@ -23,7 +23,6 @@ import {
 } from '../__test__/webgpu-mock';
 import type { BitmapFont, Glyph } from '../assets/BitmapFont';
 import { SpriteSheet } from '../assets/SpriteSheet';
-import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { SpritePipeline } from './SpritePipeline';
@@ -167,23 +166,23 @@ describe('drawSprite', () => {
         }).not.toThrow();
     });
 
-    it('with explicit tint color does not throw', () => {
+    it('with explicit paletteOffset does not throw', () => {
         pipeline.reset();
 
         const sheet = new SpriteSheet(mockImage);
 
         expect(() => {
-            pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), Color32.red());
+            pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), 1);
         }).not.toThrow();
     });
 
-    it('with fully transparent tint does not throw', () => {
+    it('with zero paletteOffset does not throw', () => {
         pipeline.reset();
 
         const sheet = new SpriteSheet(mockImage);
 
         expect(() => {
-            pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), new Color32(255, 255, 255, 0));
+            pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), 0);
         }).not.toThrow();
     });
 
@@ -345,7 +344,7 @@ describe('drawSprite', () => {
         const sheet = new SpriteSheet(mockImage);
 
         try {
-            // MAX_SPRITE_VERTICES = 50,000, each sprite = 6 vertices * 8 floats
+            // MAX_SPRITE_VERTICES = 50,000, each sprite = 6 vertices * 5 values (20 bytes)
             // 50,000 / 6 = ~8333 sprites max; draw more to trigger overflow
             for (let i = 0; i < 8400; i++) {
                 pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));
@@ -485,7 +484,7 @@ describe('drawBitmapText', () => {
         expect(drawCallCount).toBe(0);
     });
 
-    it('applies custom tint color without error', () => {
+    it('applies paletteOffset without error', () => {
         pipeline.reset();
 
         const sheet = new SpriteSheet(mockImage);
@@ -498,7 +497,7 @@ describe('drawBitmapText', () => {
         );
 
         expect(() => {
-            pipeline.drawBitmapText(font, new Vector2i(0, 0), 'X', Color32.red());
+            pipeline.drawBitmapText(font, new Vector2i(0, 0), 'X', 2);
             pipeline.encodePass(createMockRenderPassEncoder());
         }).not.toThrow();
     });

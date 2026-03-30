@@ -231,6 +231,7 @@ export class Renderer {
             colorAttachments: [
                 {
                     view: textureView,
+                    // WebGPU expects linear 0-1 floats; Color32 stores 0-255 integers.
                     clearValue: {
                         r: clearColor.r / 255,
                         g: clearColor.g / 255,
@@ -341,28 +342,28 @@ export class Renderer {
     // #region Sprite Drawing
 
     /**
-     * Draws a sprite region from a sprite sheet.
+     * Draws a sprite region from an indexed sprite sheet.
      *
-     * @param spriteSheet - Source sprite sheet.
+     * @param spriteSheet - Source sprite sheet (must have been indexized).
      * @param srcRect - Region to copy from the sprite sheet.
      * @param destPos - Screen position to draw at.
-     * @param tint - Tint color multiplied with texture (defaults to white).
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
      */
-    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint: Color32 = Color32.white()): void {
-        this.sprites.drawSprite(spriteSheet, srcRect, destPos, tint);
+    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
+        this.sprites.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
     /**
-     * Draws text using a bitmap font.
+     * Draws text using a bitmap font through the indexed sprite pipeline.
      * Renders each character as a textured sprite.
      *
-     * @param font - Bitmap font with character glyphs.
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
-     * @param color - Text color multiplied with font texture.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
-    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
-        this.sprites.drawBitmapText(font, pos, text, color);
+    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.sprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
     // #endregion

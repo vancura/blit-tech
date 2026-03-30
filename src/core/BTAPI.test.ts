@@ -200,7 +200,7 @@ describe('BTAPI', () => {
         });
 
         it('drawSprite should not throw before init', () => {
-            const mockSheet = {} as unknown as SpriteSheet;
+            const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
             expect(() =>
                 BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0)),
             ).not.toThrow();
