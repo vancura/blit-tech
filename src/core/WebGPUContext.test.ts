@@ -44,21 +44,18 @@ describe('initializeWebGPU', () => {
     // #region No WebGPU support
 
     it('should return null when navigator.gpu is absent', async () => {
+        // Use Object.defineProperty to install a navigator without .gpu — direct
+        // property deletion throws in Node.js when navigator is null/non-writable.
+        Object.defineProperty(globalThis, 'navigator', {
+            value: { userAgent: 'test' },
+            writable: true,
+            configurable: true,
+        });
+
         const canvas = createMockCanvas();
-        const nav = globalThis.navigator as unknown as Record<string, unknown>;
-        const originalGpu = nav?.gpu;
+        const result = await initializeWebGPU(canvas, displaySize);
 
-        try {
-            delete nav.gpu;
-
-            const result = await initializeWebGPU(canvas, displaySize);
-
-            expect(result).toBeNull();
-        } finally {
-            if (originalGpu !== undefined) {
-                nav.gpu = originalGpu;
-            }
-        }
+        expect(result).toBeNull();
     });
 
     // #endregion

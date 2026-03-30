@@ -18,7 +18,14 @@
     <script type="module">
         import { bootstrap, BT, Color32, Vector2i } from 'blit-tech';
 
-        import { initializePerfState, markInitFailed, readNumberParam, recordFrame, repeatText } from './perf-common.js';
+        import {
+            initializePerfState,
+            installDefaultTestPalette,
+            markInitFailed,
+            readNumberParam,
+            recordFrame,
+            repeatText,
+        } from './perf-common.js';
 
         const charCount = Math.max(1, readNumberParam('chars', 400) | 0);
         const lineWidth = Math.max(1, readNumberParam('lineWidth', 40) | 0);
@@ -35,6 +42,10 @@
             lines: lines.length,
         });
 
+        // Palette indices.
+        const BLACK = 1;
+        const WHITE = 7;
+
         class PerfFontsTest {
             pos = new Vector2i();
 
@@ -46,6 +57,8 @@
             }
 
             async initialize() {
+                installDefaultTestPalette(BT, Color32);
+
                 return true;
             }
 
@@ -56,12 +69,12 @@
                     return;
                 }
 
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 for (let i = 0; i < lines.length; i++) {
                     this.pos.x = 8;
                     this.pos.y = 8 + i * 10;
-                    BT.print(this.pos, Color32.white(), lines[i]);
+                    BT.print(this.pos, WHITE, lines[i]);
                 }
 
                 recordFrame(perf);

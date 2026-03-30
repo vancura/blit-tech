@@ -81,6 +81,34 @@ export function repeatText(seed, length) {
     return seed.repeat(Math.ceil(length / seed.length)).slice(0, length);
 }
 
+/**
+ * Creates and activates a default 16-color test palette.
+ * Index 0 is transparent (never set — left as zero alpha).
+ * Indices 1-10 cover common test colors.
+ *
+ * @param {object} BT - The BT namespace.
+ * @param {object} Color32 - The Color32 class.
+ * @returns {object} The created palette.
+ */
+export function installDefaultTestPalette(BT, Color32) {
+    const palette = BT.paletteCreate(16);
+
+    palette.set(1, Color32.black());
+    palette.set(2, Color32.red());
+    palette.set(3, Color32.green());
+    palette.set(4, Color32.blue());
+    palette.set(5, Color32.yellow());
+    palette.set(6, Color32.cyan());
+    palette.set(7, Color32.white());
+    palette.set(8, new Color32(32, 32, 64, 255));
+    palette.set(9, new Color32(16, 24, 40, 255));
+    palette.set(10, new Color32(128, 0, 0, 255));
+
+    BT.paletteSet(palette);
+
+    return palette;
+}
+
 export function createSpriteImage(primaryColor, secondaryColor) {
     const canvas = document.createElement('canvas');
     canvas.width = 8;

@@ -5,7 +5,8 @@
  * - constructor behavior and pre-initialization safety
  * - camera state ownership and copy semantics
  * - successful renderer initialization and repeated frame lifecycles
- * - delegation of primitive drawing calls during active frames
+ * - delegation of palette-indexed primitive drawing calls during active frames
+ * - palette enforcement (beginFrame throws without active palette)
  * - frame capture flow and error handling during presentation
  *
  * The suite uses mocked WebGPU devices, contexts, and browser image APIs so
@@ -20,10 +21,33 @@ import {
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
+import type { BitmapFont } from '../assets/BitmapFont';
+import { Palette } from '../assets/Palette';
+import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { Renderer } from './Renderer';
+
+// #region Test Helpers
+
+/** Creates a small 16-color test palette with known color assignments. */
+function createTestPalette(): Palette {
+    const palette = new Palette(16);
+
+    palette.set(1, Color32.black());
+    palette.set(2, Color32.red());
+    palette.set(3, Color32.green());
+    palette.set(4, Color32.blue());
+    palette.set(5, Color32.yellow());
+    palette.set(6, Color32.cyan());
+    palette.set(7, Color32.magenta());
+    palette.set(8, Color32.white());
+
+    return palette;
+}
+
+// #endregion
 
 // #region Constructor
 
@@ -48,7 +72,7 @@ describe('pre-initialization methods', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => {
-            renderer.setClearColor(Color32.blue());
+            renderer.setClearColor(1);
         }).not.toThrow();
     });
 
@@ -80,8 +104,18 @@ describe('pre-initialization methods', () => {
         expect(offset.y).toBe(0);
     });
 
-    it('beginFrame does not throw before initialize', () => {
+    it('beginFrame throws without active palette', () => {
         const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        expect(() => {
+            renderer.beginFrame();
+        }).toThrow('Cannot begin frame: no active palette. Call setPalette() first.');
+    });
+
+    it('beginFrame succeeds with active palette', () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        renderer.setPalette(createTestPalette());
 
         expect(() => {
             renderer.beginFrame();
@@ -142,6 +176,33 @@ describe('camera operations', () => {
 
 // #endregion
 
+// #region Palette Enforcement
+
+describe('palette enforcement', () => {
+    it('setPalette stores and returns palette', () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const palette = createTestPalette();
+
+        renderer.setPalette(palette);
+
+        const result = renderer.getPalette();
+
+        expect(result).not.toBeNull();
+        expect(result).not.toBe(palette);
+        expect(result!.size).toBe(palette.size);
+        expect(result!.get(1)).toEqual(palette.get(1));
+        expect(result!.get(8)).toEqual(palette.get(8));
+    });
+
+    it('getPalette returns null when no palette is set', () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        expect(renderer.getPalette()).toBeNull();
+    });
+});
+
+// #endregion
+
 // #region Initialized Renderer
 
 describe('with initialized renderer', () => {
@@ -156,6 +217,8 @@ describe('with initialized renderer', () => {
         const result = await renderer.initialize();
 
         expect(result).toBe(true);
+
+        renderer.setPalette(createTestPalette());
     });
 
     afterAll(() => {
@@ -193,21 +256,21 @@ describe('with initialized renderer', () => {
         }).not.toThrow();
     });
 
-    it('drawPixel delegates without throwing', () => {
+    it('drawPixel delegates without throwing at (10,10)', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawPixel(new Vector2i(10, 10), Color32.red());
+            renderer.drawPixel(new Vector2i(10, 10), 2);
         }).not.toThrow();
 
         renderer.endFrame();
     });
 
-    it('drawPixelXY delegates without throwing', () => {
+    it('drawPixel delegates without throwing at (15,25)', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawPixelXY(15, 25, Color32.green());
+            renderer.drawPixel(new Vector2i(15, 25), 3);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -217,7 +280,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawRectFill(new Rect2i(5, 5, 20, 20), Color32.blue());
+            renderer.drawRectFill(new Rect2i(5, 5, 20, 20), 4);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -227,7 +290,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawLine(new Vector2i(0, 0), new Vector2i(50, 50), Color32.yellow());
+            renderer.drawLine(new Vector2i(0, 0), new Vector2i(50, 50), 5);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -237,7 +300,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawRect(new Rect2i(10, 10, 30, 30), Color32.cyan());
+            renderer.drawRect(new Rect2i(10, 10, 30, 30), 6);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -247,7 +310,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.clearRect(Color32.black(), new Rect2i(0, 0, 320, 240));
+            renderer.clearRect(new Rect2i(0, 0, 320, 240), 1);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -257,7 +320,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawText(new Vector2i(10, 10), Color32.white(), 'Test');
+            renderer.drawText(new Vector2i(10, 10), 8, 'Test');
         }).not.toThrow();
 
         renderer.endFrame();
@@ -267,7 +330,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.setClearColor(new Color32(64, 128, 192, 255));
+            renderer.setClearColor(4);
         }).not.toThrow();
 
         renderer.endFrame();
@@ -276,16 +339,90 @@ describe('with initialized renderer', () => {
     it('camera operations work within a frame cycle', () => {
         renderer.beginFrame();
         renderer.setCameraOffset(new Vector2i(50, 50));
-        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), 2);
         renderer.resetCamera();
 
         expect(() => {
             renderer.endFrame();
         }).not.toThrow();
     });
+
+    it('drawSprite delegates without throwing', () => {
+        renderer.beginFrame();
+
+        const mockTexture = {
+            createView: () => ({}),
+            width: 8,
+            height: 8,
+        } as unknown as GPUTexture;
+
+        const mockSheet = {
+            getTexture: () => mockTexture,
+            getUVs: () => ({ u0: 0, v0: 0, u1: 1, v1: 1 }),
+        } as unknown as SpriteSheet;
+
+        expect(() => {
+            renderer.drawSprite(mockSheet, new Rect2i(0, 0, 8, 8), new Vector2i(10, 10));
+        }).not.toThrow();
+
+        renderer.endFrame();
+    });
+
+    it('drawBitmapText delegates without throwing', () => {
+        renderer.beginFrame();
+
+        // Empty text — loop does not execute so glyph methods are never called.
+        const mockFont = {
+            getSpriteSheet: () => ({}),
+            getGlyphByCode: () => null,
+        } as unknown as BitmapFont;
+
+        expect(() => {
+            renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
+        }).not.toThrow();
+
+        renderer.endFrame();
+    });
 });
 
 // #endregion
+
+// #region resolveClearColor Fallbacks
+
+describe('resolveClearColor fallbacks', () => {
+    it('returns black (no throw) when no palette is set', async () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+
+        // No setPalette() call — endFrame() resolves clear color to black via fallback.
+        expect(() => r.endFrame()).not.toThrow();
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('returns black (no throw) when palette.get throws', async () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+
+        // Spy on the prototype so the clone stored by setPalette also throws.
+        const getSpy = vi.spyOn(Palette.prototype, 'get').mockImplementation(() => {
+            throw new Error('get error');
+        });
+
+        r.setPalette(createTestPalette());
+
+        expect(() => r.endFrame()).not.toThrow();
+
+        getSpy.mockRestore();
+        uninstallMockNavigatorGPU();
+    });
+});
 
 // #region Frame Capture
 
@@ -332,6 +469,7 @@ describe('frame capture', () => {
         );
 
         await renderer.initialize();
+        renderer.setPalette(createTestPalette());
 
         const promise = renderer.captureFrame();
 
@@ -367,6 +505,7 @@ describe('frame capture', () => {
         installMockNavigatorGPU();
 
         await renderer.initialize();
+        renderer.setPalette(createTestPalette());
 
         // Stub browser APIs for PNG conversion.
         vi.stubGlobal(
@@ -427,6 +566,7 @@ describe('frame capture', () => {
         installMockNavigatorGPU();
 
         await renderer.initialize();
+        renderer.setPalette(createTestPalette());
 
         renderer.beginFrame();
         renderer.endFrame();
@@ -457,12 +597,13 @@ describe('endFrame error paths', () => {
         installMockNavigatorGPU();
 
         await renderer.initialize();
+        renderer.setPalette(createTestPalette());
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         try {
             renderer.beginFrame();
-            renderer.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red());
+            renderer.drawRectFill(new Rect2i(0, 0, 10, 10), 2);
 
             expect(() => {
                 renderer.endFrame();
@@ -500,6 +641,7 @@ describe('endFrame error paths', () => {
         installMockNavigatorGPU();
 
         await renderer.initialize();
+        renderer.setPalette(createTestPalette());
 
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 

@@ -34,6 +34,10 @@ export class SpritePipeline {
     /** Nearest-neighbor sampler for pixel-perfect rendering. */
     private sampler: GPUSampler | null = null;
 
+    /** Shared palette uniform buffer (stored for VV-426 indexed sprite pipeline). */
+    // @ts-expect-error Stored for VV-426 indexed sprite pipeline, not yet consumed.
+    private paletteBuffer: GPUBuffer | null = null;
+
     /** GPU vertex buffer. */
     private vertexBuffer: GPUBuffer | null = null;
 
@@ -96,9 +100,11 @@ export class SpritePipeline {
      *
      * @param device - WebGPU device for GPU operations.
      * @param displaySize - Render target resolution in pixels.
+     * @param paletteBuffer - Shared palette uniform buffer (stored for VV-426).
      */
-    async initialize(device: GPUDevice, displaySize: Vector2i): Promise<void> {
+    async initialize(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
         this.device = device;
+        this.paletteBuffer = paletteBuffer;
 
         await this.createPipeline(displaySize);
     }

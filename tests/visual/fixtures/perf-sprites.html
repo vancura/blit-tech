@@ -21,6 +21,7 @@
         import {
             createSpriteImage,
             initializePerfState,
+            installDefaultTestPalette,
             markInitFailed,
             readNumberParam,
             readStringParam,
@@ -33,6 +34,9 @@
             spriteCount,
             textureMode,
         });
+
+        // Palette indices.
+        const BLACK = 1;
 
         class PerfSpritesTest {
             spriteSheets = [];
@@ -47,6 +51,8 @@
             }
 
             async initialize() {
+                installDefaultTestPalette(BT, Color32);
+
                 const [firstImage, secondImage] = await Promise.all([
                     createSpriteImage('#ff3366', '#ffcc00'),
                     createSpriteImage('#33ccff', '#6633ff'),
@@ -64,7 +70,7 @@
                     return;
                 }
 
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 for (let i = 0; i < spriteCount; i++) {
                     this.destPos.x = (i * 9) % 320;

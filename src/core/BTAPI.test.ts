@@ -22,7 +22,6 @@ import {
 import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
-import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
@@ -151,11 +150,8 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getHardwareSettings()).toBeNull();
         });
 
-        it('getPalette should lazily create a VGA palette before init', () => {
-            const palette = BTAPI.instance.getPalette();
-
-            expect(palette).toBeInstanceOf(Palette);
-            expect(palette.size).toBe(256);
+        it('getPalette should return null before palette is set', () => {
+            expect(BTAPI.instance.getPalette()).toBeNull();
         });
 
         it('getCameraOffset should return a zero vector before init', () => {
@@ -176,33 +172,31 @@ describe('BTAPI', () => {
         });
 
         it('setClearColor should not throw before init', () => {
-            expect(() => BTAPI.instance.setClearColor(Color32.red())).not.toThrow();
+            expect(() => BTAPI.instance.setClearColor(1)).not.toThrow();
         });
 
         it('clearRect should not throw before init', () => {
-            expect(() => BTAPI.instance.clearRect(Color32.red(), new Rect2i(0, 0, 10, 10))).not.toThrow();
+            expect(() => BTAPI.instance.clearRect(new Rect2i(0, 0, 10, 10), 1)).not.toThrow();
         });
 
         it('drawPixel should not throw before init', () => {
-            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), Color32.red())).not.toThrow();
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 2)).not.toThrow();
         });
 
         it('drawLine should not throw before init', () => {
-            expect(() =>
-                BTAPI.instance.drawLine(new Vector2i(0, 0), new Vector2i(10, 10), Color32.red()),
-            ).not.toThrow();
+            expect(() => BTAPI.instance.drawLine(new Vector2i(0, 0), new Vector2i(10, 10), 3)).not.toThrow();
         });
 
         it('drawRect should not throw before init', () => {
-            expect(() => BTAPI.instance.drawRect(new Rect2i(0, 0, 10, 10), Color32.red())).not.toThrow();
+            expect(() => BTAPI.instance.drawRect(new Rect2i(0, 0, 10, 10), 4)).not.toThrow();
         });
 
         it('drawRectFill should not throw before init', () => {
-            expect(() => BTAPI.instance.drawRectFill(new Rect2i(0, 0, 10, 10), Color32.red())).not.toThrow();
+            expect(() => BTAPI.instance.drawRectFill(new Rect2i(0, 0, 10, 10), 5)).not.toThrow();
         });
 
         it('drawText should not throw before init', () => {
-            expect(() => BTAPI.instance.drawText(new Vector2i(0, 0), Color32.white(), 'test')).not.toThrow();
+            expect(() => BTAPI.instance.drawText(new Vector2i(0, 0), 8, 'test')).not.toThrow();
         });
 
         it('drawSprite should not throw before init', () => {
@@ -336,6 +330,44 @@ describe('BTAPI', () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
 
             expect(() => BTAPI.instance.stop()).not.toThrow();
+        });
+
+        it('captureFrame returns a blob after successful initialization', async () => {
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            const renderer = BTAPI.instance.getRenderer();
+
+            expect(renderer).not.toBeNull();
+
+            const mockBlob = new Blob(['test'], { type: 'image/png' });
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrame').mockResolvedValue(mockBlob);
+
+            const result = await BTAPI.instance.captureFrame();
+
+            expect(result).toBe(mockBlob);
+        });
+    });
+
+    // #endregion
+
+    // #region assertPaletteIndex
+
+    describe('assertPaletteIndex', () => {
+        it('throws when index is negative (no palette set)', () => {
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), -1)).toThrow(
+                'is not a valid non-negative integer',
+            );
+        });
+
+        it('throws when index is out of range for the active palette', () => {
+            const palette = new Palette(16);
+
+            BTAPI.instance.setPalette(palette);
+
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow(
+                'Palette index 20 out of range for palette of size 16.',
+            );
         });
     });
 

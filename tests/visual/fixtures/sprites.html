@@ -16,11 +16,14 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
 
         // Signal test readiness regardless of success/failure.
         window.__RENDER_COMPLETE__ = false;
         window.__INIT_FAILED__ = false;
+
+        // Palette indices.
+        const BLACK = 1;
 
         // Create a minimal 16x16 sprite sheet from a canvas.
         // 4 tiles of 8x8: red, green, blue, yellow.
@@ -65,6 +68,11 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(2, Color32.white());
+                BT.paletteSet(palette);
+
                 const img = await createSpriteImage();
 
                 this.spriteSheet = new SpriteSheet(img);
@@ -75,7 +83,7 @@
             update() {}
 
             render() {
-                BT.clear(Color32.black());
+                BT.clear(BLACK);
 
                 const sheet = this.spriteSheet;
                 if (!sheet) return;

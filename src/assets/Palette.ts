@@ -443,11 +443,23 @@ export class Palette {
     public toFloat32Array(): Float32Array {
         const floats = new Float32Array(GPU_PALETTE_SIZE * GPU_FLOATS_PER_COLOR);
 
-        for (let i = 0; i < this.size; i++) {
-            this.colorAt(i).writeToFloat32Array(floats, i * GPU_FLOATS_PER_COLOR);
-        }
+        this.toFloat32ArrayInto(floats);
 
         return floats;
+    }
+
+    /**
+     * Writes the palette into an existing Float32Array in the fixed-size GPU uniform layout.
+     *
+     * The target must be at least `256 * 4` floats long. Entries beyond the active
+     * palette size are left unchanged.
+     *
+     * @param target - Pre-allocated float buffer to write normalized RGBA values into.
+     */
+    public toFloat32ArrayInto(target: Float32Array): void {
+        for (let i = 0; i < this.size; i++) {
+            this.colorAt(i).writeToFloat32Array(target, i * GPU_FLOATS_PER_COLOR);
+        }
     }
 
     /**

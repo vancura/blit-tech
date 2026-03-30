@@ -135,6 +135,28 @@ export function createMockGPUCanvasContext(): GPUCanvasContext {
 
 // #endregion
 
+// #region Palette Buffer
+
+/**
+ * Creates a mock GPUBuffer matching the real 4096-byte palette uniform layout.
+ * Returns a plain object — does not call device.createBuffer.
+ *
+ * @returns Mock GPUBuffer stub.
+ */
+export function createMockPaletteBuffer(): GPUBuffer {
+    return {
+        size: 256 * 4 * 4,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        label: 'Mock Palette Buffer',
+        mapAsync: () => Promise.resolve(),
+        getMappedRange: () => new ArrayBuffer(256 * 4 * 4),
+        unmap: () => {},
+        destroy: () => {},
+    } as unknown as GPUBuffer;
+}
+
+// #endregion
+
 // #region Navigator GPU
 
 /**

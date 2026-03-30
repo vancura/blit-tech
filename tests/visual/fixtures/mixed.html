@@ -16,10 +16,18 @@
     </div>
 
     <script type="module">
-        import { bootstrap, BT, Color32, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
+        import { bootstrap, BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from 'blit-tech';
 
         window.__RENDER_COMPLETE__ = false;
         window.__INIT_FAILED__ = false;
+
+        // Palette indices for this test.
+        const BG_COLOR = 9;
+        const DARK_RED = 10;
+        const GREEN = 3;
+        const YELLOW = 5;
+        const CYAN = 6;
+        const WHITE = 8;
 
         // Create a small checkerboard sprite.
         function createCheckerImage() {
@@ -55,6 +63,19 @@
             }
 
             async initialize() {
+                const palette = new Palette(16);
+                palette.set(1, Color32.black());
+                palette.set(2, Color32.red());
+                palette.set(GREEN, Color32.green());
+                palette.set(4, Color32.blue());
+                palette.set(YELLOW, Color32.yellow());
+                palette.set(CYAN, Color32.cyan());
+                palette.set(7, Color32.magenta());
+                palette.set(WHITE, Color32.white());
+                palette.set(BG_COLOR, new Color32(32, 32, 64, 255));
+                palette.set(DARK_RED, new Color32(128, 0, 0, 255));
+                BT.paletteSet(palette);
+
                 const img = await createCheckerImage();
 
                 this.spriteSheet = new SpriteSheet(img);
@@ -65,33 +86,33 @@
             update() {}
 
             render() {
-                BT.clear(new Color32(32, 32, 64, 255));
+                BT.clear(BG_COLOR);
 
                 // Draw primitives first (these render in the primitives pipeline).
-                // Red filled rect as background.
-                BT.drawRectFill(new Rect2i(10, 10, 100, 80), new Color32(128, 0, 0, 255));
+                // Dark red filled rect as background.
+                BT.drawRectFill(new Rect2i(10, 10, 100, 80), DARK_RED);
 
                 // Green rect outline.
-                BT.drawRect(new Rect2i(8, 8, 104, 84), Color32.green());
+                BT.drawRect(new Rect2i(8, 8, 104, 84), GREEN);
 
                 // Yellow horizontal line.
-                BT.drawLine(new Vector2i(10, 100), new Vector2i(110, 100), Color32.yellow());
+                BT.drawLine(new Vector2i(10, 100), new Vector2i(110, 100), YELLOW);
 
                 // White diagonal line.
-                BT.drawLine(new Vector2i(120, 10), new Vector2i(180, 70), Color32.white());
+                BT.drawLine(new Vector2i(120, 10), new Vector2i(180, 70), WHITE);
 
                 // Cyan pixels.
                 for (let i = 0; i < 10; i++) {
-                    BT.drawPixel(new Vector2i(130 + i * 5, 80), Color32.cyan());
+                    BT.drawPixel(new Vector2i(130 + i * 5, 80), CYAN);
                 }
 
                 // Placeholder text.
-                BT.print(new Vector2i(10, 110), Color32.white(), 'Mixed Test');
+                BT.print(new Vector2i(10, 110), WHITE, 'Mixed Test');
 
                 // Draw sprites on top (these render in the sprite pipeline, after primitives).
                 const sheet = this.spriteSheet;
                 if (sheet) {
-                    // Sprite at (20, 20) - should overlap the red filled rect.
+                    // Sprite at (20, 20) - should overlap the dark red filled rect.
                     BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(20, 20));
 
                     // Row of sprites.

@@ -206,12 +206,17 @@ export const BT = {
     /**
      * Gets the active engine palette.
      *
-     * Lazily creates a default VGA palette if none has been set yet.
-     *
      * @returns Active palette.
+     * @throws Error if no palette has been set.
      */
     paletteGet: (): Palette => {
-        return BTAPI.instance.getPalette();
+        const palette = BTAPI.instance.getPalette();
+
+        if (!palette) {
+            throw new Error('No active palette. Call BT.paletteSet() first.');
+        }
+
+        return palette;
     },
 
     // #endregion
@@ -219,25 +224,25 @@ export const BT = {
     // #region Rendering - Clear Operations
 
     /**
-     * Sets the frame clear color.
+     * Sets the frame clear color using a palette index.
      *
      * The renderer uses this color when clearing the full display at the start
      * of the next frame.
      *
-     * @param color - Color used for the full-screen clear pass.
+     * @param paletteIndex - Palette index for the full-screen clear pass.
      */
-    clear: (color: Color32): void => {
-        BTAPI.instance.setClearColor(color);
+    clear: (paletteIndex: number): void => {
+        BTAPI.instance.setClearColor(paletteIndex);
     },
 
     /**
-     * Fills a rectangular display region with a solid color.
+     * Fills a rectangular display region with a palette-indexed color.
      *
-     * @param color - Fill color applied to the region.
      * @param rect - Rectangle in display pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
-    clearRect: (color: Color32, rect: Rect2i): void => {
-        BTAPI.instance.clearRect(color, rect);
+    clearRect: (rect: Rect2i, paletteIndex: number): void => {
+        BTAPI.instance.clearRect(rect, paletteIndex);
     },
 
     // #endregion
@@ -248,10 +253,10 @@ export const BT = {
      * Draws a single pixel.
      *
      * @param pos - Target pixel in display coordinates.
-     * @param color - Pixel color.
+     * @param paletteIndex - Palette color index.
      */
-    drawPixel: (pos: Vector2i, color: Color32): void => {
-        BTAPI.instance.drawPixel(pos, color);
+    drawPixel: (pos: Vector2i, paletteIndex: number): void => {
+        BTAPI.instance.drawPixel(pos, paletteIndex);
     },
 
     /**
@@ -261,30 +266,30 @@ export const BT = {
      *
      * @param p0 - Start position in display coordinates.
      * @param p1 - End position in display coordinates.
-     * @param color - Line color.
+     * @param paletteIndex - Palette color index.
      */
-    drawLine: (p0: Vector2i, p1: Vector2i, color: Color32): void => {
-        BTAPI.instance.drawLine(p0, p1, color);
+    drawLine: (p0: Vector2i, p1: Vector2i, paletteIndex: number): void => {
+        BTAPI.instance.drawLine(p0, p1, paletteIndex);
     },
 
     /**
      * Draws an unfilled rectangle outline.
      *
      * @param rect - Rectangle bounds in display coordinates.
-     * @param color - Outline color.
+     * @param paletteIndex - Palette color index.
      */
-    drawRect: (rect: Rect2i, color: Color32): void => {
-        BTAPI.instance.drawRect(rect, color);
+    drawRect: (rect: Rect2i, paletteIndex: number): void => {
+        BTAPI.instance.drawRect(rect, paletteIndex);
     },
 
     /**
      * Draws a filled rectangle.
      *
      * @param rect - Rectangle bounds in display coordinates.
-     * @param color - Fill color.
+     * @param paletteIndex - Palette color index.
      */
-    drawRectFill: (rect: Rect2i, color: Color32): void => {
-        BTAPI.instance.drawRectFill(rect, color);
+    drawRectFill: (rect: Rect2i, paletteIndex: number): void => {
+        BTAPI.instance.drawRectFill(rect, paletteIndex);
     },
 
     // #endregion
@@ -416,11 +421,11 @@ export const BT = {
      * prefer {@link BT.printFont}.
      *
      * @param pos - Text origin in display coordinates.
-     * @param color - Text color.
+     * @param paletteIndex - Palette color index.
      * @param text - String to render.
      */
-    print: (pos: Vector2i, color: Color32, text: string): void => {
-        BTAPI.instance.drawText(pos, color, text);
+    print: (pos: Vector2i, paletteIndex: number, text: string): void => {
+        BTAPI.instance.drawText(pos, paletteIndex, text);
     },
 
     /**

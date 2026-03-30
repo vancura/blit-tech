@@ -16,6 +16,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUDevice,
+    createMockPaletteBuffer,
     createMockRenderPassEncoder,
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
@@ -81,7 +82,7 @@ describe('with initialized pipeline', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -149,7 +150,7 @@ describe('drawSprite', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -395,7 +396,7 @@ describe('drawBitmapText', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240));
+        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
