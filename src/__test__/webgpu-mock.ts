@@ -102,10 +102,11 @@ export function createMockGPUDevice(): GPUDevice {
             label: 'MockCommandEncoder',
         }),
         queue: {
-            writeBuffer: () => {},
-            copyExternalImageToTexture: () => {},
-            submit: () => {},
-            onSubmittedWorkDone: () => Promise.resolve(),
+            writeBuffer: () => {}, // uniform/vertex buffer uploads
+            writeTexture: () => {}, // r8uint indexed texture uploads
+            copyExternalImageToTexture: () => {}, // rgba8unorm image uploads
+            submit: () => {}, // command buffer submission
+            onSubmittedWorkDone: () => Promise.resolve(), // GPU work completion signal
             label: 'MockQueue',
         },
         features: new Set(),

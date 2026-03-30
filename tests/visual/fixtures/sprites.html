@@ -23,10 +23,15 @@
         window.__INIT_FAILED__ = false;
 
         // Palette indices.
-        const BLACK = 1;
+        const BLACK  = 1;
+        const RED    = 2;
+        const GREEN  = 3;
+        const BLUE   = 4;
+        const YELLOW = 5;
 
         // Create a minimal 16x16 sprite sheet from a canvas.
-        // 4 tiles of 8x8: red, green, blue, yellow.
+        // 4 tiles of 8x8: red (top-left), green (top-right), blue (bottom-left), yellow (bottom-right).
+        // The colors used here must match the palette entries set in initialize().
         function createSpriteImage() {
             const c = document.createElement('canvas');
             c.width = 16;
@@ -69,13 +74,18 @@
 
             async initialize() {
                 const palette = new Palette(16);
-                palette.set(BLACK, Color32.black());
-                palette.set(2, Color32.white());
+                palette.set(BLACK,  new Color32(0,   0,   0,   255));
+                palette.set(RED,    new Color32(255, 0,   0,   255));
+                palette.set(GREEN,  new Color32(0,   255, 0,   255));
+                palette.set(BLUE,   new Color32(0,   0,   255, 255));
+                palette.set(YELLOW, new Color32(255, 255, 0,   255));
                 BT.paletteSet(palette);
 
                 const img = await createSpriteImage();
-
                 this.spriteSheet = new SpriteSheet(img);
+
+                // Convert RGBA pixels to palette indices.
+                this.spriteSheet.indexize(palette);
 
                 return true;
             }
@@ -88,25 +98,20 @@
                 const sheet = this.spriteSheet;
                 if (!sheet) return;
 
-                // Draw red tile at (10, 10) - default white tint (no color change).
+                // Draw red tile at (10, 10) - paletteOffset 0 (original colors).
                 BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(10, 10));
 
-                // Draw green tile at (30, 10) - default tint.
+                // Draw green tile at (30, 10) - paletteOffset 0.
                 BT.drawSprite(sheet, new Rect2i(8, 0, 8, 8), new Vector2i(30, 10));
 
-                // Draw blue tile at (50, 10) - with red tint (should become dark/purple).
-                BT.drawSprite(sheet, new Rect2i(0, 8, 8, 8), new Vector2i(50, 10), Color32.red());
+                // Draw blue tile at (50, 10) - paletteOffset 0.
+                BT.drawSprite(sheet, new Rect2i(0, 8, 8, 8), new Vector2i(50, 10));
 
-                // Draw yellow tile at (70, 10) - default tint.
+                // Draw yellow tile at (70, 10) - paletteOffset 0.
                 BT.drawSprite(sheet, new Rect2i(8, 8, 8, 8), new Vector2i(70, 10));
 
-                // Draw red tile at (10, 30) - with semi-transparent tint.
-                BT.drawSprite(
-                    sheet,
-                    new Rect2i(0, 0, 8, 8),
-                    new Vector2i(10, 30),
-                    new Color32(255, 255, 255, 128),
-                );
+                // Draw red tile at (10, 30) with paletteOffset 2 (shifts index 2 -> 4 = blue).
+                BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(10, 30), 2);
 
                 // Draw multiple tiles in a row (batch test).
                 for (let i = 0; i < 4; i++) {
