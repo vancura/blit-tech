@@ -131,6 +131,12 @@ export class Renderer {
     setPalette(palette: Palette): void {
         this.palette = palette.clone();
         this.paletteDirty = true;
+
+        // If the new palette is smaller than the current clear index, reset to 0
+        // (transparent) so resolveClearColor does not warn on every endFrame().
+        if (this.clearPaletteIndex >= this.palette.size) {
+            this.clearPaletteIndex = 0;
+        }
     }
 
     /**
