@@ -134,12 +134,15 @@ export class Renderer {
     }
 
     /**
-     * Returns the active palette, or null if none has been set.
+     * Returns a copy of the active palette, or null if none has been set.
      *
-     * @returns Active palette instance.
+     * Returns a clone so callers cannot mutate the internal palette and bypass
+     * the dirty flag that drives GPU re-upload.
+     *
+     * @returns Clone of the active palette instance, or null.
      */
     getPalette(): Palette | null {
-        return this.palette;
+        return this.palette?.clone() ?? null;
     }
 
     // #endregion
@@ -440,7 +443,9 @@ export class Renderer {
 
         try {
             return this.palette.get(this.clearPaletteIndex);
-        } catch {
+        } catch (error) {
+            console.warn('[Renderer] resolveClearColor: clearPaletteIndex out of range, falling back to black:', error);
+
             return Color32.black();
         }
     }
