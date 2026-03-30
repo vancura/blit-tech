@@ -108,6 +108,11 @@ export class Renderer {
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             });
 
+            // Mark the palette dirty so the new buffer is populated on the first
+            // endFrame(), even if the palette data has not changed since the last
+            // initialize() call (e.g. after a WebGPU device-loss recovery).
+            this.paletteDirty = true;
+
             await this.primitives.initialize(this.device, this.displaySize, this.paletteBuffer);
             await this.sprites.initialize(this.device, this.displaySize, this.paletteBuffer);
 
