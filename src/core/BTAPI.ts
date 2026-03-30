@@ -478,7 +478,8 @@ export class BTAPI {
             try {
                 sheet.reindexize(this.palette);
                 refreshed++;
-            } catch {
+            } catch (e) {
+                console.error('[BT] spritesRefresh: failed to reindexize sheet, removing from registry:', e);
                 this.spriteSheets.delete(sheet);
             }
         }
