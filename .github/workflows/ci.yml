@@ -477,12 +477,11 @@ jobs:
           }
           EOF
 
-  # Placeholder for tests - will run when tests are added
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     needs: quality
-    if: false # Disabled until tests are added
+    if: github.event_name != 'pull_request' || !contains(fromJSON('["labeled","unlabeled"]'), github.event.action)
 
     steps:
       - name: Checkout code
@@ -502,11 +501,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run unit tests
-        run: pnpm test:unit
-
-      - name: Run E2E tests
-        run: pnpm test:e2e
+      - name: Run unit tests with coverage
+        run: pnpm test:unit:coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
