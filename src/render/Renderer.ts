@@ -301,7 +301,7 @@ export class Renderer {
      * @param paletteIndex - Palette color index.
      */
     drawPixel(pos: Vector2i, paletteIndex: number): void {
-        this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
+        this.drawPixelXY(pos, paletteIndex);
     }
 
     /**
