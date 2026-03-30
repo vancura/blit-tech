@@ -415,6 +415,8 @@ export class BTAPI {
      * @throws If the sprite sheet has not been indexized.
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
+        this.assertPaletteIndex(paletteOffset);
+
         if (!spriteSheet.isIndexized()) {
             throw new Error(
                 '[BT] drawSprite: sprite sheet has not been indexized.' +
@@ -434,8 +436,21 @@ export class BTAPI {
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     * @throws If the font's sprite sheet has not been indexized.
      */
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.assertPaletteIndex(paletteOffset);
+
+        const sheet = font.getSpriteSheet();
+
+        if (!sheet.isIndexized()) {
+            throw new Error(
+                '[BT] drawBitmapText: font sprite sheet has not been indexized.' +
+                    ' Call spriteSheet.indexize(palette) after setting a palette.',
+            );
+        }
+
+        this.spriteSheets.add(sheet);
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -452,11 +467,23 @@ export class BTAPI {
             throw new Error('[BT] spritesRefresh: no active palette. Call BT.paletteSet() first.');
         }
 
+        let refreshed = 0;
+
         for (const sheet of this.spriteSheets) {
-            sheet.reindexize(this.palette);
+            if (!sheet.isIndexized()) {
+                this.spriteSheets.delete(sheet);
+                continue;
+            }
+
+            try {
+                sheet.reindexize(this.palette);
+                refreshed++;
+            } catch {
+                this.spriteSheets.delete(sheet);
+            }
         }
 
-        console.log(`[BT] Refreshed ${this.spriteSheets.size} sprite sheet(s) against current palette`);
+        console.log(`[BT] Refreshed ${refreshed} sprite sheet(s) against current palette`);
     }
 
     // #endregion
