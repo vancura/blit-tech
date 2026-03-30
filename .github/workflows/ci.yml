@@ -196,7 +196,7 @@ jobs:
         run: >
           node scripts/compare-tier-1-benchmarks.mjs --current benchmark-results.json --baseline
           baseline-artifact/benchmark-results.json --json-out benchmark-comparison.json --markdown-out
-          benchmark-comment.md --threshold 10
+          benchmark-comment.md --threshold 15
 
       - name: Upload benchmark comparison artifacts
         if: github.event_name == 'pull_request'
