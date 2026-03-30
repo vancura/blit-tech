@@ -264,7 +264,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawPixelXY(15, 25, 3);
+            renderer.drawPixelXY(new Vector2i(15, 25), 3);
         }).not.toThrow();
 
         renderer.endFrame();

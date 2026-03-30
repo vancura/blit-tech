@@ -285,19 +285,18 @@ export class Renderer {
      * @param paletteIndex - Palette color index.
      */
     drawPixel(pos: Vector2i, paletteIndex: number): void {
-        this.primitives.drawPixel(pos, paletteIndex);
+        this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
     }
 
     /**
-     * Draws a single pixel at raw coordinates.
-     * More efficient than `drawPixel()` when coordinates are already unpacked.
+     * Draws a single pixel at integer coordinates.
+     * Enforces integer coordinates per rendering guidelines.
      *
-     * @param x - X position.
-     * @param y - Y position.
+     * @param pos - Pixel position.
      * @param paletteIndex - Palette color index.
      */
-    drawPixelXY(x: number, y: number, paletteIndex: number): void {
-        this.primitives.drawPixelXY(x, y, paletteIndex);
+    drawPixelXY(pos: Vector2i, paletteIndex: number): void {
+        this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
     }
 
     /**
@@ -413,6 +412,18 @@ export class Renderer {
     // #endregion
 
     // #region Private Helpers
+
+    /**
+     * Fast-path pixel draw using raw integer coordinates.
+     * Avoids Vector2i unpacking overhead when coordinates are already available as numbers.
+     *
+     * @param x - X position.
+     * @param y - Y position.
+     * @param paletteIndex - Palette color index.
+     */
+    private drawPixelXYInternal(x: number, y: number, paletteIndex: number): void {
+        this.primitives.drawPixelXY(x, y, paletteIndex);
+    }
 
     /**
      * Resolves the clear palette index into a Color32 for the render pass.
