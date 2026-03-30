@@ -475,17 +475,22 @@ export class BTAPI {
     // #region Private Helpers
 
     /**
-     * Validates that a palette index is a non-negative integer within the active palette.
+     * Validates that a palette index is a non-negative integer and, when a palette
+     * is active, that the index is within its range.
+     *
+     * The non-integer/negative check always runs regardless of palette state.
+     * The range check only runs when a palette has been set.
      *
      * @param index - Palette index to validate.
-     * @throws Error if no palette is set or the index is out of range.
+     * @throws Error if the index is not a non-negative integer.
+     * @throws Error if a palette is active and the index is out of its range.
      */
     private assertPaletteIndex(index: number): void {
-        if (!this.palette) {
-            return;
+        if (!Number.isInteger(index) || index < 0) {
+            throw new Error(`Palette index ${index} is not a valid non-negative integer.`);
         }
 
-        if (!Number.isInteger(index) || index < 0 || index >= this.palette.size) {
+        if (this.palette && index >= this.palette.size) {
             throw new Error(`Palette index ${index} out of range for palette of size ${this.palette.size}.`);
         }
     }

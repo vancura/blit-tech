@@ -331,6 +331,44 @@ describe('BTAPI', () => {
 
             expect(() => BTAPI.instance.stop()).not.toThrow();
         });
+
+        it('captureFrame returns a blob after successful initialization', async () => {
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            const renderer = BTAPI.instance.getRenderer();
+
+            expect(renderer).not.toBeNull();
+
+            const mockBlob = new Blob(['test'], { type: 'image/png' });
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrame').mockResolvedValue(mockBlob);
+
+            const result = await BTAPI.instance.captureFrame();
+
+            expect(result).toBe(mockBlob);
+        });
+    });
+
+    // #endregion
+
+    // #region assertPaletteIndex
+
+    describe('assertPaletteIndex', () => {
+        it('throws when index is negative (no palette set)', () => {
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), -1)).toThrow(
+                'is not a valid non-negative integer',
+            );
+        });
+
+        it('throws when index is out of range for the active palette', () => {
+            const palette = new Palette(16);
+
+            BTAPI.instance.setPalette(palette);
+
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow(
+                'Palette index 20 out of range for palette of size 16.',
+            );
+        });
     });
 
     // #endregion
