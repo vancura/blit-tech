@@ -388,6 +388,8 @@ export class PrimitivePipeline {
 
                 struct VertexOutput {
                     @builtin(position) position: vec4<f32>,
+                    // @interpolate(flat) prevents the GPU from blending u32 values
+                    // between triangle vertices, which would corrupt palette lookups.
                     @location(0) @interpolate(flat) paletteIndex: u32,
                 }
 
