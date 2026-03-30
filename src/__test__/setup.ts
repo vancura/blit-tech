@@ -33,3 +33,31 @@ if (typeof GPUTextureUsage === 'undefined') {
         RENDER_ATTACHMENT: 0x10,
     };
 }
+
+// The fallback OffscreenCanvas returns zero-filled RGBA bytes from getImageData().
+// Zero-alpha pixels map to the transparent sentinel (index 0) in SpriteSheet.indexize().
+// Tests that need specific opaque pixel colors must stub OffscreenCanvas themselves
+// (e.g. via vi.stubGlobal('OffscreenCanvas', ...)) before calling indexize().
+if (typeof OffscreenCanvas === 'undefined') {
+    (globalThis as unknown as Record<string, unknown>).OffscreenCanvas = class {
+        public readonly width: number;
+        public readonly height: number;
+
+        constructor(width: number, height: number) {
+            this.width = width;
+            this.height = height;
+        }
+
+        getContext(_contextId: string) {
+            const w = this.width;
+            const h = this.height;
+            return {
+                drawImage: () => {},
+                imageSmoothingEnabled: false,
+                getImageData: (_x: number, _y: number, _w: number, _h: number) => ({
+                    data: new Uint8ClampedArray(w * h * 4),
+                }),
+            };
+        }
+    };
+}

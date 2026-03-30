@@ -200,14 +200,15 @@ describe('BTAPI', () => {
         });
 
         it('drawSprite should not throw before init', () => {
-            const mockSheet = {} as unknown as SpriteSheet;
+            const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
             expect(() =>
                 BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0)),
             ).not.toThrow();
         });
 
         it('drawBitmapText should not throw before init', () => {
-            const mockFont = {} as unknown as BitmapFont;
+            const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
+            const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).not.toThrow();
         });
 

@@ -3,7 +3,7 @@ import { expect, test } from './coverage-fixture';
 const GPU_PRESENT_DELAY = Number(process.env.GPU_PRESENT_DELAY ?? 100);
 
 test.describe('Sprite Rendering', () => {
-    test('should render sprites with tinting and batching', async ({ page }) => {
+    test('should render palette-indexed sprites with offset and batching', async ({ page }) => {
         await page.goto('/sprites.html');
 
         await page.waitForFunction(

@@ -24,9 +24,11 @@ primitives, and fonts.
 ## Features
 
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
+- **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
-- **Sprite system**: sprite sheets, color tinting, transparency, automatic texture batching
-- **Bitmap fonts**: variable-width font rendering with color support and text measurement
+- **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
+  batching
+- **Bitmap fonts**: variable-width font rendering with palette offset support
 - **Camera system**: scrolling with offset and reset
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
 - **Fixed timestep**: deterministic 60 FPS loop with tick counter
@@ -105,7 +107,21 @@ Additional documentation is available in the `docs/` directory:
 Create a demo by implementing the `IBlitTechDemo` interface:
 
 ```ts
-import { bootstrap, BT, Color32, Rect2i, Vector2i, type HardwareSettings, type IBlitTechDemo } from '../src/BlitTech';
+import {
+  bootstrap,
+  BT,
+  Color32,
+  Palette,
+  Rect2i,
+  Vector2i,
+  type HardwareSettings,
+  type IBlitTechDemo,
+} from '../src/BlitTech';
+
+// Palette indices — give each color a named constant for readability.
+const BG = 1;
+const RED = 2;
+const BLUE = 3;
 
 class MyDemo implements IBlitTechDemo {
   /**
@@ -124,12 +140,21 @@ class MyDemo implements IBlitTechDemo {
 
   /**
    * Initializes demo state after the engine is ready.
+   * A palette must be set before any drawing calls are made.
    *
    * @returns Promise resolving to true when initialization succeeds.
    */
   async initialize(): Promise<boolean> {
+    // Define the palette — all rendering uses indices into this table.
+    const palette = new Palette(16);
+    palette.set(BG, new Color32(20, 30, 40, 255));
+    palette.set(RED, new Color32(255, 100, 50, 255));
+    palette.set(BLUE, new Color32(50, 100, 255, 255));
+    BT.paletteSet(palette);
+
     // Load assets here (sprites, fonts, etc.)
     // Example: const spriteSheet = await SpriteSheet.load('assets/sprites.png');
+    // After loading: spriteSheet.indexize(palette);
     return true;
   }
 
@@ -145,9 +170,9 @@ class MyDemo implements IBlitTechDemo {
    * Renders demo graphics.
    */
   render(): void {
-    BT.clear(new Color32(20, 30, 40)); // Custom colors
-    BT.drawRectFill(new Rect2i(100, 100, 50, 50), new Color32(255, 100, 50));
-    // Use cached colors when possible: Color32.white(), Color32.red(), etc.
+    BT.clear(BG);
+    BT.drawRectFill(new Rect2i(100, 100, 50, 50), RED);
+    BT.drawRect(new Rect2i(160, 100, 50, 50), BLUE);
   }
 }
 
@@ -180,7 +205,9 @@ blit-tech/
 │   ├── assets/
 │   │   ├── AssetLoader.ts      # Image loading with caching
 │   │   ├── BitmapFont.ts       # Bitmap font system (.btfont)
-│   │   └── SpriteSheet.ts      # GPU texture wrapper
+│   │   ├── Palette.ts          # 256-entry indexed color palette
+│   │   ├── SpriteSheet.ts      # GPU texture wrapper with palette indexization
+│   │   └── palettes/           # Built-in preset palette data (VGA, CGA, C64, etc.)
 │   ├── core/
 │   │   ├── BTAPI.ts            # Internal API singleton
 │   │   ├── GameLoop.ts         # Fixed-timestep game loop
@@ -188,8 +215,8 @@ blit-tech/
 │   │   └── WebGPUContext.ts    # WebGPU adapter/device/context setup
 │   ├── render/
 │   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines)
-│   │   ├── PrimitivePipeline.ts # Batched colored geometry
-│   │   └── SpritePipeline.ts   # Batched textured quads
+│   │   ├── PrimitivePipeline.ts # Batched palette-indexed geometry
+│   │   └── SpritePipeline.ts   # Batched palette-indexed textured quads
 │   ├── utils/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
 │   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
@@ -199,7 +226,7 @@ blit-tech/
 │   │   └── Vector2i.ts         # Integer 2D vector
 │   └── __test__/
 │       ├── webgpu-mock.ts      # WebGPU mock factories
-│       └── setup.ts            # Vitest global setup
+│       └── setup.ts            # Vitest global setup (GPU constants + OffscreenCanvas stub)
 ├── tests/
 │   └── visual/                 # Playwright visual regression tests
 ├── dist/                       # Built library output
@@ -247,15 +274,49 @@ BT.ticks(); // Get current tick count
 BT.ticksReset(); // Reset tick counter
 ```
 
-### Drawing Primitives
+A palette must be set via `BT.paletteSet()` before any draw calls are made. The recommended place is `initialize()` in
+the demo, before loading any sprite sheets.
+
+### Palette
+
+The palette is the color authority for all rendering. Index 0 is always transparent.
 
 ```ts
-BT.clear(color); // Clear screen
-BT.clearRect(color, rect); // Clear rectangular region
-BT.drawPixel(pos, color); // Draw single pixel
-BT.drawLine(p0, p1, color); // Draw line
-BT.drawRect(rect, color); // Draw rectangle outline
-BT.drawRectFill(rect, color); // Draw filled rectangle
+// Create a palette and populate it
+const palette = new Palette(16); // 16-color palette (valid sizes: 2, 4, 16, 32, 64, 128, 256)
+palette.set(1, new Color32(255, 0, 0, 255)); // red at index 1
+palette.set(2, new Color32(0, 255, 0, 255)); // green at index 2
+BT.paletteSet(palette); // activate for rendering
+BT.paletteGet(); // retrieve the active palette
+
+// Optional named aliases
+palette.setNamed('player', 3);
+palette.getNamed('player'); // returns 3
+
+// Built-in retro presets
+Palette.vga(); // VGA 256-color
+Palette.cga(); // CGA 16-color
+Palette.c64(); // Commodore 64 16-color
+Palette.gameboy(); // Game Boy 4-shade
+Palette.pico8(); // PICO-8 16-color
+Palette.nes(); // NES 64-color
+
+// Serialization
+const json = palette.toJSON();
+const restored = Palette.fromJSON(json);
+```
+
+### Drawing Primitives
+
+All drawing methods accept a palette index instead of a `Color32` directly.
+
+```ts
+BT.clear(paletteIndex); // Clear screen
+BT.clearRect(rect, paletteIndex); // Clear rectangular region
+BT.drawPixel(pos, paletteIndex); // Draw single pixel
+BT.drawLine(p0, p1, paletteIndex); // Draw line
+BT.drawRect(rect, paletteIndex); // Draw rectangle outline
+BT.drawRectFill(rect, paletteIndex); // Draw filled rectangle
 ```
 
 ### Asset Loading
@@ -278,11 +339,22 @@ if (AssetLoader.isLoaded('path/to/sprites.png')) {
 
 ### Sprites and Text
 
+Sprites use a palette-first rendering model. Every sprite sheet must be converted to palette indices before drawing:
+
 ```ts
-BT.drawSprite(sheet, srcRect, destPos, tint?); // Draw sprite from sprite sheet
-BT.printFont(font, pos, text, color?); // Draw text using bitmap font
-BT.print(pos, color, text); // Draw placeholder text (colored blocks)
+// Convert RGBA pixels to palette indices (call once after paletteSet).
+spriteSheet.indexize(palette);
+
+BT.drawSprite(sheet, srcRect, destPos); // Draw with original palette colors
+BT.drawSprite(sheet, srcRect, destPos, 16); // Draw with paletteOffset=16 (color variation)
+BT.printFont(font, pos, text); // Draw text using bitmap font
+BT.printFont(font, pos, text, 8); // Draw text with paletteOffset=8
+BT.print(pos, paletteIndex, text); // Draw placeholder text (colored blocks)
+BT.spritesRefresh(); // Re-index all loaded sheets after palette swap
 ```
+
+**Palette offset:** The `paletteOffset` parameter shifts which palette range a sprite samples from at draw time. Useful
+for team colors, damage flashes, or palette-swap effects without duplicate assets.
 
 **Note:** `BT.print()` renders text as colored blocks and is intended as a placeholder. Use `BT.printFont()` with a
 `BitmapFont` for proper text rendering.
@@ -305,7 +377,7 @@ BT.cameraReset(); // Reset to (0, 0)
 Vector2i(x, y); // Integer 2D vector
 Rect2i(x, y, width, height); // Integer rectangle
 
-// Colors
+// Colors (used to populate palette entries)
 new Color32(r, g, b); // Create color from RGB (0-255)
 new Color32(r, g, b, a); // Create color with alpha (0-255)
 

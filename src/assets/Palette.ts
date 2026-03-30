@@ -113,6 +113,20 @@ function createPreset(hexColors: readonly string[], size: number): Palette {
 
 /**
  * Mutable palette of indexed {@link Color32} entries.
+ *
+ * The palette is the central color authority for all rendering:
+ * - **Index 0 is always transparent.** It is initialized with `Color32.transparent()`
+ *   and cannot be set to an opaque color. The primitive and sprite shaders discard
+ *   any fragment whose palette index resolves to alpha 0.
+ * - **Variable sizes:** valid sizes are `2, 4, 16, 32, 64, 128, 256`. The active size
+ *   determines the range for `set()` / `get()` and named-color lookups.
+ * - **Fixed GPU layout:** `toFloat32Array()` always outputs `256 * 4` floats so the
+ *   renderer can upload a stable 4 KB uniform block regardless of palette size.
+ *   Slots beyond the active size are padded with transparent black.
+ * - **Named aliases:** optional string tags map human-readable names to indices,
+ *   e.g. `setNamed('player', 3)`. They carry no runtime cost when unused.
+ * - **Mutable by design:** palette-effect features modify entries in place.
+ *   Use `clone()` when a snapshot is needed before modification.
  */
 export class Palette {
     /** Number of usable palette entries. */

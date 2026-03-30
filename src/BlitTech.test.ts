@@ -12,7 +12,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BitmapFont, HardwareSettings } from './BlitTech';
-import { BT, Color32, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
+import { BT, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
 import { BTAPI } from './core/BTAPI';
 
 // #region Helpers
@@ -454,14 +454,14 @@ describe('BT.printFont', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawBitmapText').mockReturnValue(undefined);
         const font = {} as BitmapFont;
         const pos = new Vector2i(0, 0);
-        const color = Color32.white();
+        const paletteOffset = 4;
 
-        BT.printFont(font, pos, 'Hi', color);
+        BT.printFont(font, pos, 'Hi', paletteOffset);
 
-        expect(spy).toHaveBeenCalledWith(font, pos, 'Hi', color);
+        expect(spy).toHaveBeenCalledWith(font, pos, 'Hi', paletteOffset);
     });
 
-    it('forwards an undefined color when omitted', () => {
+    it('forwards an undefined paletteOffset when omitted', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawBitmapText').mockReturnValue(undefined);
         const font = {} as BitmapFont;
 
@@ -563,14 +563,14 @@ describe('BT.drawSprite', () => {
         expect(spy).toHaveBeenCalledWith(sheet, srcRect, destPos, undefined);
     });
 
-    it('forwards the tint argument', () => {
+    it('forwards the paletteOffset argument', () => {
         const spy = vi.spyOn(BTAPI.instance, 'drawSprite').mockReturnValue(undefined);
         const sheet = new SpriteSheet(mockImage);
-        const tint = Color32.red();
+        const paletteOffset = 16;
 
-        BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), tint);
+        BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0), paletteOffset);
 
-        expect(spy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything(), tint);
+        expect(spy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything(), paletteOffset);
     });
 
     it('forwards undefined tint when omitted', () => {

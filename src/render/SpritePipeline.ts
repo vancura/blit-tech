@@ -1,6 +1,5 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { SpriteSheet } from '../assets/SpriteSheet';
-import { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 
@@ -11,13 +10,28 @@ import { Vector2i } from '../utils/Vector2i';
  */
 const MAX_SPRITE_VERTICES = 50000;
 
+/**
+ * Number of values per vertex: x (f32), y (f32), u (f32), v (f32), paletteOffset (u32).
+ */
+const VALUES_PER_VERTEX = 5;
+
+/**
+ * Byte stride per vertex: 5 values * 4 bytes.
+ */
+const VERTEX_STRIDE = 20;
+
 // #endregion
 
 /**
- * Batched WebGPU pipeline for textured quads.
+ * Batched WebGPU pipeline for indexed-palette sprite rendering.
  *
- * The pipeline collects sprite and bitmap-text vertices during a frame, groups
- * them by texture, and emits one draw call per texture batch in `encodePass()`.
+ * Sprites are stored as `r8uint` palette-index textures. The fragment shader
+ * performs a `textureLoad` on the index texture and looks up the color from the
+ * shared palette uniform buffer. A `paletteOffset` per-draw call shifts which
+ * palette range is used, enabling color variations without duplicate assets.
+ *
+ * Vertices are collected during a frame, grouped by texture, and emitted as one
+ * draw call per texture batch in `encodePass()`.
  */
 export class SpritePipeline {
     // #region State
@@ -25,24 +39,29 @@ export class SpritePipeline {
     /** WebGPU device, set during initialize(). */
     private device: GPUDevice | null = null;
 
-    /** Render pipeline for textured sprites. */
+    /** Render pipeline for indexed sprites. */
     private pipeline: GPURenderPipeline | null = null;
 
     /** Uniform buffer containing screen resolution. */
     private uniformBuffer: GPUBuffer | null = null;
 
-    /** Nearest-neighbor sampler for pixel-perfect rendering. */
-    private sampler: GPUSampler | null = null;
-
-    /** Shared palette uniform buffer (stored for VV-426 indexed sprite pipeline). */
-    // @ts-expect-error Stored for VV-426 indexed sprite pipeline, not yet consumed.
+    /** Shared palette uniform buffer (256 x vec4f, 4 KB). */
     private paletteBuffer: GPUBuffer | null = null;
+
+    /** Bind group 0: uniforms + palette (shared across all textures). */
+    private sharedBindGroup: GPUBindGroup | null = null;
 
     /** GPU vertex buffer. */
     private vertexBuffer: GPUBuffer | null = null;
 
-    /** CPU-side vertex data (8 floats per vertex: x, y, u, v, r, g, b, a). */
-    private readonly vertices: Float32Array;
+    /** Backing buffer for all vertex data. */
+    private readonly vertexArrayBuffer: ArrayBuffer;
+
+    /** Float32 view over vertexArrayBuffer — for x, y, u, v (indices i*5+0..+3). */
+    private readonly vertexFloats: Float32Array;
+
+    /** Uint32 view over vertexArrayBuffer — for paletteOffset (index i*5+4). */
+    private readonly vertexUints: Uint32Array;
 
     /** Number of vertices in the current (unflushed) batch. */
     private vertexCount: number = 0;
@@ -57,10 +76,10 @@ export class SpritePipeline {
     /** Currently bound texture for sprite rendering. */
     private currentTexture: GPUTexture | null = null;
 
-    /** Currently bound group for sprite rendering. */
+    /** Currently bound group-1 bind group for sprite rendering. */
     private currentBindGroup: GPUBindGroup | null = null;
 
-    /** Cache of texture bind groups for reuse. WeakMap allows GC to collect destroyed textures. */
+    /** Cache of per-texture bind groups (group 1) for reuse. WeakMap allows GC to collect destroyed textures. */
     private readonly textureBindGroups: WeakMap<GPUTexture, GPUBindGroup> = new WeakMap();
 
     /** Sprite batches to render (one per texture). */
@@ -88,7 +107,9 @@ export class SpritePipeline {
      * Call `initialize()` before encoding GPU work.
      */
     constructor() {
-        this.vertices = new Float32Array(MAX_SPRITE_VERTICES * 8);
+        this.vertexArrayBuffer = new ArrayBuffer(MAX_SPRITE_VERTICES * VERTEX_STRIDE);
+        this.vertexFloats = new Float32Array(this.vertexArrayBuffer);
+        this.vertexUints = new Uint32Array(this.vertexArrayBuffer);
     }
 
     // #endregion
@@ -96,11 +117,11 @@ export class SpritePipeline {
     // #region Initialization
 
     /**
-     * Initializes the GPU pipeline state, vertex buffer, and sampler.
+     * Initializes the GPU pipeline state and vertex buffer.
      *
      * @param device - WebGPU device for GPU operations.
      * @param displaySize - Render target resolution in pixels.
-     * @param paletteBuffer - Shared palette uniform buffer (stored for VV-426).
+     * @param paletteBuffer - Shared palette uniform buffer (256 x vec4f).
      */
     async initialize(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
         this.device = device;
@@ -122,39 +143,43 @@ export class SpritePipeline {
         this.cameraOffset = offset;
     }
 
+    // #endregion
+
+    // #region Drawing
+
     /**
-     * Draws a sprite region from a sprite sheet.
+     * Draws a sprite region from an indexed sprite sheet.
      *
-     * @param spriteSheet - Source sprite sheet.
+     * @param spriteSheet - Source sprite sheet (must have been indexized).
      * @param srcRect - Region to copy from the sprite sheet.
      * @param destPos - Screen position to draw at.
-     * @param tint - Tint color multiplied with texture (defaults to white).
+     * @param paletteOffset - Index offset added to every sprite pixel at draw time (default 0).
      */
-    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint: Color32 = Color32.white()): void {
+    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         const texture = spriteSheet.getTexture(this.device as GPUDevice);
         const uvs = spriteSheet.getUVs(srcRect);
 
         // Use a pre-allocated vector for size to avoid allocation.
         this.tempSize.set(srcRect.width, srcRect.height);
 
-        this.drawTexturedQuad(texture, destPos, this.tempSize, uvs.u0, uvs.v0, uvs.u1, uvs.v1, tint);
+        this.drawTexturedQuad(texture, destPos, this.tempSize, uvs.u0, uvs.v0, uvs.u1, uvs.v1, paletteOffset);
     }
 
     /**
-     * Draws text using a bitmap font.
+     * Draws text using a bitmap font through the indexed sprite pipeline.
      * Renders each character as a textured sprite using glyph metadata from the font.
      *
-     * @param font - Bitmap font with character glyphs.
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
-     * @param color - Text color multiplied with font texture.
+     * @param paletteOffset - Index offset applied to every glyph pixel (default 0).
      */
-    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color: Color32 = Color32.white()): void {
+    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         const spriteSheet = font.getSpriteSheet();
         let cursorX = pos.x;
         const len = text.length;
 
-        // The optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
+        // Optimized loop using charCodeAt and getGlyphByCode for ASCII fast-path.
         for (let i = 0; i < len; i++) {
             const code = text.charCodeAt(i);
             const glyph = font.getGlyphByCode(code);
@@ -162,16 +187,12 @@ export class SpritePipeline {
             if (glyph) {
                 // Use a pre-allocated vector to avoid allocation per character.
                 this.tempVec.set(cursorX + glyph.offsetX, pos.y + glyph.offsetY);
-                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, color);
+                this.drawSprite(spriteSheet, glyph.rect, this.tempVec, paletteOffset);
 
                 cursorX += glyph.advance;
             }
         }
     }
-
-    // #endregion
-
-    // #region Drawing
 
     /**
      * Uploads accumulated sprite data and encodes draw calls for each texture batch.
@@ -192,17 +213,18 @@ export class SpritePipeline {
         (this.device as GPUDevice).queue.writeBuffer(
             this.vertexBuffer as GPUBuffer,
             0,
-            this.vertices.buffer,
+            this.vertexArrayBuffer,
             0,
-            this.totalVertices * 8 * 4,
+            this.totalVertices * VERTEX_STRIDE,
         );
 
         renderPass.setPipeline(this.pipeline as GPURenderPipeline);
         renderPass.setVertexBuffer(0, this.vertexBuffer as GPUBuffer);
+        renderPass.setBindGroup(0, this.sharedBindGroup as GPUBindGroup);
 
-        // Draw each batch with its own bind group (texture).
+        // Draw each batch with its own per-texture bind group (group 1).
         for (const batch of this.batches) {
-            renderPass.setBindGroup(0, batch.bindGroup);
+            renderPass.setBindGroup(1, batch.bindGroup);
             renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
         }
     }
@@ -223,7 +245,7 @@ export class SpritePipeline {
     }
 
     /**
-     * Creates shader modules, pipeline state, GPU buffers, and the sprite sampler.
+     * Creates shader modules, pipeline state, and GPU buffers.
      *
      * @param displaySize - Render target resolution in pixels.
      */
@@ -233,58 +255,61 @@ export class SpritePipeline {
         const shaderModule = device.createShaderModule({
             label: 'Sprite Shader',
             code: `
-                struct VertexInput {
-                    /** Position of the vertex in pixel coordinates. */
-                    @location(0) position: vec2<f32>,
-
-                    /** UV coordinates of the vertex. */
-                    @location(1) uv: vec2<f32>,
-
-                    /** Tint color of the vertex. */
-                    @location(2) color: vec4<f32>,
-                }
-
-                struct VertexOutput {
-                    /** Position of the vertex in clip coordinates. */
-                    @builtin(position) position: vec4<f32>,
-
-                    /** UV coordinates of the vertex in clip coordinates. */
-                    @location(0) uv: vec2<f32>,
-
-                    /** Tint color of the vertex in clip coordinates. */
-                    @location(1) color: vec4<f32>,
-                }
-
                 struct Uniforms {
-                    /** Resolution of the screen in pixels. */
                     resolution: vec2<f32>,
                 }
 
+                struct Palette {
+                    colors: array<vec4<f32>, 256>,
+                }
+
                 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-                @group(0) @binding(1) var texSampler: sampler;
-                @group(0) @binding(2) var texture: texture_2d<f32>;
+                @group(0) @binding(1) var<uniform> palette: Palette;
+                @group(1) @binding(0) var spriteTexture: texture_2d<u32>;
+
+                struct VertexInput {
+                    @location(0) position: vec2<f32>,
+                    @location(1) uv: vec2<f32>,
+                    @location(2) paletteOffset: u32,
+                }
+
+                struct VertexOutput {
+                    @builtin(position) position: vec4<f32>,
+                    @location(0) uv: vec2<f32>,
+                    @location(1) @interpolate(flat) paletteOffset: u32,
+                }
 
                 @vertex
                 fn vs_main(input: VertexInput) -> VertexOutput {
-                    var output: VertexOutput;
+                    var out: VertexOutput;
 
-                    // Calculate clip coordinates.
-                    let clipX = (input.position.x / uniforms.resolution.x) * 2.0 - 1.0;
-                    let clipY = 1.0 - (input.position.y / uniforms.resolution.y) * 2.0;
+                    let cx = (input.position.x / uniforms.resolution.x) * 2.0 - 1.0;
+                    let cy = 1.0 - (input.position.y / uniforms.resolution.y) * 2.0;
 
-                    output.position = vec4<f32>(clipX, clipY, 0.0, 1.0);
-                    output.uv = input.uv;
-                    output.color = input.color;
+                    out.position = vec4<f32>(cx, cy, 0.0, 1.0);
+                    out.uv = input.uv;
+                    out.paletteOffset = input.paletteOffset;
 
-                    return output;
+                    return out;
                 }
 
                 @fragment
                 fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-                    // Calculate color.
-                    let texColor = textureSample(texture, texSampler, input.uv);
+                    let dims = textureDimensions(spriteTexture);
+                    let coords = vec2<i32>(
+                        i32(input.uv.x * f32(dims.x)),
+                        i32(input.uv.y * f32(dims.y))
+                    );
 
-                    return texColor * input.color;
+                    // r8uint: single-channel unsigned integer index.
+                    let rawIndex = textureLoad(spriteTexture, coords, 0).r;
+
+                    // Index 0 means transparent in the source sprite, regardless of offset.
+                    if (rawIndex == 0u) { discard; }
+
+                    let index = rawIndex + input.paletteOffset;
+
+                    return vec4<f32>(palette.colors[index].rgb, 1.0);
                 }
             `,
         });
@@ -297,11 +322,11 @@ export class SpritePipeline {
                 entryPoint: 'vs_main',
                 buffers: [
                     {
-                        arrayStride: 8 * 4, // 8 floats * 4 bytes
+                        arrayStride: VERTEX_STRIDE,
                         attributes: [
                             { shaderLocation: 0, offset: 0, format: 'float32x2' }, // position
                             { shaderLocation: 1, offset: 2 * 4, format: 'float32x2' }, // uv
-                            { shaderLocation: 2, offset: 4 * 4, format: 'float32x4' }, // color
+                            { shaderLocation: 2, offset: 4 * 4, format: 'uint32' }, // paletteOffset
                         ],
                     },
                 ],
@@ -313,7 +338,7 @@ export class SpritePipeline {
                     {
                         format: navigator.gpu.getPreferredCanvasFormat(),
                         blend: {
-                            color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+                            color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
                             alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
                         },
                     },
@@ -324,7 +349,7 @@ export class SpritePipeline {
 
         this.uniformBuffer = device.createBuffer({
             label: 'Sprite Uniform Buffer',
-            size: 8, // vec2
+            size: 8, // vec2<f32>
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
@@ -332,18 +357,18 @@ export class SpritePipeline {
 
         this.vertexBuffer = device.createBuffer({
             label: 'Sprite Vertex Buffer',
-            size: this.vertices.byteLength,
+            size: this.vertexArrayBuffer.byteLength,
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-        // Create a sampler for sprites (nearest-neighbor for pixel-perfect rendering).
-        this.sampler = device.createSampler({
-            label: 'Sprite Sampler',
-            magFilter: 'nearest', // Pixel-perfect rendering
-            minFilter: 'nearest',
-            mipmapFilter: 'nearest',
-            addressModeU: 'clamp-to-edge',
-            addressModeV: 'clamp-to-edge',
+        // Shared bind group (group 0): uniforms + palette — created once and reused for all textures.
+        this.sharedBindGroup = device.createBindGroup({
+            label: 'Sprite Shared Bind Group',
+            layout: (this.pipeline as GPURenderPipeline).getBindGroupLayout(0),
+            entries: [
+                { binding: 0, resource: { buffer: this.uniformBuffer } },
+                { binding: 1, resource: { buffer: this.paletteBuffer as GPUBuffer } },
+            ],
         });
     }
 
@@ -353,17 +378,17 @@ export class SpritePipeline {
 
     /**
      * Draws a textured quad (two triangles) to the screen.
-     * Handles texture switching and keeps quad emission atomic, so partial quads
-     * are never left in the frame buffer.
+     * Handles texture switching and keeps quad emission atomic so partial quads
+     * are never left in the vertex buffer.
      *
-     * @param texture - GPU texture to sample from.
+     * @param texture - GPU r8uint index texture.
      * @param pos - Screen position (top-left corner).
      * @param size - Quad dimensions in pixels.
      * @param u0 - Left UV coordinate (0-1).
      * @param v0 - Top UV coordinate (0-1).
      * @param u1 - Right UV coordinate (0-1).
      * @param v1 - Bottom UV coordinate (0-1).
-     * @param tint - Color to multiply with texture.
+     * @param paletteOffset - Palette index offset for this quad.
      */
     private drawTexturedQuad(
         texture: GPUTexture,
@@ -373,7 +398,7 @@ export class SpritePipeline {
         v0: number,
         u1: number,
         v1: number,
-        tint: Color32,
+        paletteOffset: number,
     ): void {
         // Flush if switching textures.
         if (this.currentTexture !== texture) {
@@ -382,17 +407,17 @@ export class SpritePipeline {
             }
 
             this.currentTexture = texture;
-            this.currentBindGroup = this.getOrCreateBindGroup(texture);
+            this.currentBindGroup = this.getOrCreateTextureBindGroup(texture);
         }
 
-        // Ensure there is a space for a complete quad (6 vertices) before adding any.
+        // Ensure there is space for a complete quad (6 vertices) before adding any.
         // This prevents partial quads that would cause rendering corruption.
         if (!this.hasSpaceForQuad()) {
             if (this.vertexCount > 0) {
                 this.flushCurrentBatch();
             }
 
-            // Check again after flush - if still no space, the buffer is full for this frame.
+            // Check again after flush — if still no space, the buffer is full for this frame.
             if (!this.hasSpaceForQuad()) {
                 console.warn('[SpritePipeline] Sprite buffer capacity exceeded for this frame, quad dropped');
 
@@ -405,32 +430,27 @@ export class SpritePipeline {
         const x1 = pos.x + size.x;
         const y1 = pos.y + size.y;
 
-        const r = tint.r / 255;
-        const g = tint.g / 255;
-        const b = tint.b / 255;
-        const a = tint.a / 255;
-
         // Triangle 1.
-        this.addVertex(x0, y0, u0, v0, r, g, b, a);
-        this.addVertex(x1, y0, u1, v0, r, g, b, a);
-        this.addVertex(x0, y1, u0, v1, r, g, b, a);
+        this.addVertex(x0, y0, u0, v0, paletteOffset);
+        this.addVertex(x1, y0, u1, v0, paletteOffset);
+        this.addVertex(x0, y1, u0, v1, paletteOffset);
 
         // Triangle 2.
-        this.addVertex(x1, y0, u1, v0, r, g, b, a);
-        this.addVertex(x1, y1, u1, v1, r, g, b, a);
-        this.addVertex(x0, y1, u0, v1, r, g, b, a);
+        this.addVertex(x1, y0, u1, v0, paletteOffset);
+        this.addVertex(x1, y1, u1, v1, paletteOffset);
+        this.addVertex(x0, y1, u0, v1, paletteOffset);
     }
 
     /**
      * Checks if there is enough buffer space for a complete quad (6 vertices).
      *
-     * @returns True if a quad can be added without splitting.
+     * @returns True if a quad can be added without overflowing.
      */
     private hasSpaceForQuad(): boolean {
-        const index = (this.totalVertices + this.vertexCount) * 8;
-        const quadSize = 6 * 8; // 6 vertices * 8 floats per vertex
+        const index = (this.totalVertices + this.vertexCount) * VALUES_PER_VERTEX;
+        const quadSize = 6 * VALUES_PER_VERTEX;
 
-        return index + quadSize <= this.vertices.length;
+        return index + quadSize <= this.vertexFloats.length;
     }
 
     /**
@@ -442,7 +462,6 @@ export class SpritePipeline {
             return;
         }
 
-        // Save this batch for rendering at encodePass.
         this.batches.push({
             bindGroup: this.currentBindGroup,
             vertexStart: this.totalVertices,
@@ -455,57 +474,49 @@ export class SpritePipeline {
 
     /**
      * Adds a sprite vertex to the batch.
-     * Assumes buffer space has already been reserved by `drawTexturedQuad()`.
+     * Assumes buffer space has already been verified by `drawTexturedQuad()`.
+     *
+     * Writes x, y, u, v as floats and paletteOffset as u32 into the shared
+     * ArrayBuffer using dual typed-array views.
      *
      * @param x - X position in pixels.
      * @param y - Y position in pixels.
      * @param u - U texture coordinate.
      * @param v - V texture coordinate.
-     * @param r - Red tint (0-1).
-     * @param g - Green tint (0-1).
-     * @param b - Blue tint (0-1).
-     * @param a - Alpha (0-1).
+     * @param paletteOffset - Palette index offset (u32).
      */
-    private addVertex(x: number, y: number, u: number, v: number, r: number, g: number, b: number, a: number): void {
-        // Use total vertices (across all batches) + current batch count for the index.
-        const index = (this.totalVertices + this.vertexCount) * 8;
+    private addVertex(x: number, y: number, u: number, v: number, paletteOffset: number): void {
+        const base = (this.totalVertices + this.vertexCount) * VALUES_PER_VERTEX;
 
         // eslint-disable-next-line security/detect-object-injection
-        this.vertices[index] = x - this.cameraOffset.x;
-        this.vertices[index + 1] = y - this.cameraOffset.y;
-        this.vertices[index + 2] = u;
-        this.vertices[index + 3] = v;
-        this.vertices[index + 4] = r;
-        this.vertices[index + 5] = g;
-        this.vertices[index + 6] = b;
-        this.vertices[index + 7] = a;
+        this.vertexFloats[base] = x - this.cameraOffset.x;
+        this.vertexFloats[base + 1] = y - this.cameraOffset.y;
+        this.vertexFloats[base + 2] = u;
+        this.vertexFloats[base + 3] = v;
+        this.vertexUints[base + 4] = paletteOffset;
 
         this.vertexCount++;
     }
 
     /**
-     * Gets or creates a bind group for a texture.
+     * Gets or creates a per-texture bind group (group 1) for the given texture.
      * Bind groups are cached per texture for reuse across frames.
      *
-     * @param texture - GPU texture to create the bind group for.
-     * @returns Bind group containing uniform buffer, sampler, and texture.
+     * @param texture - r8uint GPU texture to create the bind group for.
+     * @returns Bind group containing the texture view.
      */
-    private getOrCreateBindGroup(texture: GPUTexture): GPUBindGroup {
-        const existingBindGroup = this.textureBindGroups.get(texture);
+    private getOrCreateTextureBindGroup(texture: GPUTexture): GPUBindGroup {
+        const existing = this.textureBindGroups.get(texture);
 
-        if (existingBindGroup) {
-            return existingBindGroup;
+        if (existing) {
+            return existing;
         }
 
-        // Safe assertions: these resources are created in initialize() before any drawing.
+        // Safe assertions: pipeline is created in initialize() before any drawing.
         const bindGroup = (this.device as GPUDevice).createBindGroup({
-            label: 'Sprite Bind Group',
-            layout: (this.pipeline as GPURenderPipeline).getBindGroupLayout(0),
-            entries: [
-                { binding: 0, resource: { buffer: this.uniformBuffer as GPUBuffer } },
-                { binding: 1, resource: this.sampler as GPUSampler },
-                { binding: 2, resource: texture.createView() },
-            ],
+            label: 'Sprite Texture Bind Group',
+            layout: (this.pipeline as GPURenderPipeline).getBindGroupLayout(1),
+            entries: [{ binding: 0, resource: texture.createView() }],
         });
 
         this.textureBindGroups.set(texture, bindGroup);

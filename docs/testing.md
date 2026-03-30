@@ -11,6 +11,7 @@ Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
 - **Vector2i** - all arithmetic, distance, comparison, factory methods
 - **Rect2i** - intersection, containment, computed properties
 - **Color32** - color math, conversions, blending
+- **Palette** - construction, set/get, named aliases, serialization, GPU float layout, preset factories
 - **GameLoop** - constructor validation, tick counter
 - **IBlitTechDemo** - default hardware settings
 
@@ -37,7 +38,7 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 Actual GPU rendering verified via screenshot comparison. Requires Chrome with WebGPU flags enabled.
 
 - **Primitives** - pixel, line, and rectangle rendering
-- **Sprites** - sprite rendering with tinting, batching, alpha blending
+- **Sprites** - palette-indexed sprite rendering, palette offsets, batching
 - **Camera** - camera offset transforms applied to all geometry
 - **Fonts** - placeholder text rendering at known positions
 - **Mixed** - primitives and sprites combined with correct layering
@@ -119,7 +120,11 @@ Available mocks:
 - `createMockGPUTexture(width, height)` - returns a stub GPUTexture
 - `createMockGPUCanvasContext()` - returns a stub GPUCanvasContext
 - `createMockRenderPassEncoder()` - returns a stub GPURenderPassEncoder
+- `createMockPaletteBuffer()` - returns a 4096-byte stub GPUBuffer for palette uniform tests
 - `installMockNavigatorGPU()` / `uninstallMockNavigatorGPU()` - install/remove global navigator.gpu
+
+`src/__test__/setup.ts` also installs a global `OffscreenCanvas` stub in Node.js (returns zero-filled pixel data from
+`getImageData`). This is needed by `SpriteSheet.indexize()` tests that run outside a browser environment.
 
 ## Coverage
 

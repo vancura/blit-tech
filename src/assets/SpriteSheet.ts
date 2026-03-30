@@ -1,6 +1,8 @@
+import { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
+import type { Palette } from './Palette';
 
 /**
  * Sprite-sheet wrapper around a loaded image asset.
@@ -9,6 +11,11 @@ import { AssetLoader } from './AssetLoader';
  * lazily creating and caching a GPU texture for rendering. When possible,
  * `load()` also pre-decodes the source into an `ImageBitmap` so texture uploads
  * preserve pixel-art alpha and color values more reliably.
+ *
+ * After calling `indexize()`, the sheet stores palette indices rather than RGBA
+ * data. The GPU texture becomes an `r8uint` format uploaded via `writeTexture`.
+ * The original RGBA bytes are retained so `reindexize()` can re-convert without
+ * reloading the image.
  */
 export class SpriteSheet {
     // #region Module State
@@ -24,6 +31,12 @@ export class SpriteSheet {
 
     /** GPU texture created lazily on first use. */
     private texture: GPUTexture | null = null;
+
+    /** Retained original RGBA pixel data (set by indexize, used by reindexize). */
+    private rgbaPixels: Uint8Array<ArrayBuffer> | null = null;
+
+    /** Palette index per pixel (set by indexize, uploaded as r8uint texture). */
+    private indexedPixels: Uint8Array<ArrayBuffer> | null = null;
 
     // #endregion
 
@@ -79,6 +92,160 @@ export class SpriteSheet {
 
     // #endregion
 
+    // #region Indexization
+
+    /**
+     * Converts the sprite sheet's RGBA pixels to palette indices.
+     *
+     * Each non-transparent pixel is looked up in the provided palette via exact
+     * color matching. Index 0 is always transparent. The resulting indices are
+     * stored internally; an `r8uint` GPU texture is created lazily on the next
+     * `getTexture()` call.
+     *
+     * The original RGBA data is retained so `reindexize()` can re-convert after a
+     * palette swap without reloading the image.
+     *
+     * @param palette - Active palette used for color-to-index mapping.
+     * @throws If any opaque pixel's color is not present in the palette.
+     */
+    indexize(palette: Palette): void {
+        const w = this.size.x;
+        const h = this.size.y;
+
+        const canvas = new OffscreenCanvas(w, h);
+        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this.image, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, w, h);
+        this.rgbaPixels = new Uint8Array(imageData.data.buffer.slice(0));
+
+        const indexed = new Uint8Array(w * h);
+        const rgba = this.rgbaPixels;
+
+        for (let i = 0; i < w * h; i++) {
+            const base = i * 4;
+            const a = rgba[base + 3];
+
+            if (a === 0) {
+                // Index 0 is the transparent sentinel — the shader discards any pixel with rawIndex == 0.
+                // eslint-disable-next-line security/detect-object-injection
+                indexed[i] = 0;
+                continue;
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            const r = rgba[base] ?? 0;
+            const g = rgba[base + 1] ?? 0;
+            const b = rgba[base + 2] ?? 0;
+            const color = new Color32(r, g, b, 255);
+            const index = palette.findColor(color);
+
+            if (index === -1) {
+                const hex =
+                    '#' +
+                    r.toString(16).padStart(2, '0') +
+                    g.toString(16).padStart(2, '0') +
+                    b.toString(16).padStart(2, '0');
+                const x = i % w;
+                const y = Math.floor(i / w);
+                const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
+                throw new Error(
+                    `[SpriteSheet] ${src} pixel at (${x}, ${y}) has color ${hex} which is not in the active palette.` +
+                        ` Add this color to the palette before indexizing.`,
+                );
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            indexed[i] = index;
+        }
+
+        this.indexedPixels = indexed;
+
+        // Invalidate any existing texture so getTexture() re-creates as r8uint.
+        if (this.texture) {
+            this.texture.destroy();
+            this.texture = null;
+        }
+    }
+
+    /**
+     * Re-converts retained RGBA pixels to palette indices using a new palette.
+     *
+     * Useful after a palette swap to keep all sprite sheets in sync. Must be
+     * preceded by a call to `indexize()`. The GPU texture is invalidated and
+     * re-created on the next `getTexture()` call.
+     *
+     * @param palette - New palette used for color-to-index mapping.
+     * @throws If `indexize()` has not been called yet.
+     */
+    reindexize(palette: Palette): void {
+        if (this.rgbaPixels === null) {
+            throw new Error('[SpriteSheet] reindexize: indexize() must be called before reindexize().');
+        }
+
+        const w = this.size.x;
+        const h = this.size.y;
+        const indexed = new Uint8Array(w * h);
+        const rgba = this.rgbaPixels;
+
+        for (let i = 0; i < w * h; i++) {
+            const base = i * 4;
+            const a = rgba[base + 3];
+
+            if (a === 0) {
+                // Index 0 is the transparent sentinel — the shader discards any pixel with rawIndex == 0.
+                // eslint-disable-next-line security/detect-object-injection
+                indexed[i] = 0;
+                continue;
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            const r = rgba[base] ?? 0;
+            const g = rgba[base + 1] ?? 0;
+            const b = rgba[base + 2] ?? 0;
+            const color = new Color32(r, g, b, 255);
+            const index = palette.findColor(color);
+
+            if (index === -1) {
+                const hex =
+                    '#' +
+                    r.toString(16).padStart(2, '0') +
+                    g.toString(16).padStart(2, '0') +
+                    b.toString(16).padStart(2, '0');
+                const x = i % w;
+                const y = Math.floor(i / w);
+                const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
+                throw new Error(
+                    `[SpriteSheet] ${src} pixel at (${x}, ${y}) has color ${hex} which is not in the active palette.` +
+                        ` Add this color to the palette before reindexizing.`,
+                );
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            indexed[i] = index;
+        }
+
+        this.indexedPixels = indexed;
+
+        // Invalidate GPU texture; it will be re-created as r8uint on next getTexture().
+        if (this.texture) {
+            this.texture.destroy();
+            this.texture = null;
+        }
+    }
+
+    /**
+     * Returns whether this sprite sheet has been converted to palette indices.
+     *
+     * @returns True if `indexize()` has been called successfully.
+     */
+    isIndexized(): boolean {
+        return this.indexedPixels !== null;
+    }
+
+    // #endregion
+
     // #region Accessors
 
     /**
@@ -92,18 +259,22 @@ export class SpriteSheet {
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
-     * Texture is created on first access and cached for reuse until `destroy()`
-     * is called.
+     *
+     * If `indexize()` has been called, creates an `r8uint` texture from the
+     * palette index data. Otherwise creates an `rgba8unorm` texture from the
+     * original image. The result is cached until `destroy()` is called.
      *
      * @param device - WebGPU device for texture creation.
      * @returns GPU texture ready for rendering.
      */
     getTexture(device: GPUDevice): GPUTexture {
-        if (!this.texture) {
+        if (this.indexedPixels !== null && this.texture === null) {
+            this.createIndexedTexture(device);
+        } else if (this.texture === null) {
             this.createTexture(device);
         }
 
-        // Safe assertion: createTexture always initializes this.texture.
+        // Safe assertion: createTexture / createIndexedTexture always initializes this.texture.
         return this.texture as GPUTexture;
     }
 
@@ -132,7 +303,7 @@ export class SpriteSheet {
     // #region Cleanup
 
     /**
-     * Releases the GPU texture from memory.
+     * Releases the GPU texture from memory and clears all retained pixel data.
      *
      * Also closes any retained `ImageBitmap` that has not yet been uploaded.
      * After calling this method, a subsequent `getTexture()` call will recreate
@@ -148,6 +319,9 @@ export class SpriteSheet {
             this.imageBitmap.close();
             this.imageBitmap = null;
         }
+
+        this.rgbaPixels = null;
+        this.indexedPixels = null;
     }
 
     // #endregion
@@ -181,4 +355,31 @@ export class SpriteSheet {
             this.imageBitmap = null;
         }
     }
+
+    /**
+     * Creates and uploads an `r8uint` GPU texture from the palette index data.
+     *
+     * Called lazily by `getTexture()` after `indexize()` has been invoked.
+     * Uses `writeTexture` because `r8uint` does not support `copyExternalImageToTexture`.
+     *
+     * @param device - WebGPU device for texture creation.
+     */
+    private createIndexedTexture(device: GPUDevice): void {
+        this.texture = device.createTexture({
+            label: 'Sprite Sheet Indexed Texture',
+            size: [this.size.x, this.size.y, 1],
+            format: 'r8uint',
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+        });
+
+        // Safe assertion: createIndexedTexture is only called when indexedPixels !== null.
+        device.queue.writeTexture(
+            { texture: this.texture },
+            this.indexedPixels as Uint8Array<ArrayBuffer>,
+            { bytesPerRow: this.size.x },
+            [this.size.x, this.size.y, 1],
+        );
+    }
+
+    // #endregion
 }

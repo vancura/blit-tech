@@ -24,25 +24,25 @@
         // Palette indices for this test.
         const BG_COLOR = 9;
         const DARK_RED = 10;
-        const GREEN = 3;
-        const YELLOW = 5;
-        const CYAN = 6;
-        const WHITE = 8;
+        const GREEN    = 3;
+        const YELLOW   = 5;
+        const CYAN     = 6;
+        const WHITE    = 8;
+        const GRAY     = 11;
 
-        // Create a small checkerboard sprite.
-        function createCheckerImage() {
+        // Create a 2-color 8x8 sprite sheet: top 4 rows white, bottom 4 rows gray.
+        // Both colors must match palette entries so indexize() can convert them.
+        function createSpriteImage() {
             const c = document.createElement('canvas');
             c.width = 8;
             c.height = 8;
             const ctx = c.getContext('2d');
 
-            // Checkerboard pattern.
-            for (let y = 0; y < 8; y++) {
-                for (let x = 0; x < 8; x++) {
-                    ctx.fillStyle = (x + y) % 2 === 0 ? '#ffffff' : '#888888';
-                    ctx.fillRect(x, y, 1, 1);
-                }
-            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 8, 4);
+
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(0, 4, 8, 4);
 
             const img = new Image();
 
@@ -64,21 +64,24 @@
 
             async initialize() {
                 const palette = new Palette(16);
-                palette.set(1, Color32.black());
-                palette.set(2, Color32.red());
-                palette.set(GREEN, Color32.green());
-                palette.set(4, Color32.blue());
-                palette.set(YELLOW, Color32.yellow());
-                palette.set(CYAN, Color32.cyan());
-                palette.set(7, Color32.magenta());
-                palette.set(WHITE, Color32.white());
-                palette.set(BG_COLOR, new Color32(32, 32, 64, 255));
-                palette.set(DARK_RED, new Color32(128, 0, 0, 255));
+                palette.set(1,        new Color32(0,   0,   0,   255));
+                palette.set(2,        new Color32(255, 0,   0,   255));
+                palette.set(GREEN,    new Color32(0,   255, 0,   255));
+                palette.set(4,        new Color32(0,   0,   255, 255));
+                palette.set(YELLOW,   new Color32(255, 255, 0,   255));
+                palette.set(CYAN,     new Color32(0,   255, 255, 255));
+                palette.set(7,        new Color32(255, 0,   255, 255));
+                palette.set(WHITE,    new Color32(255, 255, 255, 255));
+                palette.set(BG_COLOR, new Color32(32,  32,  64,  255));
+                palette.set(DARK_RED, new Color32(128, 0,   0,   255));
+                palette.set(GRAY,     new Color32(136, 136, 136, 255));
                 BT.paletteSet(palette);
 
-                const img = await createCheckerImage();
-
+                const img = await createSpriteImage();
                 this.spriteSheet = new SpriteSheet(img);
+
+                // Convert RGBA pixels to palette indices against the active palette.
+                this.spriteSheet.indexize(palette);
 
                 return true;
             }
@@ -89,10 +92,11 @@
                 BT.clear(BG_COLOR);
 
                 // Draw primitives first (these render in the primitives pipeline).
-                // Dark red filled rect as background.
+
+                // Dark red filled rect as background block.
                 BT.drawRectFill(new Rect2i(10, 10, 100, 80), DARK_RED);
 
-                // Green rect outline.
+                // Green rect outline around it.
                 BT.drawRect(new Rect2i(8, 8, 104, 84), GREEN);
 
                 // Yellow horizontal line.
@@ -109,10 +113,10 @@
                 // Placeholder text.
                 BT.print(new Vector2i(10, 110), WHITE, 'Mixed Test');
 
-                // Draw sprites on top (these render in the sprite pipeline, after primitives).
+                // Draw sprites on top (sprite pipeline renders after primitives).
                 const sheet = this.spriteSheet;
                 if (sheet) {
-                    // Sprite at (20, 20) - should overlap the dark red filled rect.
+                    // Sprite at (20, 20) - overlaps the dark red filled rect.
                     BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(20, 20));
 
                     // Row of sprites.
@@ -124,13 +128,9 @@
                         );
                     }
 
-                    // Tinted sprite.
-                    BT.drawSprite(
-                        sheet,
-                        new Rect2i(0, 0, 8, 8),
-                        new Vector2i(50, 20),
-                        Color32.red(),
-                    );
+                    // Sprite with paletteOffset=2: white (8) shifts to index 10 (dark red),
+                    // gray (11) shifts to index 13 (unused = black).
+                    BT.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(50, 20), 2);
                 }
 
                 window.__RENDER_COMPLETE__ = true;

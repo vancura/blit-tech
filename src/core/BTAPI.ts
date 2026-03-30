@@ -2,7 +2,6 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Renderer } from '../render/Renderer';
-import type { Color32 } from '../utils/Color32';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { GameLoop } from './GameLoop';
@@ -62,6 +61,9 @@ export class BTAPI {
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
+
+    /** Registry of all sprite sheets that have been passed to drawSprite, for spritesRefresh. */
+    private readonly spriteSheets: Set<SpriteSheet> = new Set();
 
     // #endregion
 
@@ -296,9 +298,16 @@ export class BTAPI {
     /**
      * Sets the active engine palette and propagates it to the renderer.
      *
+     * If sprite sheets have already been indexized, emits a warning: the indexed
+     * pixel data will be stale until `spritesRefresh()` is called.
+     *
      * @param palette - Palette to store as the active engine palette.
      */
     public setPalette(palette: Palette): void {
+        if (this.spriteSheets.size > 0) {
+            console.warn('[BT] Active palette structure changed. Call BT.spritesRefresh() to update loaded sprites.');
+        }
+
         this.palette = palette;
         this.renderer?.setPalette(palette);
     }
@@ -396,29 +405,86 @@ export class BTAPI {
     // #region Rendering API - Sprites
 
     /**
-     * Draws a sprite region from a sprite sheet.
-     * The renderer may batch compatible sprite draws internally.
+     * Draws a sprite region from an indexed sprite sheet.
+     * The renderer batches compatible sprite draws internally.
      *
-     * @param spriteSheet - Source sprite sheet texture.
+     * @param spriteSheet - Source sprite sheet (must have been indexized via spriteSheet.indexize()).
      * @param srcRect - Region to copy from the sprite sheet.
      * @param destPos - Screen position to draw in (the top-left corner).
-     * @param tint - Optional tint color (defaults to white = no tint).
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
+     * @throws If the sprite sheet has not been indexized.
      */
-    public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, tint?: Color32): void {
-        this.renderer?.drawSprite(spriteSheet, srcRect, destPos, tint);
+    public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
+        this.assertPaletteIndex(paletteOffset);
+
+        if (!spriteSheet.isIndexized()) {
+            throw new Error(
+                '[BT] drawSprite: sprite sheet has not been indexized.' +
+                    ' Call spriteSheet.indexize(palette) after setting a palette.',
+            );
+        }
+
+        this.spriteSheets.add(spriteSheet);
+        this.renderer?.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
     /**
      * Draws text using a bitmap font with variable-width glyphs.
      * Supports Unicode characters and per-glyph render offsets.
      *
-     * @param font - Bitmap font containing character glyphs.
+     * @param font - Bitmap font containing character glyphs (underlying sheet must be indexized).
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
-     * @param color - Optional text color (defaults to white).
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     * @throws If the font's sprite sheet has not been indexized.
      */
-    public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, color?: Color32): void {
-        this.renderer?.drawBitmapText(font, pos, text, color);
+    public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.assertPaletteIndex(paletteOffset);
+
+        const sheet = font.getSpriteSheet();
+
+        if (!sheet.isIndexized()) {
+            throw new Error(
+                '[BT] drawBitmapText: font sprite sheet has not been indexized.' +
+                    ' Call spriteSheet.indexize(palette) after setting a palette.',
+            );
+        }
+
+        this.spriteSheets.add(sheet);
+        this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
+    }
+
+    /**
+     * Re-indexizes all tracked sprite sheets against the current active palette.
+     *
+     * Call this after swapping or modifying the active palette to keep all loaded
+     * sprite sheets in sync with the new color-to-index mapping.
+     *
+     * @throws If no active palette has been set.
+     */
+    public spritesRefresh(): void {
+        if (!this.palette) {
+            throw new Error('[BT] spritesRefresh: no active palette. Call BT.paletteSet() first.');
+        }
+
+        let refreshed = 0;
+
+        for (const sheet of this.spriteSheets) {
+            if (!sheet.isIndexized()) {
+                this.spriteSheets.delete(sheet);
+                continue;
+            }
+
+            try {
+                sheet.reindexize(this.palette);
+                refreshed++;
+            } catch (e) {
+                console.error('[BT] spritesRefresh: failed to reindexize sheet, removing from registry:', e);
+                this.spriteSheets.delete(sheet);
+            }
+        }
+
+        console.log(`[BT] Refreshed ${refreshed} sprite sheet(s) against current palette`);
     }
 
     // #endregion
