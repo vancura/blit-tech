@@ -55,6 +55,9 @@ export class Renderer {
     /** GPU uniform buffer for the 256-entry palette. */
     private paletteBuffer: GPUBuffer | null = null;
 
+    /** True when the palette has changed and needs to be re-uploaded to the GPU. */
+    private paletteDirty: boolean = false;
+
     // #endregion
 
     // #region Pipelines
@@ -124,6 +127,7 @@ export class Renderer {
      */
     setPalette(palette: Palette): void {
         this.palette = palette;
+        this.paletteDirty = true;
     }
 
     /**
@@ -192,11 +196,12 @@ export class Renderer {
             return;
         }
 
-        // Upload palette to GPU before encoding the render pass.
-        if (this.palette && this.paletteBuffer) {
+        // Upload palette to GPU only when it has changed.
+        if (this.palette && this.paletteBuffer && this.paletteDirty) {
             const paletteData = this.palette.toFloat32Array();
 
             this.device.queue.writeBuffer(this.paletteBuffer, 0, paletteData.buffer);
+            this.paletteDirty = false;
         }
 
         // Resolve clear color from palette.
