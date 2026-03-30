@@ -126,7 +126,7 @@ export class Renderer {
      * @param palette - Palette to use for color lookups and GPU upload.
      */
     setPalette(palette: Palette): void {
-        this.palette = palette;
+        this.palette = palette.clone();
         this.paletteDirty = true;
     }
 
@@ -150,7 +150,7 @@ export class Renderer {
      */
     beginFrame(): void {
         if (!this.palette) {
-            throw new Error('Cannot begin frame: no active palette. Call BT.paletteSet() first.');
+            throw new Error('Cannot begin frame: no active palette. Call setPalette() first.');
         }
 
         this.primitives.reset();
@@ -325,11 +325,11 @@ export class Renderer {
     /**
      * Fills a rectangular region with a palette-indexed color.
      *
-     * @param paletteIndex - Palette color index.
      * @param rect - Region to fill in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
-    clearRect(paletteIndex: number, rect: Rect2i): void {
-        this.primitives.clearRect(paletteIndex, rect);
+    clearRect(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.clearRect(rect, paletteIndex);
     }
 
     // #endregion

@@ -238,11 +238,11 @@ export const BT = {
     /**
      * Fills a rectangular display region with a palette-indexed color.
      *
-     * @param paletteIndex - Palette color index.
      * @param rect - Rectangle in display pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
-    clearRect: (paletteIndex: number, rect: Rect2i): void => {
-        BTAPI.instance.clearRect(paletteIndex, rect);
+    clearRect: (rect: Rect2i, paletteIndex: number): void => {
+        BTAPI.instance.clearRect(rect, paletteIndex);
     },
 
     // #endregion

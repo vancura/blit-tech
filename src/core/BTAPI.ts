@@ -320,12 +320,12 @@ export class BTAPI {
     /**
      * Fills a rectangular region with a palette-indexed color.
      *
-     * @param paletteIndex - Palette color index.
      * @param rect - Region to fill in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
-    public clearRect(paletteIndex: number, rect: Rect2i): void {
+    public clearRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
-        this.renderer?.clearRect(paletteIndex, rect);
+        this.renderer?.clearRect(rect, paletteIndex);
     }
 
     // #endregion

@@ -176,7 +176,7 @@ describe('BTAPI', () => {
         });
 
         it('clearRect should not throw before init', () => {
-            expect(() => BTAPI.instance.clearRect(1, new Rect2i(0, 0, 10, 10))).not.toThrow();
+            expect(() => BTAPI.instance.clearRect(new Rect2i(0, 0, 10, 10), 1)).not.toThrow();
         });
 
         it('drawPixel should not throw before init', () => {

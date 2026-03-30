@@ -109,7 +109,7 @@ describe('pre-initialization methods', () => {
 
         expect(() => {
             renderer.beginFrame();
-        }).toThrow('Cannot begin frame: no active palette. Call BT.paletteSet() first.');
+        }).toThrow('Cannot begin frame: no active palette. Call setPalette() first.');
     });
 
     it('beginFrame succeeds with active palette', () => {
@@ -185,7 +185,7 @@ describe('palette enforcement', () => {
 
         renderer.setPalette(palette);
 
-        expect(renderer.getPalette()).toBe(palette);
+        expect(renderer.getPalette()).toEqual(palette);
     });
 
     it('getPalette returns null when no palette is set', () => {
@@ -304,7 +304,7 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.clearRect(1, new Rect2i(0, 0, 320, 240));
+            renderer.clearRect(new Rect2i(0, 0, 320, 240), 1);
         }).not.toThrow();
 
         renderer.endFrame();

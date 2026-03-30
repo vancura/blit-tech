@@ -137,7 +137,7 @@ describe('pre-initialization safety', () => {
         const rect = new Rect2i(0, 0, 100, 100);
 
         expect(() => {
-            pipeline.clearRect(1, rect);
+            pipeline.clearRect(rect, 1);
         }).not.toThrow();
     });
 

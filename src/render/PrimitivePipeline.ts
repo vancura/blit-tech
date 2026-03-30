@@ -305,10 +305,10 @@ export class PrimitivePipeline {
      * Fills a rectangular region with a palette-indexed color.
      * Alias for `drawRectFill()` kept for renderer API consistency.
      *
-     * @param paletteIndex - Palette color index.
      * @param rect - Region to fill.
+     * @param paletteIndex - Palette color index.
      */
-    clearRect(paletteIndex: number, rect: Rect2i): void {
+    clearRect(rect: Rect2i, paletteIndex: number): void {
         this.drawRectFill(rect, paletteIndex);
     }
 

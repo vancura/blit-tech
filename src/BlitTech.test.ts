@@ -220,9 +220,9 @@ describe('BT.clearRect', () => {
         const spy = vi.spyOn(BTAPI.instance, 'clearRect').mockReturnValue(undefined);
         const rect = new Rect2i(0, 0, 100, 100);
 
-        BT.clearRect(1, rect);
+        BT.clearRect(rect, 1);
 
-        expect(spy).toHaveBeenCalledWith(1, rect);
+        expect(spy).toHaveBeenCalledWith(rect, 1);
     });
 });
 
