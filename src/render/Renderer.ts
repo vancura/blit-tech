@@ -301,17 +301,6 @@ export class Renderer {
      * @param paletteIndex - Palette color index.
      */
     drawPixel(pos: Vector2i, paletteIndex: number): void {
-        this.drawPixelXY(pos, paletteIndex);
-    }
-
-    /**
-     * Draws a single pixel at integer coordinates.
-     * Enforces integer coordinates per rendering guidelines.
-     *
-     * @param pos - Pixel position.
-     * @param paletteIndex - Palette color index.
-     */
-    drawPixelXY(pos: Vector2i, paletteIndex: number): void {
         this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
     }
 

@@ -260,11 +260,11 @@ describe('with initialized renderer', () => {
         renderer.endFrame();
     });
 
-    it('drawPixelXY delegates without throwing', () => {
+    it('drawPixel delegates without throwing', () => {
         renderer.beginFrame();
 
         expect(() => {
-            renderer.drawPixelXY(new Vector2i(15, 25), 3);
+            renderer.drawPixel(new Vector2i(15, 25), 3);
         }).not.toThrow();
 
         renderer.endFrame();
