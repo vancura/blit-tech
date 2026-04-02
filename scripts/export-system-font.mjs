@@ -87,7 +87,7 @@ function parseBitmapData() {
 // #region PNG Generation
 
 /**
- * Builds a 128x48 RGBA PNG from the bit-pattern data.
+ * Builds a 96x84 RGBA PNG from the bit-pattern data.
  * Set bits become white (255,255,255,255), clear bits become black (0,0,0,255).
  *
  * @param {number[]} bitmaps - The flat array of glyph bytes.

@@ -49,7 +49,7 @@ const ON_THRESHOLD = 128; // Red channel >= this means "on".
  * Reads the PNG and extracts bit patterns for all 95 glyphs.
  *
  * @param {string} inputPath - Path to the 96x84 PNG atlas.
- * @returns {number[]} Flat array of 760 bytes (95 glyphs x 8 rows).
+ * @returns {number[]} Flat array of 1330 bytes (95 glyphs x 14 rows).
  */
 function extractBitmaps(inputPath) {
     const pngData = readFileSync(inputPath);
