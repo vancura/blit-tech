@@ -65,6 +65,12 @@ export class PaletteEffectManager {
      * @param effect - Effect instance to run each frame.
      */
     add(effect: PaletteEffect): void {
+        // Reset the clock when waking from idle so the first update after a gap
+        // sees delta=0 instead of the entire idle duration.
+        if (this.effects.length === 0) {
+            this.lastTime = 0;
+        }
+
         this.effects.push(effect);
     }
 

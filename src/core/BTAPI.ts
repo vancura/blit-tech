@@ -562,6 +562,19 @@ export class BTAPI {
     // #region Palette Effects API
 
     /**
+     * Validates that a duration is a finite, non-negative number.
+     *
+     * @param method - Calling method name for the error message.
+     * @param durationMs - Duration to validate.
+     * @throws Error if the duration is not finite or is negative.
+     */
+    private assertFiniteDuration(method: string, durationMs: number): void {
+        if (!Number.isFinite(durationMs) || durationMs < 0) {
+            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
+        }
+    }
+
+    /**
      * Starts rotating a range of palette entries at a constant speed.
      *
      * Classic water/fire/plasma animation. Runs indefinitely until cancelled
@@ -572,6 +585,14 @@ export class BTAPI {
      * @param speed - Steps per second. Positive = forward, negative = backward.
      */
     public paletteCycle(start: number, end: number, speed: number): void {
+        if (!Number.isFinite(speed)) {
+            throw new Error(`[BT] paletteCycle: speed must be finite, got ${speed}.`);
+        }
+
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start >= end) {
+            throw new Error(`[BT] paletteCycle: start must be an integer less than end, got [${start}, ${end}].`);
+        }
+
         this.paletteEffects.add(new CycleEffect(start, end, speed));
     }
 
@@ -589,6 +610,7 @@ export class BTAPI {
             throw new Error('[BT] Cannot fade palette: no active palette set.');
         }
 
+        this.assertFiniteDuration('paletteFade', durationMs);
         this.paletteEffects.add(new FadeEffect(this.palette, target, durationMs, easing));
     }
 
@@ -612,6 +634,7 @@ export class BTAPI {
             throw new Error('[BT] Cannot fade palette range: no active palette set.');
         }
 
+        this.assertFiniteDuration('paletteFadeRange', durationMs);
         this.paletteEffects.add(new FadeRangeEffect(start, end, this.palette, target, durationMs, easing));
     }
 
@@ -624,6 +647,7 @@ export class BTAPI {
      * @param durationMs - How long the flash lasts in milliseconds.
      */
     public paletteFlash(color: Color32, durationMs: number): void {
+        this.assertFiniteDuration('paletteFlash', durationMs);
         this.paletteEffects.add(new FlashEffect(color, durationMs));
     }
 
