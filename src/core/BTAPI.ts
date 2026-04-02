@@ -441,15 +441,7 @@ export class BTAPI {
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
-
-        if (!spriteSheet.isIndexized()) {
-            throw new Error(
-                '[BT] drawSprite: sprite sheet has not been indexized.' +
-                    ' Call spriteSheet.indexize(palette) after setting a palette.',
-            );
-        }
-
-        this.spriteSheets.add(spriteSheet);
+        this.requireIndexizedSheet(spriteSheet, 'drawSprite');
         this.renderer?.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
@@ -465,17 +457,7 @@ export class BTAPI {
      */
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
-
-        const sheet = font.getSpriteSheet();
-
-        if (!sheet.isIndexized()) {
-            throw new Error(
-                '[BT] drawBitmapText: font sprite sheet has not been indexized.' +
-                    ' Call spriteSheet.indexize(palette) after setting a palette.',
-            );
-        }
-
-        this.spriteSheets.add(sheet);
+        this.requireIndexizedSheet(font.getSpriteSheet(), 'drawBitmapText', 'font sprite sheet');
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -687,6 +669,25 @@ export class BTAPI {
     // #endregion
 
     // #region Private Helpers
+
+    /**
+     * Validates that a sprite sheet has been indexized and registers it for refresh tracking.
+     *
+     * @param sheet - Sprite sheet to validate.
+     * @param method - Calling method name for the error message.
+     * @param label - Human-readable name for the sheet used in the error message (default `'sprite sheet'`).
+     * @throws If the sprite sheet has not been indexized.
+     */
+    private requireIndexizedSheet(sheet: SpriteSheet, method: string, label: string = 'sprite sheet'): void {
+        if (!sheet.isIndexized()) {
+            throw new Error(
+                `[BT] ${method}: ${label} has not been indexized.` +
+                    ' Call spriteSheet.indexize(palette) after setting a palette.',
+            );
+        }
+
+        this.spriteSheets.add(sheet);
+    }
 
     /**
      * Validates that a palette index is a non-negative integer and, when a palette
