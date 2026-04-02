@@ -463,6 +463,13 @@ export const BT = {
      * - `paletteOffset = N`: shifts the entire glyph color range up by N slots. A glyph stored
      *   at index 1 renders as `palette[1 + N]`.
      *
+     * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
+     * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
+     * robust buffer access returns 0 for every component; because the fragment shader forces alpha
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden — a negative
+     * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
+     * produces out-of-bounds black pixels.
+     *
      * @param font - Font asset used for rendering.
      * @param pos - Text origin in display coordinates.
      * @param text - String to render.
@@ -538,6 +545,13 @@ export const BT = {
      * - `paletteOffset = N`: shifts the entire sprite's color range up by N slots. A pixel stored
      *   at index 1 renders as `palette[1 + N]`, a pixel at index 2 renders as `palette[2 + N]`,
      *   and so on. Use this for palette-swap effects such as team colors or damage flashes.
+     *
+     * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
+     * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
+     * robust buffer access returns 0 for every component; because the fragment shader forces alpha
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden — a negative
+     * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
+     * produces out-of-bounds black pixels.
      *
      * @param spriteSheet - Indexed sprite sheet.
      * @param srcRect - Source rectangle within the sprite sheet, in pixels.
