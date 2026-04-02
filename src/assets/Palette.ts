@@ -337,6 +337,28 @@ export class Palette {
     }
 
     /**
+     * Returns a direct reference to the internal {@link Color32} at the given index.
+     *
+     * Unlike {@link get}, this does **not** clone the entry. Mutations on the
+     * returned object modify the palette in place without updating the dirty flag.
+     * After modifying the entry, the caller **must** call {@link markDirty} so the
+     * renderer knows to re-upload the palette to the GPU.
+     *
+     * This method exists for performance-critical paths (palette effects) where
+     * per-frame cloning is unacceptable. Normal application code should prefer
+     * {@link get} and {@link set} to keep the dirty flag accurate automatically.
+     *
+     * @param index - Palette index to access.
+     * @returns Direct reference to the internal color entry.
+     * @throws Error if the index is invalid.
+     */
+    public getRef(index: number): Color32 {
+        this.assertIndexInRange(index);
+
+        return this.colorAt(index);
+    }
+
+    /**
      * Associates a human-readable name with a palette index.
      *
      * @param name - Name to register.
@@ -452,6 +474,17 @@ export class Palette {
      */
     public clearDirty(): void {
         this._dirty = false;
+    }
+
+    /**
+     * Marks the palette as modified so the renderer re-uploads it on the next frame.
+     *
+     * Call this after mutating entries obtained via {@link getRef}. The {@link set}
+     * and {@link copyFrom} methods set the dirty flag automatically; this method is
+     * only needed when bypassing them for performance.
+     */
+    public markDirty(): void {
+        this._dirty = true;
     }
 
     /**

@@ -242,6 +242,102 @@ export const BT = {
 
     // #endregion
 
+    // #region Palette Effects
+
+    /**
+     * Starts rotating a range of palette entries at a constant speed.
+     *
+     * Classic water/fire/plasma animation technique. Runs indefinitely until
+     * cancelled via {@link BT.paletteClearEffects}. Uses a fractional accumulator
+     * for sub-frame precision.
+     *
+     * @param start - First palette index in the cycling range (inclusive).
+     * @param end - Last palette index in the cycling range (inclusive).
+     * @param speed - Steps per second. Positive = forward, negative = backward.
+     */
+    paletteCycle: (start: number, end: number, speed: number): void => {
+        BTAPI.instance.paletteCycle(start, end, speed);
+    },
+
+    /**
+     * Smoothly interpolates all palette entries toward a target over time.
+     *
+     * Snapshots the current palette at the moment this is called. Each frame the
+     * entries are lerped between the snapshot and target using the easing curve.
+     * Auto-removes when the fade completes.
+     *
+     * Common patterns:
+     * - Fade to black: `BT.paletteFade(blackPalette, 1000)`
+     * - Fade to white: `BT.paletteFade(whitePalette, 500)`
+     * - Cross-fade: `BT.paletteFade(nightPalette, 2000, 'ease-in-out')`
+     *
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
+     */
+    paletteFade: (target: Palette, durationMs: number, easing?: EasingFunction): void => {
+        BTAPI.instance.paletteFade(target, durationMs, easing);
+    },
+
+    /**
+     * Fades only a subset of palette indices toward a target over time.
+     *
+     * Same as {@link BT.paletteFade} but restricted to the range `[start, end]`.
+     * Indices outside the range are left untouched.
+     *
+     * @param start - First palette index to fade (inclusive).
+     * @param end - Last palette index to fade (inclusive).
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
+     */
+    paletteFadeRange: (
+        start: number,
+        end: number,
+        target: Palette,
+        durationMs: number,
+        easing?: EasingFunction,
+    ): void => {
+        BTAPI.instance.paletteFadeRange(start, end, target, durationMs, easing);
+    },
+
+    /**
+     * Temporarily sets all non-zero palette entries to a single color, then restores.
+     *
+     * Index 0 (transparent) is preserved. The original palette is saved internally
+     * and restored after the duration elapses. Auto-removes when complete.
+     *
+     * @param color - Flash color applied to all non-zero entries.
+     * @param durationMs - How long the flash lasts in milliseconds.
+     */
+    paletteFlash: (color: Color32, durationMs: number): void => {
+        BTAPI.instance.paletteFlash(color, durationMs);
+    },
+
+    /**
+     * Instantly exchanges two palette entries.
+     *
+     * This is an immediate operation, not an animated effect. The visual change
+     * takes effect on the next frame.
+     *
+     * @param indexA - First palette index.
+     * @param indexB - Second palette index.
+     */
+    paletteSwap: (indexA: number, indexB: number): void => {
+        BTAPI.instance.paletteSwap(indexA, indexB);
+    },
+
+    /**
+     * Cancels all running palette effects immediately.
+     *
+     * The palette stays at whatever state it was in when cancelled.
+     */
+    paletteClearEffects: (): void => {
+        BTAPI.instance.paletteClearEffects();
+    },
+
+    // #endregion
+
     // #region Rendering - Clear Operations
 
     /**

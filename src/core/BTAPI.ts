@@ -1,7 +1,17 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
+import {
+    CycleEffect,
+    FadeEffect,
+    FadeRangeEffect,
+    FlashEffect,
+    PaletteEffectManager,
+    paletteSwap,
+} from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Renderer } from '../render/Renderer';
+import type { Color32 } from '../utils/Color32';
+import type { EasingFunction } from '../utils/Easing';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { GameLoop } from './GameLoop';
@@ -71,6 +81,9 @@ export class BTAPI {
 
     /** Game loop managing fixed-timestep updates and variable-rate rendering. */
     private loop: GameLoop | null = null;
+
+    /** Manages animated palette effects (cycling, fading, flashing). */
+    private readonly paletteEffects = new PaletteEffectManager();
 
     // TODO: Additional subsystems for future implementation:
     // InputManager, AudioManager, AssetManager
@@ -196,6 +209,14 @@ export class BTAPI {
                 if (this.renderer) {
                     this.renderer.beginFrame();
                     this.demo?.render();
+
+                    // Palette effects run after demo render (so user's explicit palette
+                    // changes in render() are respected) but before endFrame (so effects
+                    // are visible this frame via the dirty-flag GPU upload).
+                    if (this.palette && this.paletteEffects.activeCount > 0) {
+                        this.paletteEffects.update(this.palette);
+                    }
+
                     this.renderer.endFrame();
                 }
             },
@@ -307,6 +328,10 @@ export class BTAPI {
         if (this.spriteSheets.size > 0) {
             console.warn('[BT] Active palette structure changed. Call BT.spritesRefresh() to update loaded sprites.');
         }
+
+        // In-flight effects hold snapshots of the old palette. Drop them so they
+        // don't apply stale colors to the new palette.
+        this.paletteEffects.clear();
 
         this.palette = palette;
         this.renderer?.setPalette(palette);
@@ -534,6 +559,129 @@ export class BTAPI {
      */
     public resetCamera(): void {
         this.renderer?.resetCamera();
+    }
+
+    // #endregion
+
+    // #region Palette Effects API
+
+    /**
+     * Validates that a duration is a finite, non-negative number.
+     *
+     * @param method - Calling method name for the error message.
+     * @param durationMs - Duration to validate.
+     * @throws Error if the duration is not finite or is negative.
+     */
+    private assertFiniteDuration(method: string, durationMs: number): void {
+        if (!Number.isFinite(durationMs) || durationMs < 0) {
+            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
+        }
+    }
+
+    /**
+     * Starts rotating a range of palette entries at a constant speed.
+     *
+     * Classic water/fire/plasma animation. Runs indefinitely until cancelled
+     * via {@link paletteClearEffects}.
+     *
+     * @param start - First palette index in the cycling range (inclusive).
+     * @param end - Last palette index in the cycling range (inclusive).
+     * @param speed - Steps per second. Positive = forward, negative = backward.
+     */
+    public paletteCycle(start: number, end: number, speed: number): void {
+        if (!Number.isFinite(speed)) {
+            throw new Error(`[BT] paletteCycle: speed must be finite, got ${speed}.`);
+        }
+
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start >= end) {
+            throw new Error(`[BT] paletteCycle: start must be an integer less than end, got [${start}, ${end}].`);
+        }
+
+        this.paletteEffects.add(new CycleEffect(start, end, speed));
+    }
+
+    /**
+     * Smoothly interpolates all palette entries toward a target over time.
+     *
+     * Snapshots the current palette at start. Auto-removes when complete.
+     *
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
+     */
+    public paletteFade(target: Palette, durationMs: number, easing?: EasingFunction): void {
+        if (!this.palette) {
+            throw new Error('[BT] Cannot fade palette: no active palette set.');
+        }
+
+        this.assertFiniteDuration('paletteFade', durationMs);
+        this.paletteEffects.add(new FadeEffect(this.palette, target, durationMs, easing));
+    }
+
+    /**
+     * Fades only a subset of palette indices toward a target over time.
+     *
+     * @param start - First palette index to fade (inclusive).
+     * @param end - Last palette index to fade (inclusive).
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
+     */
+    public paletteFadeRange(
+        start: number,
+        end: number,
+        target: Palette,
+        durationMs: number,
+        easing?: EasingFunction,
+    ): void {
+        if (!this.palette) {
+            throw new Error('[BT] Cannot fade palette range: no active palette set.');
+        }
+
+        this.assertFiniteDuration('paletteFadeRange', durationMs);
+        this.paletteEffects.add(new FadeRangeEffect(start, end, this.palette, target, durationMs, easing));
+    }
+
+    /**
+     * Temporarily sets all non-zero palette entries to a single color, then restores.
+     *
+     * Index 0 (transparent) is preserved. Auto-removes after duration.
+     *
+     * @param color - Flash color applied to all non-zero entries.
+     * @param durationMs - How long the flash lasts in milliseconds.
+     */
+    public paletteFlash(color: Color32, durationMs: number): void {
+        if (!this.palette) {
+            throw new Error('[BT] Cannot flash palette: no active palette set.');
+        }
+
+        this.assertFiniteDuration('paletteFlash', durationMs);
+        this.paletteEffects.add(new FlashEffect(color, durationMs));
+    }
+
+    /**
+     * Instantly exchanges two palette entries.
+     *
+     * This is an immediate operation, not an animated effect.
+     *
+     * @param indexA - First palette index.
+     * @param indexB - Second palette index.
+     */
+    public paletteSwap(indexA: number, indexB: number): void {
+        if (!this.palette) {
+            throw new Error('[BT] Cannot swap palette entries: no active palette set.');
+        }
+
+        paletteSwap(this.palette, indexA, indexB);
+    }
+
+    /**
+     * Cancels all running palette effects immediately.
+     *
+     * The palette stays at whatever state it was in when cancelled.
+     */
+    public paletteClearEffects(): void {
+        this.paletteEffects.clear();
     }
 
     // #endregion
