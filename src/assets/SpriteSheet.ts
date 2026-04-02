@@ -23,8 +23,8 @@ export class SpriteSheet {
     /** Sprite sheet dimensions in pixels. */
     public readonly size: Vector2i;
 
-    /** Source HTML image element. */
-    private readonly image: HTMLImageElement;
+    /** Source HTML image element (null for sheets created from raw indexed data). */
+    private readonly image: HTMLImageElement | null;
 
     /** Pre-decoded image bitmap for GPU upload (created by load()). */
     private imageBitmap: ImageBitmap | null = null;
@@ -46,11 +46,19 @@ export class SpriteSheet {
      * Creates a sprite sheet from a loaded image.
      * Use the static load() method for easier loading from URL.
      *
-     * @param image - Pre-loaded HTMLImageElement.
+     * @param image - Pre-loaded HTMLImageElement, or null for raw indexed data sheets.
+     * @param size - Explicit dimensions (required when image is null).
      */
-    constructor(image: HTMLImageElement) {
+    constructor(image: HTMLImageElement | null, size?: Vector2i) {
         this.image = image;
-        this.size = new Vector2i(image.width, image.height);
+
+        if (image) {
+            this.size = new Vector2i(image.width, image.height);
+        } else if (size) {
+            this.size = size;
+        } else {
+            throw new Error('[SpriteSheet] Either an image or explicit size must be provided.');
+        }
     }
 
     // #endregion
@@ -90,6 +98,38 @@ export class SpriteSheet {
         return sheet;
     }
 
+    /**
+     * Creates a sprite sheet from pre-computed palette-indexed pixel data.
+     *
+     * The resulting sheet is immediately indexized -- its `getTexture()` call
+     * will produce an `r8uint` GPU texture without needing `indexize()`. This
+     * is used for embedded assets like the built-in system font where the pixel
+     * data is already expressed as palette indices.
+     *
+     * Sheets created this way do not support `indexize()` or `reindexize()`
+     * because there is no source RGBA data to re-map.
+     *
+     * @param width - Texture width in pixels.
+     * @param height - Texture height in pixels.
+     * @param indexedPixels - Flat array of palette indices, one byte per pixel (row-major).
+     * @returns Sprite sheet ready for rendering.
+     */
+    static fromIndexedPixels(width: number, height: number, indexedPixels: Uint8Array<ArrayBuffer>): SpriteSheet {
+        const expectedLength = width * height;
+
+        if (indexedPixels.length !== expectedLength) {
+            throw new RangeError(
+                `[SpriteSheet] indexedPixels length ${indexedPixels.length} does not match ${width}x${height} (expected ${expectedLength}).`,
+            );
+        }
+
+        const sheet = new SpriteSheet(null, new Vector2i(width, height));
+
+        sheet.indexedPixels = indexedPixels;
+
+        return sheet;
+    }
+
     // #endregion
 
     // #region Indexization
@@ -109,6 +149,10 @@ export class SpriteSheet {
      * @throws If any opaque pixel's color is not present in the palette.
      */
     indexize(palette: Palette): void {
+        if (!this.image) {
+            throw new Error('[SpriteSheet] indexize: not available for sheets created from raw indexed data.');
+        }
+
         const w = this.size.x;
         const h = this.size.y;
 
@@ -211,6 +255,10 @@ export class SpriteSheet {
      * @throws If any opaque pixel's color is not found in the new palette.
      */
     reindexize(palette: Palette): void {
+        if (!this.image) {
+            throw new Error('[SpriteSheet] reindexize: not available for sheets created from raw indexed data.');
+        }
+
         if (this.rgbaPixels === null) {
             throw new Error('[SpriteSheet] reindexize: indexize() must be called before reindexize().');
         }
@@ -283,8 +331,13 @@ export class SpriteSheet {
      * Gets the source HTMLImageElement.
      *
      * @returns The underlying image element.
+     * @throws If the sheet was created from raw indexed data (no source image).
      */
     getImage(): HTMLImageElement {
+        if (!this.image) {
+            throw new Error('[SpriteSheet] getImage: not available for sheets created from raw indexed data.');
+        }
+
         return this.image;
     }
 
@@ -368,6 +421,10 @@ export class SpriteSheet {
      * @param device - WebGPU device for texture creation.
      */
     private createTexture(device: GPUDevice): void {
+        if (!this.image) {
+            throw new Error('[SpriteSheet] createTexture: no source image available.');
+        }
+
         this.texture = device.createTexture({
             label: 'Sprite Sheet Texture',
             size: [this.size.x, this.size.y, 1],

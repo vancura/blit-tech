@@ -301,18 +301,6 @@ export class Renderer {
     }
 
     /**
-     * Draws placeholder text as colored blocks.
-     * Each character is rendered as a small filled rectangle.
-     *
-     * @param pos - Text position (top-left corner).
-     * @param paletteIndex - Palette color index.
-     * @param text - String to display.
-     */
-    drawText(pos: Vector2i, paletteIndex: number, text: string): void {
-        this.primitives.drawText(pos, paletteIndex, text);
-    }
-
-    /**
      * Draws a single pixel as a 1x1 filled rectangle.
      *
      * @param pos - Pixel position.

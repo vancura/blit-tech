@@ -397,51 +397,45 @@ describe('BT.keyReleased', () => {
 
 // #endregion
 
-// #region BT.print / BT.printMeasure / BT.printFont
+// #region BT.systemPrint / BT.systemPrintMeasure / BT.printFont
 
-describe('BT.print', () => {
+describe('BT.systemPrint', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
 
-    it('delegates to BTAPI.instance.drawText', () => {
-        const spy = vi.spyOn(BTAPI.instance, 'drawText').mockReturnValue(undefined);
+    it('delegates to BTAPI.instance.drawSystemText', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'drawSystemText').mockReturnValue(undefined);
         const pos = new Vector2i(10, 10);
 
-        BT.print(pos, 8, 'Hello');
+        BT.systemPrint(pos, 8, 'Hello');
 
         expect(spy).toHaveBeenCalledWith(pos, 8, 'Hello');
     });
 });
 
-describe('BT.printMeasure', () => {
-    it('returns a zero vector', () => {
-        vi.spyOn(console, 'warn').mockReturnValue(undefined);
+describe('BT.systemPrintMeasure', () => {
+    it('returns zero vector when system font is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getSystemFont').mockReturnValue(null);
 
-        const result = BT.printMeasure('any text');
+        const result = BT.systemPrintMeasure('any text');
 
         expect(result.x).toBe(0);
         expect(result.y).toBe(0);
     });
 
-    it('emits a console warning on the first call', () => {
-        const warnSpy = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+    it('returns measured size when system font is available', () => {
+        const mockFont = {
+            measureTextSize: vi.fn().mockReturnValue({ width: 40, height: 8 }),
+        };
 
-        BT.printMeasure('first');
+        vi.spyOn(BTAPI.instance, 'getSystemFont').mockReturnValue(mockFont as unknown as BitmapFont);
 
-        // The warnOnce mechanism may have already fired in a previous test in this
-        // file. Either way, warn is called at most once per unique function name.
-        expect(warnSpy.mock.calls.length).toBeLessThanOrEqual(1);
-    });
+        const result = BT.systemPrintMeasure('Hello');
 
-    it('does not emit a second warning for the same call', () => {
-        const warnSpy = vi.spyOn(console, 'warn').mockReturnValue(undefined);
-
-        BT.printMeasure('again');
-        BT.printMeasure('again');
-
-        // warnOnce suppresses duplicates; total warn calls across both invocations are 0 or 1.
-        expect(warnSpy.mock.calls.length).toBeLessThanOrEqual(1);
+        expect(result.x).toBe(40);
+        expect(result.y).toBe(8);
+        expect(mockFont.measureTextSize).toHaveBeenCalledWith('Hello');
     });
 });
 

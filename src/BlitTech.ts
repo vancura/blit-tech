@@ -27,31 +27,6 @@ import { applyEasing } from './utils/Easing';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
 
-// #region Module State
-
-/** Tracks one-time facade warnings to avoid repeated console noise. */
-const _warnedFunctions = new Set<string>();
-
-// #endregion
-
-// #region Helper Functions
-
-/**
- * Emits a warning message only once for a named facade function.
- *
- * @param funcName - Unique identifier for the function (used for deduplication).
- * @param message - Warning message to display in the console.
- */
-function warnOnce(funcName: string, message: string): void {
-    if (!_warnedFunctions.has(funcName)) {
-        console.warn(message);
-
-        _warnedFunctions.add(funcName);
-    }
-}
-
-// #endregion
-
 // #region Public API
 
 /** Main Blit-Tech API namespace used by runtime demos. */
@@ -532,31 +507,36 @@ export const BT = {
     // #region Text Rendering
 
     /**
-     * Draws basic placeholder text.
+     * Draws text using the built-in 6x14 system font.
      *
-     * This uses the engine's fallback text rendering. For authored bitmap fonts,
-     * prefer {@link BT.printFont}.
+     * The system font covers printable ASCII (characters 32-126). For custom
+     * bitmap fonts with proportional glyphs, use {@link BT.printFont} instead.
      *
      * @param pos - Text origin in display coordinates.
-     * @param paletteIndex - Palette color index.
+     * @param paletteIndex - Palette color index for the text.
      * @param text - String to render.
      */
-    print: (pos: Vector2i, paletteIndex: number, text: string): void => {
-        BTAPI.instance.drawText(pos, paletteIndex, text);
+    systemPrint: (pos: Vector2i, paletteIndex: number, text: string): void => {
+        BTAPI.instance.drawSystemText(pos, paletteIndex, text);
     },
 
     /**
-     * Measures fallback text dimensions.
+     * Measures the pixel dimensions of a string rendered with the built-in
+     * system font.
      *
-     * This API is not implemented yet and currently returns `Vector2i.zero()`.
-     *
-     * @param _text - Text string to measure.
-     * @returns Text size in pixels. Returns `Vector2i.zero()` until measurement support is implemented.
+     * @param text - Text string to measure.
+     * @returns Width and height in pixels, or `Vector2i.zero()` before engine initialization.
      */
-    printMeasure: (_text: string): Vector2i => {
-        warnOnce('printMeasure', '[BT.printMeasure] Not yet implemented');
+    systemPrintMeasure: (text: string): Vector2i => {
+        const font = BTAPI.instance.getSystemFont();
 
-        return Vector2i.zero();
+        if (!font) {
+            return Vector2i.zero();
+        }
+
+        const size = font.measureTextSize(text);
+
+        return new Vector2i(size.width, size.height);
     },
 
     /**
