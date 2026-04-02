@@ -329,6 +329,10 @@ export class BTAPI {
             console.warn('[BT] Active palette structure changed. Call BT.spritesRefresh() to update loaded sprites.');
         }
 
+        // In-flight effects hold snapshots of the old palette. Drop them so they
+        // don't apply stale colors to the new palette.
+        this.paletteEffects.clear();
+
         this.palette = palette;
         this.renderer?.setPalette(palette);
     }
