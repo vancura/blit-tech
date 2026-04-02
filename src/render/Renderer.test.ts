@@ -317,16 +317,6 @@ describe('with initialized renderer', () => {
         renderer.endFrame();
     });
 
-    it('drawText delegates without throwing', () => {
-        renderer.beginFrame();
-
-        expect(() => {
-            renderer.drawText(new Vector2i(10, 10), 8, 'Test');
-        }).not.toThrow();
-
-        renderer.endFrame();
-    });
-
     it('setClearColor works within a frame', () => {
         renderer.beginFrame();
 

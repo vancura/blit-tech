@@ -191,6 +191,50 @@ export class BitmapFont {
 
     // #endregion
 
+    // #region Static Factories
+
+    /**
+     * Creates a bitmap font synchronously from pre-built glyph data.
+     *
+     * Used for embedded fonts (e.g. the built-in system font) where the sprite
+     * sheet and glyph map are already constructed in memory. The sprite sheet
+     * should already contain indexed pixel data via
+     * {@link SpriteSheet.fromIndexedPixels}.
+     *
+     * @param spriteSheet - Texture atlas containing all font glyphs.
+     * @param glyphs - Map of character strings to glyph metadata.
+     * @param name - Font display name.
+     * @param size - Font size in points.
+     * @param lineHeight - Vertical spacing between lines in pixels.
+     * @param baseline - Distance from top to text baseline in pixels.
+     * @returns Fully constructed BitmapFont ready for rendering.
+     */
+    static createFromGlyphs(
+        spriteSheet: SpriteSheet,
+        glyphs: Map<string, Glyph>,
+        name: string,
+        size: number,
+        lineHeight: number,
+        baseline: number,
+    ): BitmapFont {
+        const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+
+        for (const [char, glyph] of glyphs) {
+            if (char.length === 1) {
+                const code = char.charCodeAt(0);
+
+                if (code < ASCII_CACHE_SIZE) {
+                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
+                    asciiGlyphs[code] = glyph;
+                }
+            }
+        }
+
+        return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, name, size, lineHeight, baseline);
+    }
+
+    // #endregion
+
     // #region Loading
 
     /**

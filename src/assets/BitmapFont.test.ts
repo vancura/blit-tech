@@ -14,7 +14,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Rect2i } from '../utils/Rect2i';
 import { BitmapFont } from './BitmapFont';
+import { SpriteSheet } from './SpriteSheet';
 
 // #region Test Fixtures
 
@@ -417,6 +419,59 @@ describe('BitmapFont', () => {
 
             // But values reflect the latest measurement
             expect(size2.width).toBe(17);
+        });
+    });
+
+    // #endregion
+
+    // #region createFromGlyphs
+
+    describe('createFromGlyphs', () => {
+        it('creates a font with correct metadata', () => {
+            const pixels = new Uint8Array(16 * 16) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(16, 16, pixels);
+
+            const glyphs = new Map();
+
+            glyphs.set('A', { rect: new Rect2i(0, 0, 8, 8), offsetX: 0, offsetY: 0, advance: 8 });
+            glyphs.set('B', { rect: new Rect2i(8, 0, 8, 8), offsetX: 0, offsetY: 0, advance: 8 });
+
+            const font = BitmapFont.createFromGlyphs(sheet, glyphs, 'TestFont', 8, 10, 8);
+
+            expect(font.name).toBe('TestFont');
+            expect(font.size).toBe(8);
+            expect(font.lineHeight).toBe(10);
+            expect(font.baseline).toBe(8);
+            expect(font.glyphCount).toBe(2);
+        });
+
+        it('populates ASCII fast-path for single-byte characters', () => {
+            const pixels = new Uint8Array(16 * 16) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(16, 16, pixels);
+
+            const glyphs = new Map();
+
+            glyphs.set('A', { rect: new Rect2i(0, 0, 8, 8), offsetX: 0, offsetY: 0, advance: 8 });
+
+            const font = BitmapFont.createFromGlyphs(sheet, glyphs, 'Test', 8, 8, 8);
+
+            expect(font.getGlyph('A')).not.toBeNull();
+            expect(font.getGlyphByCode(65)).not.toBeNull();
+            expect(font.getGlyph('A')).toBe(font.getGlyphByCode(65));
+        });
+
+        it('measures text correctly', () => {
+            const pixels = new Uint8Array(16 * 16) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(16, 16, pixels);
+
+            const glyphs = new Map();
+
+            glyphs.set('H', { rect: new Rect2i(0, 0, 8, 8), offsetX: 0, offsetY: 0, advance: 8 });
+            glyphs.set('i', { rect: new Rect2i(8, 0, 8, 8), offsetX: 0, offsetY: 0, advance: 6 });
+
+            const font = BitmapFont.createFromGlyphs(sheet, glyphs, 'Test', 8, 8, 8);
+
+            expect(font.measureText('Hi')).toBe(14); // 8 + 6
         });
     });
 

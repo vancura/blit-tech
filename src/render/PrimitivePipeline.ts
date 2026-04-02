@@ -154,35 +154,6 @@ export class PrimitivePipeline {
     }
 
     /**
-     * Draws placeholder text as colored blocks.
-     * Each character is rendered as a small filled rectangle.
-     *
-     * @param pos - Text position (top-left corner).
-     * @param paletteIndex - Palette color index.
-     * @param text - String to display.
-     */
-    drawText(pos: Vector2i, paletteIndex: number, text: string): void {
-        const charWidth = 6;
-        const charHeight = 8;
-
-        for (let i = 0; i < text.length; i++) {
-            const x0 = pos.x + i * charWidth;
-            const x1 = x0 + charWidth - 1;
-            const y0 = pos.y;
-            const y1 = y0 + charHeight;
-
-            // Draw directly without allocating Rect2i.
-            this.addVertex(x0, y0, paletteIndex);
-            this.addVertex(x1, y0, paletteIndex);
-            this.addVertex(x0, y1, paletteIndex);
-
-            this.addVertex(x1, y0, paletteIndex);
-            this.addVertex(x1, y1, paletteIndex);
-            this.addVertex(x0, y1, paletteIndex);
-        }
-    }
-
-    /**
      * Draws a single pixel as a 1x1 filled rectangle.
      *
      * @param pos - Pixel position.

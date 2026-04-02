@@ -9,6 +9,7 @@ import {
     paletteSwap,
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import { createSystemFont } from '../assets/SystemFont';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -84,6 +85,9 @@ export class BTAPI {
 
     /** Manages animated palette effects (cycling, fading, flashing). */
     private readonly paletteEffects = new PaletteEffectManager();
+
+    /** Built-in 6x14 system font for BT.systemPrint(). */
+    private systemFont: BitmapFont | null = null;
 
     // TODO: Additional subsystems for future implementation:
     // InputManager, AudioManager, AssetManager
@@ -188,6 +192,9 @@ export class BTAPI {
         }
 
         console.log('[BT] Renderer initialized');
+
+        // Create the built-in system font (synchronous, no GPU needed yet).
+        this.systemFont = createSystemFont();
 
         // TODO: Initialize input, audio, etc.
 
@@ -413,16 +420,35 @@ export class BTAPI {
     }
 
     /**
-     * Draws placeholder text (simple rectangle blocks).
-     * For proper text rendering, use drawBitmapText() instead.
+     * Draws text using the built-in 6x14 system font.
+     *
+     * The system font stores foreground pixels as palette index 1. The
+     * `paletteIndex` parameter is converted to a sprite pipeline palette
+     * offset so that each foreground pixel maps to `palette[paletteIndex]`.
      *
      * @param pos - Text position (top-left corner).
-     * @param paletteIndex - Palette color index.
+     * @param paletteIndex - Palette color index for the text.
      * @param text - String to display.
      */
-    public drawText(pos: Vector2i, paletteIndex: number, text: string): void {
+    public drawSystemText(pos: Vector2i, paletteIndex: number, text: string): void {
         this.assertPaletteIndex(paletteIndex);
-        this.renderer?.drawText(pos, paletteIndex, text);
+
+        if (this.systemFont) {
+            // Offset math: font stores foreground as index 1.
+            // Shader computes 1 + (paletteIndex - 1) = paletteIndex.
+            const offset = paletteIndex > 0 ? paletteIndex - 1 : 0;
+
+            this.renderer?.drawBitmapText(this.systemFont, pos, text, offset);
+        }
+    }
+
+    /**
+     * Returns the built-in system font, or null if not yet initialized.
+     *
+     * @returns The system BitmapFont instance.
+     */
+    public getSystemFont(): BitmapFont | null {
+        return this.systemFont;
     }
 
     // #endregion

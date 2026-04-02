@@ -140,15 +140,6 @@ describe('pre-initialization safety', () => {
             pipeline.clearRect(rect, 1);
         }).not.toThrow();
     });
-
-    it('drawText() does not throw before initialize', () => {
-        const pipeline = new PrimitivePipeline();
-        const pos = new Vector2i(10, 10);
-
-        expect(() => {
-            pipeline.drawText(pos, 8, 'Hello');
-        }).not.toThrow();
-    });
 });
 
 // #endregion
@@ -415,25 +406,6 @@ describe('vertex count verification', () => {
 
         // 4 sides = 4 quads = 24 vertices
         expect(totalVertices).toBe(24);
-    });
-
-    it('drawText produces six vertices per character', () => {
-        pipeline.reset();
-
-        pipeline.drawText(new Vector2i(0, 0), 8, 'Hi');
-
-        let totalVertices = 0;
-
-        const renderPass = {
-            ...createMockRenderPassEncoder(),
-            draw: (vertexCount: number) => {
-                totalVertices += vertexCount;
-            },
-        } as unknown as GPURenderPassEncoder;
-
-        pipeline.encodePass(renderPass);
-
-        expect(totalVertices).toBe(2 * 6); // 2 characters * 6 vertices each
     });
 
     it('buffer overflow triggers console.warn and does not crash', () => {

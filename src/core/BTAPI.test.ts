@@ -195,8 +195,8 @@ describe('BTAPI', () => {
             expect(() => BTAPI.instance.drawRectFill(new Rect2i(0, 0, 10, 10), 5)).not.toThrow();
         });
 
-        it('drawText should not throw before init', () => {
-            expect(() => BTAPI.instance.drawText(new Vector2i(0, 0), 8, 'test')).not.toThrow();
+        it('drawSystemText should not throw before init', () => {
+            expect(() => BTAPI.instance.drawSystemText(new Vector2i(0, 0), 8, 'test')).not.toThrow();
         });
 
         it('drawSprite should not throw before init', () => {

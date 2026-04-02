@@ -344,4 +344,58 @@ describe('SpriteSheet', () => {
     });
 
     // #endregion
+
+    // #region fromIndexedPixels
+
+    describe('fromIndexedPixels', () => {
+        it('creates a sheet with correct dimensions', () => {
+            const pixels = new Uint8Array(16 * 16) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(16, 16, pixels);
+
+            expect(sheet.size.x).toBe(16);
+            expect(sheet.size.y).toBe(16);
+        });
+
+        it('marks the sheet as indexized', () => {
+            const pixels = new Uint8Array(8 * 8) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(8, 8, pixels);
+
+            expect(sheet.isIndexized()).toBe(true);
+        });
+
+        it('throws on indexize (no source image)', () => {
+            const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+            const palette = new Palette(16);
+
+            expect(() => sheet.indexize(palette)).toThrow('not available for sheets created from raw indexed data');
+        });
+
+        it('throws on reindexize (no source image)', () => {
+            const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+            const palette = new Palette(16);
+
+            expect(() => sheet.reindexize(palette)).toThrow('not available for sheets created from raw indexed data');
+        });
+
+        it('throws on getImage (no source image)', () => {
+            const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+
+            expect(() => sheet.getImage()).toThrow('not available for sheets created from raw indexed data');
+        });
+
+        it('creates r8uint GPU texture via getTexture', () => {
+            const device = createMockGPUDevice();
+            const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+
+            const texture = sheet.getTexture(device);
+
+            expect(texture).toBeDefined();
+        });
+    });
+
+    // #endregion
 });
