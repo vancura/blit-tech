@@ -1,7 +1,37 @@
 # Bitmap Fonts in Blit-Tech
 
-Blit-Tech uses a modern `.btfont` JSON format for bitmap fonts. This format supports variable-width glyphs,
+Blit-Tech ships with a built-in system font and supports custom `.btfont` bitmap fonts with variable-width glyphs,
 per-character offsets, Unicode characters, and either embedded or external textures.
+
+## Built-in System Font
+
+The engine includes a 6x14 monospace bitmap font covering printable ASCII (characters 32-126). It requires no file
+loading and is available immediately after initialization:
+
+```ts
+// Draw text with the system font (palette index selects the color)
+BT.systemPrint(new Vector2i(10, 10), 1, 'Hello World!');
+
+// Measure text dimensions
+const size = BT.systemPrintMeasure('Hello'); // returns Vector2i(width, height)
+```
+
+### Editing the System Font
+
+The glyph data is stored as bit patterns in `src/assets/fonts/systemFontData.ts`. To edit it visually:
+
+```bash
+pnpm system-font:export   # exports current data to assets/system-font.png (96x84, 16x6 grid of 6x14 cells)
+# open assets/system-font.png in a pixel editor and redraw glyphs
+pnpm system-font:convert  # reads the PNG and regenerates systemFontData.ts
+```
+
+White pixels become foreground (palette index 1), black pixels become transparent (palette index 0). Only the top 6 bits
+of each byte are used (6-pixel glyph width within an 8-bit row).
+
+## Custom Bitmap Fonts (.btfont)
+
+For proportional fonts, Unicode support, or custom aesthetics, load a `.btfont` file:
 
 ## Quick Start
 
