@@ -22,6 +22,8 @@ import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
 import { checkWebGPUSupport, displayError, getCanvas } from './utils/BootstrapHelpers';
 import { Color32 } from './utils/Color32';
+import type { EasingFunction } from './utils/Easing';
+import { applyEasing } from './utils/Easing';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
 
@@ -618,6 +620,7 @@ export const BT = {
 // #region Exports
 
 export {
+    applyEasing,
     AssetLoader,
     BitmapFont,
     bootstrap,
@@ -631,6 +634,6 @@ export {
     SpriteSheet,
     Vector2i,
 };
-export type { BootstrapOptions, HardwareSettings, IBlitTechDemo, TextSize };
+export type { BootstrapOptions, EasingFunction, HardwareSettings, IBlitTechDemo, TextSize };
 
 // #endregion

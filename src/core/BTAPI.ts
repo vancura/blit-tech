@@ -73,7 +73,7 @@ export class BTAPI {
     private loop: GameLoop | null = null;
 
     // TODO: Additional subsystems for future implementation:
-    // InputManager, AudioManager, EffectsManager, AssetManager
+    // InputManager, AudioManager, AssetManager
 
     // #endregion
 

@@ -221,6 +221,7 @@ blit-tech/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
 │   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
 │   │   ├── Color32.ts          # 32-bit RGBA color
+│   │   ├── Easing.ts           # Easing functions for palette effects
 │   │   ├── FrameCapture.ts     # GPU readback + PNG export
 │   │   ├── Rect2i.ts           # Integer rectangle
 │   │   └── Vector2i.ts         # Integer 2D vector
