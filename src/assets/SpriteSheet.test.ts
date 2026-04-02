@@ -397,12 +397,15 @@ describe('SpriteSheet', () => {
 
         it('creates r8uint GPU texture via getTexture', () => {
             const device = createMockGPUDevice();
+            const createTextureSpy = vi.spyOn(device, 'createTexture');
             const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;
             const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
 
             const texture = sheet.getTexture(device);
 
             expect(texture).toBeDefined();
+            expect(createTextureSpy).toHaveBeenCalledOnce();
+            expect(createTextureSpy).toHaveBeenCalledWith(expect.objectContaining({ format: 'r8uint' }));
         });
     });
 

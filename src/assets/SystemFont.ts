@@ -76,7 +76,6 @@ function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
 
         for (let y = 0; y < SYSTEM_FONT_GLYPH_HEIGHT; y++) {
             // Safe: length validated above guarantees bitmapOffset + y is in bounds.
-             
             const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] as number;
 
             for (let x = 0; x < SYSTEM_FONT_GLYPH_WIDTH; x++) {
