@@ -62,6 +62,7 @@ Current benchmark files:
 - `src/utils/Color32.bench.ts`
 - `src/utils/Rect2i.bench.ts`
 - `src/assets/BitmapFont.bench.ts`
+- `src/assets/PaletteEffect.bench.ts`
 
 ### Tier 1 Metrics
 

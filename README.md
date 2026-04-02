@@ -25,6 +25,7 @@ primitives, and fonts.
 
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
+- **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
@@ -206,6 +207,7 @@ blit-tech/
 │   │   ├── AssetLoader.ts      # Image loading with caching
 │   │   ├── BitmapFont.ts       # Bitmap font system (.btfont)
 │   │   ├── Palette.ts          # 256-entry indexed color palette
+│   │   ├── PaletteEffect.ts    # Palette effect system (cycle, fade, flash, swap)
 │   │   ├── SpriteSheet.ts      # GPU texture wrapper with palette indexization
 │   │   └── palettes/           # Built-in preset palette data (VGA, CGA, C64, etc.)
 │   ├── core/
@@ -306,6 +308,35 @@ Palette.nes(); // NES 64-color
 const json = palette.toJSON();
 const restored = Palette.fromJSON(json);
 ```
+
+### Palette Effects
+
+Animated palette effects run automatically each frame, modifying palette entries in place. The renderer picks up changes
+via the dirty flag and re-uploads the palette to the GPU.
+
+```ts
+// Cycle a range of palette entries (creates flowing water, fire, etc.)
+BT.paletteCycle(start, end, speed); // speed: steps/second (positive=forward, negative=backward)
+
+// Smooth fade between palettes (day/night transitions, etc.)
+BT.paletteFade(targetPalette, durationMs); // fade entire palette
+BT.paletteFade(targetPalette, durationMs, 'ease-in-out'); // with easing
+BT.paletteFadeRange(start, end, targetPalette, durationMs, 'ease-out'); // fade a sub-range only
+
+// Flash all palette entries to a single color (lightning, damage, etc.)
+BT.paletteFlash(Color32.white(), 200); // 200ms flash
+
+// Swap two palette entries instantly
+BT.paletteSwap(indexA, indexB);
+
+// Remove all active effects
+BT.paletteClearEffects();
+```
+
+Available easing functions: `'linear'`, `'ease-in'`, `'ease-out'`, `'ease-in-out'`.
+
+Effects are processed after `demo.render()` but before the GPU upload in `Renderer.endFrame()`, so user code and effects
+never conflict. Multiple effects can run simultaneously on different palette ranges.
 
 ### Drawing Primitives
 
