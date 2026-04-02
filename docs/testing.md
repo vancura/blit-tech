@@ -12,6 +12,7 @@ Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
 - **Rect2i** - intersection, containment, computed properties
 - **Color32** - color math, conversions, blending
 - **Palette** - construction, set/get, named aliases, serialization, GPU float layout, preset factories
+- **PaletteEffect** - manager lifecycle, CycleEffect rotation, FadeEffect/FadeRangeEffect lerp, FlashEffect, paletteSwap
 - **Easing** - boundary values, monotonicity, midpoint checks for all easing curves
 - **GameLoop** - constructor validation, tick counter
 - **IBlitTechDemo** - default hardware settings

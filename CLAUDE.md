@@ -36,6 +36,9 @@ src/
     AssetLoader.ts         # Image loading with caching
     SpriteSheet.ts         # GPU texture wrapper
     BitmapFont.ts          # Bitmap font system (.btfont)
+    Palette.ts             # 256-entry indexed color palette
+    PaletteEffect.ts       # Palette effect system (cycle, fade, flash, swap)
+    palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.)
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
     BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display
@@ -113,7 +116,7 @@ pnpm test:perf           # Run Tier 2 browser/GPU frame-time benchmarks
 
 **Test tiers:**
 
-1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, Easing, GameLoop
+1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, Palette, PaletteEffect, Easing, GameLoop
 2. **Integration tests** (Vitest, Node + GPU mocks; happy-dom for DOM tests) - DOM and GPU code
 3. **Visual regression** (Playwright, Chromium) - Rendering output verification
 4. **Performance tests**
