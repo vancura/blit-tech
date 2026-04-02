@@ -42,6 +42,7 @@ src/
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
+    Easing.ts              # Easing functions for palette effects
     FrameCapture.ts        # GPU readback + PNG export
   __test__/
     webgpu-mock.ts         # WebGPU mock factories for tests
@@ -112,7 +113,7 @@ pnpm test:perf           # Run Tier 2 browser/GPU frame-time benchmarks
 
 **Test tiers:**
 
-1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, GameLoop
+1. **Unit tests** (Vitest, node) - Pure logic: Vector2i, Rect2i, Color32, Easing, GameLoop
 2. **Integration tests** (Vitest, Node + GPU mocks; happy-dom for DOM tests) - DOM and GPU code
 3. **Visual regression** (Playwright, Chromium) - Rendering output verification
 4. **Performance tests**
