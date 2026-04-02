@@ -58,7 +58,11 @@ export class Renderer {
     /** Reusable staging buffer for GPU palette uploads. Avoids per-frame allocation. */
     private readonly paletteStaging = new Float32Array(256 * 4);
 
-    /** True when the palette has changed and needs to be re-uploaded to the GPU. */
+    /**
+     * True after {@link setPalette} is called, guaranteeing at least one upload
+     * even when the palette was never mutated via {@link Palette.set}.
+     * Per-frame mutations are detected separately via {@link Palette.dirty}.
+     */
     private paletteDirty: boolean = false;
 
     // #endregion
@@ -131,10 +135,16 @@ export class Renderer {
     /**
      * Sets the active palette used for rendering.
      *
+     * Stores a reference to the supplied palette — no clone is made. Subsequent
+     * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
+     * will be detected via {@link Palette.dirty} and uploaded automatically at the
+     * start of the next frame. {@link paletteDirty} is set to guarantee the initial
+     * upload even when the palette has never been mutated through {@link Palette.set}.
+     *
      * @param palette - Palette to use for color lookups and GPU upload.
      */
     setPalette(palette: Palette): void {
-        this.palette = palette.clone();
+        this.palette = palette;
         this.paletteDirty = true;
 
         // If the new palette is smaller than the current clear index, reset to 0
@@ -145,10 +155,13 @@ export class Renderer {
     }
 
     /**
-     * Returns a copy of the active palette, or null if none has been set.
+     * Returns a snapshot of the active palette, or null if none has been set.
      *
-     * Returns a clone so callers cannot mutate the internal palette and bypass
-     * the dirty flag that drives GPU re-upload.
+     * Returns a clone to prevent callers from accidentally mutating the active
+     * palette through the returned reference in ways that may be surprising.
+     * To intentionally update palette colors, mutate the original palette object
+     * that was passed to {@link setPalette} — changes will auto-propagate via the
+     * dirty flag on the next frame.
      *
      * @returns Clone of the active palette instance, or null.
      */
@@ -214,10 +227,14 @@ export class Renderer {
         }
 
         // Upload palette to GPU only when it has changed.
-        if (this.palette && this.paletteBuffer && this.paletteDirty) {
+        // paletteDirty covers the initial upload after setPalette() is called with a
+        // palette that has not been mutated via set(). palette.dirty covers subsequent
+        // per-frame mutations made directly on the active palette object.
+        if (this.palette && this.paletteBuffer && (this.paletteDirty || this.palette.dirty)) {
             this.palette.toFloat32ArrayInto(this.paletteStaging);
             this.device.queue.writeBuffer(this.paletteBuffer, 0, this.paletteStaging);
             this.paletteDirty = false;
+            this.palette.clearDirty();
         }
 
         // Resolve clear color from palette.

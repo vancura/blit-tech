@@ -37,8 +37,12 @@ describe('Palette', () => {
 
         palette.set(0, new Color32(12, 34, 56, 0));
 
-        expect(palette.get(0)).toBe(Color32.transparent());
-        expect(Object.isFrozen(palette.get(0))).toBe(true);
+        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
+
+        // get() returns a clone, so mutating the result must not change the stored entry.
+        const copy = palette.get(0);
+        copy.r = 99;
+        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
     });
 
     it('sets and gets entries within range and throws out of range', () => {
@@ -51,6 +55,19 @@ describe('Palette', () => {
         expect(palette.get(5)).not.toBe(color);
         expect(() => palette.get(16)).toThrow('Palette index 16 out of range (palette size: 16)');
         expect(() => palette.set(-1, color)).toThrow('Palette index -1 out of range (palette size: 16)');
+    });
+
+    it('get() returns a defensive copy — mutating the result does not change the stored entry', () => {
+        const palette = new Palette(16);
+
+        palette.set(3, new Color32(10, 20, 30, 255));
+
+        const copy = palette.get(3);
+        copy.r = 99;
+        copy.g = 99;
+        copy.b = 99;
+
+        expect(palette.get(3).equals(new Color32(10, 20, 30, 255))).toBe(true);
     });
 
     it('supports named indices and named color lookups', () => {
@@ -224,6 +241,74 @@ describe('Palette', () => {
         expect(Palette.gameboy().get(1).equals(Color32.fromHex('#306230'))).toBe(true);
         expect(Palette.nes().get(1).equals(Color32.fromHex('#0000fc'))).toBe(true);
         expect(Palette.pico8().get(12).equals(Color32.fromHex('#29adff'))).toBe(true);
+    });
+});
+
+// #endregion
+
+// #region Palette dirty flag
+
+describe('Palette dirty flag', () => {
+    it('starts clean after construction', () => {
+        expect(new Palette(16).dirty).toBe(false);
+    });
+
+    it('becomes dirty after set()', () => {
+        const palette = new Palette(16);
+
+        palette.set(1, new Color32(255, 0, 0, 255));
+
+        expect(palette.dirty).toBe(true);
+    });
+
+    it('clearDirty() resets the flag', () => {
+        const palette = new Palette(16);
+
+        palette.set(1, new Color32(255, 0, 0, 255));
+        palette.clearDirty();
+
+        expect(palette.dirty).toBe(false);
+    });
+
+    it('becomes dirty after copyFrom()', () => {
+        const src = new Palette(16);
+        const dest = new Palette(16);
+
+        dest.copyFrom(src);
+
+        expect(dest.dirty).toBe(true);
+    });
+
+    it('clone() returns a non-dirty palette regardless of source state', () => {
+        const palette = new Palette(16);
+
+        palette.set(1, new Color32(255, 0, 0, 255));
+
+        expect(palette.dirty).toBe(true);
+        expect(palette.clone().dirty).toBe(false);
+    });
+
+    it('setting index 0 to transparent does not mark dirty', () => {
+        const palette = new Palette(16);
+
+        palette.set(0, new Color32(0, 0, 0, 0));
+
+        expect(palette.dirty).toBe(false);
+    });
+
+    it('remains dirty through multiple set() calls until cleared', () => {
+        const palette = new Palette(16);
+
+        palette.set(1, new Color32(255, 0, 0, 255));
+        palette.set(2, new Color32(0, 255, 0, 255));
+        palette.set(3, new Color32(0, 0, 255, 255));
+        palette.clearDirty();
+
+        expect(palette.dirty).toBe(false);
+
+        palette.set(4, new Color32(255, 255, 0, 255));
+
+        expect(palette.dirty).toBe(true);
     });
 });
 
