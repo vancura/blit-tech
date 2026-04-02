@@ -651,6 +651,10 @@ export class BTAPI {
      * @param durationMs - How long the flash lasts in milliseconds.
      */
     public paletteFlash(color: Color32, durationMs: number): void {
+        if (!this.palette) {
+            throw new Error('[BT] Cannot flash palette: no active palette set.');
+        }
+
         this.assertFiniteDuration('paletteFlash', durationMs);
         this.paletteEffects.add(new FlashEffect(color, durationMs));
     }
