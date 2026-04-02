@@ -132,8 +132,8 @@ export class Palette {
     /** Number of usable palette entries. */
     public readonly size: number;
 
-    /** Mutable indexed color entries. Index `0` is always transparent. */
-    public readonly colors: Color32[];
+    /** Indexed color entries. Index `0` is always transparent. */
+    private readonly colors: Color32[];
 
     /** Optional human-readable aliases for palette indices. */
     private readonly namedIndices = new Map<string, number>();
@@ -321,16 +321,19 @@ export class Palette {
     }
 
     /**
-     * Returns the color stored at a palette index.
+     * Returns a copy of the color stored at a palette index.
+     *
+     * Returns a clone so callers cannot mutate internal state without going
+     * through {@link set}, which keeps the dirty flag accurate.
      *
      * @param index - Palette index to read.
-     * @returns Stored color entry.
+     * @returns Clone of the stored color entry.
      * @throws Error if the index is invalid.
      */
     public get(index: number): Color32 {
         this.assertIndexInRange(index);
 
-        return this.colorAt(index);
+        return this.colorAt(index).clone();
     }
 
     /**

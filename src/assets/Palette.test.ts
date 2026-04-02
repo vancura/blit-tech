@@ -37,8 +37,12 @@ describe('Palette', () => {
 
         palette.set(0, new Color32(12, 34, 56, 0));
 
-        expect(palette.get(0)).toBe(Color32.transparent());
-        expect(Object.isFrozen(palette.get(0))).toBe(true);
+        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
+
+        // get() returns a clone, so mutating the result must not change the stored entry.
+        const copy = palette.get(0);
+        copy.r = 99;
+        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
     });
 
     it('sets and gets entries within range and throws out of range', () => {
@@ -51,6 +55,19 @@ describe('Palette', () => {
         expect(palette.get(5)).not.toBe(color);
         expect(() => palette.get(16)).toThrow('Palette index 16 out of range (palette size: 16)');
         expect(() => palette.set(-1, color)).toThrow('Palette index -1 out of range (palette size: 16)');
+    });
+
+    it('get() returns a defensive copy — mutating the result does not change the stored entry', () => {
+        const palette = new Palette(16);
+
+        palette.set(3, new Color32(10, 20, 30, 255));
+
+        const copy = palette.get(3);
+        copy.r = 99;
+        copy.g = 99;
+        copy.b = 99;
+
+        expect(palette.get(3).equals(new Color32(10, 20, 30, 255))).toBe(true);
     });
 
     it('supports named indices and named color lookups', () => {
