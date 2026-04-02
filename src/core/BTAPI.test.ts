@@ -223,7 +223,7 @@ describe('BTAPI', () => {
             const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).toThrow(
-                '[BT] drawBitmapText: sprite sheet has not been indexized.',
+                '[BT] drawBitmapText: font sprite sheet has not been indexized.',
             );
         });
 

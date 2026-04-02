@@ -457,7 +457,7 @@ export class BTAPI {
      */
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
-        this.requireIndexizedSheet(font.getSpriteSheet(), 'drawBitmapText');
+        this.requireIndexizedSheet(font.getSpriteSheet(), 'drawBitmapText', 'font sprite sheet');
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -675,12 +675,13 @@ export class BTAPI {
      *
      * @param sheet - Sprite sheet to validate.
      * @param method - Calling method name for the error message.
+     * @param label - Human-readable name for the sheet used in the error message (default `'sprite sheet'`).
      * @throws If the sprite sheet has not been indexized.
      */
-    private requireIndexizedSheet(sheet: SpriteSheet, method: string): void {
+    private requireIndexizedSheet(sheet: SpriteSheet, method: string, label: string = 'sprite sheet'): void {
         if (!sheet.isIndexized()) {
             throw new Error(
-                `[BT] ${method}: sprite sheet has not been indexized.` +
+                `[BT] ${method}: ${label} has not been indexized.` +
                     ' Call spriteSheet.indexize(palette) after setting a palette.',
             );
         }
