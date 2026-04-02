@@ -12,6 +12,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    SYSTEM_FONT_BITMAPS,
+    SYSTEM_FONT_BYTES_PER_GLYPH,
     SYSTEM_FONT_FIRST_CHAR,
     SYSTEM_FONT_GLYPH_COUNT,
     SYSTEM_FONT_GLYPH_HEIGHT,
@@ -29,6 +31,10 @@ describe('createSystemFont', () => {
 
         expect(font).toBeDefined();
         expect(font.name).toBe('System');
+    });
+
+    it('bitmap data has correct total length', () => {
+        expect(SYSTEM_FONT_BITMAPS.length).toBe(SYSTEM_FONT_GLYPH_COUNT * SYSTEM_FONT_BYTES_PER_GLYPH);
     });
 
     it('has correct metadata', () => {

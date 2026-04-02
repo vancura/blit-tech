@@ -115,6 +115,14 @@ export class SpriteSheet {
      * @returns Sprite sheet ready for rendering.
      */
     static fromIndexedPixels(width: number, height: number, indexedPixels: Uint8Array<ArrayBuffer>): SpriteSheet {
+        const expectedLength = width * height;
+
+        if (indexedPixels.length !== expectedLength) {
+            throw new RangeError(
+                `[SpriteSheet] indexedPixels length ${indexedPixels.length} does not match ${width}x${height} (expected ${expectedLength}).`,
+            );
+        }
+
         const sheet = new SpriteSheet(null, new Vector2i(width, height));
 
         sheet.indexedPixels = indexedPixels;

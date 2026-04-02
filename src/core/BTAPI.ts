@@ -433,12 +433,15 @@ export class BTAPI {
     public drawSystemText(pos: Vector2i, paletteIndex: number, text: string): void {
         this.assertPaletteIndex(paletteIndex);
 
+        // Palette index 0 is transparent -- nothing to draw.
+        if (paletteIndex === 0) {
+            return;
+        }
+
         if (this.systemFont) {
             // Offset math: font stores foreground as index 1.
             // Shader computes 1 + (paletteIndex - 1) = paletteIndex.
-            const offset = paletteIndex > 0 ? paletteIndex - 1 : 0;
-
-            this.renderer?.drawBitmapText(this.systemFont, pos, text, offset);
+            this.renderer?.drawBitmapText(this.systemFont, pos, text, paletteIndex - 1);
         }
     }
 

@@ -57,6 +57,14 @@ const ATLAS_HEIGHT = ATLAS_ROWS * SYSTEM_FONT_GLYPH_HEIGHT;
  * @returns Uint8Array of `ATLAS_WIDTH * ATLAS_HEIGHT` palette indices.
  */
 function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
+    const expectedLength = SYSTEM_FONT_GLYPH_COUNT * SYSTEM_FONT_BYTES_PER_GLYPH;
+
+    if (SYSTEM_FONT_BITMAPS.length < expectedLength) {
+        throw new Error(
+            `[SystemFont] SYSTEM_FONT_BITMAPS has ${SYSTEM_FONT_BITMAPS.length} entries, expected at least ${expectedLength}.`,
+        );
+    }
+
     const pixels = new Uint8Array(ATLAS_WIDTH * ATLAS_HEIGHT) as Uint8Array<ArrayBuffer>;
 
     for (let i = 0; i < SYSTEM_FONT_GLYPH_COUNT; i++) {
@@ -67,7 +75,9 @@ function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
         const bitmapOffset = i * SYSTEM_FONT_BYTES_PER_GLYPH;
 
         for (let y = 0; y < SYSTEM_FONT_GLYPH_HEIGHT; y++) {
-            const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] ?? 0;
+            // Safe: length validated above guarantees bitmapOffset + y is in bounds.
+             
+            const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] as number;
 
             for (let x = 0; x < SYSTEM_FONT_GLYPH_WIDTH; x++) {
                 // Bit 7 is leftmost pixel.

@@ -386,6 +386,15 @@ describe('SpriteSheet', () => {
             expect(() => sheet.getImage()).toThrow('not available for sheets created from raw indexed data');
         });
 
+        it('throws RangeError when pixel array length mismatches dimensions', () => {
+            const pixels = new Uint8Array(10) as Uint8Array<ArrayBuffer>;
+
+            expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(RangeError);
+            expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(
+                'indexedPixels length 10 does not match 4x4 (expected 16)',
+            );
+        });
+
         it('creates r8uint GPU texture via getTexture', () => {
             const device = createMockGPUDevice();
             const pixels = new Uint8Array(4 * 4) as Uint8Array<ArrayBuffer>;

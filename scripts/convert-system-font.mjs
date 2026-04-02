@@ -148,6 +148,8 @@ function generateTypeScript(bitmaps) {
     lines.push(' * This font data is in the public domain.');
     lines.push(' */');
     lines.push('');
+    lines.push('// #region Bitmap Data');
+    lines.push('');
     lines.push('// prettier-ignore');
     lines.push('export const SYSTEM_FONT_BITMAPS: readonly number[] = [');
 
@@ -163,7 +165,12 @@ function generateTypeScript(bitmaps) {
 
     lines.push('];');
     lines.push('');
+    lines.push('// #endregion');
+    lines.push('');
+    lines.push('// #region Constants');
+    lines.push('');
     lines.push('/** First character code in the bitmap array. */');
+
     lines.push('export const SYSTEM_FONT_FIRST_CHAR = 32;');
     lines.push('');
     lines.push('/** Last character code in the bitmap array (inclusive). */');
@@ -181,6 +188,7 @@ function generateTypeScript(bitmaps) {
     lines.push('/** Number of bytes per glyph (one byte per row). */');
     lines.push('export const SYSTEM_FONT_BYTES_PER_GLYPH = 14;');
     lines.push('');
+    lines.push('// #endregion');
 
     return lines.join('\n');
 }
