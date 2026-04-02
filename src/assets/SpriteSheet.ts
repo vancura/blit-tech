@@ -172,12 +172,43 @@ export class SpriteSheet {
     /**
      * Re-converts retained RGBA pixels to palette indices using a new palette.
      *
-     * Useful after a palette swap to keep all sprite sheets in sync. Must be
-     * preceded by a call to `indexize()`. The GPU texture is invalidated and
+     * Use this only when the **slot layout** of the palette has changed — that is,
+     * when the same colors now live at different index positions. It works by
+     * replaying the original RGBA data through `palette.findColor()` and assigning
+     * each opaque pixel the index of its matching color in the new palette.
+     *
+     * **Do not call this to change what color a slot displays.** If you only want
+     * to swap the visible color at a slot (e.g. animate a fire effect), mutate the
+     * palette entry directly — the stored indices remain valid and the fragment
+     * shader picks up the new color automatically on the next frame:
+     *
+     * ```ts
+     * // Palette-value swap: change what a slot looks like.
+     * // The sprite's stored indices are unchanged; no reindexize needed.
+     * palette.set(FIRE_SLOT, Color32.fromHex('#ff4400'));
+     * BT.paletteSet(palette);
+     * ```
+     *
+     * ```ts
+     * // Palette-layout swap: same colors, different slot positions.
+     * // Sprite indices now point to wrong slots, so reindexize is required.
+     * sheet.reindexize(newLayoutPalette);
+     * // Or for all sheets at once:
+     * BT.paletteSet(newLayoutPalette);
+     * BT.spritesRefresh();
+     * ```
+     *
+     * If the new palette does not contain a pixel's original RGBA value,
+     * `palette.findColor()` returns `-1` and `reindexize()` throws an `Error`
+     * with the offending color and coordinates, e.g.:
+     * `[SpriteSheet] 'sheet.png' pixel at (x, y) has color #rrggbb which is not in the active palette.`
+     *
+     * Must be preceded by a call to `indexize()`. The GPU texture is invalidated and
      * re-created on the next `getTexture()` call.
      *
      * @param palette - New palette used for color-to-index mapping.
      * @throws If `indexize()` has not been called yet.
+     * @throws If any opaque pixel's color is not found in the new palette.
      */
     reindexize(palette: Palette): void {
         if (this.rgbaPixels === null) {

@@ -202,6 +202,20 @@ export const BT = {
     /**
      * Stores the active engine palette.
      *
+     * Use this to swap the **entire palette** (e.g. switch between a day and night
+     * theme). After this call the renderer uploads the new palette uniform on the
+     * next frame.
+     *
+     * **Palette-value swap (change what a slot looks like):** mutate the current
+     * palette with `palette.set(slot, newColor)` and then call `paletteSet()`. The
+     * sprite sheets' stored indices are unchanged — no {@link BT.spritesRefresh}
+     * needed.
+     *
+     * **Palette-layout swap (same colors, different slot positions):** build a new
+     * palette with the same colors at new indices, call `paletteSet()`, then call
+     * {@link BT.spritesRefresh} so every sprite sheet re-maps its original RGBA
+     * pixels against the new slot layout.
+     *
      * @param palette - Palette to make active.
      */
     paletteSet: (palette: Palette): void => {
@@ -569,8 +583,26 @@ export const BT = {
     /**
      * Re-indexizes all tracked sprite sheets against the current active palette.
      *
-     * Call after swapping or modifying the active palette to keep all loaded
-     * sprite sheets in sync with the new color-to-index mapping.
+     * Only call this after a **palette-layout swap** — when the same colors have
+     * moved to different slot positions and existing sprite indices now point to
+     * the wrong slots. Each sheet re-runs exact RGBA-to-index matching against the
+     * active palette via `SpriteSheet.reindexize()`. If any opaque pixel's original
+     * color is missing from the new palette, `reindexize()` throws, and
+     * `spritesRefresh()` catches that error and removes the affected sheet from the
+     * registry (it will no longer render).
+     *
+     * **Do not call this after a palette-value swap.** If you changed what color a
+     * slot holds (e.g. palette animation, theme tinting), the stored indices are
+     * still correct — the fragment shader picks up the new color automatically.
+     * Calling `spritesRefresh()` in that case is wasteful at best; at worst, if the
+     * original RGBA values are gone from the palette, sheets with missing colors
+     * will fail reindexing and be removed from the registry.
+     *
+     * Typical usage after a layout swap:
+     * ```ts
+     * BT.paletteSet(newLayoutPalette);
+     * BT.spritesRefresh(); // re-map all sheets to the new slot positions
+     * ```
      *
      * @throws If no active palette has been set.
      */
