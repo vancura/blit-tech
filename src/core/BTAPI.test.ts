@@ -213,6 +213,18 @@ describe('BTAPI', () => {
             );
         });
 
+        it('drawSprite should register the sheet for spritesRefresh tracking', () => {
+            const palette = new Palette(16);
+            const reindexize = vi.fn();
+            const mockSheet = { isIndexized: () => true, reindexize } as unknown as SpriteSheet;
+
+            BTAPI.instance.setPalette(palette);
+            BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+            BTAPI.instance.spritesRefresh();
+
+            expect(reindexize).toHaveBeenCalledWith(palette);
+        });
+
         it('drawBitmapText should not throw before init', () => {
             const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
@@ -225,6 +237,19 @@ describe('BTAPI', () => {
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).toThrow(
                 '[BT] drawBitmapText: font sprite sheet has not been indexized.',
             );
+        });
+
+        it('drawBitmapText should register the font sheet for spritesRefresh tracking', () => {
+            const palette = new Palette(16);
+            const reindexize = vi.fn();
+            const mockSheet = { isIndexized: () => true, reindexize } as unknown as SpriteSheet;
+            const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
+
+            BTAPI.instance.setPalette(palette);
+            BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi');
+            BTAPI.instance.spritesRefresh();
+
+            expect(reindexize).toHaveBeenCalledWith(palette);
         });
 
         it('setCameraOffset should not throw before init', () => {
