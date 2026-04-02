@@ -139,6 +139,15 @@ export class Palette {
     private readonly namedIndices = new Map<string, number>();
 
     /**
+     * True when colors have been mutated since the last GPU upload.
+     *
+     * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
+     * the renderer has uploaded the updated palette uniform buffer. Not set by the
+     * constructor — initial upload is always triggered by {@link Renderer.setPalette}.
+     */
+    private _dirty: boolean = false;
+
+    /**
      * Creates a new palette with the requested indexed size.
      *
      * @param size - Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
@@ -308,6 +317,7 @@ export class Palette {
 
         // eslint-disable-next-line security/detect-object-injection -- Index range is validated by assertIndexInRange above
         this.colors[index] = color.clone();
+        this._dirty = true;
     }
 
     /**
@@ -366,12 +376,17 @@ export class Palette {
     /**
      * Creates a deep copy of the palette, including named indices.
      *
+     * The returned clone starts with a clean dirty flag regardless of the source
+     * palette's state. When passed to {@link Renderer.setPalette}, the renderer's
+     * own dirty flag ensures the first upload.
+     *
      * @returns Independent palette clone.
      */
     public clone(): Palette {
         const clone = new Palette(this.size);
 
         clone.copyFrom(this);
+        clone.clearDirty();
 
         return clone;
     }
@@ -379,9 +394,10 @@ export class Palette {
     /**
      * Copies colors and named indices from another palette into this one.
      *
-     * Entries outside the source palette range are reset to transparent in the
-     * destination. Named indices that do not fit inside the destination size
-     * are ignored.
+     * Marks the palette dirty so the renderer will re-upload the uniform buffer on
+     * the next frame. Entries outside the source palette range are reset to
+     * transparent in the destination. Named indices that do not fit inside the
+     * destination size are ignored.
      *
      * @param other - Source palette to copy from.
      */
@@ -407,6 +423,32 @@ export class Palette {
                 this.namedIndices.set(name, index);
             }
         }
+
+        this._dirty = true;
+    }
+
+    /**
+     * True when colors have been mutated since the last GPU upload.
+     *
+     * The renderer checks this flag each frame and re-uploads the palette uniform
+     * buffer when it is set, then calls {@link clearDirty} to reset it. Palette
+     * animation works automatically — no per-frame {@link BT.paletteSet} required.
+     *
+     * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
+     *   since the last call to {@link clearDirty}.
+     */
+    public get dirty(): boolean {
+        return this._dirty;
+    }
+
+    /**
+     * Clears the dirty flag after the renderer has uploaded the palette to the GPU.
+     *
+     * Do not call this from application code. It is part of the internal renderer
+     * contract between {@link Palette} and {@link Renderer}.
+     */
+    public clearDirty(): void {
+        this._dirty = false;
     }
 
     /**

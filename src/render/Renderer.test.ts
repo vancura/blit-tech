@@ -7,6 +7,7 @@
  * - successful renderer initialization and repeated frame lifecycles
  * - delegation of palette-indexed primitive drawing calls during active frames
  * - palette enforcement (beginFrame throws without active palette)
+ * - palette dirty-flag auto-propagation (mutations visible without re-calling setPalette)
  * - frame capture flow and error handling during presentation
  *
  * The suite uses mocked WebGPU devices, contexts, and browser image APIs so
@@ -410,7 +411,7 @@ describe('resolveClearColor fallbacks', () => {
 
         await r.initialize();
 
-        // Spy on the prototype so the clone stored by setPalette also throws.
+        // Spy on the prototype so the reference stored by setPalette also throws.
         const getSpy = vi.spyOn(Palette.prototype, 'get').mockImplementation(() => {
             throw new Error('get error');
         });
@@ -688,6 +689,124 @@ describe('initialize error paths', () => {
 
             uninstallMockNavigatorGPU();
         }
+    });
+});
+
+// #endregion
+
+// #region Palette dirty-flag auto-propagation
+
+describe('palette dirty-flag auto-propagation', () => {
+    it('setPalette stores a reference, not a clone', () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const palette = createTestPalette();
+
+        renderer.setPalette(palette);
+
+        // Mutate the original after setPalette — the renderer must see the change.
+        palette.set(1, new Color32(99, 99, 99, 255));
+
+        // getPalette() returns a clone, so compare by value rather than reference.
+        expect(renderer.getPalette()!.get(1)).toEqual(new Color32(99, 99, 99, 255));
+    });
+
+    it('getPalette still returns a clone, not the internal reference', () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const palette = createTestPalette();
+
+        renderer.setPalette(palette);
+
+        expect(renderer.getPalette()).not.toBe(palette);
+    });
+
+    it('palette.dirty is cleared after endFrame uploads', async () => {
+        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await renderer.initialize();
+
+        const palette = new Palette(16);
+
+        renderer.setPalette(palette);
+
+        // Dirty the palette AFTER setPalette, simulating per-frame animation.
+        palette.set(1, new Color32(200, 100, 50, 255));
+
+        expect(palette.dirty).toBe(true);
+
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        // Renderer must clear the dirty flag as part of the GPU upload.
+        expect(palette.dirty).toBe(false);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('palette.dirty drives upload without requiring a new paletteSet call', async () => {
+        const device = createMockGPUDevice();
+        const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
+
+        const renderer = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await renderer.initialize();
+
+        const palette = new Palette(16);
+
+        renderer.setPalette(palette);
+
+        // First frame — initial upload due to paletteDirty.
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        const callsAfterFirstFrame = writeBufferSpy.mock.calls.length;
+
+        // Mutate palette without calling BT.paletteSet() again.
+        palette.set(1, new Color32(255, 0, 128, 255));
+
+        // Second frame — must re-upload because palette.dirty is true.
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        expect(writeBufferSpy.mock.calls.length).toBeGreaterThan(callsAfterFirstFrame);
+
+        writeBufferSpy.mockRestore();
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('no GPU upload happens when palette is clean and paletteDirty is false', async () => {
+        const device = createMockGPUDevice();
+        const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
+
+        const renderer = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await renderer.initialize();
+
+        const palette = new Palette(16);
+
+        renderer.setPalette(palette);
+
+        // First frame — initial upload.
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        const callsAfterFirstFrame = writeBufferSpy.mock.calls.length;
+
+        // No mutation — second frame should NOT upload.
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        expect(writeBufferSpy.mock.calls.length).toBe(callsAfterFirstFrame);
+
+        writeBufferSpy.mockRestore();
+
+        uninstallMockNavigatorGPU();
     });
 });
 
