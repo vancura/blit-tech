@@ -198,14 +198,17 @@ export class SpriteSheet {
      * BT.spritesRefresh();
      * ```
      *
-     * If the new palette does not contain a pixel's original RGBA value, that pixel
-     * maps to index 0 (transparent) and the sprite will appear to disappear.
+     * If the new palette does not contain a pixel's original RGBA value,
+     * `palette.findColor()` returns `-1` and `reindexize()` throws an `Error`
+     * with the offending color and coordinates, e.g.:
+     * `[SpriteSheet] 'sheet.png' pixel at (x, y) has color #rrggbb which is not in the active palette.`
      *
      * Must be preceded by a call to `indexize()`. The GPU texture is invalidated and
      * re-created on the next `getTexture()` call.
      *
      * @param palette - New palette used for color-to-index mapping.
      * @throws If `indexize()` has not been called yet.
+     * @throws If any opaque pixel's color is not found in the new palette.
      */
     reindexize(palette: Palette): void {
         if (this.rgbaPixels === null) {
