@@ -454,10 +454,26 @@ export const BT = {
      * supplied {@link BitmapFont}. The font's underlying sprite sheet must have
      * been indexized before calling this.
      *
+     * **Palette offset semantics:** Glyph pixels are stored as palette indices starting at 1.
+     * Index 0 is always transparent and is discarded by the fragment shader. The final palette
+     * lookup is `storedIndex + paletteOffset`, so:
+     *
+     * - `paletteOffset = 0` (default): a white glyph stored at index 1 renders as `palette[1]`.
+     *   `palette[0]` is never reachable because stored indices start at 1.
+     * - `paletteOffset = N`: shifts the entire glyph color range up by N slots. A glyph stored
+     *   at index 1 renders as `palette[1 + N]`.
+     *
+     * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
+     * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
+     * robust buffer access returns 0 for every component; because the fragment shader forces alpha
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden — a negative
+     * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
+     * produces out-of-bounds black pixels.
+     *
      * @param font - Font asset used for rendering.
      * @param pos - Text origin in display coordinates.
      * @param text - String to render.
-     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     * @param paletteOffset - Shift added to every stored glyph index before palette lookup (default 0).
      */
     printFont: (font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void => {
         BTAPI.instance.drawBitmapText(font, pos, text, paletteOffset);
@@ -520,10 +536,27 @@ export const BT = {
      * The sprite sheet must have been converted to palette indices via
      * `spriteSheet.indexize(palette)` before the first draw call.
      *
+     * **Palette offset semantics:** Sprite pixels are stored as palette indices starting at 1.
+     * Index 0 is always transparent and is discarded by the fragment shader. The final palette
+     * lookup is `storedIndex + paletteOffset`, so:
+     *
+     * - `paletteOffset = 0` (default): a sprite pixel stored at index 1 renders as `palette[1]`.
+     *   `palette[0]` is never reachable because stored indices start at 1.
+     * - `paletteOffset = N`: shifts the entire sprite's color range up by N slots. A pixel stored
+     *   at index 1 renders as `palette[1 + N]`, a pixel at index 2 renders as `palette[2 + N]`,
+     *   and so on. Use this for palette-swap effects such as team colors or damage flashes.
+     *
+     * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
+     * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
+     * robust buffer access returns 0 for every component; because the fragment shader forces alpha
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden — a negative
+     * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
+     * produces out-of-bounds black pixels.
+     *
      * @param spriteSheet - Indexed sprite sheet.
      * @param srcRect - Source rectangle within the sprite sheet, in pixels.
      * @param destPos - Destination top-left position in display coordinates.
-     * @param paletteOffset - Palette index offset applied at draw time (default 0).
+     * @param paletteOffset - Shift added to every stored pixel index before palette lookup (default 0).
      *
      * @example
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10));
