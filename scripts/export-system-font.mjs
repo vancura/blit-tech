@@ -3,9 +3,9 @@
 /**
  * System Font PNG Exporter
  *
- * Reads the bit-pattern data from systemFontData.ts and writes a 128x48 PNG
+ * Reads the bit-pattern data from systemFontData.ts and writes a 96x84 PNG
  * to assets/system-font.png. Each set bit becomes a white pixel; each clear
- * bit becomes a black pixel. The layout is 16 columns x 6 rows of 8x8 glyphs
+ * bit becomes a black pixel. The layout is 16 columns x 6 rows of 6x14 glyphs
  * covering ASCII 32-126.
  *
  * Usage:
@@ -27,12 +27,12 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 const FONT_DATA_PATH = join(PROJECT_ROOT, 'src/assets/fonts/systemFontData.ts');
 const DEFAULT_OUTPUT = join(PROJECT_ROOT, 'assets/system-font.png');
 
-const GLYPH_WIDTH = 8;
-const GLYPH_HEIGHT = 8;
+const GLYPH_WIDTH = 6;
+const GLYPH_HEIGHT = 14;
 const ATLAS_COLS = 16;
 const ATLAS_ROWS = 6;
-const ATLAS_WIDTH = ATLAS_COLS * GLYPH_WIDTH; // 128
-const ATLAS_HEIGHT = ATLAS_ROWS * GLYPH_HEIGHT; // 48
+const ATLAS_WIDTH = ATLAS_COLS * GLYPH_WIDTH; // 96
+const ATLAS_HEIGHT = ATLAS_ROWS * GLYPH_HEIGHT; // 84
 const FIRST_CHAR = 32;
 const LAST_CHAR = 126;
 const GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
@@ -45,17 +45,24 @@ const GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
  * Parses the SYSTEM_FONT_BITMAPS array from the TypeScript source file.
  * Extracts all hex literals from the array initializer.
  *
- * @returns {number[]} The flat array of glyph bytes (760 entries).
+ * @returns {number[]} The flat array of glyph bytes (1330 entries).
  */
 function parseBitmapData() {
     const source = readFileSync(FONT_DATA_PATH, 'utf-8');
 
-    // Find the array between [ and ];
-    const startIndex = source.indexOf('[');
-    const endIndex = source.indexOf('];');
+    // Anchor to the SYSTEM_FONT_BITMAPS identifier, then find its array initializer.
+    const identIndex = source.indexOf('SYSTEM_FONT_BITMAPS');
+
+    if (identIndex === -1) {
+        console.error('Error: Could not find SYSTEM_FONT_BITMAPS identifier in the source file.');
+        process.exit(1);
+    }
+
+    const startIndex = source.indexOf('[', identIndex);
+    const endIndex = source.indexOf('];', startIndex);
 
     if (startIndex === -1 || endIndex === -1) {
-        console.error('Error: Could not find SYSTEM_FONT_BITMAPS array in source file.');
+        console.error('Error: Could not find SYSTEM_FONT_BITMAPS array initializer in the source file.');
         process.exit(1);
     }
 
@@ -142,8 +149,8 @@ function main() {
         console.log(`
 System Font PNG Exporter
 
-Exports the embedded system font bit patterns to a 128x48 PNG atlas.
-Layout: 16 columns x 6 rows of 8x8 glyphs (ASCII 32-126).
+Exports the embedded system font bit patterns to a 96x84 PNG atlas.
+Layout: 16 columns x 6 rows of 6x14 glyphs (ASCII 32-126).
 White pixels = foreground, black pixels = background.
 
 Usage:

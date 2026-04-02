@@ -381,15 +381,16 @@ BT.drawSprite(sheet, srcRect, destPos); // Draw with original palette colors
 BT.drawSprite(sheet, srcRect, destPos, 16); // Draw with paletteOffset=16 (color variation)
 BT.printFont(font, pos, text); // Draw text using bitmap font
 BT.printFont(font, pos, text, 8); // Draw text with paletteOffset=8
-BT.print(pos, paletteIndex, text); // Draw placeholder text (colored blocks)
+BT.systemPrint(pos, paletteIndex, text); // Draw text with the built-in 8x8 system font
+BT.systemPrintMeasure(text); // Measure system font text dimensions
 BT.spritesRefresh(); // Re-index all loaded sheets after palette swap
 ```
 
 **Palette offset:** The `paletteOffset` parameter shifts which palette range a sprite samples from at draw time. Useful
 for team colors, damage flashes, or palette-swap effects without duplicate assets.
 
-**Note:** `BT.print()` renders text as colored blocks and is intended as a placeholder. Use `BT.printFont()` with a
-`BitmapFont` for proper text rendering.
+**System font:** `BT.systemPrint()` renders text using the built-in IBM PC 8x8 bitmap font. For custom bitmap fonts with
+proportional glyphs, use `BT.printFont()` with a loaded `BitmapFont`.
 
 **Sprite Transforms:** Sprite transform flags (`BT.FLIP_H`, `BT.FLIP_V`, `BT.ROT_90_CW`, etc.) are defined but not yet
 implemented in `drawSprite()`. They are planned for a future release.

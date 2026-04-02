@@ -3,7 +3,7 @@
 /**
  * System Font PNG to TypeScript Converter
  *
- * Reads a 128x48 PNG atlas (16 columns x 6 rows of 8x8 glyphs, ASCII 32-126)
+ * Reads a 96x84 PNG atlas (16 columns x 6 rows of 6x14 glyphs, ASCII 32-126)
  * and regenerates src/assets/fonts/systemFontData.ts with the corresponding
  * bit-pattern data.
  *
@@ -30,12 +30,12 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 const DEFAULT_INPUT = join(PROJECT_ROOT, 'assets/system-font.png');
 const OUTPUT_PATH = join(PROJECT_ROOT, 'src/assets/fonts/systemFontData.ts');
 
-const GLYPH_WIDTH = 8;
-const GLYPH_HEIGHT = 8;
+const GLYPH_WIDTH = 6;
+const GLYPH_HEIGHT = 14;
 const ATLAS_COLS = 16;
 const ATLAS_ROWS = 6;
-const ATLAS_WIDTH = ATLAS_COLS * GLYPH_WIDTH; // 128
-const ATLAS_HEIGHT = ATLAS_ROWS * GLYPH_HEIGHT; // 48
+const ATLAS_WIDTH = ATLAS_COLS * GLYPH_WIDTH; // 96
+const ATLAS_HEIGHT = ATLAS_ROWS * GLYPH_HEIGHT; // 84
 const FIRST_CHAR = 32;
 const LAST_CHAR = 126;
 const GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
@@ -48,7 +48,7 @@ const ON_THRESHOLD = 128; // Red channel >= this means "on".
 /**
  * Reads the PNG and extracts bit patterns for all 95 glyphs.
  *
- * @param {string} inputPath - Path to the 128x48 PNG atlas.
+ * @param {string} inputPath - Path to the 96x84 PNG atlas.
  * @returns {number[]} Flat array of 760 bytes (95 glyphs x 8 rows).
  */
 function extractBitmaps(inputPath) {
@@ -102,7 +102,9 @@ function extractBitmaps(inputPath) {
  * @returns {string} Human-readable label (e.g., "A (65)" or "Space (32)").
  */
 function charLabel(charCode) {
-    if (charCode === 32) return 'Space (32)';
+    if (charCode === 32) {
+        return 'Space (32)';
+    }
 
     return `${String.fromCharCode(charCode)} (${charCode})`;
 }
@@ -120,22 +122,23 @@ function hex(value) {
 /**
  * Generates the TypeScript source for systemFontData.ts.
  *
- * @param {number[]} bitmaps - Flat array of 760 bytes.
+ * @param {number[]} bitmaps - Flat array of 1330 bytes.
  * @returns {string} Complete TypeScript source file content.
  */
 function generateTypeScript(bitmaps) {
     const lines = [];
 
     lines.push('/**');
-    lines.push(' * IBM PC BIOS 8x8 bitmap font data (CP437).');
+    lines.push(' * IBM PC BIOS bitmap font data.');
     lines.push(' *');
-    lines.push(' * Covers printable ASCII characters 32-126 (95 glyphs). Each glyph is 8 bytes,');
-    lines.push(' * one byte per row (top to bottom). Bit 7 is the leftmost pixel, bit 0 the');
-    lines.push(' * rightmost. A set bit means palette index 1 (opaque foreground); a clear bit');
-    lines.push(' * means index 0 (transparent).');
+    lines.push(' * Covers printable ASCII characters 32-126 (95 glyphs). Each glyph is');
+    lines.push(' * 14 bytes, one byte per row (top to bottom). Bit 7 is the leftmost pixel;');
+    lines.push(' * only the top 6 bits (bits 7-2) are used for the 6-pixel glyph width.');
+    lines.push(' * A set bit means palette index 1 (opaque foreground); a clear bit means');
+    lines.push(' * index 0 (transparent).');
     lines.push(' *');
-    lines.push(' * The data is a flat array of `95 * 8 = 760` bytes. Access glyph for character');
-    lines.push(' * code `c` at offset `(c - 32) * 8`.');
+    lines.push(' * The data is a flat array of `95 * 14 = 1330` bytes. Access glyph for');
+    lines.push(' * character code `c` at offset `(c - 32) * 14`.');
     lines.push(' *');
     lines.push(' * This font data is in the public domain.');
     lines.push(' */');
@@ -165,13 +168,13 @@ function generateTypeScript(bitmaps) {
     lines.push('export const SYSTEM_FONT_GLYPH_COUNT = SYSTEM_FONT_LAST_CHAR - SYSTEM_FONT_FIRST_CHAR + 1;');
     lines.push('');
     lines.push('/** Width of each glyph in pixels. */');
-    lines.push('export const SYSTEM_FONT_GLYPH_WIDTH = 8;');
+    lines.push('export const SYSTEM_FONT_GLYPH_WIDTH = 6;');
     lines.push('');
     lines.push('/** Height of each glyph in pixels. */');
-    lines.push('export const SYSTEM_FONT_GLYPH_HEIGHT = 8;');
+    lines.push('export const SYSTEM_FONT_GLYPH_HEIGHT = 14;');
     lines.push('');
     lines.push('/** Number of bytes per glyph (one byte per row). */');
-    lines.push('export const SYSTEM_FONT_BYTES_PER_GLYPH = 8;');
+    lines.push('export const SYSTEM_FONT_BYTES_PER_GLYPH = 14;');
     lines.push('');
 
     return lines.join('\n');
@@ -188,8 +191,8 @@ function main() {
         console.log(`
 System Font PNG to TypeScript Converter
 
-Reads a 128x48 PNG atlas and regenerates systemFontData.ts.
-Layout: 16 columns x 6 rows of 8x8 glyphs (ASCII 32-126).
+Reads a 96x84 PNG atlas and regenerates systemFontData.ts.
+Layout: 16 columns x 6 rows of 6x14 glyphs (ASCII 32-126).
 Any pixel with red channel >= 128 is treated as foreground.
 
 Usage:
