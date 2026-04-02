@@ -206,10 +206,25 @@ describe('BTAPI', () => {
             ).not.toThrow();
         });
 
+        it('drawSprite should throw when sprite sheet is not indexized', () => {
+            const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
+            expect(() => BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0))).toThrow(
+                '[BT] drawSprite: sprite sheet has not been indexized.',
+            );
+        });
+
         it('drawBitmapText should not throw before init', () => {
             const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).not.toThrow();
+        });
+
+        it('drawBitmapText should throw when font sprite sheet is not indexized', () => {
+            const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
+            const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
+            expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).toThrow(
+                '[BT] drawBitmapText: sprite sheet has not been indexized.',
+            );
         });
 
         it('setCameraOffset should not throw before init', () => {
