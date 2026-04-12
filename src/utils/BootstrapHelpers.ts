@@ -13,6 +13,18 @@ export const DEFAULT_CANVAS_ID = 'blit-tech-canvas';
 /** Default container element ID for error display. */
 export const DEFAULT_CONTAINER_ID = 'canvas-container';
 
+/** Minimum Chrome/Edge major version that supports WebGPU. */
+const MIN_CHROME_EDGE_VERSION = 113;
+
+/** Minimum Safari major version that supports WebGPU. */
+const MIN_SAFARI_VERSION = 18;
+
+/** Download URL for Chrome. */
+const DOWNLOAD_CHROME_URL = 'google.com/chrome';
+
+/** Download URL for Firefox Nightly. */
+const FIREFOX_NIGHTLY_URL = 'mozilla.org/firefox/channel/desktop/';
+
 // #endregion
 
 // #region Types
@@ -237,10 +249,10 @@ export function detectBrowser(): BrowserInfo {
 export function getWebGPUInstructions(browser: BrowserInfo): string {
     switch (browser.name) {
         case 'chrome':
-            if (browser.version < 113) {
+            if (browser.version < MIN_CHROME_EDGE_VERSION) {
                 return (
-                    'Update Chrome to version 113 or later to use WebGPU.\n' +
-                    'Download the latest version at google.com/chrome'
+                    `Update Chrome to version ${MIN_CHROME_EDGE_VERSION} or later to use WebGPU.\n` +
+                    `Download the latest version at ${DOWNLOAD_CHROME_URL}`
                 );
             }
 
@@ -251,8 +263,8 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
             );
 
         case 'edge':
-            if (browser.version < 113) {
-                return 'Update Microsoft Edge to version 113 or later to use WebGPU.';
+            if (browser.version < MIN_CHROME_EDGE_VERSION) {
+                return `Update Microsoft Edge to version ${MIN_CHROME_EDGE_VERSION} or later to use WebGPU.`;
             }
 
             return (
@@ -273,20 +285,20 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
         case 'firefox':
             return (
                 'WebGPU requires Firefox Nightly.\n' +
-                'Download Firefox Nightly at mozilla.org/firefox/channel/desktop/ ' +
+                `Download Firefox Nightly at ${FIREFOX_NIGHTLY_URL} ` +
                 'then enable dom.webgpu.enabled in about:config.'
             );
 
         case 'safari':
-            if (browser.version < 18) {
+            if (browser.version < MIN_SAFARI_VERSION) {
                 return (
-                    'Update Safari to version 18 or later to use WebGPU.\n' +
-                    'Safari 18 requires macOS Sonoma 14.4 or later.'
+                    `Update Safari to version ${MIN_SAFARI_VERSION} or later to use WebGPU.\n` +
+                    `Safari ${MIN_SAFARI_VERSION} requires macOS Sonoma 14.4 or later.`
                 );
             }
 
             return (
-                'WebGPU requires Safari 18+ on macOS Sonoma 14.4 or later.\n' +
+                `WebGPU requires Safari ${MIN_SAFARI_VERSION}+ on macOS Sonoma 14.4 or later.\n` +
                 'Check that hardware acceleration is enabled: Safari menu → Settings → Advanced → ' +
                 'uncheck "Use hardware acceleration" and re-enable it.'
             );
@@ -294,8 +306,8 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
         default:
             return (
                 "WebGPU isn't available in this browser.\n" +
-                'Supported browsers: Chrome 113+, Microsoft Edge 113+, ' +
-                'Firefox Nightly (with dom.webgpu.enabled flag), Safari 18+.'
+                `Supported browsers: Chrome ${MIN_CHROME_EDGE_VERSION}+, Microsoft Edge ${MIN_CHROME_EDGE_VERSION}+, ` +
+                `Firefox Nightly (with dom.webgpu.enabled flag), Safari ${MIN_SAFARI_VERSION}+.`
             );
     }
 }
