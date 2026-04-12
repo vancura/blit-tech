@@ -42,8 +42,8 @@ primitives, and fonts.
 - **pnpm** v10.26.2 or higher
 - A **WebGPU-compatible browser**:
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
-  - Firefox Nightly (with `dom.webgpu.enabled` in `about:config`)
-  - Safari 18+ (macOS/iOS)
+  - Firefox 141+ on Windows; 145+/147+ on macOS; Nightly on Linux and Android
+  - Safari 26+ (macOS Tahoe / iOS 26); or Safari 18–25 with WebGPU enabled via Feature Flags
 
 ## Installation
 
@@ -191,7 +191,7 @@ import { BT, checkWebGPUSupport, displayError, getCanvas } from '../src/BlitTech
 
 // Manual initialization with custom error handling
 if (!checkWebGPUSupport()) {
-  displayError('WebGPU Not Supported', 'Please use Chrome 113+ or Safari 18+');
+  displayError('WebGPU Not Supported', 'Please use Chrome 113+, Safari 26+, or Firefox 141+ on Windows.');
 } else {
   const canvas = getCanvas('my-canvas-id');
   if (canvas) {
@@ -444,11 +444,11 @@ future use. See the Blit-Tech Demos repository for workarounds using browser API
 
 WebGPU support varies by browser:
 
-| Browser     | Version | Status                      |
-| ----------- | ------- | --------------------------- |
-| Chrome/Edge | 113+    | Enabled by default          |
-| Firefox     | Nightly | Enable `dom.webgpu.enabled` |
-| Safari      | 18+     | Enabled by default          |
+| Browser     | Version        | Status                                                       |
+| ----------- | -------------- | ------------------------------------------------------------ |
+| Chrome/Edge | 113+           | Enabled by default                                           |
+| Firefox     | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux     |
+| Safari      | 26+            | Enabled by default; Safari 18–25 available via Feature Flags |
 
 The engine displays an error message if the browser doesn’t support WebGPU.
 
