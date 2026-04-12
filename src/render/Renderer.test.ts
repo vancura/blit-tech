@@ -190,9 +190,9 @@ describe('palette enforcement', () => {
 
         expect(result).not.toBeNull();
         expect(result).not.toBe(palette);
-        expect(result!.size).toBe(palette.size);
-        expect(result!.get(1)).toEqual(palette.get(1));
-        expect(result!.get(8)).toEqual(palette.get(8));
+        expect(result?.size).toBe(palette.size);
+        expect(result?.get(1)).toEqual(palette.get(1));
+        expect(result?.get(8)).toEqual(palette.get(8));
     });
 
     it('getPalette returns null when no palette is set', () => {
@@ -697,7 +697,7 @@ describe('palette dirty-flag auto-propagation', () => {
         palette.set(1, new Color32(99, 99, 99, 255));
 
         // getPalette() returns a clone, so compare by value rather than reference.
-        expect(renderer.getPalette()!.get(1)).toEqual(new Color32(99, 99, 99, 255));
+        expect(renderer.getPalette()?.get(1)).toEqual(new Color32(99, 99, 99, 255));
     });
 
     it('getPalette still returns a clone, not the internal reference', () => {
