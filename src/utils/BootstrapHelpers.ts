@@ -20,10 +20,10 @@ const MIN_CHROME_EDGE_VERSION = 113;
 const MIN_SAFARI_VERSION = 18;
 
 /** Download URL for Chrome. */
-const DOWNLOAD_CHROME_URL = 'google.com/chrome';
+const DOWNLOAD_CHROME_URL = 'https://www.google.com/chrome';
 
 /** Download URL for Firefox Nightly. */
-const FIREFOX_NIGHTLY_URL = 'mozilla.org/firefox/channel/desktop/';
+const FIREFOX_NIGHTLY_URL = 'https://www.mozilla.org/firefox/channel/desktop/';
 
 // #endregion
 
@@ -204,7 +204,7 @@ export function detectBrowser(): BrowserInfo {
         return { name: 'unknown', version: 0 };
     }
 
-    const ua = navigator.userAgent;
+    const ua = typeof navigator.userAgent === 'string' ? navigator.userAgent : '';
 
     // Edge must be checked before Chrome — Edge UAs also contain "Chrome/".
     if (ua.includes('Edg/')) {
