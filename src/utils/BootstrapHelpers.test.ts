@@ -248,9 +248,21 @@ describe('BootstrapHelpers', () => {
             expect(msg).toContain('Update Safari');
         });
 
-        it('should mention macOS Sonoma for Safari 18+', () => {
+        it('should advise enabling WebGPU via Feature Flags for Safari 18-25', () => {
             const msg = getWebGPUInstructions({ name: 'safari', version: 18 });
-            expect(msg).toContain('Sonoma');
+            expect(msg).toContain('Feature Flags');
+            expect(msg).toContain('Develop');
+        });
+
+        it('should mention macOS Tahoe 26 as the upgrade target for Safari 18-25', () => {
+            const msg = getWebGPUInstructions({ name: 'safari', version: 25 });
+            expect(msg).toContain('Tahoe 26');
+        });
+
+        it('should say WebGPU is enabled by default for Safari 26+', () => {
+            const msg = getWebGPUInstructions({ name: 'safari', version: 26 });
+            expect(msg).toContain('enabled by default');
+            expect(msg).toContain('Feature Flags');
         });
 
         it('should list supported browsers for an unknown browser', () => {

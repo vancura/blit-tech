@@ -73,7 +73,7 @@ interface BootstrapResult {
  * @returns Plain-text error message with per-browser guidance.
  */
 function buildWebGPUNotSupportedMessage(): string {
-    return `WebGPU isn't available in this browser.\n\n${getWebGPUInstructions(detectBrowser())}`;
+    return getWebGPUInstructions(detectBrowser());
 }
 
 /** Error message for initialization failure. */
