@@ -374,7 +374,8 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
         default:
             return (
                 `Supported browsers: Chrome ${MIN_CHROME_EDGE_VERSION}+, Microsoft Edge ${MIN_CHROME_EDGE_VERSION}+, ` +
-                `Firefox ${MIN_FIREFOX_VERSION}+ (Windows / Mac 145+) or Firefox Nightly, Safari ${MIN_SAFARI_DEFAULT_VERSION}+.`
+                `Firefox ${MIN_FIREFOX_VERSION}+ (Windows / Mac 145+) or Firefox Nightly, ` +
+                `Safari ${MIN_SAFARI_VERSION}+ (${MIN_SAFARI_VERSION}–${MIN_SAFARI_DEFAULT_VERSION - 1} via Feature Flags, ${MIN_SAFARI_DEFAULT_VERSION}+ by default).`
             );
     }
 }
@@ -543,6 +544,11 @@ function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
  * previewWebGPUErrors();
  */
 export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID): void {
+    // Bail out before touching the global key handler if the container is missing.
+    if (!document.getElementById(containerId)) {
+        return;
+    }
+
     const entries = buildErrorPreviewEntries();
     let current = 0;
 
@@ -573,6 +579,7 @@ export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID):
 
         const prevBtn = document.createElement('button');
 
+        prevBtn.type = 'button';
         prevBtn.textContent = '<< Prev';
         prevBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
         prevBtn.addEventListener('click', () => {
@@ -585,6 +592,7 @@ export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID):
 
         const nextBtn = document.createElement('button');
 
+        nextBtn.type = 'button';
         nextBtn.textContent = 'Next >>';
         nextBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
         nextBtn.addEventListener('click', () => {
