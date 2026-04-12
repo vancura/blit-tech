@@ -13,13 +13,25 @@ export const DEFAULT_CANVAS_ID = 'blit-tech-canvas';
 /** Default container element ID for error display. */
 export const DEFAULT_CONTAINER_ID = 'canvas-container';
 
+/** Minimum Chrome/Edge major version that supports WebGPU. */
+const MIN_CHROME_EDGE_VERSION = 113;
+
+/** Minimum Safari major version that supports WebGPU. */
+const MIN_SAFARI_VERSION = 18;
+
+/** Download URL for Chrome. */
+const DOWNLOAD_CHROME_URL = 'https://www.google.com/chrome';
+
+/** Download URL for Firefox Nightly. */
+const FIREFOX_NIGHTLY_URL = 'https://www.mozilla.org/firefox/channel/desktop/';
+
 // #endregion
 
 // #region Types
 
 /**
  * Content that can be displayed in an error message.
- * Use string for plain text, or object for text with code formatting.
+ * Use string for plain text or object for text with code formatting.
  */
 export type ErrorContent =
     | string
@@ -27,6 +39,40 @@ export type ErrorContent =
           text: string;
           code?: string;
       };
+
+/**
+ * Detected browser identity and major version.
+ */
+export interface BrowserInfo {
+    /** Detected browser name. 'unknown' when the UA cannot be matched. */
+    name: 'chrome' | 'edge' | 'firefox' | 'firefox-nightly' | 'safari' | 'unknown';
+
+    /** Major version number, or 0 when the version cannot be parsed. */
+    version: number;
+}
+
+// #endregion
+
+// #region Internal Helpers
+
+/**
+ * Parses a major version number from a user-agent token like "Chrome/120.0.0.0".
+ *
+ * @param ua - Full user-agent string.
+ * @param token - Token prefix to search for, e.g. "Chrome/".
+ * @returns Major version number, or 0 if not found.
+ */
+function parseMajorVersion(ua: string, token: string): number {
+    const idx = ua.indexOf(token);
+
+    if (idx === -1) {
+        return 0;
+    }
+
+    const version = parseInt(ua.slice(idx + token.length), 10);
+
+    return Number.isNaN(version) ? 0 : version;
+}
 
 // #endregion
 
@@ -137,6 +183,132 @@ export function displayError(title: string, content: ErrorContent, containerId: 
         const message = typeof content === 'string' ? content : `${content.text}\n${content.code ?? ''}`;
 
         console.error(`[BT] ${title}: ${message}`);
+    }
+}
+
+/**
+ * Detects the current browser from the navigator user-agent string.
+ *
+ * Detection order matters: Edge UAs also contain "Chrome", so Edge is checked first.
+ * Firefox Nightly UAs contain both "Firefox" and "Nightly".
+ * Safari UAs contain "Safari" and "Version" but not "Chrome" or "Edg".
+ *
+ * @returns Detected browser name and major version.
+ *
+ * @example
+ * const { name, version } = detectBrowser();
+ * // name: 'chrome', version: 120
+ */
+export function detectBrowser(): BrowserInfo {
+    if (typeof navigator === 'undefined') {
+        return { name: 'unknown', version: 0 };
+    }
+
+    const ua = typeof navigator.userAgent === 'string' ? navigator.userAgent : '';
+
+    // Edge must be checked before Chrome — Edge UAs also contain "Chrome/".
+    if (ua.includes('Edg/')) {
+        return { name: 'edge', version: parseMajorVersion(ua, 'Edg/') };
+    }
+
+    if (ua.includes('Chrome/')) {
+        return { name: 'chrome', version: parseMajorVersion(ua, 'Chrome/') };
+    }
+
+    // Firefox Nightly UAs contain "Nightly" in addition to "Firefox/".
+    if (ua.includes('Firefox/')) {
+        if (ua.includes('Nightly')) {
+            return { name: 'firefox-nightly', version: parseMajorVersion(ua, 'Firefox/') };
+        }
+
+        return { name: 'firefox', version: parseMajorVersion(ua, 'Firefox/') };
+    }
+
+    // Safari UAs contain "Version/X" for the Safari release version.
+    // Chrome/Edge also include "Safari/" so they must already be ruled out above.
+    if (ua.includes('Safari/') && ua.includes('Version/')) {
+        return { name: 'safari', version: parseMajorVersion(ua, 'Version/') };
+    }
+
+    return { name: 'unknown', version: 0 };
+}
+
+/**
+ * Returns actionable, browser-specific instructions for enabling WebGPU.
+ *
+ * The message is plain text suitable for display in the error panel.
+ *
+ * @param browser - Detected browser from {@link detectBrowser}.
+ * @returns Human-readable instructions string.
+ *
+ * @example
+ * const info = detectBrowser();
+ * const instructions = getWebGPUInstructions(info);
+ * displayError('WebGPU Not Available', instructions);
+ */
+export function getWebGPUInstructions(browser: BrowserInfo): string {
+    switch (browser.name) {
+        case 'chrome':
+            if (browser.version < MIN_CHROME_EDGE_VERSION) {
+                return (
+                    `Update Chrome to version ${MIN_CHROME_EDGE_VERSION} or later to use WebGPU.\n` +
+                    `Download the latest version at ${DOWNLOAD_CHROME_URL}`
+                );
+            }
+
+            return (
+                'WebGPU may be disabled in the Chrome settings.\n' +
+                'To enable it: visit chrome://flags in the address bar, search for WebGPU, ' +
+                'and set it to Enabled. Then restart Chrome.'
+            );
+
+        case 'edge':
+            if (browser.version < MIN_CHROME_EDGE_VERSION) {
+                return `Update Microsoft Edge to version ${MIN_CHROME_EDGE_VERSION} or later to use WebGPU.`;
+            }
+
+            return (
+                'WebGPU may be disabled in the Edge settings.\n' +
+                'To enable it: visit edge://flags in the address bar, search for WebGPU, ' +
+                'and set it to Enabled. Then restart Edge.'
+            );
+
+        case 'firefox-nightly':
+            return (
+                'Enable WebGPU in Firefox Nightly:\n' +
+                '1. Type about:config in the address bar and press Enter.\n' +
+                '2. Search for dom.webgpu.enabled.\n' +
+                '3. Double-click the entry to set it to true.\n' +
+                '4. Restart Firefox Nightly.'
+            );
+
+        case 'firefox':
+            return (
+                'WebGPU requires Firefox Nightly.\n' +
+                `Download Firefox Nightly at ${FIREFOX_NIGHTLY_URL} ` +
+                'then enable dom.webgpu.enabled in about:config.'
+            );
+
+        case 'safari':
+            if (browser.version < MIN_SAFARI_VERSION) {
+                return (
+                    `Update Safari to version ${MIN_SAFARI_VERSION} or later to use WebGPU.\n` +
+                    `Safari ${MIN_SAFARI_VERSION} requires macOS Sonoma 14.4 or later.`
+                );
+            }
+
+            return (
+                `WebGPU requires Safari ${MIN_SAFARI_VERSION}+ on macOS Sonoma 14.4 or later.\n` +
+                'Check that hardware acceleration is enabled: Safari menu → Settings → Advanced → ' +
+                'uncheck "Use hardware acceleration" and re-enable it.'
+            );
+
+        default:
+            return (
+                "WebGPU isn't available in this browser.\n" +
+                `Supported browsers: Chrome ${MIN_CHROME_EDGE_VERSION}+, Microsoft Edge ${MIN_CHROME_EDGE_VERSION}+, ` +
+                `Firefox Nightly (with dom.webgpu.enabled flag), Safari ${MIN_SAFARI_VERSION}+.`
+            );
     }
 }
 

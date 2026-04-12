@@ -12,8 +12,10 @@ import {
     checkWebGPUSupport,
     DEFAULT_CANVAS_ID,
     DEFAULT_CONTAINER_ID,
+    detectBrowser,
     displayError,
     getCanvas,
+    getWebGPUInstructions,
 } from './BootstrapHelpers';
 
 // #region Types
@@ -64,14 +66,15 @@ interface BootstrapResult {
 
 // #region Error Messages
 
-/** Error message for WebGPU not supported. */
-const WEBGPU_NOT_SUPPORTED_MESSAGE =
-    'The browser does not support WebGPU.\n\n' +
-    'Supported browsers:\n' +
-    'Chrome/Edge 113+\n' +
-    'Firefox Nightly (with the flag enabled)\n' +
-    'Safari 18+\n\n' +
-    'Please update the browser or try a different one.';
+/**
+ * Builds a browser-specific WebGPU not-supported message.
+ * Detects the current browser and returns actionable instructions.
+ *
+ * @returns Plain-text error message with per-browser guidance.
+ */
+function buildWebGPUNotSupportedMessage(): string {
+    return `WebGPU isn't available in this browser.\n\n${getWebGPUInstructions(detectBrowser())}`;
+}
 
 /** Error message for initialization failure. */
 const INIT_FAILED_MESSAGE = 'The engine failed to initialize. Check the console for details.';
@@ -128,10 +131,16 @@ function validateWebGPU(containerId: string, onError?: (error: Error) => void): 
     if (checkWebGPUSupport()) {
         result = { success: true };
     } else {
+        console.error("[BT] WebGPU isn't supported in this browser.");
+        console.error(
+            '[BT] Browser: ',
+            typeof navigator !== 'undefined' ? navigator.userAgent : 'navigator unavailable',
+        );
+
         result = handleBootstrapError(
             'WebGPU Not Supported',
-            WEBGPU_NOT_SUPPORTED_MESSAGE,
-            new Error('WebGPU is not supported in this browser'),
+            buildWebGPUNotSupportedMessage(),
+            new Error("WebGPU isn't supported in this browser"),
             containerId,
             onError,
         );
