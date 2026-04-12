@@ -33,6 +33,13 @@ const FIREFOX_NIGHTLY_URL = 'https://www.mozilla.org/firefox/channel/desktop/';
 
 // #endregion
 
+// #region Module State
+
+/** Stored keydown handler for previewWebGPUErrors, used to remove the previous listener on re-entry. */
+let previewKeyHandler: ((e: KeyboardEvent) => void) | null = null;
+
+// #endregion
+
 // #region Types
 
 /**
@@ -335,8 +342,9 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
         case 'safari':
             if (browser.version < MIN_SAFARI_VERSION) {
                 return (
-                    `Update Safari to version ${MIN_SAFARI_DEFAULT_VERSION} or later to use WebGPU. ` +
-                    `Safari ${MIN_SAFARI_DEFAULT_VERSION} is included with macOS Tahoe 26 or later.`
+                    `Update Safari to version ${MIN_SAFARI_VERSION} or later to use WebGPU. ` +
+                    `Safari ${MIN_SAFARI_VERSION}–${MIN_SAFARI_DEFAULT_VERSION - 1} supports WebGPU via Feature Flags; ` +
+                    `Safari ${MIN_SAFARI_DEFAULT_VERSION}+ (macOS Tahoe 26) has it enabled by default.`
                 );
             }
 
@@ -589,14 +597,21 @@ export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID):
         container.appendChild(nav);
     };
 
-    // Arrow-key navigation.
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Arrow-key navigation. Remove any previously registered handler first so
+    // repeated calls don't stack multiple listeners.
+    if (previewKeyHandler) {
+        document.removeEventListener('keydown', previewKeyHandler);
+    }
+
+    previewKeyHandler = (e: KeyboardEvent): void => {
         if (e.key === 'ArrowLeft') {
             show((current - 1 + entries.length) % entries.length);
         } else if (e.key === 'ArrowRight') {
             show((current + 1) % entries.length);
         }
-    });
+    };
+
+    document.addEventListener('keydown', previewKeyHandler);
 
     show(current);
 }
