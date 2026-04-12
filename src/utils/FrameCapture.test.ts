@@ -311,7 +311,9 @@ describe('FrameCapture', () => {
         expect(capturedPixels).not.toBeNull();
 
         // After swizzle, first pixel of each row should be RGBA = [30, 20, 10, 255].
-        const pixels = capturedPixels!;
+        if (capturedPixels === null) throw new Error('capturedPixels should not be null');
+
+        const pixels = capturedPixels;
 
         for (let y = 0; y < 4; y++) {
             const offset = y * 4 * 4; // 4 pixels per row, 4 bytes per pixel (no padding in output)

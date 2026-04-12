@@ -476,10 +476,10 @@ describe('Rect2i', () => {
             const result = a.intersection(b);
 
             expect(result).not.toBeNull();
-            expect(result!.x).toBe(50);
-            expect(result!.y).toBe(50);
-            expect(result!.width).toBe(50);
-            expect(result!.height).toBe(50);
+            expect(result?.x).toBe(50);
+            expect(result?.y).toBe(50);
+            expect(result?.width).toBe(50);
+            expect(result?.height).toBe(50);
         });
 
         it('should return null when rects do not overlap', () => {
@@ -494,10 +494,10 @@ describe('Rect2i', () => {
             const result = outer.intersection(inner);
 
             expect(result).not.toBeNull();
-            expect(result!.x).toBe(20);
-            expect(result!.y).toBe(30);
-            expect(result!.width).toBe(10);
-            expect(result!.height).toBe(15);
+            expect(result?.x).toBe(20);
+            expect(result?.y).toBe(30);
+            expect(result?.width).toBe(10);
+            expect(result?.height).toBe(15);
         });
     });
 
