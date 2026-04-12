@@ -287,7 +287,7 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
 
             return (
                 'WebGPU requires Safari 18+ on macOS Sonoma 14.4 or later.\n' +
-                'Check that hardware acceleration is enabled: Safari menu &rarr; Settings &rarr; Advanced &rarr; ' +
+                'Check that hardware acceleration is enabled: Safari menu → Settings → Advanced → ' +
                 'uncheck "Use hardware acceleration" and re-enable it.'
             );
 
