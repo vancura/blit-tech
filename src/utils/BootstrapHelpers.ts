@@ -16,14 +16,27 @@ export const DEFAULT_CONTAINER_ID = 'canvas-container';
 /** Minimum Chrome/Edge major version that supports WebGPU. */
 const MIN_CHROME_EDGE_VERSION = 113;
 
-/** Minimum Safari major version that supports WebGPU. */
+/** Minimum Safari major version where WebGPU is available (behind Feature Flags on 18-25, default on 26+). */
 const MIN_SAFARI_VERSION = 18;
+
+/** Minimum Safari major version where WebGPU is enabled by default. */
+const MIN_SAFARI_DEFAULT_VERSION = 26;
+
+/** Minimum Firefox major version that ships WebGPU enabled by default on Windows. */
+const MIN_FIREFOX_VERSION = 141;
 
 /** Download URL for Chrome. */
 const DOWNLOAD_CHROME_URL = 'https://www.google.com/chrome';
 
 /** Download URL for Firefox Nightly. */
 const FIREFOX_NIGHTLY_URL = 'https://www.mozilla.org/firefox/channel/desktop/';
+
+// #endregion
+
+// #region Module State
+
+/** Stored keydown handler for previewWebGPUErrors, used to remove the previous listener on re-entry. */
+let previewKeyHandler: ((e: KeyboardEvent) => void) | null = null;
 
 // #endregion
 
@@ -94,10 +107,29 @@ export function checkWebGPUSupport(): boolean {
 }
 
 /**
+ * Appends text to an element, converting newline characters to `<br>` elements.
+ * Safe against XSS: all text is inserted via createTextNode, never innerHTML.
+ *
+ * @param element - Target element to append into.
+ * @param text - Plain text, optionally containing newline characters.
+ */
+function appendTextWithLineBreaks(element: HTMLElement, text: string): void {
+    const lines = text.split('\n');
+
+    lines.forEach((line, index) => {
+        element.appendChild(document.createTextNode(line));
+
+        if (index < lines.length - 1) {
+            element.appendChild(document.createElement('br'));
+        }
+    });
+}
+
+/**
  * Displays an error message in the page UI.
  * Replaces the container's content with a styled error box.
  *
- * SECURITY: This function renders content safely using textContent to prevent XSS attacks.
+ * SECURITY: This function renders content safely using createTextNode to prevent XSS attacks.
  * All text (including code) is treated as plain text, not interpreted as markup.
  *
  * @param title - Error heading text displayed prominently.
@@ -129,26 +161,26 @@ export function displayError(title: string, content: ErrorContent, containerId: 
             color: white;
             background: oklch(44.4% 0.177 26.899);
             box-shadow: 0 0 0 4px black inset;
-            max-width: 600px;
+            max-width: 640px;
             margin: 0 auto;
             font-family: monospace;
         `;
 
         const heading = document.createElement('h2');
         const msg = document.createElement('p');
-        const consoleMsg = document.createElement('p');
 
-        heading.style.cssText = 'margin-top: 0; font-size: 18px;';
-        msg.style.cssText = 'margin: 20px 0; line-height: 1.6;';
-        consoleMsg.style.cssText = 'margin-top: 20px; font-size: 12px; opacity: 0.66;';
+        heading.style.cssText = 'margin: 0 0 28px; font-size: 18px;';
+        msg.style.cssText = 'margin: 0; line-height: 1.8; text-align: left; white-space: pre-wrap;';
 
         heading.textContent = title;
 
         // Handle content - either plain string or object with code formatting.
+        // appendTextWithLineBreaks is used instead of textContent so that \n produces
+        // visible line breaks, making numbered step lists readable in the error panel.
         if (typeof content === 'string') {
-            msg.textContent = content; // Plain text rendering
+            appendTextWithLineBreaks(msg, content);
         } else {
-            msg.textContent = content.text; // Plain text rendering
+            appendTextWithLineBreaks(msg, content.text);
 
             if (content.code) {
                 // Add code block using DOM for safety.
@@ -166,11 +198,8 @@ export function displayError(title: string, content: ErrorContent, containerId: 
             }
         }
 
-        consoleMsg.textContent = 'Check the browser console for more details.';
-
         errorDiv.appendChild(heading);
         errorDiv.appendChild(msg);
-        errorDiv.appendChild(consoleMsg);
 
         // Clear existing children safely using DOM methods (avoids innerHTML).
         while (container.firstChild) {
@@ -257,9 +286,12 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
             }
 
             return (
-                'WebGPU may be disabled in the Chrome settings.\n' +
-                'To enable it: visit chrome://flags in the address bar, search for WebGPU, ' +
-                'and set it to Enabled. Then restart Chrome.'
+                'WebGPU is supported in this version of Chrome but is not available.\n\n' +
+                '1. Check that hardware acceleration is on: open chrome://settings/system in the address bar ' +
+                'and confirm "Use graphics acceleration when available" is enabled, then relaunch Chrome.\n' +
+                '2. Make sure the page is served over https or http://localhost, not plain http.\n' +
+                '3. If your GPU is blocklisted, open chrome://flags/#enable-unsafe-webgpu, ' +
+                'set "Unsafe WebGPU Support" to Enabled, and relaunch Chrome.'
             );
 
         case 'edge':
@@ -268,46 +300,82 @@ export function getWebGPUInstructions(browser: BrowserInfo): string {
             }
 
             return (
-                'WebGPU may be disabled in the Edge settings.\n' +
-                'To enable it: visit edge://flags in the address bar, search for WebGPU, ' +
-                'and set it to Enabled. Then restart Edge.'
+                'WebGPU is supported in this version of Edge but is not available.\n\n' +
+                '1. Check that hardware acceleration is on: open edge://settings/system in the address bar ' +
+                'and confirm "Use hardware acceleration when available" is enabled, then relaunch Edge.\n' +
+                '2. Make sure the page is served over https or http://localhost, not plain http.\n' +
+                '3. If your GPU is blocklisted, open edge://flags/#enable-unsafe-webgpu, ' +
+                'set "Unsafe WebGPU Support" to Enabled, and relaunch Edge.'
             );
 
         case 'firefox-nightly':
             return (
-                'Enable WebGPU in Firefox Nightly:\n' +
+                'Enable WebGPU in Firefox Nightly:\n\n' +
                 '1. Type about:config in the address bar and press Enter.\n' +
-                '2. Search for dom.webgpu.enabled.\n' +
-                '3. Double-click the entry to set it to true.\n' +
-                '4. Restart Firefox Nightly.'
+                '2. Accept the risk warning to proceed.\n' +
+                '3. Search for dom.webgpu.enabled.\n' +
+                '4. Double-click the entry to set it to true.\n' +
+                '5. Restart Firefox Nightly.'
             );
 
         case 'firefox':
+            if (browser.version >= MIN_FIREFOX_VERSION) {
+                return (
+                    'WebGPU support in Firefox depends on your operating system:\n\n' +
+                    `- Windows: enabled by default in Firefox ${MIN_FIREFOX_VERSION}+.\n` +
+                    '- Mac (Apple Silicon): enabled by default in Firefox 145+ on macOS 26, ' +
+                    'or Firefox 147+ on all macOS versions.\n' +
+                    '- Linux and Android: available in Firefox Nightly only, ' +
+                    'not yet in stable.\n\n' +
+                    'If you are on a supported OS and WebGPU is still unavailable, ' +
+                    'open about:config, confirm dom.webgpu.enabled is set to true, ' +
+                    'and restart Firefox.'
+                );
+            }
+
             return (
-                'WebGPU requires Firefox Nightly.\n' +
-                `Download Firefox Nightly at ${FIREFOX_NIGHTLY_URL} ` +
-                'then enable dom.webgpu.enabled in about:config.'
+                'WebGPU is not yet available in this version of Firefox.\n' +
+                `Update to Firefox ${MIN_FIREFOX_VERSION} or later (Windows), or download Firefox Nightly ` +
+                `at ${FIREFOX_NIGHTLY_URL} and enable dom.webgpu.enabled in about:config.`
             );
 
         case 'safari':
             if (browser.version < MIN_SAFARI_VERSION) {
                 return (
-                    `Update Safari to version ${MIN_SAFARI_VERSION} or later to use WebGPU.\n` +
-                    `Safari ${MIN_SAFARI_VERSION} requires macOS Sonoma 14.4 or later.`
+                    `Update Safari to version ${MIN_SAFARI_VERSION} or later to use WebGPU. ` +
+                    `Safari ${MIN_SAFARI_VERSION}–${MIN_SAFARI_DEFAULT_VERSION - 1} supports WebGPU via Feature Flags; ` +
+                    `Safari ${MIN_SAFARI_DEFAULT_VERSION}+ (macOS Tahoe 26) has it enabled by default.`
+                );
+            }
+
+            if (browser.version < MIN_SAFARI_DEFAULT_VERSION) {
+                return (
+                    `Safari ${MIN_SAFARI_VERSION}-${MIN_SAFARI_DEFAULT_VERSION - 1} supports WebGPU but it must be enabled manually. ` +
+                    'To enable WebGPU in Safari:\n\n' +
+                    '1. Open Safari Settings (Command + Comma) and go to the Advanced tab.\n' +
+                    '2. Check "Show features for web developers" to enable the Develop menu.\n' +
+                    '3. From the menu bar, choose Develop > Feature Flags.\n' +
+                    '4. Search for "WebGPU" and enable it.\n' +
+                    '5. Restart Safari.\n\n' +
+                    `Alternatively, update to Safari ${MIN_SAFARI_DEFAULT_VERSION} (macOS Tahoe 26) where WebGPU is on by default.`
                 );
             }
 
             return (
-                `WebGPU requires Safari ${MIN_SAFARI_VERSION}+ on macOS Sonoma 14.4 or later.\n` +
-                'Check that hardware acceleration is enabled: Safari menu → Settings → Advanced → ' +
-                'uncheck "Use hardware acceleration" and re-enable it.'
+                `WebGPU is enabled by default in Safari ${MIN_SAFARI_DEFAULT_VERSION} but appears to be unavailable. ` +
+                'If you disabled it via Feature Flags, re-enable it:\n\n' +
+                '1. Open Safari Settings (Command + Comma) and go to the Advanced tab.\n' +
+                '2. Check "Show features for web developers" to enable the Develop menu.\n' +
+                '3. From the menu bar, choose Develop > Feature Flags.\n' +
+                '4. Search for "WebGPU" and enable it.\n' +
+                '5. Restart Safari.'
             );
 
         default:
             return (
-                "WebGPU isn't available in this browser.\n" +
                 `Supported browsers: Chrome ${MIN_CHROME_EDGE_VERSION}+, Microsoft Edge ${MIN_CHROME_EDGE_VERSION}+, ` +
-                `Firefox Nightly (with dom.webgpu.enabled flag), Safari ${MIN_SAFARI_VERSION}+.`
+                `Firefox ${MIN_FIREFOX_VERSION}+ (Windows / Mac 145+) or Firefox Nightly, ` +
+                `Safari ${MIN_SAFARI_VERSION}+ (${MIN_SAFARI_VERSION}–${MIN_SAFARI_DEFAULT_VERSION - 1} via Feature Flags, ${MIN_SAFARI_DEFAULT_VERSION}+ by default).`
             );
     }
 }
@@ -339,6 +407,221 @@ export function getCanvas(canvasId: string = DEFAULT_CANVAS_ID): HTMLCanvasEleme
     }
 
     return canvas;
+}
+
+// #endregion
+
+// #region Dev Utilities
+
+/**
+ * Preview entry describing a single error variant.
+ */
+interface ErrorPreviewEntry {
+    /** Short human-readable label shown in the navigation bar. */
+    readonly label: string;
+
+    /** Error panel heading. */
+    readonly title: string;
+
+    /** Error panel body content. */
+    readonly content: ErrorContent;
+}
+
+/**
+ * Returns all distinct error message variants used by the engine.
+ * Covers every browser/version branch of {@link getWebGPUInstructions} plus the
+ * three non-WebGPU error types (canvas, initialization, unexpected).
+ *
+ * @returns Array of preview entries, one per error variant.
+ */
+function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
+    return [
+        // WebGPU not supported — Chrome
+        {
+            label: 'Chrome, outdated (< 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'chrome', version: 100 }),
+        },
+        {
+            label: 'Chrome, current (>= 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'chrome', version: 130 }),
+        },
+
+        // WebGPU not supported — Edge
+        {
+            label: 'Edge, outdated (< 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'edge', version: 100 }),
+        },
+        {
+            label: 'Edge, current (>= 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'edge', version: 130 }),
+        },
+
+        // WebGPU not supported — Firefox
+        {
+            label: 'Firefox Nightly',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox-nightly', version: 130 }),
+        },
+        {
+            label: 'Firefox stable, outdated (< 141)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox', version: 130 }),
+        },
+        {
+            label: 'Firefox stable, current (>= 141)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox', version: 141 }),
+        },
+
+        // WebGPU not supported — Safari
+        {
+            label: 'Safari, outdated (< 18)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 17 }),
+        },
+        {
+            label: 'Safari 18-25, Feature Flags required',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 18 }),
+        },
+        {
+            label: 'Safari 26+, enabled by default',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 26 }),
+        },
+
+        // WebGPU not supported — unknown browser
+        {
+            label: 'Unknown browser',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'unknown', version: 0 }),
+        },
+
+        // Non-WebGPU errors
+        {
+            label: 'Canvas element not found',
+            title: 'Canvas Error',
+            content:
+                "Failed to find the canvas element with the id 'blit-tech-canvas'.\n\n" +
+                'Make sure the HTML includes a canvas element with the correct ID.',
+        },
+        {
+            label: 'Initialization failed (with error)',
+            title: 'Initialization Failed',
+            content: {
+                text: 'The engine failed to initialize. Check the console for details.',
+                code: "TypeError: Cannot read properties of undefined (reading 'requestDevice')",
+            },
+        },
+        {
+            label: 'Unexpected error during bootstrap',
+            title: 'Unexpected Error',
+            content: {
+                text: 'An unexpected error occurred during initialization:',
+                code: 'RangeError: Maximum call stack size exceeded',
+            },
+        },
+    ];
+}
+
+/**
+ * Cycles through every error message variant for visual testing.
+ *
+ * Renders each variant in the error container with Prev/Next navigation buttons.
+ * Arrow keys also cycle through variants once the function has been called.
+ *
+ * Intended for **development use only**. Do not call this in production demos.
+ *
+ * @param containerId - Container element ID. Default: 'canvas-container'
+ *
+ * @example
+ * // Call once during development to inspect all error layouts:
+ * import { previewWebGPUErrors } from 'blit-tech';
+ * previewWebGPUErrors();
+ */
+export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID): void {
+    // Bail out before touching the global key handler if the container is missing.
+    if (!document.getElementById(containerId)) {
+        return;
+    }
+
+    const entries = buildErrorPreviewEntries();
+    let current = 0;
+
+    const show = (index: number): void => {
+        current = index;
+
+        // eslint-disable-next-line security/detect-object-injection
+        const entry = entries[index];
+
+        if (!entry) {
+            return;
+        }
+
+        displayError(entry.title, entry.content, containerId);
+
+        const container = document.getElementById(containerId);
+
+        if (!container) {
+            return;
+        }
+
+        // Navigation bar appended below the error box.
+        const nav = document.createElement('div');
+
+        nav.style.cssText =
+            'display: flex; align-items: center; justify-content: center; gap: 16px; ' +
+            'margin-top: 12px; font-family: monospace; font-size: 12px; color: #aaa;';
+
+        const prevBtn = document.createElement('button');
+
+        prevBtn.type = 'button';
+        prevBtn.textContent = '<< Prev';
+        prevBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
+        prevBtn.addEventListener('click', () => {
+            show((current - 1 + entries.length) % entries.length);
+        });
+
+        const counter = document.createElement('span');
+
+        counter.textContent = `${index + 1} / ${entries.length}  —  ${entry.label}`;
+
+        const nextBtn = document.createElement('button');
+
+        nextBtn.type = 'button';
+        nextBtn.textContent = 'Next >>';
+        nextBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
+        nextBtn.addEventListener('click', () => {
+            show((current + 1) % entries.length);
+        });
+
+        nav.appendChild(prevBtn);
+        nav.appendChild(counter);
+        nav.appendChild(nextBtn);
+        container.appendChild(nav);
+    };
+
+    // Arrow-key navigation. Remove any previously registered handler first so
+    // repeated calls don't stack multiple listeners.
+    if (previewKeyHandler) {
+        document.removeEventListener('keydown', previewKeyHandler);
+    }
+
+    previewKeyHandler = (e: KeyboardEvent): void => {
+        if (e.key === 'ArrowLeft') {
+            show((current - 1 + entries.length) % entries.length);
+        } else if (e.key === 'ArrowRight') {
+            show((current + 1) % entries.length);
+        }
+    };
+
+    document.addEventListener('keydown', previewKeyHandler);
+
+    show(current);
 }
 
 // #endregion

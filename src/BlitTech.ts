@@ -20,7 +20,7 @@ import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
 import { defaultHardwareSettings } from './core/IBlitTechDemo';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
-import { checkWebGPUSupport, displayError, getCanvas } from './utils/BootstrapHelpers';
+import { checkWebGPUSupport, displayError, getCanvas, previewWebGPUErrors } from './utils/BootstrapHelpers';
 import { Color32 } from './utils/Color32';
 import type { EasingFunction } from './utils/Easing';
 import { applyEasing } from './utils/Easing';
@@ -693,6 +693,7 @@ export {
     displayError,
     getCanvas,
     Palette,
+    previewWebGPUErrors,
     Rect2i,
     SpriteSheet,
     Vector2i,
