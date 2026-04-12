@@ -342,3 +342,204 @@ export function getCanvas(canvasId: string = DEFAULT_CANVAS_ID): HTMLCanvasEleme
 }
 
 // #endregion
+
+// #region Dev Utilities
+
+/**
+ * Preview entry describing a single error variant.
+ */
+interface ErrorPreviewEntry {
+    /** Short human-readable label shown in the navigation bar. */
+    readonly label: string;
+
+    /** Error panel heading. */
+    readonly title: string;
+
+    /** Error panel body content. */
+    readonly content: ErrorContent;
+}
+
+/**
+ * Returns all distinct error message variants used by the engine.
+ * Covers every browser/version branch of {@link getWebGPUInstructions} plus the
+ * three non-WebGPU error types (canvas, initialization, unexpected).
+ *
+ * @returns Array of preview entries, one per error variant.
+ */
+function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
+    return [
+        // WebGPU not supported — Chrome
+        {
+            label: 'Chrome, outdated (< 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'chrome', version: 100 }),
+        },
+        {
+            label: 'Chrome, current (>= 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'chrome', version: 130 }),
+        },
+
+        // WebGPU not supported — Edge
+        {
+            label: 'Edge, outdated (< 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'edge', version: 100 }),
+        },
+        {
+            label: 'Edge, current (>= 113)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'edge', version: 130 }),
+        },
+
+        // WebGPU not supported — Firefox
+        {
+            label: 'Firefox Nightly',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox-nightly', version: 130 }),
+        },
+        {
+            label: 'Firefox stable, outdated (< 141)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox', version: 130 }),
+        },
+        {
+            label: 'Firefox stable, current (>= 141)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'firefox', version: 141 }),
+        },
+
+        // WebGPU not supported — Safari
+        {
+            label: 'Safari, outdated (< 18)',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 17 }),
+        },
+        {
+            label: 'Safari 18-25, Feature Flags required',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 18 }),
+        },
+        {
+            label: 'Safari 26+, enabled by default',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'safari', version: 26 }),
+        },
+
+        // WebGPU not supported — unknown browser
+        {
+            label: 'Unknown browser',
+            title: 'WebGPU Not Supported',
+            content: getWebGPUInstructions({ name: 'unknown', version: 0 }),
+        },
+
+        // Non-WebGPU errors
+        {
+            label: 'Canvas element not found',
+            title: 'Canvas Error',
+            content:
+                "Failed to find the canvas element with the id 'blit-tech-canvas'.\n\n" +
+                'Make sure the HTML includes a canvas element with the correct ID.',
+        },
+        {
+            label: 'Initialization failed (with error)',
+            title: 'Initialization Failed',
+            content: {
+                text: 'The engine failed to initialize. Check the console for details.',
+                code: "TypeError: Cannot read properties of undefined (reading 'requestDevice')",
+            },
+        },
+        {
+            label: 'Unexpected error during bootstrap',
+            title: 'Unexpected Error',
+            content: {
+                text: 'An unexpected error occurred during initialization:',
+                code: 'RangeError: Maximum call stack size exceeded',
+            },
+        },
+    ];
+}
+
+/**
+ * Cycles through every error message variant for visual testing.
+ *
+ * Renders each variant in the error container with Prev/Next navigation buttons.
+ * Arrow keys also cycle through variants once the function has been called.
+ *
+ * Intended for **development use only**. Do not call this in production demos.
+ *
+ * @param containerId - Container element ID. Default: 'canvas-container'
+ *
+ * @example
+ * // Call once during development to inspect all error layouts:
+ * import { previewWebGPUErrors } from 'blit-tech';
+ * previewWebGPUErrors();
+ */
+export function previewWebGPUErrors(containerId: string = DEFAULT_CONTAINER_ID): void {
+    const entries = buildErrorPreviewEntries();
+    let current = 0;
+
+    const show = (index: number): void => {
+        current = index;
+
+        // eslint-disable-next-line security/detect-object-injection
+        const entry = entries[index];
+
+        if (!entry) {
+            return;
+        }
+
+        displayError(entry.title, entry.content, containerId);
+
+        const container = document.getElementById(containerId);
+
+        if (!container) {
+            return;
+        }
+
+        // Navigation bar appended below the error box.
+        const nav = document.createElement('div');
+
+        nav.style.cssText =
+            'display: flex; align-items: center; justify-content: center; gap: 16px; ' +
+            'margin-top: 12px; font-family: monospace; font-size: 12px; color: #aaa;';
+
+        const prevBtn = document.createElement('button');
+
+        prevBtn.textContent = '<< Prev';
+        prevBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
+        prevBtn.addEventListener('click', () => {
+            show((current - 1 + entries.length) % entries.length);
+        });
+
+        const counter = document.createElement('span');
+
+        counter.textContent = `${index + 1} / ${entries.length}  —  ${entry.label}`;
+
+        const nextBtn = document.createElement('button');
+
+        nextBtn.textContent = 'Next >>';
+        nextBtn.style.cssText = 'padding: 4px 12px; font-family: monospace; cursor: pointer;';
+        nextBtn.addEventListener('click', () => {
+            show((current + 1) % entries.length);
+        });
+
+        nav.appendChild(prevBtn);
+        nav.appendChild(counter);
+        nav.appendChild(nextBtn);
+        container.appendChild(nav);
+    };
+
+    // Arrow-key navigation.
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'ArrowLeft') {
+            show((current - 1 + entries.length) % entries.length);
+        } else if (e.key === 'ArrowRight') {
+            show((current + 1) % entries.length);
+        }
+    });
+
+    show(current);
+}
+
+// #endregion
