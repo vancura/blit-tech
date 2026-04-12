@@ -132,7 +132,10 @@ function validateWebGPU(containerId: string, onError?: (error: Error) => void): 
         result = { success: true };
     } else {
         console.error("[BT] WebGPU isn't supported in this browser.");
-        console.error('[BT] Browser: ', navigator.userAgent);
+        console.error(
+            '[BT] Browser: ',
+            typeof navigator !== 'undefined' ? navigator.userAgent : 'navigator unavailable',
+        );
 
         result = handleBootstrapError(
             'WebGPU Not Supported',
