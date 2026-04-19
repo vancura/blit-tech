@@ -447,6 +447,30 @@ describe('SpriteSheet', () => {
                 /Failed to load image/,
             );
         });
+
+        it('rejects atomically when startSlot + discovered colors exceed palette size', async () => {
+            // Four distinct opaque colors, but only two slots remain starting at slot 14 in a size-16 palette.
+            const pixels = new Uint8ClampedArray([
+                10, 10, 10, 255, 100, 100, 100, 255, 200, 200, 200, 255, 250, 250, 250, 255,
+            ]);
+            stubLoad(pixels, 4, 1);
+
+            const palette = new Palette(16);
+            const startSlot = 14;
+
+            // Snapshot the target slots (and their neighbor) before the call so we can
+            // verify no partial mutation on rejection.
+            const before = [13, 14, 15].map((i) => palette.get(i));
+
+            await expect(SpriteSheet.loadColorsIntoPalette('test.png', palette, startSlot)).rejects.toThrow(
+                /do not fit in palette size 16/,
+            );
+
+            const after = [13, 14, 15].map((i) => palette.get(i));
+            expect(after[0]?.equals(before[0] as Color32)).toBe(true);
+            expect(after[1]?.equals(before[1] as Color32)).toBe(true);
+            expect(after[2]?.equals(before[2] as Color32)).toBe(true);
+        });
     });
 
     // #endregion

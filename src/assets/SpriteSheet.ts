@@ -115,6 +115,11 @@ export class SpriteSheet {
      * Image loading goes through {@link AssetLoader.loadImage}, so the call
      * shares cache and in-flight deduplication with {@link SpriteSheet.load}.
      *
+     * The destination range is validated before any write, so the palette is
+     * never left partially mutated: if the collected colors would not fit
+     * (`startSlot < 1` or `startSlot + count > palette.size`), the method
+     * throws without touching any slot.
+     *
      * @param url - Path or URL to the PNG file.
      * @param palette - Target palette to populate.
      * @param startSlot - First palette slot to write into.
@@ -122,6 +127,7 @@ export class SpriteSheet {
      * @param options.sort - Color ordering. Defaults to `'luminance'`.
      * @returns Registered colors in palette-write order.
      * @throws Error if the image cannot be loaded.
+     * @throws RangeError if the discovered colors do not fit in the palette starting at `startSlot`.
      */
     static async loadColorsIntoPalette(
         url: string,
@@ -174,6 +180,26 @@ export class SpriteSheet {
                 const l2 = c2.r * 0.299 + c2.g * 0.587 + c2.b * 0.114;
                 return l1 - l2;
             });
+        }
+
+        // Validate the full destination range up front so a mid-loop palette.set()
+        // throw (out-of-range slot, or opaque color at reserved slot 0) cannot
+        // leave the palette partially mutated. All collected colors are opaque,
+        // so startSlot must be at least 1.
+        if (collected.length > 0) {
+            if (startSlot < 1) {
+                throw new RangeError(
+                    `[SpriteSheet] loadColorsIntoPalette: startSlot ${startSlot} is invalid (slot 0 is reserved for transparency).`,
+                );
+            }
+
+            const endSlot = startSlot + collected.length - 1;
+
+            if (endSlot >= palette.size) {
+                throw new RangeError(
+                    `[SpriteSheet] loadColorsIntoPalette: ${collected.length} colors do not fit in palette size ${palette.size} starting at slot ${startSlot}.`,
+                );
+            }
         }
 
         collected.forEach((color, i) => {
