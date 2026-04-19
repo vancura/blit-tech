@@ -99,6 +99,91 @@ export class SpriteSheet {
     }
 
     /**
+     * Walks a PNG's pixels and registers every unique opaque color into the
+     * supplied palette starting at `startSlot`.
+     *
+     * Pixels with alpha 0 are skipped — they map to the engine's transparent
+     * sentinel slot 0 at draw time. Opaque pixels are deduplicated on RGB and
+     * stored with alpha forced to 255, matching the lookup performed by
+     * `indexize()` so a subsequent `sheet.indexize(palette)` call resolves
+     * without throwing on missing colors.
+     *
+     * By default colors are sorted darkest-first by perceived luminance
+     * (`0.299*r + 0.587*g + 0.114*b`); pass `{ sort: 'none' }` to keep the
+     * row-major scan order of the source image.
+     *
+     * Image loading goes through {@link AssetLoader.loadImage}, so the call
+     * shares cache and in-flight deduplication with {@link SpriteSheet.load}.
+     *
+     * @param url - Path or URL to the PNG file.
+     * @param palette - Target palette to populate.
+     * @param startSlot - First palette slot to write into.
+     * @param options - Optional configuration.
+     * @param options.sort - Color ordering. Defaults to `'luminance'`.
+     * @returns Registered colors in palette-write order.
+     * @throws Error if the image cannot be loaded.
+     */
+    static async loadColorsIntoPalette(
+        url: string,
+        palette: Palette,
+        startSlot: number,
+        options?: { sort?: 'luminance' | 'none' },
+    ): Promise<Color32[]> {
+        const image = await AssetLoader.loadImage(url);
+        const w = image.width;
+        const h = image.height;
+
+        const canvas = new OffscreenCanvas(w, h);
+        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image, 0, 0);
+
+        const { data } = ctx.getImageData(0, 0, w, h);
+
+        const seen = new Set<number>();
+        const collected: Color32[] = [];
+
+        for (let i = 0; i < data.length; i += 4) {
+            const a = data[i + 3] ?? 0;
+
+            if (a === 0) {
+                continue;
+            }
+
+            // eslint-disable-next-line security/detect-object-injection
+            const r = data[i] ?? 0;
+            const g = data[i + 1] ?? 0;
+            const b = data[i + 2] ?? 0;
+
+            // Pack RGB into a single 24-bit integer for fast Set lookup.
+            const key = (r << 16) | (g << 8) | b;
+
+            if (seen.has(key)) {
+                continue;
+            }
+
+            seen.add(key);
+            collected.push(new Color32(r, g, b, 255));
+        }
+
+        const sortMode = options?.sort ?? 'luminance';
+
+        if (sortMode === 'luminance') {
+            collected.sort((c1, c2) => {
+                const l1 = c1.r * 0.299 + c1.g * 0.587 + c1.b * 0.114;
+                const l2 = c2.r * 0.299 + c2.g * 0.587 + c2.b * 0.114;
+                return l1 - l2;
+            });
+        }
+
+        collected.forEach((color, i) => {
+            palette.set(startSlot + i, color);
+        });
+
+        return collected;
+    }
+
+    /**
      * Creates a sprite sheet from pre-computed palette-indexed pixel data.
      *
      * The resulting sheet is immediately indexized -- its `getTexture()` call
