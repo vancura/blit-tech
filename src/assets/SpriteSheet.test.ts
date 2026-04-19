@@ -345,6 +345,136 @@ describe('SpriteSheet', () => {
 
     // #endregion
 
+    // #region loadColorsIntoPalette
+
+    describe('loadColorsIntoPalette', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+            vi.unstubAllGlobals();
+        });
+
+        function stubLoad(pixels: Uint8ClampedArray, w: number, h: number) {
+            vi.stubGlobal('OffscreenCanvas', makeOffscreenCanvasMock(pixels, w, h));
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue({ width: w, height: h } as HTMLImageElement);
+        }
+
+        it('returns colors sorted darkest-first by luminance by default', async () => {
+            // Three opaque pixels: bright white, medium red, near-black blue.
+            // Scan order: white, red, blue. Luminance order: blue < red < white.
+            const pixels = new Uint8ClampedArray([255, 255, 255, 255, 200, 0, 0, 255, 0, 0, 30, 255]);
+            stubLoad(pixels, 3, 1);
+
+            const palette = new Palette(16);
+            const colors = await SpriteSheet.loadColorsIntoPalette('test.png', palette, 1);
+
+            expect(colors).toHaveLength(3);
+            expect(colors[0]?.b).toBe(30); // darkest first (blue)
+            expect(colors[1]?.r).toBe(200); // red middle
+            expect(colors[2]?.r).toBe(255); // brightest last (white)
+        });
+
+        it('preserves scan order when sort: "none"', async () => {
+            const pixels = new Uint8ClampedArray([255, 255, 255, 255, 200, 0, 0, 255, 0, 0, 30, 255]);
+            stubLoad(pixels, 3, 1);
+
+            const palette = new Palette(16);
+            const colors = await SpriteSheet.loadColorsIntoPalette('test.png', palette, 1, { sort: 'none' });
+
+            expect(colors).toHaveLength(3);
+            expect(colors[0]?.r).toBe(255); // white first (scan order)
+            expect(colors[1]?.r).toBe(200); // red second
+            expect(colors[2]?.b).toBe(30); // blue third
+        });
+
+        it('deduplicates identical opaque pixels on RGB', async () => {
+            // Same red pixel three times.
+            const pixels = new Uint8ClampedArray([255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255]);
+            stubLoad(pixels, 3, 1);
+
+            const palette = new Palette(16);
+            const colors = await SpriteSheet.loadColorsIntoPalette('test.png', palette, 1);
+
+            expect(colors).toHaveLength(1);
+            expect(colors[0]?.r).toBe(255);
+            expect(colors[0]?.g).toBe(0);
+            expect(colors[0]?.b).toBe(0);
+        });
+
+        it('skips alpha=0 pixels and does not consume a palette slot', async () => {
+            // Two transparent + one opaque red. Only the red should be registered.
+            const pixels = new Uint8ClampedArray([0, 0, 0, 0, 99, 99, 99, 0, 200, 50, 25, 255]);
+            stubLoad(pixels, 3, 1);
+
+            const palette = new Palette(16);
+            const colors = await SpriteSheet.loadColorsIntoPalette('test.png', palette, 5);
+
+            expect(colors).toHaveLength(1);
+            expect(palette.get(5).r).toBe(200);
+        });
+
+        it('forces alpha to 255 even when source alpha is partial', async () => {
+            // Source has alpha=128 — should be stored as 255 to match indexize() lookup.
+            const pixels = new Uint8ClampedArray([200, 100, 50, 128]);
+            stubLoad(pixels, 1, 1);
+
+            const palette = new Palette(16);
+            const colors = await SpriteSheet.loadColorsIntoPalette('test.png', palette, 1);
+
+            expect(colors).toHaveLength(1);
+            expect(colors[0]?.a).toBe(255);
+            expect(palette.get(1).a).toBe(255);
+        });
+
+        it('writes colors into consecutive palette slots starting at startSlot', async () => {
+            // Three distinct opaque colors arranged darkest-to-brightest in scan order
+            // so the default luminance sort does not reshuffle them.
+            const pixels = new Uint8ClampedArray([10, 10, 10, 255, 100, 100, 100, 255, 250, 250, 250, 255]);
+            stubLoad(pixels, 3, 1);
+
+            const palette = new Palette(16);
+            await SpriteSheet.loadColorsIntoPalette('test.png', palette, 4);
+
+            expect(palette.get(4).r).toBe(10);
+            expect(palette.get(5).r).toBe(100);
+            expect(palette.get(6).r).toBe(250);
+        });
+
+        it('rejects when AssetLoader.loadImage rejects', async () => {
+            vi.spyOn(AssetLoader, 'loadImage').mockRejectedValue(new Error('Failed to load image: missing.png'));
+
+            const palette = new Palette(16);
+            await expect(SpriteSheet.loadColorsIntoPalette('missing.png', palette, 1)).rejects.toThrow(
+                /Failed to load image/,
+            );
+        });
+
+        it('rejects atomically when startSlot + discovered colors exceed palette size', async () => {
+            // Four distinct opaque colors, but only two slots remain starting at slot 14 in a size-16 palette.
+            const pixels = new Uint8ClampedArray([
+                10, 10, 10, 255, 100, 100, 100, 255, 200, 200, 200, 255, 250, 250, 250, 255,
+            ]);
+            stubLoad(pixels, 4, 1);
+
+            const palette = new Palette(16);
+            const startSlot = 14;
+
+            // Snapshot the target slots (and their neighbor) before the call so we can
+            // verify no partial mutation on rejection.
+            const before = [13, 14, 15].map((i) => palette.get(i));
+
+            await expect(SpriteSheet.loadColorsIntoPalette('test.png', palette, startSlot)).rejects.toThrow(
+                /do not fit in palette size 16/,
+            );
+
+            const after = [13, 14, 15].map((i) => palette.get(i));
+            expect(after[0]?.equals(before[0] as Color32)).toBe(true);
+            expect(after[1]?.equals(before[1] as Color32)).toBe(true);
+            expect(after[2]?.equals(before[2] as Color32)).toBe(true);
+        });
+    });
+
+    // #endregion
+
     // #region fromIndexedPixels
 
     describe('fromIndexedPixels', () => {
