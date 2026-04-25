@@ -199,7 +199,7 @@ export class GammaEffect implements Effect {
   private cache = new WeakMap<GPUTextureView, GPUBindGroup>();
   private writer = new Float32Array(4);
 
-  init(device: GPUDevice, format: GPUTextureFormat) {
+  init(device: GPUDevice, format: GPUTextureFormat, _displaySize: Vector2i): void {
     this.device = device;
     const module = device.createShaderModule({ code: SHADER });
     this.pipeline = device.createRenderPipeline({
@@ -216,7 +216,7 @@ export class GammaEffect implements Effect {
     this.sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
   }
 
-  updateUniforms(_dt: number, sourceSize: Vector2i) {
+  updateUniforms(_dt: number, sourceSize: Vector2i): void {
     this.writer[0] = sourceSize.x;
     this.writer[1] = sourceSize.y;
     this.writer[2] = this.intensity;
@@ -224,7 +224,7 @@ export class GammaEffect implements Effect {
     this.device.queue.writeBuffer(this.uniforms, 0, this.writer);
   }
 
-  encodePass(encoder: GPUCommandEncoder, src: GPUTextureView, dest: GPUTextureView) {
+  encodePass(encoder: GPUCommandEncoder, src: GPUTextureView, dest: GPUTextureView): void {
     let bg = this.cache.get(src);
     if (!bg) {
       bg = this.device.createBindGroup({
@@ -246,7 +246,7 @@ export class GammaEffect implements Effect {
     pass.end();
   }
 
-  dispose() {
+  dispose(): void {
     this.uniforms.destroy();
   }
 }
