@@ -28,6 +28,7 @@ import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
+import type { Effect } from './effects/Effect';
 import { Renderer } from './Renderer';
 
 // #region Test Helpers
@@ -795,6 +796,251 @@ describe('palette dirty-flag auto-propagation', () => {
         expect(writeBufferSpy.mock.calls.length).toBe(callsAfterFirstFrame);
 
         writeBufferSpy.mockRestore();
+
+        uninstallMockNavigatorGPU();
+    });
+});
+
+// #endregion
+
+// #region Post-Process Effects
+
+describe('post-process effects', () => {
+    /** Minimal stub effect that records lifecycle calls. */
+    function createStubEffect(): Effect & {
+        initSpy: ReturnType<typeof vi.fn>;
+        updateSpy: ReturnType<typeof vi.fn>;
+        encodeSpy: ReturnType<typeof vi.fn>;
+        disposeSpy: ReturnType<typeof vi.fn>;
+    } {
+        const initSpy = vi.fn();
+        const updateSpy = vi.fn();
+        const encodeSpy = vi.fn();
+        const disposeSpy = vi.fn();
+
+        return {
+            initSpy,
+            updateSpy,
+            encodeSpy,
+            disposeSpy,
+            init: (device, format, displaySize) => initSpy(device, format, displaySize),
+            updateUniforms: (deltaMs, sourceSize) => updateSpy(deltaMs, sourceSize),
+            encodePass: (encoder, sourceView, destView) => encodeSpy(encoder, sourceView, destView),
+            dispose: () => disposeSpy(),
+        };
+    }
+
+    it('addEffect throws before initialize', () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        expect(() => r.addEffect(createStubEffect())).toThrow(/not initialized/);
+    });
+
+    it('removeEffect throws before initialize', () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        expect(() => r.removeEffect(createStubEffect())).toThrow(/not initialized/);
+    });
+
+    it('clearEffects throws before initialize', () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        expect(() => r.clearEffects()).toThrow(/not initialized/);
+    });
+
+    it('addEffect / clearEffects work after initialize', async () => {
+        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+
+        const effect = createStubEffect();
+
+        expect(() => r.addEffect(effect)).not.toThrow();
+        expect(effect.initSpy).toHaveBeenCalledOnce();
+        expect(() => r.clearEffects()).not.toThrow();
+        expect(effect.disposeSpy).toHaveBeenCalledOnce();
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame keeps a single render pass while no effects are registered', async () => {
+        const device = createMockGPUDevice();
+        const beginRenderPassCalls: unknown[] = [];
+
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            const original = encoder.beginRenderPass.bind(encoder);
+            encoder.beginRenderPass = (descriptor) => {
+                beginRenderPassCalls.push(descriptor);
+                return original(descriptor);
+            };
+            return encoder;
+        });
+
+        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+        r.setPalette(createTestPalette());
+
+        r.beginFrame();
+        r.endFrame();
+
+        // No effects registered: exactly one render pass (the scene pass).
+        expect(beginRenderPassCalls).toHaveLength(1);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame drives chain.encode for each registered effect', async () => {
+        const device = createMockGPUDevice();
+        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+        r.setPalette(createTestPalette());
+
+        const effect = createStubEffect();
+        r.addEffect(effect);
+
+        r.beginFrame();
+        r.endFrame();
+
+        expect(effect.encodeSpy).toHaveBeenCalledTimes(1);
+        expect(effect.updateSpy).toHaveBeenCalledTimes(1);
+
+        // Second frame: another encode call.
+        r.beginFrame();
+        r.endFrame();
+
+        expect(effect.encodeSpy).toHaveBeenCalledTimes(2);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame drives every effect when multiple are stacked', async () => {
+        const device = createMockGPUDevice();
+        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+        r.setPalette(createTestPalette());
+
+        const effectA = createStubEffect();
+        const effectB = createStubEffect();
+        r.addEffect(effectA);
+        r.addEffect(effectB);
+
+        r.beginFrame();
+        r.endFrame();
+
+        expect(effectA.encodeSpy).toHaveBeenCalledTimes(1);
+        expect(effectB.encodeSpy).toHaveBeenCalledTimes(1);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame routes the scene pass into the chain offscreen target while active', async () => {
+        const device = createMockGPUDevice();
+        const beginRenderPassCalls: GPURenderPassDescriptor[] = [];
+
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            const original = encoder.beginRenderPass.bind(encoder);
+            encoder.beginRenderPass = (descriptor) => {
+                beginRenderPassCalls.push(descriptor);
+                return original(descriptor);
+            };
+            return encoder;
+        });
+
+        const swapView = { label: 'swap-chain-view' } as unknown as GPUTextureView;
+        const swapTexture = {
+            width: 320,
+            height: 240,
+            createView: () => swapView,
+        } as unknown as GPUTexture;
+        const context = {
+            ...createMockGPUCanvasContext(),
+            getCurrentTexture: () => swapTexture,
+        } as unknown as GPUCanvasContext;
+
+        const r = new Renderer(device, context, new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+        r.setPalette(createTestPalette());
+
+        const effect = createStubEffect();
+        r.addEffect(effect);
+
+        r.beginFrame();
+        r.endFrame();
+
+        // The scene render pass must target the chain's offscreen view, NOT
+        // the swap-chain view. The chain-driven effect pass receives the
+        // scene view as source and the swap-chain view as destination.
+        const scenePass = beginRenderPassCalls[0];
+        expect(scenePass).toBeDefined();
+        const sceneAttachment = (scenePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
+        expect(sceneAttachment?.view).not.toBe(swapView);
+
+        const encodeArgs = effect.encodeSpy.mock.calls[0];
+        expect(encodeArgs?.[1]).toBe(sceneAttachment?.view);
+        expect(encodeArgs?.[2]).toBe(swapView);
+
+        uninstallMockNavigatorGPU();
+    });
+
+    it('endFrame keeps the scene pass on the swap chain when no effects are registered', async () => {
+        const device = createMockGPUDevice();
+        const beginRenderPassCalls: GPURenderPassDescriptor[] = [];
+
+        const originalCreate = device.createCommandEncoder.bind(device);
+        vi.spyOn(device, 'createCommandEncoder').mockImplementation(() => {
+            const encoder = originalCreate();
+            const original = encoder.beginRenderPass.bind(encoder);
+            encoder.beginRenderPass = (descriptor) => {
+                beginRenderPassCalls.push(descriptor);
+                return original(descriptor);
+            };
+            return encoder;
+        });
+
+        const swapView = { label: 'swap-chain-view' } as unknown as GPUTextureView;
+        const swapTexture = {
+            width: 320,
+            height: 240,
+            createView: () => swapView,
+        } as unknown as GPUTexture;
+        const context = {
+            ...createMockGPUCanvasContext(),
+            getCurrentTexture: () => swapTexture,
+        } as unknown as GPUCanvasContext;
+
+        const r = new Renderer(device, context, new Vector2i(320, 240));
+
+        installMockNavigatorGPU();
+
+        await r.initialize();
+        r.setPalette(createTestPalette());
+
+        r.beginFrame();
+        r.endFrame();
+
+        const scenePass = beginRenderPassCalls[0];
+        const sceneAttachment = (scenePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
+
+        expect(sceneAttachment?.view).toBe(swapView);
+        expect(beginRenderPassCalls).toHaveLength(1);
 
         uninstallMockNavigatorGPU();
     });

@@ -5,6 +5,8 @@ import { Color32 } from '../utils/Color32';
 import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
+import type { Effect } from './effects/Effect';
+import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
 
@@ -75,6 +77,13 @@ export class Renderer {
     /** Pipeline for textured quads (sprites, bitmap text). */
     private readonly sprites: SpritePipeline;
 
+    /**
+     * Stackable post-processing chain. Inactive by default; the renderer keeps
+     * the current direct-to-swap-chain path until an effect is added via
+     * {@link addEffect}.
+     */
+    private chain: PostProcessChain | null = null;
+
     // #endregion
 
     // #region Constructor
@@ -119,6 +128,8 @@ export class Renderer {
 
             await this.primitives.initialize(this.device, this.displaySize, this.paletteBuffer);
             await this.sprites.initialize(this.device, this.displaySize, this.paletteBuffer);
+
+            this.chain = new PostProcessChain(this.device, navigator.gpu.getPreferredCanvasFormat(), this.displaySize);
 
             return true;
         } catch (error) {
@@ -240,14 +251,19 @@ export class Renderer {
         // Resolve clear color from palette.
         const clearColor = this.resolveClearColor();
 
-        const textureView = texture.createView();
+        const swapChainView = texture.createView();
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
+
+        // When a post-process chain is active, render the scene into its
+        // offscreen target so the chain can sample it; otherwise render
+        // straight to the swap chain (preserves the no-effect fast path).
+        const sceneView = this.chain?.isActive() ? this.chain.getSceneTargetView() : swapChainView;
 
         const renderPass = commandEncoder.beginRenderPass({
             label: 'Render Pass',
             colorAttachments: [
                 {
-                    view: textureView,
+                    view: sceneView,
                     // WebGPU expects linear 0-1 floats; Color32 stores 0-255 integers.
                     clearValue: {
                         r: clearColor.r / 255,
@@ -265,6 +281,13 @@ export class Renderer {
         this.sprites.encodePass(renderPass);
 
         renderPass.end();
+
+        // Run the post-process chain (if active) into the swap-chain view.
+        // Frame capture below reads `texture` directly so it sees the
+        // post-processed output, not the raw scene buffer.
+        if (this.chain?.isActive()) {
+            this.chain.encode(commandEncoder, 0, swapChainView);
+        }
 
         // If a frame capture is pending, add the texture-to-buffer copy before submitting.
         const capturing = this.frameCapture.hasPendingCapture();
@@ -418,6 +441,59 @@ export class Renderer {
         this.cameraOffset = Vector2i.zero();
         this.primitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
+    }
+
+    // #endregion
+
+    // #region Post-Process Effects
+
+    /**
+     * Appends a fullscreen post-processing effect to the chain.
+     *
+     * The first added effect causes the scene to render into an offscreen
+     * texture starting on the next frame. With no effects registered the
+     * renderer continues to draw directly to the swap chain.
+     *
+     * @param effect - Effect instance to append.
+     * @throws If the renderer has not been initialized.
+     */
+    addEffect(effect: Effect): void {
+        if (!this.chain) {
+            throw new Error('Renderer.addEffect: renderer not initialized.');
+        }
+
+        this.chain.add(effect);
+    }
+
+    /**
+     * Removes a previously registered post-processing effect.
+     *
+     * Calls {@link Effect.dispose} on the effect if defined. When the last
+     * effect is removed the renderer reverts to drawing directly to the swap
+     * chain on the next frame.
+     *
+     * @param effect - Effect instance to remove.
+     * @throws If the renderer has not been initialized.
+     */
+    removeEffect(effect: Effect): void {
+        if (!this.chain) {
+            throw new Error('Renderer.removeEffect: renderer not initialized.');
+        }
+
+        this.chain.remove(effect);
+    }
+
+    /**
+     * Removes every registered post-processing effect.
+     *
+     * @throws If the renderer has not been initialized.
+     */
+    clearEffects(): void {
+        if (!this.chain) {
+            throw new Error('Renderer.clearEffects: renderer not initialized.');
+        }
+
+        this.chain.clear();
     }
 
     // #endregion

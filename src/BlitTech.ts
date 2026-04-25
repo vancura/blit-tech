@@ -18,6 +18,9 @@ import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
 import { defaultHardwareSettings } from './core/IBlitTechDemo';
+import { BloomEffect } from './render/effects/BloomEffect';
+import type { Effect } from './render/effects/Effect';
+import { PipBoyEffect } from './render/effects/PipBoyEffect';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
 import { checkWebGPUSupport, displayError, getCanvas, previewWebGPUErrors } from './utils/BootstrapHelpers';
@@ -309,6 +312,50 @@ export const BT = {
      */
     paletteClearEffects: (): void => {
         BTAPI.instance.paletteClearEffects();
+    },
+
+    // #endregion
+
+    // #region Post-Process Effects
+
+    /**
+     * Appends a fullscreen post-processing effect to the chain.
+     *
+     * The first registered effect causes the scene to render into an offscreen
+     * texture starting on the next frame. Effects run in registration order;
+     * the last one writes to the swap chain. Each {@link Effect} instance owns
+     * its own GPU resources and may be mutated each frame from demo code.
+     *
+     * Construct concrete effects directly, e.g. `new PipBoyEffect()`.
+     *
+     * @param effect - Effect instance to append.
+     * @throws If the engine has not been initialized.
+     */
+    effectAdd: (effect: Effect): void => {
+        BTAPI.instance.effectAdd(effect);
+    },
+
+    /**
+     * Removes a previously registered post-processing effect.
+     *
+     * Calls the effect's optional dispose hook. Removing an effect that was
+     * never added is a no-op. When the last effect is removed the engine
+     * reverts to drawing directly to the swap chain on the next frame.
+     *
+     * @param effect - Effect instance to remove.
+     * @throws If the engine has not been initialized.
+     */
+    effectRemove: (effect: Effect): void => {
+        BTAPI.instance.effectRemove(effect);
+    },
+
+    /**
+     * Removes every registered post-processing effect.
+     *
+     * @throws If the engine has not been initialized.
+     */
+    effectClear: (): void => {
+        BTAPI.instance.effectClear();
     },
 
     // #endregion
@@ -686,6 +733,7 @@ export {
     applyEasing,
     AssetLoader,
     BitmapFont,
+    BloomEffect,
     bootstrap,
     checkWebGPUSupport,
     Color32,
@@ -693,11 +741,12 @@ export {
     displayError,
     getCanvas,
     Palette,
+    PipBoyEffect,
     previewWebGPUErrors,
     Rect2i,
     SpriteSheet,
     Vector2i,
 };
-export type { BootstrapOptions, EasingFunction, HardwareSettings, IBlitTechDemo, TextSize };
+export type { BootstrapOptions, EasingFunction, Effect, HardwareSettings, IBlitTechDemo, TextSize };
 
 // #endregion

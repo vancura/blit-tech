@@ -10,6 +10,7 @@ import {
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { createSystemFont } from '../assets/SystemFont';
+import type { Effect } from '../render/effects/Effect';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -698,6 +699,58 @@ export class BTAPI {
      */
     public paletteClearEffects(): void {
         this.paletteEffects.clear();
+    }
+
+    // #endregion
+
+    // #region Post-Process Effects API
+
+    /**
+     * Appends a fullscreen post-processing effect to the chain.
+     *
+     * The first registered effect causes the scene to render into an offscreen
+     * texture starting on the next frame. Effects run in registration order.
+     *
+     * @param effect - Effect instance to append.
+     * @throws Error if the renderer has not been initialized.
+     */
+    public effectAdd(effect: Effect): void {
+        if (!this.renderer) {
+            throw new Error('[BT] Cannot add effect: renderer not initialized.');
+        }
+
+        this.renderer.addEffect(effect);
+    }
+
+    /**
+     * Removes a previously registered post-processing effect.
+     *
+     * Calls the effect's optional dispose hook. Removing an effect that was
+     * never added is a no-op. When the last effect is removed the renderer
+     * reverts to drawing directly to the swap chain on the next frame.
+     *
+     * @param effect - Effect instance to remove.
+     * @throws Error if the renderer has not been initialized.
+     */
+    public effectRemove(effect: Effect): void {
+        if (!this.renderer) {
+            throw new Error('[BT] Cannot remove effect: renderer not initialized.');
+        }
+
+        this.renderer.removeEffect(effect);
+    }
+
+    /**
+     * Removes every registered post-processing effect.
+     *
+     * @throws Error if the renderer has not been initialized.
+     */
+    public effectClear(): void {
+        if (!this.renderer) {
+            throw new Error('[BT] Cannot clear effects: renderer not initialized.');
+        }
+
+        this.renderer.clearEffects();
     }
 
     // #endregion
