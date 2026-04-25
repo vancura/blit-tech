@@ -59,11 +59,11 @@
 
                 // Use placeholder text rendering (drawText via PrimitivePipeline).
                 // Each character is rendered as a 6x8 colored block.
-                BT.print(new Vector2i(10, 10), WHITE, 'Hello World');
-                BT.print(new Vector2i(10, 30), RED, 'Red Text');
-                BT.print(new Vector2i(10, 50), GREEN, 'Green Text');
-                BT.print(new Vector2i(10, 70), CYAN, 'ABCDEFGHIJ');
-                BT.print(new Vector2i(10, 90), YELLOW, '0123456789');
+                BT.systemPrint(new Vector2i(10, 10), WHITE, 'Hello World');
+                BT.systemPrint(new Vector2i(10, 30), RED, 'Red Text');
+                BT.systemPrint(new Vector2i(10, 50), GREEN, 'Green Text');
+                BT.systemPrint(new Vector2i(10, 70), CYAN, 'ABCDEFGHIJ');
+                BT.systemPrint(new Vector2i(10, 90), YELLOW, '0123456789');
 
                 window.__RENDER_COMPLETE__ = true;
             }
