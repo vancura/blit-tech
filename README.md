@@ -26,6 +26,7 @@ primitives, and fonts.
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
+- **Post-process effects**: stackable fullscreen passes (PipBoy CRT, bloom) with a chain that activates only when used
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
@@ -68,6 +69,8 @@ Additional documentation is available in the `docs/` directory:
 - **[Performance Testing Guide](docs/performance-testing.md)** — CPU benchmarks, browser frame-time tests, and CI perf
   workflows
 - **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
+- **[Post-Process Effects Guide](docs/post-process-effects.md)** — Effect chain, built-in `PipBoyEffect` and
+  `BloomEffect`, writing custom effects, and shader attribution
 - **[Bitmap Fonts Guide](docs/bitmap-fonts.md)** — Built-in system font, `.btfont` format spec, BMFont conversion, and
   font rendering API
 - **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
@@ -225,7 +228,9 @@ blit-tech/
 │   ├── render/
 │   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines)
 │   │   ├── PrimitivePipeline.ts # Batched palette-indexed geometry
-│   │   └── SpritePipeline.ts   # Batched palette-indexed textured quads
+│   │   ├── SpritePipeline.ts   # Batched palette-indexed textured quads
+│   │   ├── PostProcessChain.ts # Stackable fullscreen post-process chain
+│   │   └── effects/            # Effect interface + built-in PipBoy CRT / Bloom
 │   ├── utils/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
 │   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
@@ -344,6 +349,45 @@ Available easing functions: `'linear'`, `'ease-in'`, `'ease-out'`, `'ease-in-out
 
 Effects are processed after `demo.render()` but before the GPU upload in `Renderer.endFrame()`, so user code and effects
 never conflict. Multiple effects can run simultaneously on different palette ranges.
+
+### Post-Process Effects
+
+Stackable fullscreen passes that run between the scene render and swap-chain present. The chain is inactive by default
+and adds zero cost when no effect is registered. The first added effect routes the scene into an offscreen texture; the
+last effect in the chain writes to the swap chain.
+
+```ts
+import { BT, BloomEffect, PipBoyEffect } from 'blit-tech';
+
+// Register effects (order = render order)
+const pipboy = new PipBoyEffect();
+const bloom = new BloomEffect();
+
+BT.effectAdd(pipboy);
+BT.effectAdd(bloom);
+
+// Drive animated uniforms each frame from update() or render()
+pipboy.time = BT.ticks() / BT.fps();
+pipboy.glitchIntensity = currentGlitch; // 0 disables glitch path
+pipboy.flickerAmount = 0.95 + Math.random() * 0.1;
+
+// Tear down
+BT.effectRemove(bloom); // remove a single effect (calls its dispose())
+BT.effectClear(); // remove all effects
+```
+
+**Built-in effects**
+
+- **`PipBoyEffect`** — faux-CRT look (scanlines, RGB shadow mask, screen curvature, chromatic aberration, vignette,
+  noise, roll line, glitch). All ~17 PipBoy `#define` constants are runtime-mutable fields; sensible defaults match the
+  reference. Core CRT helpers ported from Timothy Lottes's public-domain
+  [`crt-lottes.glsl`](https://github.com/libretro/glsl-shaders/blob/master/crt/shaders/crt-lottes.glsl) with attribution
+  in the source file.
+- **`BloomEffect`** — single-pass 5×5 box blur mixed with the original color. Two parameters: `bloomSpread`,
+  `bloomGlow`.
+
+See the [Post-Process Effects Guide](docs/post-process-effects.md) for parameter reference, the `Effect` interface, and
+how to write a custom effect.
 
 ### Drawing Primitives
 

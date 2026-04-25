@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Visual Test: Post-Process</title>
+    <style>
+        body { margin: 0; background: #000; }
+        canvas { image-rendering: pixelated; }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+    </div>
+
+    <script type="module">
+        import { bootstrap, BloomEffect, BT, Color32, PipBoyEffect, Palette, Rect2i, Vector2i } from 'blit-tech';
+
+        // Effect mode is selected via the URL hash so a single fixture covers
+        // all three snapshot variants (baseline, CRT-only, CRT + Bloom).
+        const mode = (window.location.hash || '#baseline').replace('#', '');
+
+        window.__RENDER_COMPLETE__ = false;
+        window.__INIT_FAILED__ = false;
+        window.__FIXTURE_MODE__ = mode;
+
+        // Palette indices for this test.
+        const BLACK = 1;
+        const RED = 2;
+        const GREEN = 3;
+        const BLUE = 4;
+        const YELLOW = 5;
+        const CYAN = 6;
+        const MAGENTA = 7;
+        const WHITE = 8;
+
+        class PostProcessTest {
+            queryHardware() {
+                return {
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                };
+            }
+
+            async initialize() {
+                const palette = new Palette(16);
+                palette.set(BLACK, Color32.black());
+                palette.set(RED, Color32.red());
+                palette.set(GREEN, Color32.green());
+                palette.set(BLUE, Color32.blue());
+                palette.set(YELLOW, Color32.yellow());
+                palette.set(CYAN, Color32.cyan());
+                palette.set(MAGENTA, Color32.magenta());
+                palette.set(WHITE, Color32.white());
+                BT.paletteSet(palette);
+
+                if (mode === 'crt' || mode === 'crt-bloom') {
+                    const pipboy = new PipBoyEffect();
+                    // Pin animation uniforms so the snapshot is deterministic.
+                    pipboy.time = 0;
+                    pipboy.glitchIntensity = 0;
+                    pipboy.glitchSeed = 0;
+                    pipboy.flickerAmount = 1;
+                    BT.effectAdd(pipboy);
+                }
+
+                if (mode === 'crt-bloom') {
+                    const bloom = new BloomEffect();
+                    BT.effectAdd(bloom);
+                }
+
+                return true;
+            }
+
+            update() {}
+
+            render() {
+                BT.clear(BLACK);
+
+                // Wide bright bands stress scanlines, mask, and aberration.
+                BT.drawRectFill(new Rect2i(20, 20, 280, 30), GREEN);
+                BT.drawRectFill(new Rect2i(20, 60, 280, 30), CYAN);
+                BT.drawRectFill(new Rect2i(20, 100, 280, 30), MAGENTA);
+                BT.drawRectFill(new Rect2i(20, 140, 280, 30), YELLOW);
+                BT.drawRectFill(new Rect2i(20, 180, 280, 30), WHITE);
+
+                // High-contrast outline highlights vignette and curvature.
+                BT.drawRect(new Rect2i(5, 5, 310, 230), WHITE);
+
+                // Diagonal cross to expose chromatic aberration on edges.
+                BT.drawLine(new Vector2i(0, 0), new Vector2i(319, 239), RED);
+                BT.drawLine(new Vector2i(319, 0), new Vector2i(0, 239), BLUE);
+
+                window.__RENDER_COMPLETE__ = true;
+            }
+        }
+
+        bootstrap(PostProcessTest, {
+            onError: () => {
+                window.__INIT_FAILED__ = true;
+            },
+        });
+    </script>
+</body>
+
+</html>

@@ -22,6 +22,7 @@ import {
 import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import type { Effect } from '../render/effects/Effect';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
@@ -409,6 +410,65 @@ describe('BTAPI', () => {
             expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow(
                 'Palette index 20 out of range for palette of size 16.',
             );
+        });
+    });
+
+    // #endregion
+
+    // #region Post-Process Effects API
+
+    describe('post-process effects', () => {
+        function makeStubEffect(): Effect {
+            return {
+                init: vi.fn(),
+                updateUniforms: vi.fn(),
+                encodePass: vi.fn(),
+                dispose: vi.fn(),
+            };
+        }
+
+        it('effectAdd throws before initialize', () => {
+            expect(() => BTAPI.instance.effectAdd(makeStubEffect())).toThrow('renderer not initialized');
+        });
+
+        it('effectRemove throws before initialize', () => {
+            expect(() => BTAPI.instance.effectRemove(makeStubEffect())).toThrow('renderer not initialized');
+        });
+
+        it('effectClear throws before initialize', () => {
+            expect(() => BTAPI.instance.effectClear()).toThrow('renderer not initialized');
+        });
+
+        it('effectAdd / effectClear delegate to the renderer after initialize', async () => {
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            const renderer = BTAPI.instance.getRenderer();
+            expect(renderer).not.toBeNull();
+
+            const addSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'addEffect');
+            const clearSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'clearEffects');
+
+            const effect = makeStubEffect();
+            BTAPI.instance.effectAdd(effect);
+
+            expect(addSpy).toHaveBeenCalledWith(effect);
+
+            BTAPI.instance.effectClear();
+
+            expect(clearSpy).toHaveBeenCalled();
+        });
+
+        it('effectRemove delegates to the renderer after initialize', async () => {
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            const renderer = BTAPI.instance.getRenderer();
+            const removeSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'removeEffect');
+
+            const effect = makeStubEffect();
+            BTAPI.instance.effectAdd(effect);
+            BTAPI.instance.effectRemove(effect);
+
+            expect(removeSpy).toHaveBeenCalledWith(effect);
         });
     });
 
