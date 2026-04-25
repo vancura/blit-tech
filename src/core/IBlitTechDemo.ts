@@ -18,6 +18,22 @@ export interface HardwareSettings {
 
     /** Target fixed-update rate in frames per second. */
     targetFPS: number;
+
+    /**
+     * When true, the engine logs a `console.warn` whenever it detects that
+     * the browser missed one or more vsync deadlines. Useful for spotting
+     * stutters during development. Defaults to `false`.
+     *
+     * Detection runs in `GameLoop.detectFrameDrop()` and uses an
+     * auto-calibrated baseline -- the shortest `requestAnimationFrame` delta
+     * observed in a rolling window of recent frames -- rather than a fixed
+     * `1.5 / targetFPS` threshold. A frame is reported as dropped when its
+     * rAF delta exceeds 1.5x that baseline, which makes detection work on
+     * any display refresh rate (60 / 120 / 144 Hz, etc.) and on browsers
+     * such as Firefox where rAF often fires at the display rate rather than
+     * at `targetFPS`.
+     */
+    detectDroppedFrames?: boolean;
 }
 
 /**

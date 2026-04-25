@@ -238,10 +238,13 @@ if (elapsedTime >= 1.0) {
 
 If your `update()` or `render()` takes too long:
 
-1. **Profile with browser dev tools** - Find the actual bottleneck
-2. **Reduce draw calls** - Cull off-screen objects
-3. **Optimize hot loops** - Use pre-allocation in tight loops
-4. **Simplify logic** - Can you defer expensive operations?
+1. **Confirm the symptom** - Set `detectDroppedFrames: true` in `queryHardware()` to log a console warning whenever the
+   browser misses a vsync deadline. The detector auto-calibrates to the actual rAF cadence so it works on any refresh
+   rate (60 / 120 / 144 Hz, etc.) and on Firefox where rAF often fires at the display rate rather than at `targetFPS`.
+2. **Profile with browser dev tools** - Find the actual bottleneck
+3. **Reduce draw calls** - Cull off-screen objects
+4. **Optimize hot loops** - Use pre-allocation in tight loops
+5. **Simplify logic** - Can you defer expensive operations?
 
 ---
 
