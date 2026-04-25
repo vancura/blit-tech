@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue.svg)](https://www.typescriptlang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
 
@@ -38,7 +38,7 @@ primitives, and fonts.
 
 ## Prerequisites
 
-- **Node.js** v20 or higher (LTS)
+- **Node.js** v22 or higher (LTS)
 - **pnpm** v10.26.2 or higher
 - A **WebGPU-compatible browser**:
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)

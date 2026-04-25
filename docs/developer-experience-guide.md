@@ -73,7 +73,7 @@ Read and follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Prerequisites
 
-- Node.js v20 or higher,
+- Node.js v22 or higher,
 - pnpm v10.24.0 or higher,
 - Git,
 - A WebGPU-compatible browser (Chrome 113+, Edge 113+, Safari 26+, Firefox 141+ on Windows).

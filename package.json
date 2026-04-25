@@ -24,7 +24,7 @@
     "fantasy-console"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.18.0"
   },
   "main": "./dist/blit-tech.cjs",
   "module": "./dist/blit-tech.js",
@@ -83,36 +83,36 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.11",
+    "@biomejs/biome": "^2.4.13",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
-    "@typescript-eslint/eslint-plugin": "^8.58.1",
-    "@typescript-eslint/parser": "^8.58.1",
-    "@vitest/coverage-v8": "^4.1.4",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "@vitest/coverage-v8": "^4.1.5",
     "@webgpu/types": "^0.1.69",
-    "cspell": "^9.8.0",
-    "eslint": "^9.39.4",
+    "cspell": "^10.0.0",
+    "eslint": "^10.2.1",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-jsdoc": "^61.7.1",
-    "eslint-plugin-perfectionist": "^5.8.0",
+    "eslint-plugin-jsdoc": "^62.9.0",
+    "eslint-plugin-perfectionist": "^5.9.0",
     "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-security": "^3.0.1",
-    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
     "globals": "^17.5.0",
-    "happy-dom": "^20.8.9",
+    "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
-    "knip": "^5.88.1",
+    "knip": "^6.6.3",
     "lint-staged": "^16.4.0",
     "nyc": "^18.0.0",
     "pngjs": "^7.0.0",
-    "prettier": "^3.8.2",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.2",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10",
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-istanbul": "^8.0.0",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.5"
   }
 }

@@ -42,7 +42,7 @@ export default defineConfig(() => {
                 treeshake: {
                     moduleSideEffects: false,
                     propertyReadSideEffects: false,
-                },
+                } as const,
             },
         },
 
