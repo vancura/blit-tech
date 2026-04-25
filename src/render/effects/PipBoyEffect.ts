@@ -45,11 +45,20 @@ const UNIFORM_FLOATS = UNIFORM_BYTES / 4;
  *
  * The glitch / flicker / roll-line / chromatic-aberration extensions and the
  * uniform set this implementation replicates come from a community PipBoy
- * fork written for p5.js's `createFilterShader` (the original author and URL
- * are unknown to us at the time of writing - if you find them, please open
- * a PR to add a credit here). The PipBoy fork header carried a Fallout-themed
- * "RobCo Industries (Unlicensed Wasteland Fork)" comment, which we read as
- * "no license intended; use freely". The Blit-Tech port is original WGSL.
+ * fork written for p5.js's `createFilterShader`. The fork's source URL and
+ * author are **unknown** to us at the time of writing, and **no license has
+ * been confirmed** - the only header it carried was a Fallout-themed
+ * "RobCo Industries (Unlicensed Wasteland Fork)" comment, which is character
+ * flavour rather than a license grant. Treat the upstream provenance as
+ * unverified; do not assume permissive rights for the borrowed extensions
+ * until the upstream source and license have been identified.
+ *
+ * The individual building blocks (hash-based pseudo-random, sin/cos roll
+ * line, band-noise glitch shifts, chromatic aberration via offset sampling)
+ * are common shader patterns and not original to any one author, but the
+ * specific composition here mirrors the PipBoy fork. The Blit-Tech port is
+ * original WGSL. If you can identify the upstream fork, please open a PR to
+ * add a verifiable author / URL / license header.
  */
 export class PipBoyEffect implements Effect {
     // #region Look (PipBoy reference defaults)

@@ -277,8 +277,15 @@ shader collection. The original header reads:
 so no license restrictions apply downstream.
 
 The glitch / flicker / roll-line / chromatic-aberration extensions and the uniform set this implementation replicates
-come from a community PipBoy fork written for p5.js's `createFilterShader` (the original author and URL are unknown to
-us at the time of writing). The PipBoy fork header carried a Fallout-themed "RobCo Industries (Unlicensed Wasteland
-Fork)" comment, which we read as "no license intended; use freely". The Blit-Tech port is original WGSL.
+come from a community PipBoy fork written for p5.js's `createFilterShader`. The fork's source URL and author are
+**unknown** to us at the time of writing, and **no license has been confirmed**. The only header the fork carried was a
+Fallout-themed "RobCo Industries (Unlicensed Wasteland Fork)" comment, which is character flavour rather than a license
+grant. Treat the upstream provenance as unverified; do not assume permissive rights for the borrowed extensions until
+the upstream source and license have been identified.
 
-If you can identify the upstream PipBoy fork, please open a PR to add the credit.
+The individual building blocks (hash-based pseudo-random, sin/cos roll line, band-noise glitch shifts, chromatic
+aberration via offset sampling) are common shader patterns not original to any one author, but the specific composition
+here mirrors the PipBoy fork. The Blit-Tech port is original WGSL.
+
+If you intend to reuse `PipBoyEffect` in a context with stricter licensing requirements, confirm provenance first. If
+you can identify the upstream PipBoy fork, please open a PR to add a verifiable author / URL / license header.

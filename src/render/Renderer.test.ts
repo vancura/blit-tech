@@ -14,7 +14,7 @@
  * frame submission and capture paths can be validated without real GPU access.
  */
 
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUCanvasContext,
@@ -806,6 +806,16 @@ describe('palette dirty-flag auto-propagation', () => {
 // #region Post-Process Effects
 
 describe('post-process effects', () => {
+    // Install/uninstall via beforeEach/afterEach so an assertion failure in any
+    // single test cannot leak the global navigator.gpu mock into the next one.
+    beforeEach(() => {
+        installMockNavigatorGPU();
+    });
+
+    afterEach(() => {
+        uninstallMockNavigatorGPU();
+    });
+
     /** Minimal stub effect that records lifecycle calls. */
     function createStubEffect(): Effect & {
         initSpy: ReturnType<typeof vi.fn>;
@@ -851,8 +861,6 @@ describe('post-process effects', () => {
     it('addEffect / clearEffects work after initialize', async () => {
         const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        installMockNavigatorGPU();
-
         await r.initialize();
 
         const effect = createStubEffect();
@@ -861,8 +869,6 @@ describe('post-process effects', () => {
         expect(effect.initSpy).toHaveBeenCalledOnce();
         expect(() => r.clearEffects()).not.toThrow();
         expect(effect.disposeSpy).toHaveBeenCalledOnce();
-
-        uninstallMockNavigatorGPU();
     });
 
     it('endFrame keeps a single render pass while no effects are registered', async () => {
@@ -882,8 +888,6 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        installMockNavigatorGPU();
-
         await r.initialize();
         r.setPalette(createTestPalette());
 
@@ -892,15 +896,11 @@ describe('post-process effects', () => {
 
         // No effects registered: exactly one render pass (the scene pass).
         expect(beginRenderPassCalls).toHaveLength(1);
-
-        uninstallMockNavigatorGPU();
     });
 
     it('endFrame drives chain.encode for each registered effect', async () => {
         const device = createMockGPUDevice();
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
-
-        installMockNavigatorGPU();
 
         await r.initialize();
         r.setPalette(createTestPalette());
@@ -919,15 +919,11 @@ describe('post-process effects', () => {
         r.endFrame();
 
         expect(effect.encodeSpy).toHaveBeenCalledTimes(2);
-
-        uninstallMockNavigatorGPU();
     });
 
     it('endFrame drives every effect when multiple are stacked', async () => {
         const device = createMockGPUDevice();
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
-
-        installMockNavigatorGPU();
 
         await r.initialize();
         r.setPalette(createTestPalette());
@@ -942,8 +938,6 @@ describe('post-process effects', () => {
 
         expect(effectA.encodeSpy).toHaveBeenCalledTimes(1);
         expect(effectB.encodeSpy).toHaveBeenCalledTimes(1);
-
-        uninstallMockNavigatorGPU();
     });
 
     it('endFrame routes the scene pass into the chain offscreen target while active', async () => {
@@ -974,8 +968,6 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, context, new Vector2i(320, 240));
 
-        installMockNavigatorGPU();
-
         await r.initialize();
         r.setPalette(createTestPalette());
 
@@ -996,8 +988,6 @@ describe('post-process effects', () => {
         const encodeArgs = effect.encodeSpy.mock.calls[0];
         expect(encodeArgs?.[1]).toBe(sceneAttachment?.view);
         expect(encodeArgs?.[2]).toBe(swapView);
-
-        uninstallMockNavigatorGPU();
     });
 
     it('endFrame keeps the scene pass on the swap chain when no effects are registered', async () => {
@@ -1028,8 +1018,6 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, context, new Vector2i(320, 240));
 
-        installMockNavigatorGPU();
-
         await r.initialize();
         r.setPalette(createTestPalette());
 
@@ -1041,8 +1029,6 @@ describe('post-process effects', () => {
 
         expect(sceneAttachment?.view).toBe(swapView);
         expect(beginRenderPassCalls).toHaveLength(1);
-
-        uninstallMockNavigatorGPU();
     });
 });
 

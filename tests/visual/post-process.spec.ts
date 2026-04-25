@@ -4,7 +4,15 @@ import { expect, test } from './coverage-fixture';
 
 // Delay after render-complete signal before taking a screenshot, to allow the
 // GPU to present the frame. Override via GPU_PRESENT_DELAY env var for CI tuning.
-const GPU_PRESENT_DELAY = Number(process.env.GPU_PRESENT_DELAY ?? 100);
+// Falls back to 100 ms if the env var is missing, malformed, or non-positive.
+const GPU_PRESENT_DELAY = (() => {
+    const raw = process.env.GPU_PRESENT_DELAY;
+    if (!raw) {
+        return 100;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
+})();
 
 /**
  * Loads the post-process fixture in the requested mode and waits until the

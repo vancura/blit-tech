@@ -153,6 +153,44 @@ describe('add()', () => {
 
         expect(createTexture).toHaveBeenCalledTimes(2);
     });
+
+    it('throws when the same effect instance is added twice', () => {
+        const chain = new PostProcessChain(createMockGPUDevice(), FORMAT, DISPLAY_SIZE);
+        const effect = createStubEffect();
+
+        chain.add(effect);
+
+        expect(() => chain.add(effect)).toThrow(/already registered/);
+    });
+
+    it('reuses the existing texB when re-adding a second effect after a 2 -> 1 remove', () => {
+        const device = createMockGPUDevice();
+        const createTexture = vi.spyOn(device, 'createTexture');
+        const chain = new PostProcessChain(device, FORMAT, DISPLAY_SIZE);
+        const a = createStubEffect();
+        const b = createStubEffect();
+        const c = createStubEffect();
+
+        chain.add(a);
+        chain.add(b);
+        expect(createTexture).toHaveBeenCalledTimes(2);
+
+        chain.remove(b);
+        // texB stays allocated until the chain is fully cleared.
+        chain.add(c);
+
+        // No new texture allocations - existing texA + texB are reused.
+        expect(createTexture).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls effect.init() exactly once per successful add', () => {
+        const chain = new PostProcessChain(createMockGPUDevice(), FORMAT, DISPLAY_SIZE);
+        const effect = createStubEffect();
+
+        chain.add(effect);
+
+        expect(effect.calls.init).toBe(1);
+    });
 });
 
 describe('remove()', () => {

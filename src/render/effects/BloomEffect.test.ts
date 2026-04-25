@@ -39,7 +39,7 @@ afterAll(() => {
 // #endregion
 
 describe('BloomEffect construction', () => {
-    it('exposes the PipBoy reference defaults', () => {
+    it('exposes the PipBoy-reference bloom defaults', () => {
         const bloom = new BloomEffect();
 
         expect(bloom.bloomSpread).toBe(3.0);

@@ -101,16 +101,31 @@ export class PostProcessChain {
     /**
      * Registers an effect at the end of the chain.
      *
-     * The effect's {@link Effect.init} is called immediately. GPU resources for
-     * the chain itself are allocated lazily here: {@link texA} and the shared
-     * sampler on the first call, {@link texB} on the second.
+     * The effect's {@link Effect.init} is called once and only on success is
+     * the effect appended to the chain. GPU resources for the chain itself
+     * are allocated lazily here: {@link texA} on the first add, {@link texB}
+     * on the second. Existing offscreen textures are **reused** across
+     * remove/re-add cycles - we never reallocate a texture that is already
+     * present.
+     *
+     * Adding the same effect instance twice throws. Construct a new instance
+     * if you want a second copy of the same look.
      *
      * @param effect - Effect to append to the chain.
+     * @throws If the effect instance is already registered.
      */
     add(effect: Effect): void {
-        if (this.effects.length === 0) {
+        if (this.effects.includes(effect)) {
+            throw new Error('PostProcessChain.add: effect instance is already registered.');
+        }
+
+        // Allocate any missing offscreen textures *before* init: init can
+        // throw, but the textures are inert until referenced and will be
+        // freed by the next clear()/dispose() if init fails.
+        if (this.texA === null) {
             this.allocatePrimary();
-        } else if (this.effects.length === 1) {
+        }
+        if (this.effects.length >= 1 && this.texB === null) {
             this.allocateSecondary();
         }
 
