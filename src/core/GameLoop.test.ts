@@ -7,6 +7,7 @@
  * - start-up scheduling through `requestAnimationFrame`
  * - internal tick processing, including multiple updates per frame
  * - accumulator clamping to avoid runaway catch-up work
+ * - optional dropped-frame detection callback
  *
  * Private frame-advance behavior is exercised through a narrow type cast so
  * the suite can validate timing semantics without changing production APIs.
@@ -14,6 +15,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 
 describe('GameLoop', () => {
@@ -239,6 +241,209 @@ describe('GameLoop', () => {
             p.tick(10);
 
             expect(requestAnimationFrame).toHaveBeenCalled();
+        });
+    });
+
+    // #endregion
+
+    // #region Frame-drop detection
+
+    describe('frame-drop detection', () => {
+        type PrivateLoop = {
+            tick: (currentTime: number) => void;
+            isRunning: boolean;
+            lastUpdateTime: number;
+            accumulator: number;
+            recentDeltas: number[];
+        };
+
+        /**
+         * Pre-populates the rolling baseline window so that the next tick is
+         * evaluated against an established baseline rather than skipped during
+         * warm-up.
+         */
+        const primeBaseline = (loop: GameLoop, sampleMs: number, count: number = 16): void => {
+            const p = loop as unknown as PrivateLoop;
+
+            for (let i = 0; i < count; i++) {
+                p.recentDeltas.push(sampleMs);
+            }
+        };
+
+        beforeEach(() => {
+            vi.stubGlobal('requestAnimationFrame', vi.fn());
+        });
+
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('should not invoke the callback when delta is within the baseline', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 16.67);
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(16.67); // exactly one baseline interval
+
+            expect(onFrameDrop).not.toHaveBeenCalled();
+        });
+
+        it('should not invoke the callback when delta is just under the 1.5x threshold', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 16.67);
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(16.67 * 1.49);
+
+            expect(onFrameDrop).not.toHaveBeenCalled();
+        });
+
+        it('should invoke the callback when delta exceeds 1.5x the baseline', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 16.67);
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(50); // ~3 baseline intervals
+
+            expect(onFrameDrop).toHaveBeenCalledOnce();
+
+            const event = onFrameDrop.mock.calls[0]?.[0] as FrameDropEvent;
+
+            expect(event.droppedFrames).toBe(2); // round(50 / 16.67) - 1 = 2
+            expect(event.deltaTime).toBe(50);
+            expect(event.expectedInterval).toBeCloseTo(16.67);
+        });
+
+        it('should report at least one dropped frame even when the gap is just past the threshold', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(10, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 10);
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(16); // 1.6x baseline - between 1 and 2 in raw frame terms
+
+            expect(onFrameDrop).toHaveBeenCalledOnce();
+
+            const event = onFrameDrop.mock.calls[0]?.[0] as FrameDropEvent;
+
+            expect(event.droppedFrames).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should auto-calibrate the baseline to the actual rAF cadence', () => {
+            // Configured for 60 FPS but the browser fires rAF at 120 Hz
+            // (common on a 120 Hz display in Firefox / Chrome with vsync at
+            // the native rate). A missed vsync (~16.67 ms) at 120 Hz would
+            // sit far below 1.5x of the configured 16.67 ms updateInterval
+            // and would not be reported in a naive implementation.
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 8.33); // 120 Hz cadence
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(16.67); // one missed vsync at 120 Hz
+
+            expect(onFrameDrop).toHaveBeenCalledOnce();
+
+            const event = onFrameDrop.mock.calls[0]?.[0] as FrameDropEvent;
+
+            expect(event.expectedInterval).toBeCloseTo(8.33);
+            expect(event.droppedFrames).toBe(1);
+        });
+
+        it('should detect drops on a 144 Hz display even with a low targetFPS', () => {
+            // Worst-case mismatch: updateInterval = 33.33 ms (targetFPS = 30)
+            // but rAF fires at 144 Hz (~6.94 ms). A single missed vsync of
+            // ~13.88 ms is less than half the configured updateInterval but
+            // is still a real visible stutter, and must be reported.
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(33.33, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 6.94); // 144 Hz cadence
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(13.88); // one missed vsync at 144 Hz
+
+            expect(onFrameDrop).toHaveBeenCalledOnce();
+
+            const event = onFrameDrop.mock.calls[0]?.[0] as FrameDropEvent;
+
+            expect(event.expectedInterval).toBeCloseTo(6.94);
+            expect(event.droppedFrames).toBe(1);
+            expect(event.deltaTime).toBe(13.88);
+        });
+
+        it('should skip detection during the warm-up window', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            // No priming: rolling window is empty. Even a huge gap should not
+            // fire because the baseline has not been established.
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(100);
+
+            expect(onFrameDrop).not.toHaveBeenCalled();
+        });
+
+        it('should suppress the callback when the gap looks like a backgrounded tab', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 16.67);
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(5000); // 5 seconds, clearly a tab switch or pause
+
+            expect(onFrameDrop).not.toHaveBeenCalled();
+        });
+
+        it('should not pollute the baseline with backgrounded gaps', () => {
+            const onFrameDrop = vi.fn();
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn(), onFrameDrop);
+            const p = loop as unknown as PrivateLoop;
+
+            primeBaseline(loop, 16.67);
+
+            const lengthBefore = p.recentDeltas.length;
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+            p.tick(5000); // backgrounded gap
+
+            expect(p.recentDeltas.length).toBe(lengthBefore);
+        });
+
+        it('should be a no-op when no callback is provided', () => {
+            const loop = new GameLoop(16.67, vi.fn(), vi.fn());
+            const p = loop as unknown as PrivateLoop;
+
+            p.isRunning = true;
+            p.lastUpdateTime = 0;
+
+            expect(() => p.tick(100)).not.toThrow();
         });
     });
 

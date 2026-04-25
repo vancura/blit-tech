@@ -18,6 +18,15 @@ export interface HardwareSettings {
 
     /** Target fixed-update rate in frames per second. */
     targetFPS: number;
+
+    /**
+     * When true, the engine logs a coalesced warning to the console whenever
+     * the browser misses one or more vsync deadlines (the gap between
+     * consecutive `requestAnimationFrame` callbacks exceeds `1.5 / targetFPS`
+     * seconds). Useful for spotting stutters during development. Defaults to
+     * `false`.
+     */
+    detectDroppedFrames?: boolean;
 }
 
 /**

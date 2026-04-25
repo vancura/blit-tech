@@ -15,6 +15,7 @@ import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
+import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { initializeWebGPU } from './WebGPUContext';
@@ -209,6 +210,9 @@ export class BTAPI {
 
         // Start the loop. The GameLoop's double-RAF delay ensures the canvas is
         // fully ready before the first tick.
+        const onFrameDrop: FrameDropCallback | undefined =
+            this.hwSettings.detectDroppedFrames === true ? (event) => this.handleFrameDrop(event) : undefined;
+
         this.loop = new GameLoop(
             updateInterval,
             () => this.demo?.update(),
@@ -227,6 +231,7 @@ export class BTAPI {
                     this.renderer.endFrame();
                 }
             },
+            onFrameDrop,
         );
 
         this.loop.start();
@@ -698,6 +703,23 @@ export class BTAPI {
     // #endregion
 
     // #region Private Helpers
+
+    /**
+     * Logs a dropped-frame event from the {@link GameLoop} as a console warning.
+     *
+     * One line per event. The {@link GameLoop} auto-calibrates its baseline
+     * to the actual rAF cadence, so sustained slowness re-baselines instead
+     * of generating sustained log spam, leaving only genuine missed-vsync
+     * events to be reported here.
+     *
+     * @param event - Dropped-frame event.
+     */
+    private handleFrameDrop(event: FrameDropEvent): void {
+        console.warn(
+            `[BT] Dropped ${event.droppedFrames} frame(s) ` +
+                `(frame time ${event.deltaTime.toFixed(1)}ms, expected ${event.expectedInterval.toFixed(1)}ms)`,
+        );
+    }
 
     /**
      * Validates that a sprite sheet has been indexized and registers it for refresh tracking.
