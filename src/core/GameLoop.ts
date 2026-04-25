@@ -117,11 +117,18 @@ export class GameLoop {
     private readonly onFrameDrop: FrameDropCallback | null;
 
     /**
-     * Rolling window of recent rAF deltas, in milliseconds. The shortest
-     * value approximates the browser's actual vsync interval and is used as
-     * the baseline for drop detection.
+     * Ring buffer of recent rAF deltas, in milliseconds. Pre-allocated to
+     * {@link BASELINE_WINDOW} so writes are O(1) and no allocation occurs on
+     * the hot path. The shortest sample approximates the browser's actual
+     * vsync interval and is used as the baseline for drop detection.
      */
-    private readonly recentDeltas: number[] = [];
+    private readonly recentDeltas: number[] = new Array<number>(GameLoop.BASELINE_WINDOW).fill(0);
+
+    /** Next write index in {@link recentDeltas}; advances modulo BASELINE_WINDOW. */
+    private deltaHead: number = 0;
+
+    /** Number of valid samples in {@link recentDeltas}; saturates at BASELINE_WINDOW. */
+    private deltaCount: number = 0;
 
     // #endregion
 
@@ -275,26 +282,34 @@ export class GameLoop {
             return;
         }
 
-        // Append to the rolling window, trimming the oldest sample if full.
-        this.recentDeltas.push(deltaTime);
+        // Ring-buffer write: O(1) overwrite of the oldest slot.
+        this.recentDeltas[this.deltaHead] = deltaTime;
+        this.deltaHead = (this.deltaHead + 1) % GameLoop.BASELINE_WINDOW;
 
-        if (this.recentDeltas.length > GameLoop.BASELINE_WINDOW) {
-            this.recentDeltas.shift();
+        if (this.deltaCount < GameLoop.BASELINE_WINDOW) {
+            this.deltaCount++;
         }
 
         // Wait until enough samples have accumulated to trust the baseline.
-        if (this.recentDeltas.length < GameLoop.BASELINE_WARMUP_SAMPLES) {
+        if (this.deltaCount < GameLoop.BASELINE_WARMUP_SAMPLES) {
             return;
         }
 
         // Baseline = shortest recent delta. Robust to slow frames since drops
         // can only stretch deltas, never shorten them.
         let baseline = Number.POSITIVE_INFINITY;
+        let seen = 0;
 
         for (const sample of this.recentDeltas) {
+            if (seen >= this.deltaCount) {
+                break;
+            }
+
             if (sample < baseline) {
                 baseline = sample;
             }
+
+            seen++;
         }
 
         if (deltaTime <= baseline * GameLoop.DROP_THRESHOLD_MULTIPLIER) {

@@ -255,19 +255,26 @@ describe('GameLoop', () => {
             lastUpdateTime: number;
             accumulator: number;
             recentDeltas: number[];
+            deltaHead: number;
+            deltaCount: number;
         };
 
         /**
-         * Pre-populates the rolling baseline window so that the next tick is
+         * Pre-populates the ring-buffer baseline so that the next tick is
          * evaluated against an established baseline rather than skipped during
-         * warm-up.
+         * warm-up. Caller is responsible for passing a `count` no greater than
+         * the configured `BASELINE_WINDOW` (60); all current callers use 16.
          */
         const primeBaseline = (loop: GameLoop, sampleMs: number, count: number = 16): void => {
             const p = loop as unknown as PrivateLoop;
 
             for (let i = 0; i < count; i++) {
-                p.recentDeltas.push(sampleMs);
+                // eslint-disable-next-line security/detect-object-injection -- test helper, index is a bounded loop counter
+                p.recentDeltas[i] = sampleMs;
             }
+
+            p.deltaHead = count;
+            p.deltaCount = count;
         };
 
         beforeEach(() => {
@@ -427,13 +434,15 @@ describe('GameLoop', () => {
 
             primeBaseline(loop, 16.67);
 
-            const lengthBefore = p.recentDeltas.length;
+            const countBefore = p.deltaCount;
+            const headBefore = p.deltaHead;
 
             p.isRunning = true;
             p.lastUpdateTime = 0;
             p.tick(5000); // backgrounded gap
 
-            expect(p.recentDeltas.length).toBe(lengthBefore);
+            expect(p.deltaCount).toBe(countBefore);
+            expect(p.deltaHead).toBe(headBefore);
         });
 
         it('should be a no-op when no callback is provided', () => {
