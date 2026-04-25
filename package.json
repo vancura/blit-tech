@@ -24,7 +24,7 @@
     "fantasy-console"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.18.0"
   },
   "main": "./dist/blit-tech.cjs",
   "module": "./dist/blit-tech.js",

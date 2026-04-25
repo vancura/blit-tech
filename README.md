@@ -38,7 +38,7 @@ primitives, and fonts.
 
 ## Prerequisites
 
-- **Node.js** v20 or higher (LTS)
+- **Node.js** v22 or higher (LTS)
 - **pnpm** v10.26.2 or higher
 - A **WebGPU-compatible browser**:
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
