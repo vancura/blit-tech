@@ -32,7 +32,7 @@ primitives, and fonts.
 - **Bitmap fonts**: variable-width font rendering with palette offset support
 - **Camera system**: scrolling with offset and reset
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
-- **Fixed timestep**: deterministic 60 FPS loop with tick counter
+- **Fixed timestep**: deterministic 60 FPS loop with tick counter and optional dropped-frame detection
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: optional CSS upscaling via `canvasDisplaySize` for crisp pixel art
 
@@ -139,6 +139,7 @@ class MyDemo implements IBlitTechDemo {
       displaySize: new Vector2i(320, 240), // Internal rendering resolution
       canvasDisplaySize: new Vector2i(640, 480), // Optional: CSS display size (2× upscale)
       targetFPS: 60,
+      // detectDroppedFrames: true, // Optional: log a console warning on missed vsync
     };
   }
 
