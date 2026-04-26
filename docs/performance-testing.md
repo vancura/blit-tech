@@ -22,7 +22,7 @@ helpers, and allocation patterns.
 For visual correctness (not performance), use the visual regression tests: `pnpm test:visual`. They run Playwright with
 Chromium + WebGPU and produce PNG snapshots. See `docs/testing.md` for details.
 
-### CPU Benchmarks
+### When to Use CPU Benchmarks
 
 Use CPU benchmarks when you want to measure a single method, hot loop, cache lookup, math helper, allocation pattern, or
 batching helper in isolation.
