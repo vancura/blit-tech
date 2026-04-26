@@ -168,8 +168,7 @@ describe('UpscalePass.createOutputTexture', () => {
         const desc = createTexture.mock.calls[0]?.[0];
         expect(desc?.usage).toBeDefined();
         const expected = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-         
-        expect(desc!.usage & expected).toBe(expected);
+        expect((desc?.usage ?? 0) & expected).toBe(expected);
     });
 });
 
