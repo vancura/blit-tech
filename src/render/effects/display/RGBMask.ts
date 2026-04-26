@@ -45,7 +45,8 @@ export class RGBMask extends FullscreenEffect {
         u[0] = sourceSize.x;
         u[1] = sourceSize.y;
         u[2] = this.intensity;
-        u[3] = this.size;
+        // Clamp away from 0 so the shader's `coord = pixel / size` stays defined.
+        u[3] = Math.max(this.size, 0.001);
         u[4] = this.border;
         // u[5..7] padding
     }

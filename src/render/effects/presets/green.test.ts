@@ -16,6 +16,7 @@ describe('preset green', () => {
         const a = green();
         const b = green();
 
+        expect(a.length).toBe(b.length);
         for (let i = 0; i < a.length; i++) {
             // eslint-disable-next-line security/detect-object-injection
             expect(a[i]).not.toBe(b[i]);

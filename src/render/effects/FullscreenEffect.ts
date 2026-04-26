@@ -69,8 +69,10 @@ export abstract class FullscreenEffect implements Effect {
     /**
      * Per-source-view bind group cache. The chain ping-pongs between two
      * stable views, so a `WeakMap` keyed by view is safe.
+     * Reassigned on every `dispose()` so stale bind groups are not reused
+     * after a re-initialize cycle.
      */
-    private readonly bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
+    private bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
 
     // #endregion
 
@@ -85,6 +87,12 @@ export abstract class FullscreenEffect implements Effect {
      *   this and use the per-frame `sourceSize` from {@link updateUniforms}.
      */
     init(device: GPUDevice, format: GPUTextureFormat, _displaySize: Vector2i): void {
+        if (this.uniformBytes <= 0 || this.uniformBytes % 16 !== 0) {
+            throw new Error(
+                `FullscreenEffect: uniformBytes must be a positive multiple of 16 (got ${this.uniformBytes}).`,
+            );
+        }
+
         this.device = device;
         this.uniformData = new Float32Array(this.uniformBytes / 4);
 
@@ -176,6 +184,7 @@ export abstract class FullscreenEffect implements Effect {
         this.sampler = null;
         this.device = null;
         this.uniformData = null;
+        this.bindGroups = new WeakMap();
     }
 
     // #endregion

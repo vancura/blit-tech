@@ -40,6 +40,7 @@ describe('Bloom', () => {
         fx.init(device, FORMAT, SIZE);
         fx.updateUniforms(16, new Vector2i(1024, 768));
 
+        expect(writeBuffer).toHaveBeenCalledTimes(1);
         const buf = writeBuffer.mock.calls[0]?.[2] as Float32Array;
         expect(buf[0]).toBe(1024);
         expect(buf[1]).toBe(768);

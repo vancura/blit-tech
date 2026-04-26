@@ -58,10 +58,9 @@ struct Params {
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     let off = vec2<f32>(params.aberration, 0.0) / params.resolution;
+    let center = textureSample(src, samp, in.uv);
     let r = textureSample(src, samp, in.uv - off).r;
-    let g = textureSample(src, samp, in.uv).g;
     let b = textureSample(src, samp, in.uv + off).b;
-    let a = textureSample(src, samp, in.uv).a;
-    return vec4<f32>(r, g, b, a);
+    return vec4<f32>(r, center.g, b, center.a);
 }
 `;

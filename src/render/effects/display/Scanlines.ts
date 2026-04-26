@@ -34,7 +34,7 @@ export class Scanlines extends FullscreenEffect {
 
     protected readonly label = 'Scanlines';
 
-    /** vec2 resolution + amount + strength + density = 16 bytes. */
+    /** amount + strength + density + _pad = 4 floats / 16 bytes. */
     protected readonly uniformBytes = 16;
 
     protected readonly fragmentShader = SCANLINES_FRAGMENT_WGSL;

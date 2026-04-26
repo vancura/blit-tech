@@ -39,6 +39,7 @@ describe('PixelMosaic', () => {
         fx.init(device, FORMAT, SIZE);
         fx.updateUniforms(16, SIZE);
 
+        expect(writeBuffer).toHaveBeenCalledTimes(1);
         const buf = writeBuffer.mock.calls[0]?.[2] as Float32Array;
         expect(buf[2]).toBeCloseTo(8);
     });

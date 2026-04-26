@@ -32,6 +32,7 @@ describe('preset crtPipBoy', () => {
         const a = crtPipBoy();
         const b = crtPipBoy();
 
+        expect(a.length).toBe(b.length);
         for (let i = 0; i < a.length; i++) {
             // eslint-disable-next-line security/detect-object-injection
             expect(a[i]).not.toBe(b[i]);

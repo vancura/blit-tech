@@ -721,10 +721,11 @@ export class Renderer {
      * @returns Stable input view of the display chain.
      */
     private requireDisplayChainInput(): GPUTextureView {
-        if (!this.displayChain || !this.displayChain.isActive()) {
+        const chain = this.displayChain;
+        if (!chain?.isActive()) {
             throw new Error('Renderer.requireDisplayChainInput: display chain inactive.');
         }
-        return this.displayChain.getInputView();
+        return chain.getInputView();
     }
 
     // #endregion

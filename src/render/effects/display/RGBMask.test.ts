@@ -41,6 +41,7 @@ describe('RGBMask', () => {
         fx.init(device, FORMAT, SIZE);
         fx.updateUniforms(16, new Vector2i(800, 600));
 
+        expect(writeBuffer).toHaveBeenCalledTimes(1);
         const buf = writeBuffer.mock.calls[0]?.[2] as Float32Array;
         expect(buf[0]).toBe(800);
         expect(buf[1]).toBe(600);
@@ -63,6 +64,7 @@ describe('RGBMask', () => {
             { label: 'dst' } as unknown as GPUTextureView,
         );
 
+        expect(beginSpy).toHaveBeenCalledTimes(1);
         expect(beginSpy.mock.calls[0]?.[0]?.colorAttachments[0]?.view.label).toBe('dst');
     });
 });
