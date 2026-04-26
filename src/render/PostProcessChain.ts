@@ -1,5 +1,5 @@
 import type { Vector2i } from '../utils/Vector2i';
-import type { Effect } from './effects/Effect';
+import type { Effect, EffectTier } from './effects/Effect';
 
 // #region Configuration
 
@@ -14,21 +14,25 @@ const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXT
 // #endregion
 
 /**
- * Stackable post-processing effect chain that runs between the scene render
- * pass and swap-chain present.
+ * Stackable post-processing effect chain that runs at a single resolution tier.
  *
- * The chain owns the offscreen color texture(s) and the shared sampler that
+ * The renderer owns one chain per tier:
+ * - A `'pixel'` chain at the logical render resolution (e.g. 320x240).
+ * - A `'display'` chain at the canvas output resolution (e.g. 1280x960).
+ *
+ * Each chain owns its own offscreen color texture(s) and a shared sampler that
  * effects sample from. Resources are allocated lazily: nothing is touched on
  * the GPU until an effect is added, and everything is destroyed when the chain
  * empties via {@link clear} or the last {@link remove}.
  *
  * Texture model:
  * - Zero effects: no textures allocated, {@link isActive} returns `false`.
- * - One effect: only `texA` exists. The scene renders into `texA`; the effect
- *   samples `texA` and writes directly to the swap-chain view.
- * - N >= 2 effects: `texB` is also allocated. The scene renders into `texA`;
- *   intermediate effects ping-pong between `texA` and `texB`; the final effect
- *   writes to the swap-chain view regardless of which buffer it sampled from.
+ * - One effect: only `texA` exists. The previous stage renders into `texA`; the
+ *   effect samples `texA` and writes directly to the final destination view.
+ * - N >= 2 effects: `texB` is also allocated. The previous stage renders into
+ *   `texA`; intermediate effects ping-pong between `texA` and `texB`; the final
+ *   effect writes to the destination view regardless of which buffer it sampled
+ *   from.
  *
  * Effect ordering is the order of {@link add} calls.
  */
@@ -41,8 +45,11 @@ export class PostProcessChain {
     /** Swap-chain color format; offscreen textures match for one shared pipeline per effect. */
     private readonly format: GPUTextureFormat;
 
-    /** Source render resolution in pixels. */
-    private readonly displaySize: Vector2i;
+    /** Resolution of this chain's render targets in pixels. */
+    private readonly chainSize: Vector2i;
+
+    /** Tier this chain serves. Effects added to it must declare the same tier. */
+    private readonly chainTier: EffectTier;
 
     /** Effects in execution order. */
     private effects: Effect[] = [];
@@ -67,19 +74,22 @@ export class PostProcessChain {
     // #region Constructor
 
     /**
-     * Creates a chain bound to a device, swap-chain format, and display size.
+     * Creates a chain bound to a device, swap-chain format, render resolution,
+     * and tier.
      *
      * No GPU resources are created until the first effect is registered.
      *
      * @param device - WebGPU device used for resource creation.
      * @param format - Swap-chain color format. Offscreen textures use the same
      *   format so each effect can share one render pipeline across passes.
-     * @param displaySize - Source render target resolution in pixels.
+     * @param chainSize - Render target resolution in pixels for this tier.
+     * @param tier - Tier this chain serves. Effects added must match.
      */
-    constructor(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i) {
+    constructor(device: GPUDevice, format: GPUTextureFormat, chainSize: Vector2i, tier: EffectTier) {
         this.device = device;
         this.format = format;
-        this.displaySize = displaySize.clone();
+        this.chainSize = chainSize.clone();
+        this.chainTier = tier;
     }
 
     // #endregion
@@ -87,10 +97,19 @@ export class PostProcessChain {
     // #region Public API
 
     /**
+     * Returns the tier this chain serves.
+     *
+     * @returns Tier of effects this chain holds.
+     */
+    get tier(): EffectTier {
+        return this.chainTier;
+    }
+
+    /**
      * Returns `true` when at least one effect is registered.
      *
-     * The renderer uses this to decide whether to route the scene render into
-     * an offscreen texture instead of the swap chain.
+     * The renderer uses this to decide whether to allocate offscreen textures
+     * for this chain's stage.
      *
      * @returns `true` when the chain has at least one effect.
      */
@@ -112,9 +131,16 @@ export class PostProcessChain {
      * if you want a second copy of the same look.
      *
      * @param effect - Effect to append to the chain.
+     * @throws If the effect's tier does not match this chain's tier.
      * @throws If the effect instance is already registered.
      */
     add(effect: Effect): void {
+        if (effect.tier !== this.chainTier) {
+            throw new Error(
+                `PostProcessChain.add: effect.tier='${effect.tier}' does not match chain tier='${this.chainTier}'.`,
+            );
+        }
+
         if (this.effects.includes(effect)) {
             throw new Error('PostProcessChain.add: effect instance is already registered.');
         }
@@ -129,7 +155,7 @@ export class PostProcessChain {
             this.allocateSecondary();
         }
 
-        effect.init(this.device, this.format, this.displaySize);
+        effect.init(this.device, this.format, this.chainSize);
         this.effects = [...this.effects, effect];
     }
 
@@ -143,12 +169,13 @@ export class PostProcessChain {
      * Removing an effect that was never added is a no-op.
      *
      * @param effect - Effect instance to remove.
+     * @returns `true` if the effect was found and removed; otherwise `false`.
      */
-    remove(effect: Effect): void {
+    remove(effect: Effect): boolean {
         const index = this.effects.indexOf(effect);
 
         if (index === -1) {
-            return;
+            return false;
         }
 
         effect.dispose?.();
@@ -157,6 +184,8 @@ export class PostProcessChain {
         if (this.effects.length === 0) {
             this.releaseTextures();
         }
+
+        return true;
     }
 
     /**
@@ -180,8 +209,8 @@ export class PostProcessChain {
     }
 
     /**
-     * Returns the texture view the renderer should use as the scene's color
-     * attachment when {@link isActive} is `true`.
+     * Returns the texture view the previous stage should write into when
+     * {@link isActive} is `true`.
      *
      * The same view is returned across consecutive frames until the chain is
      * cleared or disposed; the renderer can cache it without invalidation
@@ -190,9 +219,9 @@ export class PostProcessChain {
      * @returns Stable view of the chain's primary offscreen color texture.
      * @throws If the chain is inactive (no effects registered).
      */
-    getSceneTargetView(): GPUTextureView {
+    getInputView(): GPUTextureView {
         if (!this.texAView) {
-            throw new Error('PostProcessChain: getSceneTargetView() called with no active post-process effects.');
+            throw new Error('PostProcessChain.getInputView: called with no active effects.');
         }
 
         return this.texAView;
@@ -203,11 +232,11 @@ export class PostProcessChain {
      *
      * Walks the effect chain in registration order:
      *
-     * - Single-effect chain: source = `texA`, dest = `swapChainView` (one pass,
+     * - Single-effect chain: source = `texA`, dest = `destinationView` (one pass,
      *   no ping-pong, no extra blit).
      * - Multi-effect chain: each pass reads from the previous pass's output and
      *   writes into the other offscreen texture; the **last** pass always
-     *   writes to `swapChainView`.
+     *   writes to `destinationView`.
      *
      * Each effect's {@link Effect.updateUniforms} is called immediately before
      * its {@link Effect.encodePass}.
@@ -216,10 +245,10 @@ export class PostProcessChain {
      *
      * @param encoder - Active command encoder.
      * @param deltaMs - Wall-clock milliseconds since the previous frame.
-     * @param swapChainView - View of the swap-chain texture; the final effect
-     *   writes to this view.
+     * @param destinationView - View the final effect writes to (the next stage's
+     *   input texture, or the swap chain).
      */
-    encode(encoder: GPUCommandEncoder, deltaMs: number, swapChainView: GPUTextureView): void {
+    encode(encoder: GPUCommandEncoder, deltaMs: number, destinationView: GPUTextureView): void {
         if (this.effects.length === 0 || !this.texAView) {
             return;
         }
@@ -229,13 +258,13 @@ export class PostProcessChain {
 
         for (let i = 0; i < effectCount; i++) {
             const isLast = i === effectCount - 1;
-            const write: GPUTextureView = isLast ? swapChainView : this.pickOffscreenView(read);
+            const write: GPUTextureView = isLast ? destinationView : this.pickOffscreenView(read);
             // Safe: bounds checked by loop variable; the read makes the array
             // entry non-null for tsc. Index is a loop counter, not user input.
             // eslint-disable-next-line security/detect-object-injection
             const effect = this.effects[i] as Effect;
 
-            effect.updateUniforms(deltaMs, this.displaySize);
+            effect.updateUniforms(deltaMs, this.chainSize);
             effect.encodePass(encoder, read, write);
 
             read = write;
@@ -259,8 +288,8 @@ export class PostProcessChain {
     /** Allocates {@link texA}. */
     private allocatePrimary(): void {
         this.texA = this.device.createTexture({
-            label: 'PostProcessChain texA',
-            size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
+            label: `PostProcessChain[${this.chainTier}] texA`,
+            size: { width: this.chainSize.x, height: this.chainSize.y, depthOrArrayLayers: 1 },
             format: this.format,
             usage: OFFSCREEN_USAGE,
         });
@@ -270,8 +299,8 @@ export class PostProcessChain {
     /** Allocates {@link texB} for chains with two or more effects. */
     private allocateSecondary(): void {
         this.texB = this.device.createTexture({
-            label: 'PostProcessChain texB',
-            size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
+            label: `PostProcessChain[${this.chainTier}] texB`,
+            size: { width: this.chainSize.x, height: this.chainSize.y, depthOrArrayLayers: 1 },
             format: this.format,
             usage: OFFSCREEN_USAGE,
         });

@@ -185,7 +185,15 @@ export class BTAPI {
         // Initialize subsystems.
         console.log('[BT] Initializing renderer');
 
-        this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
+        this.renderer = new Renderer(
+            this.device,
+            this.context,
+            this.hwSettings.displaySize,
+            // Only forward an explicit outputSize when canvasDisplaySize was
+            // provided; that is the signal that unlocks the display tier.
+            this.hwSettings.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+            this.hwSettings.outputUpscaleFilter ?? 'nearest',
+        );
 
         if (!(await this.renderer.initialize())) {
             console.error('[BT] Failed to initialize renderer');

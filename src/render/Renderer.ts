@@ -9,6 +9,8 @@ import type { Effect } from './effects/Effect';
 import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
+import type { UpscaleFilter } from './UpscalePass';
+import { UpscalePass } from './UpscalePass';
 
 // #region Configuration
 
@@ -17,14 +19,36 @@ import { SpritePipeline } from './SpritePipeline';
  */
 const PALETTE_BUFFER_SIZE = 256 * 4 * 4;
 
+/**
+ * Texture usage flags for the offscreen scene framebuffer.
+ *
+ * `RENDER_ATTACHMENT` so primitive/sprite pipelines can draw into it,
+ * `TEXTURE_BINDING` so the pixel chain (or upscale pass) can sample it.
+ */
+const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
+
 // #endregion
 
 /**
  * High-level renderer that coordinates primitive and sprite pipelines.
  *
  * `Renderer` owns frame begin/end, clear color, camera state, palette buffer,
- * and frame capture. Actual draw batching is delegated to
- * {@link PrimitivePipeline} and {@link SpritePipeline}.
+ * frame capture, and the two-tier post-process pipeline. Actual draw batching
+ * is delegated to {@link PrimitivePipeline} and {@link SpritePipeline}.
+ *
+ * Per-frame stage flow when post-process is active:
+ *
+ * ```text
+ * scene -> sceneTex (logical res)
+ *       -> [pixel chain]
+ *       -> upscaledTex (output res)
+ *       -> [display chain]
+ *       -> swap chain
+ * ```
+ *
+ * Stages are skipped when their inputs are inactive. With both chains empty
+ * and `canvasDisplaySize` matching `displaySize`, the renderer draws straight
+ * to the swap chain (zero offscreen allocations).
  */
 export class Renderer {
     // #region State
@@ -35,8 +59,24 @@ export class Renderer {
     /** WebGPU canvas context for presenting frames. */
     private context: GPUCanvasContext;
 
-    /** Render target resolution in pixels. */
+    /** Logical render target resolution in pixels (`displaySize`). */
     private readonly displaySize: Vector2i;
+
+    /** Output drawing-buffer size in pixels (matches the swap chain). */
+    private readonly outputSize: Vector2i;
+
+    /** Magnification filter used between the pixel chain and the display chain. */
+    private readonly upscaleFilterMode: UpscaleFilter;
+
+    /** True when the swap chain is larger than the logical framebuffer. */
+    private readonly hasUpscale: boolean;
+
+    /**
+     * True when the caller explicitly provided an `outputSize` (i.e. set
+     * `canvasDisplaySize` in `queryHardware()`), enabling display-tier effects
+     * regardless of whether the output resolution differs from the logical one.
+     */
+    private readonly displayTierEnabled: boolean;
 
     /** Palette index used for the frame clear color. Defaults to 0 (transparent). */
     private clearPaletteIndex: number = 0;
@@ -77,12 +117,28 @@ export class Renderer {
     /** Pipeline for textured quads (sprites, bitmap text). */
     private readonly sprites: SpritePipeline;
 
+    /** Pixel-tier post-process chain (logical resolution). */
+    private pixelChain: PostProcessChain | null = null;
+
+    /** Display-tier post-process chain (output resolution). */
+    private displayChain: PostProcessChain | null = null;
+
+    /** Pass that copies the logical framebuffer to the output buffer. */
+    private upscalePass: UpscalePass | null = null;
+
+    /** Logical-resolution scene framebuffer; allocated lazily. */
+    private sceneTex: GPUTexture | null = null;
+    private sceneTexView: GPUTextureView | null = null;
+
+    /** Cached swap-chain format used by lazy texture creation. */
+    private swapFormat: GPUTextureFormat | null = null;
+
     /**
-     * Stackable post-processing chain. Inactive by default; the renderer keeps
-     * the current direct-to-swap-chain path until an effect is added via
-     * {@link addEffect}.
+     * Timestamp (ms, from `performance.now()`) of the previous `endFrame()`
+     * call. Zero on the first frame so the first deltaMs is reported as 0
+     * rather than a large value spanning engine startup time.
      */
-    private chain: PostProcessChain | null = null;
+    private lastFrameMs: number = 0;
 
     // #endregion
 
@@ -93,12 +149,27 @@ export class Renderer {
      *
      * @param device - WebGPU device for GPU operations.
      * @param context - WebGPU canvas context for presenting frames.
-     * @param displaySize - Render target resolution in pixels.
+     * @param displaySize - Logical render resolution in pixels.
+     * @param outputSize - Output drawing-buffer resolution in pixels (matches the
+     *   swap chain). Defaults to `displaySize` (no upscaling, no display-tier
+     *   effects).
+     * @param upscaleFilter - Magnification filter for the upscale pass. Defaults to
+     *   `'nearest'`.
      */
-    constructor(device: GPUDevice, context: GPUCanvasContext, displaySize: Vector2i) {
+    constructor(
+        device: GPUDevice,
+        context: GPUCanvasContext,
+        displaySize: Vector2i,
+        outputSize?: Vector2i,
+        upscaleFilter: UpscaleFilter = 'nearest',
+    ) {
         this.device = device;
         this.context = context;
         this.displaySize = displaySize.clone();
+        this.displayTierEnabled = outputSize !== undefined;
+        this.outputSize = (outputSize ?? displaySize).clone();
+        this.upscaleFilterMode = upscaleFilter;
+        this.hasUpscale = this.outputSize.x !== this.displaySize.x || this.outputSize.y !== this.displaySize.y;
         this.primitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
     }
@@ -114,6 +185,20 @@ export class Renderer {
      */
     async initialize(): Promise<boolean> {
         try {
+            // Release any GPU resources from a previous initialize() call (e.g.
+            // device-loss recovery) so nothing leaks.
+            this.paletteBuffer?.destroy();
+            this.paletteBuffer = null;
+            this.pixelChain?.dispose();
+            this.pixelChain = null;
+            this.displayChain?.dispose();
+            this.displayChain = null;
+            this.upscalePass?.dispose();
+            this.upscalePass = null;
+            this.sceneTex?.destroy();
+            this.sceneTex = null;
+            this.sceneTexView = null;
+
             // Create shared palette uniform buffer (256 entries x vec4f).
             this.paletteBuffer = this.device.createBuffer({
                 label: 'Palette Uniform Buffer',
@@ -126,10 +211,26 @@ export class Renderer {
             // initialize() call (e.g. after a WebGPU device-loss recovery).
             this.paletteDirty = true;
 
+            // Primitive and sprite pipelines run at logical resolution. The
+            // viewport is automatic since each pass binds a target view; only
+            // the camera scaling here cares about logical size.
             await this.primitives.initialize(this.device, this.displaySize, this.paletteBuffer);
             await this.sprites.initialize(this.device, this.displaySize, this.paletteBuffer);
 
-            this.chain = new PostProcessChain(this.device, navigator.gpu.getPreferredCanvasFormat(), this.displaySize);
+            this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
+
+            // Pixel chain operates at logical resolution (320x240 etc.).
+            this.pixelChain = new PostProcessChain(this.device, this.swapFormat, this.displaySize, 'pixel');
+
+            // Display chain operates at output resolution. When there is no
+            // upscale (output == logical), display-tier effects still run, but
+            // they sample the same-size source. We allocate the chain regardless
+            // so the rest of the engine can introspect it.
+            this.displayChain = new PostProcessChain(this.device, this.swapFormat, this.outputSize, 'display');
+
+            // Upscale pass between the two tiers; only used when sizes differ.
+            this.upscalePass = new UpscalePass();
+            this.upscalePass.init(this.device, this.swapFormat, this.upscaleFilterMode);
 
             return true;
         } catch (error) {
@@ -209,57 +310,88 @@ export class Renderer {
 
     /**
      * Ends the current frame and presents to the screen.
-     * Uploads the palette uniform buffer, encodes both pipelines into a render
-     * pass, and submits the command buffer.
+     *
+     * Routing in priority order:
+     * 1. Render scene to the appropriate first-stage view.
+     * 2. Encode pixel chain (if active) -> destination is upscale input or swap chain.
+     * 3. Encode upscale pass (if upscaling and display chain inactive: write to swap;
+     *    if display chain active: write to display-chain input).
+     * 4. Encode display chain (if active) -> swap chain.
      */
     endFrame(): void {
-        // Get the current texture to render to.
-        let texture: GPUTexture;
+        const swapTexture = this.acquireSwapTexture();
+
+        if (!swapTexture) {
+            return;
+        }
+
+        this.flushPaletteIfDirty();
+
+        const swapChainView = swapTexture.createView();
+        const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
+        const pixelActive = this.pixelChain?.isActive() ?? false;
+        const displayActive = this.displayChain?.isActive() ?? false;
+        const sceneView = this.resolveSceneView(swapChainView, pixelActive, displayActive);
+
+        const now = performance.now();
+        const deltaMs = this.lastFrameMs === 0 ? 0 : Math.max(0, now - this.lastFrameMs);
+        this.lastFrameMs = now;
+
+        this.encodeScenePass(commandEncoder, sceneView);
+        this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive, deltaMs);
+        this.submitFrame(commandEncoder, swapTexture);
+    }
+
+    /**
+     * Tries to acquire the swap-chain texture and validate its dimensions.
+     * Returns null and resets pipeline state when the texture is unavailable.
+     *
+     * @returns Current swap-chain texture, or null when the frame must be skipped.
+     */
+    private acquireSwapTexture(): GPUTexture | null {
+        let swapTexture: GPUTexture;
 
         try {
-            texture = this.context.getCurrentTexture();
+            swapTexture = this.context.getCurrentTexture();
         } catch (error) {
             console.error('[Renderer] Failed to get current texture:', error);
-
             this.primitives.reset();
             this.sprites.reset();
-
-            return;
+            return null;
         }
 
-        // Validate texture dimensions.
-        if (texture.width === 0 || texture.height === 0) {
+        if (swapTexture.width === 0 || swapTexture.height === 0) {
             console.warn('[Renderer] Texture has zero dimensions, skipping frame');
-
             this.primitives.reset();
             this.sprites.reset();
-
-            return;
+            return null;
         }
 
-        // Upload palette to GPU only when it has changed.
-        // paletteDirty covers the initial upload after setPalette() is called with a
-        // palette that has not been mutated via set(). palette.dirty covers subsequent
-        // per-frame mutations made directly on the active palette object.
+        return swapTexture;
+    }
+
+    /**
+     * Uploads the palette uniform buffer when the active palette has changed
+     * since the last frame.
+     */
+    private flushPaletteIfDirty(): void {
         if (this.palette && this.paletteBuffer && (this.paletteDirty || this.palette.dirty)) {
             this.palette.toFloat32ArrayInto(this.paletteStaging);
             this.device.queue.writeBuffer(this.paletteBuffer, 0, this.paletteStaging);
             this.paletteDirty = false;
             this.palette.clearDirty();
         }
+    }
 
-        // Resolve clear color from palette.
+    /**
+     * Encodes the primitive + sprite scene render pass into the supplied target view.
+     *
+     * @param encoder - Active command encoder.
+     * @param sceneView - View to render the scene into.
+     */
+    private encodeScenePass(encoder: GPUCommandEncoder, sceneView: GPUTextureView): void {
         const clearColor = this.resolveClearColor();
-
-        const swapChainView = texture.createView();
-        const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
-
-        // When a post-process chain is active, render the scene into its
-        // offscreen target so the chain can sample it; otherwise render
-        // straight to the swap chain (preserves the no-effect fast path).
-        const sceneView = this.chain?.isActive() ? this.chain.getSceneTargetView() : swapChainView;
-
-        const renderPass = commandEncoder.beginRenderPass({
+        const renderPass = encoder.beginRenderPass({
             label: 'Render Pass',
             colorAttachments: [
                 {
@@ -279,32 +411,71 @@ export class Renderer {
 
         this.primitives.encodePass(renderPass);
         this.sprites.encodePass(renderPass);
-
         renderPass.end();
+    }
 
-        // Run the post-process chain (if active) into the swap-chain view.
-        // Frame capture below reads `texture` directly so it sees the
-        // post-processed output, not the raw scene buffer.
-        if (this.chain?.isActive()) {
-            this.chain.encode(commandEncoder, 0, swapChainView);
+    /**
+     * Encodes the optional pixel chain, upscale pass, and display chain in the
+     * correct order based on which chains are active.
+     *
+     * @param encoder - Active command encoder.
+     * @param swapChainView - Current swap-chain view (final destination).
+     * @param pixelActive - Whether the pixel chain has any registered effects.
+     * @param displayActive - Whether the display chain has any registered effects.
+     * @param deltaMs - Wall-clock milliseconds since the previous frame.
+     */
+    private encodePostProcess(
+        encoder: GPUCommandEncoder,
+        swapChainView: GPUTextureView,
+        pixelActive: boolean,
+        displayActive: boolean,
+        deltaMs: number,
+    ): void {
+        if (pixelActive && this.pixelChain) {
+            const dest = this.pixelChainDestView(swapChainView, displayActive);
+            this.pixelChain.encode(encoder, deltaMs, dest);
         }
 
-        // If a frame capture is pending, add the texture-to-buffer copy before submitting.
+        // sceneTex is the shared bridge between the logical (pixel-tier) output
+        // and the upscale input. When pixelActive is true, pixelChain writes its
+        // final pass into sceneTex via pixelChainDestView(); when pixelActive is
+        // false the scene primitives render directly into sceneTex. Either way
+        // upscalePass reads from requireSceneTexView() and copies to the display
+        // chain input (or the swap chain when no display effects are active).
+        if (this.hasUpscale && this.upscalePass) {
+            const upscaleSrc = this.requireSceneTexView();
+            const upscaleDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
+            this.upscalePass.encode(encoder, upscaleSrc, upscaleDest);
+        }
+
+        if (displayActive && this.displayChain) {
+            this.displayChain.encode(encoder, deltaMs, swapChainView);
+        }
+    }
+
+    /**
+     * Adds the optional frame-capture readback, submits the command buffer,
+     * and resets per-frame pipeline state.
+     *
+     * @param encoder - Active command encoder.
+     * @param swapTexture - Current swap-chain texture (capture source).
+     */
+    private submitFrame(encoder: GPUCommandEncoder, swapTexture: GPUTexture): void {
         const capturing = this.frameCapture.hasPendingCapture();
 
         if (capturing) {
-            this.frameCapture.executeCaptureInEncoder(this.device, texture, commandEncoder);
+            this.frameCapture.executeCaptureInEncoder(this.device, swapTexture, encoder);
         }
 
-        this.device.queue.submit([commandEncoder.finish()]);
+        this.device.queue.submit([encoder.finish()]);
 
-        // Resolve the capture asynchronously (does not block the game loop).
         if (capturing) {
             void this.frameCapture.resolveCapture(this.device);
         }
 
-        // Defensive reset so the pipeline state is clean even if beginFrame() is not called next.
-        // beginFrame() also resets; this prevents stale data from persisting across frames.
+        // Defensive reset so the pipeline state is clean even if beginFrame() is not
+        // called next. beginFrame() also resets; this prevents stale data from
+        // persisting across frames.
         this.primitives.reset();
         this.sprites.reset();
     }
@@ -448,57 +619,162 @@ export class Renderer {
     // #region Post-Process Effects
 
     /**
-     * Appends a fullscreen post-processing effect to the chain.
+     * Appends a fullscreen post-processing effect to the chain matching its
+     * declared {@link Effect.tier}.
      *
-     * The first added effect causes the scene to render into an offscreen
-     * texture starting on the next frame. With no effects registered the
-     * renderer continues to draw directly to the swap chain.
+     * - `tier='pixel'` -> pixel chain (logical resolution).
+     * - `tier='display'` -> display chain (output resolution); requires
+     *   `canvasDisplaySize` to be set in `queryHardware()`.
      *
      * @param effect - Effect instance to append.
      * @throws If the renderer has not been initialized.
+     * @throws If a `'display'` effect is added while the output drawing buffer
+     *   matches the logical display size (no canvasDisplaySize was set).
      */
     addEffect(effect: Effect): void {
-        if (!this.chain) {
+        if (!this.pixelChain || !this.displayChain) {
             throw new Error('Renderer.addEffect: renderer not initialized.');
         }
 
-        this.chain.add(effect);
+        if (effect.tier === 'display' && !this.displayTierEnabled) {
+            throw new Error(
+                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in queryHardware().',
+            );
+        }
+
+        const chain = effect.tier === 'pixel' ? this.pixelChain : this.displayChain;
+        chain.add(effect);
     }
 
     /**
      * Removes a previously registered post-processing effect.
      *
-     * Calls {@link Effect.dispose} on the effect if defined. When the last
-     * effect is removed the renderer reverts to drawing directly to the swap
-     * chain on the next frame.
+     * Dispatches to the chain matching {@link Effect.tier}. If the effect is
+     * not found in the expected chain (e.g. it was never added), a defensive
+     * fallback tries the other chain. Removing an effect that was never added
+     * is a no-op.
      *
      * @param effect - Effect instance to remove.
      * @throws If the renderer has not been initialized.
      */
     removeEffect(effect: Effect): void {
-        if (!this.chain) {
+        if (!this.pixelChain || !this.displayChain) {
             throw new Error('Renderer.removeEffect: renderer not initialized.');
         }
 
-        this.chain.remove(effect);
+        const [primary, fallback] =
+            effect.tier === 'pixel' ? [this.pixelChain, this.displayChain] : [this.displayChain, this.pixelChain];
+
+        if (!primary.remove(effect)) {
+            fallback.remove(effect);
+        }
     }
 
     /**
-     * Removes every registered post-processing effect.
+     * Removes every registered post-processing effect across both tiers.
      *
      * @throws If the renderer has not been initialized.
      */
     clearEffects(): void {
-        if (!this.chain) {
+        if (!this.pixelChain || !this.displayChain) {
             throw new Error('Renderer.clearEffects: renderer not initialized.');
         }
 
-        this.chain.clear();
+        this.pixelChain.clear();
+        this.displayChain.clear();
     }
 
     // #endregion
 
     // #region Private Helpers
+
+    /**
+     * Picks the texture view the scene render pass should target this frame.
+     *
+     * @param swapChainView - View of the current swap-chain texture.
+     * @param pixelActive - Whether the pixel chain has any registered effects.
+     * @param displayActive - Whether the display chain has any registered effects.
+     * @returns Stable view to render the scene into.
+     */
+    private resolveSceneView(
+        swapChainView: GPUTextureView,
+        pixelActive: boolean,
+        displayActive: boolean,
+    ): GPUTextureView {
+        if (pixelActive && this.pixelChain) {
+            return this.pixelChain.getInputView();
+        }
+
+        if (this.hasUpscale) {
+            // Need an offscreen at logical resolution before upscaling.
+            return this.requireSceneTexView();
+        }
+
+        if (displayActive && this.displayChain) {
+            return this.displayChain.getInputView();
+        }
+
+        return swapChainView;
+    }
+
+    /**
+     * Picks the destination view for the pixel chain's last pass.
+     *
+     * @param swapChainView - View of the current swap-chain texture.
+     * @param displayActive - Whether the display chain has any registered effects.
+     * @returns Destination view for the final pixel-chain pass.
+     */
+    private pixelChainDestView(swapChainView: GPUTextureView, displayActive: boolean): GPUTextureView {
+        if (this.hasUpscale) {
+            return this.requireSceneTexView();
+        }
+
+        if (displayActive && this.displayChain) {
+            return this.displayChain.getInputView();
+        }
+
+        return swapChainView;
+    }
+
+    /**
+     * Lazily allocates the logical-resolution scene framebuffer and returns its view.
+     *
+     * @returns Stable view of the scene framebuffer.
+     */
+    private requireSceneTexView(): GPUTextureView {
+        if (!this.sceneTexView) {
+            if (!this.swapFormat) {
+                throw new Error('Renderer.requireSceneTexView: swap format not initialized.');
+            }
+            this.sceneTex = this.device.createTexture({
+                label: 'Renderer Scene Framebuffer',
+                size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
+                format: this.swapFormat,
+                usage: SCENE_TARGET_USAGE,
+            });
+            this.sceneTexView = this.sceneTex.createView();
+        }
+
+        return this.sceneTexView;
+    }
+
+    /**
+     * Returns the display chain's input view, which becomes the upscale pass's
+     * destination when the display chain is active.
+     *
+     * @returns Stable input view of the display chain.
+     */
+    private requireDisplayChainInput(): GPUTextureView {
+        const chain = this.displayChain;
+        if (!chain?.isActive()) {
+            throw new Error('Renderer.requireDisplayChainInput: display chain inactive.');
+        }
+        return chain.getInputView();
+    }
+
+    // #endregion
+
+    // #region Private — drawing
 
     /**
      * Fast-path pixel draw using raw integer coordinates.

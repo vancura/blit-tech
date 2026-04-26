@@ -18,9 +18,20 @@ import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
 import { defaultHardwareSettings } from './core/IBlitTechDemo';
-import { BloomEffect } from './render/effects/BloomEffect';
-import type { Effect } from './render/effects/Effect';
-import { PipBoyEffect } from './render/effects/PipBoyEffect';
+import { BarrelDistortion } from './render/effects/display/BarrelDistortion';
+import { Bloom } from './render/effects/display/Bloom';
+import { ChromaticAberration } from './render/effects/display/ChromaticAberration';
+import { Flicker } from './render/effects/display/Flicker';
+import { Interference } from './render/effects/display/Interference';
+import { Noise } from './render/effects/display/Noise';
+import { RGBMask } from './render/effects/display/RGBMask';
+import { RollLine } from './render/effects/display/RollLine';
+import { Scanlines } from './render/effects/display/Scanlines';
+import { Vignette } from './render/effects/display/Vignette';
+import type { Effect, EffectTier } from './render/effects/Effect';
+import { PixelGlitch } from './render/effects/pixel/PixelGlitch';
+import { PixelMosaic } from './render/effects/pixel/PixelMosaic';
+import { amber, crtPipBoy, green } from './render/effects/presets';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
 import { checkWebGPUSupport, displayError, getCanvas, previewWebGPUErrors } from './utils/BootstrapHelpers';
@@ -319,17 +330,21 @@ export const BT = {
     // #region Post-Process Effects
 
     /**
-     * Appends a fullscreen post-processing effect to the chain.
+     * Appends a fullscreen post-processing effect to whichever chain matches
+     * its declared {@link Effect.tier}.
      *
-     * The first registered effect causes the scene to render into an offscreen
-     * texture starting on the next frame. Effects run in registration order;
-     * the last one writes to the swap chain. Each {@link Effect} instance owns
-     * its own GPU resources and may be mutated each frame from demo code.
+     * - `tier='pixel'` -> pixel chain (logical resolution).
+     * - `tier='display'` -> display chain (output resolution); requires
+     *   `canvasDisplaySize` to be set in `queryHardware()`.
      *
-     * Construct concrete effects directly, e.g. `new PipBoyEffect()`.
+     * Effects run in registration order within each tier. The pixel chain runs
+     * first, followed by the upscale pass, followed by the display chain. Each
+     * {@link Effect} instance owns its own GPU resources and may be mutated
+     * each frame from demo code.
      *
      * @param effect - Effect instance to append.
      * @throws If the engine has not been initialized.
+     * @throws If a `'display'` effect is added without `canvasDisplaySize`.
      */
     effectAdd: (effect: Effect): void => {
         BTAPI.instance.effectAdd(effect);
@@ -338,9 +353,8 @@ export const BT = {
     /**
      * Removes a previously registered post-processing effect.
      *
-     * Calls the effect's optional dispose hook. Removing an effect that was
-     * never added is a no-op. When the last effect is removed the engine
-     * reverts to drawing directly to the swap chain on the next frame.
+     * Searches both tiers and disposes the effect from whichever chain holds
+     * it. Removing an effect that was never added is a no-op.
      *
      * @param effect - Effect instance to remove.
      * @throws If the engine has not been initialized.
@@ -350,13 +364,26 @@ export const BT = {
     },
 
     /**
-     * Removes every registered post-processing effect.
+     * Removes every registered post-processing effect across both tiers.
      *
      * @throws If the engine has not been initialized.
      */
     effectClear: (): void => {
         BTAPI.instance.effectClear();
     },
+
+    /**
+     * Pre-configured display-tier effect stacks ("looks").
+     *
+     * Each function returns a fresh array of effects. Add them to the engine
+     * via {@link BT.effectAdd}.
+     *
+     * @example
+     * for (const fx of BT.preset.crtPipBoy()) {
+     *     BT.effectAdd(fx);
+     * }
+     */
+    preset: { crtPipBoy, amber, green },
 
     // #endregion
 
@@ -730,23 +757,36 @@ export const BT = {
 // #region Exports
 
 export {
+    amber,
     applyEasing,
     AssetLoader,
+    BarrelDistortion,
     BitmapFont,
-    BloomEffect,
+    Bloom,
     bootstrap,
     checkWebGPUSupport,
+    ChromaticAberration,
     Color32,
+    crtPipBoy,
     defaultHardwareSettings,
     displayError,
+    Flicker,
     getCanvas,
+    green,
+    Interference,
+    Noise,
     Palette,
-    PipBoyEffect,
+    PixelGlitch,
+    PixelMosaic,
     previewWebGPUErrors,
     Rect2i,
+    RGBMask,
+    RollLine,
+    Scanlines,
     SpriteSheet,
     Vector2i,
+    Vignette,
 };
-export type { BootstrapOptions, EasingFunction, Effect, HardwareSettings, IBlitTechDemo, TextSize };
+export type { BootstrapOptions, EasingFunction, Effect, EffectTier, HardwareSettings, IBlitTechDemo, TextSize };
 
 // #endregion

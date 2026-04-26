@@ -420,6 +420,7 @@ describe('BTAPI', () => {
     describe('post-process effects', () => {
         function makeStubEffect(): Effect {
             return {
+                tier: 'pixel',
                 init: vi.fn(),
                 updateUniforms: vi.fn(),
                 encodePass: vi.fn(),
