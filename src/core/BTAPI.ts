@@ -189,7 +189,9 @@ export class BTAPI {
             this.device,
             this.context,
             this.hwSettings.displaySize,
-            webGPUResult.drawingBufferSize,
+            // Only forward an explicit outputSize when canvasDisplaySize was
+            // provided; that is the signal that unlocks the display tier.
+            this.hwSettings.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
             this.hwSettings.outputUpscaleFilter ?? 'nearest',
         );
 

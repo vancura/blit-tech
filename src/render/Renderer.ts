@@ -71,6 +71,13 @@ export class Renderer {
     /** True when the swap chain is larger than the logical framebuffer. */
     private readonly hasUpscale: boolean;
 
+    /**
+     * True when the caller explicitly provided an `outputSize` (i.e. set
+     * `canvasDisplaySize` in `queryHardware()`), enabling display-tier effects
+     * regardless of whether the output resolution differs from the logical one.
+     */
+    private readonly displayTierEnabled: boolean;
+
     /** Palette index used for the frame clear color. Defaults to 0 (transparent). */
     private clearPaletteIndex: number = 0;
 
@@ -126,6 +133,13 @@ export class Renderer {
     /** Cached swap-chain format used by lazy texture creation. */
     private swapFormat: GPUTextureFormat | null = null;
 
+    /**
+     * Timestamp (ms, from `performance.now()`) of the previous `endFrame()`
+     * call. Zero on the first frame so the first deltaMs is reported as 0
+     * rather than a large value spanning engine startup time.
+     */
+    private lastFrameMs: number = 0;
+
     // #endregion
 
     // #region Constructor
@@ -152,6 +166,7 @@ export class Renderer {
         this.device = device;
         this.context = context;
         this.displaySize = displaySize.clone();
+        this.displayTierEnabled = outputSize !== undefined;
         this.outputSize = (outputSize ?? displaySize).clone();
         this.upscaleFilterMode = upscaleFilter;
         this.hasUpscale = this.outputSize.x !== this.displaySize.x || this.outputSize.y !== this.displaySize.y;
@@ -318,8 +333,12 @@ export class Renderer {
         const displayActive = this.displayChain?.isActive() ?? false;
         const sceneView = this.resolveSceneView(swapChainView, pixelActive, displayActive);
 
+        const now = performance.now();
+        const deltaMs = this.lastFrameMs === 0 ? 0 : Math.max(0, now - this.lastFrameMs);
+        this.lastFrameMs = now;
+
         this.encodeScenePass(commandEncoder, sceneView);
-        this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive);
+        this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive, deltaMs);
         this.submitFrame(commandEncoder, swapTexture);
     }
 
@@ -403,16 +422,18 @@ export class Renderer {
      * @param swapChainView - Current swap-chain view (final destination).
      * @param pixelActive - Whether the pixel chain has any registered effects.
      * @param displayActive - Whether the display chain has any registered effects.
+     * @param deltaMs - Wall-clock milliseconds since the previous frame.
      */
     private encodePostProcess(
         encoder: GPUCommandEncoder,
         swapChainView: GPUTextureView,
         pixelActive: boolean,
         displayActive: boolean,
+        deltaMs: number,
     ): void {
         if (pixelActive && this.pixelChain) {
             const dest = this.pixelChainDestView(swapChainView, displayActive);
-            this.pixelChain.encode(encoder, 0, dest);
+            this.pixelChain.encode(encoder, deltaMs, dest);
         }
 
         // sceneTex is the shared bridge between the logical (pixel-tier) output
@@ -428,7 +449,7 @@ export class Renderer {
         }
 
         if (displayActive && this.displayChain) {
-            this.displayChain.encode(encoder, 0, swapChainView);
+            this.displayChain.encode(encoder, deltaMs, swapChainView);
         }
     }
 
@@ -615,10 +636,9 @@ export class Renderer {
             throw new Error('Renderer.addEffect: renderer not initialized.');
         }
 
-        if (effect.tier === 'display' && !this.hasUpscale) {
+        if (effect.tier === 'display' && !this.displayTierEnabled) {
             throw new Error(
-                'Renderer.addEffect: display-tier effects require canvasDisplaySize ' +
-                    'in queryHardware() (output drawing buffer must be larger than logical displaySize).',
+                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in queryHardware().',
             );
         }
 
