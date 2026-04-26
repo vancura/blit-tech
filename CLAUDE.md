@@ -158,7 +158,7 @@ CI status:
 
 - Tier 1 CPU benchmarks run in GitHub Actions on `main` pushes and on PRs labeled `perf-tier-1`
 - Labeled PR benchmark runs compare against the latest `main` baseline artifact
-- The benchmark job comments on the PR and fails on regressions greater than 10%
+- The benchmark job comments on the PR and fails on regressions greater than 25%
 - Tier 2 GPU perf tests run in GitHub Actions on `main` pushes and on PRs labeled `perf-tier-2`
 - Tier 2 PR perf runs compare against the latest `main` GPU perf baseline artifact
 - The GPU perf job comments on the PR and fails on median frame-time regressions greater than 50%
