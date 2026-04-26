@@ -59,7 +59,6 @@
     "bench": "vitest bench",
     "bench:json": "vitest bench --outputJson benchmark-results.json",
     "test:visual": "playwright test",
-    "test:perf": "playwright test -c playwright.perf.config.ts",
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:coverage": "VISUAL_COVERAGE=1 playwright test && nyc report --reporter=lcov --reporter=text-summary --temp-dir=.nyc_output --report-dir=coverage-visual",
     "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck && pnpm knip && pnpm test:unit",

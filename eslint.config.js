@@ -168,7 +168,7 @@ export default [
 
     // Test files - relaxed rules
     {
-        files: ['**/*.test.ts', 'src/__test__/**/*.ts', 'tests/perf/**/*.ts', 'tests/visual/**/*.ts'],
+        files: ['**/*.test.ts', 'src/__test__/**/*.ts', 'tests/visual/**/*.ts'],
         languageOptions: {
             globals: {
                 ...globals.browser,

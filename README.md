@@ -97,7 +97,6 @@ Additional documentation is available in the `docs/` directory:
 | `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                           |
 | `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
 | `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
-| `pnpm test:perf`            | Run Tier 2 browser/GPU frame-time benchmarks (Playwright)                |
 | `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
 | `pnpm knip`                 | Find unused exports and dependencies                                     |
 | `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                 |
