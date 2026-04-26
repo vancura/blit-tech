@@ -170,6 +170,20 @@ export class Renderer {
      */
     async initialize(): Promise<boolean> {
         try {
+            // Release any GPU resources from a previous initialize() call (e.g.
+            // device-loss recovery) so nothing leaks.
+            this.paletteBuffer?.destroy();
+            this.paletteBuffer = null;
+            this.pixelChain?.dispose();
+            this.pixelChain = null;
+            this.displayChain?.dispose();
+            this.displayChain = null;
+            this.upscalePass?.dispose();
+            this.upscalePass = null;
+            this.sceneTex?.destroy();
+            this.sceneTex = null;
+            this.sceneTexView = null;
+
             // Create shared palette uniform buffer (256 entries x vec4f).
             this.paletteBuffer = this.device.createBuffer({
                 label: 'Palette Uniform Buffer',
@@ -401,6 +415,12 @@ export class Renderer {
             this.pixelChain.encode(encoder, 0, dest);
         }
 
+        // sceneTex is the shared bridge between the logical (pixel-tier) output
+        // and the upscale input. When pixelActive is true, pixelChain writes its
+        // final pass into sceneTex via pixelChainDestView(); when pixelActive is
+        // false the scene primitives render directly into sceneTex. Either way
+        // upscalePass reads from requireSceneTexView() and copies to the display
+        // chain input (or the swap chain when no display effects are active).
         if (this.hasUpscale && this.upscalePass) {
             const upscaleSrc = this.requireSceneTexView();
             const upscaleDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
