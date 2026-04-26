@@ -29,9 +29,17 @@ src/
     GameLoop.ts            # Fixed-timestep game loop
     WebGPUContext.ts       # WebGPU adapter/device/context setup
   render/
-    Renderer.ts            # High-level renderer (coordinates pipelines)
+    Renderer.ts            # High-level renderer (coordinates pipelines + chains)
     PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
+    PostProcessChain.ts    # Tier-aware fullscreen effect chain
+    UpscalePass.ts         # Logical -> output upscale (nearest/linear)
+    effects/
+      Effect.ts            # Effect interface + EffectTier
+      FullscreenEffect.ts  # Base class for typical fullscreen effects
+      pixel/               # Pixel-tier effects (PixelGlitch, PixelMosaic)
+      display/             # Display-tier effects (BarrelDistortion, Scanlines, ...)
+      presets/             # Pre-configured stacks (crtPipBoy, amber, green)
   assets/
     AssetLoader.ts         # Image loading with caching
     SpriteSheet.ts         # GPU texture wrapper

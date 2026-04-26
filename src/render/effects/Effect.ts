@@ -1,6 +1,23 @@
 import type { Vector2i } from '../../utils/Vector2i';
 
 /**
+ * Tier identifier for a post-processing effect.
+ *
+ * - `'pixel'` - runs at logical render resolution (e.g. 320x240) on the rendered
+ *   palette pixels, before the upscale pass. Use for effects that respect the
+ *   palette/pixel-art aesthetic: chunky glitch, palette-aware mosaic, palette
+ *   inversion. Effects in this tier should avoid introducing colors that are
+ *   not in the active palette (e.g. blurs, gradients).
+ * - `'display'` - runs at the canvas output resolution (e.g. 1280x960) after
+ *   the upscale pass. Use for effects that simulate the physical display the
+ *   game appears on: CRT scanlines, barrel distortion, RGB shadow mask,
+ *   vignette, chromatic aberration, monochrome amber/green, bloom, etc. The
+ *   higher resolution lets curved sampling (barrel) express smoothly without
+ *   floor-quantizing onto the logical pixel grid.
+ */
+export type EffectTier = 'pixel' | 'display';
+
+/**
  * Fullscreen post-processing effect contract.
  *
  * An effect samples a single source color texture and writes a processed result
@@ -18,6 +35,14 @@ import type { Vector2i } from '../../utils/Vector2i';
  * the hot path.
  */
 export interface Effect {
+    /**
+     * Tier this effect runs in. Determines whether the engine routes it to the
+     * pixel chain (logical resolution) or the display chain (output resolution).
+     *
+     * See {@link EffectTier} for guidance on which tier suits a given effect.
+     */
+    readonly tier: EffectTier;
+
     /**
      * Creates GPU resources (pipeline, layout, uniform buffer, sampler binding).
      *

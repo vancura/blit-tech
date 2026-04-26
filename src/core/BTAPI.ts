@@ -185,7 +185,13 @@ export class BTAPI {
         // Initialize subsystems.
         console.log('[BT] Initializing renderer');
 
-        this.renderer = new Renderer(this.device, this.context, this.hwSettings.displaySize);
+        this.renderer = new Renderer(
+            this.device,
+            this.context,
+            this.hwSettings.displaySize,
+            webGPUResult.drawingBufferSize,
+            this.hwSettings.outputUpscaleFilter ?? 'nearest',
+        );
 
         if (!(await this.renderer.initialize())) {
             console.error('[BT] Failed to initialize renderer');

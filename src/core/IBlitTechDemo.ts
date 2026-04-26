@@ -3,18 +3,37 @@ import { Vector2i } from '../utils/Vector2i';
 // #region Type Definitions
 
 /**
+ * Magnification filter used by the upscale pass between the pixel chain
+ * (logical resolution) and the display chain (output resolution).
+ */
+export type OutputUpscaleFilter = 'nearest' | 'linear';
+
+/**
  * Engine-facing hardware configuration returned by `queryHardware()`.
  */
 export interface HardwareSettings {
-    /** Display resolution in pixels (internal rendering resolution, e.g., 320×240). */
+    /** Logical render resolution in pixels (e.g. `320x240`). */
     displaySize: Vector2i;
 
     /**
-     * Optional CSS display size used to upscale the canvas independently of the
-     * internal render resolution (e.g., `640x480` with a `320x240` displaySize
-     * gives 2x scaling).
+     * Output drawing-buffer size in pixels. When set, this drives both the
+     * WebGPU drawing buffer and the canvas CSS size, and enables the
+     * `'display'` tier of the post-process effect chain (CRT scanlines, barrel
+     * distortion, etc.). Leave undefined to render at logical `displaySize`
+     * with no display-tier effects.
+     *
+     * Display-tier effects need this to be larger than `displaySize` to express
+     * curvature/scanlines/etc. cleanly without floor-quantizing onto the
+     * logical pixel grid.
      */
     canvasDisplaySize?: Vector2i;
+
+    /**
+     * Magnification filter applied between the pixel chain and the display
+     * chain. `'nearest'` preserves crisp pixel edges (default); `'linear'`
+     * gives a soft "old TV" feel.
+     */
+    outputUpscaleFilter?: OutputUpscaleFilter;
 
     /** Target fixed-update rate in frames per second. */
     targetFPS: number;
@@ -47,8 +66,8 @@ export interface HardwareSettings {
  */
 export interface IBlitTechDemo {
     /**
-     * Called first to declare display size, optional CSS canvas size, and the
-     * target fixed-update rate.
+     * Called first to declare display size, optional output drawing-buffer size,
+     * upscale filter, and the target fixed-update rate.
      *
      * @returns Hardware configuration for this demo.
      */

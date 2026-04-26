@@ -833,6 +833,7 @@ describe('post-process effects', () => {
             updateSpy,
             encodeSpy,
             disposeSpy,
+            tier: 'pixel',
             init: (device, format, displaySize) => initSpy(device, format, displaySize),
             updateUniforms: (deltaMs, sourceSize) => updateSpy(deltaMs, sourceSize),
             encodePass: (encoder, sourceView, destView) => encodeSpy(encoder, sourceView, destView),

@@ -1,34 +1,52 @@
 # Post-Process Effects
 
-Blit-Tech ships a small **post-process chain** that runs between the scene render pass and the swap-chain present. It is
-opt-in and adds zero cost while no effect is registered. The first registered effect routes the scene into an offscreen
-color texture; the last effect in the chain writes to the swap chain.
+Blit-Tech ships a **two-tier post-process system** that runs between the scene render and the swap-chain present. It is
+opt-in and adds zero cost while no effect is registered. Effects are organized into two chains by what they operate on:
 
-This guide covers the public API, the two built-in effects (`PipBoyEffect`, `BloomEffect`), how to write a custom
-effect, and the upstream attribution.
+- **Pixel tier** — runs at the logical render resolution (e.g. `320x240`) on the rendered palette pixels. Hosts effects
+  that respect the pixel-art aesthetic: chunky glitch, block mosaic, palette-aware filters. Effects in this tier sample
+  with `nearest` filtering by default so palette colors are preserved through the chain.
+- **Display tier** — runs at the canvas output resolution (e.g. `1280x960`) on the upscaled image. Hosts effects that
+  simulate the physical display: CRT scanlines, barrel curvature, RGB shadow mask, vignette, chromatic aberration,
+  bloom, and so on. Operating at output resolution lets curved sampling (barrel) express smoothly without quantizing
+  onto the source pixel grid.
+
+This guide covers the public API, the two-tier architecture, every built-in effect, the `Effect` interface for writing
+your own, the bundled presets, and the upstream attribution.
 
 ---
 
 ## Quick start
 
 ```ts
-import { BT, BloomEffect, PipBoyEffect } from 'blit-tech';
+import { BT, Vector2i, BarrelDistortion, Scanlines, RGBMask, Bloom, PixelGlitch } from 'blit-tech';
 
-const pipboy = new PipBoyEffect();
-const bloom = new BloomEffect();
+class Demo {
+  queryHardware() {
+    return {
+      displaySize: new Vector2i(320, 240), // logical pixel-art resolution
+      canvasDisplaySize: new Vector2i(1280, 960), // output drawing-buffer size
+      outputUpscaleFilter: 'nearest', // 'nearest' | 'linear'
+      targetFPS: 60,
+    };
+  }
 
-// Order of add() = render order
-BT.effectAdd(pipboy);
-BT.effectAdd(bloom);
+  async initialize() {
+    // ... palette, sprites ...
 
-// Drive animated uniforms each frame
-pipboy.time = BT.ticks() / BT.fps();
-pipboy.glitchIntensity = currentGlitch;
-pipboy.flickerAmount = 0.95 + Math.random() * 0.1;
+    // Pixel tier: chunky glitch on the 320x240 framebuffer
+    this.glitch = new PixelGlitch();
+    this.glitch.bandHeight = 4;
+    BT.effectAdd(this.glitch);
 
-// Remove individually or clear the whole chain
-BT.effectRemove(bloom);
-BT.effectClear();
+    // Display tier: a CRT look on the 1280x960 output
+    for (const fx of BT.preset.crtPipBoy()) {
+      BT.effectAdd(fx); // each effect declares its tier; engine routes automatically
+    }
+
+    return true;
+  }
+}
 ```
 
 The chain is **stable across frames**: effects retain their state until removed. Mutate fields directly on the instance
@@ -36,46 +54,71 @@ each frame; the chain re-uploads the uniform block before its `encodePass`.
 
 ---
 
+## Architecture
+
+```text
+[Demo render() draws into the logical framebuffer @ 320x240]
+        ↓
+[Pixel chain @ 320x240]      ← palette-friendly: PixelGlitch, PixelMosaic, ...
+        ↓
+[UpscalePass @ outputSize]   ← 'nearest' (crisp) or 'linear' (soft)
+        ↓
+[Display chain @ outputSize] ← screen sim: BarrelDistortion, Scanlines, RGBMask, ...
+        ↓
+[Swap chain]
+```
+
+Invariants:
+
+- Both chains empty: scene renders directly to the swap chain (zero offscreen allocations).
+- Only the pixel chain has effects: scene → pixel chain → upscale → swap chain.
+- Only the display chain has effects: scene → upscale → display chain → swap chain.
+- The last effect in the active chain writes to the swap chain.
+- Adding a `tier='display'` effect when `canvasDisplaySize` is unset throws with a clear message — display effects need
+  an output buffer larger than the logical framebuffer to operate.
+
+---
+
 ## API
 
 ### `BT.effectAdd(effect: Effect): void`
 
-Appends an effect to the end of the chain. The first call allocates the offscreen render target; the second call
-allocates a second target for ping-pong. Throws if the engine has not been initialized.
+Appends an effect to the chain matching its declared `tier`. Effects can be added at any time; the first add allocates
+the chain's offscreen render targets, the second add allocates a second target for ping-pong. Throws if the engine has
+not been initialized or if a `tier='display'` effect is added without `canvasDisplaySize`.
 
 ### `BT.effectRemove(effect: Effect): void`
 
-Removes a previously registered instance and calls its optional `dispose()` hook. Removing an effect that was never
-added is a no-op. When the last effect is removed, the offscreen textures are destroyed and the renderer reverts to
-drawing directly to the swap chain on the next frame.
+Removes a previously registered effect. Searches both tiers and disposes the effect from whichever chain holds it.
+Removing an effect that was never added is a no-op. When the last effect in either chain is removed, that chain's
+offscreen textures are destroyed.
 
 ### `BT.effectClear(): void`
 
-Removes every effect and destroys all offscreen GPU resources. Symmetric to
-[`BT.paletteClearEffects()`](../README.md#palette-effects).
+Removes every effect in both tiers and destroys all offscreen GPU resources.
 
 ### `Effect` interface
 
-Implement this to write a custom fullscreen pass.
-
 ```ts
-import type { Effect, Vector2i } from 'blit-tech';
+import type { Effect, EffectTier, Vector2i } from 'blit-tech';
 
 export class MyEffect implements Effect {
+  public readonly tier: EffectTier = 'display'; // or 'pixel'
+
   init(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i): void {
-    // Create pipeline, uniform buffer, sampler
+    // Create pipeline, uniform buffer, sampler.
   }
 
   updateUniforms(deltaMs: number, sourceSize: Vector2i): void {
-    // Write per-frame uniform data to the GPU
+    // Write per-frame uniform data to the GPU.
   }
 
   encodePass(encoder: GPUCommandEncoder, sourceView: GPUTextureView, destView: GPUTextureView): void {
-    // Begin a render pass against destView, sample sourceView, draw fullscreen triangle
+    // Begin a render pass against destView, sample sourceView, draw fullscreen triangle.
   }
 
   dispose?(): void {
-    // Optional: destroy GPU buffers
+    // Optional: destroy GPU buffers.
   }
 }
 ```
@@ -83,209 +126,268 @@ export class MyEffect implements Effect {
 The chain calls `init` once when the effect is added, `updateUniforms` + `encodePass` once per frame, and `dispose` once
 when removed.
 
----
+The base class `FullscreenEffect` handles 90% of the boilerplate (pipeline, sampler, uniform buffer, bind-group cache);
+see [Writing a custom effect](#writing-a-custom-effect) below.
 
-## How the chain works
+### `HardwareSettings`
 
-```text
-no effects:   scene -> swap-chain
-1 effect:     scene -> texA -> [effect] -> swap-chain
-2 effects:    scene -> texA -> [a] -> texB -> [b] -> swap-chain
-N effects:    scene -> texA -> [a] -> texB -> [b] -> texA -> ... -> [n] -> swap-chain
+```ts
+interface HardwareSettings {
+  displaySize: Vector2i;
+  canvasDisplaySize?: Vector2i; // drives drawing buffer + CSS, enables display tier
+  outputUpscaleFilter?: 'nearest' | 'linear'; // default 'nearest'
+  targetFPS: number;
+  detectDroppedFrames?: boolean;
+}
 ```
 
-- The scene render pass is automatically routed to the chain's offscreen view when at least one effect is registered
-  (see [`Renderer.endFrame`](../src/render/Renderer.ts)).
-- Single-effect chains skip ping-pong: `texA -> swap-chain` in one pass.
-- The **last** effect always writes to the swap chain regardless of which buffer it sampled from.
-- Frame capture (`BT.captureFrame()`) reads the swap-chain texture, so screenshots reflect the post-processed output.
-- The CRT mask granularity matches `displaySize` (the pixel-art resolution), not the canvas display size. This is the
-  intentional retro look on hi-DPI displays. A future option may add hi-res post-processing.
+When `canvasDisplaySize` is omitted, the WebGPU drawing buffer matches `displaySize`, no upscale pass exists, and the
+display tier is unavailable (adding a display effect throws).
 
 ---
 
-## Built-in effects
+## Pixel-tier effects
 
-### `PipBoyEffect` — faux-CRT
+### `PixelGlitch` — chunky band shift
 
-A Fallout-PipBoy-flavoured CRT shader: scanlines, RGB shadow mask, screen curvature, chromatic aberration, vignette,
-noise, a moving roll line, and a demo-driven glitch path.
+Per-row horizontal glitch: every Nth row of source pixels gets a random horizontal shift, quantized to integer
+source-pixel offsets so palette colors are preserved.
 
-**Look parameters** (all match the PipBoy reference defaults):
+| Field        | Default | Purpose                                                             |
+| ------------ | ------- | ------------------------------------------------------------------- |
+| `intensity`  | `0`     | Glitch strength `[0, 1]`. Drives band-shift magnitude / probability |
+| `bandHeight` | `4`     | Height of each glitch band in source pixels                         |
+| `seed`       | `0`     | Per-glitch seed; change between bursts to vary the band noise       |
 
-| Field                | Default | Purpose                                                |
-| -------------------- | ------- | ------------------------------------------------------ |
-| `screenCurvature`    | `0.02`  | Pincushion strength applied to UVs                     |
-| `scanLineAmount`     | `0.6`   | Mix amount for the scanline tri-sampler. 0 disables    |
-| `scanLineStrength`   | `-8.0`  | Negative gaussian falloff for individual scanlines     |
-| `pixelStrength`      | `-1.5`  | Negative gaussian falloff for sub-pixel sample weights |
-| `maskIntensity`      | `0.1`   | Brightness mix applied by the RGB shadow mask. 0 hides |
-| `maskSize`           | `6.0`   | Mask cell pitch in pixels                              |
-| `maskBorder`         | `0.5`   | Border darkening within each mask cell                 |
-| `aberration`         | `1.0`   | Chromatic aberration offset in pixels                  |
-| `vignetteAmount`     | `0.2`   | Vignette darkening exponent (higher = stronger)        |
-| `noiseAmount`        | `0.015` | Per-fetch additive noise scale. 0 disables             |
-| `interferenceAmount` | `0.06`  | Horizontal scanline interference amplitude             |
-| `rollLineAmount`     | `0.1`   | Roll line amplitude                                    |
-| `rollSpeed`          | `1.0`   | Roll line scroll speed (multiplied by `time`)          |
+### `PixelMosaic` — block down-quantize
 
-**Animation parameters** (drive these from your demo each frame):
+Replaces each `blockSize x blockSize` group of source pixels with a single sample. Useful for transitions, dream
+sequences, and "low-res mode" effects.
 
-| Field             | Default | Purpose                                                                |
-| ----------------- | ------- | ---------------------------------------------------------------------- |
-| `time`            | `0`     | Wall-clock seconds for time-driven effects (roll line, noise, glitch)  |
-| `glitchIntensity` | `0`     | Glitch strength in `[0, 1]`. 0 disables the glitch path                |
-| `glitchSeed`      | `0`     | Per-glitch random seed; change between glitches to vary the band noise |
-| `flickerAmount`   | `1`     | Brightness multiplier applied to the final color. 1.0 is unmodulated   |
+| Field       | Default | Purpose                             |
+| ----------- | ------- | ----------------------------------- |
+| `blockSize` | `4`     | Side length of each block in pixels |
 
-The effect ships **without** a JS-side glitch state machine — drive `glitchIntensity` and `glitchSeed` from your demo
-(typical pattern: random cooldowns + short glitch bursts of 5-30 frames). See the demo gallery in `blit-tech-demos` for
-a worked example.
+---
 
-### `BloomEffect` — single-pass box blur
+## Display-tier effects
 
-A simple bloom pass: 5×5 box blur (25 taps) mixed with the original color.
+### `BarrelDistortion` — pincushion curve
 
-| Field         | Default | Purpose                                                  |
-| ------------- | ------- | -------------------------------------------------------- |
-| `bloomSpread` | `3.0`   | Texel offset multiplier for the box-blur kernel          |
-| `bloomGlow`   | `0.12`  | Mix factor between original sample and blurred neighbors |
+`warp(uv) = uv + delta * d2 * curvature`. Operates at output resolution so the curve has enough pixels to express
+smoothly — no stepping artifacts on diagonals.
 
-A future optimisation would be a 2-pass separable Gaussian (5+5 = 10 taps); we will revisit when GPU perf tests demand
-it. The current implementation matches the PipBoy reference.
+| Field       | Default | Purpose                                                             |
+| ----------- | ------- | ------------------------------------------------------------------- |
+| `curvature` | `0.05`  | Curve strength. `0.02` flat panel, `0.05` desktop, `0.10` pocket TV |
+
+### `Scanlines` — bright/dark horizontal bands
+
+Gaussian-weighted scanline pattern matched to source pixel rows.
+
+| Field      | Default | Purpose                                                   |
+| ---------- | ------- | --------------------------------------------------------- |
+| `amount`   | `0.55`  | Mix factor `[0, 1]`. 0 disables                           |
+| `strength` | `-8`    | Negative gaussian falloff; more negative = sharper bands  |
+| `density`  | `240`   | Cycles per view (set to your logical vertical resolution) |
+
+### `RGBMask` — CRT shadow mask
+
+R/G/B vertical-stripe pattern with darkened cell borders, simulating an aperture-grille CRT.
+
+| Field       | Default | Purpose                               |
+| ----------- | ------- | ------------------------------------- |
+| `intensity` | `0.18`  | Mask brightness mix `[0, 1]`. 0 hides |
+| `size`      | `6`     | Mask cell pitch in source pixels      |
+| `border`    | `0.5`   | Border darkening within each cell     |
+
+### `Vignette` — edge darkening
+
+Smooth radial fade. `pow(edge.x * edge.y, amount)`.
+
+| Field    | Default | Purpose                                         |
+| -------- | ------- | ----------------------------------------------- |
+| `amount` | `0.35`  | Darkening exponent. Higher = stronger / sharper |
+
+### `ChromaticAberration` — RGB channel offset
+
+Red samples left of the fragment, blue samples right. Cheap CRT optics produce a tiny version of this naturally.
+
+| Field        | Default | Purpose                         |
+| ------------ | ------- | ------------------------------- |
+| `aberration` | `1.0`   | Channel offset in source pixels |
+
+### `Flicker` — brightness multiplier
+
+The simplest CRT animation knob. `color *= amount`. Demo drives it per-frame.
+
+| Field    | Default | Purpose                              |
+| -------- | ------- | ------------------------------------ |
+| `amount` | `1.0`   | Brightness multiplier. 1 unmodulated |
+
+### `RollLine` — scrolling interference band
+
+A horizontal bright stripe slowly scrolls down the screen.
+
+| Field    | Default | Purpose                                         |
+| -------- | ------- | ----------------------------------------------- |
+| `amount` | `0.1`   | Strength of the bright band                     |
+| `speed`  | `1.0`   | Scroll velocity multiplier                      |
+| `time`   | `0`     | Wall-clock seconds; demos drive this each frame |
+
+### `Interference` — per-row analog jitter
+
+Each row gets a random horizontal offset reseeded each frame.
+
+| Field    | Default | Purpose                                |
+| -------- | ------- | -------------------------------------- |
+| `amount` | `0.06`  | Maximum offset as a UV fraction        |
+| `time`   | `0`     | Wall-clock seconds; reseeds each frame |
+
+### `Noise` — additive pseudo-random noise
+
+Per-pixel film grain. Reseeds each frame from `time`.
+
+| Field    | Default | Purpose                                              |
+| -------- | ------- | ---------------------------------------------------- |
+| `amount` | `0.025` | Noise amplitude as `[-amount, +amount]` perturbation |
+| `time`   | `0`     | Wall-clock seconds                                   |
+
+### `Bloom` — soft phosphor glow
+
+Single-pass 5x5 box blur (25 taps) mixed with the original color.
+
+| Field    | Default | Purpose                                                  |
+| -------- | ------- | -------------------------------------------------------- |
+| `spread` | `3.0`   | Texel offset multiplier for the box-blur kernel          |
+| `glow`   | `0.18`  | Mix factor between original sample and blurred neighbors |
+
+A future optimisation would be a two-pass separable Gaussian (5+5 = 10 taps); we will revisit when GPU perf tests demand
+it.
+
+---
+
+## Presets
+
+Each preset is a function that returns a fresh array of pre-configured effects. Add them in order to the engine via
+`BT.effectAdd`.
+
+### `BT.preset.crtPipBoy()`
+
+Recreates the original PipBoy CRT look:
+`BarrelDistortion + ChromaticAberration + Interference + RollLine + Scanlines + RGBMask + Noise + Flicker + Bloom`.
+Demos that want the full kitchen-sink effect should use this.
+
+### `BT.preset.amber()`
+
+Amber monochrome PC monitor (think IBM 5151 / Hercules). Currently ships as a parameter-only set — the actual amber tint
+quantization will land with [VV-479](https://linear.app/vancura/issue/VV-479/monochrome-re-quantization-display-effect).
+
+### `BT.preset.green()`
+
+Green monochrome PC monitor (think IBM monochrome / VT100). Same caveat as `amber()`.
 
 ---
 
 ## Writing a custom effect
 
-The `Effect` interface is intentionally minimal. A typical fragment-shader effect looks like:
+The simplest path is to extend `FullscreenEffect`, the base class that handles pipeline / sampler / uniform-buffer /
+bind-group-cache boilerplate. Subclasses provide the WGSL fragment shader, declare a tier and uniform-buffer size, and
+write per-frame uniforms.
 
 ```ts
-import type { Effect, Vector2i } from 'blit-tech';
+import type { Vector2i } from 'blit-tech';
+import { FullscreenEffect } from 'blit-tech/render/effects/FullscreenEffect';
 
-const SHADER = /* wgsl */ `
-struct Params { resolution: vec2<f32>, intensity: f32, _pad: f32 }
+export class GammaEffect extends FullscreenEffect {
+  public readonly tier = 'display' as const;
+  public intensity = 1.2;
 
+  protected readonly label = 'GammaEffect';
+  protected readonly uniformBytes = 16;
+  protected readonly fragmentShader = `
+struct Params {
+    intensity: f32,
+    _pad0: f32,
+    _pad1: f32,
+    _pad2: f32,
+}
 @group(0) @binding(0) var<uniform> params: Params;
 @group(0) @binding(1) var src: texture_2d<f32>;
 @group(0) @binding(2) var samp: sampler;
 
-struct VsOut { @builtin(position) pos: vec4<f32>, @location(0) uv: vec2<f32> }
-
-@vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
-    var verts = array<vec2<f32>, 3>(vec2(-1., -1.), vec2(3., -1.), vec2(-1., 3.));
-    var out: VsOut;
-    out.pos = vec4(verts[vid], 0., 1.);
-    out.uv = vec2((verts[vid].x + 1.) * 0.5, 1.0 - (verts[vid].y + 1.) * 0.5);
-    return out;
-}
-
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     let c = textureSample(src, samp, in.uv);
-    return vec4(c.rgb * params.intensity, 1.0);
-}
-`;
+    return vec4<f32>(pow(c.rgb, vec3<f32>(params.intensity)), c.a);
+}`;
 
-export class GammaEffect implements Effect {
-  public intensity = 1.2;
-
-  private device!: GPUDevice;
-  private pipeline!: GPURenderPipeline;
-  private uniforms!: GPUBuffer;
-  private sampler!: GPUSampler;
-  private layout!: GPUBindGroupLayout;
-  private cache = new WeakMap<GPUTextureView, GPUBindGroup>();
-  private writer = new Float32Array(4);
-
-  init(device: GPUDevice, format: GPUTextureFormat, _displaySize: Vector2i): void {
-    this.device = device;
-    const module = device.createShaderModule({ code: SHADER });
-    this.pipeline = device.createRenderPipeline({
-      layout: 'auto',
-      vertex: { module, entryPoint: 'vs_main' },
-      fragment: { module, entryPoint: 'fs_main', targets: [{ format }] },
-      primitive: { topology: 'triangle-list' },
-    });
-    this.layout = this.pipeline.getBindGroupLayout(0);
-    this.uniforms = device.createBuffer({
-      size: 16,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
-    this.sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
-  }
-
-  updateUniforms(_dt: number, sourceSize: Vector2i): void {
-    this.writer[0] = sourceSize.x;
-    this.writer[1] = sourceSize.y;
-    this.writer[2] = this.intensity;
-    this.writer[3] = 0;
-    this.device.queue.writeBuffer(this.uniforms, 0, this.writer);
-  }
-
-  encodePass(encoder: GPUCommandEncoder, src: GPUTextureView, dest: GPUTextureView): void {
-    let bg = this.cache.get(src);
-    if (!bg) {
-      bg = this.device.createBindGroup({
-        layout: this.layout,
-        entries: [
-          { binding: 0, resource: { buffer: this.uniforms } },
-          { binding: 1, resource: src },
-          { binding: 2, resource: this.sampler },
-        ],
-      });
-      this.cache.set(src, bg);
-    }
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [{ view: dest, loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 1 } }],
-    });
-    pass.setPipeline(this.pipeline);
-    pass.setBindGroup(0, bg);
-    pass.draw(3, 1, 0, 0);
-    pass.end();
-  }
-
-  dispose(): void {
-    this.uniforms.destroy();
+  protected writeUniforms(_dt: number, _sourceSize: Vector2i): void {
+    const u = this.uniformData;
+    if (!u) return;
+    u[0] = this.intensity;
+    u[1] = u[2] = u[3] = 0;
   }
 }
 ```
 
-**Tips**
+**Notes**
 
-- Use `'auto'` pipeline layout for small effects. The bind group layout is then derived from the WGSL bindings — your
-  bind group must include exactly the bindings the shader actually uses or WebGPU rejects the bind group.
-- Cache bind groups per source `GPUTextureView` (the chain's `texA`/`texB` views are stable for the chain's lifetime).
-- If you call `textureSample` inside data-dependent control flow, switch to `textureSampleLevel(..., 0.0)` — WGSL
-  forbids `textureSample` outside uniform control flow because of mip derivative requirements.
-- Reuse a single `Float32Array` writer for uniforms — never allocate per frame.
-- The vertex stage in `src/render/effects/fullscreenVS.ts` (`FULLSCREEN_VS_WGSL`) draws a 3-vert fullscreen triangle and
-  flips Y for top-left UV origin. Concatenate it with your fragment WGSL via string concatenation in `init`.
+- The base class requires `tier`, `label`, `uniformBytes` (multiple of 16), and `fragmentShader`. Subclasses can also
+  override `samplerFilter` (defaults to `'linear'`; pixel-tier effects typically override to `'nearest'` to preserve
+  palette colors).
+- The fragment shader sees `Params`, `src`, `samp` at `@group(0) @binding(0..2)`. The shared vertex stage in
+  `src/render/effects/fullscreenVS.ts` is concatenated automatically, giving you
+  `VsOut { pos: vec4<f32>, uv: vec2<f32> }`.
+- For data-dependent control flow that calls `textureSample`, switch to `textureSampleLevel(..., 0.0)` — WGSL forbids
+  `textureSample` outside uniform control flow because of mip derivative requirements.
+- Reuse the inherited `uniformData` `Float32Array` — never allocate per frame.
+
+---
+
+## How the chain works internally
+
+```text
+no effects:                   scene -> swap-chain
+pixel only:                   scene -> texA -> [px] -> swap-chain (no upscale needed)
+display only:                 scene -> upscale -> texA' -> [dsp] -> swap-chain
+both, single px + single dsp: scene -> texA -> [px] -> upscale -> texA' -> [dsp] -> swap-chain
+N pixel + M display:          scene -> texA -> [px1] -> texB -> [px2] -> ... -> texA -> upscale ->
+                              texA' -> [dsp1] -> texB' -> ... -> swap-chain
+```
+
+- Each chain (`pixel` and `display`) lazily allocates its own ping-pong textures `texA` and `texB` only when it has
+  effects.
+- The `UpscalePass` runs whenever `canvasDisplaySize` differs from `displaySize`, even when no display-tier effects are
+  registered.
+- Frame capture (`BT.captureFrame()`) reads the swap-chain texture, so screenshots reflect the post-processed output.
 
 ---
 
 ## Attribution
 
-The core CRT helper functions (`fetchPixel`, `dist`, `gaus`, `horz3`, `scan`, `tri`, `warp`) used in `PipBoyEffect` are
-direct ports of Timothy Lottes's
+The core CRT helper functions (`fetchPixel`, `dist`, `gaus`, `horz3`, `scan`, `tri`, `warp`) used in the original
+`PipBoyEffect` were direct ports of Timothy Lottes's
 [`crt-lottes.glsl`](https://github.com/libretro/glsl-shaders/blob/master/crt/shaders/crt-lottes.glsl) from the libretro
 shader collection. The original header reads:
 
 > PUBLIC DOMAIN CRT STYLED SCAN-LINE SHADER by Timothy Lottes
 
-so no license restrictions apply downstream.
+so no license restrictions apply downstream. The decomposed `BarrelDistortion`, `Scanlines`, `RGBMask` effects in this
+codebase derive from the same shader.
 
-The glitch / flicker / roll-line / chromatic-aberration extensions and the uniform set this implementation replicates
-come from a community PipBoy fork written for p5.js's `createFilterShader`. The fork's source URL and author are
-**unknown** to us at the time of writing, and **no license has been confirmed**. The only header the fork carried was a
-Fallout-themed "RobCo Industries (Unlicensed Wasteland Fork)" comment, which is character flavour rather than a license
-grant. Treat the upstream provenance as unverified; do not assume permissive rights for the borrowed extensions until
-the upstream source and license have been identified.
+The glitch / flicker / roll-line / chromatic-aberration extensions and the uniform set the pre-decomposition
+`PipBoyEffect` replicated come from a community PipBoy fork written for p5.js's `createFilterShader`. The fork's source
+URL and author are **unknown** to us at the time of writing, and **no license has been confirmed** — the only header it
+carried was a Fallout-themed "RobCo Industries (Unlicensed Wasteland Fork)" comment, which is character flavour rather
+than a license grant. Treat the upstream provenance as unverified; do not assume permissive rights for the borrowed
+extensions until the upstream source and license have been identified.
 
 The individual building blocks (hash-based pseudo-random, sin/cos roll line, band-noise glitch shifts, chromatic
-aberration via offset sampling) are common shader patterns not original to any one author, but the specific composition
-here mirrors the PipBoy fork. The Blit-Tech port is original WGSL.
+aberration via offset sampling) are common shader patterns and not original to any one author, but the specific
+composition mirrors the PipBoy fork. The Blit-Tech port is original WGSL.
 
-If you intend to reuse `PipBoyEffect` in a context with stricter licensing requirements, confirm provenance first. If
-you can identify the upstream PipBoy fork, please open a PR to add a verifiable author / URL / license header.
+If you intend to reuse `Interference`, `RollLine`, or `PixelGlitch` in a context with stricter licensing requirements,
+confirm provenance first. The license audit is tracked in
+[VV-480](https://linear.app/vancura/issue/VV-480/audit-and-resolve-pipboy-fork-licensing). If you can identify the
+upstream PipBoy fork, please open a PR to add a verifiable author / URL / license header.

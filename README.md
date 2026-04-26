@@ -26,7 +26,9 @@ primitives, and fonts.
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
-- **Post-process effects**: stackable fullscreen passes (PipBoy CRT, bloom) with a chain that activates only when used
+- **Post-process effects**: two-tier system — pixel-tier effects (chunky glitch, mosaic) at logical resolution, plus
+  display-tier effects (CRT scanlines, barrel curvature, RGB shadow mask, bloom, etc.) at output resolution. Both chains
+  add zero cost when empty. Bundled `BT.preset.crtPipBoy()` / `amber()` / `green()` for one-line setup
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
@@ -226,11 +228,17 @@ blit-tech/
 │   │   ├── IBlitTechDemo.ts    # Demo interface + HardwareSettings
 │   │   └── WebGPUContext.ts    # WebGPU adapter/device/context setup
 │   ├── render/
-│   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines)
+│   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines + chains)
 │   │   ├── PrimitivePipeline.ts # Batched palette-indexed geometry
 │   │   ├── SpritePipeline.ts   # Batched palette-indexed textured quads
-│   │   ├── PostProcessChain.ts # Stackable fullscreen post-process chain
-│   │   └── effects/            # Effect interface + built-in PipBoy CRT / Bloom
+│   │   ├── PostProcessChain.ts # Tier-aware fullscreen effect chain
+│   │   ├── UpscalePass.ts      # Logical -> output upscale (nearest/linear)
+│   │   └── effects/
+│   │       ├── Effect.ts        # Effect interface + EffectTier
+│   │       ├── FullscreenEffect.ts # Base class for typical fullscreen effects
+│   │       ├── pixel/           # Pixel-tier (PixelGlitch, PixelMosaic)
+│   │       ├── display/         # Display-tier (BarrelDistortion, Scanlines, ...)
+│   │       └── presets/         # crtPipBoy, amber, green
 │   ├── utils/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
 │   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
@@ -352,42 +360,50 @@ never conflict. Multiple effects can run simultaneously on different palette ran
 
 ### Post-Process Effects
 
-Stackable fullscreen passes that run between the scene render and swap-chain present. The chain is inactive by default
-and adds zero cost when no effect is registered. The first added effect routes the scene into an offscreen texture; the
-last effect in the chain writes to the swap chain.
+Two-tier fullscreen post-process system that runs between the scene render and the swap-chain present. Effects are
+organized into two chains by what they operate on:
+
+- **Pixel tier** — runs at the logical render resolution on the rendered palette pixels (`nearest` sampling, palette
+  preserved). Hosts chunky glitch, block mosaic, etc.
+- **Display tier** — runs at the canvas output resolution after an upscale pass. Hosts CRT scanlines, barrel curvature,
+  RGB shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution is what lets curved
+  sampling (barrel) express smoothly without quantizing onto the source pixel grid.
+
+Both chains add zero cost when empty. Set `canvasDisplaySize` in `queryHardware()` to enable the display tier.
 
 ```ts
-import { BT, BloomEffect, PipBoyEffect } from 'blit-tech';
+import { BT, Vector2i, BarrelDistortion, Scanlines, Bloom, PixelGlitch } from 'blit-tech';
 
-// Register effects (order = render order)
-const pipboy = new PipBoyEffect();
-const bloom = new BloomEffect();
+// In queryHardware(): unlock the display tier and pick an output size.
+return {
+  displaySize: new Vector2i(320, 240),
+  canvasDisplaySize: new Vector2i(1280, 960), // 4x integer scale
+  outputUpscaleFilter: 'nearest',
+  targetFPS: 60,
+};
 
-BT.effectAdd(pipboy);
-BT.effectAdd(bloom);
+// In initialize(): mix and match effects from both tiers.
+BT.effectAdd(new PixelGlitch()); // tier='pixel' on the effect routes automatically
+BT.effectAdd(new BarrelDistortion());
+BT.effectAdd(new Scanlines());
+BT.effectAdd(new Bloom());
 
-// Drive animated uniforms each frame from update() or render()
-pipboy.time = BT.ticks() / BT.fps();
-pipboy.glitchIntensity = currentGlitch; // 0 disables glitch path
-pipboy.flickerAmount = 0.95 + Math.random() * 0.1;
+// Or use a preset for the full CRT look in one line:
+for (const fx of BT.preset.crtPipBoy()) BT.effectAdd(fx);
 
 // Tear down
-BT.effectRemove(bloom); // remove a single effect (calls its dispose())
-BT.effectClear(); // remove all effects
+BT.effectClear(); // clears both chains
 ```
 
-**Built-in effects**
+**Built-in effects (pixel tier):** `PixelGlitch`, `PixelMosaic`.
 
-- **`PipBoyEffect`** — faux-CRT look (scanlines, RGB shadow mask, screen curvature, chromatic aberration, vignette,
-  noise, roll line, glitch). All ~17 PipBoy `#define` constants are runtime-mutable fields; sensible defaults match the
-  reference. Core CRT helpers ported from Timothy Lottes's public-domain
-  [`crt-lottes.glsl`](https://github.com/libretro/glsl-shaders/blob/master/crt/shaders/crt-lottes.glsl) with attribution
-  in the source file.
-- **`BloomEffect`** — single-pass 5×5 box blur mixed with the original color. Two parameters: `bloomSpread`,
-  `bloomGlow`.
+**Built-in effects (display tier):** `BarrelDistortion`, `Scanlines`, `RGBMask`, `Vignette`, `ChromaticAberration`,
+`Flicker`, `RollLine`, `Interference`, `Noise`, `Bloom`.
 
-See the [Post-Process Effects Guide](docs/post-process-effects.md) for parameter reference, the `Effect` interface, and
-how to write a custom effect.
+**Bundled presets:** `BT.preset.crtPipBoy()`, `BT.preset.amber()`, `BT.preset.green()`.
+
+See the [Post-Process Effects Guide](docs/post-process-effects.md) for parameter reference, the `Effect` interface, the
+`FullscreenEffect` base class, and how to write a custom effect.
 
 ### Drawing Primitives
 
