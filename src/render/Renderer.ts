@@ -649,8 +649,10 @@ export class Renderer {
     /**
      * Removes a previously registered post-processing effect.
      *
-     * Searches both tiers and disposes the effect from whichever chain holds
-     * it. Removing an effect that was never added is a no-op.
+     * Dispatches to the chain matching {@link Effect.tier}. If the effect is
+     * not found in the expected chain (e.g. it was never added), a defensive
+     * fallback tries the other chain. Removing an effect that was never added
+     * is a no-op.
      *
      * @param effect - Effect instance to remove.
      * @throws If the renderer has not been initialized.
@@ -660,9 +662,11 @@ export class Renderer {
             throw new Error('Renderer.removeEffect: renderer not initialized.');
         }
 
-        // Try pixel chain first; if not found, try display chain.
-        if (!this.pixelChain.remove(effect)) {
-            this.displayChain.remove(effect);
+        const [primary, fallback] =
+            effect.tier === 'pixel' ? [this.pixelChain, this.displayChain] : [this.displayChain, this.pixelChain];
+
+        if (!primary.remove(effect)) {
+            fallback.remove(effect);
         }
     }
 
