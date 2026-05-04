@@ -102,14 +102,38 @@ export const BT = {
     /** Select button code. */
     BTN_SELECT: 11,
 
-    /** Left mouse / primary pointer button code. */
+    /**
+     * Primary pointer button code.
+     *
+     * Maps to mouse left for slot 0; touch contact for slots 1-3.
+     */
     BTN_POINTER_A: 20,
 
-    /** Right mouse / secondary pointer button code. */
+    /**
+     * Secondary pointer button code.
+     *
+     * Maps to mouse right for slot 0 (matches RetroBlit canonical, not the
+     * DOM `PointerEvent.button` index where 1 is middle and 2 is right).
+     * Always `false` for touch slots 1-3.
+     */
     BTN_POINTER_B: 21,
 
-    /** Middle mouse / tertiary pointer button code. */
+    /**
+     * Tertiary pointer button code.
+     *
+     * Maps to mouse middle for slot 0 (matches RetroBlit canonical, not the
+     * DOM `PointerEvent.button` index where 1 is middle and 2 is right).
+     * Always `false` for touch slots 1-3.
+     */
     BTN_POINTER_C: 22,
+
+    /**
+     * Auxiliary pointer button code.
+     *
+     * Maps to mouse back/forward extra buttons (DOM `PointerEvent.button`
+     * 3 or 4) for slot 0. Always `false` for touch slots 1-3.
+     */
+    BTN_POINTER_D: 23,
 
     // #endregion
 
@@ -489,47 +513,131 @@ export const BT = {
 
     // #endregion
 
-    // #region Input - Gamepad Buttons
+    // #region Input - Pointer
 
     /**
-     * Checks whether a gamepad button is currently held.
+     * Returns the position of the pointer in the given slot, in display coordinates.
      *
-     * This API is currently a stub and always returns `false`.
+     * Slot 0 is the mouse; slots 1 through 3 are touch / pen contacts assigned
+     * in arrival order. Returns `Vector2i.zero()` when the engine has not been
+     * initialized, the slot index is out of `[0, 3]`, or the slot has no live
+     * pointer.
      *
-     * @param _button - Button constant from the `BTN_*` set.
-     * @param _player - Zero-based player index.
-     * @returns `true` while the button remains pressed. Returns `false` until the input system is implemented.
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
+     * @returns Pointer position in display coordinates.
      */
-    buttonDown: (_button: number, _player: number = 0): boolean => {
-        // TODO: Implement input system.
+    pointerPos: (pointerIndex: number = 0): Vector2i => {
+        return BTAPI.instance.getPointer()?.getPos(pointerIndex) ?? Vector2i.zero();
+    },
+
+    /**
+     * Returns the position delta `(pos - prevPos)` for a pointer slot since the previous frame.
+     *
+     * Reset to zero by the engine at the start of each frame. Returns
+     * `Vector2i.zero()` when the engine is not initialized or the slot index
+     * is out of range.
+     *
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
+     * @returns Per-frame movement in display coordinates.
+     */
+    pointerDelta: (pointerIndex: number = 0): Vector2i => {
+        return BTAPI.instance.getPointer()?.getDelta(pointerIndex) ?? Vector2i.zero();
+    },
+
+    /**
+     * Reports whether the given pointer slot has a live pointer.
+     *
+     * For slot 0 (mouse) this is true while the mouse is hovering inside the
+     * canvas; cleared on `pointerleave`. For slots 1-3 (touch / pen) this is
+     * true while the contact is down.
+     *
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
+     * @returns `true` while the slot has live position data.
+     */
+    pointerPosValid: (pointerIndex: number = 0): boolean => {
+        return BTAPI.instance.getPointer()?.isValid(pointerIndex) ?? false;
+    },
+
+    /**
+     * Returns the wheel scroll delta accumulated during the current frame, in pixels.
+     *
+     * Aggregates `WheelEvent.deltaY` across all wheel events received since
+     * the last frame, normalizing line and page delta modes to pixels.
+     * Returns `0` when the engine is not initialized.
+     *
+     * @returns Vertical scroll delta in pixels for the current frame.
+     */
+    pointerScrollDelta: (): number => {
+        return BTAPI.instance.getPointer()?.getScrollDelta() ?? 0;
+    },
+
+    // #endregion
+
+    // #region Input - Buttons
+
+    /**
+     * Checks whether a button is currently held.
+     *
+     * For pointer buttons (`BTN_POINTER_A..D`), the second parameter is the
+     * pointer slot index (0 = mouse, 1-3 = touch / pen). For mouse slot 0:
+     * `A` is left, `B` is right, `C` is middle, `D` is back / forward
+     * (matches RetroBlit canonical, not DOM `PointerEvent.button` index).
+     * Touch / pen slots only support `A`; B/C/D return `false`.
+     *
+     * Gamepad codes (`BTN_UP..BTN_SELECT`) are not yet implemented and always
+     * return `false` until VV-135 lands.
+     *
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot
+     *                 (0-3) for `BTN_POINTER_*`.
+     * @returns `true` while the button remains pressed.
+     */
+    buttonDown: (button: number, player: number = 0): boolean => {
+        if (button >= 20 && button <= 23) {
+            return BTAPI.instance.getPointer()?.isButtonDown(button, player) ?? false;
+        }
+
+        // TODO: Implement gamepad input (VV-135).
         return false;
     },
 
     /**
-     * Checks whether a gamepad button was pressed on the current frame.
+     * Checks whether a button was pressed on the current frame.
      *
-     * This API is currently a stub and always returns `false`.
+     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * the frame the button transitions from up to down.
      *
-     * @param _button - Button constant from the `BTN_*` set.
-     * @param _player - Zero-based player index.
-     * @returns `true` on the transition frame. Returns `false` until the input system is implemented.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot
+     *                 (0-3) for `BTN_POINTER_*`.
+     * @returns `true` on the transition frame.
      */
-    buttonPressed: (_button: number, _player: number = 0): boolean => {
-        // TODO: Implement input system.
+    buttonPressed: (button: number, player: number = 0): boolean => {
+        if (button >= 20 && button <= 23) {
+            return BTAPI.instance.getPointer()?.isButtonPressed(button, player) ?? false;
+        }
+
+        // TODO: Implement gamepad input (VV-135).
         return false;
     },
 
     /**
-     * Checks whether a gamepad button was released on the current frame.
+     * Checks whether a button was released on the current frame.
      *
-     * This API is currently a stub and always returns `false`.
+     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * the frame the button transitions from down to up.
      *
-     * @param _button - Button constant from the `BTN_*` set.
-     * @param _player - Zero-based player index.
-     * @returns `true` on the release frame. Returns `false` until the input system is implemented.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot
+     *                 (0-3) for `BTN_POINTER_*`.
+     * @returns `true` on the release frame.
      */
-    buttonReleased: (_button: number, _player: number = 0): boolean => {
-        // TODO: Implement input system.
+    buttonReleased: (button: number, player: number = 0): boolean => {
+        if (button >= 20 && button <= 23) {
+            return BTAPI.instance.getPointer()?.isButtonReleased(button, player) ?? false;
+        }
+
+        // TODO: Implement gamepad input (VV-135).
         return false;
     },
 

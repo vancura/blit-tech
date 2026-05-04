@@ -10,6 +10,7 @@ import {
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { createSystemFont } from '../assets/SystemFont';
+import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
@@ -91,8 +92,11 @@ export class BTAPI {
     /** Built-in 6x14 system font for BT.systemPrint(). */
     private systemFont: BitmapFont | null = null;
 
+    /** Pointer / mouse / touch input subsystem. Created during {@link initialize}. */
+    private pointer: PointerInput | null = null;
+
     // TODO: Additional subsystems for future implementation:
-    // InputManager, AudioManager, AssetManager
+    // KeyboardInput (VV-134), GamepadInput (VV-135), AudioManager, AssetManager
 
     // #endregion
 
@@ -206,7 +210,12 @@ export class BTAPI {
         // Create the built-in system font (synchronous, no GPU needed yet).
         this.systemFont = createSystemFont();
 
-        // TODO: Initialize input, audio, etc.
+        // Initialize pointer input. Listeners attach to the canvas; per-frame
+        // resets are wired to GameLoop.onTickStart below.
+        this.pointer = new PointerInput();
+        this.pointer.attach(canvas, this.hwSettings.displaySize);
+
+        // TODO: Initialize keyboard (VV-134), gamepad (VV-135), audio.
 
         // Initialize the demo.
         console.log('[BT] Initializing demo');
@@ -239,6 +248,12 @@ export class BTAPI {
 
                     this.renderer.endFrame();
                 }
+
+                // Snapshot pointer state for next frame's edge detection / delta.
+                // Must run AFTER demo.update + demo.render have read the current
+                // state, so prev = "state when update last looked", letting any
+                // event that arrives before the next tick be visible as a transition.
+                this.pointer?.endFrame();
             },
             onFrameDrop,
         );
@@ -251,10 +266,15 @@ export class BTAPI {
     }
 
     /**
-     * Stops the active game loop if one exists.
+     * Stops the active game loop and detaches input listeners.
+     *
+     * The pointer subsystem is detached so DOM listeners do not leak across
+     * engine restarts (relevant in tests where the same DOM persists).
      */
     public stop(): void {
         this.loop?.stop();
+        this.pointer?.detach();
+        this.pointer = null;
     }
 
     // #endregion
@@ -326,6 +346,16 @@ export class BTAPI {
      */
     public getRenderer(): Renderer | null {
         return this.renderer;
+    }
+
+    /**
+     * Gets the pointer input subsystem created during initialization.
+     *
+     * @returns Pointer input instance, or null when the engine has not been
+     *          initialized yet (or has been stopped).
+     */
+    public getPointer(): PointerInput | null {
+        return this.pointer;
     }
 
     /**
