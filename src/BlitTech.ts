@@ -571,6 +571,29 @@ export const BT = {
         return BTAPI.instance.getPointer()?.getScrollDelta() ?? 0;
     },
 
+    /**
+     * Hides the native OS cursor while the pointer is over the canvas.
+     *
+     * Call once from `initialize()` when the demo draws its own crosshair or
+     * cursor sprite in place of the system arrow. The cursor is restored
+     * automatically when the engine shuts down.
+     *
+     * No-op before the engine is initialized.
+     */
+    hideCursor: (): void => {
+        BTAPI.instance.getPointer()?.hideCursor();
+    },
+
+    /**
+     * Restores the native OS cursor over the canvas.
+     *
+     * Reverses a prior {@link hideCursor} call. No-op before the engine is
+     * initialized.
+     */
+    showCursor: (): void => {
+        BTAPI.instance.getPointer()?.showCursor();
+    },
+
     // #endregion
 
     // #region Input - Buttons

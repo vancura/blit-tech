@@ -129,6 +129,9 @@ export class PointerInput {
     /** Captured `canvas.style.touchAction` value, restored by {@link detach}. */
     private originalTouchAction: string | null = null;
 
+    /** Captured `canvas.style.cursor` value, restored by {@link detach}. */
+    private originalCursor: string | null = null;
+
     // #endregion
 
     // #region Bound Listeners
@@ -189,6 +192,7 @@ export class PointerInput {
 
         this.originalTouchAction = canvas.style.touchAction;
         canvas.style.touchAction = 'none';
+        this.originalCursor = canvas.style.cursor;
 
         canvas.addEventListener('pointermove', this.onPointerMove);
         canvas.addEventListener('pointerdown', this.onPointerDown);
@@ -221,11 +225,16 @@ export class PointerInput {
             if (this.originalTouchAction !== null) {
                 canvas.style.touchAction = this.originalTouchAction;
             }
+
+            if (this.originalCursor !== null) {
+                canvas.style.cursor = this.originalCursor;
+            }
         }
 
         this.canvas = null;
         this.displaySize = null;
         this.originalTouchAction = null;
+        this.originalCursor = null;
 
         this.pointerIdToSlot.clear();
         this.scrollDeltaY = 0;
@@ -422,6 +431,32 @@ export class PointerInput {
                 return !s.d && s.prevD;
             default:
                 return false;
+        }
+    }
+
+    // #endregion
+
+    // #region Cursor
+
+    /**
+     * Hides the native OS cursor while the pointer is over the canvas.
+     *
+     * Sets `canvas.style.cursor = 'none'`. No-op when not attached.
+     */
+    public hideCursor(): void {
+        if (this.canvas !== null) {
+            this.canvas.style.cursor = 'none';
+        }
+    }
+
+    /**
+     * Restores the native OS cursor to the value it had at {@link attach} time.
+     *
+     * No-op when not attached.
+     */
+    public showCursor(): void {
+        if (this.canvas !== null) {
+            this.canvas.style.cursor = this.originalCursor ?? '';
         }
     }
 

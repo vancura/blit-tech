@@ -187,6 +187,51 @@ describe('PointerInput', () => {
         });
     });
 
+    describe('cursor management', () => {
+        it('hideCursor sets canvas.style.cursor to "none"', () => {
+            input.hideCursor();
+            expect(canvas.style.cursor).toBe('none');
+        });
+
+        it('showCursor restores the cursor value captured at attach time', () => {
+            const c = createCanvas();
+            c.style.cursor = 'crosshair';
+            const p = new PointerInput();
+
+            p.attach(c, new Vector2i(DISPLAY_WIDTH, DISPLAY_HEIGHT));
+            p.hideCursor();
+            expect(c.style.cursor).toBe('none');
+
+            p.showCursor();
+            expect(c.style.cursor).toBe('crosshair');
+
+            p.detach();
+            c.remove();
+        });
+
+        it('detach restores the cursor saved at attach time', () => {
+            const c = createCanvas();
+            c.style.cursor = 'wait';
+            const p = new PointerInput();
+
+            p.attach(c, new Vector2i(DISPLAY_WIDTH, DISPLAY_HEIGHT));
+            p.hideCursor();
+            expect(c.style.cursor).toBe('none');
+
+            p.detach();
+            expect(c.style.cursor).toBe('wait');
+
+            c.remove();
+        });
+
+        it('hideCursor and showCursor are no-ops before attach', () => {
+            const p = new PointerInput();
+
+            expect(() => p.hideCursor()).not.toThrow();
+            expect(() => p.showCursor()).not.toThrow();
+        });
+    });
+
     // #endregion
 
     // #region Mouse Slot 0
