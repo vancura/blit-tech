@@ -285,6 +285,51 @@ describe('PointerInput', () => {
             expect(input.isValid(0)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 0)).toBe(false);
         });
+
+        it('ignores an unknown DOM mouse button code (default case in setMouseButton)', () => {
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 5,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+
+            expect(input.isButtonDown(BTN_POINTER_A, 0)).toBe(false);
+            expect(input.isButtonDown(BTN_POINTER_B, 0)).toBe(false);
+            expect(input.isButtonDown(BTN_POINTER_C, 0)).toBe(false);
+            expect(input.isButtonDown(BTN_POINTER_D, 0)).toBe(false);
+        });
+
+        it('deactivates mouse slot on pointercancel', () => {
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 0,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+
+            expect(input.isValid(0)).toBe(true);
+
+            canvas.dispatchEvent(
+                pointerEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
+            );
+
+            expect(input.isValid(0)).toBe(false);
+        });
+
+        it('handles pointerleave for mouse when slot was never activated (null pointerId path)', () => {
+            canvas.dispatchEvent(
+                pointerEvent('pointerleave', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
+            );
+
+            expect(input.isValid(0)).toBe(false);
+        });
     });
 
     // #endregion
@@ -432,6 +477,91 @@ describe('PointerInput', () => {
 
             expect(input.isValid(0)).toBe(false);
             expect(input.isValid(1)).toBe(true);
+        });
+
+        it('ignores a duplicate pointerdown for the same touch ID', () => {
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 900,
+                    pointerType: 'touch',
+                    button: 0,
+                    clientX: 10,
+                    clientY: 10,
+                }),
+            );
+
+            expect(input.isValid(1)).toBe(true);
+
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 900,
+                    pointerType: 'touch',
+                    button: 0,
+                    clientX: 20,
+                    clientY: 20,
+                }),
+            );
+
+            expect(input.isValid(1)).toBe(true);
+            expect(input.isValid(2)).toBe(false);
+        });
+
+        it('ignores touch pointermove with no prior pointerdown (unknown slot)', () => {
+            expect(() => {
+                canvas.dispatchEvent(
+                    pointerEvent('pointermove', { pointerId: 999, pointerType: 'touch', clientX: 50, clientY: 50 }),
+                );
+            }).not.toThrow();
+
+            expect(input.isValid(1)).toBe(false);
+        });
+
+        it('ignores touch pointerup with no prior pointerdown (unknown slot)', () => {
+            expect(() => {
+                canvas.dispatchEvent(
+                    pointerEvent('pointerup', {
+                        pointerId: 999,
+                        pointerType: 'touch',
+                        button: 0,
+                        clientX: 50,
+                        clientY: 50,
+                    }),
+                );
+            }).not.toThrow();
+        });
+
+        it('ignores touch pointercancel with no prior pointerdown (unknown slot)', () => {
+            expect(() => {
+                canvas.dispatchEvent(
+                    pointerEvent('pointercancel', { pointerId: 999, pointerType: 'touch', clientX: 50, clientY: 50 }),
+                );
+            }).not.toThrow();
+        });
+
+        it('frees a touch slot on pointerleave and ignores leave for an unregistered touch ID', () => {
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1001,
+                    pointerType: 'touch',
+                    button: 0,
+                    clientX: 10,
+                    clientY: 10,
+                }),
+            );
+
+            expect(input.isValid(1)).toBe(true);
+
+            canvas.dispatchEvent(
+                pointerEvent('pointerleave', { pointerId: 1001, pointerType: 'touch', clientX: 10, clientY: 10 }),
+            );
+
+            expect(input.isValid(1)).toBe(false);
+
+            expect(() => {
+                canvas.dispatchEvent(
+                    pointerEvent('pointerleave', { pointerId: 9999, pointerType: 'touch', clientX: 10, clientY: 10 }),
+                );
+            }).not.toThrow();
         });
     });
 
@@ -687,6 +817,106 @@ describe('PointerInput', () => {
 
             // Tick 2 update: must see the press edge.
             expect(input.isButtonPressed(BTN_POINTER_B, 0)).toBe(true);
+        });
+
+        it('reports isButtonPressed for BTN_POINTER_C and BTN_POINTER_D on their press frames', () => {
+            // Before any press: covers the short-circuit false path for C and D.
+            expect(input.isButtonPressed(BTN_POINTER_C, 0)).toBe(false);
+            expect(input.isButtonPressed(BTN_POINTER_D, 0)).toBe(false);
+
+            // Press C (DOM button 1 = middle).
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 1,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+
+            expect(input.isButtonPressed(BTN_POINTER_C, 0)).toBe(true);
+
+            input.endFrame();
+
+            expect(input.isButtonPressed(BTN_POINTER_C, 0)).toBe(false);
+
+            // Press D (DOM button 3 = back).
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 3,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+
+            expect(input.isButtonPressed(BTN_POINTER_D, 0)).toBe(true);
+
+            input.endFrame();
+
+            expect(input.isButtonPressed(BTN_POINTER_D, 0)).toBe(false);
+        });
+
+        it('reports isButtonReleased for BTN_POINTER_B, BTN_POINTER_C, and BTN_POINTER_D on their release frames', () => {
+            // Press B, C, D together.
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 2,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 1,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 3,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+            input.endFrame();
+
+            // Release B; C and D still held.
+            canvas.dispatchEvent(
+                pointerEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 2, clientX: 50, clientY: 50 }),
+            );
+
+            expect(input.isButtonReleased(BTN_POINTER_B, 0)).toBe(true);
+            // C still held: !s.c is false, covers the short-circuit false path for C.
+            expect(input.isButtonReleased(BTN_POINTER_C, 0)).toBe(false);
+            expect(input.isButtonReleased(BTN_POINTER_D, 0)).toBe(false);
+
+            input.endFrame();
+
+            // Release C.
+            canvas.dispatchEvent(
+                pointerEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 1, clientX: 50, clientY: 50 }),
+            );
+
+            expect(input.isButtonReleased(BTN_POINTER_C, 0)).toBe(true);
+
+            input.endFrame();
+
+            // Release D.
+            canvas.dispatchEvent(
+                pointerEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 3, clientX: 50, clientY: 50 }),
+            );
+
+            expect(input.isButtonReleased(BTN_POINTER_D, 0)).toBe(true);
         });
     });
 
