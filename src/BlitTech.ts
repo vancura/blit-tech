@@ -533,9 +533,10 @@ export const BT = {
     /**
      * Returns the position delta `(pos - prevPos)` for a pointer slot since the previous frame.
      *
-     * Reset to zero by the engine at the start of each frame. Returns
-     * `Vector2i.zero()` when the engine is not initialized or the slot index
-     * is out of range.
+     * Reflects movement accumulated between the previous and current frame.
+     * Snapshotted and reset by the engine at `endFrame()`, which runs after
+     * `update()` and `render()`. Returns `Vector2i.zero()` when the engine is
+     * not initialized or `pointerIndex` is out of range.
      *
      * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns Per-frame movement in display coordinates.

@@ -185,6 +185,34 @@ describe('PointerInput', () => {
 
             otherCanvas.remove();
         });
+
+        it('releases active pointer captures on detach', () => {
+            const c = createCanvas();
+            const p = new PointerInput();
+            p.attach(c, new Vector2i(DISPLAY_WIDTH, DISPLAY_HEIGHT));
+
+            // Register a touch contact so a pointerId is tracked in pointerIdToSlot.
+            c.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 42,
+                    pointerType: 'touch',
+                    button: 0,
+                    clientX: 50,
+                    clientY: 50,
+                }),
+            );
+
+            // Stub hasPointerCapture so detach() believes the capture is active.
+            vi.spyOn(c, 'hasPointerCapture').mockReturnValue(true);
+            const releaseSpy = vi.spyOn(c, 'releasePointerCapture');
+
+            p.detach();
+
+            expect(releaseSpy).toHaveBeenCalledWith(42);
+
+            vi.restoreAllMocks();
+            c.remove();
+        });
     });
 
     describe('cursor management', () => {
@@ -806,6 +834,57 @@ describe('PointerInput', () => {
             // clientX 186 in a 640-wide rect at left=10 is (186-10)/640 = 0.275 -> 0.275 * 320 = 88.
             // clientX 178 -> (178-10)/640 = 0.2625 -> 0.2625 * 320 = 84.
             // So the final movement of the tick is from (84, 50) to (88, 53).
+            expect(releasePos.x).toBe(88);
+            expect(releaseDelta.x).toBeGreaterThan(0);
+            expect(releaseDelta.y).toBeGreaterThan(0);
+        });
+
+        it('preserves pos and delta on the mouse-release frame', () => {
+            // Mirrors the touch-release flick test but uses mouse on slot 0. The
+            // release-frame delta must reflect the final movement so a demo can
+            // use it as throw velocity.
+
+            // Tick 1 inter-frame: mouse button pressed.
+            canvas.dispatchEvent(
+                pointerEvent('pointerdown', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 0,
+                    clientX: 170,
+                    clientY: 140,
+                }),
+            );
+            input.endFrame();
+
+            // Tick 2 inter-frame: mouse moves a small step.
+            canvas.dispatchEvent(
+                pointerEvent('pointermove', { pointerId: 1, pointerType: 'mouse', clientX: 178, clientY: 148 }),
+            );
+            input.endFrame();
+
+            // Tick 3 inter-frame: mouse moves further, then releases.
+            canvas.dispatchEvent(
+                pointerEvent('pointermove', { pointerId: 1, pointerType: 'mouse', clientX: 186, clientY: 156 }),
+            );
+            canvas.dispatchEvent(
+                pointerEvent('pointerup', {
+                    pointerId: 1,
+                    pointerType: 'mouse',
+                    button: 0,
+                    clientX: 186,
+                    clientY: 156,
+                }),
+            );
+
+            // Tick 3 update: must see the release edge AND a non-zero delta
+            // representing the final movement (so a demo can throw with it).
+            expect(input.isButtonReleased(BTN_POINTER_A, 0)).toBe(true);
+
+            const releasePos = input.getPos(0);
+            const releaseDelta = input.getDelta(0);
+
+            // clientX 186 in a 640-wide rect at left=10: (186-10)/640 * 320 = 88.
+            // clientX 178 -> (178-10)/640 * 320 = 84. Final movement: (84,64) -> (88,68).
             expect(releasePos.x).toBe(88);
             expect(releaseDelta.x).toBeGreaterThan(0);
             expect(releaseDelta.y).toBeGreaterThan(0);
