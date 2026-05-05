@@ -214,6 +214,16 @@ export class PointerInput {
         const canvas = this.canvas;
 
         if (canvas !== null) {
+            for (const [pointerId] of this.pointerIdToSlot) {
+                try {
+                    if (canvas.hasPointerCapture(pointerId)) {
+                        canvas.releasePointerCapture(pointerId);
+                    }
+                } catch {
+                    // Element may have been removed from the DOM already.
+                }
+            }
+
             canvas.removeEventListener('pointermove', this.onPointerMove);
             canvas.removeEventListener('pointerdown', this.onPointerDown);
             canvas.removeEventListener('pointerup', this.onPointerUp);
@@ -579,6 +589,7 @@ export class PointerInput {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
 
+            this.updateSlotPosition(slot, event.clientX, event.clientY);
             this.setMouseButton(slot, event.button, false);
 
             return;
