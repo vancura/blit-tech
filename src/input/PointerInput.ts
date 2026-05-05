@@ -528,6 +528,9 @@ export class PointerInput {
         slot.prevPos.copyFrom(slot.pos);
 
         this.pointerIdToSlot.set(event.pointerId, slotIndex);
+
+        // Capture so off-canvas drags keep delivering events to this canvas.
+        this.canvas?.setPointerCapture(event.pointerId);
     }
 
     /**
@@ -550,6 +553,13 @@ export class PointerInput {
 
         if (slotIndex === undefined) {
             return;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from pointerIdToSlot, always in [0, POINTER_SLOT_COUNT)
+        const slot = this.slots[slotIndex];
+
+        if (slot !== undefined) {
+            this.updateSlotPosition(slot, event.clientX, event.clientY);
         }
 
         this.freeSlot(slotIndex);
@@ -712,6 +722,10 @@ export class PointerInput {
         }
 
         if (slot.pointerId !== null) {
+            if (this.canvas?.hasPointerCapture(slot.pointerId)) {
+                this.canvas.releasePointerCapture(slot.pointerId);
+            }
+
             this.pointerIdToSlot.delete(slot.pointerId);
         }
 
@@ -806,8 +820,14 @@ export class PointerInput {
             return;
         }
 
-        const x = Math.floor(((clientX - rect.left) / rect.width) * displaySize.x);
-        const y = Math.floor(((clientY - rect.top) / rect.height) * displaySize.y);
+        const x = Math.max(
+            0,
+            Math.min(Math.floor(((clientX - rect.left) / rect.width) * displaySize.x), displaySize.x - 1),
+        );
+        const y = Math.max(
+            0,
+            Math.min(Math.floor(((clientY - rect.top) / rect.height) * displaySize.y), displaySize.y - 1),
+        );
 
         slot.pos.set(x, y);
     }

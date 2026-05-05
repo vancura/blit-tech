@@ -220,8 +220,22 @@ export class BTAPI {
         // Initialize the demo.
         console.log('[BT] Initializing demo');
 
-        if (!(await demo.initialize())) {
+        let demoInitOk: boolean;
+
+        try {
+            demoInitOk = await demo.initialize();
+        } catch (err) {
+            console.error('[BT] Demo initialization threw', err);
+            this.pointer?.detach();
+            this.pointer = null;
+
+            return false;
+        }
+
+        if (!demoInitOk) {
             console.error('[BT] Demo initialization failed');
+            this.pointer?.detach();
+            this.pointer = null;
 
             return false;
         }
