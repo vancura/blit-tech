@@ -144,7 +144,7 @@ means:
 
 Client coordinates from DOM events are converted to display space using the canvas bounding rect:
 
-```
+```text
 display_x = floor((clientX - rect.left) / rect.width  * displaySize.x)
 display_y = floor((clientY - rect.top)  / rect.height * displaySize.y)
 ```
