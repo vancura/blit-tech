@@ -35,6 +35,8 @@ primitives, and fonts.
 - **Bitmap fonts**: variable-width font rendering with palette offset support
 - **Camera system**: scrolling with offset and reset
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
+- **Pointer input**: mouse, touch, and pen unified under four pointer slots (`BT.pointerPos`, `BT.pointerDelta`,
+  `BT.buttonDown` with `BTN_POINTER_A..D`); scroll delta, cursor hide/show, display-space coordinates
 - **Fixed timestep**: deterministic 60 FPS loop with tick counter and optional dropped-frame detection
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: optional CSS upscaling via `canvasDisplaySize` for crisp pixel art
@@ -75,6 +77,7 @@ Additional documentation is available in the `docs/` directory:
   `BloomEffect`, writing custom effects, and shader attribution
 - **[Bitmap Fonts Guide](docs/bitmap-fonts.md)** — Built-in system font, `.btfont` format spec, BMFont conversion, and
   font rendering API
+- **[Input Guide](docs/input.md)** — Pointer input system, slot model, button mapping, scroll delta, and cursor control
 - **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Scripts
@@ -172,7 +175,8 @@ class MyDemo implements IBlitTechDemo {
    */
   update(): void {
     // Demo logic at fixed timestep (60 FPS)
-    // Note: Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
+    // Pointer input: BT.pointerPos(), BT.buttonDown(BT.BTN_POINTER_A)
+    // Keyboard input (BT.keyDown, BT.keyPressed) is planned but not yet implemented
   }
 
   /**
@@ -238,6 +242,8 @@ blit-tech/
 │   │       ├── pixel/           # Pixel-tier (PixelGlitch, PixelMosaic)
 │   │       ├── display/         # Display-tier (BarrelDistortion, Scanlines, ...)
 │   │       └── presets/         # crtPipBoy, amber, green
+│   ├── input/
+│   │   └── PointerInput.ts     # DOM-backed pointer / mouse / touch / pen tracker
 │   ├── utils/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
 │   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
@@ -499,9 +505,55 @@ BitmapFont.load(url); // Load bitmap font (static method)
 
 ### Input
 
-**Note:** Keyboard and gamepad input methods (`BT.keyDown()`, `BT.keyPressed()`, `BT.buttonDown()`, etc.) are planned
-but not yet implemented. They currently return `false`. Button constants (`BT.BTN_UP`, `BT.BTN_A`, etc.) are defined for
-future use. See the Blit-Tech Demos repository for workarounds using browser APIs directly.
+#### Pointer (mouse, touch, pen)
+
+The engine tracks up to four pointer slots. Slot 0 is always the mouse; slots 1-3 are touch and pen contacts assigned in
+arrival order. All coordinates are in logical display space (the `displaySize` from `queryHardware()`).
+
+```ts
+// Position and movement
+BT.pointerPos(); // mouse position (slot 0), returns Vector2i
+BT.pointerPos(1); // first touch contact position
+BT.pointerDelta(); // mouse movement since last frame
+BT.pointerDelta(1); // first touch contact movement
+BT.pointerPosValid(); // true while mouse is inside the canvas
+BT.pointerPosValid(1); // true while touch slot 1 is in contact
+BT.pointerScrollDelta(); // vertical wheel delta in pixels for this frame
+
+// Buttons — use with BT.buttonDown / buttonPressed / buttonReleased
+// Second argument is the pointer slot (0 = mouse, 1-3 = touch / pen)
+BT.buttonDown(BT.BTN_POINTER_A); // mouse left button held
+BT.buttonDown(BT.BTN_POINTER_B); // mouse right button held
+BT.buttonDown(BT.BTN_POINTER_C); // mouse middle button held
+BT.buttonDown(BT.BTN_POINTER_D); // mouse back / forward button held
+BT.buttonDown(BT.BTN_POINTER_A, 1); // first touch contact down
+BT.buttonPressed(BT.BTN_POINTER_A); // mouse left — frame of press only
+BT.buttonReleased(BT.BTN_POINTER_A); // mouse left — frame of release only
+
+// Cursor
+BT.hideCursor(); // hide the OS cursor over the canvas (draw your own)
+BT.showCursor(); // restore the OS cursor
+```
+
+Button mapping for slot 0 (mouse) follows the RetroBlit canonical order:
+
+- `BTN_POINTER_A` — left button (DOM button 0)
+- `BTN_POINTER_B` — right button (DOM button 2)
+- `BTN_POINTER_C` — middle button (DOM button 1)
+- `BTN_POINTER_D` — back / forward extra buttons (DOM buttons 3 and 4)
+
+Touch and pen slots only report `BTN_POINTER_A` while in contact; B, C, and D always return `false`.
+
+See the [Input Guide](docs/input.md) for the full slot model, frame-timing semantics, and scroll delta details.
+
+#### Keyboard
+
+Keyboard input (`BT.keyDown()`, `BT.keyPressed()`, `BT.keyReleased()`) is planned but not yet implemented. These methods
+currently return `false`. See the Blit-Tech Demos repository for workarounds using browser APIs directly.
+
+#### Gamepad
+
+Gamepad input (`BT.buttonDown()` with `BTN_UP..BTN_SELECT`) is planned but not yet implemented.
 
 ## Browser Compatibility
 

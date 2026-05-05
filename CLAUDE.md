@@ -47,6 +47,8 @@ src/
     Palette.ts             # 256-entry indexed color palette
     PaletteEffect.ts       # Palette effect system (cycle, fade, flash, swap)
     palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.)
+  input/
+    PointerInput.ts        # DOM-backed pointer / mouse / touch / pen tracker (4 slots)
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
     BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display

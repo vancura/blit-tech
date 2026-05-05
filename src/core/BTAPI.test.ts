@@ -54,8 +54,10 @@ function makeMockCanvas(): HTMLCanvasElement {
     return {
         width: 0,
         height: 0,
-        style: { width: '', height: '' },
+        style: { width: '', height: '', touchAction: '' },
         getContext: (type: string) => (type === 'webgpu' ? createMockGPUCanvasContext() : null),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
     } as unknown as HTMLCanvasElement;
 }
 
@@ -145,6 +147,10 @@ describe('BTAPI', () => {
 
         it('getRenderer should return null before init', () => {
             expect(BTAPI.instance.getRenderer()).toBeNull();
+        });
+
+        it('getPointer should return null before init', () => {
+            expect(BTAPI.instance.getPointer()).toBeNull();
         });
 
         it('getHardwareSettings should return null before init', () => {
@@ -360,6 +366,17 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getCanvas()).toBe(canvas);
             expect(BTAPI.instance.getRenderer()).not.toBeNull();
             expect(BTAPI.instance.getHardwareSettings()).not.toBeNull();
+            expect(BTAPI.instance.getPointer()).not.toBeNull();
+        });
+
+        it('stop detaches pointer input so subsequent getPointer returns null', async () => {
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            expect(BTAPI.instance.getPointer()).not.toBeNull();
+
+            BTAPI.instance.stop();
+
+            expect(BTAPI.instance.getPointer()).toBeNull();
         });
 
         it('should start the game loop on success', async () => {

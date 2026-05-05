@@ -344,32 +344,190 @@ describe('BT.cameraReset', () => {
 // #region BT.buttonDown / BT.buttonPressed / BT.buttonReleased
 
 describe('BT.buttonDown', () => {
-    it('returns false (not yet implemented)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns false for gamepad buttons (not yet implemented)', () => {
         expect(BT.buttonDown(BT.BTN_A)).toBe(false);
     });
 
     it('accepts an optional player index without throwing', () => {
         expect(BT.buttonDown(BT.BTN_START, 2)).toBe(false);
     });
+
+    it('delegates pointer buttons to the pointer subsystem', () => {
+        const isButtonDown = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isButtonDown } as never);
+
+        expect(BT.buttonDown(BT.BTN_POINTER_A, 0)).toBe(true);
+        expect(isButtonDown).toHaveBeenCalledWith(BT.BTN_POINTER_A, 0);
+    });
+
+    it('returns false for pointer buttons when the engine is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
+
+        expect(BT.buttonDown(BT.BTN_POINTER_A)).toBe(false);
+        expect(BT.buttonDown(BT.BTN_POINTER_D, 3)).toBe(false);
+    });
 });
 
 describe('BT.buttonPressed', () => {
-    it('returns false (not yet implemented)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns false for gamepad buttons (not yet implemented)', () => {
         expect(BT.buttonPressed(BT.BTN_B)).toBe(false);
     });
 
     it('accepts an optional player index without throwing', () => {
         expect(BT.buttonPressed(BT.BTN_B, 1)).toBe(false);
     });
+
+    it('delegates pointer buttons to the pointer subsystem', () => {
+        const isButtonPressed = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isButtonPressed } as never);
+
+        expect(BT.buttonPressed(BT.BTN_POINTER_B, 0)).toBe(true);
+        expect(isButtonPressed).toHaveBeenCalledWith(BT.BTN_POINTER_B, 0);
+    });
 });
 
 describe('BT.buttonReleased', () => {
-    it('returns false (not yet implemented)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns false for gamepad buttons (not yet implemented)', () => {
         expect(BT.buttonReleased(BT.BTN_X)).toBe(false);
     });
 
     it('accepts an optional player index without throwing', () => {
         expect(BT.buttonReleased(BT.BTN_X, 3)).toBe(false);
+    });
+
+    it('delegates pointer buttons to the pointer subsystem', () => {
+        const isButtonReleased = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isButtonReleased } as never);
+
+        expect(BT.buttonReleased(BT.BTN_POINTER_C, 2)).toBe(true);
+        expect(isButtonReleased).toHaveBeenCalledWith(BT.BTN_POINTER_C, 2);
+    });
+});
+
+// #endregion
+
+// #region BT pointer queries
+
+describe('BT.pointerPos', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns Vector2i.zero() when the engine is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
+
+        const pos = BT.pointerPos();
+
+        expect(pos.x).toBe(0);
+        expect(pos.y).toBe(0);
+    });
+
+    it('delegates to the pointer subsystem with the supplied slot index', () => {
+        const expected = new Vector2i(80, 60);
+        const getPos = vi.fn().mockReturnValue(expected);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ getPos } as never);
+
+        const pos = BT.pointerPos(2);
+
+        expect(getPos).toHaveBeenCalledWith(2);
+        expect(pos).toBe(expected);
+    });
+
+    it('defaults the pointer index to 0 (mouse)', () => {
+        const getPos = vi.fn().mockReturnValue(new Vector2i());
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ getPos } as never);
+
+        BT.pointerPos();
+
+        expect(getPos).toHaveBeenCalledWith(0);
+    });
+});
+
+describe('BT.pointerDelta', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns Vector2i.zero() when the engine is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
+
+        const delta = BT.pointerDelta();
+
+        expect(delta.x).toBe(0);
+        expect(delta.y).toBe(0);
+    });
+
+    it('delegates to the pointer subsystem', () => {
+        const expected = new Vector2i(5, -3);
+        const getDelta = vi.fn().mockReturnValue(expected);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ getDelta } as never);
+
+        expect(BT.pointerDelta(1)).toBe(expected);
+        expect(getDelta).toHaveBeenCalledWith(1);
+    });
+});
+
+describe('BT.pointerPosValid', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns false when the engine is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
+
+        expect(BT.pointerPosValid()).toBe(false);
+    });
+
+    it('delegates to the pointer subsystem', () => {
+        const isValid = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isValid } as never);
+
+        expect(BT.pointerPosValid(0)).toBe(true);
+        expect(isValid).toHaveBeenCalledWith(0);
+    });
+});
+
+describe('BT.pointerScrollDelta', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns 0 when the engine is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
+
+        expect(BT.pointerScrollDelta()).toBe(0);
+    });
+
+    it('delegates to the pointer subsystem', () => {
+        const getScrollDelta = vi.fn().mockReturnValue(42);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ getScrollDelta } as never);
+
+        expect(BT.pointerScrollDelta()).toBe(42);
+    });
+});
+
+// #endregion
+
+// #region Pointer button constants
+
+describe('Pointer button constants', () => {
+    it('exposes BTN_POINTER_A..D as 20-23', () => {
+        expect(BT.BTN_POINTER_A).toBe(20);
+        expect(BT.BTN_POINTER_B).toBe(21);
+        expect(BT.BTN_POINTER_C).toBe(22);
+        expect(BT.BTN_POINTER_D).toBe(23);
     });
 });
 
