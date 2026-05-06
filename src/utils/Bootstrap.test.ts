@@ -225,6 +225,19 @@ describe('bootstrap', () => {
             expect(onSuccess).toHaveBeenCalledOnce();
         });
 
+        it('should set canvas tabIndex to 0 and focus the canvas before engine init', async () => {
+            const { canvas } = setupDOM();
+
+            stubWebGPU();
+
+            const focusSpy = vi.spyOn(canvas, 'focus');
+
+            await bootstrap(MockDemo, { waitForDOMReady: false });
+
+            expect(canvas.tabIndex).toBe(0);
+            expect(focusSpy).toHaveBeenCalled();
+        });
+
         it('should use default canvas and container IDs when not specified', async () => {
             setupDOM();
             stubWebGPU();

@@ -153,6 +153,10 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getPointer()).toBeNull();
         });
 
+        it('getKeyboard should return null before init', () => {
+            expect(BTAPI.instance.getKeyboard()).toBeNull();
+        });
+
         it('getHardwareSettings should return null before init', () => {
             expect(BTAPI.instance.getHardwareSettings()).toBeNull();
         });
@@ -367,16 +371,19 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getRenderer()).not.toBeNull();
             expect(BTAPI.instance.getHardwareSettings()).not.toBeNull();
             expect(BTAPI.instance.getPointer()).not.toBeNull();
+            expect(BTAPI.instance.getKeyboard()).not.toBeNull();
         });
 
-        it('stop detaches pointer input so subsequent getPointer returns null', async () => {
+        it('stop detaches pointer and keyboard input so subsequent accessors return null', async () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
 
             expect(BTAPI.instance.getPointer()).not.toBeNull();
+            expect(BTAPI.instance.getKeyboard()).not.toBeNull();
 
             BTAPI.instance.stop();
 
             expect(BTAPI.instance.getPointer()).toBeNull();
+            expect(BTAPI.instance.getKeyboard()).toBeNull();
         });
 
         it('should start the game loop on success', async () => {

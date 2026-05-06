@@ -10,6 +10,7 @@ import {
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { createSystemFont } from '../assets/SystemFont';
+import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import { Renderer } from '../render/Renderer';
@@ -95,8 +96,11 @@ export class BTAPI {
     /** Pointer / mouse / touch input subsystem. Created during {@link initialize}. */
     private pointer: PointerInput | null = null;
 
+    /** Keyboard input (VV-134). Created during {@link initialize}. */
+    private keyboard: KeyboardInput | null = null;
+
     // TODO: Additional subsystems for future implementation:
-    // KeyboardInput (VV-134), GamepadInput (VV-135), AudioManager, AssetManager
+    // GamepadInput (VV-135), AudioManager, AssetManager
 
     // #endregion
 
@@ -215,7 +219,12 @@ export class BTAPI {
         this.pointer = new PointerInput();
         this.pointer.attach(canvas, this.hwSettings.displaySize);
 
-        // TODO: Initialize keyboard (VV-134), gamepad (VV-135), audio.
+        this.keyboard = new KeyboardInput();
+        this.keyboard.attach(canvas, {
+            getTicks: () => this.loop?.getTicks() ?? 0,
+        });
+
+        // TODO: Initialize gamepad (VV-135), audio.
 
         // Initialize the demo.
         console.log('[BT] Initializing demo');
@@ -228,6 +237,8 @@ export class BTAPI {
             console.error('[BT] Demo initialization threw', err);
             this.pointer?.detach();
             this.pointer = null;
+            this.keyboard?.detach();
+            this.keyboard = null;
 
             return false;
         }
@@ -236,6 +247,8 @@ export class BTAPI {
             console.error('[BT] Demo initialization failed');
             this.pointer?.detach();
             this.pointer = null;
+            this.keyboard?.detach();
+            this.keyboard = null;
 
             return false;
         }
@@ -268,6 +281,10 @@ export class BTAPI {
                 // state, so prev = "state when update last looked", letting any
                 // event that arrives before the next tick be visible as a transition.
                 this.pointer?.endFrame();
+
+                const tick = this.loop?.getTicks() ?? 0;
+
+                this.keyboard?.endFrame(tick);
             },
             onFrameDrop,
         );
@@ -282,13 +299,15 @@ export class BTAPI {
     /**
      * Stops the active game loop and detaches input listeners.
      *
-     * The pointer subsystem is detached so DOM listeners do not leak across
-     * engine restarts (relevant in tests where the same DOM persists).
+     * The pointer and keyboard subsystems are detached so DOM listeners do not
+     * leak across engine restarts (relevant in tests where the same DOM persists).
      */
     public stop(): void {
         this.loop?.stop();
         this.pointer?.detach();
         this.pointer = null;
+        this.keyboard?.detach();
+        this.keyboard = null;
     }
 
     // #endregion
@@ -370,6 +389,16 @@ export class BTAPI {
      */
     public getPointer(): PointerInput | null {
         return this.pointer;
+    }
+
+    /**
+     * Gets the keyboard input subsystem created during initialization.
+     *
+     * @returns Keyboard input instance, or null when the engine has not been
+     *          initialized yet (or has been stopped).
+     */
+    public getKeyboard(): KeyboardInput | null {
+        return this.keyboard;
     }
 
     /**
