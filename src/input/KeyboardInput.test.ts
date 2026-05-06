@@ -187,6 +187,141 @@ describe('KeyboardInput', () => {
         kb.detach();
     });
 
+    it('maps insertParagraph to CR', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        canvas.dispatchEvent(
+            new InputEvent('beforeinput', {
+                inputType: 'insertParagraph',
+                bubbles: true,
+            }),
+        );
+
+        expect(kb.getInputString()).toBe('\x0d');
+
+        kb.detach();
+    });
+
+    it('insertCompositionText accumulates printable ASCII', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        canvas.dispatchEvent(
+            new InputEvent('beforeinput', {
+                inputType: 'insertCompositionText',
+                data: 'Z',
+                bubbles: true,
+            }),
+        );
+
+        expect(kb.getInputString()).toBe('Z');
+
+        kb.detach();
+    });
+
+    it('ignores insertText when data is missing', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        canvas.dispatchEvent(
+            new InputEvent('beforeinput', {
+                inputType: 'insertText',
+                bubbles: true,
+            }),
+        );
+
+        expect(kb.getInputString()).toBe('');
+
+        kb.detach();
+    });
+
+    it('filters insertText to allowed code units only', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        canvas.dispatchEvent(
+            new InputEvent('beforeinput', {
+                inputType: 'insertText',
+                data: '\x07',
+                bubbles: true,
+            }),
+        );
+
+        expect(kb.getInputString()).toBe('');
+
+        kb.detach();
+    });
+
+    it('maps deleteContentBackward to backspace in buffer', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        canvas.dispatchEvent(
+            new InputEvent('beforeinput', {
+                inputType: 'deleteContentBackward',
+                bubbles: true,
+            }),
+        );
+
+        expect(kb.getInputString()).toBe('\x08');
+
+        kb.detach();
+    });
+
+    it('OR button released when last mapped key is released', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        const codes = DEFAULT_KEYBOARD_PLAYER1[0];
+
+        kb.endFrame(0);
+
+        canvas.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', bubbles: true }));
+
+        kb.endFrame(1);
+
+        canvas.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW', bubbles: true }));
+
+        expect(kb.isButtonReleased(codes)).toBe(true);
+
+        kb.detach();
+    });
+
+    it('OR button repeat uses repeatRate while held', () => {
+        const canvas = createCanvas();
+        const kb = new KeyboardInput();
+
+        kb.attach(canvas, { getTicks: () => tick });
+
+        const codes = DEFAULT_KEYBOARD_PLAYER1[0];
+
+        kb.endFrame(0);
+
+        tick = 10;
+        canvas.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', bubbles: true }));
+
+        expect(kb.isButtonPressed(codes, 4, 10)).toBe(true);
+
+        kb.endFrame(10);
+
+        expect(kb.isButtonPressed(codes, 4, 14)).toBe(true);
+
+        kb.detach();
+    });
+
     it('Tab and Escape append via keydown', () => {
         const canvas = createCanvas();
         const kb = new KeyboardInput();
