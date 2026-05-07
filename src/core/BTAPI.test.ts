@@ -39,7 +39,7 @@ function resetSingleton(): void {
 
 function makeMockDemo(targetFPS = 60, initResult = true): IBlitTechDemo {
     return {
-        queryHardware: vi.fn().mockReturnValue({
+        configure: vi.fn().mockReturnValue({
             displaySize: new Vector2i(320, 240),
             canvasDisplaySize: new Vector2i(640, 480),
             targetFPS,
@@ -377,6 +377,28 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getPointer()).not.toBeNull();
             expect(BTAPI.instance.getKeyboard()).not.toBeNull();
             expect(BTAPI.instance.getGamepad()).not.toBeNull();
+        });
+
+        it('should use defaultConfig when configure is omitted', async () => {
+            const demo: IBlitTechDemo = {
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const result = await BTAPI.instance.init(demo, makeMockCanvas());
+
+            expect(result).toBe(true);
+
+            const hw = BTAPI.instance.getHardwareSettings();
+
+            expect(hw).not.toBeNull();
+            expect(hw?.displaySize.x).toBe(320);
+            expect(hw?.displaySize.y).toBe(240);
+            expect(hw?.canvasDisplaySize?.x).toBe(640);
+            expect(hw?.canvasDisplaySize?.y).toBe(480);
+            expect(hw?.outputUpscaleFilter).toBe('nearest');
+            expect(hw?.targetFPS).toBe(60);
         });
 
         it('stop detaches pointer and keyboard input so subsequent accessors return null', async () => {

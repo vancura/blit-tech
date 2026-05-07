@@ -16,7 +16,7 @@ import { BitmapFont } from './assets/BitmapFont';
 import { Palette } from './assets/Palette';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
-import { defaultHardwareSettings, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
+import { defaultConfig, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
 import {
     createDefaultKeyboardRuntimeMaps,
     DEFAULT_KEYBOARD_PLAYER1,
@@ -488,7 +488,8 @@ export const BT = {
      *
      * - `tier='pixel'` -> pixel chain (logical resolution).
      * - `tier='display'` -> display chain (output resolution); requires
-     *   `canvasDisplaySize` to be set in `queryHardware()`.
+     *   `canvasDisplaySize` in effective hardware settings (`configure()` or
+     *   `defaultConfig()`).
      *
      * Effects run in registration order within each tier. The pixel chain runs
      * first, followed by the upscale pass, followed by the display chain. Each
@@ -1237,7 +1238,7 @@ export {
     ChromaticAberration,
     Color32,
     crtPipBoy,
-    defaultHardwareSettings,
+    defaultConfig,
     displayError,
     Flicker,
     getCanvas,

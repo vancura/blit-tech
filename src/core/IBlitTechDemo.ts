@@ -9,7 +9,8 @@ import { Vector2i } from '../utils/Vector2i';
 export type OutputUpscaleFilter = 'nearest' | 'linear';
 
 /**
- * Engine-facing hardware configuration returned by `queryHardware()`.
+ * Engine-facing hardware configuration returned by `configure()` when a demo
+ * implements that optional hook, or by {@link defaultConfig} otherwise.
  */
 export interface HardwareSettings {
     /** Logical render resolution in pixels (e.g. `320x240`). */
@@ -59,19 +60,22 @@ export interface HardwareSettings {
  * Demo contract implemented by Blit-Tech applications.
  *
  * Engine lifecycle order:
- * 1. queryHardware() - Called first to configure display/FPS
+ * 1. configure() - Optional; called first to set display size, output buffer, FPS
  * 2. init() - Called after WebGPU setup, load assets here
  * 3. update() - Fixed timestep via accumulator (may run 0..N times per frame)
  * 4. render() - Called once per requestAnimationFrame (browser refresh rate)
  */
 export interface IBlitTechDemo {
     /**
-     * Called first to declare display size, optional output drawing-buffer size,
+     * Optional hook to declare display size, optional output drawing-buffer size,
      * upscale filter, and the target fixed-update rate.
+     *
+     * When omitted, the engine uses {@link defaultConfig} (`320x240` at
+     * `60` FPS).
      *
      * @returns Hardware configuration for this demo.
      */
-    queryHardware(): HardwareSettings;
+    configure?(): HardwareSettings;
 
     /**
      * Called once after WebGPU and the renderer have been initialized.
@@ -111,16 +115,19 @@ export interface IBlitTechDemo {
 // #region Helper Functions
 
 /**
- * Creates a fresh default hardware-settings object for quick demos.
+ * Creates a fresh default hardware configuration for quick demos.
  *
- * The defaults are a `320x240` internal resolution and a `60` FPS update rate.
+ * Matches the most common setup across Blit-Tech demos: `320x240` logical resolution,
+ * `640x480` canvas output (2x nearest upscale), and `60` FPS fixed updates.
  *
  * @returns Default HardwareSettings configuration.
  */
-export function defaultHardwareSettings(): HardwareSettings {
+export function defaultConfig(): HardwareSettings {
     return {
         displaySize: new Vector2i(320, 240),
+        canvasDisplaySize: new Vector2i(640, 480),
         targetFPS: 60,
+        outputUpscaleFilter: 'nearest',
     };
 }
 

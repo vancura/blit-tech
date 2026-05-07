@@ -1,6 +1,5 @@
 /**
- * Unit tests for the default hardware-settings helper exported by
- * {@link IBlitTechDemo}.
+ * Unit tests for {@link defaultConfig} exported from {@link IBlitTechDemo}.
  *
  * Confirms the default display resolution and frame rate, ensures optional
  * canvas sizing is omitted by default, and verifies each call returns fresh
@@ -9,31 +8,38 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { defaultHardwareSettings } from './IBlitTechDemo';
+import { defaultConfig } from './IBlitTechDemo';
 
-describe('defaultHardwareSettings', () => {
+describe('defaultConfig', () => {
     it('should return 320x240 display size', () => {
-        const settings = defaultHardwareSettings();
+        const settings = defaultConfig();
 
         expect(settings.displaySize.x).toBe(320);
         expect(settings.displaySize.y).toBe(240);
     });
 
     it('should return the 60 FPS target', () => {
-        const settings = defaultHardwareSettings();
+        const settings = defaultConfig();
 
         expect(settings.targetFPS).toBe(60);
     });
 
-    it('should not include canvasDisplaySize by default', () => {
-        const settings = defaultHardwareSettings();
+    it('should include 640x480 canvasDisplaySize by default', () => {
+        const settings = defaultConfig();
 
-        expect(settings.canvasDisplaySize).toBeUndefined();
+        expect(settings.canvasDisplaySize?.x).toBe(640);
+        expect(settings.canvasDisplaySize?.y).toBe(480);
+    });
+
+    it("should default outputUpscaleFilter to 'nearest'", () => {
+        const settings = defaultConfig();
+
+        expect(settings.outputUpscaleFilter).toBe('nearest');
     });
 
     it('should return a fresh object on each call', () => {
-        const a = defaultHardwareSettings();
-        const b = defaultHardwareSettings();
+        const a = defaultConfig();
+        const b = defaultConfig();
 
         expect(a).not.toBe(b);
         expect(a.displaySize).not.toBe(b.displaySize);

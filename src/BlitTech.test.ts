@@ -35,7 +35,7 @@ describe('BT.init', () => {
     it('delegates to BTAPI.instance.init and returns its result', async () => {
         const spy = vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(true);
         const demo = {
-            queryHardware: vi.fn(),
+            configure: vi.fn(),
             init: vi.fn(),
             update: vi.fn(),
             render: vi.fn(),
@@ -52,7 +52,7 @@ describe('BT.init', () => {
         vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(false);
 
         const demo = {
-            queryHardware: vi.fn(),
+            configure: vi.fn(),
             init: vi.fn(),
             update: vi.fn(),
             render: vi.fn(),

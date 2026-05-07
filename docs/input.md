@@ -4,8 +4,8 @@ Blit-Tech provides DOM-backed input: **pointer** (mouse, touch, pen), **keyboard
 virtual face buttons), **gamepad** (up to four players via `navigator.getGamepads()`), and **text accumulation** for UI
 entry (`BT.inputString()`).
 
-All pointer coordinates are returned in logical display space (the `displaySize` configured in `queryHardware()`),
-independent of the canvas's CSS or backing-buffer size.
+All pointer coordinates are returned in logical display space (the `displaySize` from `configure()` or
+`defaultConfig()`), independent of the canvas's CSS or backing-buffer size.
 
 ## Pointer Slot Model
 

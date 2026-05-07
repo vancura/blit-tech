@@ -44,7 +44,8 @@ primitives, and fonts.
   `BT.getAxis`), with stick dead zone and face-button support through `BT.button*`
 - **Fixed timestep**: deterministic 60 FPS loop with tick counter and optional dropped-frame detection
 - **Clean API**: all engine access through the `BT` namespace
-- **Display scaling**: optional CSS upscaling via `canvasDisplaySize` for crisp pixel art
+- **Display scaling**: `canvasDisplaySize` drives the WebGPU drawing buffer and CSS size for crisp pixel art; engine
+  `defaultConfig()` uses a `640x480` output for `320x240` logical (2x nearest) when a demo omits `configure()`
 
 ## Prerequisites
 
@@ -121,7 +122,8 @@ Additional documentation is available in the `docs/` directory:
 
 ## Quick Start
 
-Create a demo by implementing the `IBlitTechDemo` interface:
+Create a demo by implementing the `IBlitTechDemo` interface. The optional `configure()` hook overrides engine defaults
+(`320x240` logical, `640x480` output, `60` FPS from `defaultConfig()`); omit it for minimal demos.
 
 ```ts
 import {
@@ -142,12 +144,12 @@ const BLUE = 3;
 
 class MyDemo implements IBlitTechDemo {
   /**
-   * Configures hardware settings for this demo.
-   * Sets up a 320×240 internal resolution with optional CSS upscaling.
+   * Optional: configures hardware settings for this demo.
+   * Sets up a 320×240 internal resolution with optional output upscaling.
    *
    * @returns Hardware configuration specifying display size and target FPS.
    */
-  queryHardware(): HardwareSettings {
+  configure(): HardwareSettings {
     return {
       displaySize: new Vector2i(320, 240), // Internal rendering resolution
       canvasDisplaySize: new Vector2i(640, 480), // Optional: CSS display size (2× upscale)
@@ -382,12 +384,12 @@ organized into two chains by what they operate on:
   RGB shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution is what lets curved
   sampling (barrel) express smoothly without quantizing onto the source pixel grid.
 
-Both chains add zero cost when empty. Set `canvasDisplaySize` in `queryHardware()` to enable the display tier.
+Both chains add zero cost when empty. Set `canvasDisplaySize` in `configure()` to enable the display tier.
 
 ```ts
 import { BT, Vector2i, BarrelDistortion, Scanlines, Bloom, PixelGlitch } from 'blit-tech';
 
-// In queryHardware(): unlock the display tier and pick an output size.
+// In configure(): unlock the display tier and pick an output size.
 return {
   displaySize: new Vector2i(320, 240),
   canvasDisplaySize: new Vector2i(1280, 960), // 4x integer scale
@@ -516,7 +518,7 @@ BitmapFont.load(url); // Load bitmap font (static method)
 #### Pointer (mouse, touch, pen)
 
 The engine tracks up to four pointer slots. Slot 0 is always the mouse; slots 1-3 are touch and pen contacts assigned in
-arrival order. All coordinates are in logical display space (the `displaySize` from `queryHardware()`).
+arrival order. All coordinates are in logical display space (the `displaySize` from `configure()` or defaults).
 
 ```ts
 // Position and movement

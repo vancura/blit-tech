@@ -22,6 +22,7 @@ import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
+import { defaultConfig } from './IBlitTechDemo';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -143,7 +144,7 @@ export class BTAPI {
      * Initializes the engine for a demo and starts the main loop on success.
      *
      * The initialization sequence is:
-     * - query hardware settings from the demo
+     * - read hardware settings from the demo (`configure()` or defaults)
      * - initialize WebGPU and create the renderer
      * - run the demo's async `init()`
      * - start the fixed-timestep game loop
@@ -158,10 +159,10 @@ export class BTAPI {
         this.demo = demo;
         this.canvas = canvas;
 
-        // Query hardware settings from the demo.
-        console.log('[BT] Querying hardware settings');
+        // Hardware settings: demo hook or defaults (320x240 @ 60 FPS).
+        console.log('[BT] Reading hardware configuration');
 
-        this.hwSettings = demo.queryHardware();
+        this.hwSettings = demo.configure?.() ?? defaultConfig();
 
         const { targetFPS } = this.hwSettings;
 
@@ -318,7 +319,8 @@ export class BTAPI {
     // #region Demo State Accessors
 
     /**
-     * Gets the hardware settings returned by the active demo.
+     * Gets the hardware settings used for the active demo (from `configure()` or
+     * {@link defaultConfig}).
      *
      * @returns Hardware configuration, or null if not initialized.
      */
