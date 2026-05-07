@@ -345,8 +345,13 @@ describe('BT.cameraReset', () => {
 // #region BT.buttonDown / BT.buttonPressed / BT.buttonReleased
 
 describe('BT.buttonDown', () => {
+    beforeEach(() => {
+        BT.inputMapReset();
+    });
+
     afterEach(() => {
         vi.restoreAllMocks();
+        BT.inputMapReset();
     });
 
     it('returns false for face buttons when keyboard and gamepad are unavailable', () => {
