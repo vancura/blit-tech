@@ -49,6 +49,8 @@ src/
     palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.)
   input/
     PointerInput.ts        # DOM-backed pointer / mouse / touch / pen tracker (4 slots)
+    KeyboardInput.ts       # KeyboardEvent.code state, edges, tick repeat, beforeinput text
+    defaultKeyboardMap.ts  # Default face-button key tables; clone helpers for BT.inputMapReset
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
     BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display
