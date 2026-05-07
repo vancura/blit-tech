@@ -450,6 +450,20 @@ describe('BT.buttonPressed', () => {
 
         expect(BT.buttonPressed(BT.BTN_A, 0)).toBe(false);
     });
+
+    it('allows repeat events during dual-source hold when repeatRate is enabled', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(true),
+            isButtonPressed: vi.fn().mockReturnValue(true),
+        } as never);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(true),
+            isButtonPressed: vi.fn().mockReturnValue(false),
+        } as never);
+
+        expect(BT.buttonPressed(BT.BTN_A, 0, 6)).toBe(true);
+    });
 });
 
 describe('BT.buttonReleased', () => {

@@ -843,9 +843,11 @@ export const BT = {
             const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
             const keyboardPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
             const gamepadPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
-            const mergedPressed =
-                (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
-                (gamepadPressed && !(keyboardDown && !keyboardPressed));
+            const repeatEnabled = repeatRate !== undefined && repeatRate > 0;
+            const mergedPressed = repeatEnabled
+                ? keyboardPressed || gamepadPressed
+                : (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
+                  (gamepadPressed && !(keyboardDown && !keyboardPressed));
 
             if (mergedPressed) {
                 return true;
