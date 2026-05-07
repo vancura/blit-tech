@@ -713,7 +713,7 @@ describe('Pointer button constants', () => {
 
 // #endregion
 
-// #region BT.keyDown / BT.keyPressed / BT.keyReleased
+// #region BT gamepad constants and APIs / BT.keyDown / BT.keyPressed / BT.keyReleased
 
 describe('BT gamepad constants and APIs', () => {
     afterEach(() => {
@@ -751,6 +751,24 @@ describe('BT gamepad constants and APIs', () => {
         expect(BT.getAxis(BT.AXIS_LEFT_X, 1)).toBe(0.25);
         expect(BT.gamepadConnected(1)).toBe(true);
         expect(BT.gamepadCount()).toBe(2);
+    });
+
+    it('returns 0 from getAxis when the gamepad subsystem is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue(null);
+
+        expect(BT.getAxis(BT.AXIS_LEFT_X, 1)).toBe(0);
+    });
+
+    it('returns false from gamepadConnected when the gamepad subsystem is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue(null);
+
+        expect(BT.gamepadConnected(1)).toBe(false);
+    });
+
+    it('returns 0 from gamepadCount when the gamepad subsystem is not initialized', () => {
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue(null);
+
+        expect(BT.gamepadCount()).toBe(0);
     });
 });
 
