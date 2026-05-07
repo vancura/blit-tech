@@ -257,8 +257,6 @@ export class KeyboardInput {
         return codes.some((c) => this.prevHeld.has(c));
     }
 
-    // #endregion
-
     // #region Private
 
     /**
@@ -373,3 +371,5 @@ export class KeyboardInput {
 
     // #endregion
 }
+
+// #endregion

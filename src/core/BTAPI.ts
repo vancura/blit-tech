@@ -396,6 +396,10 @@ export class BTAPI {
         return this.gamepad;
     }
 
+    // #endregion
+
+    // #region Rendering API - Palette
+
     /**
      * Gets the active engine palette.
      *
@@ -426,6 +430,10 @@ export class BTAPI {
         this.renderer?.setPalette(palette);
     }
 
+    // #endregion
+
+    // #region Rendering API - Clear Operations
+
     /**
      * Sets the background clear color for each frame using a palette index.
      *
@@ -446,10 +454,6 @@ export class BTAPI {
         this.assertPaletteIndex(paletteIndex);
         this.renderer?.clearRect(rect, paletteIndex);
     }
-
-    // #endregion
-
-    // #region Rendering API - Clear Operations
 
     /**
      * Draws a single pixel at the specified position.
@@ -632,7 +636,7 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Frame Capture API
+    // #region Camera API
 
     /**
      * Gets the current camera offset.
@@ -642,10 +646,6 @@ export class BTAPI {
     public getCameraOffset(): Vector2i {
         return this.renderer?.getCameraOffset() ?? Vector2i.zero();
     }
-
-    // #endregion
-
-    // #region Camera API
 
     /**
      * Resets the camera offset to (0, 0).
@@ -764,6 +764,10 @@ export class BTAPI {
         this.paletteEffects.clear();
     }
 
+    // #endregion
+
+    // #region Post-Process Effects API
+
     /**
      * Appends a fullscreen post-processing effect to the chain.
      *
@@ -814,7 +818,7 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Post-Process Effects API
+    // #region Private — Initialization Helpers
 
     /**
      * Removes pointer, keyboard, and gamepad subsystems.

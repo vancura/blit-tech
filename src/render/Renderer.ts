@@ -397,7 +397,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Primitive Drawing
+    // #region Rendering API - Primitives
 
     /**
      * Draws a sprite region from an indexed sprite sheet.
@@ -458,7 +458,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Sprite Drawing
+    // #region Rendering API - Sprites
 
     /**
      * Resets the camera to the origin (0, 0).
@@ -499,7 +499,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Frame Capture
+    // #region Frame Capture API
 
     /**
      * Removes a previously registered post-processing effect.
@@ -527,7 +527,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Camera
+    // #region Camera API
 
     /**
      * Removes every registered post-processing effect across both tiers.
@@ -586,7 +586,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Post-Process Effects
+    // #region Post-Process Effects API
 
     /**
      * Encodes the primitive + sprite scene render pass into the supplied target view.

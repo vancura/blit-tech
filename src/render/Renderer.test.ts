@@ -127,7 +127,7 @@ describe('pre-initialization methods', () => {
 
 // #endregion
 
-// #region Camera
+// #region Camera API
 
 describe('camera operations', () => {
     it('getCameraOffset returns a copy, not the internal reference', () => {
@@ -418,7 +418,7 @@ describe('resolveClearColor fallbacks', () => {
 
 // #endregion
 
-// #region Frame Capture
+// #region Frame Capture API
 
 describe('frame capture', () => {
     it('captureFrame returns a promise', async () => {
@@ -803,7 +803,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
 // #endregion
 
-// #region Post-Process Effects
+// #region Post-Process Effects API
 
 describe('post-process effects', () => {
     // Install/uninstall via beforeEach/afterEach so an assertion failure in any
