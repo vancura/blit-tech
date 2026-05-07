@@ -198,6 +198,7 @@ export class Renderer {
             this.sceneTex?.destroy();
             this.sceneTex = null;
             this.sceneTexView = null;
+            this.lastFrameMs = 0;
 
             // Create shared palette uniform buffer (256 entries x vec4f).
             this.paletteBuffer = this.device.createBuffer({
