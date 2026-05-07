@@ -338,6 +338,13 @@ export class PrimitivePipeline {
     private async createPipeline(displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
         const device = this.device as GPUDevice;
 
+        this.uniformBuffer?.destroy();
+        this.uniformBuffer = null;
+        this.vertexBuffer?.destroy();
+        this.vertexBuffer = null;
+        this.bindGroup = null;
+        this.pipeline = null;
+
         const shaderModule = device.createShaderModule({
             label: 'Primitive Shader',
             code: `
