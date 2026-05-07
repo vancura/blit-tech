@@ -349,7 +349,7 @@ describe('BT.buttonDown', () => {
         vi.restoreAllMocks();
     });
 
-    it('returns false for gamepad buttons (not yet implemented)', () => {
+    it('returns false for face buttons when keyboard is unavailable', () => {
         expect(BT.buttonDown(BT.BTN_A)).toBe(false);
     });
 
@@ -378,7 +378,7 @@ describe('BT.buttonPressed', () => {
         vi.restoreAllMocks();
     });
 
-    it('returns false for gamepad buttons (not yet implemented)', () => {
+    it('returns false for face buttons when keyboard is unavailable', () => {
         expect(BT.buttonPressed(BT.BTN_B)).toBe(false);
     });
 
@@ -400,7 +400,7 @@ describe('BT.buttonReleased', () => {
         vi.restoreAllMocks();
     });
 
-    it('returns false for gamepad buttons (not yet implemented)', () => {
+    it('returns false for face buttons when keyboard is unavailable', () => {
         expect(BT.buttonReleased(BT.BTN_X)).toBe(false);
     });
 

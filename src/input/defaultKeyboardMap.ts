@@ -49,7 +49,7 @@ export const DEFAULT_KEYBOARD_PLAYER2: Readonly<Record<FaceButtonCode, readonly 
  *
  * Used by {@link BT.inputMapReset} so exported defaults are never mutated.
  *
- * @param source - One player's default record (player 1 or 2 table).
+ * @param source - One player's default record (`DEFAULT_KEYBOARD_PLAYER1` or `DEFAULT_KEYBOARD_PLAYER2`).
  * @returns Map with keys `0`…`11` and copied string arrays.
  */
 export function cloneDefaultKeyboardPlayerMap(
