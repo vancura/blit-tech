@@ -22,7 +22,7 @@ import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
-import { initializeWebGPU } from './WebGPUContext';
+import { initWebGPU } from './WebGPUContext';
 
 /**
  * Central runtime facade for Blit-Tech engine services.
@@ -94,13 +94,13 @@ export class BTAPI {
     /** Built-in 6x14 system font for BT.systemPrint(). */
     private systemFont: BitmapFont | null = null;
 
-    /** Pointer / mouse / touch input subsystem. Created during {@link initialize}. */
+    /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
 
-    /** Keyboard input (VV-134). Created during {@link initialize}. */
+    /** Keyboard input (VV-134). Created during {@link init}. */
     private keyboard: KeyboardInput | null = null;
 
-    /** Gamepad input (VV-135). Created during {@link initialize}. */
+    /** Gamepad input (VV-135). Created during {@link init}. */
     private gamepad: GamepadInput | null = null;
 
     // TODO: Additional subsystems for future implementation:
@@ -110,13 +110,13 @@ export class BTAPI {
 
     // #region Singleton / Constructor
 
-    /** Singleton instance of BTAPI. */
-    private static _instance: BTAPI | null = null;
-
     /**
      * Private constructor to enforce singleton access via `BTAPI.instance`.
      */
     private constructor() {}
+
+    /** Singleton instance of BTAPI. */
+    private static _instance: BTAPI | null = null;
 
     // #endregion
 
@@ -140,62 +140,19 @@ export class BTAPI {
     // #region Initialization
 
     /**
-     * Removes pointer, keyboard, and gamepad subsystems.
-     *
-     * Pointer/keyboard detach DOM listeners; gamepad detaches polling state and
-     * clears subsystem references.
-     */
-    private clearInputSubsystems(): void {
-        this.pointer?.detach();
-        this.pointer = null;
-        this.keyboard?.detach();
-        this.keyboard = null;
-        this.gamepad?.detach();
-        this.gamepad = null;
-    }
-
-    /**
-     * Runs the demo's async {@link IBlitTechDemo.initialize}. On throw or
-     * `false`, clears input subsystems that were attached earlier in the init
-     * sequence.
-     *
-     * @param demo - Active demo instance.
-     * @returns `true` when the demo reports success.
-     */
-    private async runDemoInitialize(demo: IBlitTechDemo): Promise<boolean> {
-        try {
-            const ok = await demo.initialize();
-
-            if (!ok) {
-                console.error('[BT] Demo initialization failed');
-                this.clearInputSubsystems();
-
-                return false;
-            }
-
-            return true;
-        } catch (err) {
-            console.error('[BT] Demo initialization threw', err);
-            this.clearInputSubsystems();
-
-            return false;
-        }
-    }
-
-    /**
      * Initializes the engine for a demo and starts the main loop on success.
      *
      * The initialization sequence is:
      * - query hardware settings from the demo
      * - initialize WebGPU and create the renderer
-     * - run the demo's async `initialize()`
+     * - run the demo's async `init()`
      * - start the fixed-timestep game loop
      *
      * @param demo - Demo implementing the IBlitTechDemo interface.
      * @param canvas - HTML canvas element for WebGPU rendering.
      * @returns `true` when initialization succeeds; otherwise `false`.
      */
-    public async initialize(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
+    public async init(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
         console.log(`[BT] Initializing engine v${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
 
         this.demo = demo;
@@ -222,11 +179,7 @@ export class BTAPI {
         });
 
         // Initialize WebGPU.
-        const webGPUResult = await initializeWebGPU(
-            canvas,
-            this.hwSettings.displaySize,
-            this.hwSettings.canvasDisplaySize,
-        );
+        const webGPUResult = await initWebGPU(canvas, this.hwSettings.displaySize, this.hwSettings.canvasDisplaySize);
 
         if (!webGPUResult) {
             console.error('[BT] Failed to initialize WebGPU');
@@ -250,7 +203,7 @@ export class BTAPI {
             this.hwSettings.outputUpscaleFilter ?? 'nearest',
         );
 
-        if (!(await this.renderer.initialize())) {
+        if (!(await this.renderer.init())) {
             console.error('[BT] Failed to initialize renderer');
 
             return false;
@@ -282,7 +235,7 @@ export class BTAPI {
         // Initialize the demo.
         console.log('[BT] Initializing demo');
 
-        if (!(await this.runDemoInitialize(demo))) {
+        if (!(await this.runDemoInit(demo))) {
             return false;
         }
 
@@ -342,10 +295,6 @@ export class BTAPI {
         this.clearInputSubsystems();
     }
 
-    // #endregion
-
-    // #region Demo State Accessors
-
     /**
      * Gets the current tick count.
      * Ticks increment once per fixed update step (target rate set by `targetFPS`).
@@ -364,6 +313,10 @@ export class BTAPI {
         this.loop?.resetTicks();
     }
 
+    // #endregion
+
+    // #region Demo State Accessors
+
     /**
      * Gets the hardware settings returned by the active demo.
      *
@@ -372,10 +325,6 @@ export class BTAPI {
     public getHardwareSettings(): HardwareSettings | null {
         return this.hwSettings;
     }
-
-    // #endregion
-
-    // #region WebGPU Resource Accessors
 
     /**
      * Gets the initialized WebGPU device.
@@ -394,6 +343,10 @@ export class BTAPI {
     public getContext(): GPUCanvasContext | null {
         return this.context;
     }
+
+    // #endregion
+
+    // #region WebGPU Resource Accessors
 
     /**
      * Gets the canvas bound during initialization.
@@ -442,6 +395,10 @@ export class BTAPI {
     public getGamepad(): GamepadInput | null {
         return this.gamepad;
     }
+
+    // #endregion
+
+    // #region Rendering API - Palette
 
     /**
      * Gets the active engine palette.
@@ -498,10 +455,6 @@ export class BTAPI {
         this.renderer?.clearRect(rect, paletteIndex);
     }
 
-    // #endregion
-
-    // #region Rendering API - Primitives
-
     /**
      * Draws a single pixel at the specified position.
      *
@@ -525,6 +478,10 @@ export class BTAPI {
         this.assertPaletteIndex(paletteIndex);
         this.renderer?.drawLine(p0, p1, paletteIndex);
     }
+
+    // #endregion
+
+    // #region Rendering API - Primitives
 
     /**
      * Draws a rectangle outline (unfilled).
@@ -583,10 +540,6 @@ export class BTAPI {
         return this.systemFont;
     }
 
-    // #endregion
-
-    // #region Rendering API - Sprites
-
     /**
      * Draws a sprite region from an indexed sprite sheet.
      * The renderer batches compatible sprite draws internally.
@@ -618,6 +571,10 @@ export class BTAPI {
         this.requireIndexizedSheet(font.getSpriteSheet(), 'drawBitmapText', 'font sprite sheet');
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
+
+    // #endregion
+
+    // #region Rendering API - Sprites
 
     /**
      * Re-indexizes all tracked sprite sheets against the current active palette.
@@ -704,19 +661,6 @@ export class BTAPI {
     // #endregion
 
     // #region Palette Effects API
-
-    /**
-     * Validates that a duration is a finite, non-negative number.
-     *
-     * @param method - Calling method name for the error message.
-     * @param durationMs - Duration to validate.
-     * @throws Error if the duration is not finite or is negative.
-     */
-    private assertFiniteDuration(method: string, durationMs: number): void {
-        if (!Number.isFinite(durationMs) || durationMs < 0) {
-            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
-        }
-    }
 
     /**
      * Starts rotating a range of palette entries at a constant speed.
@@ -878,6 +822,53 @@ export class BTAPI {
 
     // #endregion
 
+    // #region Private — Initialization Helpers
+
+    /**
+     * Removes pointer, keyboard, and gamepad subsystems.
+     *
+     * Pointer/keyboard detach DOM listeners; gamepad detaches polling state and
+     * clears subsystem references.
+     */
+    private clearInputSubsystems(): void {
+        this.pointer?.detach();
+        this.pointer = null;
+        this.keyboard?.detach();
+        this.keyboard = null;
+        this.gamepad?.detach();
+        this.gamepad = null;
+    }
+
+    /**
+     * Runs the demo's async {@link IBlitTechDemo.init}. On throw or
+     * `false`, clears input subsystems that were attached earlier in the init
+     * sequence.
+     *
+     * @param demo - Active demo instance.
+     * @returns `true` when the demo reports success.
+     */
+    private async runDemoInit(demo: IBlitTechDemo): Promise<boolean> {
+        try {
+            const ok = await demo.init();
+
+            if (!ok) {
+                console.error('[BT] Demo initialization failed');
+                this.clearInputSubsystems();
+
+                return false;
+            }
+
+            return true;
+        } catch (err) {
+            console.error('[BT] Demo initialization threw', err);
+            this.clearInputSubsystems();
+
+            return false;
+        }
+    }
+
+    // #endregion
+
     // #region Private Helpers
 
     /**
@@ -914,6 +905,19 @@ export class BTAPI {
         }
 
         this.spriteSheets.add(sheet);
+    }
+
+    /**
+     * Validates that a duration is a finite, non-negative number.
+     *
+     * @param method - Calling method name for the error message.
+     * @param durationMs - Duration to validate.
+     * @throws Error if the duration is not finite or is negative.
+     */
+    private assertFiniteDuration(method: string, durationMs: number): void {
+        if (!Number.isFinite(durationMs) || durationMs < 0) {
+            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
+        }
     }
 
     /**

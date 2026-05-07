@@ -278,8 +278,8 @@ export const BT = {
      * @param canvas - Canvas used as the engine render target.
      * @returns `true` when initialization succeeds; otherwise `false`.
      */
-    initialize: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
-        return await BTAPI.instance.initialize(demo, canvas);
+    init: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
+        return await BTAPI.instance.init(demo, canvas);
     },
 
     // #endregion
@@ -384,7 +384,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Palette Effects
+    // #region Palette Effects API
 
     /**
      * Starts rotating a range of palette entries at a constant speed.
@@ -480,7 +480,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Post-Process Effects
+    // #region Post-Process Effects API
 
     /**
      * Appends a fullscreen post-processing effect to whichever chain matches
@@ -540,7 +540,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Rendering - Clear Operations
+    // #region Rendering API - Clear Operations
 
     /**
      * Sets the frame clear color using a palette index.
@@ -566,7 +566,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Rendering - Primitives
+    // #region Rendering API - Primitives
 
     /**
      * Draws a single pixel.
@@ -613,7 +613,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Camera
+    // #region Camera API
 
     /**
      * Sets the global camera offset applied to subsequent draw calls.
@@ -642,7 +642,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Input - Pointer
+    // #region Input API - Pointer
 
     /**
      * Returns the position of the pointer in the given slot, in display coordinates.
@@ -704,7 +704,7 @@ export const BT = {
     /**
      * Hides the native OS cursor while the pointer is over the canvas.
      *
-     * Call once from `initialize()` when the demo draws its own crosshair or
+     * Call once from `init()` when the demo draws its own crosshair or
      * cursor sprite in place of the system arrow. The cursor is restored
      * automatically when the engine shuts down.
      *
@@ -726,7 +726,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Input - Buttons
+    // #region Input API - Buttons
 
     /**
      * Checks whether a button is currently held.
@@ -993,7 +993,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Input - Keyboard
+    // #region Input API - Keyboard
 
     /**
      * Checks whether a keyboard key is currently held.
@@ -1047,7 +1047,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Text Rendering
+    // #region Text Rendering API
 
     /**
      * Draws text using the built-in 6x14 system font.
@@ -1103,7 +1103,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Frame Capture
+    // #region Frame Capture API
 
     /**
      * Captures the next rendered frame as a PNG blob.
@@ -1147,7 +1147,7 @@ export const BT = {
 
     // #endregion
 
-    // #region Sprite Rendering
+    // #region Rendering API - Sprites
 
     /**
      * Draws a sprite region from an indexed sprite sheet.

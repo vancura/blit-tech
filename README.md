@@ -162,7 +162,7 @@ class MyDemo implements IBlitTechDemo {
    *
    * @returns Promise resolving to true when initialization succeeds.
    */
-  async initialize(): Promise<boolean> {
+  async init(): Promise<boolean> {
     // Define the palette — all rendering uses indices into this table.
     const palette = new Palette(16);
     palette.set(BG, new Color32(20, 30, 40, 255));
@@ -213,7 +213,7 @@ if (!checkWebGPUSupport()) {
 } else {
   const canvas = getCanvas('my-canvas-id');
   if (canvas) {
-    await BT.initialize(new MyDemo(), canvas);
+    await BT.init(new MyDemo(), canvas);
   }
 }
 ```
@@ -303,15 +303,15 @@ getCanvas(canvasId?); // Get canvas element safely
 ### Initialization
 
 ```ts
-BT.initialize(demo, canvas); // Start the engine (low-level)
+BT.init(demo, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
 BT.ticks(); // Get current tick count
 BT.ticksReset(); // Reset tick counter
 ```
 
-A palette must be set via `BT.paletteSet()` before any draw calls are made. The recommended place is `initialize()` in
-the demo, before loading any sprite sheets.
+A palette must be set via `BT.paletteSet()` before any draw calls are made. The recommended place is `init()` in the
+demo, before loading any sprite sheets.
 
 ### Palette
 
@@ -395,7 +395,7 @@ return {
   targetFPS: 60,
 };
 
-// In initialize(): mix and match effects from both tiers.
+// In init(): mix and match effects from both tiers.
 BT.effectAdd(new PixelGlitch()); // tier='pixel' on the effect routes automatically
 BT.effectAdd(new BarrelDistortion());
 BT.effectAdd(new Scanlines());

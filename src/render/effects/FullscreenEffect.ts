@@ -48,35 +48,25 @@ export abstract class FullscreenEffect implements Effect {
 
     /** WGSL fragment shader source. Must declare `Params`, `src`, `samp`. */
     protected abstract readonly fragmentShader: string;
-
-    /** Writes the per-frame uniform values into {@link uniformData}. */
-    protected abstract writeUniforms(deltaMs: number, sourceSize: Vector2i): void;
+    protected device: GPUDevice | null = null;
 
     // #region GPU State
-
-    protected device: GPUDevice | null = null;
     protected pipeline: GPURenderPipeline | null = null;
     protected uniformBuffer: GPUBuffer | null = null;
     protected sampler: GPUSampler | null = null;
     protected bindGroupLayout: GPUBindGroupLayout | null = null;
-
     /**
      * Backing array for the uniform block. Lazily allocated in {@link init}
      * after subclass constants are set on `this`.
      */
     protected uniformData: Float32Array | null = null;
-
     /**
      * Per-source-view bind group cache. The chain ping-pongs between two
      * stable views, so a `WeakMap` keyed by view is safe.
      * Reassigned on every `dispose()` so stale bind groups are not reused
-     * after a re-initialize cycle.
+     * after a re-init cycle.
      */
     private bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
-
-    // #endregion
-
-    // #region Effect lifecycle
 
     /**
      * Creates the GPU pipeline, uniform buffer, sampler, and bind-group layout.
@@ -125,6 +115,10 @@ export abstract class FullscreenEffect implements Effect {
             addressModeV: 'clamp-to-edge',
         });
     }
+
+    // #endregion
+
+    // #region Effect lifecycle
 
     /**
      * Calls {@link writeUniforms} then uploads the uniform block to the GPU.
@@ -186,6 +180,9 @@ export abstract class FullscreenEffect implements Effect {
         this.uniformData = null;
         this.bindGroups = new WeakMap();
     }
+
+    /** Writes the per-frame uniform values into {@link uniformData}. */
+    protected abstract writeUniforms(deltaMs: number, sourceSize: Vector2i): void;
 
     // #endregion
 

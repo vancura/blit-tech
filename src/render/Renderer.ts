@@ -183,9 +183,9 @@ export class Renderer {
      *
      * @returns `true` when GPU resources are ready; otherwise `false`.
      */
-    async initialize(): Promise<boolean> {
+    async init(): Promise<boolean> {
         try {
-            // Release any GPU resources from a previous initialize() call (e.g.
+            // Release any GPU resources from a previous init() call (e.g.
             // device-loss recovery) so nothing leaks.
             this.paletteBuffer?.destroy();
             this.paletteBuffer = null;
@@ -198,6 +198,7 @@ export class Renderer {
             this.sceneTex?.destroy();
             this.sceneTex = null;
             this.sceneTexView = null;
+            this.lastFrameMs = 0;
 
             // Create shared palette uniform buffer (256 entries x vec4f).
             this.paletteBuffer = this.device.createBuffer({
@@ -208,14 +209,14 @@ export class Renderer {
 
             // Mark the palette dirty so the new buffer is populated on the first
             // endFrame(), even if the palette data has not changed since the last
-            // initialize() call (e.g. after a WebGPU device-loss recovery).
+            // init() call (e.g. after a WebGPU device-loss recovery).
             this.paletteDirty = true;
 
             // Primitive and sprite pipelines run at logical resolution. The
             // viewport is automatic since each pass binds a target view; only
             // the camera scaling here cares about logical size.
-            await this.primitives.initialize(this.device, this.displaySize, this.paletteBuffer);
-            await this.sprites.initialize(this.device, this.displaySize, this.paletteBuffer);
+            await this.primitives.init(this.device, this.displaySize, this.paletteBuffer);
+            await this.sprites.init(this.device, this.displaySize, this.paletteBuffer);
 
             this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
 
@@ -341,6 +342,214 @@ export class Renderer {
         this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive, deltaMs);
         this.submitFrame(commandEncoder, swapTexture);
     }
+
+    // #endregion
+
+    // #region Rendering API - Primitives
+
+    /**
+     * Draws a filled rectangle using two triangles.
+     *
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawRectFill(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.drawRectFill(rect, paletteIndex);
+    }
+
+    /**
+     * Draws a single pixel as a 1x1 filled rectangle.
+     *
+     * @param pos - Pixel position.
+     * @param paletteIndex - Palette color index.
+     */
+    drawPixel(pos: Vector2i, paletteIndex: number): void {
+        this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
+    }
+
+    /**
+     * Draws a line using optimized quad rendering for axis-aligned lines,
+     * falling back to Bresenham's algorithm for diagonal lines.
+     *
+     * @param p0 - Start point.
+     * @param p1 - End point.
+     * @param paletteIndex - Palette color index.
+     */
+    drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
+        this.primitives.drawLine(p0, p1, paletteIndex);
+    }
+
+    /**
+     * Draws a rectangle outline using four 1-pixel quads.
+     *
+     * @param rect - Rectangle bounds.
+     * @param paletteIndex - Palette color index.
+     */
+    drawRect(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.drawRect(rect, paletteIndex);
+    }
+
+    /**
+     * Fills a rectangular region with a palette-indexed color.
+     *
+     * @param rect - Region to fill in pixel coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    clearRect(rect: Rect2i, paletteIndex: number): void {
+        this.primitives.clearRect(rect, paletteIndex);
+    }
+
+    // #endregion
+
+    // #region Rendering API - Sprites
+
+    /**
+     * Draws a sprite region from an indexed sprite sheet.
+     *
+     * @param spriteSheet - Source sprite sheet (must have been indexized).
+     * @param srcRect - Region to copy from the sprite sheet.
+     * @param destPos - Screen position to draw at.
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
+     */
+    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
+        this.sprites.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
+    }
+
+    /**
+     * Draws text using a bitmap font through the indexed sprite pipeline.
+     * Renders each character as a textured sprite.
+     *
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.sprites.drawBitmapText(font, pos, text, paletteOffset);
+    }
+
+    // #endregion
+
+    // #region Frame Capture API
+
+    /**
+     * Captures the next rendered frame as a PNG blob.
+     * The capture happens on the next `endFrame()` call.
+     * If a capture is already pending, the previous one is rejected.
+     *
+     * @returns Promise resolving to a PNG Blob of the rendered frame.
+     */
+    captureFrame(): Promise<Blob> {
+        return this.frameCapture.requestCapture();
+    }
+
+    // #endregion
+
+    // #region Camera API
+
+    /**
+     * Sets the camera offset for scrolling.
+     * The offset is propagated to both internal pipelines.
+     *
+     * @param offset - Camera position in pixels.
+     */
+    setCameraOffset(offset: Vector2i): void {
+        this.cameraOffset = offset.clone();
+        this.primitives.setCameraOffset(this.cameraOffset);
+        this.sprites.setCameraOffset(this.cameraOffset);
+    }
+
+    /**
+     * Gets the current camera offset.
+     *
+     * @returns Copy of the current camera position.
+     */
+    getCameraOffset(): Vector2i {
+        return this.cameraOffset.clone();
+    }
+
+    /**
+     * Resets the camera to the origin (0, 0).
+     */
+    resetCamera(): void {
+        this.cameraOffset = Vector2i.zero();
+        this.primitives.setCameraOffset(this.cameraOffset);
+        this.sprites.setCameraOffset(this.cameraOffset);
+    }
+
+    // #endregion
+
+    // #region Post-Process Effects API
+
+    /**
+     * Appends a fullscreen post-processing effect to the chain matching its
+     * declared {@link Effect.tier}.
+     *
+     * - `tier='pixel'` -> pixel chain (logical resolution).
+     * - `tier='display'` -> display chain (output resolution); requires
+     *   `canvasDisplaySize` to be set in `queryHardware()`.
+     *
+     * @param effect - Effect instance to append.
+     * @throws If the renderer has not been initialized.
+     * @throws If a `'display'` effect is added while the output drawing buffer
+     *   matches the logical display size (no canvasDisplaySize was set).
+     */
+    addEffect(effect: Effect): void {
+        if (!this.pixelChain || !this.displayChain) {
+            throw new Error('Renderer.addEffect: renderer not initialized.');
+        }
+
+        if (effect.tier === 'display' && !this.displayTierEnabled) {
+            throw new Error(
+                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in queryHardware().',
+            );
+        }
+
+        const chain = effect.tier === 'pixel' ? this.pixelChain : this.displayChain;
+        chain.add(effect);
+    }
+
+    /**
+     * Removes a previously registered post-processing effect.
+     *
+     * Dispatches to the chain matching {@link Effect.tier}. If the effect is
+     * not found in the expected chain (e.g. it was never added), a defensive
+     * fallback tries the other chain. Removing an effect that was never added
+     * is a no-op.
+     *
+     * @param effect - Effect instance to remove.
+     * @throws If the renderer has not been initialized.
+     */
+    removeEffect(effect: Effect): void {
+        if (!this.pixelChain || !this.displayChain) {
+            throw new Error('Renderer.removeEffect: renderer not initialized.');
+        }
+
+        const [primary, fallback] =
+            effect.tier === 'pixel' ? [this.pixelChain, this.displayChain] : [this.displayChain, this.pixelChain];
+
+        if (!primary.remove(effect)) {
+            fallback.remove(effect);
+        }
+    }
+
+    /**
+     * Removes every registered post-processing effect across both tiers.
+     *
+     * @throws If the renderer has not been initialized.
+     */
+    clearEffects(): void {
+        if (!this.pixelChain || !this.displayChain) {
+            throw new Error('Renderer.clearEffects: renderer not initialized.');
+        }
+
+        this.pixelChain.clear();
+        this.displayChain.clear();
+    }
+
+    // #endregion
+
+    // #region Private — frame encoding
 
     /**
      * Tries to acquire the swap-chain texture and validate its dimensions.
@@ -478,210 +687,6 @@ export class Renderer {
         // persisting across frames.
         this.primitives.reset();
         this.sprites.reset();
-    }
-
-    // #endregion
-
-    // #region Primitive Drawing
-
-    /**
-     * Draws a filled rectangle using two triangles.
-     *
-     * @param rect - Rectangle bounds in pixel coordinates.
-     * @param paletteIndex - Palette color index.
-     */
-    drawRectFill(rect: Rect2i, paletteIndex: number): void {
-        this.primitives.drawRectFill(rect, paletteIndex);
-    }
-
-    /**
-     * Draws a single pixel as a 1x1 filled rectangle.
-     *
-     * @param pos - Pixel position.
-     * @param paletteIndex - Palette color index.
-     */
-    drawPixel(pos: Vector2i, paletteIndex: number): void {
-        this.drawPixelXYInternal(pos.x, pos.y, paletteIndex);
-    }
-
-    /**
-     * Draws a line using optimized quad rendering for axis-aligned lines,
-     * falling back to Bresenham's algorithm for diagonal lines.
-     *
-     * @param p0 - Start point.
-     * @param p1 - End point.
-     * @param paletteIndex - Palette color index.
-     */
-    drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
-        this.primitives.drawLine(p0, p1, paletteIndex);
-    }
-
-    /**
-     * Draws a rectangle outline using four 1-pixel quads.
-     *
-     * @param rect - Rectangle bounds.
-     * @param paletteIndex - Palette color index.
-     */
-    drawRect(rect: Rect2i, paletteIndex: number): void {
-        this.primitives.drawRect(rect, paletteIndex);
-    }
-
-    /**
-     * Fills a rectangular region with a palette-indexed color.
-     *
-     * @param rect - Region to fill in pixel coordinates.
-     * @param paletteIndex - Palette color index.
-     */
-    clearRect(rect: Rect2i, paletteIndex: number): void {
-        this.primitives.clearRect(rect, paletteIndex);
-    }
-
-    // #endregion
-
-    // #region Sprite Drawing
-
-    /**
-     * Draws a sprite region from an indexed sprite sheet.
-     *
-     * @param spriteSheet - Source sprite sheet (must have been indexized).
-     * @param srcRect - Region to copy from the sprite sheet.
-     * @param destPos - Screen position to draw at.
-     * @param paletteOffset - Palette index offset applied at draw time (default 0).
-     */
-    drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
-        this.sprites.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
-    }
-
-    /**
-     * Draws text using a bitmap font through the indexed sprite pipeline.
-     * Renders each character as a textured sprite.
-     *
-     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
-     * @param pos - Text position (top-left corner).
-     * @param text - String to render.
-     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
-     */
-    drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
-        this.sprites.drawBitmapText(font, pos, text, paletteOffset);
-    }
-
-    // #endregion
-
-    // #region Frame Capture
-
-    /**
-     * Captures the next rendered frame as a PNG blob.
-     * The capture happens on the next `endFrame()` call.
-     * If a capture is already pending, the previous one is rejected.
-     *
-     * @returns Promise resolving to a PNG Blob of the rendered frame.
-     */
-    captureFrame(): Promise<Blob> {
-        return this.frameCapture.requestCapture();
-    }
-
-    // #endregion
-
-    // #region Camera
-
-    /**
-     * Sets the camera offset for scrolling.
-     * The offset is propagated to both internal pipelines.
-     *
-     * @param offset - Camera position in pixels.
-     */
-    setCameraOffset(offset: Vector2i): void {
-        this.cameraOffset = offset.clone();
-        this.primitives.setCameraOffset(this.cameraOffset);
-        this.sprites.setCameraOffset(this.cameraOffset);
-    }
-
-    /**
-     * Gets the current camera offset.
-     *
-     * @returns Copy of the current camera position.
-     */
-    getCameraOffset(): Vector2i {
-        return this.cameraOffset.clone();
-    }
-
-    /**
-     * Resets the camera to the origin (0, 0).
-     */
-    resetCamera(): void {
-        this.cameraOffset = Vector2i.zero();
-        this.primitives.setCameraOffset(this.cameraOffset);
-        this.sprites.setCameraOffset(this.cameraOffset);
-    }
-
-    // #endregion
-
-    // #region Post-Process Effects
-
-    /**
-     * Appends a fullscreen post-processing effect to the chain matching its
-     * declared {@link Effect.tier}.
-     *
-     * - `tier='pixel'` -> pixel chain (logical resolution).
-     * - `tier='display'` -> display chain (output resolution); requires
-     *   `canvasDisplaySize` to be set in `queryHardware()`.
-     *
-     * @param effect - Effect instance to append.
-     * @throws If the renderer has not been initialized.
-     * @throws If a `'display'` effect is added while the output drawing buffer
-     *   matches the logical display size (no canvasDisplaySize was set).
-     */
-    addEffect(effect: Effect): void {
-        if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.addEffect: renderer not initialized.');
-        }
-
-        if (effect.tier === 'display' && !this.displayTierEnabled) {
-            throw new Error(
-                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in queryHardware().',
-            );
-        }
-
-        const chain = effect.tier === 'pixel' ? this.pixelChain : this.displayChain;
-        chain.add(effect);
-    }
-
-    /**
-     * Removes a previously registered post-processing effect.
-     *
-     * Dispatches to the chain matching {@link Effect.tier}. If the effect is
-     * not found in the expected chain (e.g. it was never added), a defensive
-     * fallback tries the other chain. Removing an effect that was never added
-     * is a no-op.
-     *
-     * @param effect - Effect instance to remove.
-     * @throws If the renderer has not been initialized.
-     */
-    removeEffect(effect: Effect): void {
-        if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.removeEffect: renderer not initialized.');
-        }
-
-        const [primary, fallback] =
-            effect.tier === 'pixel' ? [this.pixelChain, this.displayChain] : [this.displayChain, this.pixelChain];
-
-        if (!primary.remove(effect)) {
-            fallback.remove(effect);
-        }
-    }
-
-    /**
-     * Removes every registered post-processing effect across both tiers.
-     *
-     * @throws If the renderer has not been initialized.
-     */
-    clearEffects(): void {
-        if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.clearEffects: renderer not initialized.');
-        }
-
-        this.pixelChain.clear();
-        this.displayChain.clear();
     }
 
     // #endregion

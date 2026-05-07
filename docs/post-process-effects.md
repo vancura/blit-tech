@@ -31,7 +31,7 @@ class Demo {
     };
   }
 
-  async initialize() {
+  async init() {
     // ... palette, sprites ...
 
     // Pixel tier: chunky glitch on the 320x240 framebuffer

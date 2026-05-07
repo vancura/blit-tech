@@ -399,8 +399,6 @@ export class GamepadInput {
         return count;
     }
 
-    // #endregion
-
     // #region Private
 
     /**
@@ -718,6 +716,8 @@ export class GamepadInput {
             this.firstPressTick[i]?.clear();
         }
     }
+
+    // #endregion
 }
 
 // #endregion

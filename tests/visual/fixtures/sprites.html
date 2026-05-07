@@ -12,7 +12,7 @@
 
 <body>
     <div id="canvas-container">
-        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+        <canvas height="240" id="blit-tech-canvas" width="320"></canvas>
     </div>
 
     <script type="module">
@@ -31,7 +31,7 @@
 
         // Create a minimal 16x16 sprite sheet from a canvas.
         // 4 tiles of 8x8: red (top-left), green (top-right), blue (bottom-left), yellow (bottom-right).
-        // The colors used here must match the palette entries set in initialize().
+        // The colors used here must match the palette entries set in init().
         function createSpriteImage() {
             const c = document.createElement('canvas');
             c.width = 16;
@@ -72,7 +72,7 @@
                 };
             }
 
-            async initialize() {
+            async init() {
                 const palette = new Palette(16);
                 palette.set(BLACK,  new Color32(0,   0,   0,   255));
                 palette.set(RED,    new Color32(255, 0,   0,   255));

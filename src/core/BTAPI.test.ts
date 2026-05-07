@@ -44,7 +44,7 @@ function makeMockDemo(targetFPS = 60, initResult = true): IBlitTechDemo {
             canvasDisplaySize: new Vector2i(640, 480),
             targetFPS,
         }),
-        initialize: vi.fn().mockResolvedValue(initResult),
+        init: vi.fn().mockResolvedValue(initResult),
         update: vi.fn(),
         render: vi.fn(),
     };
@@ -286,23 +286,23 @@ describe('BTAPI', () => {
 
     // #endregion
 
-    // #region initialize()
+    // #region init()
 
-    describe('initialize', () => {
+    describe('init', () => {
         it('should return false for NaN targetFPS', async () => {
-            const result = await BTAPI.instance.initialize(makeMockDemo(NaN), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(NaN), makeMockCanvas());
 
             expect(result).toBe(false);
         });
 
         it('should return false for zero targetFPS', async () => {
-            const result = await BTAPI.instance.initialize(makeMockDemo(0), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(0), makeMockCanvas());
 
             expect(result).toBe(false);
         });
 
         it('should return false for negative targetFPS', async () => {
-            const result = await BTAPI.instance.initialize(makeMockDemo(-30), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(-30), makeMockCanvas());
 
             expect(result).toBe(false);
         });
@@ -310,7 +310,7 @@ describe('BTAPI', () => {
         it('should return false when navigator.gpu is absent', async () => {
             uninstallMockNavigatorGPU();
 
-            const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(result).toBe(false);
         });
@@ -328,7 +328,7 @@ describe('BTAPI', () => {
                 configurable: true,
             });
 
-            const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(result).toBe(false);
         });
@@ -353,20 +353,20 @@ describe('BTAPI', () => {
                 configurable: true,
             });
 
-            const result = await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(result).toBe(false);
         });
 
-        it('should return false when demo.initialize() returns false', async () => {
-            const result = await BTAPI.instance.initialize(makeMockDemo(60, false), makeMockCanvas());
+        it('should return false when demo.init() returns false', async () => {
+            const result = await BTAPI.instance.init(makeMockDemo(60, false), makeMockCanvas());
 
             expect(result).toBe(false);
         });
 
         it('should return true and populate accessors on success', async () => {
             const canvas = makeMockCanvas();
-            const result = await BTAPI.instance.initialize(makeMockDemo(), canvas);
+            const result = await BTAPI.instance.init(makeMockDemo(), canvas);
 
             expect(result).toBe(true);
             expect(BTAPI.instance.getDevice()).not.toBeNull();
@@ -380,7 +380,7 @@ describe('BTAPI', () => {
         });
 
         it('stop detaches pointer and keyboard input so subsequent accessors return null', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(BTAPI.instance.getPointer()).not.toBeNull();
             expect(BTAPI.instance.getKeyboard()).not.toBeNull();
@@ -393,10 +393,10 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getGamepad()).toBeNull();
         });
 
-        it('double initialize without stop detaches prior pointer and keyboard before reattaching', async () => {
+        it('double init without stop detaches prior pointer and keyboard before reattaching', async () => {
             const canvas = makeMockCanvas();
 
-            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+            await BTAPI.instance.init(makeMockDemo(), canvas);
 
             const pointerBefore = BTAPI.instance.getPointer();
             const keyboardBefore = BTAPI.instance.getKeyboard();
@@ -406,7 +406,7 @@ describe('BTAPI', () => {
 
             vi.mocked(canvas.removeEventListener).mockClear();
 
-            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+            await BTAPI.instance.init(makeMockDemo(), canvas);
 
             expect(BTAPI.instance.getPointer()).not.toBe(pointerBefore);
             expect(BTAPI.instance.getKeyboard()).not.toBe(keyboardBefore);
@@ -418,7 +418,7 @@ describe('BTAPI', () => {
         });
 
         it('should start the game loop on success', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(requestAnimationFrame).toHaveBeenCalled();
         });
@@ -433,7 +433,7 @@ describe('BTAPI', () => {
                 }),
             );
 
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             const gamepad = BTAPI.instance.getGamepad();
             expect(gamepad).not.toBeNull();
@@ -467,13 +467,13 @@ describe('BTAPI', () => {
         });
 
         it('stop should not throw after successful initialization', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(() => BTAPI.instance.stop()).not.toThrow();
         });
 
         it('captureFrame returns a blob after successful initialization', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             const renderer = BTAPI.instance.getRenderer();
 
@@ -526,20 +526,20 @@ describe('BTAPI', () => {
             };
         }
 
-        it('effectAdd throws before initialize', () => {
+        it('effectAdd throws before init', () => {
             expect(() => BTAPI.instance.effectAdd(makeStubEffect())).toThrow('renderer not initialized');
         });
 
-        it('effectRemove throws before initialize', () => {
+        it('effectRemove throws before init', () => {
             expect(() => BTAPI.instance.effectRemove(makeStubEffect())).toThrow('renderer not initialized');
         });
 
-        it('effectClear throws before initialize', () => {
+        it('effectClear throws before init', () => {
             expect(() => BTAPI.instance.effectClear()).toThrow('renderer not initialized');
         });
 
-        it('effectAdd / effectClear delegate to the renderer after initialize', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+        it('effectAdd / effectClear delegate to the renderer after init', async () => {
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             const renderer = BTAPI.instance.getRenderer();
             expect(renderer).not.toBeNull();
@@ -557,8 +557,8 @@ describe('BTAPI', () => {
             expect(clearSpy).toHaveBeenCalled();
         });
 
-        it('effectRemove delegates to the renderer after initialize', async () => {
-            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+        it('effectRemove delegates to the renderer after init', async () => {
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             const renderer = BTAPI.instance.getRenderer();
             const removeSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'removeEffect');

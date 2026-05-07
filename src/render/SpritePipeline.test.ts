@@ -81,7 +81,7 @@ describe('with initialized pipeline', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
+        await pipeline.init(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -149,7 +149,7 @@ describe('drawSprite', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
+        await pipeline.init(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {
@@ -395,7 +395,7 @@ describe('drawBitmapText', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), createMockPaletteBuffer());
+        await pipeline.init(device, new Vector2i(320, 240), createMockPaletteBuffer());
     });
 
     afterAll(() => {

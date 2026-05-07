@@ -127,7 +127,7 @@ describe('pre-initialization methods', () => {
 
 // #endregion
 
-// #region Camera
+// #region Camera API
 
 describe('camera operations', () => {
     it('getCameraOffset returns a copy, not the internal reference', () => {
@@ -216,7 +216,7 @@ describe('with initialized renderer', () => {
     beforeAll(async () => {
         installMockNavigatorGPU();
 
-        const result = await renderer.initialize();
+        const result = await renderer.init();
 
         expect(result).toBe(true);
 
@@ -227,9 +227,9 @@ describe('with initialized renderer', () => {
         uninstallMockNavigatorGPU();
     });
 
-    it('initialize returns true on success', async () => {
+    it('init returns true on success', async () => {
         const r = new Renderer(device, context, displaySize);
-        const result = await r.initialize();
+        const result = await r.init();
 
         expect(result).toBe(true);
     });
@@ -387,7 +387,7 @@ describe('resolveClearColor fallbacks', () => {
 
         installMockNavigatorGPU();
 
-        await r.initialize();
+        await r.init();
 
         // No setPalette() call — endFrame() resolves clear color to black via fallback.
         expect(() => r.endFrame()).not.toThrow();
@@ -400,7 +400,7 @@ describe('resolveClearColor fallbacks', () => {
 
         installMockNavigatorGPU();
 
-        await r.initialize();
+        await r.init();
 
         // Spy on the prototype so the reference stored by setPalette also throws.
         const getSpy = vi.spyOn(Palette.prototype, 'get').mockImplementation(() => {
@@ -418,7 +418,7 @@ describe('resolveClearColor fallbacks', () => {
 
 // #endregion
 
-// #region Frame Capture
+// #region Frame Capture API
 
 describe('frame capture', () => {
     it('captureFrame returns a promise', async () => {
@@ -462,7 +462,7 @@ describe('frame capture', () => {
             },
         );
 
-        await renderer.initialize();
+        await renderer.init();
         renderer.setPalette(createTestPalette());
 
         const promise = renderer.captureFrame();
@@ -498,7 +498,7 @@ describe('frame capture', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
         renderer.setPalette(createTestPalette());
 
         // Stub browser APIs for PNG conversion.
@@ -559,7 +559,7 @@ describe('frame capture', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
         renderer.setPalette(createTestPalette());
 
         renderer.beginFrame();
@@ -590,7 +590,7 @@ describe('endFrame error paths', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
         renderer.setPalette(createTestPalette());
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -634,7 +634,7 @@ describe('endFrame error paths', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
         renderer.setPalette(createTestPalette());
 
         const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -655,7 +655,7 @@ describe('endFrame error paths', () => {
     });
 });
 
-describe('initialize error paths', () => {
+describe('init error paths', () => {
     it('returns false when pipeline creation throws', async () => {
         const throwingDevice = {
             ...createMockGPUDevice(),
@@ -671,7 +671,7 @@ describe('initialize error paths', () => {
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         try {
-            const result = await renderer.initialize();
+            const result = await renderer.init();
 
             expect(result).toBe(false);
             expect(errorSpy).toHaveBeenCalled();
@@ -715,7 +715,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
 
         const palette = new Palette(16);
 
@@ -743,7 +743,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
 
         const palette = new Palette(16);
 
@@ -777,7 +777,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
         installMockNavigatorGPU();
 
-        await renderer.initialize();
+        await renderer.init();
 
         const palette = new Palette(16);
 
@@ -803,7 +803,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
 // #endregion
 
-// #region Post-Process Effects
+// #region Post-Process Effects API
 
 describe('post-process effects', () => {
     // Install/uninstall via beforeEach/afterEach so an assertion failure in any
@@ -841,28 +841,28 @@ describe('post-process effects', () => {
         };
     }
 
-    it('addEffect throws before initialize', () => {
+    it('addEffect throws before init', () => {
         const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.addEffect(createStubEffect())).toThrow(/not initialized/);
     });
 
-    it('removeEffect throws before initialize', () => {
+    it('removeEffect throws before init', () => {
         const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.removeEffect(createStubEffect())).toThrow(/not initialized/);
     });
 
-    it('clearEffects throws before initialize', () => {
+    it('clearEffects throws before init', () => {
         const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.clearEffects()).toThrow(/not initialized/);
     });
 
-    it('addEffect / clearEffects work after initialize', async () => {
+    it('addEffect / clearEffects work after init', async () => {
         const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
 
         const effect = createStubEffect();
 
@@ -889,7 +889,7 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
         r.setPalette(createTestPalette());
 
         r.beginFrame();
@@ -903,7 +903,7 @@ describe('post-process effects', () => {
         const device = createMockGPUDevice();
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
         r.setPalette(createTestPalette());
 
         const effect = createStubEffect();
@@ -926,7 +926,7 @@ describe('post-process effects', () => {
         const device = createMockGPUDevice();
         const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
         r.setPalette(createTestPalette());
 
         const effectA = createStubEffect();
@@ -969,7 +969,7 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, context, new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
         r.setPalette(createTestPalette());
 
         const effect = createStubEffect();
@@ -1019,7 +1019,7 @@ describe('post-process effects', () => {
 
         const r = new Renderer(device, context, new Vector2i(320, 240));
 
-        await r.initialize();
+        await r.init();
         r.setPalette(createTestPalette());
 
         r.beginFrame();

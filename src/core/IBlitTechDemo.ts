@@ -60,7 +60,7 @@ export interface HardwareSettings {
  *
  * Engine lifecycle order:
  * 1. queryHardware() - Called first to configure display/FPS
- * 2. initialize() - Called after WebGPU setup, load assets here
+ * 2. init() - Called after WebGPU setup, load assets here
  * 3. update() - Fixed timestep via accumulator (may run 0..N times per frame)
  * 4. render() - Called once per requestAnimationFrame (browser refresh rate)
  */
@@ -79,7 +79,7 @@ export interface IBlitTechDemo {
      *
      * @returns Promise that resolves to true if successful, false to abort.
      */
-    initialize(): Promise<boolean>;
+    init(): Promise<boolean>;
 
     /**
      * Called zero or more times per frame at the fixed timestep declared by

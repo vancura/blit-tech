@@ -12,7 +12,7 @@
 
 <body>
     <div id="canvas-container">
-        <canvas id="blit-tech-canvas" width="320" height="240"></canvas>
+        <canvas height="240" id="blit-tech-canvas" width="320"></canvas>
     </div>
 
     <script type="module">
@@ -62,7 +62,7 @@
                 };
             }
 
-            async initialize() {
+            async init() {
                 const palette = new Palette(16);
                 palette.set(1,        new Color32(0,   0,   0,   255));
                 palette.set(2,        new Color32(255, 0,   0,   255));

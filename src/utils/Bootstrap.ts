@@ -191,7 +191,7 @@ function validateCanvas(
  * @param onError - Optional error callback.
  * @returns BootstrapResult with success status.
  */
-async function initializeDemo(
+async function initDemo(
     DemoClass: DemoConstructor,
     canvas: HTMLCanvasElement,
     containerId: string,
@@ -203,7 +203,7 @@ async function initializeDemo(
     let initError: Error | undefined;
 
     try {
-        initialized = await BTAPI.instance.initialize(demo, canvas);
+        initialized = await BTAPI.instance.init(demo, canvas);
     } catch (err) {
         initError = err instanceof Error ? err : new Error(String(err));
         console.error('[BT] Engine initialization threw an unexpected error:', initError);
@@ -308,7 +308,7 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
                     canvas.focus();
                 }
 
-                const initResult = await initializeDemo(DemoClass, canvas, containerId, onSuccess, onError);
+                const initResult = await initDemo(DemoClass, canvas, containerId, onSuccess, onError);
 
                 success = initResult.success;
             }

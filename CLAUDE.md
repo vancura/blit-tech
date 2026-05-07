@@ -18,7 +18,7 @@ fantasy-console-style API.
 ## Architecture
 
 All engine functionality is accessed through the static `BT` namespace. Demos implement the `IBlitTechDemo` interface
-(`queryHardware`, `initialize`, `update`, `render`).
+(`queryHardware`, `init`, `update`, `render`).
 
 ```text
 src/
