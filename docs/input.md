@@ -208,7 +208,7 @@ means:
 
 - Any pointer event that fires between two frames is visible as a transition on the **next** `update()` call.
 - `pointerDelta()` reflects movement between the last `update()` and the current one.
-- Keyboard held keys and edges follow the same end-of-frame snapshot timing as pointer input (`KeyboardInput.endFrame`
+- Keyboard-held keys and edges follow the same end-of-frame snapshot timing as pointer input (`KeyboardInput.endFrame`
   aligns with pointer flush).
 - `buttonPressed()` / `buttonReleased()` edges are never lost even when a press and release both arrive in the same
   inter-frame gap (they appear as pressed-then-released across consecutive frames).
