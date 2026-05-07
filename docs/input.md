@@ -90,7 +90,7 @@ The mapping follows the RetroBlit canonical order, not the DOM `PointerEvent.but
 
 ## Keyboard
 
-Listeners attach to the canvas during `BT.initialize()`. For reliable delivery, ensure the canvas can receive focus (for
+Listeners attach to the canvas during `BT.init()`. For reliable delivery, ensure the canvas can receive focus (for
 example `canvas.tabIndex = 0` and `canvas.focus()`). The library follows `KeyboardEvent.code` (physical-key semantics),
 not `event.key` layout text.
 
@@ -212,7 +212,7 @@ scroll while the canvas has focus.
 ## Cursor Control
 
 ```ts
-// In initialize(): hide the OS cursor and draw your own crosshair / sprite
+// In init(): hide the OS cursor and draw your own crosshair / sprite
 BT.hideCursor();
 
 // Restore at any time
@@ -245,7 +245,7 @@ means:
 - `contextmenu` with `preventDefault()` — prevents the OS context menu on right-click so `BTN_POINTER_B` works.
 
 `detach()` reverses all three and removes all event listeners. This happens automatically when the engine stops or when
-`demo.initialize()` throws.
+`demo.init()` throws.
 
 ## Coordinate Conversion
 
@@ -266,6 +266,6 @@ Coordinates are clamped to `[0, displaySize - 1]` on each axis. The conversion i
 - Default keyboard tables live in `defaultKeyboardMap.ts`; runtime remaps are stored in the `BT` facade and reset with
   `BT.inputMapReset()`.
 - The `POINTER_SLOT_COUNT` constant (value `4`) is exported for demos that iterate over slots.
-- `PointerInput`, `KeyboardInput`, and `GamepadInput` are created and attached inside `BTAPI.initialize()`, so they are
-  ready before `demo.initialize()` runs.
+- `PointerInput`, `KeyboardInput`, and `GamepadInput` are created and attached inside `BTAPI.init()`, so they are ready
+  before `demo.init()` runs.
 - `stop()` calls `detach()` on all three input subsystems and clears references to prevent listener leaks.

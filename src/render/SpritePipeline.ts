@@ -36,7 +36,7 @@ const VERTEX_STRIDE = 20;
 export class SpritePipeline {
     // #region State
 
-    /** WebGPU device, set during initialize(). */
+    /** WebGPU device, set during init(). */
     private device: GPUDevice | null = null;
 
     /** Render pipeline for indexed sprites. */
@@ -104,7 +104,7 @@ export class SpritePipeline {
 
     /**
      * Creates an empty sprite pipeline.
-     * Call `initialize()` before encoding GPU work.
+     * Call `init()` before encoding GPU work.
      */
     constructor() {
         this.vertexArrayBuffer = new ArrayBuffer(MAX_SPRITE_VERTICES * VERTEX_STRIDE);
@@ -123,7 +123,7 @@ export class SpritePipeline {
      * @param displaySize - Render target resolution in pixels.
      * @param paletteBuffer - Shared palette uniform buffer (256 x vec4f).
      */
-    async initialize(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
+    async init(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
         this.device = device;
         this.paletteBuffer = paletteBuffer;
 
@@ -209,7 +209,7 @@ export class SpritePipeline {
         }
 
         // Upload all sprite vertices at once.
-        // Safe assertions: these resources are created in initialize() before any rendering.
+        // Safe assertions: these resources are created in init() before any rendering.
         (this.device as GPUDevice).queue.writeBuffer(
             this.vertexBuffer as GPUBuffer,
             0,
@@ -512,7 +512,7 @@ export class SpritePipeline {
             return existing;
         }
 
-        // Safe assertions: pipeline is created in initialize() before any drawing.
+        // Safe assertions: pipeline is created in init() before any drawing.
         const bindGroup = (this.device as GPUDevice).createBindGroup({
             label: 'Sprite Texture Bind Group',
             layout: (this.pipeline as GPURenderPipeline).getBindGroupLayout(1),

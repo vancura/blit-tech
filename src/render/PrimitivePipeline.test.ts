@@ -67,7 +67,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawRectFill() does not throw before initialize', () => {
+    it('drawRectFill() does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(0, 0, 10, 10);
 
@@ -76,7 +76,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawPixel() does not throw before initialize', () => {
+    it('drawPixel() does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const pos = new Vector2i(5, 5);
 
@@ -85,7 +85,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawPixelXY() does not throw before initialize', () => {
+    it('drawPixelXY() does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
 
         expect(() => {
@@ -93,7 +93,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawLine() with horizontal line does not throw before initialize', () => {
+    it('drawLine() with horizontal line does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(0, 10);
         const p1 = new Vector2i(100, 10);
@@ -103,7 +103,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawLine() with vertical line does not throw before initialize', () => {
+    it('drawLine() with vertical line does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(10, 0);
         const p1 = new Vector2i(10, 100);
@@ -113,7 +113,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawLine() with diagonal line does not throw before initialize', () => {
+    it('drawLine() with diagonal line does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const p0 = new Vector2i(0, 0);
         const p1 = new Vector2i(50, 30);
@@ -123,7 +123,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('drawRect() does not throw before initialize', () => {
+    it('drawRect() does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(5, 5, 20, 20);
 
@@ -132,7 +132,7 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 
-    it('clearRect() does not throw before initialize', () => {
+    it('clearRect() does not throw before init', () => {
         const pipeline = new PrimitivePipeline();
         const rect = new Rect2i(0, 0, 100, 100);
 
@@ -155,7 +155,7 @@ describe('with initialized pipeline', () => {
 
         const paletteBuffer = createMockPaletteBuffer();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
+        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer);
     });
 
     afterAll(() => {
@@ -267,7 +267,7 @@ describe('vertex count verification', () => {
 
         const paletteBuffer = createMockPaletteBuffer();
 
-        await pipeline.initialize(device, new Vector2i(320, 240), paletteBuffer);
+        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer);
     });
 
     afterAll(() => {

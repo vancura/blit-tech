@@ -278,8 +278,8 @@ export const BT = {
      * @param canvas - Canvas used as the engine render target.
      * @returns `true` when initialization succeeds; otherwise `false`.
      */
-    initialize: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
-        return await BTAPI.instance.initialize(demo, canvas);
+    init: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
+        return await BTAPI.instance.init(demo, canvas);
     },
 
     // #endregion
@@ -704,7 +704,7 @@ export const BT = {
     /**
      * Hides the native OS cursor while the pointer is over the canvas.
      *
-     * Call once from `initialize()` when the demo draws its own crosshair or
+     * Call once from `init()` when the demo draws its own crosshair or
      * cursor sprite in place of the system arrow. The cursor is restored
      * automatically when the engine shuts down.
      *

@@ -6,7 +6,7 @@
  * Covers the DOM-facing startup flow:
  * - optional waiting for `DOMContentLoaded`
  * - WebGPU support validation and canvas lookup failures
- * - success and failure paths around `BTAPI.initialize()`
+ * - success and failure paths around `BTAPI.init()`
  * - default and custom canvas/container identifiers
  * - propagation of success and error callbacks
  *
@@ -30,7 +30,7 @@ class MockDemo implements IBlitTechDemo {
         return { displaySize: new Vector2i(320, 240), targetFPS: 60 };
     }
 
-    async initialize() {
+    async init() {
         return true;
     }
 
@@ -81,7 +81,7 @@ function unstubWebGPU(): void {
 
 describe('bootstrap', () => {
     beforeEach(() => {
-        vi.spyOn(BTAPI.instance, 'initialize').mockResolvedValue(true);
+        vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(true);
         Object.defineProperty(document, 'readyState', { value: 'complete', writable: true, configurable: true });
     });
 
@@ -185,12 +185,12 @@ describe('bootstrap', () => {
     // #region Engine initialization
 
     describe('engine initialization', () => {
-        it('should return false and call onError when BTAPI.initialize returns false', async () => {
+        it('should return false and call onError when BTAPI.init returns false', async () => {
             setupDOM();
 
             stubWebGPU();
 
-            vi.spyOn(BTAPI.instance, 'initialize').mockResolvedValue(false);
+            vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(false);
 
             const onError = vi.fn();
             const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
@@ -199,12 +199,12 @@ describe('bootstrap', () => {
             expect(onError).toHaveBeenCalledOnce();
         });
 
-        it('should return false and call onError when BTAPI.initialize throws', async () => {
+        it('should return false and call onError when BTAPI.init throws', async () => {
             setupDOM();
 
             stubWebGPU();
 
-            vi.spyOn(BTAPI.instance, 'initialize').mockRejectedValue(new Error('Init exploded'));
+            vi.spyOn(BTAPI.instance, 'init').mockRejectedValue(new Error('Init exploded'));
 
             const onError = vi.fn();
             const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
@@ -277,13 +277,13 @@ describe('bootstrap', () => {
     // #region Unexpected errors
 
     describe('unexpected errors', () => {
-        it('should return false when BTAPI.initialize throws synchronously', async () => {
+        it('should return false when BTAPI.init throws synchronously', async () => {
             setupDOM();
 
             stubWebGPU();
 
-            vi.spyOn(BTAPI.instance, 'initialize').mockImplementation(() => {
-                throw new Error('The synchronous throw from initialize');
+            vi.spyOn(BTAPI.instance, 'init').mockImplementation(() => {
+                throw new Error('The synchronous throw from init');
             });
 
             const onError = vi.fn();

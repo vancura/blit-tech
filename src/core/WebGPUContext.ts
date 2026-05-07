@@ -37,7 +37,7 @@ export interface WebGPUContextResult {
  * @param canvasDisplaySize - Optional output drawing-buffer size in pixels.
  * @returns Initialized device, context, and drawing-buffer size, or null on failure.
  */
-export async function initializeWebGPU(
+export async function initWebGPU(
     canvas: HTMLCanvasElement,
     displaySize: Vector2i,
     canvasDisplaySize?: Vector2i,

@@ -35,7 +35,7 @@ const VERTEX_STRIDE = VALUES_PER_VERTEX * 4;
 export class PrimitivePipeline {
     // #region State
 
-    /** WebGPU device, set during initialize(). */
+    /** WebGPU device, set during init(). */
     private device: GPUDevice | null = null;
 
     /** Render pipeline for palette-indexed geometry. */
@@ -91,7 +91,7 @@ export class PrimitivePipeline {
 
     /**
      * Creates an empty primitive pipeline.
-     * Call `initialize()` before encoding GPU work.
+     * Call `init()` before encoding GPU work.
      */
     constructor() {
         this.vertexArrayBuffer = new ArrayBuffer(MAX_PRIMITIVE_VERTICES * VERTEX_STRIDE);
@@ -110,7 +110,7 @@ export class PrimitivePipeline {
      * @param displaySize - Render target resolution in pixels.
      * @param paletteBuffer - Shared palette uniform buffer (256 x vec4f = 4096 bytes).
      */
-    async initialize(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
+    async init(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
         this.device = device;
         await this.createPipeline(displaySize, paletteBuffer);
     }
@@ -298,7 +298,7 @@ export class PrimitivePipeline {
         }
 
         // Upload all vertex data at once.
-        // Safe assertions: these resources are created in initialize() before any rendering.
+        // Safe assertions: these resources are created in init() before any rendering.
         (this.device as GPUDevice).queue.writeBuffer(
             this.vertexBuffer as GPUBuffer,
             0,

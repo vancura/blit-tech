@@ -25,40 +25,40 @@ const mockHardwareSettings = (displaySize = new Vector2i(320, 240), targetFPS = 
 
 // #endregion
 
-// #region BT.initialize
+// #region BT.init
 
-describe('BT.initialize', () => {
+describe('BT.init', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
 
-    it('delegates to BTAPI.instance.initialize and returns its result', async () => {
-        const spy = vi.spyOn(BTAPI.instance, 'initialize').mockResolvedValue(true);
+    it('delegates to BTAPI.instance.init and returns its result', async () => {
+        const spy = vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(true);
         const demo = {
             queryHardware: vi.fn(),
-            initialize: vi.fn(),
+            init: vi.fn(),
             update: vi.fn(),
             render: vi.fn(),
         };
         const canvas = {} as HTMLCanvasElement;
 
-        const result = await BT.initialize(demo, canvas);
+        const result = await BT.init(demo, canvas);
 
         expect(spy).toHaveBeenCalledWith(demo, canvas);
         expect(result).toBe(true);
     });
 
     it('forwards a failure result from BTAPI', async () => {
-        vi.spyOn(BTAPI.instance, 'initialize').mockResolvedValue(false);
+        vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(false);
 
         const demo = {
             queryHardware: vi.fn(),
-            initialize: vi.fn(),
+            init: vi.fn(),
             update: vi.fn(),
             render: vi.fn(),
         };
 
-        const result = await BT.initialize(demo, {} as HTMLCanvasElement);
+        const result = await BT.init(demo, {} as HTMLCanvasElement);
 
         expect(result).toBe(false);
     });
