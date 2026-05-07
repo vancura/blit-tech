@@ -10,6 +10,7 @@ import {
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { createSystemFont } from '../assets/SystemFont';
+import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import { Renderer } from '../render/Renderer';
@@ -95,8 +96,11 @@ export class BTAPI {
     /** Pointer / mouse / touch input subsystem. Created during {@link initialize}. */
     private pointer: PointerInput | null = null;
 
+    /** Keyboard input (VV-134). Created during {@link initialize}. */
+    private keyboard: KeyboardInput | null = null;
+
     // TODO: Additional subsystems for future implementation:
-    // KeyboardInput (VV-134), GamepadInput (VV-135), AudioManager, AssetManager
+    // GamepadInput (VV-135), AudioManager, AssetManager
 
     // #endregion
 
@@ -130,6 +134,44 @@ export class BTAPI {
     // #endregion
 
     // #region Initialization
+
+    /**
+     * Removes pointer and keyboard subsystems (detach DOM listeners, clear refs).
+     */
+    private clearInputSubsystems(): void {
+        this.pointer?.detach();
+        this.pointer = null;
+        this.keyboard?.detach();
+        this.keyboard = null;
+    }
+
+    /**
+     * Runs the demo's async {@link IBlitTechDemo.initialize}. On throw or
+     * `false`, clears input subsystems that were attached earlier in the init
+     * sequence.
+     *
+     * @param demo - Active demo instance.
+     * @returns `true` when the demo reports success.
+     */
+    private async runDemoInitialize(demo: IBlitTechDemo): Promise<boolean> {
+        try {
+            const ok = await demo.initialize();
+
+            if (!ok) {
+                console.error('[BT] Demo initialization failed');
+                this.clearInputSubsystems();
+
+                return false;
+            }
+
+            return true;
+        } catch (err) {
+            console.error('[BT] Demo initialization threw', err);
+            this.clearInputSubsystems();
+
+            return false;
+        }
+    }
 
     /**
      * Initializes the engine for a demo and starts the main loop on success.
@@ -212,31 +254,22 @@ export class BTAPI {
 
         // Initialize pointer input. Listeners attach to the canvas; per-frame
         // resets are wired to GameLoop.onTickStart below.
+        this.pointer?.detach();
         this.pointer = new PointerInput();
         this.pointer.attach(canvas, this.hwSettings.displaySize);
 
-        // TODO: Initialize keyboard (VV-134), gamepad (VV-135), audio.
+        this.keyboard?.detach();
+        this.keyboard = new KeyboardInput();
+        this.keyboard.attach(canvas, {
+            getTicks: () => this.loop?.getTicks() ?? 0,
+        });
+
+        // TODO: Initialize gamepad (VV-135), audio.
 
         // Initialize the demo.
         console.log('[BT] Initializing demo');
 
-        let demoInitOk: boolean;
-
-        try {
-            demoInitOk = await demo.initialize();
-        } catch (err) {
-            console.error('[BT] Demo initialization threw', err);
-            this.pointer?.detach();
-            this.pointer = null;
-
-            return false;
-        }
-
-        if (!demoInitOk) {
-            console.error('[BT] Demo initialization failed');
-            this.pointer?.detach();
-            this.pointer = null;
-
+        if (!(await this.runDemoInitialize(demo))) {
             return false;
         }
 
@@ -268,6 +301,10 @@ export class BTAPI {
                 // state, so prev = "state when update last looked", letting any
                 // event that arrives before the next tick be visible as a transition.
                 this.pointer?.endFrame();
+
+                const tick = this.loop?.getTicks() ?? 0;
+
+                this.keyboard?.endFrame(tick);
             },
             onFrameDrop,
         );
@@ -282,13 +319,12 @@ export class BTAPI {
     /**
      * Stops the active game loop and detaches input listeners.
      *
-     * The pointer subsystem is detached so DOM listeners do not leak across
-     * engine restarts (relevant in tests where the same DOM persists).
+     * The pointer and keyboard subsystems are detached so DOM listeners do not
+     * leak across engine restarts (relevant in tests where the same DOM persists).
      */
     public stop(): void {
         this.loop?.stop();
-        this.pointer?.detach();
-        this.pointer = null;
+        this.clearInputSubsystems();
     }
 
     // #endregion
@@ -370,6 +406,16 @@ export class BTAPI {
      */
     public getPointer(): PointerInput | null {
         return this.pointer;
+    }
+
+    /**
+     * Gets the keyboard input subsystem created during initialization.
+     *
+     * @returns Keyboard input instance, or null when the engine has not been
+     *          initialized yet (or has been stopped).
+     */
+    public getKeyboard(): KeyboardInput | null {
+        return this.keyboard;
     }
 
     /**

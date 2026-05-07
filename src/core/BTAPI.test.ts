@@ -153,6 +153,10 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getPointer()).toBeNull();
         });
 
+        it('getKeyboard should return null before init', () => {
+            expect(BTAPI.instance.getKeyboard()).toBeNull();
+        });
+
         it('getHardwareSettings should return null before init', () => {
             expect(BTAPI.instance.getHardwareSettings()).toBeNull();
         });
@@ -367,16 +371,43 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getRenderer()).not.toBeNull();
             expect(BTAPI.instance.getHardwareSettings()).not.toBeNull();
             expect(BTAPI.instance.getPointer()).not.toBeNull();
+            expect(BTAPI.instance.getKeyboard()).not.toBeNull();
         });
 
-        it('stop detaches pointer input so subsequent getPointer returns null', async () => {
+        it('stop detaches pointer and keyboard input so subsequent accessors return null', async () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
 
             expect(BTAPI.instance.getPointer()).not.toBeNull();
+            expect(BTAPI.instance.getKeyboard()).not.toBeNull();
 
             BTAPI.instance.stop();
 
             expect(BTAPI.instance.getPointer()).toBeNull();
+            expect(BTAPI.instance.getKeyboard()).toBeNull();
+        });
+
+        it('double initialize without stop detaches prior pointer and keyboard before reattaching', async () => {
+            const canvas = makeMockCanvas();
+
+            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+
+            const pointerBefore = BTAPI.instance.getPointer();
+            const keyboardBefore = BTAPI.instance.getKeyboard();
+
+            expect(pointerBefore).not.toBeNull();
+            expect(keyboardBefore).not.toBeNull();
+
+            vi.mocked(canvas.removeEventListener).mockClear();
+
+            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+
+            expect(BTAPI.instance.getPointer()).not.toBe(pointerBefore);
+            expect(BTAPI.instance.getKeyboard()).not.toBe(keyboardBefore);
+
+            const removedKinds = vi.mocked(canvas.removeEventListener).mock.calls.map((call) => call[0]);
+
+            expect(removedKinds).toContain('pointermove');
+            expect(removedKinds).toContain('keydown');
         });
 
         it('should start the game loop on success', async () => {

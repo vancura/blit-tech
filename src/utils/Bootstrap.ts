@@ -300,6 +300,14 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
 
             // Initialize the demo.
             if (success && canvas) {
+                canvas.tabIndex = 0;
+
+                try {
+                    canvas.focus({ preventScroll: true });
+                } catch {
+                    canvas.focus();
+                }
+
                 const initResult = await initializeDemo(DemoClass, canvas, containerId, onSuccess, onError);
 
                 success = initResult.success;

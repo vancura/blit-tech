@@ -536,19 +536,19 @@ describe('Pointer button constants', () => {
 // #region BT.keyDown / BT.keyPressed / BT.keyReleased
 
 describe('BT.keyDown', () => {
-    it('returns false (not yet implemented)', () => {
+    it('returns false when the engine is not initialized', () => {
         expect(BT.keyDown('Space')).toBe(false);
     });
 });
 
 describe('BT.keyPressed', () => {
-    it('returns false (not yet implemented)', () => {
+    it('returns false when the engine is not initialized', () => {
         expect(BT.keyPressed('ArrowUp')).toBe(false);
     });
 });
 
 describe('BT.keyReleased', () => {
-    it('returns false (not yet implemented)', () => {
+    it('returns false when the engine is not initialized', () => {
         expect(BT.keyReleased('KeyA')).toBe(false);
     });
 });

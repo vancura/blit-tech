@@ -16,8 +16,8 @@ import { BitmapFont } from './assets/BitmapFont';
 import { Palette } from './assets/Palette';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
-import type { HardwareSettings, IBlitTechDemo } from './core/IBlitTechDemo';
-import { defaultHardwareSettings } from './core/IBlitTechDemo';
+import { defaultHardwareSettings, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
+import { DEFAULT_KEYBOARD_PLAYER1, DEFAULT_KEYBOARD_PLAYER2, type FaceButtonCode } from './input/defaultKeyboardMap';
 import { BarrelDistortion } from './render/effects/display/BarrelDistortion';
 import { Bloom } from './render/effects/display/Bloom';
 import { ChromaticAberration } from './render/effects/display/ChromaticAberration';
@@ -40,6 +40,30 @@ import type { EasingFunction } from './utils/Easing';
 import { applyEasing } from './utils/Easing';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
+
+/**
+ * Returns default keyboard `KeyboardEvent.code` list for a face button and player,
+ * or `null` when there is no keyboard fallback (e.g. players 2–3 for face buttons).
+ *
+ * @param button - Face button constant (`BT.BTN_UP` … `BT.BTN_SELECT`).
+ * @param player - Zero-based player index.
+ * @returns Key codes for that mapping, or `null` if unsupported.
+ */
+function defaultFaceButtonKeys(button: number, player: number): readonly string[] | null {
+    if (button < 0 || button > 11) {
+        return null;
+    }
+
+    if (player === 0) {
+        return DEFAULT_KEYBOARD_PLAYER1[button as FaceButtonCode];
+    }
+
+    if (player === 1) {
+        return DEFAULT_KEYBOARD_PLAYER2[button as FaceButtonCode];
+    }
+
+    return null;
+}
 
 // #region Public API
 
@@ -135,6 +159,16 @@ export const BT = {
      */
     BTN_POINTER_D: 23,
 
+    /**
+     * Default `KeyboardEvent.code` values for player 1 face buttons (VV-435).
+     */
+    DEFAULT_KEYBOARD_PLAYER1,
+
+    /**
+     * Default `KeyboardEvent.code` values for player 2 face buttons (VV-435).
+     */
+    DEFAULT_KEYBOARD_PLAYER2,
+
     // #endregion
 
     // #region Initialization
@@ -144,6 +178,9 @@ export const BT = {
      *
      * The canvas element must be attached to the DOM before this call.
      * In Electron environments, wait for DOM-ready first.
+     *
+     * When not using {@link bootstrap}, set `canvas.tabIndex = 0` and call
+     * `canvas.focus()` so keyboard events reach the canvas.
      *
      * @param demo - Demo implementation that provides lifecycle hooks.
      * @param canvas - Canvas used as the engine render target.
@@ -608,17 +645,25 @@ export const BT = {
      * (matches RetroBlit canonical, not DOM `PointerEvent.button` index).
      * Touch / pen slots only support `A`; B/C/D return `false`.
      *
-     * Gamepad codes (`BTN_UP..BTN_SELECT`) are not yet implemented and always
-     * return `false` until VV-135 lands.
+     * For `BTN_UP`…`BTN_SELECT`, players `0` and `1` use the default keyboard
+     * maps (`BT.DEFAULT_KEYBOARD_PLAYER1` / `BT.DEFAULT_KEYBOARD_PLAYER2`).
+     * Players `2` and `3` have no keyboard mapping (gamepad when VV-135 lands).
+     * Pointer codes (`BTN_POINTER_*`) use the `player` argument as the pointer slot.
      *
      * @param button - Button constant from the `BTN_*` set.
-     * @param player - Zero-based player index for gamepads, or pointer slot
+     * @param player - Zero-based player index for gamepads / keyboard, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
      * @returns `true` while the button remains pressed.
      */
     buttonDown: (button: number, player: number = 0): boolean => {
         if (button >= 20 && button <= 23) {
             return BTAPI.instance.getPointer()?.isButtonDown(button, player) ?? false;
+        }
+
+        const keys = defaultFaceButtonKeys(button, player);
+
+        if (keys) {
+            return BTAPI.instance.getKeyboard()?.isButtonDown(keys) ?? false;
         }
 
         // TODO: Implement gamepad input (VV-135).
@@ -641,6 +686,14 @@ export const BT = {
             return BTAPI.instance.getPointer()?.isButtonPressed(button, player) ?? false;
         }
 
+        const keys = defaultFaceButtonKeys(button, player);
+
+        if (keys) {
+            const tick = BTAPI.instance.getTicks();
+
+            return BTAPI.instance.getKeyboard()?.isButtonPressed(keys, undefined, tick) ?? false;
+        }
+
         // TODO: Implement gamepad input (VV-135).
         return false;
     },
@@ -661,6 +714,12 @@ export const BT = {
             return BTAPI.instance.getPointer()?.isButtonReleased(button, player) ?? false;
         }
 
+        const keys = defaultFaceButtonKeys(button, player);
+
+        if (keys) {
+            return BTAPI.instance.getKeyboard()?.isButtonReleased(keys) ?? false;
+        }
+
         // TODO: Implement gamepad input (VV-135).
         return false;
     },
@@ -672,40 +731,51 @@ export const BT = {
     /**
      * Checks whether a keyboard key is currently held.
      *
-     * This API is currently a stub and always returns `false`.
+     * Uses `KeyboardEvent.code` (for example `"KeyW"`, `"Space"`, `"ArrowUp"`).
      *
-     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
-     * @returns `true` while the key remains pressed. Returns `false` until the input system is implemented.
+     * @param key - DOM keyboard code string.
+     * @returns `true` while the key remains pressed.
      */
-    keyDown: (_key: string): boolean => {
-        // TODO: Implement input system.
-        return false;
+    keyDown: (key: string): boolean => {
+        return BTAPI.instance.getKeyboard()?.isKeyDown(key) ?? false;
     },
 
     /**
-     * Checks whether a keyboard key was pressed on the current frame.
+     * Checks whether a keyboard key was pressed on the current fixed-update tick.
      *
-     * This API is currently a stub and always returns `false`.
+     * Optional `repeatRate` is in fixed ticks between repeats (`0` or omitted =
+     * edge only). When `repeatRate > 0`, repeats fire while held per
+     * `(ticks - firstPressTick) > 0 && (ticks - firstPressTick) % repeatRate === 0`.
      *
-     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
-     * @returns `true` on the transition frame. Returns `false` until the input system is implemented.
+     * @param key - DOM keyboard code string.
+     * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
+     * @returns `true` on the press edge (and on repeat ticks when configured).
      */
-    keyPressed: (_key: string): boolean => {
-        // TODO: Implement input system.
-        return false;
+    keyPressed: (key: string, repeatRate?: number): boolean => {
+        const tick = BTAPI.instance.getTicks();
+
+        return BTAPI.instance.getKeyboard()?.isKeyPressed(key, repeatRate, tick) ?? false;
     },
 
     /**
      * Checks whether a keyboard key was released on the current frame.
      *
-     * This API is currently a stub and always returns `false`.
-     *
-     * @param _key - DOM keyboard code such as `"KeyW"` or `"Space"`.
-     * @returns `true` on the release frame. Returns `false` until the input system is implemented.
+     * @param key - DOM keyboard code string.
+     * @returns `true` on the release edge.
      */
-    keyReleased: (_key: string): boolean => {
-        // TODO: Implement input system.
-        return false;
+    keyReleased: (key: string): boolean => {
+        return BTAPI.instance.getKeyboard()?.isKeyReleased(key) ?? false;
+    },
+
+    /**
+     * Text accumulated since the last end-of-frame flush from filtered `beforeinput`
+     * (and Tab / Escape where `beforeinput` is unreliable). Read during `update()` /
+     * `render()`; the buffer clears after each frame.
+     *
+     * @returns Characters for text-entry helpers (VV-396).
+     */
+    inputString: (): string => {
+        return BTAPI.instance.getKeyboard()?.getInputString() ?? '';
     },
 
     // #endregion
