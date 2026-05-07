@@ -4,6 +4,7 @@
   "allowCompoundWords": true,
   "dictionaries": ["typescript", "node", "html", "css", "fonts", "npm", "softwareTerms"],
   "words": [
+    "ABXY",
     "ABGR",
     "antialiasing",
     "bgra",

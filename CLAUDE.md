@@ -87,6 +87,15 @@ Dual WebGPU pipeline architecture:
 5. **No `any` types** - use `unknown` or proper types
 6. **Type-only imports** - `import type { ... }` for types
 
+## Input Conventions
+
+- `BTN_*` constants are bit flags (powers of 2), not sequential integers
+- `BT.buttonDown` / `BT.buttonPressed` / `BT.buttonReleased` use ANY-match semantics for masks
+- Face buttons: players `0` and `1` are keyboard OR gamepad; players `2` and `3` are gamepad-only
+- Input previous-state rollover is end-of-frame aligned (same snapshot model across pointer/keyboard/gamepad)
+- Default gamepad stick dead zone is `0.75`
+- Triggers are axis-only for now (`AXIS_TRIGGER_L` / `AXIS_TRIGGER_R`); trigger button constants are tracked in `VV-481`
+
 ## Code Style
 
 - 4-space indent, 120-char line width
