@@ -136,6 +136,44 @@ export class BTAPI {
     // #region Initialization
 
     /**
+     * Removes pointer and keyboard subsystems (detach DOM listeners, clear refs).
+     */
+    private clearInputSubsystems(): void {
+        this.pointer?.detach();
+        this.pointer = null;
+        this.keyboard?.detach();
+        this.keyboard = null;
+    }
+
+    /**
+     * Runs the demo's async {@link IBlitTechDemo.initialize}. On throw or
+     * `false`, clears input subsystems that were attached earlier in the init
+     * sequence.
+     *
+     * @param demo - Active demo instance.
+     * @returns `true` when the demo reports success.
+     */
+    private async runDemoInitialize(demo: IBlitTechDemo): Promise<boolean> {
+        try {
+            const ok = await demo.initialize();
+
+            if (!ok) {
+                console.error('[BT] Demo initialization failed');
+                this.clearInputSubsystems();
+
+                return false;
+            }
+
+            return true;
+        } catch (err) {
+            console.error('[BT] Demo initialization threw', err);
+            this.clearInputSubsystems();
+
+            return false;
+        }
+    }
+
+    /**
      * Initializes the engine for a demo and starts the main loop on success.
      *
      * The initialization sequence is:
@@ -216,9 +254,11 @@ export class BTAPI {
 
         // Initialize pointer input. Listeners attach to the canvas; per-frame
         // resets are wired to GameLoop.onTickStart below.
+        this.pointer?.detach();
         this.pointer = new PointerInput();
         this.pointer.attach(canvas, this.hwSettings.displaySize);
 
+        this.keyboard?.detach();
         this.keyboard = new KeyboardInput();
         this.keyboard.attach(canvas, {
             getTicks: () => this.loop?.getTicks() ?? 0,
@@ -229,27 +269,7 @@ export class BTAPI {
         // Initialize the demo.
         console.log('[BT] Initializing demo');
 
-        let demoInitOk: boolean;
-
-        try {
-            demoInitOk = await demo.initialize();
-        } catch (err) {
-            console.error('[BT] Demo initialization threw', err);
-            this.pointer?.detach();
-            this.pointer = null;
-            this.keyboard?.detach();
-            this.keyboard = null;
-
-            return false;
-        }
-
-        if (!demoInitOk) {
-            console.error('[BT] Demo initialization failed');
-            this.pointer?.detach();
-            this.pointer = null;
-            this.keyboard?.detach();
-            this.keyboard = null;
-
+        if (!(await this.runDemoInitialize(demo))) {
             return false;
         }
 
@@ -304,10 +324,7 @@ export class BTAPI {
      */
     public stop(): void {
         this.loop?.stop();
-        this.pointer?.detach();
-        this.pointer = null;
-        this.keyboard?.detach();
-        this.keyboard = null;
+        this.clearInputSubsystems();
     }
 
     // #endregion

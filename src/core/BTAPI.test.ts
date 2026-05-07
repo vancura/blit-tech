@@ -386,6 +386,30 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getKeyboard()).toBeNull();
         });
 
+        it('double initialize without stop detaches prior pointer and keyboard before reattaching', async () => {
+            const canvas = makeMockCanvas();
+
+            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+
+            const pointerBefore = BTAPI.instance.getPointer();
+            const keyboardBefore = BTAPI.instance.getKeyboard();
+
+            expect(pointerBefore).not.toBeNull();
+            expect(keyboardBefore).not.toBeNull();
+
+            vi.mocked(canvas.removeEventListener).mockClear();
+
+            await BTAPI.instance.initialize(makeMockDemo(), canvas);
+
+            expect(BTAPI.instance.getPointer()).not.toBe(pointerBefore);
+            expect(BTAPI.instance.getKeyboard()).not.toBe(keyboardBefore);
+
+            const removedKinds = vi.mocked(canvas.removeEventListener).mock.calls.map((call) => call[0]);
+
+            expect(removedKinds).toContain('pointermove');
+            expect(removedKinds).toContain('keydown');
+        });
+
         it('should start the game loop on success', async () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
 
