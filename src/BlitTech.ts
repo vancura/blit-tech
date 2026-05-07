@@ -55,6 +55,7 @@ let keyboardFaceButtonKeysPlayer1: Map<number, string[]>;
 
 /** Pointer button bit mask (`BTN_POINTER_A..D`). */
 const POINTER_BUTTON_MASK = (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
+const POINTER_FLAGS = [1 << 12, 1 << 13, 1 << 14, 1 << 15] as const;
 
 /** Face button bit mask (`BTN_UP..BTN_SELECT`). */
 const FACE_BUTTON_MASK = (1 << 12) - 1;
@@ -758,7 +759,7 @@ export const BT = {
         const pointerMask = button & POINTER_BUTTON_MASK;
 
         if (pointerMask !== 0) {
-            for (const pointerFlag of [1 << 12, 1 << 13, 1 << 14, 1 << 15]) {
+            for (const pointerFlag of POINTER_FLAGS) {
                 if ((pointerMask & pointerFlag) === 0) {
                     continue;
                 }
@@ -811,7 +812,7 @@ export const BT = {
         const pointerMask = button & POINTER_BUTTON_MASK;
 
         if (pointerMask !== 0) {
-            for (const pointerFlag of [1 << 12, 1 << 13, 1 << 14, 1 << 15]) {
+            for (const pointerFlag of POINTER_FLAGS) {
                 if ((pointerMask & pointerFlag) === 0) {
                     continue;
                 }
@@ -870,7 +871,7 @@ export const BT = {
         const pointerMask = button & POINTER_BUTTON_MASK;
 
         if (pointerMask !== 0) {
-            for (const pointerFlag of [1 << 12, 1 << 13, 1 << 14, 1 << 15]) {
+            for (const pointerFlag of POINTER_FLAGS) {
                 if ((pointerMask & pointerFlag) === 0) {
                     continue;
                 }

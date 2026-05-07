@@ -140,7 +140,10 @@ export class BTAPI {
     // #region Initialization
 
     /**
-     * Removes pointer and keyboard subsystems (detach DOM listeners, clear refs).
+     * Removes pointer, keyboard, and gamepad subsystems.
+     *
+     * Pointer/keyboard detach DOM listeners; gamepad detaches polling state and
+     * clears subsystem references.
      */
     private clearInputSubsystems(): void {
         this.pointer?.detach();
@@ -328,10 +331,11 @@ export class BTAPI {
     }
 
     /**
-     * Stops the active game loop and detaches input listeners.
+     * Stops the active game loop and detaches input subsystems.
      *
-     * The pointer and keyboard subsystems are detached so DOM listeners do not
-     * leak across engine restarts (relevant in tests where the same DOM persists).
+     * Pointer, keyboard, and gamepad subsystems are detached so listeners and
+     * polling state do not leak across engine restarts (relevant in tests where
+     * the same DOM persists).
      */
     public stop(): void {
         this.loop?.stop();

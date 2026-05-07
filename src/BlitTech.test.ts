@@ -380,6 +380,14 @@ describe('BT.buttonDown', () => {
         expect(BT.buttonDown(BT.BTN_POINTER_A)).toBe(false);
         expect(BT.buttonDown(BT.BTN_POINTER_D, 3)).toBe(false);
     });
+
+    it('uses gamepad for player 2+ when keyboard maps are unavailable', () => {
+        const isButtonDown = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ isButtonDown } as never);
+
+        expect(BT.buttonDown(BT.BTN_START, 2)).toBe(true);
+        expect(isButtonDown).toHaveBeenCalledWith(BT.BTN_START, 2);
+    });
 });
 
 describe('BT.buttonPressed', () => {
@@ -448,14 +456,6 @@ describe('BT.buttonReleased', () => {
 
         expect(BT.buttonReleased(BT.BTN_A, 1)).toBe(true);
         expect(isButtonReleased).toHaveBeenCalledWith(BT.BTN_A, 1);
-    });
-
-    it('uses gamepad for player 2+ when keyboard maps are unavailable', () => {
-        const isButtonDown = vi.fn().mockReturnValue(true);
-        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ isButtonDown } as never);
-
-        expect(BT.buttonDown(BT.BTN_START, 2)).toBe(true);
-        expect(isButtonDown).toHaveBeenCalledWith(BT.BTN_START, 2);
     });
 });
 

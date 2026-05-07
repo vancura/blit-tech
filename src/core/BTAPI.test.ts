@@ -441,7 +441,17 @@ describe('BTAPI', () => {
 
             const endFrameSpy = vi.spyOn(gamepad as NonNullable<typeof gamepad>, 'endFrame');
             // GameLoop.start uses a double-rAF bootstrap before the first tick.
+            const maxIterations = 1000;
+            let iterations = 0;
+
             while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error(
+                        'Exceeded max rAF callback drain iterations before gamepad.endFrame was called; possible loop stall.',
+                    );
+                }
+
                 const cb = rafCallbacks.shift();
 
                 if (cb) {
