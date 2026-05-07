@@ -836,14 +836,18 @@ export const BT = {
                 continue;
             }
 
-            const keyboardMatch =
-                BTAPI.instance
-                    .getKeyboard()
-                    ?.isButtonPressed(faceButtonKeys(faceButton, player) ?? [], repeatRate, tick) ?? false;
-            const gamepadMatch =
-                BTAPI.instance.getGamepad()?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
+            const keyboard = BTAPI.instance.getKeyboard();
+            const gamepad = BTAPI.instance.getGamepad();
+            const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
+            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
+            const gamepadPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
+            const mergedPressed =
+                (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
+                (gamepadPressed && !(keyboardDown && !keyboardPressed));
 
-            if (keyboardMatch || gamepadMatch) {
+            if (mergedPressed) {
                 return true;
             }
         }
@@ -894,11 +898,18 @@ export const BT = {
                 continue;
             }
 
-            const keyboardMatch =
-                BTAPI.instance.getKeyboard()?.isButtonReleased(faceButtonKeys(faceButton, player) ?? []) ?? false;
-            const gamepadMatch = BTAPI.instance.getGamepad()?.isButtonReleased(faceButton, player) ?? false;
+            const keyboard = BTAPI.instance.getKeyboard();
+            const gamepad = BTAPI.instance.getGamepad();
+            const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
+            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
+            const gamepadReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
+            const mergedReleased =
+                (keyboardReleased && !(gamepadDown && !gamepadReleased)) ||
+                (gamepadReleased && !(keyboardDown && !keyboardReleased));
 
-            if (keyboardMatch || gamepadMatch) {
+            if (mergedReleased) {
                 return true;
             }
         }

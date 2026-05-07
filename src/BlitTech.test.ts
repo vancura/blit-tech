@@ -415,13 +415,35 @@ describe('BT.buttonPressed', () => {
         vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
         const isButtonPressedKeyboard = vi.fn().mockReturnValue(false);
         const isButtonPressedGamepad = vi.fn().mockReturnValue(true);
-        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonPressed: isButtonPressedKeyboard } as never);
-        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ isButtonPressed: isButtonPressedGamepad } as never);
+        const isButtonDownKeyboard = vi.fn().mockReturnValue(false);
+        const isButtonDownGamepad = vi.fn().mockReturnValue(false);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({
+            isButtonDown: isButtonDownKeyboard,
+            isButtonPressed: isButtonPressedKeyboard,
+        } as never);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({
+            isButtonDown: isButtonDownGamepad,
+            isButtonPressed: isButtonPressedGamepad,
+        } as never);
 
         BT.buttonPressed(BT.BTN_A, 0, 6);
 
         expect(isButtonPressedKeyboard).toHaveBeenCalledWith(expect.any(Array), 6, 120);
         expect(isButtonPressedGamepad).toHaveBeenCalledWith(BT.BTN_A, 0, 6, 120);
+    });
+
+    it('suppresses pressed edge when merged button was already down via keyboard', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(true),
+            isButtonPressed: vi.fn().mockReturnValue(false),
+        } as never);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(true),
+            isButtonPressed: vi.fn().mockReturnValue(true),
+        } as never);
+
+        expect(BT.buttonPressed(BT.BTN_A, 0)).toBe(false);
     });
 });
 
@@ -449,13 +471,29 @@ describe('BT.buttonReleased', () => {
     it('merges keyboard and gamepad for players 0 and 1', () => {
         const isButtonReleasedKeyboard = vi.fn().mockReturnValue(false);
         const isButtonReleased = vi.fn().mockReturnValue(true);
+        const isButtonDownKeyboard = vi.fn().mockReturnValue(false);
+        const isButtonDown = vi.fn().mockReturnValue(false);
         vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({
+            isButtonDown: isButtonDownKeyboard,
             isButtonReleased: isButtonReleasedKeyboard,
         } as never);
-        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ isButtonReleased } as never);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ isButtonDown, isButtonReleased } as never);
 
         expect(BT.buttonReleased(BT.BTN_A, 1)).toBe(true);
         expect(isButtonReleased).toHaveBeenCalledWith(BT.BTN_A, 1);
+    });
+
+    it('suppresses released edge when merged button remains down via keyboard', () => {
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(true),
+            isButtonReleased: vi.fn().mockReturnValue(false),
+        } as never);
+        vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({
+            isButtonDown: vi.fn().mockReturnValue(false),
+            isButtonReleased: vi.fn().mockReturnValue(true),
+        } as never);
+
+        expect(BT.buttonReleased(BT.BTN_A, 0)).toBe(false);
     });
 });
 
