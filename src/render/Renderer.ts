@@ -343,6 +343,10 @@ export class Renderer {
         this.submitFrame(commandEncoder, swapTexture);
     }
 
+    // #endregion
+
+    // #region Rendering API - Primitives
+
     /**
      * Draws a filled rectangle using two triangles.
      *
@@ -397,7 +401,7 @@ export class Renderer {
 
     // #endregion
 
-    // #region Rendering API - Primitives
+    // #region Rendering API - Sprites
 
     /**
      * Draws a sprite region from an indexed sprite sheet.
@@ -424,6 +428,10 @@ export class Renderer {
         this.sprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
+    // #endregion
+
+    // #region Frame Capture API
+
     /**
      * Captures the next rendered frame as a PNG blob.
      * The capture happens on the next `endFrame()` call.
@@ -434,6 +442,10 @@ export class Renderer {
     captureFrame(): Promise<Blob> {
         return this.frameCapture.requestCapture();
     }
+
+    // #endregion
+
+    // #region Camera API
 
     /**
      * Sets the camera offset for scrolling.
@@ -456,10 +468,6 @@ export class Renderer {
         return this.cameraOffset.clone();
     }
 
-    // #endregion
-
-    // #region Rendering API - Sprites
-
     /**
      * Resets the camera to the origin (0, 0).
      */
@@ -468,6 +476,10 @@ export class Renderer {
         this.primitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
     }
+
+    // #endregion
+
+    // #region Post-Process Effects API
 
     /**
      * Appends a fullscreen post-processing effect to the chain matching its
@@ -497,10 +509,6 @@ export class Renderer {
         chain.add(effect);
     }
 
-    // #endregion
-
-    // #region Frame Capture API
-
     /**
      * Removes a previously registered post-processing effect.
      *
@@ -525,10 +533,6 @@ export class Renderer {
         }
     }
 
-    // #endregion
-
-    // #region Camera API
-
     /**
      * Removes every registered post-processing effect across both tiers.
      *
@@ -542,6 +546,10 @@ export class Renderer {
         this.pixelChain.clear();
         this.displayChain.clear();
     }
+
+    // #endregion
+
+    // #region Private — frame encoding
 
     /**
      * Tries to acquire the swap-chain texture and validate its dimensions.
@@ -583,10 +591,6 @@ export class Renderer {
             this.palette.clearDirty();
         }
     }
-
-    // #endregion
-
-    // #region Post-Process Effects API
 
     /**
      * Encodes the primitive + sprite scene render pass into the supplied target view.

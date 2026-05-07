@@ -609,6 +609,10 @@ export class BTAPI {
         console.log(`[BT] Refreshed ${refreshed} sprite sheet(s) against current palette`);
     }
 
+    // #endregion
+
+    // #region Frame Capture API
+
     /**
      * Captures the next rendered frame as a PNG blob.
      * The capture occurs on the next completed render cycle.
@@ -624,6 +628,10 @@ export class BTAPI {
         return this.renderer.captureFrame();
     }
 
+    // #endregion
+
+    // #region Camera API
+
     /**
      * Sets the camera offset for scrolling effects.
      * The offset is applied to subsequent renderer draw calls.
@@ -633,10 +641,6 @@ export class BTAPI {
     public setCameraOffset(offset: Vector2i): void {
         this.renderer?.setCameraOffset(offset);
     }
-
-    // #endregion
-
-    // #region Camera API
 
     /**
      * Gets the current camera offset.
@@ -653,6 +657,10 @@ export class BTAPI {
     public resetCamera(): void {
         this.renderer?.resetCamera();
     }
+
+    // #endregion
+
+    // #region Palette Effects API
 
     /**
      * Starts rotating a range of palette entries at a constant speed.
@@ -693,10 +701,6 @@ export class BTAPI {
         this.assertFiniteDuration('paletteFade', durationMs);
         this.paletteEffects.add(new FadeEffect(this.palette, target, durationMs, easing));
     }
-
-    // #endregion
-
-    // #region Palette Effects API
 
     /**
      * Fades only a subset of palette indices toward a target over time.
@@ -863,19 +867,6 @@ export class BTAPI {
         }
     }
 
-    /**
-     * Validates that a duration is a finite, non-negative number.
-     *
-     * @param method - Calling method name for the error message.
-     * @param durationMs - Duration to validate.
-     * @throws Error if the duration is not finite or is negative.
-     */
-    private assertFiniteDuration(method: string, durationMs: number): void {
-        if (!Number.isFinite(durationMs) || durationMs < 0) {
-            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
-        }
-    }
-
     // #endregion
 
     // #region Private Helpers
@@ -914,6 +905,19 @@ export class BTAPI {
         }
 
         this.spriteSheets.add(sheet);
+    }
+
+    /**
+     * Validates that a duration is a finite, non-negative number.
+     *
+     * @param method - Calling method name for the error message.
+     * @param durationMs - Duration to validate.
+     * @throws Error if the duration is not finite or is negative.
+     */
+    private assertFiniteDuration(method: string, durationMs: number): void {
+        if (!Number.isFinite(durationMs) || durationMs < 0) {
+            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
+        }
     }
 
     /**
