@@ -17,7 +17,12 @@ import { Palette } from './assets/Palette';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import { defaultHardwareSettings, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
-import { DEFAULT_KEYBOARD_PLAYER1, DEFAULT_KEYBOARD_PLAYER2, type FaceButtonCode } from './input/defaultKeyboardMap';
+import {
+    createDefaultKeyboardRuntimeMaps,
+    DEFAULT_KEYBOARD_PLAYER1,
+    DEFAULT_KEYBOARD_PLAYER2,
+    type FaceButtonCode,
+} from './input/defaultKeyboardMap';
 import { BarrelDistortion } from './render/effects/display/BarrelDistortion';
 import { Bloom } from './render/effects/display/Bloom';
 import { ChromaticAberration } from './render/effects/display/ChromaticAberration';
@@ -41,25 +46,44 @@ import { applyEasing } from './utils/Easing';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
 
+/** Runtime face-button → key-code lists for keyboard player 0 (mutable via {@link BT.inputMap}). */
+let keyboardFaceButtonKeysPlayer0: Map<number, string[]>;
+
+/** Runtime face-button → key-code lists for keyboard player 1 (mutable via {@link BT.inputMap}). */
+let keyboardFaceButtonKeysPlayer1: Map<number, string[]>;
+
 /**
- * Returns default keyboard `KeyboardEvent.code` list for a face button and player,
+ * Replaces runtime keyboard maps with fresh copies of {@link DEFAULT_KEYBOARD_PLAYER1} /
+ * {@link DEFAULT_KEYBOARD_PLAYER2}.
+ */
+function resetKeyboardFaceButtonMaps(): void {
+    const [m0, m1] = createDefaultKeyboardRuntimeMaps();
+
+    keyboardFaceButtonKeysPlayer0 = m0;
+    keyboardFaceButtonKeysPlayer1 = m1;
+}
+
+resetKeyboardFaceButtonMaps();
+
+/**
+ * Returns runtime keyboard `KeyboardEvent.code` list for a face button and player,
  * or `null` when there is no keyboard fallback (e.g. players 2–3 for face buttons).
  *
  * @param button - Face button constant (`BT.BTN_UP` … `BT.BTN_SELECT`).
  * @param player - Zero-based player index.
  * @returns Key codes for that mapping, or `null` if unsupported.
  */
-function defaultFaceButtonKeys(button: number, player: number): readonly string[] | null {
+function faceButtonKeys(button: number, player: number): readonly string[] | null {
     if (button < 0 || button > 11) {
         return null;
     }
 
     if (player === 0) {
-        return DEFAULT_KEYBOARD_PLAYER1[button as FaceButtonCode];
+        return keyboardFaceButtonKeysPlayer0.get(button as FaceButtonCode) ?? null;
     }
 
     if (player === 1) {
-        return DEFAULT_KEYBOARD_PLAYER2[button as FaceButtonCode];
+        return keyboardFaceButtonKeysPlayer1.get(button as FaceButtonCode) ?? null;
     }
 
     return null;
@@ -645,9 +669,10 @@ export const BT = {
      * (matches RetroBlit canonical, not DOM `PointerEvent.button` index).
      * Touch / pen slots only support `A`; B/C/D return `false`.
      *
-     * For `BTN_UP`…`BTN_SELECT`, players `0` and `1` use the default keyboard
-     * maps (`BT.DEFAULT_KEYBOARD_PLAYER1` / `BT.DEFAULT_KEYBOARD_PLAYER2`).
-     * Players `2` and `3` have no keyboard mapping (gamepad when VV-135 lands).
+     * For `BTN_UP`…`BTN_SELECT`, players `0` and `1` use the runtime keyboard maps
+     * (defaults match `BT.DEFAULT_KEYBOARD_PLAYER1` / `BT.DEFAULT_KEYBOARD_PLAYER2`;
+     * customize with {@link BT.inputMap}). Players `2` and `3` have no keyboard
+     * mapping (gamepad when VV-135 lands).
      * Pointer codes (`BTN_POINTER_*`) use the `player` argument as the pointer slot.
      *
      * @param button - Button constant from the `BTN_*` set.
@@ -660,7 +685,7 @@ export const BT = {
             return BTAPI.instance.getPointer()?.isButtonDown(button, player) ?? false;
         }
 
-        const keys = defaultFaceButtonKeys(button, player);
+        const keys = faceButtonKeys(button, player);
 
         if (keys) {
             return BTAPI.instance.getKeyboard()?.isButtonDown(keys) ?? false;
@@ -686,7 +711,7 @@ export const BT = {
             return BTAPI.instance.getPointer()?.isButtonPressed(button, player) ?? false;
         }
 
-        const keys = defaultFaceButtonKeys(button, player);
+        const keys = faceButtonKeys(button, player);
 
         if (keys) {
             const tick = BTAPI.instance.getTicks();
@@ -714,7 +739,7 @@ export const BT = {
             return BTAPI.instance.getPointer()?.isButtonReleased(button, player) ?? false;
         }
 
-        const keys = defaultFaceButtonKeys(button, player);
+        const keys = faceButtonKeys(button, player);
 
         if (keys) {
             return BTAPI.instance.getKeyboard()?.isButtonReleased(keys) ?? false;
@@ -722,6 +747,45 @@ export const BT = {
 
         // TODO: Implement gamepad input (VV-135).
         return false;
+    },
+
+    /**
+     * Assigns one or more `KeyboardEvent.code` values to a face button for a keyboard player.
+     *
+     * Logical button state is the OR of all listed keys. Only players `0` and `1`
+     * support keyboard; other indices no-op. Button must be `BT.BTN_UP` …
+     * `BT.BTN_SELECT` (`0`…`11`); out-of-range values no-op. Pass an empty key list
+     * to clear keyboard bindings for that button until remapped again.
+     *
+     * @param player - Zero-based player index (`0` or `1`).
+     * @param button - Face button constant.
+     * @param keys - DOM key codes (for example `'Space'`, `'KeyW'`).
+     */
+    inputMap: (player: number, button: number, ...keys: string[]): void => {
+        if (player !== 0 && player !== 1) {
+            return;
+        }
+
+        if (button < 0 || button > 11) {
+            return;
+        }
+
+        const codes = [...keys];
+
+        if (player === 0) {
+            keyboardFaceButtonKeysPlayer0.set(button, codes);
+        } else {
+            keyboardFaceButtonKeysPlayer1.set(button, codes);
+        }
+    },
+
+    /**
+     * Restores built-in default keyboard maps for players `0` and `1` (VV-435).
+     *
+     * Same tables as `BT.DEFAULT_KEYBOARD_PLAYER1` and `BT.DEFAULT_KEYBOARD_PLAYER2`.
+     */
+    inputMapReset: (): void => {
+        resetKeyboardFaceButtonMaps();
     },
 
     // #endregion

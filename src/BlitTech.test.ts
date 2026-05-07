@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { BitmapFont, HardwareSettings } from './BlitTech';
 import { BT, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
 import { BTAPI } from './core/BTAPI';
+import type { FaceButtonCode } from './input/defaultKeyboardMap';
 
 // #region Helpers
 
@@ -413,6 +414,96 @@ describe('BT.buttonReleased', () => {
 
         expect(BT.buttonReleased(BT.BTN_POINTER_C, 2)).toBe(true);
         expect(isButtonReleased).toHaveBeenCalledWith(BT.BTN_POINTER_C, 2);
+    });
+});
+
+// #endregion
+
+// #region BT.inputMap / BT.inputMapReset
+
+describe('BT.inputMap / BT.inputMapReset', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+        BT.inputMapReset();
+    });
+
+    it('remaps player 0 face buttons through the keyboard subsystem', () => {
+        const isButtonDown = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, BT.BTN_A, 'KeyZ');
+
+        expect(BT.buttonDown(BT.BTN_A, 0)).toBe(true);
+        expect(isButtonDown).toHaveBeenCalledWith(['KeyZ']);
+    });
+
+    it('remaps player 1 independently of player 0', () => {
+        const isButtonDown = vi.fn().mockImplementation((codes: readonly string[]) => codes.includes('Numpad9'));
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, BT.BTN_A, 'KeyX');
+        BT.inputMap(1, BT.BTN_A, 'Numpad9');
+
+        BT.buttonDown(BT.BTN_A, 0);
+        expect(isButtonDown).toHaveBeenLastCalledWith(['KeyX']);
+
+        BT.buttonDown(BT.BTN_A, 1);
+        expect(isButtonDown).toHaveBeenLastCalledWith(['Numpad9']);
+    });
+
+    it('passes multiple keys per button for OR semantics', () => {
+        const isButtonDown = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, BT.BTN_UP, 'ArrowUp', 'KeyW');
+
+        BT.buttonDown(BT.BTN_UP, 0);
+        expect(isButtonDown).toHaveBeenCalledWith(['ArrowUp', 'KeyW']);
+    });
+
+    it('restores default key lists for both keyboard players', () => {
+        const isButtonDown = vi.fn().mockReturnValue(false);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, BT.BTN_UP, 'F1');
+        BT.inputMap(1, BT.BTN_UP, 'F2');
+        BT.inputMapReset();
+
+        BT.buttonDown(BT.BTN_UP, 0);
+        expect(isButtonDown).toHaveBeenCalledWith([...BT.DEFAULT_KEYBOARD_PLAYER1[BT.BTN_UP as FaceButtonCode]]);
+
+        BT.buttonDown(BT.BTN_UP, 1);
+        expect(isButtonDown).toHaveBeenCalledWith([...BT.DEFAULT_KEYBOARD_PLAYER2[BT.BTN_UP as FaceButtonCode]]);
+    });
+
+    it('ignores remap attempts for unsupported keyboard players', () => {
+        const isButtonDown = vi.fn().mockReturnValue(false);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(2, BT.BTN_A, 'KeyZ');
+
+        BT.buttonDown(BT.BTN_A, 0);
+        expect(isButtonDown).toHaveBeenCalledWith([...BT.DEFAULT_KEYBOARD_PLAYER1[BT.BTN_A as FaceButtonCode]]);
+    });
+
+    it('ignores remap attempts with out-of-range face button ids', () => {
+        const isButtonDown = vi.fn().mockReturnValue(false);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, 99, 'KeyZ');
+
+        BT.buttonDown(BT.BTN_A, 0);
+        expect(isButtonDown).toHaveBeenCalledWith([...BT.DEFAULT_KEYBOARD_PLAYER1[BT.BTN_A as FaceButtonCode]]);
+    });
+
+    it('allows clearing keyboard bindings with an empty key list', () => {
+        const isButtonDown = vi.fn().mockReturnValue(false);
+        vi.spyOn(BTAPI.instance, 'getKeyboard').mockReturnValue({ isButtonDown } as never);
+
+        BT.inputMap(0, BT.BTN_A);
+
+        BT.buttonDown(BT.BTN_A, 0);
+        expect(isButtonDown).toHaveBeenCalledWith([]);
     });
 });
 
