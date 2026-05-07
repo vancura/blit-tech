@@ -763,8 +763,11 @@ describe('BT gamepad constants and APIs', () => {
         vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue({ getAxis, isConnected, connectedCount } as never);
 
         expect(BT.getAxis(BT.AXIS_LEFT_X, 1)).toBe(0.25);
+        expect(getAxis).toHaveBeenCalledWith(BT.AXIS_LEFT_X, 1);
         expect(BT.gamepadConnected(1)).toBe(true);
+        expect(isConnected).toHaveBeenCalledWith(1);
         expect(BT.gamepadCount()).toBe(2);
+        expect(connectedCount).toHaveBeenCalledWith();
     });
 
     it('returns 0 from getAxis when the gamepad subsystem is not initialized', () => {
