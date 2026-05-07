@@ -1,8 +1,8 @@
 # Input Guide
 
 Blit-Tech provides DOM-backed input: **pointer** (mouse, touch, pen), **keyboard** (`KeyboardEvent.code` tracking and
-virtual face buttons for two players), and **text accumulation** for UI entry (`BT.inputString()`). Gamepad support for
-face buttons on players 2 and 3 is not implemented yet.
+virtual face buttons), **gamepad** (up to four players via `navigator.getGamepads()`), and **text accumulation** for UI
+entry (`BT.inputString()`).
 
 All pointer coordinates are returned in logical display space (the `displaySize` configured in `queryHardware()`),
 independent of the canvas's CSS or backing-buffer size.
@@ -115,19 +115,21 @@ if (BT.keyReleased('Escape')) {
 }
 ```
 
-### Face buttons (players 0 and 1)
+### Face buttons (`BTN_UP` through `BTN_SELECT`)
 
-Constants `BT.BTN_UP` through `BT.BTN_SELECT` map to directional pad, action buttons, shoulders, start, and select. For
-**player 0** and **player 1**, `BT.buttonDown` / `BT.buttonPressed` / `BT.buttonReleased` use per-player keyboard maps:
-each logical button is true if **any** mapped key is active (OR semantics).
+Face button constants are bit flags. You can pass a single button or a combined mask; matching uses **ANY** semantics:
+`BT.buttonDown(BT.BTN_A | BT.BTN_B)` is true when either A or B is down.
 
-For mapped face buttons, `BT.buttonPressed` is edge-only (no repeat interval parameter). Use
-`BT.keyPressed(code, repeatRate)` when you need tick-based repeat behavior.
+For **player 0** and **player 1**, face-button reads merge keyboard maps and gamepad state (logical OR). For **player
+2** and **player 3**, face-button reads use gamepad only.
+
+`BT.buttonPressed` supports optional tick-based repeat via `repeatRate` (`0` or omitted = edge only), matching
+`BT.keyPressed` semantics.
 
 ```ts
 // Player 0 (default: WASD-style + Space / KeyB for A, etc.)
 BT.buttonDown(BT.BTN_UP, 0);
-BT.buttonPressed(BT.BTN_A, 0);
+BT.buttonPressed(BT.BTN_A, 0, 6); // edge + repeat every 6 ticks while held
 
 // Player 1 (default: arrow keys + alternate bindings)
 BT.buttonDown(BT.BTN_LEFT, 1);
@@ -158,11 +160,30 @@ Pass **no** key codes to clear keyboard bindings for that player and button unti
 BT.inputMap(0, BT.BTN_X); // player 0 X has no keyboard keys until remapped
 ```
 
-### Players 2 and 3
+### Gamepad API
 
-There is **no** keyboard fallback for face buttons on players 2 and 3; `BT.buttonDown(BTN_*, 2)` and `..., 3)` stay
-`false` until gamepad support exists. Pointer buttons (`BTN_POINTER_*`) still use the second argument as the pointer
-slot index (0–3), not a gamepad player index.
+```ts
+BT.gamepadConnected(0); // true when player 0 has a connected gamepad
+BT.gamepadCount(); // number of connected gamepads (0..4)
+
+BT.getAxis(BT.AXIS_LEFT_X, 0); // -1.0 .. 1.0 (dead-zone filtered)
+BT.getAxis(BT.AXIS_TRIGGER_L, 0); // 0.0 .. 1.0
+```
+
+Axis constants:
+
+- `AXIS_LEFT_X`, `AXIS_LEFT_Y`
+- `AXIS_RIGHT_X`, `AXIS_RIGHT_Y`
+- `AXIS_TRIGGER_L`, `AXIS_TRIGGER_R`
+
+Player constants:
+
+- `PLAYER_ONE` (`0`)
+- `PLAYER_TWO` (`1`)
+- `PLAYER_THREE` (`2`)
+- `PLAYER_FOUR` (`3`)
+
+Default dead zone for analog sticks is `0.75` (`GamepadInput.DEFAULT_GAMEPAD_DEAD_ZONE`).
 
 ### Text input buffer
 
@@ -210,6 +231,8 @@ means:
 - `pointerDelta()` reflects movement between the last `update()` and the current one.
 - Keyboard-held keys and edges follow the same end-of-frame snapshot timing as pointer input (`KeyboardInput.endFrame`
   aligns with pointer flush).
+- Gamepad previous-state rollover also happens at end-of-frame, while current gamepad state is polled from the Gamepad
+  API during button/axis queries.
 - `buttonPressed()` / `buttonReleased()` edges are never lost even when a press and release both arrive in the same
   inter-frame gap (they appear as pressed-then-released across consecutive frames).
 
@@ -238,10 +261,11 @@ Coordinates are clamped to `[0, displaySize - 1]` on each axis. The conversion i
 
 ## Implementation Notes
 
-- `PointerInput` and `KeyboardInput` are internal; import from `blit-tech` and access through `BT.*` methods.
+- `PointerInput`, `KeyboardInput`, and `GamepadInput` are internal; import from `blit-tech` and access through `BT.*`
+  methods.
 - Default keyboard tables live in `defaultKeyboardMap.ts`; runtime remaps are stored in the `BT` facade and reset with
   `BT.inputMapReset()`.
 - The `POINTER_SLOT_COUNT` constant (value `4`) is exported for demos that iterate over slots.
-- `PointerInput` and `KeyboardInput` are created and `attach()`-ed inside `BTAPI.initialize()`, so they are ready before
-  `demo.initialize()` runs.
-- `stop()` calls `detach()` on both subsystems and clears references to prevent DOM listener leaks.
+- `PointerInput`, `KeyboardInput`, and `GamepadInput` are created and attached inside `BTAPI.initialize()`, so they are
+  ready before `demo.initialize()` runs.
+- `stop()` calls `detach()` on all three input subsystems and clears references to prevent listener leaks.

@@ -21,6 +21,7 @@ import {
     createDefaultKeyboardRuntimeMaps,
     DEFAULT_KEYBOARD_PLAYER1,
     DEFAULT_KEYBOARD_PLAYER2,
+    FACE_BUTTON_FLAGS,
     type FaceButtonCode,
 } from './input/defaultKeyboardMap';
 import { BarrelDistortion } from './render/effects/display/BarrelDistortion';
@@ -52,6 +53,13 @@ let keyboardFaceButtonKeysPlayer0: Map<number, string[]>;
 /** Runtime face-button → key-code lists for keyboard player 1 (mutable via {@link BT.inputMap}). */
 let keyboardFaceButtonKeysPlayer1: Map<number, string[]>;
 
+/** Pointer button bit mask (`BTN_POINTER_A..D`). */
+const POINTER_BUTTON_MASK = (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
+const POINTER_FLAGS = [1 << 12, 1 << 13, 1 << 14, 1 << 15] as const;
+
+/** Face button bit mask (`BTN_UP..BTN_SELECT`). */
+const FACE_BUTTON_MASK = (1 << 12) - 1;
+
 /**
  * Replaces runtime keyboard maps with fresh copies of {@link DEFAULT_KEYBOARD_PLAYER1} /
  * {@link DEFAULT_KEYBOARD_PLAYER2}.
@@ -74,7 +82,7 @@ resetKeyboardFaceButtonMaps();
  * @returns Key codes for that mapping, or `null` if unsupported.
  */
 function faceButtonKeys(button: number, player: number): readonly string[] | null {
-    if (button < 0 || button > 11) {
+    if (!FACE_BUTTON_FLAGS.includes(button as FaceButtonCode)) {
         return null;
     }
 
@@ -87,6 +95,27 @@ function faceButtonKeys(button: number, player: number): readonly string[] | nul
     }
 
     return null;
+}
+
+/**
+ * Maps a single pointer button bit flag to the pointer subsystem button code.
+ *
+ * @param pointerFlag - One pointer button bit from `BTN_POINTER_A..D`.
+ * @returns Pointer subsystem button code (`20..23`) or `null` if not a pointer button.
+ */
+function pointerFlagToPointerCode(pointerFlag: number): number | null {
+    switch (pointerFlag) {
+        case 1 << 12:
+            return 20;
+        case 1 << 13:
+            return 21;
+        case 1 << 14:
+            return 22;
+        case 1 << 15:
+            return 23;
+        default:
+            return null;
+    }
 }
 
 // #region Public API
@@ -114,48 +143,48 @@ export const BT = {
 
     // #region Constants - Button Codes
 
-    /** Up button code. */
-    BTN_UP: 0,
+    /** Up button bit flag. */
+    BTN_UP: 1 << 0,
 
-    /** Down button code. */
-    BTN_DOWN: 1,
+    /** Down button bit flag. */
+    BTN_DOWN: 1 << 1,
 
-    /** Left button code. */
-    BTN_LEFT: 2,
+    /** Left button bit flag. */
+    BTN_LEFT: 1 << 2,
 
-    /** Right button code. */
-    BTN_RIGHT: 3,
+    /** Right button bit flag. */
+    BTN_RIGHT: 1 << 3,
 
-    /** A button code. */
-    BTN_A: 4,
+    /** A button bit flag. */
+    BTN_A: 1 << 4,
 
-    /** B button code. */
-    BTN_B: 5,
+    /** B button bit flag. */
+    BTN_B: 1 << 5,
 
-    /** X button code. */
-    BTN_X: 6,
+    /** X button bit flag. */
+    BTN_X: 1 << 6,
 
-    /** Y button code. */
-    BTN_Y: 7,
+    /** Y button bit flag. */
+    BTN_Y: 1 << 7,
 
-    /** Left shoulder button code. */
-    BTN_L: 8,
+    /** Left shoulder button bit flag. */
+    BTN_L: 1 << 8,
 
-    /** Right shoulder button code. */
-    BTN_R: 9,
+    /** Right shoulder button bit flag. */
+    BTN_R: 1 << 9,
 
-    /** Start button code. */
-    BTN_START: 10,
+    /** Start button bit flag. */
+    BTN_START: 1 << 10,
 
-    /** Select button code. */
-    BTN_SELECT: 11,
+    /** Select button bit flag. */
+    BTN_SELECT: 1 << 11,
 
     /**
      * Primary pointer button code.
      *
      * Maps to mouse left for slot 0; touch contact for slots 1-3.
      */
-    BTN_POINTER_A: 20,
+    BTN_POINTER_A: 1 << 12,
 
     /**
      * Secondary pointer button code.
@@ -164,7 +193,7 @@ export const BT = {
      * DOM `PointerEvent.button` index where 1 is middle and 2 is right).
      * Always `false` for touch slots 1-3.
      */
-    BTN_POINTER_B: 21,
+    BTN_POINTER_B: 1 << 13,
 
     /**
      * Tertiary pointer button code.
@@ -173,7 +202,7 @@ export const BT = {
      * DOM `PointerEvent.button` index where 1 is middle and 2 is right).
      * Always `false` for touch slots 1-3.
      */
-    BTN_POINTER_C: 22,
+    BTN_POINTER_C: 1 << 14,
 
     /**
      * Auxiliary pointer button code.
@@ -181,7 +210,46 @@ export const BT = {
      * Maps to mouse back/forward extra buttons (DOM `PointerEvent.button`
      * 3 or 4) for slot 0. Always `false` for touch slots 1-3.
      */
-    BTN_POINTER_D: 23,
+    BTN_POINTER_D: 1 << 15,
+
+    /** Player one index. */
+    PLAYER_ONE: 0,
+
+    /** Player two index. */
+    PLAYER_TWO: 1,
+
+    /** Player three index. */
+    PLAYER_THREE: 2,
+
+    /** Player four index. */
+    PLAYER_FOUR: 3,
+
+    /** Left stick horizontal axis index. */
+    AXIS_LEFT_X: 0,
+
+    /** Left stick vertical axis index. */
+    AXIS_LEFT_Y: 1,
+
+    /** Right stick horizontal axis index. */
+    AXIS_RIGHT_X: 2,
+
+    /** Right stick vertical axis index. */
+    AXIS_RIGHT_Y: 3,
+
+    /** Left trigger axis index (0.0 to 1.0). */
+    AXIS_TRIGGER_L: 4,
+
+    /** Right trigger axis index (0.0 to 1.0). */
+    AXIS_TRIGGER_R: 5,
+
+    /** All face buttons (A/B/X/Y). */
+    BTN_ABXY: (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7),
+
+    /** Both shoulder buttons. */
+    BTN_SHOULDER: (1 << 8) | (1 << 9),
+
+    /** Any pointer button (A/B/C/D). */
+    BTN_POINTER_ANY: (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15),
 
     /**
      * Default `KeyboardEvent.code` values for player 1 face buttons (VV-435).
@@ -669,29 +737,57 @@ export const BT = {
      * (matches RetroBlit canonical, not DOM `PointerEvent.button` index).
      * Touch / pen slots only support `A`; B/C/D return `false`.
      *
-     * For `BTN_UP`…`BTN_SELECT`, players `0` and `1` use the runtime keyboard maps
-     * (defaults match `BT.DEFAULT_KEYBOARD_PLAYER1` / `BT.DEFAULT_KEYBOARD_PLAYER2`;
-     * customize with {@link BT.inputMap}). Players `2` and `3` have no keyboard
-     * mapping (gamepad when VV-135 lands).
-     * Pointer codes (`BTN_POINTER_*`) use the `player` argument as the pointer slot.
+     * `button` accepts one or more bit flags from the `BTN_*` set (for example
+     * `BT.BTN_A | BT.BTN_B`). Matching uses ANY semantics: returns `true` when
+     * any selected button is held.
+     *
+     * For face buttons (`BTN_UP`…`BTN_SELECT`), players `0` and `1` merge keyboard
+     * and gamepad input (logical OR). Players `2` and `3` use gamepad only.
+     * Pointer flags (`BTN_POINTER_*`) use the `player` argument as pointer slot.
      *
      * @param button - Button constant from the `BTN_*` set.
      * @param player - Zero-based player index for gamepads / keyboard, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
      * @returns `true` while the button remains pressed.
      */
+    // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
     buttonDown: (button: number, player: number = 0): boolean => {
-        if (button >= 20 && button <= 23) {
-            return BTAPI.instance.getPointer()?.isButtonDown(button, player) ?? false;
+        if (!Number.isInteger(button) || button <= 0) {
+            return false;
         }
 
-        const keys = faceButtonKeys(button, player);
+        const pointerMask = button & POINTER_BUTTON_MASK;
 
-        if (keys) {
-            return BTAPI.instance.getKeyboard()?.isButtonDown(keys) ?? false;
+        if (pointerMask !== 0) {
+            for (const pointerFlag of POINTER_FLAGS) {
+                if ((pointerMask & pointerFlag) === 0) {
+                    continue;
+                }
+
+                const pointerCode = pointerFlagToPointerCode(pointerFlag);
+
+                if (pointerCode !== null && (BTAPI.instance.getPointer()?.isButtonDown(pointerCode, player) ?? false)) {
+                    return true;
+                }
+            }
         }
 
-        // TODO: Implement gamepad input (VV-135).
+        const faceMask = button & FACE_BUTTON_MASK;
+
+        for (const faceButton of FACE_BUTTON_FLAGS) {
+            if ((faceMask & faceButton) === 0) {
+                continue;
+            }
+
+            const keyboardMatch =
+                BTAPI.instance.getKeyboard()?.isButtonDown(faceButtonKeys(faceButton, player) ?? []) ?? false;
+            const gamepadMatch = BTAPI.instance.getGamepad()?.isButtonDown(faceButton, player) ?? false;
+
+            if (keyboardMatch || gamepadMatch) {
+                return true;
+            }
+        }
+
         return false;
     },
 
@@ -704,22 +800,60 @@ export const BT = {
      * @param button - Button constant from the `BTN_*` set.
      * @param player - Zero-based player index for gamepads, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
+     * @param repeatRate - Optional repeat interval in fixed ticks (`0`/omitted = edge only).
      * @returns `true` on the transition frame.
      */
-    buttonPressed: (button: number, player: number = 0): boolean => {
-        if (button >= 20 && button <= 23) {
-            return BTAPI.instance.getPointer()?.isButtonPressed(button, player) ?? false;
+    // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
+    buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
+        if (!Number.isInteger(button) || button <= 0) {
+            return false;
         }
 
-        const keys = faceButtonKeys(button, player);
+        const pointerMask = button & POINTER_BUTTON_MASK;
 
-        if (keys) {
-            const tick = BTAPI.instance.getTicks();
+        if (pointerMask !== 0) {
+            for (const pointerFlag of POINTER_FLAGS) {
+                if ((pointerMask & pointerFlag) === 0) {
+                    continue;
+                }
 
-            return BTAPI.instance.getKeyboard()?.isButtonPressed(keys, undefined, tick) ?? false;
+                const pointerCode = pointerFlagToPointerCode(pointerFlag);
+
+                if (
+                    pointerCode !== null &&
+                    (BTAPI.instance.getPointer()?.isButtonPressed(pointerCode, player) ?? false)
+                ) {
+                    return true;
+                }
+            }
         }
 
-        // TODO: Implement gamepad input (VV-135).
+        const faceMask = button & FACE_BUTTON_MASK;
+        const tick = BTAPI.instance.getTicks();
+
+        for (const faceButton of FACE_BUTTON_FLAGS) {
+            if ((faceMask & faceButton) === 0) {
+                continue;
+            }
+
+            const keyboard = BTAPI.instance.getKeyboard();
+            const gamepad = BTAPI.instance.getGamepad();
+            const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
+            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
+            const gamepadPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
+            const repeatEnabled = repeatRate !== undefined && repeatRate > 0;
+            const mergedPressed = repeatEnabled
+                ? keyboardPressed || gamepadPressed
+                : (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
+                  (gamepadPressed && !(keyboardDown && !keyboardPressed));
+
+            if (mergedPressed) {
+                return true;
+            }
+        }
+
         return false;
     },
 
@@ -734,18 +868,54 @@ export const BT = {
      *                 (0-3) for `BTN_POINTER_*`.
      * @returns `true` on the release frame.
      */
+    // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
     buttonReleased: (button: number, player: number = 0): boolean => {
-        if (button >= 20 && button <= 23) {
-            return BTAPI.instance.getPointer()?.isButtonReleased(button, player) ?? false;
+        if (!Number.isInteger(button) || button <= 0) {
+            return false;
         }
 
-        const keys = faceButtonKeys(button, player);
+        const pointerMask = button & POINTER_BUTTON_MASK;
 
-        if (keys) {
-            return BTAPI.instance.getKeyboard()?.isButtonReleased(keys) ?? false;
+        if (pointerMask !== 0) {
+            for (const pointerFlag of POINTER_FLAGS) {
+                if ((pointerMask & pointerFlag) === 0) {
+                    continue;
+                }
+
+                const pointerCode = pointerFlagToPointerCode(pointerFlag);
+
+                if (
+                    pointerCode !== null &&
+                    (BTAPI.instance.getPointer()?.isButtonReleased(pointerCode, player) ?? false)
+                ) {
+                    return true;
+                }
+            }
         }
 
-        // TODO: Implement gamepad input (VV-135).
+        const faceMask = button & FACE_BUTTON_MASK;
+
+        for (const faceButton of FACE_BUTTON_FLAGS) {
+            if ((faceMask & faceButton) === 0) {
+                continue;
+            }
+
+            const keyboard = BTAPI.instance.getKeyboard();
+            const gamepad = BTAPI.instance.getGamepad();
+            const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
+            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
+            const gamepadReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
+            const mergedReleased =
+                (keyboardReleased && !(gamepadDown && !gamepadReleased)) ||
+                (gamepadReleased && !(keyboardDown && !keyboardReleased));
+
+            if (mergedReleased) {
+                return true;
+            }
+        }
+
         return false;
     },
 
@@ -753,8 +923,8 @@ export const BT = {
      * Assigns one or more `KeyboardEvent.code` values to a face button for a keyboard player.
      *
      * Logical button state is the OR of all listed keys. Only players `0` and `1`
-     * support keyboard; other indices no-op. Button must be `BT.BTN_UP` …
-     * `BT.BTN_SELECT` (`0`…`11`); out-of-range values no-op. Pass an empty key list
+     * support keyboard; other indices no-op. `button` must be one face-button
+     * bit flag (`BT.BTN_UP` … `BT.BTN_SELECT`). Pass an empty key list
      * to clear keyboard bindings for that button until remapped again.
      *
      * @param player - Zero-based player index (`0` or `1`).
@@ -766,7 +936,7 @@ export const BT = {
             return;
         }
 
-        if (button < 0 || button > 11) {
+        if (!FACE_BUTTON_FLAGS.includes(button as FaceButtonCode)) {
             return;
         }
 
@@ -786,6 +956,39 @@ export const BT = {
      */
     inputMapReset: (): void => {
         resetKeyboardFaceButtonMaps();
+    },
+
+    /**
+     * Reads a gamepad axis value for a player.
+     *
+     * Stick axes return values in `[-1.0, 1.0]` with dead-zone filtering.
+     * Trigger axes return values in `[0.0, 1.0]`.
+     *
+     * @param axis - Axis constant (`AXIS_LEFT_X` .. `AXIS_TRIGGER_R`).
+     * @param player - Zero-based player index (`0`..`3`).
+     * @returns Axis value, or `0` when unavailable.
+     */
+    getAxis: (axis: number, player: number = 0): number => {
+        return BTAPI.instance.getGamepad()?.getAxis(axis, player) ?? 0;
+    },
+
+    /**
+     * Reports whether a player's gamepad is connected.
+     *
+     * @param player - Zero-based player index (`0`..`3`).
+     * @returns `true` when a gamepad is available for that slot.
+     */
+    gamepadConnected: (player: number = 0): boolean => {
+        return BTAPI.instance.getGamepad()?.isConnected(player) ?? false;
+    },
+
+    /**
+     * Returns the number of currently connected gamepads (max 4).
+     *
+     * @returns Connected gamepad count.
+     */
+    gamepadCount: (): number => {
+        return BTAPI.instance.getGamepad()?.connectedCount() ?? 0;
     },
 
     // #endregion

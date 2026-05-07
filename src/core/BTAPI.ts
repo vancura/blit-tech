@@ -10,6 +10,7 @@ import {
 } from '../assets/PaletteEffect';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { createSystemFont } from '../assets/SystemFont';
+import { GamepadInput } from '../input/GamepadInput';
 import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
@@ -99,8 +100,11 @@ export class BTAPI {
     /** Keyboard input (VV-134). Created during {@link initialize}. */
     private keyboard: KeyboardInput | null = null;
 
+    /** Gamepad input (VV-135). Created during {@link initialize}. */
+    private gamepad: GamepadInput | null = null;
+
     // TODO: Additional subsystems for future implementation:
-    // GamepadInput (VV-135), AudioManager, AssetManager
+    // AudioManager, AssetManager
 
     // #endregion
 
@@ -136,13 +140,18 @@ export class BTAPI {
     // #region Initialization
 
     /**
-     * Removes pointer and keyboard subsystems (detach DOM listeners, clear refs).
+     * Removes pointer, keyboard, and gamepad subsystems.
+     *
+     * Pointer/keyboard detach DOM listeners; gamepad detaches polling state and
+     * clears subsystem references.
      */
     private clearInputSubsystems(): void {
         this.pointer?.detach();
         this.pointer = null;
         this.keyboard?.detach();
         this.keyboard = null;
+        this.gamepad?.detach();
+        this.gamepad = null;
     }
 
     /**
@@ -264,7 +273,11 @@ export class BTAPI {
             getTicks: () => this.loop?.getTicks() ?? 0,
         });
 
-        // TODO: Initialize gamepad (VV-135), audio.
+        this.gamepad?.detach();
+        this.gamepad = new GamepadInput();
+        this.gamepad.attach();
+
+        // TODO: Initialize audio.
 
         // Initialize the demo.
         console.log('[BT] Initializing demo');
@@ -305,6 +318,7 @@ export class BTAPI {
                 const tick = this.loop?.getTicks() ?? 0;
 
                 this.keyboard?.endFrame(tick);
+                this.gamepad?.endFrame(tick);
             },
             onFrameDrop,
         );
@@ -317,10 +331,11 @@ export class BTAPI {
     }
 
     /**
-     * Stops the active game loop and detaches input listeners.
+     * Stops the active game loop and detaches input subsystems.
      *
-     * The pointer and keyboard subsystems are detached so DOM listeners do not
-     * leak across engine restarts (relevant in tests where the same DOM persists).
+     * Pointer, keyboard, and gamepad subsystems are detached so listeners and
+     * polling state do not leak across engine restarts (relevant in tests where
+     * the same DOM persists).
      */
     public stop(): void {
         this.loop?.stop();
@@ -416,6 +431,16 @@ export class BTAPI {
      */
     public getKeyboard(): KeyboardInput | null {
         return this.keyboard;
+    }
+
+    /**
+     * Gets the gamepad input subsystem created during initialization.
+     *
+     * @returns Gamepad input instance, or null when the engine has not been
+     *          initialized yet (or has been stopped).
+     */
+    public getGamepad(): GamepadInput | null {
+        return this.gamepad;
     }
 
     /**

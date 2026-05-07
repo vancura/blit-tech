@@ -157,6 +157,10 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getKeyboard()).toBeNull();
         });
 
+        it('getGamepad should return null before init', () => {
+            expect(BTAPI.instance.getGamepad()).toBeNull();
+        });
+
         it('getHardwareSettings should return null before init', () => {
             expect(BTAPI.instance.getHardwareSettings()).toBeNull();
         });
@@ -372,6 +376,7 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getHardwareSettings()).not.toBeNull();
             expect(BTAPI.instance.getPointer()).not.toBeNull();
             expect(BTAPI.instance.getKeyboard()).not.toBeNull();
+            expect(BTAPI.instance.getGamepad()).not.toBeNull();
         });
 
         it('stop detaches pointer and keyboard input so subsequent accessors return null', async () => {
@@ -379,11 +384,13 @@ describe('BTAPI', () => {
 
             expect(BTAPI.instance.getPointer()).not.toBeNull();
             expect(BTAPI.instance.getKeyboard()).not.toBeNull();
+            expect(BTAPI.instance.getGamepad()).not.toBeNull();
 
             BTAPI.instance.stop();
 
             expect(BTAPI.instance.getPointer()).toBeNull();
             expect(BTAPI.instance.getKeyboard()).toBeNull();
+            expect(BTAPI.instance.getGamepad()).toBeNull();
         });
 
         it('double initialize without stop detaches prior pointer and keyboard before reattaching', async () => {
@@ -414,6 +421,49 @@ describe('BTAPI', () => {
             await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
 
             expect(requestAnimationFrame).toHaveBeenCalled();
+        });
+
+        it('calls gamepad.endFrame during render-phase input flush', async () => {
+            const rafCallbacks: FrameRequestCallback[] = [];
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            await BTAPI.instance.initialize(makeMockDemo(), makeMockCanvas());
+
+            const gamepad = BTAPI.instance.getGamepad();
+            expect(gamepad).not.toBeNull();
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const endFrameSpy = vi.spyOn(gamepad as NonNullable<typeof gamepad>, 'endFrame');
+            // GameLoop.start uses a double-rAF bootstrap before the first tick.
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error(
+                        'Exceeded max rAF callback drain iterations before gamepad.endFrame was called; possible loop stall.',
+                    );
+                }
+
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16);
+                }
+
+                if (endFrameSpy.mock.calls.length > 0) {
+                    break;
+                }
+            }
+
+            expect(endFrameSpy).toHaveBeenCalled();
         });
 
         it('stop should not throw after successful initialization', async () => {

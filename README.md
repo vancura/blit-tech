@@ -38,8 +38,10 @@ primitives, and fonts.
 - **Pointer input**: mouse, touch, and pen unified under four pointer slots (`BT.pointerPos`, `BT.pointerDelta`,
   `BT.buttonDown` with `BTN_POINTER_A..D`); scroll delta, cursor hide/show, display-space coordinates
 - **Keyboard input**: raw keys (`BT.keyDown`, `BT.keyPressed`, `BT.keyReleased` using `KeyboardEvent.code`), virtual
-  face buttons for players 0–1 (`BT.buttonDown` with `BTN_UP`…`BTN_SELECT`), built-in default maps, remapping via
-  `BT.inputMap` / `BT.inputMapReset`, and text accumulation via `BT.inputString`
+  face buttons (`BT.buttonDown` with `BTN_UP`…`BTN_SELECT`) with keyboard+gamepad merge for players 0–1, built-in
+  default maps, remapping via `BT.inputMap` / `BT.inputMapReset`, and text accumulation via `BT.inputString`
+- **Gamepad input**: up to four players via standard Gamepad API (`BT.gamepadConnected`, `BT.gamepadCount`,
+  `BT.getAxis`), with stick dead zone and face-button support through `BT.button*`
 - **Fixed timestep**: deterministic 60 FPS loop with tick counter and optional dropped-frame detection
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: optional CSS upscaling via `canvasDisplaySize` for crisp pixel art
@@ -80,8 +82,8 @@ Additional documentation is available in the `docs/` directory:
   `BloomEffect`, writing custom effects, and shader attribution
 - **[Bitmap Fonts Guide](docs/bitmap-fonts.md)** — Built-in system font, `.btfont` format spec, BMFont conversion, and
   font rendering API
-- **[Input Guide](docs/input.md)** — Pointer and keyboard input, slot model, face-button maps, remapping, scroll delta,
-  and cursor control
+- **[Input Guide](docs/input.md)** — Pointer, keyboard, and gamepad input; slot model; button masks; remapping; axis
+  constants; scroll delta; and cursor control
 - **[Developer Experience Guide](docs/developer-experience-guide.md)** — Development workflow and tooling (roadmap)
 
 ## Scripts
@@ -563,20 +565,24 @@ BT.keyReleased('Escape'); // release edge
 BT.inputString(); // text since last frame (filtered `beforeinput`)
 ```
 
-Face buttons (`BT.BTN_UP` through `BT.BTN_SELECT`) for **players 0 and 1** read mapped keys with OR semantics. Defaults
-match `BT.DEFAULT_KEYBOARD_PLAYER1` and `BT.DEFAULT_KEYBOARD_PLAYER2`. Remap at runtime:
+Face buttons (`BT.BTN_UP` through `BT.BTN_SELECT`) are bit flags. For **players 0 and 1**, `BT.button*` merges keyboard
+maps and gamepad state (OR semantics). For **players 2 and 3**, `BT.button*` uses gamepad state only. Defaults match
+`BT.DEFAULT_KEYBOARD_PLAYER1` and `BT.DEFAULT_KEYBOARD_PLAYER2`. Remap at runtime:
 
 ```ts
 BT.inputMap(0, BT.BTN_UP, 'ArrowUp', 'KeyW');
 BT.inputMapReset(); // restore built-in defaults for both keyboard players
 ```
 
-Players **2** and **3** have no keyboard mapping for face buttons yet (`BT.buttonDown(BTN_*, 2|3)` stays `false` until
-gamepad support lands).
-
 #### Gamepad
 
-Gamepad input for face buttons on players 2 and 3 (and any future pad-backed players) is not implemented yet.
+```ts
+BT.gamepadConnected(BT.PLAYER_ONE);
+BT.gamepadCount();
+
+BT.getAxis(BT.AXIS_LEFT_X, BT.PLAYER_ONE); // -1.0..1.0 (dead-zone filtered)
+BT.getAxis(BT.AXIS_TRIGGER_L, BT.PLAYER_ONE); // 0.0..1.0
+```
 
 ## Browser Compatibility
 

@@ -285,7 +285,7 @@ describe('KeyboardInput', () => {
 
         kb.attach(canvas, { getTicks: () => tick });
 
-        const codes = DEFAULT_KEYBOARD_PLAYER1[0];
+        const codes = DEFAULT_KEYBOARD_PLAYER1[1 << 0] ?? [];
 
         kb.endFrame(0);
 
@@ -306,7 +306,7 @@ describe('KeyboardInput', () => {
 
         kb.attach(canvas, { getTicks: () => tick });
 
-        const codes = DEFAULT_KEYBOARD_PLAYER1[0];
+        const codes = DEFAULT_KEYBOARD_PLAYER1[1 << 0] ?? [];
 
         kb.endFrame(0);
 
@@ -342,7 +342,7 @@ describe('KeyboardInput', () => {
 
         kb.attach(canvas, { getTicks: () => tick });
 
-        const codes = DEFAULT_KEYBOARD_PLAYER1[0];
+        const codes = DEFAULT_KEYBOARD_PLAYER1[1 << 0] ?? [];
 
         canvas.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', bubbles: true }));
 
@@ -357,7 +357,7 @@ describe('KeyboardInput', () => {
 
         kb.attach(canvas, { getTicks: () => tick });
 
-        const codes = DEFAULT_KEYBOARD_PLAYER1[4];
+        const codes = DEFAULT_KEYBOARD_PLAYER1[1 << 4] ?? [];
 
         canvas.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyB', bubbles: true }));
 
