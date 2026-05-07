@@ -121,6 +121,9 @@ Constants `BT.BTN_UP` through `BT.BTN_SELECT` map to directional pad, action but
 **player 0** and **player 1**, `BT.buttonDown` / `BT.buttonPressed` / `BT.buttonReleased` use per-player keyboard maps:
 each logical button is true if **any** mapped key is active (OR semantics).
 
+For mapped face buttons, `BT.buttonPressed` is edge-only (no repeat interval parameter). Use
+`BT.keyPressed(code, repeatRate)` when you need tick-based repeat behavior.
+
 ```ts
 // Player 0 (default: WASD-style + Space / KeyB for A, etc.)
 BT.buttonDown(BT.BTN_UP, 0);
