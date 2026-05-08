@@ -190,9 +190,7 @@ describe('bootstrap', () => {
                 }
 
                 // Intentionally invalid runtime shape for beginner-mistake detection.
-                 
                 update() {}
-                 
                 render() {}
             }
 
