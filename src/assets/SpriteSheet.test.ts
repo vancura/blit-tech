@@ -345,6 +345,53 @@ describe('SpriteSheet', () => {
 
     // #endregion
 
+    // #region loadIndexed
+
+    describe('loadIndexed', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('loads colors, loads sheet, and indexizes in sequence', async () => {
+            const palette = new Palette(32);
+            const colors = [new Color32(1, 2, 3, 255)];
+            const sheet = new SpriteSheet({ width: 12, height: 8 } as HTMLImageElement);
+            const indexizeSpy = vi.spyOn(sheet, 'indexize').mockReturnValue(undefined);
+
+            const loadColorsSpy = vi.spyOn(SpriteSheet, 'loadColorsIntoPalette').mockResolvedValue(colors);
+            const loadSpy = vi.spyOn(SpriteSheet, 'load').mockResolvedValue(sheet);
+
+            const result = await SpriteSheet.loadIndexed('hero.png', palette, 4);
+
+            expect(loadColorsSpy).toHaveBeenCalledWith('hero.png', palette, 4, undefined);
+            expect(loadSpy).toHaveBeenCalledWith('hero.png');
+            expect(indexizeSpy).toHaveBeenCalledWith(palette);
+            const loadColorsOrder = loadColorsSpy.mock.invocationCallOrder[0] ?? 0;
+            const loadOrder = loadSpy.mock.invocationCallOrder[0] ?? 0;
+            const indexizeOrder = indexizeSpy.mock.invocationCallOrder[0] ?? 0;
+            expect(loadColorsOrder).toBeLessThan(loadOrder);
+            expect(loadOrder).toBeLessThan(indexizeOrder);
+            expect(result.sheet).toBe(sheet);
+            expect(result.colors).toBe(colors);
+            expect(result.srcRect.equals(new Rect2i(0, 0, 12, 8))).toBe(true);
+        });
+
+        it('forwards sort option to color registration', async () => {
+            const palette = new Palette(32);
+            const sheet = new SpriteSheet({ width: 2, height: 3 } as HTMLImageElement);
+
+            const loadColorsSpy = vi.spyOn(SpriteSheet, 'loadColorsIntoPalette').mockResolvedValue([]);
+            vi.spyOn(SpriteSheet, 'load').mockResolvedValue(sheet);
+            vi.spyOn(sheet, 'indexize').mockReturnValue(undefined);
+
+            await SpriteSheet.loadIndexed('hero.png', palette, 4, { sort: 'none' });
+
+            expect(loadColorsSpy).toHaveBeenCalledWith('hero.png', palette, 4, { sort: 'none' });
+        });
+    });
+
+    // #endregion
+
     // #region loadColorsIntoPalette
 
     describe('loadColorsIntoPalette', () => {

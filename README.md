@@ -33,7 +33,8 @@ primitives, and fonts.
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
 - **Bitmap fonts**: variable-width font rendering with palette offset support
-- **Camera system**: scrolling with offset and reset
+- **Camera system**: scrolling with offset/reset plus world clamping via `BT.cameraClamp` (all demo code must use the
+  `BT` namespace exclusively; `clampCameraToWorld` is a low-level internal helper)
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
 - **Pointer input**: mouse, touch, and pen unified under four pointer slots (`BT.pointerPos`, `BT.pointerDelta`,
   `BT.buttonDown` with `BTN_POINTER_A..D`); scroll delta, cursor hide/show, display-space coordinates
@@ -42,7 +43,8 @@ primitives, and fonts.
   default maps, remapping via `BT.inputMap` / `BT.inputMapReset`, and text accumulation via `BT.inputString`
 - **Gamepad input**: up to four players via standard Gamepad API (`BT.gamepadConnected`, `BT.gamepadCount`,
   `BT.getAxis`), with stick dead zone and face-button support through `BT.button*`
-- **Fixed timestep**: deterministic 60 FPS loop with tick counter and optional dropped-frame detection
+- **Fixed timestep**: deterministic update loop with tick counter and timing helpers (`BT.deltaSeconds`,
+  `BT.timeSeconds`)
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: `canvasDisplaySize` drives the WebGPU drawing buffer and CSS size for crisp pixel art; engine
   `defaultConfig()` uses a `640x480` output for `320x240` logical (2x nearest) when a demo omits `configure()`
@@ -132,6 +134,7 @@ import {
   Color32,
   Palette,
   Rect2i,
+  SpriteSheet,
   Vector2i,
   type HardwareSettings,
   type IBlitTechDemo,
@@ -173,8 +176,10 @@ class MyDemo implements IBlitTechDemo {
     BT.paletteSet(palette);
 
     // Load assets here (sprites, fonts, etc.)
-    // Example: const spriteSheet = await SpriteSheet.load('assets/sprites.png');
-    // After loading: spriteSheet.indexize(palette);
+    // Preferred sprite setup path:
+    // const indexed = await SpriteSheet.loadIndexed('assets/sprites.png', palette, 10);
+    // const spriteSheet = indexed.sheet;
+    // const spriteRect = indexed.srcRect;
     return true;
   }
 
@@ -308,12 +313,14 @@ getCanvas(canvasId?); // Get canvas element safely
 BT.init(demo, canvas); // Start the engine (low-level)
 BT.displaySize(); // Get display resolution
 BT.fps(); // Get target FPS
+BT.deltaSeconds(); // Fixed-step seconds per update
+BT.timeSeconds(); // Fixed-step elapsed seconds
 BT.ticks(); // Get current tick count
 BT.ticksReset(); // Reset tick counter
 ```
 
 A palette must be set via `BT.paletteSet()` before any draw calls are made. The recommended place is `init()` in the
-demo, before loading any sprite sheets.
+demo, after sprite setup and before first render.
 
 ### Palette
 
@@ -442,6 +449,11 @@ BT.drawRectFill(rect, paletteIndex); // Draw filled rectangle
 // Load sprite sheet from image (automatically cached)
 const spriteSheet = await SpriteSheet.load('path/to/sprites.png');
 
+// Preferred one-call palette-indexed setup path
+const indexed = await SpriteSheet.loadIndexed('path/to/sprites.png', palette, 10);
+BT.paletteSet(palette);
+BT.drawSprite(indexed.sheet, indexed.srcRect, new Vector2i(20, 20));
+
 // Load bitmap font from .btfont file (automatically cached)
 const font = await BitmapFont.load('fonts/MyFont.btfont');
 
@@ -456,19 +468,28 @@ if (AssetLoader.isLoaded('path/to/sprites.png')) {
 
 ### Sprites and Text
 
-Sprites use a palette-first rendering model. Every sprite sheet must be converted to palette indices before drawing:
+Sprites use a palette-first rendering model. Recommended setup uses `SpriteSheet.loadIndexed(...)`:
 
 ```ts
-// Convert RGBA pixels to palette indices (call once after paletteSet).
-spriteSheet.indexize(palette);
+const palette = BT.paletteCreate(256);
+const indexed = await SpriteSheet.loadIndexed('sprites/hero.png', palette, 10);
+BT.paletteSet(palette);
 
-BT.drawSprite(sheet, srcRect, destPos); // Draw with original palette colors
-BT.drawSprite(sheet, srcRect, destPos, 16); // Draw with paletteOffset=16 (color variation)
+BT.drawSprite(indexed.sheet, indexed.srcRect, destPos); // Draw with original palette colors
+BT.drawSprite(indexed.sheet, indexed.srcRect, destPos, 16); // Draw with paletteOffset=16 (color variation)
 BT.printFont(font, pos, text); // Draw text using bitmap font
 BT.printFont(font, pos, text, 8); // Draw text with paletteOffset=8
 BT.systemPrint(pos, paletteIndex, text); // Draw text with the built-in 6x14 system font
 BT.systemPrintMeasure(text); // Measure system font text dimensions
 BT.spritesRefresh(); // Re-index all loaded sheets after palette swap
+```
+
+Low-level setup remains available when needed:
+
+```ts
+await SpriteSheet.loadColorsIntoPalette('sprites/hero.png', palette, 10);
+const sheet = await SpriteSheet.load('sprites/hero.png');
+sheet.indexize(palette);
 ```
 
 **Palette offset:** The `paletteOffset` parameter shifts which palette range a sprite samples from at draw time. Useful
@@ -486,7 +507,21 @@ implemented in `drawSprite()`. They are planned for a future release.
 ```ts
 BT.cameraSet(offset); // Set camera offset
 BT.cameraGet(); // Get current offset
+BT.cameraClamp(camera, worldSize, viewSize?); // Returns a new clamped camera Vector2i (does not mutate `camera`)
 BT.cameraReset(); // Reset to (0, 0)
+```
+
+`viewSize` defaults to `BT.displaySize()` when omitted.
+
+```ts
+const camera = new Vector2i(500, 300);
+const world = new Vector2i(640, 480);
+
+const clamped = BT.cameraClamp(camera, world); // uses BT.displaySize() when viewSize is omitted
+BT.cameraSet(clamped); // apply returned value
+// camera is unchanged; BT.cameraClamp returns a new Vector2i.
+
+BT.cameraReset(); // reset global camera offset to (0, 0)
 ```
 
 ### Core Types
@@ -513,6 +548,7 @@ Color32.transparent();
 
 // Assets
 SpriteSheet.load(url); // Load sprite sheet (static method)
+SpriteSheet.loadIndexed(url, palette, startSlot, options?); // Register colors + load + indexize
 BitmapFont.load(url); // Load bitmap font (static method)
 ```
 

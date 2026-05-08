@@ -118,6 +118,85 @@ describe('BT.fps', () => {
 
 // #endregion
 
+// #region BT.deltaSeconds / BT.timeSeconds
+
+describe('BT.deltaSeconds', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns 1/60 when hardware settings are not available', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
+
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+    });
+
+    it('returns reciprocal of targetFPS from hardware settings', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 50),
+        );
+
+        expect(BT.deltaSeconds()).toBeCloseTo(0.02);
+    });
+
+    it('falls back to 1/60 when targetFPS is non-positive', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 0),
+        );
+
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+    });
+
+    it('falls back to 1/60 when targetFPS is non-finite', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), Number.NaN),
+        );
+
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+    });
+});
+
+describe('BT.timeSeconds', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns ticks multiplied by deltaSeconds', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(90);
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 30),
+        );
+
+        expect(BT.timeSeconds()).toBeCloseTo(3);
+    });
+
+    it('uses fallback delta when targetFPS is non-positive, producing finite time', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 0),
+        );
+
+        const time = BT.timeSeconds();
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(Number.isFinite(time)).toBe(true);
+        expect(time).toBeCloseTo(2);
+    });
+
+    it('uses fallback delta when targetFPS is non-finite, producing finite time', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), Number.POSITIVE_INFINITY),
+        );
+
+        const time = BT.timeSeconds();
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(Number.isFinite(time)).toBe(true);
+        expect(time).toBeCloseTo(2);
+    });
+});
+
+// #endregion
+
 // #region BT.ticks / BT.ticksReset
 
 describe('BT.ticks', () => {
@@ -294,7 +373,7 @@ describe('BT.drawRectFill', () => {
 
 // #endregion
 
-// #region BT.cameraSet / BT.cameraGet / BT.cameraReset
+// #region BT.cameraSet / BT.cameraGet / BT.cameraClamp / BT.cameraReset
 
 describe('BT.cameraSet', () => {
     beforeEach(() => {
@@ -323,6 +402,28 @@ describe('BT.cameraGet', () => {
         const result = BT.cameraGet();
 
         expect(result).toBe(expected);
+    });
+});
+
+describe('BT.cameraClamp', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('clamps camera coordinates when viewSize is provided', () => {
+        const clamped = BT.cameraClamp(new Vector2i(500, 300), new Vector2i(640, 480), new Vector2i(320, 240));
+
+        expect(clamped.equalsXY(320, 240)).toBe(true);
+    });
+
+    it('uses BT.displaySize when viewSize is omitted', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(200, 150), 60),
+        );
+
+        const clamped = BT.cameraClamp(new Vector2i(100, 100), new Vector2i(250, 200));
+
+        expect(clamped.equalsXY(50, 50)).toBe(true);
     });
 });
 
