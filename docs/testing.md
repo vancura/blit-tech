@@ -24,7 +24,8 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 `// @vitest-environment happy-dom` directive.
 
 - **AssetLoader** - image caching and deduplication (Node + vi stubs)
-- **SpriteSheet** - UV calculation, lazy texture creation (Node + GPU mocks)
+- **SpriteSheet** - UV calculation, lazy texture creation, indexization, and `loadIndexed()` convenience flow (Node +
+  GPU mocks)
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
 - **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
 - **Bootstrap** - full bootstrap lifecycle (happy-dom)

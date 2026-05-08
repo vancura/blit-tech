@@ -1,8 +1,22 @@
 import { Color32 } from '../utils/Color32';
-import type { Rect2i } from '../utils/Rect2i';
+import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
+
+/**
+ * Result object returned by {@link SpriteSheet.loadIndexed}.
+ */
+export type IndexedSpriteLoadResult = {
+    /** Loaded and indexized sprite sheet. */
+    sheet: SpriteSheet;
+
+    /** Full-frame source rectangle matching the loaded image size. */
+    srcRect: Rect2i;
+
+    /** Colors registered into the palette in write order. */
+    colors: Color32[];
+};
 
 /**
  * Sprite-sheet wrapper around a loaded image asset.
@@ -96,6 +110,43 @@ export class SpriteSheet {
         }
 
         return sheet;
+    }
+
+    /**
+     * Convenience one-call path for palette-indexed sprite setup.
+     *
+     * This combines:
+     * 1) {@link SpriteSheet.loadColorsIntoPalette}
+     * 2) {@link SpriteSheet.load}
+     * 3) {@link SpriteSheet.indexize}
+     *
+     * It returns the indexized sheet plus a full-frame source rectangle and the
+     * colors that were written into the palette. Callers still control when to
+     * activate the palette via `BT.paletteSet(palette)`.
+     *
+     * @param url - Path or URL to the PNG file.
+     * @param palette - Target palette used for both registration and indexization.
+     * @param startSlot - First palette slot to write discovered colors into.
+     * @param options - Optional color-sort behavior for registration.
+     * @param options.sort - Color ordering for palette registration.
+     * @returns Object with `sheet`, `srcRect`, and registered `colors`.
+     */
+    static async loadIndexed(
+        url: string,
+        palette: Palette,
+        startSlot: number,
+        options?: { sort?: 'luminance' | 'none' },
+    ): Promise<IndexedSpriteLoadResult> {
+        const colors = await SpriteSheet.loadColorsIntoPalette(url, palette, startSlot, options);
+        const sheet = await SpriteSheet.load(url);
+
+        sheet.indexize(palette);
+
+        return {
+            sheet,
+            srcRect: new Rect2i(0, 0, sheet.size.x, sheet.size.y),
+            colors,
+        };
     }
 
     /**

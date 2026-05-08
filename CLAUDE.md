@@ -42,7 +42,7 @@ src/
       presets/             # Pre-configured stacks (crtPipBoy, amber, green)
   assets/
     AssetLoader.ts         # Image loading with caching
-    SpriteSheet.ts         # GPU texture wrapper
+    SpriteSheet.ts         # GPU texture wrapper (+ loadIndexed convenience path)
     BitmapFont.ts          # Bitmap font system (.btfont)
     Palette.ts             # 256-entry indexed color palette
     PaletteEffect.ts       # Palette effect system (cycle, fade, flash, swap)
@@ -54,6 +54,7 @@ src/
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
     BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display
+    CameraUtils.ts         # Camera clamp helper (world/view bounds)
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
@@ -95,6 +96,13 @@ Dual WebGPU pipeline architecture:
 - Input previous-state rollover is end-of-frame aligned (same snapshot model across pointer/keyboard/gamepad)
 - Default gamepad stick dead zone is `0.75`
 - Triggers are axis-only for now (`AXIS_TRIGGER_L` / `AXIS_TRIGGER_R`); trigger button constants are tracked in `VV-481`
+
+## API Conventions
+
+- Prefer `SpriteSheet.loadIndexed(...)` for demo/game sprite setup; use manual `loadColorsIntoPalette` + `load` +
+  `indexize` only for advanced flows
+- Prefer fixed-step helpers `BT.deltaSeconds()` / `BT.timeSeconds()` over hardcoded `1 / TARGET_FPS` in update loops
+- Prefer `BT.cameraClamp(...)` (or `clampCameraToWorld(...)` in utility code) over ad-hoc clamp math
 
 ## Code Style
 

@@ -6,14 +6,16 @@
  *
  * Rendering is palette-first: every color on screen is identified by a numeric
  * palette index rather than a direct RGBA value. Set an active palette with
- * `BT.paletteSet()` before drawing anything, and call `spriteSheet.indexize(palette)`
- * after loading each sprite sheet to convert its RGBA pixels to palette indices.
+ * `BT.paletteSet()` before drawing anything. For sprite setup, prefer
+ * `SpriteSheet.loadIndexed(...)` as the one-call path (load colors, load image,
+ * indexize); low-level `spriteSheet.indexize(palette)` remains available.
  */
 
 import { AssetLoader } from './assets/AssetLoader';
 import type { TextSize } from './assets/BitmapFont';
 import { BitmapFont } from './assets/BitmapFont';
 import { Palette } from './assets/Palette';
+import type { IndexedSpriteLoadResult } from './assets/SpriteSheet';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import { defaultConfig, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
@@ -41,6 +43,7 @@ import { amber, crtPipBoy, green } from './render/effects/presets';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
 import { checkWebGPUSupport, displayError, getCanvas, previewWebGPUErrors } from './utils/BootstrapHelpers';
+import { clampCameraToWorld } from './utils/CameraUtils';
 import { Color32 } from './utils/Color32';
 import type { EasingFunction } from './utils/Easing';
 import { applyEasing } from './utils/Easing';
@@ -312,6 +315,28 @@ export const BT = {
         const settings = BTAPI.instance.getHardwareSettings();
 
         return settings ? settings.targetFPS : 60;
+    },
+
+    /**
+     * Returns fixed-step seconds per update tick.
+     *
+     * Equivalent to `1 / BT.fps()`.
+     *
+     * @returns Seconds advanced by one fixed update tick.
+     */
+    deltaSeconds: (): number => {
+        return 1 / BT.fps();
+    },
+
+    /**
+     * Returns fixed-step elapsed time in seconds.
+     *
+     * Equivalent to `BT.ticks() * BT.deltaSeconds()`.
+     *
+     * @returns Elapsed fixed-step time in seconds.
+     */
+    timeSeconds: (): number => {
+        return BT.ticks() * BT.deltaSeconds();
     },
 
     /**
@@ -632,6 +657,21 @@ export const BT = {
      */
     cameraGet: (): Vector2i => {
         return BTAPI.instance.getCameraOffset();
+    },
+
+    /**
+     * Clamps a camera origin so the viewport stays within world bounds.
+     *
+     * Uses integer clamping per axis: `[0, worldSize - viewSize]`.
+     * If `viewSize` is omitted, the active `BT.displaySize()` is used.
+     *
+     * @param camera - Desired camera origin in world coordinates.
+     * @param worldSize - Full world size in pixels.
+     * @param viewSize - Viewport size in pixels (defaults to display size).
+     * @returns Clamped camera origin.
+     */
+    cameraClamp: (camera: Vector2i, worldSize: Vector2i, viewSize?: Vector2i): Vector2i => {
+        return clampCameraToWorld(camera, worldSize, viewSize ?? BT.displaySize());
     },
 
     /**
@@ -1157,7 +1197,8 @@ export const BT = {
      * {@link SpriteSheet} minimizes batch flushes and reduces GPU state changes.
      *
      * The sprite sheet must have been converted to palette indices via
-     * `spriteSheet.indexize(palette)` before the first draw call.
+     * `spriteSheet.indexize(palette)` before the first draw call. Prefer
+     * `SpriteSheet.loadIndexed(...)` for one-call setup.
      *
      * **Palette offset semantics:** Sprite pixels are stored as palette indices starting at 1.
      * Index 0 is always transparent and is discarded by the fragment shader. The final palette
@@ -1236,6 +1277,7 @@ export {
     bootstrap,
     checkWebGPUSupport,
     ChromaticAberration,
+    clampCameraToWorld,
     Color32,
     crtPipBoy,
     defaultConfig,
@@ -1258,5 +1300,6 @@ export {
     Vignette,
 };
 export type { BootstrapOptions, EasingFunction, Effect, EffectTier, HardwareSettings, IBlitTechDemo, TextSize };
+export type { IndexedSpriteLoadResult };
 
 // #endregion
