@@ -77,7 +77,8 @@ function buildWebGPUNotSupportedMessage(): string {
 }
 
 /** Error message for initialization failure. */
-const INIT_FAILED_MESSAGE = 'The engine failed to initialize. Check the console for details.';
+const INIT_FAILED_MESSAGE =
+    'Something went wrong starting the engine. Check the browser console (press F12) for details.';
 
 // #endregion
 
@@ -170,8 +171,7 @@ function validateCanvas(
     } else {
         result = handleBootstrapError(
             'Canvas Error',
-            `Failed to find the canvas element with the id '${canvasId}'.\n\n` +
-                'Make sure the HTML includes a canvas element with the correct ID.',
+            `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasId}'> element.`,
             new Error(`Canvas element '${canvasId}' not found`),
             containerId,
             onError,
