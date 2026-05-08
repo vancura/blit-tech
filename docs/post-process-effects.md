@@ -22,7 +22,7 @@ your own, the bundled presets, and the upstream attribution.
 import { BT, Vector2i, BarrelDistortion, Scanlines, RGBMask, Bloom, PixelGlitch } from 'blit-tech';
 
 class Demo {
-  queryHardware() {
+  configure() {
     return {
       displaySize: new Vector2i(320, 240), // logical pixel-art resolution
       canvasDisplaySize: new Vector2i(1280, 960), // output drawing-buffer size
@@ -141,8 +141,12 @@ interface HardwareSettings {
 }
 ```
 
-When `canvasDisplaySize` is omitted, the WebGPU drawing buffer matches `displaySize`, no upscale pass exists, and the
-display tier is unavailable (adding a display effect throws).
+When `canvasDisplaySize` is omitted from your **returned** `HardwareSettings`, the WebGPU drawing buffer matches
+`displaySize`, no upscale pass exists, and the display tier is unavailable (adding a display effect throws).
+
+If the demo **does not** implement `configure()`, the engine uses `defaultConfig()`, which **does** set
+`canvasDisplaySize` (`640x480` for `320x240` logical), so the display tier remains available unless you override with a
+custom `configure()` that omits output sizing.
 
 ---
 

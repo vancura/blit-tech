@@ -246,7 +246,7 @@ async function initDemo(
  * This function provides a streamlined way to start a demo with sensible defaults
  * while allowing customization through options.
  *
- * @param DemoClass - Demo class constructor implementing IBlitTechDemo.
+ * @param DemoClass - Demo class constructor implementing `IBlitTechDemo` (optional `configure()` for hardware settings).
  * @param options - Optional configuration for IDs and callbacks.
  * @returns `true` when the demo boots successfully; otherwise `false`.
  *

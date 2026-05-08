@@ -73,7 +73,7 @@ export class Renderer {
 
     /**
      * True when the caller explicitly provided an `outputSize` (i.e. set
-     * `canvasDisplaySize` in `queryHardware()`), enabling display-tier effects
+     * `canvasDisplaySize` in `configure()`), enabling display-tier effects
      * regardless of whether the output resolution differs from the logical one.
      */
     private readonly displayTierEnabled: boolean;
@@ -487,7 +487,7 @@ export class Renderer {
      *
      * - `tier='pixel'` -> pixel chain (logical resolution).
      * - `tier='display'` -> display chain (output resolution); requires
-     *   `canvasDisplaySize` to be set in `queryHardware()`.
+     *   `canvasDisplaySize` to be set in `configure()`.
      *
      * @param effect - Effect instance to append.
      * @throws If the renderer has not been initialized.
@@ -501,7 +501,7 @@ export class Renderer {
 
         if (effect.tier === 'display' && !this.displayTierEnabled) {
             throw new Error(
-                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in queryHardware().',
+                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in configure().',
             );
         }
 

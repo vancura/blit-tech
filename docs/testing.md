@@ -15,7 +15,7 @@ Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
 - **PaletteEffect** - manager lifecycle, CycleEffect rotation, FadeEffect/FadeRangeEffect lerp, FlashEffect, paletteSwap
 - **Easing** - boundary values, monotonicity, midpoint checks for all easing curves
 - **GameLoop** - constructor validation, tick counter
-- **IBlitTechDemo** - default hardware settings
+- **IBlitTechDemo** - `defaultConfig()` and optional `configure()`
 
 ### Tier 2: Integration Tests (Vitest, Node + GPU mocks)
 
