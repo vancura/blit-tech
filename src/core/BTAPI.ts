@@ -162,7 +162,19 @@ export class BTAPI {
         // Hardware settings: demo hook or defaults (320x240 @ 60 FPS).
         console.log('[BT] Reading hardware configuration');
 
-        this.hwSettings = demo.configure?.() ?? defaultConfig();
+        let configured: HardwareSettings | undefined;
+
+        try {
+            configured = demo.configure?.();
+        } catch (error) {
+            console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
+
+            this.hwSettings = defaultConfig();
+
+            return false;
+        }
+
+        this.hwSettings = configured ?? defaultConfig();
 
         const { targetFPS } = this.hwSettings;
 

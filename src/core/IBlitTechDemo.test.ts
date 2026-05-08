@@ -1,9 +1,10 @@
 /**
  * Unit tests for {@link defaultConfig} exported from {@link IBlitTechDemo}.
  *
- * Confirms the default display resolution and frame rate, ensures optional
- * canvas sizing is omitted by default, and verifies each call returns fresh
- * objects so demos cannot accidentally share mutable settings state.
+ * Confirms the default display resolution, frame rate, and canvas sizing
+ * (`defaultConfig()` includes `canvasDisplaySize` by default), and verifies each
+ * call to {@link defaultConfig} returns fresh objects so demos do not share
+ * mutable settings state.
  */
 
 import { describe, expect, it } from 'vitest';

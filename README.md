@@ -384,7 +384,10 @@ organized into two chains by what they operate on:
   RGB shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution is what lets curved
   sampling (barrel) express smoothly without quantizing onto the source pixel grid.
 
-Both chains add zero cost when empty. Set `canvasDisplaySize` in `configure()` to enable the display tier.
+Both chains add zero cost when empty. The display tier is already enabled when you omit `configure()` because
+`defaultConfig()` sets `canvasDisplaySize` (and related fields). Implement `configure()` and set `canvasDisplaySize`
+there only when you need to override those defaults (for example a different output or logical resolution than
+`defaultConfig()` provides).
 
 ```ts
 import { BT, Vector2i, BarrelDistortion, Scanlines, Bloom, PixelGlitch } from 'blit-tech';
