@@ -304,8 +304,16 @@ describe('fromHex', () => {
         expect(() => Color32.fromHex('#GGGGGG')).toThrow(invalidHexMessage);
     });
 
+    it('throws when a 6-digit token contains trailing non-hex characters', () => {
+        expect(() => Color32.fromHex('#12345Z')).toThrow(invalidHexMessage);
+    });
+
     it('throws the beginner-friendly message for invalid 8-digit alpha', () => {
         expect(() => Color32.fromHex('#112233GG')).toThrow(invalidHexMessage);
+    });
+
+    it('throws when 8-digit alpha contains a non-hex character', () => {
+        expect(() => Color32.fromHex('#1122334Z')).toThrow(invalidHexMessage);
     });
 
     it('throws the beginner-friendly message for invalid 4-digit shorthand alpha', () => {
