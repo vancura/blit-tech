@@ -389,7 +389,7 @@ describe('Vector2i', () => {
             it('should throw on zero divisor', () => {
                 const v = new Vector2i(10, 20);
 
-                expect(() => v.div(0)).toThrow('Vector2i.div: scalar must not be zero');
+                expect(() => v.div(0)).toThrow("Can't divide by zero. Use a non-zero number for Vector2i.div.");
             });
 
             it('should handle division by negative scalar', () => {
@@ -770,7 +770,9 @@ describe('Vector2i', () => {
                 const v = new Vector2i(10, 20);
                 const out = new Vector2i();
 
-                expect(() => v.divTo(0, out)).toThrow('Vector2i.divTo: scalar must not be zero');
+                expect(() => v.divTo(0, out)).toThrow(
+                    "Can't divide by zero. Use a non-zero number for Vector2i.divTo.",
+                );
             });
 
             it('should return the output vector', () => {
@@ -1075,7 +1077,9 @@ describe('Vector2i', () => {
             it('should throw on zero divisor', () => {
                 const v = new Vector2i(10, 20);
 
-                expect(() => v.divInPlace(0)).toThrow('Vector2i.divInPlace: scalar must not be zero');
+                expect(() => v.divInPlace(0)).toThrow(
+                    "Can't divide by zero. Use a non-zero number for Vector2i.divInPlace.",
+                );
             });
 
             it('should return this for chaining', () => {

@@ -25,7 +25,7 @@ describe('Palette', () => {
     });
 
     it('rejects invalid palette sizes', () => {
-        expect(() => new Palette(3)).toThrow('Invalid palette size: 3. Must be 2, 4, 16, 32, 64, 128, or 256');
+        expect(() => new Palette(3)).toThrow('A palette can hold 2, 4, 16, 32, 64, 128, or 256 colors. Got 3.');
     });
 
     /** Confirms that palette entry zero remains the reserved transparent slot. */
@@ -33,7 +33,9 @@ describe('Palette', () => {
         const palette = new Palette(16);
 
         expect(palette.get(0).equals(Color32.transparent())).toBe(true);
-        expect(() => palette.set(0, Color32.red())).toThrow('Palette index 0 is reserved for transparency');
+        expect(() => palette.set(0, Color32.red())).toThrow(
+            'Slot 0 is always see-through (transparent). Put solid colors in slot 1 or higher.',
+        );
 
         palette.set(0, new Color32(12, 34, 56, 0));
 
@@ -79,7 +81,9 @@ describe('Palette', () => {
 
         expect(palette.getNamed('uiAccent')).toBe(3);
         expect(palette.getNamedColor('uiAccent').equals(color)).toBe(true);
-        expect(() => palette.getNamed('missing')).toThrow("Unknown palette color name: 'missing'");
+        expect(() => palette.getNamed('missing')).toThrow(
+            "There's no color named 'missing' in this palette. Did you call palette.setNamed('missing', someIndex) first?",
+        );
     });
 
     it('finds exact matching colors and returns -1 when absent', () => {
@@ -138,8 +142,12 @@ describe('Palette', () => {
     });
 
     it('rejects invalid JSON payloads', () => {
-        expect(() => Palette.fromJSON({ colors: ['#000000ff'] })).toThrow('Invalid palette JSON');
-        expect(() => Palette.fromJSON({ size: 16 })).toThrow('Invalid palette JSON');
+        expect(() => Palette.fromJSON({ colors: ['#000000ff'] })).toThrow(
+            "This doesn't look like a valid palette file. It needs 'colors' and 'size' fields.",
+        );
+        expect(() => Palette.fromJSON({ size: 16 })).toThrow(
+            "This doesn't look like a valid palette file. It needs 'colors' and 'size' fields.",
+        );
         expect(() => Palette.fromJSON({ colors: ['#00000000'], size: 16 })).toThrow(
             'Palette JSON color count 1 does not match size 16',
         );
@@ -179,7 +187,7 @@ describe('Palette', () => {
             'Palette byte array length 48 does not match palette size 32',
         );
         expect(() => Palette.fromUint8Array(new Uint8Array(9))).toThrow(
-            'Invalid palette size: 3. Must be 2, 4, 16, 32, 64, 128, or 256',
+            'A palette can hold 2, 4, 16, 32, 64, 128, or 256 colors. Got 3.',
         );
     });
 
@@ -202,7 +210,9 @@ describe('Palette', () => {
         expect(target.getNamed('last')).toBe(15);
 
         expect(smallTarget.get(1).equals(new Color32(10, 20, 30, 255))).toBe(true);
-        expect(() => smallTarget.getNamed('last')).toThrow("Unknown palette color name: 'last'");
+        expect(() => smallTarget.getNamed('last')).toThrow(
+            "There's no color named 'last' in this palette. Did you call palette.setNamed('last', someIndex) first?",
+        );
     });
 
     it('always produces a 256-entry float buffer for GPU upload', () => {

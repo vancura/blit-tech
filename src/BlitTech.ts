@@ -496,6 +496,14 @@ export const BT = {
      * @param palette - Palette to make active.
      */
     paletteSet: (palette: Palette): void => {
+        if (!(palette instanceof Palette)) {
+            showBeginnerRuntimeError(
+                'BT.paletteSet expects a Palette. Did you forget to create one with BT.paletteCreate() or a preset like Palette.vga()?',
+                'Palette Error',
+            );
+            return;
+        }
+
         BTAPI.instance.setPalette(palette);
     },
 

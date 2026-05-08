@@ -48,7 +48,7 @@ function isValidPaletteSize(size: number): boolean {
  */
 function validatePaletteSize(size: number): void {
     if (!isValidPaletteSize(size)) {
-        throw new Error(`Invalid palette size: ${size}. Must be 2, 4, 16, 32, 64, 128, or 256.`);
+        throw new Error(`A palette can hold 2, 4, 16, 32, 64, 128, or 256 colors. Got ${size}.`);
     }
 }
 
@@ -177,7 +177,7 @@ export class Palette {
         const { colors, names, size } = json;
 
         if (!Array.isArray(colors) || typeof size !== 'number') {
-            throw new Error('Invalid palette JSON');
+            throw new Error("This doesn't look like a valid palette file. It needs 'colors' and 'size' fields.");
         }
 
         const palette = new Palette(size);
@@ -307,7 +307,7 @@ export class Palette {
 
         if (index === 0) {
             if (color.a !== 0) {
-                throw new Error('Palette index 0 is reserved for transparency');
+                throw new Error('Slot 0 is always see-through (transparent). Put solid colors in slot 1 or higher.');
             }
 
             this.colors[0] = Color32.transparent();
@@ -381,7 +381,9 @@ export class Palette {
         const index = this.namedIndices.get(name);
 
         if (index === undefined) {
-            throw new Error(`Unknown palette color name: '${name}'`);
+            throw new Error(
+                `There's no color named '${name}' in this palette. Did you call palette.setNamed('${name}', someIndex) first?`,
+            );
         }
 
         return index;
