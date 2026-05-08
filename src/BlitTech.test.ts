@@ -28,7 +28,7 @@ function setupErrorContainer(): HTMLDivElement {
     const existingContainer = document.getElementById(DEFAULT_CONTAINER_ID);
 
     if (existingContainer instanceof HTMLDivElement) {
-        existingContainer.innerHTML = '';
+        existingContainer.textContent = '';
         return existingContainer;
     }
 
@@ -42,6 +42,15 @@ function clearErrorContainer(): void {
     const container = document.getElementById(DEFAULT_CONTAINER_ID);
     if (container?.parentElement) {
         container.parentElement.removeChild(container);
+    }
+}
+
+async function withErrorContainer(callback: () => void | Promise<void>): Promise<void> {
+    setupErrorContainer();
+    try {
+        await callback();
+    } finally {
+        clearErrorContainer();
     }
 }
 
@@ -357,15 +366,13 @@ describe('BT.drawPixel', () => {
         expect(spy).toHaveBeenCalledWith(expect.objectContaining({ x: 5, y: 10 }), 3);
     });
 
-    it('shows a beginner-friendly error when drawPixel arguments are invalid', () => {
-        setupErrorContainer();
+    it('shows a beginner-friendly error when drawPixel arguments are invalid', async () => {
+        await withErrorContainer(async () => {
+            BT.drawPixel({} as never, 2 as never);
 
-        BT.drawPixel({} as never, 2 as never);
-
-        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
-        expect(text).toContain('drawPixel expects (x, y, paletteIndex) or (Vector2i, paletteIndex).');
-
-        clearErrorContainer();
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain('drawPixel expects (x, y, paletteIndex) or (Vector2i, paletteIndex).');
+        });
     });
 });
 
@@ -1026,15 +1033,13 @@ describe('BT.printFont', () => {
         expect(spy).toHaveBeenCalledWith(font, expect.anything(), 'Hi', undefined);
     });
 
-    it('shows a missing await message for Promise font values', () => {
-        setupErrorContainer();
+    it('shows a missing await message for Promise font values', async () => {
+        await withErrorContainer(async () => {
+            BT.printFont(Promise.resolve({}) as unknown as BitmapFont, new Vector2i(0, 0), 'Hi');
 
-        BT.printFont(Promise.resolve({}) as unknown as BitmapFont, new Vector2i(0, 0), 'Hi');
-
-        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
-        expect(text).toContain("Did you forget to use 'await' before BitmapFont.load()?");
-
-        clearErrorContainer();
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("Did you forget to use 'await' before BitmapFont.load()?");
+        });
     });
 });
 
@@ -1161,27 +1166,24 @@ describe('BT.drawSprite', () => {
         }).not.toThrow();
     });
 
-    it('shows a missing await message for Promise sprite sheet values', () => {
-        setupErrorContainer();
+    it('shows a missing await message for Promise sprite sheet values', async () => {
+        await withErrorContainer(async () => {
+            BT.drawSprite(Promise.resolve({}) as unknown as SpriteSheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
 
-        BT.drawSprite(Promise.resolve({}) as unknown as SpriteSheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
-
-        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
-        expect(text).toContain("Did you forget to use 'await' before SpriteSheet.load()?");
-
-        clearErrorContainer();
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("Did you forget to use 'await' before SpriteSheet.load()?");
+        });
     });
 
-    it('shows engine-not-ready message when drawing before bootstrap completes', () => {
-        setupErrorContainer();
-        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
+    it('shows engine-not-ready message when drawing before bootstrap completes', async () => {
+        await withErrorContainer(async () => {
+            vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
 
-        BT.drawSprite(new SpriteSheet(mockImage), new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
+            BT.drawSprite(new SpriteSheet(mockImage), new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
 
-        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
-        expect(text).toContain("The engine isn't ready yet.");
-
-        clearErrorContainer();
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("The engine isn't ready yet.");
+        });
     });
 });
 
