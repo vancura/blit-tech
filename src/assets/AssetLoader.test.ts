@@ -177,7 +177,9 @@ describe('AssetLoader', () => {
         });
 
         it('should reject when the image fails to load', async () => {
-            await expect(AssetLoader.loadImage('fail.png')).rejects.toThrow('Failed to load image: fail.png');
+            await expect(AssetLoader.loadImage('fail.png')).rejects.toThrow(
+                "Can't find the image 'fail.png'. Make sure it's in your project folder and the path is correct.",
+            );
         });
 
         it('should not cache images that failed to load', async () => {
@@ -193,7 +195,19 @@ describe('AssetLoader', () => {
 
         it('should reject loadImages when any image fails', async () => {
             await expect(AssetLoader.loadImages(['ok.png', 'fail.png'])).rejects.toThrow(
-                'Failed to load image: fail.png',
+                "Can't find the image 'fail.png'. Make sure it's in your project folder and the path is correct.",
+            );
+        });
+
+        it('should include a path hint when an image URL is missing / or ./', async () => {
+            await expect(AssetLoader.loadImage('fail/sprites/hero.png')).rejects.toThrow(
+                "Did you mean '/images/fail/sprites/hero.png' or './images/fail/sprites/hero.png'?",
+            );
+        });
+
+        it('should suggest .png when a font extension is used for an image URL', async () => {
+            await expect(AssetLoader.loadImage('fail/sprites/hero.btfont')).rejects.toThrow(
+                "This looks like a font file. For images, use a file that ends with '.png'.",
             );
         });
     });

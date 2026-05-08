@@ -18,6 +18,54 @@ const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
 
 // #endregion
 
+// #region Error Helpers
+
+/**
+ * Returns whether a URL is absolute or uses a special browser scheme.
+ *
+ * @param url - Path or URL to inspect.
+ * @returns True when the URL already has an explicit scheme.
+ */
+function isExplicitUrl(url: string): boolean {
+    const lowerUrl = url.toLowerCase();
+    return (
+        lowerUrl.startsWith('//') ||
+        lowerUrl.includes('://') ||
+        lowerUrl.startsWith('data:') ||
+        lowerUrl.startsWith('blob:')
+    );
+}
+
+/**
+ * Appends beginner-friendly path and extension hints for image URLs.
+ *
+ * @param url - Failing image path.
+ * @returns Extra hint text (or empty string when no hint applies).
+ */
+function buildImageHints(url: string): string {
+    const hints: string[] = [];
+
+    if (!isExplicitUrl(url) && !url.startsWith('/') && !url.startsWith('./')) {
+        hints.push(`Did you mean '/images/${url}' or './images/${url}'?`);
+    }
+
+    const slashIndex = url.lastIndexOf('/');
+    const fileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
+    const dotIndex = fileName.lastIndexOf('.');
+    const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
+    const knownImageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+
+    if (extension === '.btfont') {
+        hints.push("This looks like a font file. For images, use a file that ends with '.png'.");
+    } else if (extension !== '' && !knownImageExtensions.has(extension)) {
+        hints.push(`The extension '${extension}' does not look like an image file. Did you mean '.png'?`);
+    }
+
+    return hints.length > 0 ? ` ${hints.join(' ')}` : '';
+}
+
+// #endregion
+
 /**
  * Shared image-loading utility for runtime asset code.
  *
@@ -67,7 +115,12 @@ export class AssetLoader {
 
             img.onerror = () => {
                 loadingPromises.delete(url);
-                reject(new Error(`Failed to load image: ${url}`));
+                reject(
+                    new Error(
+                        `Can't find the image '${url}'. Make sure it's in your project folder and the path is correct.` +
+                            buildImageHints(url),
+                    ),
+                );
             };
 
             img.src = url;

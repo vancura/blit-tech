@@ -267,7 +267,17 @@ describe('BitmapFont', () => {
         it('should throw when fetch returns a non-ok response', async () => {
             vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
 
-            await expect(BitmapFont.load('missing.btfont')).rejects.toThrow('Failed to load font');
+            await expect(BitmapFont.load('missing.btfont')).rejects.toThrow(
+                "Can't find the font file 'missing.btfont'",
+            );
+        });
+
+        it('should use a server-side message for non-404 font load failures', async () => {
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' }));
+
+            await expect(BitmapFont.load('missing.btfont')).rejects.toThrow(
+                "The server had a problem loading the font file 'missing.btfont'. Try refreshing the page.",
+            );
         });
 
         it('should throw when font JSON is missing the texture field', async () => {
@@ -285,7 +295,9 @@ describe('BitmapFont', () => {
                 }),
             );
 
-            await expect(BitmapFont.load('bad.btfont')).rejects.toThrow('Invalid font file');
+            await expect(BitmapFont.load('bad.btfont')).rejects.toThrow(
+                "The font file 'bad.btfont' is broken or not a valid .btfont file. Check that it's the right file.",
+            );
         });
 
         it('should throw when font JSON is missing the glyphs field', async () => {
@@ -303,7 +315,9 @@ describe('BitmapFont', () => {
                 }),
             );
 
-            await expect(BitmapFont.load('bad.btfont')).rejects.toThrow('Invalid font file');
+            await expect(BitmapFont.load('bad.btfont')).rejects.toThrow(
+                "The font file 'bad.btfont' is broken or not a valid .btfont file. Check that it's the right file.",
+            );
         });
 
         it('should throw when the font texture image fails to load', async () => {
@@ -316,7 +330,23 @@ describe('BitmapFont', () => {
                 }),
             );
 
-            await expect(BitmapFont.load('test.btfont')).rejects.toThrow('Failed to load font texture');
+            await expect(BitmapFont.load('test.btfont')).rejects.toThrow("Can't find the font texture image");
+        });
+
+        it('should suggest .btfont when the font URL extension is wrong', async () => {
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
+
+            await expect(BitmapFont.load('missing.json')).rejects.toThrow(
+                "The extension '.json' looks wrong for this file. Did you mean '.btfont'?",
+            );
+        });
+
+        it('should suggest absolute and relative paths when font URL omits / or ./', async () => {
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
+
+            await expect(BitmapFont.load('pixel-font.btfont')).rejects.toThrow(
+                "Did you mean '/fonts/pixel-font.btfont' or './fonts/pixel-font.btfont'?",
+            );
         });
 
         it('should resolve a relative texture path relative to the font URL', async () => {

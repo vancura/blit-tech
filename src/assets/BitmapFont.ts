@@ -252,14 +252,17 @@ export class BitmapFont {
         const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error(`Failed to load font: ${url} (${response.status} ${response.statusText})`);
+            throw new Error(BitmapFont.buildFontLoadErrorMessage(url, response.status));
         }
 
         const data: FontFileData = await response.json();
 
         // Validate required fields.
         if (!data.texture || !data.glyphs) {
-            throw new Error(`Invalid font file: ${url} - missing texture or glyphs`);
+            throw new Error(
+                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
+                    BitmapFont.buildExtensionHint(url, '.btfont'),
+            );
         }
 
         // Load texture – either from data URI or relative path.
@@ -324,6 +327,85 @@ export class BitmapFont {
         return BitmapFont.loadImage(textureUrl);
     }
 
+    /**
+     * Returns a user-friendly load error for a font request.
+     *
+     * @param url - Font file path that failed to load.
+     * @param status - HTTP status code from fetch.
+     * @returns Beginner-friendly message with useful hints.
+     */
+    private static buildFontLoadErrorMessage(url: string, status: number): string {
+        const statusMessage =
+            status === 404
+                ? `Can't find the font file '${url}'. Check that the file exists and the path is spelled correctly.`
+                : `The server had a problem loading the font file '${url}'. Try refreshing the page.`;
+
+        const hints: string[] = [];
+        const pathHint = BitmapFont.buildPathHint(url, 'fonts');
+        const extensionHint = BitmapFont.buildExtensionHint(url, '.btfont');
+
+        if (pathHint) {
+            hints.push(pathHint);
+        }
+
+        if (extensionHint) {
+            hints.push(extensionHint);
+        }
+
+        return hints.length > 0 ? `${statusMessage} ${hints.join(' ')}` : statusMessage;
+    }
+
+    /**
+     * Suggests common absolute and relative URL forms when the path looks ambiguous.
+     *
+     * @param url - Original URL string.
+     * @param folderName - Typical folder prefix to suggest.
+     * @returns Hint text or an empty string.
+     */
+    private static buildPathHint(url: string, folderName: string): string {
+        if (BitmapFont.isExplicitUrl(url) || url.startsWith('/') || url.startsWith('./')) {
+            return '';
+        }
+
+        return `Did you mean '/${folderName}/${url}' or './${folderName}/${url}'?`;
+    }
+
+    /**
+     * Suggests a corrected extension when the URL uses a different file type.
+     *
+     * @param url - Original URL string.
+     * @param expectedExtension - Extension that should be used.
+     * @returns Hint text or an empty string.
+     */
+    private static buildExtensionHint(url: string, expectedExtension: string): string {
+        const slashIndex = url.lastIndexOf('/');
+        const fileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
+        const dotIndex = fileName.lastIndexOf('.');
+        const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
+
+        if (extension === '' || extension === expectedExtension) {
+            return '';
+        }
+
+        return `The extension '${extension}' looks wrong for this file. Did you mean '${expectedExtension}'?`;
+    }
+
+    /**
+     * Returns whether the URL already has an explicit scheme or protocol.
+     *
+     * @param url - URL to inspect.
+     * @returns True when no relative-path hint is needed.
+     */
+    private static isExplicitUrl(url: string): boolean {
+        const lowerUrl = url.toLowerCase();
+        return (
+            lowerUrl.startsWith('//') ||
+            lowerUrl.includes('://') ||
+            lowerUrl.startsWith('data:') ||
+            lowerUrl.startsWith('blob:')
+        );
+    }
+
     // #endregion
 
     // #region Glyph Access
@@ -339,7 +421,12 @@ export class BitmapFont {
             const image = new Image();
 
             image.onload = () => resolve(image);
-            image.onerror = () => reject(new Error(`Failed to load font texture: ${src.substring(0, 50)}`));
+            image.onerror = () =>
+                reject(
+                    new Error(
+                        `Can't find the font texture image '${src.substring(0, 50)}'. Check that the file exists and the path is spelled correctly.`,
+                    ),
+                );
 
             image.src = src;
         });
