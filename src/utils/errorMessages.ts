@@ -1,9 +1,10 @@
 /**
- * Shared user-facing error message strings for the Blit-Tech bootstrap path.
+ * Shared user-facing error message strings for the Blit-Tech bootstrap and runtime paths.
  *
  * Both the production bootstrap (Bootstrap.ts) and the error-preview demo
  * (BootstrapHelpers.ts) import from here, guaranteeing they can never drift
- * apart.
+ * apart. Runtime message helpers (palette, sprite) are also centralized here
+ * so every site uses identical wording.
  */
 
 /**
@@ -42,3 +43,73 @@ export const WEBGPU_ADAPTER_MESSAGE =
  */
 export const WEBGPU_DEVICE_MESSAGE =
     "Couldn't connect to the graphics card. Try closing other tabs or restarting the browser.";
+
+// #region Runtime — Palette
+
+/**
+ * Returns the "no active palette" error message used whenever a palette must
+ * be set before an operation can proceed.
+ *
+ * @returns User-facing error string.
+ */
+export function noActivePaletteError(): string {
+    return 'No palette set yet. Call BT.paletteSet(somePalette) before drawing or running palette effects.';
+}
+
+/**
+ * Returns the error message for a palette index that is negative or not a
+ * whole number.
+ *
+ * @param index - The invalid index value that was supplied.
+ * @returns User-facing error string.
+ */
+export function paletteIndexNegativeError(index: number): string {
+    return `The color number must be a whole number that's 0 or higher (got ${index}).`;
+}
+
+/**
+ * Returns the error message for a palette index that exceeds the palette size.
+ *
+ * @param index - The out-of-range index that was supplied.
+ * @param size - The number of colors in the active palette.
+ * @returns User-facing error string.
+ */
+export function paletteIndexOutOfRangeError(index: number, size: number): string {
+    return `The color number ${index} is too big for this palette. The palette has ${size} colors, so use a number from 0 to ${size - 1}.`;
+}
+
+// #endregion
+
+// #region Runtime — Sprites
+
+/**
+ * Returns the error message for a sprite pixel whose color is absent from the
+ * active palette.
+ *
+ * @param x - Pixel x coordinate within the source image.
+ * @param y - Pixel y coordinate within the source image.
+ * @param src - Source image label (e.g. `'sheet.png'` or `(unnamed)`).
+ * @param hex - The color that was not found, as a lowercase hex string.
+ * @returns User-facing error string.
+ */
+export function spriteColorNotInPaletteError(x: number, y: number, src: string, hex: string): string {
+    return (
+        `The pixel at (${x}, ${y}) in ${src} has the color ${hex}, but that color isn't in your palette.` +
+        ` Either add ${hex} to the palette, or change that pixel in the image.`
+    );
+}
+
+/**
+ * Returns the error message shown when a sprite sheet has not been indexized
+ * before use.
+ *
+ * @returns User-facing error string.
+ */
+export function spriteNotIndexizedError(): string {
+    return (
+        "This sprite sheet hasn't been prepared yet. Use SpriteSheet.loadIndexed(...) for one-step setup," +
+        ' or call sheet.indexize(palette) after BT.paletteSet.'
+    );
+}
+
+// #endregion

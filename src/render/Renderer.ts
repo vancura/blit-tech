@@ -2,6 +2,7 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { Color32 } from '../utils/Color32';
+import { noActivePaletteError } from '../utils/errorMessages';
 import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
@@ -293,7 +294,7 @@ export class Renderer {
      */
     beginFrame(): void {
         if (!this.palette) {
-            throw new Error('Cannot begin frame: no active palette. Call setPalette() first.');
+            throw new Error(noActivePaletteError());
         }
 
         this.primitives.reset();

@@ -225,7 +225,7 @@ describe('BTAPI', () => {
         it('drawSprite should throw when sprite sheet is not indexized', () => {
             const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
             expect(() => BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0))).toThrow(
-                '[BT] drawSprite: sprite sheet has not been indexized.',
+                "This sprite sheet hasn't been prepared yet.",
             );
         });
 
@@ -251,7 +251,7 @@ describe('BTAPI', () => {
             const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).toThrow(
-                '[BT] drawBitmapText: font sprite sheet has not been indexized.',
+                "This sprite sheet hasn't been prepared yet.",
             );
         });
 
@@ -516,9 +516,7 @@ describe('BTAPI', () => {
 
     describe('assertPaletteIndex', () => {
         it('throws when index is negative (no palette set)', () => {
-            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), -1)).toThrow(
-                'is not a valid non-negative integer',
-            );
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), -1)).toThrow('0 or higher');
         });
 
         it('throws when index is out of range for the active palette', () => {
@@ -526,9 +524,7 @@ describe('BTAPI', () => {
 
             BTAPI.instance.setPalette(palette);
 
-            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow(
-                'Palette index 20 out of range for palette of size 16.',
-            );
+            expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow('The color number 20 is too big');
         });
     });
 

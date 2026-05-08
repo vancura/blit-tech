@@ -1,4 +1,5 @@
 import { Color32 } from '../utils/Color32';
+import { spriteColorNotInPaletteError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
@@ -71,7 +72,7 @@ export class SpriteSheet {
         } else if (size) {
             this.size = size;
         } else {
-            throw new Error('[SpriteSheet] Either an image or explicit size must be provided.');
+            throw new Error('Either an image or explicit size must be provided.');
         }
     }
 
@@ -240,7 +241,7 @@ export class SpriteSheet {
         if (collected.length > 0) {
             if (startSlot < 1) {
                 throw new RangeError(
-                    `[SpriteSheet] loadColorsIntoPalette: startSlot ${startSlot} is invalid (slot 0 is reserved for transparency).`,
+                    `loadColorsIntoPalette: startSlot ${startSlot} is invalid (slot 0 is reserved for transparency).`,
                 );
             }
 
@@ -248,7 +249,7 @@ export class SpriteSheet {
 
             if (endSlot >= palette.size) {
                 throw new RangeError(
-                    `[SpriteSheet] loadColorsIntoPalette: ${collected.length} colors do not fit in palette size ${palette.size} starting at slot ${startSlot}.`,
+                    `loadColorsIntoPalette: ${collected.length} colors do not fit in palette size ${palette.size} starting at slot ${startSlot}.`,
                 );
             }
         }
@@ -281,7 +282,7 @@ export class SpriteSheet {
 
         if (indexedPixels.length !== expectedLength) {
             throw new RangeError(
-                `[SpriteSheet] indexedPixels length ${indexedPixels.length} does not match ${width}x${height} (expected ${expectedLength}).`,
+                `indexedPixels length ${indexedPixels.length} does not match ${width}x${height} (expected ${expectedLength}).`,
             );
         }
 
@@ -312,7 +313,7 @@ export class SpriteSheet {
      */
     indexize(palette: Palette): void {
         if (!this.image) {
-            throw new Error('[SpriteSheet] indexize: not available for sheets created from raw indexed data.');
+            throw new Error('indexize: not available for sheets created from raw indexed data.');
         }
 
         const w = this.size.x;
@@ -356,10 +357,7 @@ export class SpriteSheet {
                 const x = i % w;
                 const y = Math.floor(i / w);
                 const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
-                throw new Error(
-                    `[SpriteSheet] ${src} pixel at (${x}, ${y}) has color ${hex} which is not in the active palette.` +
-                        ` Add this color to the palette before indexizing.`,
-                );
+                throw new Error(spriteColorNotInPaletteError(x, y, src, hex));
             }
 
             // eslint-disable-next-line security/detect-object-injection
@@ -418,11 +416,11 @@ export class SpriteSheet {
      */
     reindexize(palette: Palette): void {
         if (!this.image) {
-            throw new Error('[SpriteSheet] reindexize: not available for sheets created from raw indexed data.');
+            throw new Error('reindexize: not available for sheets created from raw indexed data.');
         }
 
         if (this.rgbaPixels === null) {
-            throw new Error('[SpriteSheet] reindexize: indexize() must be called before reindexize().');
+            throw new Error('reindexize: indexize() must be called before reindexize().');
         }
 
         const w = this.size.x;
@@ -457,10 +455,7 @@ export class SpriteSheet {
                 const x = i % w;
                 const y = Math.floor(i / w);
                 const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
-                throw new Error(
-                    `[SpriteSheet] ${src} pixel at (${x}, ${y}) has color ${hex} which is not in the active palette.` +
-                        ` Add this color to the palette before reindexizing.`,
-                );
+                throw new Error(spriteColorNotInPaletteError(x, y, src, hex));
             }
 
             // eslint-disable-next-line security/detect-object-injection
@@ -497,7 +492,7 @@ export class SpriteSheet {
      */
     getImage(): HTMLImageElement {
         if (!this.image) {
-            throw new Error('[SpriteSheet] getImage: not available for sheets created from raw indexed data.');
+            throw new Error('getImage: not available for sheets created from raw indexed data.');
         }
 
         return this.image;
@@ -611,7 +606,7 @@ export class SpriteSheet {
      */
     private createTexture(device: GPUDevice): void {
         if (!this.image) {
-            throw new Error('[SpriteSheet] createTexture: no source image available.');
+            throw new Error('createTexture: no source image available.');
         }
 
         this.texture = device.createTexture({

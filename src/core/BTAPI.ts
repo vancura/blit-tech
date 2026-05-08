@@ -17,6 +17,12 @@ import type { Effect } from '../render/effects/Effect';
 import { Renderer } from '../render/Renderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
+import {
+    noActivePaletteError,
+    paletteIndexNegativeError,
+    paletteIndexOutOfRangeError,
+    spriteNotIndexizedError,
+} from '../utils/errorMessages';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
@@ -566,7 +572,7 @@ export class BTAPI {
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
-        this.requireIndexizedSheet(spriteSheet, 'drawSprite');
+        this.requireIndexizedSheet(spriteSheet);
         this.renderer?.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
@@ -582,7 +588,7 @@ export class BTAPI {
      */
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
-        this.requireIndexizedSheet(font.getSpriteSheet(), 'drawBitmapText', 'font sprite sheet');
+        this.requireIndexizedSheet(font.getSpriteSheet());
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -600,7 +606,7 @@ export class BTAPI {
      */
     public spritesRefresh(): void {
         if (!this.palette) {
-            throw new Error('[BT] spritesRefresh: no active palette. Call BT.paletteSet() first.');
+            throw new Error(noActivePaletteError());
         }
 
         let refreshed = 0;
@@ -636,7 +642,7 @@ export class BTAPI {
      */
     public captureFrame(): Promise<Blob> {
         if (!this.renderer) {
-            return Promise.reject(new Error("[BT] Can't capture frame: renderer not initialized"));
+            return Promise.reject(new Error("Can't capture frame: renderer not initialized"));
         }
 
         return this.renderer.captureFrame();
@@ -688,11 +694,11 @@ export class BTAPI {
      */
     public paletteCycle(start: number, end: number, speed: number): void {
         if (!Number.isFinite(speed)) {
-            throw new Error(`[BT] paletteCycle: speed must be finite, got ${speed}.`);
+            throw new Error(`paletteCycle: 'speed' should be a number (got ${speed}).`);
         }
 
         if (!Number.isInteger(start) || !Number.isInteger(end) || start >= end) {
-            throw new Error(`[BT] paletteCycle: start must be an integer less than end, got [${start}, ${end}].`);
+            throw new Error(`paletteCycle: start must be an integer less than end, got [${start}, ${end}].`);
         }
 
         this.paletteEffects.add(new CycleEffect(start, end, speed));
@@ -709,7 +715,7 @@ export class BTAPI {
      */
     public paletteFade(target: Palette, durationMs: number, easing?: EasingFunction): void {
         if (!this.palette) {
-            throw new Error('[BT] Cannot fade palette: no active palette set.');
+            throw new Error(noActivePaletteError());
         }
 
         this.assertFiniteDuration('paletteFade', durationMs);
@@ -733,7 +739,7 @@ export class BTAPI {
         easing?: EasingFunction,
     ): void {
         if (!this.palette) {
-            throw new Error('[BT] Cannot fade palette range: no active palette set.');
+            throw new Error(noActivePaletteError());
         }
 
         this.assertFiniteDuration('paletteFadeRange', durationMs);
@@ -750,7 +756,7 @@ export class BTAPI {
      */
     public paletteFlash(color: Color32, durationMs: number): void {
         if (!this.palette) {
-            throw new Error('[BT] Cannot flash palette: no active palette set.');
+            throw new Error(noActivePaletteError());
         }
 
         this.assertFiniteDuration('paletteFlash', durationMs);
@@ -767,7 +773,7 @@ export class BTAPI {
      */
     public paletteSwap(indexA: number, indexB: number): void {
         if (!this.palette) {
-            throw new Error('[BT] Cannot swap palette entries: no active palette set.');
+            throw new Error(noActivePaletteError());
         }
 
         paletteSwap(this.palette, indexA, indexB);
@@ -797,7 +803,7 @@ export class BTAPI {
      */
     public effectAdd(effect: Effect): void {
         if (!this.renderer) {
-            throw new Error('[BT] Cannot add effect: renderer not initialized.');
+            throw new Error('Cannot add effect: renderer not initialized.');
         }
 
         this.renderer.addEffect(effect);
@@ -815,7 +821,7 @@ export class BTAPI {
      */
     public effectRemove(effect: Effect): void {
         if (!this.renderer) {
-            throw new Error('[BT] Cannot remove effect: renderer not initialized.');
+            throw new Error('Cannot remove effect: renderer not initialized.');
         }
 
         this.renderer.removeEffect(effect);
@@ -828,7 +834,7 @@ export class BTAPI {
      */
     public effectClear(): void {
         if (!this.renderer) {
-            throw new Error('[BT] Cannot clear effects: renderer not initialized.');
+            throw new Error('Cannot clear effects: renderer not initialized.');
         }
 
         this.renderer.clearEffects();
@@ -906,16 +912,11 @@ export class BTAPI {
      * Validates that a sprite sheet has been indexized and registers it for refresh tracking.
      *
      * @param sheet - Sprite sheet to validate.
-     * @param method - Calling method name for the error message.
-     * @param label - Human-readable name for the sheet used in the error message (default `'sprite sheet'`).
      * @throws If the sprite sheet has not been indexized.
      */
-    private requireIndexizedSheet(sheet: SpriteSheet, method: string, label: string = 'sprite sheet'): void {
+    private requireIndexizedSheet(sheet: SpriteSheet): void {
         if (!sheet.isIndexized()) {
-            throw new Error(
-                `[BT] ${method}: ${label} has not been indexized.` +
-                    ' Call spriteSheet.indexize(palette) after setting a palette.',
-            );
+            throw new Error(spriteNotIndexizedError());
         }
 
         this.spriteSheets.add(sheet);
@@ -930,7 +931,7 @@ export class BTAPI {
      */
     private assertFiniteDuration(method: string, durationMs: number): void {
         if (!Number.isFinite(durationMs) || durationMs < 0) {
-            throw new Error(`[BT] ${method}: durationMs must be a finite non-negative number, got ${durationMs}.`);
+            throw new Error(`${method}: the time should be a non-negative number of milliseconds (got ${durationMs}).`);
         }
     }
 
@@ -947,11 +948,11 @@ export class BTAPI {
      */
     private assertPaletteIndex(index: number): void {
         if (!Number.isInteger(index) || index < 0) {
-            throw new Error(`Palette index ${index} is not a valid non-negative integer.`);
+            throw new Error(paletteIndexNegativeError(index));
         }
 
         if (this.palette && index >= this.palette.size) {
-            throw new Error(`Palette index ${index} out of range for palette of size ${this.palette.size}.`);
+            throw new Error(paletteIndexOutOfRangeError(index, this.palette.size));
         }
     }
 
