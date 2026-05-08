@@ -44,5 +44,6 @@ describe('defaultConfig', () => {
 
         expect(a).not.toBe(b);
         expect(a.displaySize).not.toBe(b.displaySize);
+        expect(a.canvasDisplaySize).not.toBe(b.canvasDisplaySize);
     });
 });
