@@ -1,3 +1,4 @@
+import { WEBGPU_ADAPTER_MESSAGE, WEBGPU_DEVICE_MESSAGE } from '../utils/errorMessages';
 import type { Vector2i } from '../utils/Vector2i';
 
 // #region Types
@@ -35,7 +36,10 @@ export interface WebGPUContextResult {
  * @param canvas - HTML canvas element to configure for WebGPU rendering.
  * @param displaySize - Internal logical rendering resolution in pixels.
  * @param canvasDisplaySize - Optional output drawing-buffer size in pixels.
- * @returns Initialized device, context, and drawing-buffer size, or null on failure.
+ * @returns Initialized device, context, and drawing-buffer size, or null when WebGPU
+ *          is absent or the canvas context could not be obtained.
+ * @throws Error with a user-friendly message when the adapter or device cannot be
+ *         created (hardware acceleration disabled, drivers too old, resource exhaustion).
  */
 export async function initWebGPU(
     canvas: HTMLCanvasElement,
@@ -61,7 +65,7 @@ export async function initWebGPU(
         console.error('[BT]   3. Running in an incompatible environment (VM, remote desktop, etc.)');
         console.error('[BT] Browser:', navigator.userAgent);
 
-        return null;
+        throw new Error(WEBGPU_ADAPTER_MESSAGE);
     }
 
     // Request device.
@@ -72,7 +76,7 @@ export async function initWebGPU(
     } catch (err) {
         console.error('[BT] Failed to get WebGPU device:', err);
 
-        return null;
+        throw new Error(WEBGPU_DEVICE_MESSAGE, { cause: err });
     }
 
     // Drawing buffer = canvasDisplaySize when provided, else logical displaySize.

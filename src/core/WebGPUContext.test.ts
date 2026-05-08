@@ -18,6 +18,7 @@ import {
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
+import { WEBGPU_ADAPTER_MESSAGE, WEBGPU_DEVICE_MESSAGE } from '../utils/errorMessages';
 import { Vector2i } from '../utils/Vector2i';
 import { initWebGPU } from './WebGPUContext';
 
@@ -62,7 +63,7 @@ describe('initWebGPU', () => {
 
     // #region Adapter failures
 
-    it('should return null when requestAdapter returns null', async () => {
+    it('should throw with WEBGPU_ADAPTER_MESSAGE when requestAdapter returns null', async () => {
         Object.defineProperty(globalThis, 'navigator', {
             value: {
                 gpu: {
@@ -76,12 +77,11 @@ describe('initWebGPU', () => {
         });
 
         const canvas = createMockCanvas();
-        const result = await initWebGPU(canvas, displaySize);
 
-        expect(result).toBeNull();
+        await expect(initWebGPU(canvas, displaySize)).rejects.toThrow(WEBGPU_ADAPTER_MESSAGE);
     });
 
-    it('should return null when requestDevice throws', async () => {
+    it('should throw with WEBGPU_DEVICE_MESSAGE when requestDevice throws', async () => {
         Object.defineProperty(globalThis, 'navigator', {
             value: {
                 gpu: {
@@ -99,9 +99,8 @@ describe('initWebGPU', () => {
         });
 
         const canvas = createMockCanvas();
-        const result = await initWebGPU(canvas, displaySize);
 
-        expect(result).toBeNull();
+        await expect(initWebGPU(canvas, displaySize)).rejects.toThrow(WEBGPU_DEVICE_MESSAGE);
     });
 
     // #endregion

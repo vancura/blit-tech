@@ -17,6 +17,7 @@ import {
     getCanvas,
     getWebGPUInstructions,
 } from './BootstrapHelpers';
+import { CANVAS_NOT_FOUND_MESSAGE, INIT_FAILED_MESSAGE } from './errorMessages';
 
 // #region Types
 
@@ -75,10 +76,6 @@ interface BootstrapResult {
 function buildWebGPUNotSupportedMessage(): string {
     return getWebGPUInstructions(detectBrowser());
 }
-
-/** Error message for initialization failure. */
-const INIT_FAILED_MESSAGE =
-    'Something went wrong starting the engine. Check the browser console (press F12) for details.';
 
 // #endregion
 
@@ -171,7 +168,7 @@ function validateCanvas(
     } else {
         result = handleBootstrapError(
             'Canvas Error',
-            `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasId}'> element.`,
+            CANVAS_NOT_FOUND_MESSAGE(canvasId),
             new Error(`Canvas element '${canvasId}' not found`),
             containerId,
             onError,
