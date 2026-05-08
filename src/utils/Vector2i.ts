@@ -338,7 +338,7 @@ export class Vector2i {
      */
     div(scalar: number): Vector2i {
         if (scalar === 0) {
-            throw new Error('Vector2i.div: scalar must not be zero');
+            throw new Error("Can't divide by zero. Use a non-zero number for Vector2i.div.");
         }
 
         return new Vector2i((this.x / scalar) | 0, (this.y / scalar) | 0);
@@ -510,7 +510,7 @@ export class Vector2i {
      */
     divTo(scalar: number, out: Vector2i): Vector2i {
         if (scalar === 0) {
-            throw new Error('Vector2i.divTo: scalar must not be zero');
+            throw new Error("Can't divide by zero. Use a non-zero number for Vector2i.divTo.");
         }
 
         out.x = (this.x / scalar) | 0;
@@ -724,7 +724,7 @@ export class Vector2i {
      */
     divInPlace(scalar: number): this {
         if (scalar === 0) {
-            throw new Error('Vector2i.divInPlace: scalar must not be zero');
+            throw new Error("Can't divide by zero. Use a non-zero number for Vector2i.divInPlace.");
         }
 
         this.x = (this.x / scalar) | 0;

@@ -282,6 +282,24 @@ describe('BT.paletteSet', () => {
 
         expect(spy).toHaveBeenCalledWith(palette);
     });
+
+    it('shows a beginner-friendly error when passed undefined', async () => {
+        await withErrorContainer(async () => {
+            BT.paletteSet(undefined as never);
+
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain('BT.paletteSet expects a Palette');
+        });
+    });
+
+    it('shows a beginner-friendly error when passed null', async () => {
+        await withErrorContainer(async () => {
+            BT.paletteSet(null as never);
+
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain('BT.paletteSet expects a Palette');
+        });
+    });
 });
 
 describe('BT.paletteGet', () => {
