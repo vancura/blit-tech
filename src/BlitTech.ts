@@ -320,7 +320,8 @@ export const BT = {
     /**
      * Returns fixed-step seconds per update tick.
      *
-     * Equivalent to `1 / BT.fps()`.
+     * Equivalent to `1 / BT.fps()` when `BT.fps()` is finite and positive.
+     * Falls back to `1 / 60` when FPS is non-finite or non-positive.
      *
      * @returns Seconds advanced by one fixed update tick.
      */
