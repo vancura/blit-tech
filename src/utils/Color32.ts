@@ -13,6 +13,9 @@ export const INV_255 = 1 / 255;
 /** Precomputed lookup table for byte-to-hex conversion. */
 const HEX_TABLE: string[] = new Array(256);
 
+/** Strict hex token validator used for exact substring checks in fromHex parsing. */
+const HEX_TOKEN_PATTERN = /^[0-9A-Fa-f]+$/;
+
 for (let i = 0; i < 256; i++) {
     // eslint-disable-next-line security/detect-object-injection
     HEX_TABLE[i] = i.toString(16).padStart(2, '0');
@@ -256,47 +259,31 @@ export class Color32 {
 
         if (len === 6 || len === 8) {
             // Parse RGB as a single integer, then extract bytes (reduces parseInt calls).
-            const rgb = parseInt(hex.substring(start, start + 6), 16);
-
-            if (Number.isNaN(rgb)) {
-                throw new Error(`Invalid hex color: ${hex}`);
-            }
+            const rgb = parseHexToken(hex, start, 6);
 
             r = (rgb >> 16) & 0xff;
             g = (rgb >> 8) & 0xff;
             b = rgb & 0xff;
 
             if (len === 8) {
-                a = parseInt(hex.substring(start + 6, start + 8), 16);
-
-                if (Number.isNaN(a)) {
-                    throw new Error(`Invalid hex color: ${hex}`);
-                }
+                a = parseHexToken(hex, start + 6, 2);
             }
         } else if (len === 3 || len === 4) {
             // Parse RGB as a single integer, then extract nibbles and expand to bytes.
             // For a short hex, each digit represents a nibble that expands: F -> FF (0xF * 17 = 0xFF).
-            const rgb = parseInt(hex.substring(start, start + 3), 16);
-
-            if (Number.isNaN(rgb)) {
-                throw new Error(`Invalid hex color: ${hex}`);
-            }
+            const rgb = parseHexToken(hex, start, 3);
 
             r = ((rgb >> 8) & 0xf) * 17;
             g = ((rgb >> 4) & 0xf) * 17;
             b = (rgb & 0xf) * 17;
 
             if (len === 4) {
-                const parsedA = parseInt(hex.charAt(start + 3), 16);
-
-                if (Number.isNaN(parsedA)) {
-                    throw new Error(`Invalid hex color: ${hex}`);
-                }
+                const parsedA = parseHexToken(hex, start + 3, 1);
 
                 a = parsedA * 17;
             }
         } else {
-            throw new Error(`Invalid hex color: ${hex}`);
+            throwInvalidHex(hex);
         }
 
         // Validation passed, use unchecked factory.
@@ -753,6 +740,35 @@ export function clampByte(n: number): number {
     // Bitwise operations: if n < 0, use 0; if n > 255, use 255; else truncate n.
     // This is faster than Math.max(0, Math.min(255, n)) | 0.
     return n < 0 ? 0 : n > 255 ? 255 : n | 0;
+}
+
+/**
+ * Throws a standardized beginner-friendly error for invalid hex colors.
+ *
+ * @param hex - Original input string.
+ */
+function throwInvalidHex(hex: string): never {
+    throw new Error(
+        `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+    );
+}
+
+/**
+ * Parses an exact-length hex substring and rejects partial/invalid tokens.
+ *
+ * @param hex - Original full hex string.
+ * @param start - Token start index in the full string.
+ * @param length - Expected token length.
+ * @returns Parsed base-16 number.
+ */
+function parseHexToken(hex: string, start: number, length: number): number {
+    const token = hex.substring(start, start + length);
+
+    if (token.length !== length || !HEX_TOKEN_PATTERN.test(token)) {
+        throwInvalidHex(hex);
+    }
+
+    return parseInt(token, 16);
 }
 
 // #endregion
