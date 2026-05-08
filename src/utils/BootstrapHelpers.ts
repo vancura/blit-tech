@@ -33,6 +33,13 @@ const FIREFOX_NIGHTLY_URL = 'https://www.mozilla.org/firefox/channel/desktop/';
 
 // #endregion
 
+import {
+    CANVAS_NOT_FOUND_MESSAGE,
+    INIT_FAILED_MESSAGE,
+    WEBGPU_ADAPTER_MESSAGE,
+    WEBGPU_DEVICE_MESSAGE,
+} from './errorMessages';
+
 // #region Module State
 
 /** Stored keydown handler for previewWebGPUErrors, used to remove the previous listener on re-entry. */
@@ -430,11 +437,14 @@ interface ErrorPreviewEntry {
 /**
  * Returns all distinct error message variants used by the engine.
  * Covers every browser/version branch of {@link getWebGPUInstructions} plus the
- * three non-WebGPU error types (canvas, initialization, unexpected).
+ * non-WebGPU error types (canvas, initialization, adapter, device, unexpected).
+ *
+ * Exported for testing: the test suite verifies that canvas / init-failed /
+ * adapter / device entries use the exact same strings as production bootstrap.
  *
  * @returns Array of preview entries, one per error variant.
  */
-function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
+export function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
     return [
         // WebGPU not supported — Chrome
         {
@@ -505,16 +515,30 @@ function buildErrorPreviewEntries(): ReadonlyArray<ErrorPreviewEntry> {
         {
             label: 'Canvas element not found',
             title: 'Canvas Error',
-            content:
-                "Failed to find the canvas element with the id 'blit-tech-canvas'.\n\n" +
-                'Make sure the HTML includes a canvas element with the correct ID.',
+            content: CANVAS_NOT_FOUND_MESSAGE(DEFAULT_CANVAS_ID),
         },
         {
             label: 'Initialization failed (with error)',
             title: 'Initialization Failed',
             content: {
-                text: 'The engine failed to initialize. Check the console for details.',
+                text: INIT_FAILED_MESSAGE,
                 code: "TypeError: Cannot read properties of undefined (reading 'requestDevice')",
+            },
+        },
+        {
+            label: 'WebGPU adapter unavailable',
+            title: 'Initialization Failed',
+            content: {
+                text: INIT_FAILED_MESSAGE,
+                code: WEBGPU_ADAPTER_MESSAGE,
+            },
+        },
+        {
+            label: 'WebGPU device unavailable',
+            title: 'Initialization Failed',
+            content: {
+                text: INIT_FAILED_MESSAGE,
+                code: WEBGPU_DEVICE_MESSAGE,
             },
         },
         {

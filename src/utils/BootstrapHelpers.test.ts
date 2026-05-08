@@ -3,6 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    buildErrorPreviewEntries,
     checkWebGPUSupport,
     DEFAULT_CANVAS_ID,
     DEFAULT_CONTAINER_ID,
@@ -11,6 +12,12 @@ import {
     getCanvas,
     getWebGPUInstructions,
 } from './BootstrapHelpers';
+import {
+    CANVAS_NOT_FOUND_MESSAGE,
+    INIT_FAILED_MESSAGE,
+    WEBGPU_ADAPTER_MESSAGE,
+    WEBGPU_DEVICE_MESSAGE,
+} from './errorMessages';
 
 // #region Constants
 
@@ -268,6 +275,67 @@ describe('BootstrapHelpers', () => {
         it('should list supported browsers for an unknown browser', () => {
             const msg = getWebGPUInstructions({ name: 'unknown', version: 0 });
             expect(msg).toContain('Chrome 113');
+        });
+    });
+
+    // #endregion
+
+    // #region buildErrorPreviewEntries
+
+    describe('buildErrorPreviewEntries', () => {
+        it('canvas-not-found entry uses CANVAS_NOT_FOUND_MESSAGE', () => {
+            const entries = buildErrorPreviewEntries();
+            const entry = entries.find((e) => e.label === 'Canvas element not found');
+
+            expect(entry).toBeDefined();
+            expect(entry?.content).toBe(CANVAS_NOT_FOUND_MESSAGE(DEFAULT_CANVAS_ID));
+        });
+
+        it('init-failed entry text uses INIT_FAILED_MESSAGE', () => {
+            const entries = buildErrorPreviewEntries();
+            const entry = entries.find((e) => e.label === 'Initialization failed (with error)');
+
+            expect(entry).toBeDefined();
+
+            const content = entry?.content;
+
+            expect(typeof content).toBe('object');
+
+            if (typeof content === 'object' && content !== null && 'text' in content) {
+                expect(content.text).toBe(INIT_FAILED_MESSAGE);
+            }
+        });
+
+        it('adapter-unavailable entry uses WEBGPU_ADAPTER_MESSAGE in code slot', () => {
+            const entries = buildErrorPreviewEntries();
+            const entry = entries.find((e) => e.label === 'WebGPU adapter unavailable');
+
+            expect(entry).toBeDefined();
+
+            const content = entry?.content;
+
+            expect(typeof content).toBe('object');
+
+            if (typeof content === 'object' && content !== null && 'code' in content) {
+                expect(content.code).toBe(WEBGPU_ADAPTER_MESSAGE);
+                expect((content as { text: string }).text).toBe(INIT_FAILED_MESSAGE);
+            }
+        });
+
+        it('device-unavailable entry uses WEBGPU_DEVICE_MESSAGE in code slot', () => {
+            const entries = buildErrorPreviewEntries();
+            const entry = entries.find((e) => e.label === 'WebGPU device unavailable');
+
+            expect(entry).toBeDefined();
+
+            const content = entry?.content;
+
+            expect(typeof content).toBe('object');
+
+            if (typeof content === 'object' && content !== null && 'code' in content) {
+                expect(content.code).toBe(WEBGPU_DEVICE_MESSAGE);
+                expect((content as { text: string }).text).toBe(INIT_FAILED_MESSAGE);
+            }
         });
     });
 

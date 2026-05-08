@@ -23,6 +23,7 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { Effect } from '../render/effects/Effect';
+import { WEBGPU_ADAPTER_MESSAGE } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
@@ -315,7 +316,7 @@ describe('BTAPI', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when WebGPU adapter is unavailable', async () => {
+        it('should throw with WEBGPU_ADAPTER_MESSAGE when WebGPU adapter is unavailable', async () => {
             Object.defineProperty(globalThis, 'navigator', {
                 value: {
                     gpu: {
@@ -328,9 +329,7 @@ describe('BTAPI', () => {
                 configurable: true,
             });
 
-            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
-
-            expect(result).toBe(false);
+            await expect(BTAPI.instance.init(makeMockDemo(), makeMockCanvas())).rejects.toThrow(WEBGPU_ADAPTER_MESSAGE);
         });
 
         it('should return false when renderer initialization fails', async () => {
