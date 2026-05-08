@@ -49,8 +49,17 @@ function buildImageHints(url: string): string {
         hints.push(`Did you mean '/images/${url}' or './images/${url}'?`);
     }
 
-    const slashIndex = url.lastIndexOf('/');
-    const fileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
+    const queryIndex = url.indexOf('?');
+    const hashIndex = url.indexOf('#');
+    let cleanUrl = url;
+    const cutIndex = queryIndex === -1 ? hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
+
+    if (cutIndex !== -1) {
+        cleanUrl = url.slice(0, cutIndex);
+    }
+
+    const slashIndex = cleanUrl.lastIndexOf('/');
+    const fileName = slashIndex >= 0 ? cleanUrl.slice(slashIndex + 1) : cleanUrl;
     const dotIndex = fileName.lastIndexOf('.');
     const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
     const knownImageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);

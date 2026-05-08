@@ -210,6 +210,12 @@ describe('AssetLoader', () => {
                 "This looks like a font file. For images, use a file that ends with '.png'.",
             );
         });
+
+        it('should not suggest font extension fix for png URLs with query suffixes', async () => {
+            await expect(AssetLoader.loadImage('fail/sprites/hero.png?v=1')).rejects.not.toThrow(
+                "This looks like a font file. For images, use a file that ends with '.png'.",
+            );
+        });
     });
 
     // #endregion

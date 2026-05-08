@@ -379,7 +379,12 @@ export class BitmapFont {
      */
     private static buildExtensionHint(url: string, expectedExtension: string): string {
         const slashIndex = url.lastIndexOf('/');
-        const fileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
+        const rawFileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
+        const queryIndex = rawFileName.indexOf('?');
+        const hashIndex = rawFileName.indexOf('#');
+        const cutIndex =
+            queryIndex === -1 ? hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
+        const fileName = cutIndex === -1 ? rawFileName : rawFileName.slice(0, cutIndex);
         const dotIndex = fileName.lastIndexOf('.');
         const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
 
