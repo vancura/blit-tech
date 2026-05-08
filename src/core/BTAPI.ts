@@ -931,7 +931,7 @@ export class BTAPI {
      */
     private assertFiniteDuration(method: string, durationMs: number): void {
         if (!Number.isFinite(durationMs) || durationMs < 0) {
-            throw new Error(`${method}: the time should be a positive number of milliseconds (got ${durationMs}).`);
+            throw new Error(`${method}: the time should be a non-negative number of milliseconds (got ${durationMs}).`);
         }
     }
 
