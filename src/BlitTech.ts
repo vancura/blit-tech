@@ -47,6 +47,7 @@ import { clampCameraToWorld } from './utils/CameraUtils';
 import { Color32 } from './utils/Color32';
 import type { EasingFunction } from './utils/Easing';
 import { applyEasing } from './utils/Easing';
+import { noActivePaletteError } from './utils/errorMessages';
 import { Rect2i } from './utils/Rect2i';
 import { Vector2i } from './utils/Vector2i';
 
@@ -517,7 +518,7 @@ export const BT = {
         const palette = BTAPI.instance.getPalette();
 
         if (!palette) {
-            throw new Error('No active palette. Call BT.paletteSet() first.');
+            throw new Error(noActivePaletteError());
         }
 
         return palette;
@@ -642,7 +643,9 @@ export const BT = {
      * @throws If a `'display'` effect is added without `canvasDisplaySize`.
      */
     effectAdd: (effect: Effect): void => {
-        BTAPI.instance.effectAdd(effect);
+        executeDrawCall('effectAdd', () => {
+            BTAPI.instance.effectAdd(effect);
+        });
     },
 
     /**
@@ -655,7 +658,9 @@ export const BT = {
      * @throws If the engine has not been initialized.
      */
     effectRemove: (effect: Effect): void => {
-        BTAPI.instance.effectRemove(effect);
+        executeDrawCall('effectRemove', () => {
+            BTAPI.instance.effectRemove(effect);
+        });
     },
 
     /**
@@ -664,7 +669,9 @@ export const BT = {
      * @throws If the engine has not been initialized.
      */
     effectClear: (): void => {
-        BTAPI.instance.effectClear();
+        executeDrawCall('effectClear', () => {
+            BTAPI.instance.effectClear();
+        });
     },
 
     /**

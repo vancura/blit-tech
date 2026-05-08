@@ -7,6 +7,7 @@
  */
 
 import { Color32 } from '../utils/Color32';
+import { paletteIndexOutOfRangeError } from '../utils/errorMessages';
 import { C64_HEX, CGA_HEX, GAMEBOY_HEX, NES_HEX, PICO8_HEX, VGA_HEX } from './palettes/presetData';
 
 /** Supported palette sizes exposed by the public API. */
@@ -589,7 +590,7 @@ export class Palette {
      */
     private assertIndexInRange(index: number): void {
         if (!Number.isInteger(index) || index < 0 || index >= this.size) {
-            throw new Error(`Palette index ${index} out of range (palette size: ${this.size})`);
+            throw new Error(paletteIndexOutOfRangeError(index, this.size));
         }
     }
 

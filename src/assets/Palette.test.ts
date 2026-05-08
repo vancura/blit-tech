@@ -55,8 +55,8 @@ describe('Palette', () => {
 
         expect(palette.get(5).equals(color)).toBe(true);
         expect(palette.get(5)).not.toBe(color);
-        expect(() => palette.get(16)).toThrow('Palette index 16 out of range (palette size: 16)');
-        expect(() => palette.set(-1, color)).toThrow('Palette index -1 out of range (palette size: 16)');
+        expect(() => palette.get(16)).toThrow('The color number 16 is too big');
+        expect(() => palette.set(-1, color)).toThrow('The color number -1 is too big');
     });
 
     it('get() returns a defensive copy — mutating the result does not change the stored entry', () => {
@@ -162,7 +162,7 @@ describe('Palette', () => {
         expect(() => Palette.fromJSON({ colors: invalidColors, size: 16 })).toThrow('Palette JSON color 2 is missing');
         expect(() =>
             Palette.fromJSON({ colors: new Array(16).fill('#00000000'), names: { bad: 16 }, size: 16 }),
-        ).toThrow('Palette index 16 out of range (palette size: 16)');
+        ).toThrow('The color number 16 is too big');
     });
 
     it('roundtrips through raw RGB bytes', () => {

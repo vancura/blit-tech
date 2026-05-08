@@ -318,7 +318,7 @@ describe('BT.paletteGet', () => {
     it('throws when no palette is set', () => {
         vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(null);
 
-        expect(() => BT.paletteGet()).toThrow('No active palette. Call BT.paletteSet() first.');
+        expect(() => BT.paletteGet()).toThrow('No palette set yet. Call BT.paletteSet');
     });
 });
 
@@ -1202,6 +1202,88 @@ describe('BT.drawSprite', () => {
             const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
             expect(text).toContain("The engine isn't ready yet.");
         });
+    });
+});
+
+// #endregion
+
+// #region BT.effectAdd / BT.effectRemove / BT.effectClear
+
+describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
+    function makeStubEffect() {
+        return {
+            tier: 'pixel' as const,
+            init: vi.fn(),
+            updateUniforms: vi.fn(),
+            encodePass: vi.fn(),
+            dispose: vi.fn(),
+        };
+    }
+
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('effectAdd shows engine-not-ready when called before bootstrap', async () => {
+        await withErrorContainer(async () => {
+            vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
+
+            BT.effectAdd(makeStubEffect());
+
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("The engine isn't ready yet.");
+        });
+    });
+
+    it('effectRemove shows engine-not-ready when called before bootstrap', async () => {
+        await withErrorContainer(async () => {
+            vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
+
+            BT.effectRemove(makeStubEffect());
+
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("The engine isn't ready yet.");
+        });
+    });
+
+    it('effectClear shows engine-not-ready when called before bootstrap', async () => {
+        await withErrorContainer(async () => {
+            vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
+
+            BT.effectClear();
+
+            const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+            expect(text).toContain("The engine isn't ready yet.");
+        });
+    });
+
+    it('effectAdd delegates to BTAPI.instance.effectAdd when renderer is ready', () => {
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
+        const spy = vi.spyOn(BTAPI.instance, 'effectAdd').mockReturnValue(undefined);
+        const effect = makeStubEffect();
+
+        BT.effectAdd(effect);
+
+        expect(spy).toHaveBeenCalledWith(effect);
+    });
+
+    it('effectRemove delegates to BTAPI.instance.effectRemove when renderer is ready', () => {
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
+        const spy = vi.spyOn(BTAPI.instance, 'effectRemove').mockReturnValue(undefined);
+        const effect = makeStubEffect();
+
+        BT.effectRemove(effect);
+
+        expect(spy).toHaveBeenCalledWith(effect);
+    });
+
+    it('effectClear delegates to BTAPI.instance.effectClear when renderer is ready', () => {
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
+        const spy = vi.spyOn(BTAPI.instance, 'effectClear').mockReturnValue(undefined);
+
+        BT.effectClear();
+
+        expect(spy).toHaveBeenCalled();
     });
 });
 

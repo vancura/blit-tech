@@ -94,7 +94,7 @@ export async function pixelBufferToPNG(
     const ctx = offscreen.getContext('2d');
 
     if (!ctx) {
-        throw new Error('[FrameCapture] Failed to create 2D context on OffscreenCanvas');
+        throw new Error('Failed to create 2D context on OffscreenCanvas');
     }
 
     ctx.putImageData(imageData, 0, 0);

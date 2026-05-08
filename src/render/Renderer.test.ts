@@ -111,7 +111,7 @@ describe('pre-initialization methods', () => {
 
         expect(() => {
             renderer.beginFrame();
-        }).toThrow('Cannot begin frame: no active palette. Call setPalette() first.');
+        }).toThrow('No palette set yet. Call BT.paletteSet');
     });
 
     it('beginFrame succeeds with active palette', () => {
