@@ -259,7 +259,9 @@ export class Color32 {
             const rgb = parseInt(hex.substring(start, start + 6), 16);
 
             if (Number.isNaN(rgb)) {
-                throw new Error(`Invalid hex color: ${hex}`);
+                throw new Error(
+                    `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+                );
             }
 
             r = (rgb >> 16) & 0xff;
@@ -270,7 +272,9 @@ export class Color32 {
                 a = parseInt(hex.substring(start + 6, start + 8), 16);
 
                 if (Number.isNaN(a)) {
-                    throw new Error(`Invalid hex color: ${hex}`);
+                    throw new Error(
+                        `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+                    );
                 }
             }
         } else if (len === 3 || len === 4) {
@@ -279,7 +283,9 @@ export class Color32 {
             const rgb = parseInt(hex.substring(start, start + 3), 16);
 
             if (Number.isNaN(rgb)) {
-                throw new Error(`Invalid hex color: ${hex}`);
+                throw new Error(
+                    `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+                );
             }
 
             r = ((rgb >> 8) & 0xf) * 17;
@@ -290,13 +296,17 @@ export class Color32 {
                 const parsedA = parseInt(hex.charAt(start + 3), 16);
 
                 if (Number.isNaN(parsedA)) {
-                    throw new Error(`Invalid hex color: ${hex}`);
+                    throw new Error(
+                        `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+                    );
                 }
 
                 a = parsedA * 17;
             }
         } else {
-            throw new Error(`Invalid hex color: ${hex}`);
+            throw new Error(
+                `The color '${hex}' isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.`,
+            );
         }
 
         // Validation passed, use unchecked factory.

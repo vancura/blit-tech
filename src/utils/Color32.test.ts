@@ -247,6 +247,9 @@ describe('fromUint32', () => {
 });
 
 describe('fromHex', () => {
+    const invalidHexMessage =
+        "isn't a valid hex color. Use a format like '#FF0000' (red), '#00FF00' (green), or '#0000FF' (blue). You can also use short form like '#F00'.";
+
     it('parses #RGB shorthand (expands nibbles)', () => {
         const c = Color32.fromHex('#F00');
         expect(c.r).toBe(255);
@@ -292,9 +295,21 @@ describe('fromHex', () => {
     });
 
     it('throws on invalid hex string', () => {
-        expect(() => Color32.fromHex('#XYZ')).toThrow('Invalid hex color');
-        expect(() => Color32.fromHex('#12')).toThrow('Invalid hex color');
-        expect(() => Color32.fromHex('#123456789')).toThrow('Invalid hex color');
+        expect(() => Color32.fromHex('#XYZ')).toThrow(invalidHexMessage);
+        expect(() => Color32.fromHex('#12')).toThrow(invalidHexMessage);
+        expect(() => Color32.fromHex('#123456789')).toThrow(invalidHexMessage);
+    });
+
+    it('throws the beginner-friendly message for invalid 6-digit format', () => {
+        expect(() => Color32.fromHex('#GGGGGG')).toThrow(invalidHexMessage);
+    });
+
+    it('throws the beginner-friendly message for invalid 8-digit alpha', () => {
+        expect(() => Color32.fromHex('#112233GG')).toThrow(invalidHexMessage);
+    });
+
+    it('throws the beginner-friendly message for invalid 4-digit shorthand alpha', () => {
+        expect(() => Color32.fromHex('#FFFZ')).toThrow(invalidHexMessage);
     });
 });
 
