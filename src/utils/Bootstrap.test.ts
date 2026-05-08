@@ -183,6 +183,7 @@ describe('bootstrap', () => {
         it('should return false and call onError when demo is missing render/update', async () => {
             setupDOM();
             stubWebGPU();
+            const initSpy = vi.spyOn(BTAPI.instance, 'init');
 
             class BrokenDemo implements IBlitTechDemo {
                 async init() {
@@ -204,9 +205,12 @@ describe('bootstrap', () => {
 
             expect(result).toBe(false);
             expect(onError).toHaveBeenCalledOnce();
+            expect(initSpy).not.toHaveBeenCalled();
             expect(document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '').toContain(
                 'missing update() or render()',
             );
+
+            initSpy.mockRestore();
         });
 
         it('should return false and call onError when BTAPI.init returns false', async () => {

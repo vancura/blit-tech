@@ -711,7 +711,7 @@ export const BT = {
      *
      * Accepts either:
      * - `(posOrX: Vector2i, yOrColor: number)` where `yOrColor` is the palette index.
-     * - `(posOrX: number, yOrColor: number, maybeColor: number)` for `(x, y, color)`.
+     * - `(posOrX: number, yOrColor: number, maybeColor: number)` for `(x, y, paletteIndex)`.
      *
      * @param posOrX - Pixel position as `Vector2i`, or x coordinate when using numeric overload.
      * @param yOrColor - Palette index for vector overload, or y coordinate for numeric overload.
@@ -720,7 +720,7 @@ export const BT = {
     drawPixel: (posOrX: Vector2i | number, yOrColor: number, maybeColor?: number): void => {
         executeDrawCall('drawPixel', () => {
             if (posOrX instanceof Vector2i && typeof yOrColor === 'number' && maybeColor === undefined) {
-                BTAPI.instance.drawPixel(posOrX, yOrColor);
+                BTAPI.instance.drawPixel(new Vector2i(posOrX.x, posOrX.y), yOrColor);
                 return;
             }
 
@@ -737,7 +737,7 @@ export const BT = {
                 .filter((part) => part !== 'undefined')
                 .join(', ');
             showBeginnerRuntimeError(
-                `drawPixel expects (x, y, color) or (Vector2i, Color32). Got: [${typeDetails}]`,
+                `drawPixel expects (x, y, paletteIndex) or (Vector2i, paletteIndex). Got: [${typeDetails}]`,
                 'Wrong drawPixel Arguments',
             );
         });

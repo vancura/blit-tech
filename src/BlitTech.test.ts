@@ -25,6 +25,13 @@ const mockHardwareSettings = (displaySize = new Vector2i(320, 240), targetFPS = 
 });
 
 function setupErrorContainer(): HTMLDivElement {
+    const existingContainer = document.getElementById(DEFAULT_CONTAINER_ID);
+
+    if (existingContainer instanceof HTMLDivElement) {
+        existingContainer.innerHTML = '';
+        return existingContainer;
+    }
+
     const container = document.createElement('div');
     container.id = DEFAULT_CONTAINER_ID;
     document.body.appendChild(container);
@@ -356,7 +363,7 @@ describe('BT.drawPixel', () => {
         BT.drawPixel({} as never, 2 as never);
 
         const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
-        expect(text).toContain('drawPixel expects (x, y, color) or (Vector2i, Color32).');
+        expect(text).toContain('drawPixel expects (x, y, paletteIndex) or (Vector2i, paletteIndex).');
 
         clearErrorContainer();
     });
