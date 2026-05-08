@@ -33,7 +33,8 @@ primitives, and fonts.
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
 - **Bitmap fonts**: variable-width font rendering with palette offset support
-- **Camera system**: scrolling with offset/reset plus world clamping helpers (`BT.cameraClamp`, `clampCameraToWorld`)
+- **Camera system**: scrolling with offset/reset plus world clamping via `BT.cameraClamp` (all demo code must use the
+  `BT` namespace exclusively; `clampCameraToWorld` is a low-level internal helper)
 - **Asset loading**: sprite sheets and bitmap fonts from images with automatic caching
 - **Pointer input**: mouse, touch, and pen unified under four pointer slots (`BT.pointerPos`, `BT.pointerDelta`,
   `BT.buttonDown` with `BTN_POINTER_A..D`); scroll delta, cursor hide/show, display-space coordinates
@@ -133,6 +134,7 @@ import {
   Color32,
   Palette,
   Rect2i,
+  SpriteSheet,
   Vector2i,
   type HardwareSettings,
   type IBlitTechDemo,
@@ -505,11 +507,22 @@ implemented in `drawSprite()`. They are planned for a future release.
 ```ts
 BT.cameraSet(offset); // Set camera offset
 BT.cameraGet(); // Get current offset
-BT.cameraClamp(camera, worldSize, viewSize?); // Clamp camera origin to world bounds
+BT.cameraClamp(camera, worldSize, viewSize?); // Returns a new clamped camera Vector2i (does not mutate `camera`)
 BT.cameraReset(); // Reset to (0, 0)
 ```
 
 `viewSize` defaults to `BT.displaySize()` when omitted.
+
+```ts
+const camera = new Vector2i(500, 300);
+const world = new Vector2i(640, 480);
+
+const clamped = BT.cameraClamp(camera, world); // uses BT.displaySize() when viewSize is omitted
+BT.cameraSet(clamped); // apply returned value
+// camera is unchanged; BT.cameraClamp returns a new Vector2i.
+
+BT.cameraReset(); // reset global camera offset to (0, 0)
+```
 
 ### Core Types
 

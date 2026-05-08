@@ -325,7 +325,10 @@ export const BT = {
      * @returns Seconds advanced by one fixed update tick.
      */
     deltaSeconds: (): number => {
-        return 1 / BT.fps();
+        const fps = BT.fps();
+        const validatedFps = Number.isFinite(fps) && fps > 0 ? fps : 60;
+
+        return 1 / validatedFps;
     },
 
     /**

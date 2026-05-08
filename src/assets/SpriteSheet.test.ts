@@ -366,6 +366,11 @@ describe('SpriteSheet', () => {
             expect(loadColorsSpy).toHaveBeenCalledWith('hero.png', palette, 4, undefined);
             expect(loadSpy).toHaveBeenCalledWith('hero.png');
             expect(indexizeSpy).toHaveBeenCalledWith(palette);
+            const loadColorsOrder = loadColorsSpy.mock.invocationCallOrder[0] ?? 0;
+            const loadOrder = loadSpy.mock.invocationCallOrder[0] ?? 0;
+            const indexizeOrder = indexizeSpy.mock.invocationCallOrder[0] ?? 0;
+            expect(loadColorsOrder).toBeLessThan(loadOrder);
+            expect(loadOrder).toBeLessThan(indexizeOrder);
             expect(result.sheet).toBe(sheet);
             expect(result.colors).toBe(colors);
             expect(result.srcRect.equals(new Rect2i(0, 0, 12, 8))).toBe(true);

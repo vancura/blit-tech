@@ -138,6 +138,14 @@ describe('BT.deltaSeconds', () => {
 
         expect(BT.deltaSeconds()).toBeCloseTo(0.02);
     });
+
+    it('falls back to 1/60 when targetFPS is non-positive', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 0),
+        );
+
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+    });
 });
 
 describe('BT.timeSeconds', () => {
@@ -152,6 +160,18 @@ describe('BT.timeSeconds', () => {
         );
 
         expect(BT.timeSeconds()).toBeCloseTo(3);
+    });
+
+    it('uses fallback delta when targetFPS is non-positive, producing finite time', () => {
+        vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(120);
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
+            mockHardwareSettings(new Vector2i(320, 240), 0),
+        );
+
+        const time = BT.timeSeconds();
+        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(Number.isFinite(time)).toBe(true);
+        expect(time).toBeCloseTo(2);
     });
 });
 
