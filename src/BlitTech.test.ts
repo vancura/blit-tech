@@ -15,6 +15,7 @@ import type { BitmapFont, HardwareSettings } from './BlitTech';
 import { BT, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
 import { BTAPI } from './core/BTAPI';
 import type { FaceButtonCode } from './input/defaultKeyboardMap';
+import { DEFAULT_CONTAINER_ID } from './utils/BootstrapHelpers';
 
 // #region Helpers
 
@@ -22,6 +23,20 @@ const mockHardwareSettings = (displaySize = new Vector2i(320, 240), targetFPS = 
     displaySize,
     targetFPS,
 });
+
+function setupErrorContainer(): HTMLDivElement {
+    const container = document.createElement('div');
+    container.id = DEFAULT_CONTAINER_ID;
+    document.body.appendChild(container);
+    return container;
+}
+
+function clearErrorContainer(): void {
+    const container = document.getElementById(DEFAULT_CONTAINER_ID);
+    if (container?.parentElement) {
+        container.parentElement.removeChild(container);
+    }
+}
 
 // #endregion
 
@@ -280,6 +295,7 @@ describe('BT.paletteGet', () => {
 describe('BT.clear', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.setClearColor', () => {
@@ -294,6 +310,7 @@ describe('BT.clear', () => {
 describe('BT.clearRect', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.clearRect', () => {
@@ -313,6 +330,7 @@ describe('BT.clearRect', () => {
 describe('BT.drawPixel', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawPixel', () => {
@@ -323,11 +341,31 @@ describe('BT.drawPixel', () => {
 
         expect(spy).toHaveBeenCalledWith(pos, 2);
     });
+
+    it('supports (x, y, color) arguments', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'drawPixel').mockReturnValue(undefined);
+
+        BT.drawPixel(5, 10, 3);
+
+        expect(spy).toHaveBeenCalledWith(expect.objectContaining({ x: 5, y: 10 }), 3);
+    });
+
+    it('shows a beginner-friendly error when drawPixel arguments are invalid', () => {
+        setupErrorContainer();
+
+        BT.drawPixel({} as never, 2 as never);
+
+        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+        expect(text).toContain('drawPixel expects (x, y, color) or (Vector2i, Color32).');
+
+        clearErrorContainer();
+    });
 });
 
 describe('BT.drawLine', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawLine', () => {
@@ -344,6 +382,7 @@ describe('BT.drawLine', () => {
 describe('BT.drawRect', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawRect', () => {
@@ -359,6 +398,7 @@ describe('BT.drawRect', () => {
 describe('BT.drawRectFill', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawRectFill', () => {
@@ -915,6 +955,7 @@ describe('BT.keyReleased', () => {
 describe('BT.systemPrint', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawSystemText', () => {
@@ -955,6 +996,7 @@ describe('BT.systemPrintMeasure', () => {
 describe('BT.printFont', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawBitmapText', () => {
@@ -975,6 +1017,17 @@ describe('BT.printFont', () => {
         BT.printFont(font, new Vector2i(0, 0), 'Hi');
 
         expect(spy).toHaveBeenCalledWith(font, expect.anything(), 'Hi', undefined);
+    });
+
+    it('shows a missing await message for Promise font values', () => {
+        setupErrorContainer();
+
+        BT.printFont(Promise.resolve({}) as unknown as BitmapFont, new Vector2i(0, 0), 'Hi');
+
+        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+        expect(text).toContain("Did you forget to use 'await' before BitmapFont.load()?");
+
+        clearErrorContainer();
     });
 });
 
@@ -1056,6 +1109,7 @@ describe('BT.drawSprite', () => {
 
     beforeEach(() => {
         vi.restoreAllMocks();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
     });
 
     it('delegates to BTAPI.instance.drawSprite', () => {
@@ -1098,6 +1152,29 @@ describe('BT.drawSprite', () => {
             BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
             BT.drawSprite(sheet, new Rect2i(16, 0, 16, 16), new Vector2i(20, 0));
         }).not.toThrow();
+    });
+
+    it('shows a missing await message for Promise sprite sheet values', () => {
+        setupErrorContainer();
+
+        BT.drawSprite(Promise.resolve({}) as unknown as SpriteSheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
+
+        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+        expect(text).toContain("Did you forget to use 'await' before SpriteSheet.load()?");
+
+        clearErrorContainer();
+    });
+
+    it('shows engine-not-ready message when drawing before bootstrap completes', () => {
+        setupErrorContainer();
+        vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue(null);
+
+        BT.drawSprite(new SpriteSheet(mockImage), new Rect2i(0, 0, 8, 8), new Vector2i(0, 0), 0);
+
+        const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
+        expect(text).toContain("The engine isn't ready yet.");
+
+        clearErrorContainer();
     });
 });
 

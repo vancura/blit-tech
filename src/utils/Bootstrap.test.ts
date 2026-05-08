@@ -180,6 +180,37 @@ describe('bootstrap', () => {
     // #region Engine initialization
 
     describe('engine initialization', () => {
+        it('should return false and call onError when demo is missing render/update', async () => {
+            setupDOM();
+            stubWebGPU();
+
+            class BrokenDemo implements IBlitTechDemo {
+                async init() {
+                    return true;
+                }
+
+                // Intentionally invalid runtime shape for beginner-mistake detection.
+                 
+                update() {}
+                 
+                render() {}
+            }
+
+            (BrokenDemo.prototype as unknown as { update?: unknown }).update = undefined;
+
+            const onError = vi.fn();
+            const result = await bootstrap(BrokenDemo as unknown as new () => IBlitTechDemo, {
+                waitForDOMReady: false,
+                onError,
+            });
+
+            expect(result).toBe(false);
+            expect(onError).toHaveBeenCalledOnce();
+            expect(document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '').toContain(
+                'missing update() or render()',
+            );
+        });
+
         it('should return false and call onError when BTAPI.init returns false', async () => {
             setupDOM();
 

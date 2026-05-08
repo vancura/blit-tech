@@ -126,7 +126,8 @@ export class AssetLoader {
                 loadingPromises.delete(url);
                 reject(
                     new Error(
-                        `Can't find the image '${url}'. Make sure it's in your project folder and the path is correct.` +
+                        `Can't find the image '${url}'. Make sure it's in your project folder and the path is correct. ` +
+                            'Check for typos, wrong letter casing, or a missing file extension.' +
                             buildImageHints(url),
                     ),
                 );

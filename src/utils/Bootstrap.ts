@@ -199,6 +199,17 @@ async function initDemo(
     onError?: (error: Error) => void,
 ): Promise<BootstrapResult> {
     const demo = new DemoClass();
+
+    if (typeof demo.update !== 'function' || typeof demo.render !== 'function') {
+        return handleBootstrapError(
+            'Demo Setup Error',
+            'Your Demo class is missing update() or render(). Add both methods so the engine knows what to run each frame.',
+            new Error('Demo class is missing update() or render()'),
+            containerId,
+            onError,
+        );
+    }
+
     let initialized: boolean;
     let initError: Error | undefined;
 

@@ -77,6 +77,110 @@ function resetKeyboardFaceButtonMaps(): void {
 resetKeyboardFaceButtonMaps();
 
 /**
+ * Shows a beginner-friendly runtime error in the canvas container and console.
+ *
+ * @param message - Human-readable guidance to display.
+ * @param title - Short heading for the error panel.
+ */
+function showBeginnerRuntimeError(message: string, title: string = 'Demo Error'): void {
+    displayError(title, message);
+    console.error(`[BT] ${title}: ${message}`);
+}
+
+/**
+ * Returns whether the renderer has been initialized and can accept draw calls.
+ *
+ * @returns True when drawing APIs are ready to run.
+ */
+function isRendererReady(): boolean {
+    return BTAPI.instance.getRenderer() !== null;
+}
+
+/**
+ * Shows a friendly error when a draw call is made before bootstrap finishes.
+ *
+ * @param methodName - BT method name that was called too early.
+ */
+function reportEngineNotReady(methodName: string): void {
+    showBeginnerRuntimeError(
+        `Can't use BT.${methodName}() yet because the engine is still starting.\n` +
+            "The engine isn't ready yet. Make sure all drawing happens inside update() or render().",
+        'Engine Not Ready',
+    );
+}
+
+/**
+ * Converts an unknown runtime value into a concise display type label.
+ *
+ * @param value - Runtime value to inspect.
+ * @returns A short readable type description.
+ */
+function describeRuntimeType(value: unknown): string {
+    if (value === null) {
+        return 'null';
+    }
+
+    if (value === undefined) {
+        return 'undefined';
+    }
+
+    if (value instanceof Vector2i) {
+        return 'Vector2i';
+    }
+
+    if (value instanceof Rect2i) {
+        return 'Rect2i';
+    }
+
+    if (value instanceof Color32) {
+        return 'Color32';
+    }
+
+    if (value instanceof Promise) {
+        return 'Promise (missing await?)';
+    }
+
+    if (typeof value === 'object') {
+        const ctor = (value as { constructor?: { name?: string } }).constructor?.name;
+        return ctor && ctor.length > 0 ? ctor : 'object';
+    }
+
+    return typeof value;
+}
+
+/**
+ * Shows a friendly hint when a Promise was passed instead of an awaited asset.
+ *
+ * @param loadCall - Asset loader call name to reference in the message.
+ */
+function reportMissingAwait(loadCall: string): void {
+    showBeginnerRuntimeError(`Did you forget to use 'await' before ${loadCall}?`, 'Missing await');
+}
+
+/**
+ * Runs a draw call with readiness checks and beginner-friendly error handling.
+ *
+ * @param methodName - BT method name for contextual error text.
+ * @param callback - Draw-call body to execute.
+ */
+function executeDrawCall(methodName: string, callback: () => void): void {
+    if (!isRendererReady()) {
+        reportEngineNotReady(methodName);
+        return;
+    }
+
+    try {
+        callback();
+    } catch (error) {
+        if (error instanceof Error) {
+            showBeginnerRuntimeError(error.message);
+        } else {
+            showBeginnerRuntimeError(String(error));
+        }
+    }
+}
+
+/**
  * Returns runtime keyboard `KeyboardEvent.code` list for a face button and player,
  * or `null` when there is no keyboard fallback (e.g. players 2–3 for face buttons).
  *
@@ -581,7 +685,9 @@ export const BT = {
      * @param paletteIndex - Palette index for the full-screen clear pass.
      */
     clear: (paletteIndex: number): void => {
-        BTAPI.instance.setClearColor(paletteIndex);
+        executeDrawCall('clear', () => {
+            BTAPI.instance.setClearColor(paletteIndex);
+        });
     },
 
     /**
@@ -591,7 +697,9 @@ export const BT = {
      * @param paletteIndex - Palette color index.
      */
     clearRect: (rect: Rect2i, paletteIndex: number): void => {
-        BTAPI.instance.clearRect(rect, paletteIndex);
+        executeDrawCall('clearRect', () => {
+            BTAPI.instance.clearRect(rect, paletteIndex);
+        });
     },
 
     // #endregion
@@ -601,11 +709,38 @@ export const BT = {
     /**
      * Draws a single pixel.
      *
-     * @param pos - Target pixel in display coordinates.
-     * @param paletteIndex - Palette color index.
+     * Accepts either:
+     * - `(posOrX: Vector2i, yOrColor: number)` where `yOrColor` is the palette index.
+     * - `(posOrX: number, yOrColor: number, maybeColor: number)` for `(x, y, color)`.
+     *
+     * @param posOrX - Pixel position as `Vector2i`, or x coordinate when using numeric overload.
+     * @param yOrColor - Palette index for vector overload, or y coordinate for numeric overload.
+     * @param maybeColor - Palette index when using numeric overload.
      */
-    drawPixel: (pos: Vector2i, paletteIndex: number): void => {
-        BTAPI.instance.drawPixel(pos, paletteIndex);
+    drawPixel: (posOrX: Vector2i | number, yOrColor: number, maybeColor?: number): void => {
+        executeDrawCall('drawPixel', () => {
+            if (posOrX instanceof Vector2i && typeof yOrColor === 'number' && maybeColor === undefined) {
+                BTAPI.instance.drawPixel(posOrX, yOrColor);
+                return;
+            }
+
+            if (typeof posOrX === 'number' && typeof yOrColor === 'number' && typeof maybeColor === 'number') {
+                BTAPI.instance.drawPixel(new Vector2i(posOrX, yOrColor), maybeColor);
+                return;
+            }
+
+            const typeDetails = [
+                describeRuntimeType(posOrX),
+                describeRuntimeType(yOrColor),
+                describeRuntimeType(maybeColor),
+            ]
+                .filter((part) => part !== 'undefined')
+                .join(', ');
+            showBeginnerRuntimeError(
+                `drawPixel expects (x, y, color) or (Vector2i, Color32). Got: [${typeDetails}]`,
+                'Wrong drawPixel Arguments',
+            );
+        });
     },
 
     /**
@@ -618,7 +753,9 @@ export const BT = {
      * @param paletteIndex - Palette color index.
      */
     drawLine: (p0: Vector2i, p1: Vector2i, paletteIndex: number): void => {
-        BTAPI.instance.drawLine(p0, p1, paletteIndex);
+        executeDrawCall('drawLine', () => {
+            BTAPI.instance.drawLine(p0, p1, paletteIndex);
+        });
     },
 
     /**
@@ -628,7 +765,9 @@ export const BT = {
      * @param paletteIndex - Palette color index.
      */
     drawRect: (rect: Rect2i, paletteIndex: number): void => {
-        BTAPI.instance.drawRect(rect, paletteIndex);
+        executeDrawCall('drawRect', () => {
+            BTAPI.instance.drawRect(rect, paletteIndex);
+        });
     },
 
     /**
@@ -638,7 +777,9 @@ export const BT = {
      * @param paletteIndex - Palette color index.
      */
     drawRectFill: (rect: Rect2i, paletteIndex: number): void => {
-        BTAPI.instance.drawRectFill(rect, paletteIndex);
+        executeDrawCall('drawRectFill', () => {
+            BTAPI.instance.drawRectFill(rect, paletteIndex);
+        });
     },
 
     // #endregion
@@ -1105,7 +1246,9 @@ export const BT = {
      * @param text - String to render.
      */
     systemPrint: (pos: Vector2i, paletteIndex: number, text: string): void => {
-        BTAPI.instance.drawSystemText(pos, paletteIndex, text);
+        executeDrawCall('systemPrint', () => {
+            BTAPI.instance.drawSystemText(pos, paletteIndex, text);
+        });
     },
 
     /**
@@ -1143,7 +1286,14 @@ export const BT = {
      * @param paletteOffset - Shift added to every stored glyph index before palette lookup (default 0).
      */
     printFont: (font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void => {
-        BTAPI.instance.drawBitmapText(font, pos, text, paletteOffset);
+        executeDrawCall('printFont', () => {
+            if (font instanceof Promise) {
+                reportMissingAwait('BitmapFont.load()');
+                return;
+            }
+
+            BTAPI.instance.drawBitmapText(font, pos, text, paletteOffset);
+        });
     },
 
     // #endregion
@@ -1231,7 +1381,14 @@ export const BT = {
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10), 16); // blue team
      */
     drawSprite: (spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset?: number): void => {
-        BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
+        executeDrawCall('drawSprite', () => {
+            if (spriteSheet instanceof Promise) {
+                reportMissingAwait('SpriteSheet.load()');
+                return;
+            }
+
+            BTAPI.instance.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
+        });
     },
 
     /**

@@ -429,7 +429,8 @@ export class BitmapFont {
             image.onerror = () =>
                 reject(
                     new Error(
-                        `Can't find the font texture image '${src.substring(0, 50)}'. Check that the file exists and the path is spelled correctly.`,
+                        `Can't find the font texture image '${src.substring(0, 50)}'. ` +
+                            'Check for typos, wrong letter casing, or a missing file extension.',
                     ),
                 );
 
