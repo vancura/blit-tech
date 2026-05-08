@@ -83,6 +83,22 @@ describe('SpriteSheet', () => {
             expect(sheet.size.x).toBe(256);
             expect(sheet.size.y).toBe(256);
         });
+
+        it('should expose width and height accessors', () => {
+            const sheet = new SpriteSheet(mockImage);
+            expect(sheet.width).toBe(256);
+            expect(sheet.height).toBe(256);
+        });
+
+        it('should return a full-sheet source rectangle', () => {
+            const sheet = new SpriteSheet(mockImage);
+            const rect = sheet.fullRect();
+
+            expect(rect.x).toBe(0);
+            expect(rect.y).toBe(0);
+            expect(rect.width).toBe(256);
+            expect(rect.height).toBe(256);
+        });
     });
 
     // #endregion

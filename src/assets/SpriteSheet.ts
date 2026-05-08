@@ -1,5 +1,5 @@
 import { Color32 } from '../utils/Color32';
-import type { Rect2i } from '../utils/Rect2i';
+import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
@@ -450,6 +450,33 @@ export class SpriteSheet {
         }
 
         return this.image;
+    }
+
+    /**
+     * Gets the sprite-sheet width in pixels.
+     *
+     * @returns Sheet width in pixels.
+     */
+    get width(): number {
+        return this.size.x;
+    }
+
+    /**
+     * Gets the sprite-sheet height in pixels.
+     *
+     * @returns Sheet height in pixels.
+     */
+    get height(): number {
+        return this.size.y;
+    }
+
+    /**
+     * Returns a source rectangle that covers the entire sprite sheet.
+     *
+     * @returns Full-sheet source rectangle.
+     */
+    fullRect(): Rect2i {
+        return new Rect2i(0, 0, this.width, this.height);
     }
 
     /**
