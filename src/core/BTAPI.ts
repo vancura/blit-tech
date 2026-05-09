@@ -16,6 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
+import { SoftwareTicker } from '../render/SoftwareTicker';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -83,6 +84,12 @@ export class BTAPI {
 
     /** Renderer subsystem for all drawing operations. */
     private renderer: IRenderer | null = null;
+
+    /** Backend that was successfully initialized, or null before init. */
+    private activeBackend: RendererBackend | null = null;
+
+    /** Software-mode ticker overlay; non-null only when the software backend is active. */
+    private ticker: SoftwareTicker | null = null;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -252,6 +259,20 @@ export class BTAPI {
                         this.paletteEffects.update(this.palette);
                     }
 
+                    // Software ticker renders on top of the demo, after user draw calls.
+                    if (this.ticker && this.systemFont) {
+                        this.ticker.render(
+                            this.renderer,
+                            this.hwSettings?.displaySize.x ?? 0,
+                            this.systemFont,
+                            this.pointer,
+                        );
+
+                        if (this.ticker.isDismissed) {
+                            this.ticker = null;
+                        }
+                    }
+
                     this.renderer.endFrame();
                 }
 
@@ -358,6 +379,15 @@ export class BTAPI {
      */
     public getRenderer(): IRenderer | null {
         return this.renderer;
+    }
+
+    /**
+     * Returns the renderer backend that was actually initialized.
+     *
+     * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
+     */
+    public getActiveBackend(): RendererBackend | null {
+        return this.activeBackend;
     }
 
     /**
@@ -830,44 +860,55 @@ export class BTAPI {
      */
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
         const requestedBackend = hw.renderer ?? 'webgpu';
-        if (requestedBackend === 'software') {
-            this.device = null;
-            this.context = null;
-            console.log('[BT] Initializing renderer (backend: software)');
-            this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
 
-            if (!(await this.renderer.init())) {
-                console.error('[BT] Failed to initialize renderer');
-
-                return false;
+        if (requestedBackend !== 'software') {
+            // Try WebGPU. initWebGPU returns null when navigator.gpu is absent and
+            // throws when the adapter or device cannot be created. Both cases fall
+            // through to the software renderer below.
+            let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
+            try {
+                webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
+            } catch {
+                // Adapter/device unavailable; fall through to software.
             }
 
-            console.log('[BT] Renderer initialized');
+            if (webGPUResult) {
+                this.device = webGPUResult.device;
+                this.context = webGPUResult.context;
+                console.log('[BT] Initializing renderer (backend: webgpu)');
 
-            return true;
+                this.renderer = new WebGpuRenderer(
+                    webGPUResult.device,
+                    webGPUResult.context,
+                    hw.displaySize,
+                    // Only forward an explicit outputSize when canvasDisplaySize was
+                    // provided; that is the signal that unlocks the display tier.
+                    hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+                    hw.outputUpscaleFilter ?? 'nearest',
+                );
+
+                if (!(await this.renderer.init())) {
+                    console.error('[BT] Failed to initialize renderer');
+
+                    return false;
+                }
+
+                this.activeBackend = 'webgpu';
+                this.ticker = null;
+                console.log('[BT] Renderer initialized');
+
+                return true;
+            }
+
+            console.warn('[BT] WebGPU unavailable, falling back to software renderer');
         }
 
-        const webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
-        if (!webGPUResult) {
-            console.error('[BT] Failed to initialize WebGPU');
+        // Software renderer path: explicit selection or automatic fallback.
+        this.device = null;
+        this.context = null;
+        console.log('[BT] Initializing renderer (backend: software)');
 
-            return false;
-        }
-
-        this.device = webGPUResult.device;
-        this.context = webGPUResult.context;
-
-        console.log('[BT] Initializing renderer (backend: webgpu)');
-
-        this.renderer = new WebGpuRenderer(
-            webGPUResult.device,
-            webGPUResult.context,
-            hw.displaySize,
-            // Only forward an explicit outputSize when canvasDisplaySize was
-            // provided; that is the signal that unlocks the display tier.
-            hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
-            hw.outputUpscaleFilter ?? 'nearest',
-        );
+        this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
 
         if (!(await this.renderer.init())) {
             console.error('[BT] Failed to initialize renderer');
@@ -875,6 +916,8 @@ export class BTAPI {
             return false;
         }
 
+        this.activeBackend = 'software';
+        this.ticker = new SoftwareTicker(`${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
         console.log('[BT] Renderer initialized');
 
         return true;

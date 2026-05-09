@@ -32,6 +32,7 @@ src/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
     SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
+    SoftwareTicker.ts      # Dismissible in-canvas "SOFTWARE RENDERER" status banner (software mode only)
     PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain
@@ -77,7 +78,9 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
      Auto-batched by texture.
 - **Software** (`'software'`): Canvas 2D fallback. Supports palette rendering, rects, Bresenham lines, indexed sprite
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
-  Force at runtime with the `?renderer=software` URL query parameter.
+  Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the
+  `?renderer=software` URL query parameter. A dismissible in-canvas ticker banner is rendered each frame when this
+  backend is active. Use `BTAPI.getActiveBackend()` to query which backend started (`'webgpu' | 'software' | null`).
 
 ### Core Types
 
