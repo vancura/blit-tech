@@ -841,13 +841,15 @@ export class BTAPI {
      * @returns `true` when the renderer is ready; `false` on failure.
      */
     private async initRenderer(webGPUResult: WebGPUContextResult, hw: HardwareSettings): Promise<boolean> {
-        const backend = hw.renderer ?? 'webgpu';
+        const requestedBackend = hw.renderer ?? 'webgpu';
 
-        if (backend !== 'webgpu') {
-            console.warn(`[BT] Backend '${backend}' is not yet implemented; falling back to WebGPU (see VV-491)`);
+        if (requestedBackend !== 'webgpu') {
+            console.warn(
+                `[BT] Backend '${requestedBackend}' is not yet implemented; falling back to WebGPU (see VV-491)`,
+            );
         }
 
-        console.log(`[BT] Initializing renderer (backend: ${backend})`);
+        console.log('[BT] Initializing renderer (backend: webgpu)');
 
         this.renderer = new WebGpuRenderer(
             webGPUResult.device,
