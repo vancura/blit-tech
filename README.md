@@ -28,9 +28,10 @@ primitives, and fonts.
   `?renderer=software` URL param. A dismissible in-canvas "SOFTWARE RENDERER" banner confirms fallback mode is active
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
-- **Post-process effects**: two-tier system — pixel-tier effects (chunky glitch, mosaic) at logical resolution, plus
-  display-tier effects (CRT scanlines, barrel curvature, RGB shadow mask, bloom, etc.) at output resolution. Both chains
-  add zero cost when empty. Bundled `BT.preset.crtPipBoy()` / `amber()` / `green()` for one-line setup
+- **Post-process effects**: two-tier system — **pixel tier** runs on the logical **`r8uint`** framebuffer (palette
+  indices per pixel); the engine then **palette-LUT resolves and upscales** to RGBA at `canvasDisplaySize`; **display
+  tier** runs on that RGBA (CRT scanlines, barrel curvature, RGB shadow mask, bloom, etc.). Both chains add zero cost
+  when empty. Bundled `BT.preset.crtPipBoy()` / `amber()` / `green()` for one-line setup
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: sprite sheets, palette-indexed textures, palette offset for color variations, automatic texture
   batching
@@ -48,8 +49,9 @@ primitives, and fonts.
 - **Fixed timestep**: deterministic update loop with tick counter and timing helpers (`BT.deltaSeconds`,
   `BT.timeSeconds`, `Timer`)
 - **Clean API**: all engine access through the `BT` namespace
-- **Display scaling**: `canvasDisplaySize` drives the WebGPU drawing buffer and CSS size for crisp pixel art; engine
-  `defaultConfig()` uses a `640x480` output for `320x240` logical (2x nearest) when a demo omits `configure()`
+- **Display scaling**: `canvasDisplaySize` drives the WebGPU drawing buffer and CSS size; logical draws stay
+  index-native (`r8uint` at `displaySize`) until resolve/upscale. Engine `defaultConfig()` pairs `320x240` logical with
+  `640x480` output (2x nearest) when a demo omits `configure()`
 
 ## Prerequisites
 
@@ -83,8 +85,8 @@ Additional documentation is available in the `docs/` directory:
 - **[Performance Testing Guide](docs/performance-testing.md)** — CPU benchmarks, browser frame-time tests, and CI perf
   workflows
 - **[Performance Best Practices](docs/performance-best-practices.md)** — Optimization guidelines and performance tips
-- **[Post-Process Effects Guide](docs/post-process-effects.md)** — Effect chain, built-in `PipBoyEffect` and
-  `BloomEffect`, writing custom effects, and shader attribution
+- **[Post-Process Effects Guide](docs/post-process-effects.md)** — Two-tier chains (pixel indices vs display RGBA),
+  `PaletteResolveUpscalePass`, built-in effects and presets, writing custom effects, and shader attribution
 - **[Bitmap Fonts Guide](docs/bitmap-fonts.md)** — Built-in system font, `.btfont` format spec, BMFont conversion, and
   font rendering API
 - **[Input Guide](docs/input.md)** — Pointer, keyboard, and gamepad input; slot model; button masks; remapping; axis
@@ -250,10 +252,12 @@ blit-tech/
 │   │   ├── PrimitivePipeline.ts # Batched palette-indexed geometry
 │   │   ├── SpritePipeline.ts   # Batched palette-indexed textured quads
 │   │   ├── PostProcessChain.ts # Tier-aware fullscreen effect chain
-│   │   ├── UpscalePass.ts      # Logical -> output upscale (nearest/linear)
+│   │   ├── UpscalePass.ts      # RGBA texture upscale helper (tests / utilities)
+│   │   ├── PaletteResolveUpscalePass.ts # r8uint indices -> RGBA + upscale to output size
 │   │   └── effects/
 │   │       ├── Effect.ts        # Effect interface + EffectTier
 │   │       ├── FullscreenEffect.ts # Base class for typical fullscreen effects
+│   │       ├── FullscreenPixelEffect.ts # Pixel-tier base (r8uint + RGBA shader variants)
 │   │       ├── pixel/           # Pixel-tier (PixelGlitch, PixelMosaic)
 │   │       ├── display/         # Display-tier (BarrelDistortion, Scanlines, ...)
 │   │       └── presets/         # crtPipBoy, amber, green
@@ -399,11 +403,15 @@ never conflict. Multiple effects can run simultaneously on different palette ran
 Two-tier fullscreen post-process system that runs between the scene render and the swap-chain present. Effects are
 organized into two chains by what they operate on:
 
-- **Pixel tier** — runs at the logical render resolution on the rendered palette pixels (`nearest` sampling, palette
-  preserved). Hosts chunky glitch, block mosaic, etc.
-- **Display tier** — runs at the canvas output resolution after an upscale pass. Hosts CRT scanlines, barrel curvature,
-  RGB shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution is what lets curved
-  sampling (barrel) express smoothly without quantizing onto the source pixel grid.
+- **Pixel tier** — runs at the logical render resolution on an **`r8uint` index framebuffer** (one byte per pixel:
+  palette slot per logical pixel). Uses integer texture loads so effects stay palette-native (chunky glitch, mosaic,
+  etc.).
+- **Palette resolve + upscale** — `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT
+  and scales to `canvasDisplaySize` (`nearest` or `linear` per `outputUpscaleFilter`). **RGBA for the display chain
+  exists only after this pass** (see `docs/post-process-effects.md`).
+- **Display tier** — runs at the canvas output resolution on that RGBA image. Hosts CRT scanlines, barrel curvature, RGB
+  shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution lets curved sampling (barrel)
+  stay smooth without quantizing onto the logical index grid.
 
 Both chains add zero cost when empty. Post-process effects are unsupported by the Canvas 2D software backend — calling
 `BT.effectAdd` / `BT.effectRemove` / `BT.effectClear` in software mode throws a clear error directing you to the WebGPU

@@ -42,7 +42,7 @@ export class PostProcessChain {
     /** WebGPU device used for resource creation. */
     private readonly device: GPUDevice;
 
-    /** Swap-chain color format; offscreen textures match for one shared pipeline per effect. */
+    /** Chain attachment format (`r8uint` for pixel tier, RGBA for display tier). */
     private readonly format: GPUTextureFormat;
 
     /** Resolution of this chain's render targets in pixels. */
@@ -80,8 +80,8 @@ export class PostProcessChain {
      * No GPU resources are created until the first effect is registered.
      *
      * @param device - WebGPU device used for resource creation.
-     * @param format - Swap-chain color format. Offscreen textures use the same
-     *   format so each effect can share one render pipeline across passes.
+     * @param format - Attachment format for this chain's offscreen textures.
+     *   Pixel tier typically uses `r8uint`; display tier uses an RGBA format.
      * @param chainSize - Render target resolution in pixels for this tier.
      * @param tier - Tier this chain serves. Effects added must match.
      */

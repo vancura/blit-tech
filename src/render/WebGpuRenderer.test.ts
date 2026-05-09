@@ -928,7 +928,7 @@ describe('post-process effects', () => {
         expect(effect.disposeSpy).toHaveBeenCalledOnce();
     });
 
-    it('endFrame keeps a single render pass while no effects are registered', async () => {
+    it('endFrame uses scene + palette-resolve passes when no effects are registered', async () => {
         const device = createMockGPUDevice();
         const beginRenderPassCalls: unknown[] = [];
 
@@ -951,8 +951,8 @@ describe('post-process effects', () => {
         r.beginFrame();
         r.endFrame();
 
-        // No effects registered: exactly one render pass (the scene pass).
-        expect(beginRenderPassCalls).toHaveLength(1);
+        // Logical scene (`r8uint`) then palette resolve/upscale to the swap chain.
+        expect(beginRenderPassCalls).toHaveLength(2);
     });
 
     it('endFrame drives chain.encode for each registered effect', async () => {
@@ -1035,8 +1035,8 @@ describe('post-process effects', () => {
         r.endFrame();
 
         // The scene render pass must target the chain's offscreen view, NOT
-        // the swap-chain view. The chain-driven effect pass receives the
-        // scene view as source and the swap-chain view as destination.
+        // the swap-chain view. The pixel effect reads that view and writes the
+        // logical scene texture; palette resolve then targets the swap chain.
         const scenePass = beginRenderPassCalls[0];
         expect(scenePass).toBeDefined();
         const sceneAttachment = (scenePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
@@ -1044,10 +1044,14 @@ describe('post-process effects', () => {
 
         const encodeArgs = effect.encodeSpy.mock.calls[0];
         expect(encodeArgs?.[1]).toBe(sceneAttachment?.view);
-        expect(encodeArgs?.[2]).toBe(swapView);
+        expect(encodeArgs?.[2]).not.toBe(swapView);
+
+        const resolvePass = beginRenderPassCalls[beginRenderPassCalls.length - 1];
+        const resolveAttachment = (resolvePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
+        expect(resolveAttachment?.view).toBe(swapView);
     });
 
-    it('endFrame keeps the scene pass on the swap chain when no effects are registered', async () => {
+    it('endFrame routes palette resolve to the swap chain when no effects are registered', async () => {
         const device = createMockGPUDevice();
         const beginRenderPassCalls: GPURenderPassDescriptor[] = [];
 
@@ -1084,8 +1088,12 @@ describe('post-process effects', () => {
         const scenePass = beginRenderPassCalls[0];
         const sceneAttachment = (scenePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
 
-        expect(sceneAttachment?.view).toBe(swapView);
-        expect(beginRenderPassCalls).toHaveLength(1);
+        expect(sceneAttachment?.view).not.toBe(swapView);
+
+        const resolvePass = beginRenderPassCalls[1];
+        const resolveAttachment = (resolvePass?.colorAttachments as GPURenderPassColorAttachment[])[0];
+        expect(resolveAttachment?.view).toBe(swapView);
+        expect(beginRenderPassCalls).toHaveLength(2);
     });
 });
 
