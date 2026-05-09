@@ -323,3 +323,107 @@ describe('Palette dirty flag', () => {
 });
 
 // #endregion
+
+// #region applyHUD
+
+describe('applyHUD', () => {
+    it('fills slots 1-6 with canonical HUD colors at default startSlot', () => {
+        const palette = new Palette(16);
+
+        palette.applyHUD();
+
+        expect(palette.get(1).equals(Color32.fromHex('#ffffff'))).toBe(true);
+        expect(palette.get(2).equals(Color32.fromHex('#1e1428'))).toBe(true);
+        expect(palette.get(3).equals(Color32.fromHex('#c8c8c8'))).toBe(true);
+        expect(palette.get(4).equals(Color32.fromHex('#ffdc64'))).toBe(true);
+        expect(palette.get(5).equals(Color32.fromHex('#646464'))).toBe(true);
+        expect(palette.get(6).equals(Color32.fromHex('#6496c8'))).toBe(true);
+    });
+
+    it('fills slots at an explicit non-default startSlot', () => {
+        const palette = new Palette(64);
+
+        palette.applyHUD(10);
+
+        expect(palette.get(10).equals(Color32.fromHex('#ffffff'))).toBe(true);
+        expect(palette.get(15).equals(Color32.fromHex('#6496c8'))).toBe(true);
+        expect(palette.get(9).equals(Color32.black())).toBe(true);
+        expect(palette.get(16).equals(Color32.black())).toBe(true);
+    });
+
+    it('registers named aliases at the correct indices', () => {
+        const palette = new Palette(16);
+
+        palette.applyHUD(1);
+
+        expect(palette.getNamed('hud_white')).toBe(1);
+        expect(palette.getNamed('hud_bg')).toBe(2);
+        expect(palette.getNamed('hud_label')).toBe(3);
+        expect(palette.getNamed('hud_header')).toBe(4);
+        expect(palette.getNamed('hud_dim')).toBe(5);
+        expect(palette.getNamed('hud_code')).toBe(6);
+    });
+
+    it('offsets named aliases correctly when startSlot is not 1', () => {
+        const palette = new Palette(64);
+
+        palette.applyHUD(10);
+
+        expect(palette.getNamed('hud_white')).toBe(10);
+        expect(palette.getNamed('hud_code')).toBe(15);
+    });
+
+    it('does not touch slots outside the HUD range', () => {
+        const palette = new Palette(16);
+
+        palette.set(7, new Color32(1, 2, 3, 255));
+        palette.applyHUD(1);
+
+        expect(palette.get(7).equals(new Color32(1, 2, 3, 255))).toBe(true);
+    });
+
+    it('throws when startSlot is 0', () => {
+        const palette = new Palette(16);
+
+        expect(() => palette.applyHUD(0)).toThrow('HUD preset slots start from 1');
+    });
+
+    it('throws when startSlot is negative', () => {
+        const palette = new Palette(16);
+
+        expect(() => palette.applyHUD(-1)).toThrow('HUD preset slots start from 1');
+    });
+
+    it('throws when the six slots exceed the palette size', () => {
+        const palette = new Palette(256);
+
+        expect(() => palette.applyHUD(251)).toThrow('HUD preset needs 6 slots starting at 251');
+    });
+
+    it('throws immediately on a palette too small to fit the preset', () => {
+        const palette = new Palette(4);
+
+        expect(() => palette.applyHUD(1)).toThrow('HUD preset needs 6 slots');
+    });
+
+    it('re-registers aliases when called a second time at a different startSlot', () => {
+        const palette = new Palette(64);
+
+        palette.applyHUD(1);
+        palette.applyHUD(20);
+
+        expect(palette.getNamed('hud_white')).toBe(20);
+        expect(palette.getNamed('hud_code')).toBe(25);
+    });
+
+    it('marks the palette dirty after applying', () => {
+        const palette = new Palette(16);
+
+        palette.clearDirty();
+        palette.applyHUD(1);
+
+        expect(palette.dirty).toBe(true);
+    });
+});
+
+// #endregion

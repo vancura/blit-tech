@@ -7,7 +7,13 @@
  */
 
 import { Color32 } from '../utils/Color32';
-import { paletteIndexNegativeError, paletteIndexOutOfRangeError } from '../utils/errorMessages';
+import {
+    hudRangeError,
+    hudStartSlotError,
+    paletteIndexNegativeError,
+    paletteIndexOutOfRangeError,
+} from '../utils/errorMessages';
+import { HUD_SLOTS } from './palettes/hudData';
 import { C64_HEX, CGA_HEX, GAMEBOY_HEX, NES_HEX, PICO8_HEX, VGA_HEX } from './palettes/presetData';
 
 /** Supported palette sizes exposed by the public API. */
@@ -294,6 +300,47 @@ export class Palette {
      */
     public static nes(): Palette {
         return createPreset(NES_HEX, 64);
+    }
+
+    /**
+     * Writes the six built-in HUD colors into this palette and registers their
+     * named aliases (`hud_white`, `hud_bg`, `hud_label`, `hud_header`, `hud_dim`,
+     * `hud_code`).
+     *
+     * The six slots are written contiguously starting at `startSlot`. After calling
+     * this, use `palette.getNamed('hud_white')` etc. to obtain the assigned indices
+     * without hardcoding numbers.
+     *
+     * Default colors (matching common demo usage):
+     * - `hud_white`  — `#ffffff` pure white
+     * - `hud_bg`     — `#1e1428` dark purple background
+     * - `hud_label`  — `#c8c8c8` medium gray labels
+     * - `hud_header` — `#ffdc64` golden header text
+     * - `hud_dim`    — `#646464` dim gray (FPS, secondary info)
+     * - `hud_code`   — `#6496c8` slate blue code snippets
+     *
+     * @param startSlot - First palette index to write. Must be >= 1 and leave room
+     *   for all six entries within the palette size. Defaults to `1`.
+     * @throws Error if `startSlot` is less than 1.
+     * @throws Error if the six entries would exceed the palette size.
+     */
+    public applyHUD(startSlot: number = 1): void {
+        if (startSlot < 1) {
+            throw new Error(hudStartSlotError(startSlot));
+        }
+
+        if (startSlot + HUD_SLOTS.length > this.size) {
+            throw new Error(hudRangeError(startSlot, HUD_SLOTS.length, this.size));
+        }
+
+        let offset = 0;
+
+        for (const { hex, name } of HUD_SLOTS) {
+            const slot = startSlot + offset++;
+
+            this.set(slot, Color32.fromHex(hex));
+            this.setNamed(name, slot);
+        }
     }
 
     /**

@@ -78,6 +78,31 @@ export function paletteIndexOutOfRangeError(index: number, size: number): string
     return `The color number ${index} is too big for this palette. The palette has ${size} colors, so use a number from 0 to ${size - 1}.`;
 }
 
+/**
+ * Returns the error message when `applyHUD` is called with `startSlot` less than 1.
+ *
+ * @param startSlot - The invalid start slot value that was supplied.
+ * @returns User-facing error string.
+ */
+export function hudStartSlotError(startSlot: number): string {
+    return `HUD preset slots start from 1 (slot 0 is always transparent). Got ${startSlot}.`;
+}
+
+/**
+ * Returns the error message when the HUD preset slots would exceed the palette size.
+ *
+ * @param startSlot - The requested start slot.
+ * @param count - Number of HUD slots needed.
+ * @param size - The palette size.
+ * @returns User-facing error string.
+ */
+export function hudRangeError(startSlot: number, count: number, size: number): string {
+    return (
+        `HUD preset needs ${count} slots starting at ${startSlot}, ` +
+        `but this palette only has ${size} entries (max slot: ${size - 1}).`
+    );
+}
+
 // #endregion
 
 // #region Runtime — Sprites
