@@ -20,7 +20,10 @@ export class PaletteResolveUpscalePass {
     private bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
 
     /** Cached encode params so redundant uniform uploads are skipped when unchanged. */
-    private lastEncodeKey: string | null = null;
+    private lastLogicalSizeX = -1;
+    private lastLogicalSizeY = -1;
+    /** Unset -1; then 0 = nearest, 1 = linear (matches uniformData[2]). */
+    private lastFilterLinear = -1;
 
     /**
      * Initializes pipeline and uniform buffer. Call once per renderer init.
@@ -34,7 +37,9 @@ export class PaletteResolveUpscalePass {
         this.device = device;
         this.filterMode = filter;
         this.paletteBuffer = paletteBuffer;
-        this.lastEncodeKey = null;
+        this.lastLogicalSizeX = -1;
+        this.lastLogicalSizeY = -1;
+        this.lastFilterLinear = -1;
 
         const module = device.createShaderModule({
             label: 'PaletteResolveUpscalePass Shader',
@@ -74,12 +79,18 @@ export class PaletteResolveUpscalePass {
             throw new Error('PaletteResolveUpscalePass.encode: pass was not initialized.');
         }
 
-        const encodeKey = `${logicalSize.x}x${logicalSize.y}:${this.filterMode}`;
-        if (encodeKey !== this.lastEncodeKey) {
-            this.lastEncodeKey = encodeKey;
+        const filterLinear = this.filterMode === 'linear' ? 1 : 0;
+        if (
+            logicalSize.x !== this.lastLogicalSizeX ||
+            logicalSize.y !== this.lastLogicalSizeY ||
+            filterLinear !== this.lastFilterLinear
+        ) {
+            this.lastLogicalSizeX = logicalSize.x;
+            this.lastLogicalSizeY = logicalSize.y;
+            this.lastFilterLinear = filterLinear;
             this.uniformData[0] = logicalSize.x;
             this.uniformData[1] = logicalSize.y;
-            this.uniformData[2] = this.filterMode === 'linear' ? 1 : 0;
+            this.uniformData[2] = filterLinear;
             this.uniformData[3] = 0;
             this.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
         }
@@ -91,7 +102,7 @@ export class PaletteResolveUpscalePass {
             colorAttachments: [
                 {
                     view: destView,
-                    clearValue: { r: 0, g: 0, b: 0, a: 1 },
+                    clearValue: { r: 0, g: 0, b: 0, a: 0 },
                     loadOp: 'clear',
                     storeOp: 'store',
                 },
@@ -113,7 +124,9 @@ export class PaletteResolveUpscalePass {
         this.uniformBuffer?.destroy();
         this.uniformBuffer = null;
         this.device = null;
-        this.lastEncodeKey = null;
+        this.lastLogicalSizeX = -1;
+        this.lastLogicalSizeY = -1;
+        this.lastFilterLinear = -1;
         this.bindGroups = new WeakMap();
     }
 
@@ -188,8 +201,7 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
         let sy = clamp(i32(floor(in.uv.y * lhf)), 0, lh - 1);
         let idx = textureLoad(srcIndices, vec2<i32>(sx, sy), 0).r;
         let color = palette.colors[idx];
-        if (color.a == 0.0) { discard; }
-        return vec4<f32>(color.rgb, 1.0);
+        return vec4<f32>(color.rgb, color.a);
     }
 
     let px = in.uv.x * lwf - 0.5;
