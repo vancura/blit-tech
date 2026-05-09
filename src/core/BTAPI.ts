@@ -833,7 +833,8 @@ export class BTAPI {
      * Constructs and initializes the renderer for the active hardware settings.
      *
      * Logs the selected backend name, creates a {@link WebGpuRenderer}, calls
-     * {@link IRenderer.init}, and reports success or failure.
+     * {@link IRenderer.init}, and reports success or failure. Emits a warning
+     * when a non-`'webgpu'` backend is requested but not yet implemented.
      *
      * @param webGPUResult - Initialized WebGPU device, context, and drawing-buffer size.
      * @param hw - Active hardware settings.
@@ -841,6 +842,10 @@ export class BTAPI {
      */
     private async initRenderer(webGPUResult: WebGPUContextResult, hw: HardwareSettings): Promise<boolean> {
         const backend = hw.renderer ?? 'webgpu';
+
+        if (backend !== 'webgpu') {
+            console.warn(`[BT] Backend '${backend}' is not yet implemented; falling back to WebGPU (see VV-491)`);
+        }
 
         console.log(`[BT] Initializing renderer (backend: ${backend})`);
 
