@@ -586,7 +586,7 @@ describe('SpriteSheet', () => {
 
             expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(RangeError);
             expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(
-                'indexedPixels length 10 does not match 4x4 (expected 16)',
+                'The pixel data has 10 values, but a 4x4 sheet needs exactly 16.',
             );
         });
 

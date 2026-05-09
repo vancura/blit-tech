@@ -15,6 +15,7 @@ import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
+import { SoftwareRenderer } from '../render/SoftwareRenderer';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -30,7 +31,6 @@ import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { defaultConfig } from './IBlitTechDemo';
-import type { WebGPUContextResult } from './WebGPUContext';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -199,19 +199,7 @@ export class BTAPI {
             targetFPS: this.hwSettings.targetFPS,
         });
 
-        // Initialize WebGPU.
-        const webGPUResult = await initWebGPU(canvas, this.hwSettings.displaySize, this.hwSettings.canvasDisplaySize);
-
-        if (!webGPUResult) {
-            console.error('[BT] Failed to initialize WebGPU');
-
-            return false;
-        }
-
-        this.device = webGPUResult.device;
-        this.context = webGPUResult.context;
-
-        if (!(await this.initRenderer(webGPUResult, this.hwSettings))) {
+        if (!(await this.initRenderer(canvas, this.hwSettings))) {
             return false;
         }
 
@@ -832,22 +820,41 @@ export class BTAPI {
     /**
      * Constructs and initializes the renderer for the active hardware settings.
      *
-     * Logs the selected backend name, creates a {@link WebGpuRenderer}, calls
-     * {@link IRenderer.init}, and reports success or failure. Emits a warning
-     * when a non-`'webgpu'` backend is requested but not yet implemented.
+     * Logs the selected backend name, creates the requested renderer backend,
+     * calls {@link IRenderer.init}, and reports success or failure.
      *
-     * @param webGPUResult - Initialized WebGPU device, context, and drawing-buffer size.
+     * @param canvas - Render target canvas.
      * @param hw - Active hardware settings.
      * @returns `true` when the renderer is ready; `false` on failure.
      */
-    private async initRenderer(webGPUResult: WebGPUContextResult, hw: HardwareSettings): Promise<boolean> {
+    private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
         const requestedBackend = hw.renderer ?? 'webgpu';
+        if (requestedBackend === 'software') {
+            this.device = null;
+            this.context = null;
+            console.log('[BT] Initializing renderer (backend: software)');
+            this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
 
-        if (requestedBackend !== 'webgpu') {
-            console.warn(
-                `[BT] Backend '${requestedBackend}' is not yet implemented; falling back to WebGPU (see VV-491)`,
-            );
+            if (!(await this.renderer.init())) {
+                console.error('[BT] Failed to initialize renderer');
+
+                return false;
+            }
+
+            console.log('[BT] Renderer initialized');
+
+            return true;
         }
+
+        const webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
+        if (!webGPUResult) {
+            console.error('[BT] Failed to initialize WebGPU');
+
+            return false;
+        }
+
+        this.device = webGPUResult.device;
+        this.context = webGPUResult.context;
 
         console.log('[BT] Initializing renderer (backend: webgpu)');
 

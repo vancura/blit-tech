@@ -316,6 +316,74 @@ describe('BTAPI', () => {
             expect(result).toBe(false);
         });
 
+        it('initializes successfully in software mode when WebGPU is unavailable', async () => {
+            uninstallMockNavigatorGPU();
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(): {
+                        imageSmoothingEnabled: boolean;
+                        createImageData: (w: number, h: number) => ImageData;
+                        putImageData: ReturnType<typeof vi.fn>;
+                    } {
+                        return {
+                            imageSmoothingEnabled: false,
+                            createImageData: (w: number, h: number) =>
+                                ({
+                                    data: new Uint8ClampedArray(w * h * 4),
+                                    width: w,
+                                    height: h,
+                                }) as ImageData,
+                            putImageData: vi.fn(),
+                        };
+                    }
+                },
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'software',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = {
+                ...makeMockCanvas(),
+                getContext: (type: string) => {
+                    if (type === '2d') {
+                        return {
+                            imageSmoothingEnabled: false,
+                            createImageData: (w: number, h: number) =>
+                                ({
+                                    data: new Uint8ClampedArray(w * h * 4),
+                                    width: w,
+                                    height: h,
+                                }) as ImageData,
+                            putImageData: vi.fn(),
+                            clearRect: vi.fn(),
+                            drawImage: vi.fn(),
+                        };
+                    }
+                    return null;
+                },
+                toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
+            } as unknown as HTMLCanvasElement;
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getDevice()).toBeNull();
+            expect(BTAPI.instance.getContext()).toBeNull();
+            expect(BTAPI.instance.getRenderer()).not.toBeNull();
+        });
+
         it('should throw with WEBGPU_ADAPTER_MESSAGE when WebGPU adapter is unavailable', async () => {
             Object.defineProperty(globalThis, 'navigator', {
                 value: {
