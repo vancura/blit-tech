@@ -16,6 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
+import { SoftwareTicker } from '../render/SoftwareTicker';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -25,7 +26,7 @@ import {
     paletteIndexOutOfRangeError,
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
-import { Rect2i } from '../utils/Rect2i';
+import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
@@ -53,45 +54,6 @@ export class BTAPI {
 
     /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
-
-    // #endregion
-
-    // #region Software Ticker Constants
-
-    /** Height in pixels of the software-mode ticker banner strip. */
-    private static readonly TICKER_HEIGHT = 16;
-
-    /** System font glyph advance in pixels (matches SYSTEM_FONT_GLYPH_WIDTH = 6). */
-    private static readonly TICKER_CHAR_ADVANCE = 6;
-
-    /** Pixels to scroll left per rendered frame. */
-    private static readonly TICKER_SCROLL_SPEED = 1;
-
-    /** Palette index used for the ticker background fill. */
-    private static readonly TICKER_BG_INDEX = 1;
-
-    /**
-     * Palette index used for the ticker text.
-     *
-     * The system font stores foreground pixels as palette index 1; passing
-     * `TICKER_TEXT_INDEX - 1` as `paletteOffset` remaps those pixels to this index.
-     */
-    private static readonly TICKER_TEXT_INDEX = 2;
-
-    /**
-     * Text displayed in the software-mode ticker.
-     *
-     * Drawn using palette indices TICKER_BG_INDEX (background) and TICKER_TEXT_INDEX
-     * (text). The actual colors depend on the active palette.
-     */
-    private static readonly TICKER_TEXT =
-        'SOFTWARE RENDERER - blit-tech v' +
-        BTAPI.VERSION_MAJOR +
-        '.' +
-        BTAPI.VERSION_MINOR +
-        '.' +
-        BTAPI.VERSION_PATCH +
-        '  ';
 
     // #endregion
 
@@ -126,8 +88,8 @@ export class BTAPI {
     /** Backend that was successfully initialized, or null before init. */
     private activeBackend: RendererBackend | null = null;
 
-    /** X scroll position for the software-mode ticker overlay; advances left each frame. */
-    private tickerScrollX = 0;
+    /** Software-mode ticker overlay; non-null only when the software backend is active. */
+    private ticker: SoftwareTicker | null = null;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -298,8 +260,8 @@ export class BTAPI {
                     }
 
                     // Software ticker renders on top of the demo, after user draw calls.
-                    if (this.activeBackend === 'software') {
-                        this.renderSoftwareTicker();
+                    if (this.ticker && this.systemFont) {
+                        this.ticker.render(this.renderer, this.hwSettings?.displaySize.x ?? 0, this.systemFont);
                     }
 
                     this.renderer.endFrame();
@@ -683,51 +645,6 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Software Ticker
-
-    /**
-     * Renders the software-mode status ticker at the top of the canvas.
-     *
-     * Draws a filled background strip and tiled scrolling text using the system font.
-     * Saves and restores the camera so the banner is always viewport-relative
-     * regardless of the demo's camera position.
-     *
-     * Called each frame from the GameLoop render callback when activeBackend is 'software'.
-     */
-    private renderSoftwareTicker(): void {
-        if (!this.renderer || !this.hwSettings || !this.systemFont) {
-            return;
-        }
-
-        const displayWidth = this.hwSettings.displaySize.x;
-        const textWidth = BTAPI.TICKER_TEXT.length * BTAPI.TICKER_CHAR_ADVANCE;
-
-        // Advance scroll state; wrap with modular arithmetic so tiled copies remain seamless.
-        this.tickerScrollX -= BTAPI.TICKER_SCROLL_SPEED;
-        if (this.tickerScrollX < -textWidth) {
-            this.tickerScrollX += textWidth;
-        }
-
-        // Suppress camera offset for overlay rendering; restore after.
-        const savedCamera = this.renderer.getCameraOffset();
-        this.renderer.resetCamera();
-
-        // Background strip across the full display width.
-        this.renderer.drawRectFill(new Rect2i(0, 0, displayWidth, BTAPI.TICKER_HEIGHT), BTAPI.TICKER_BG_INDEX);
-
-        // Tile text copies so the banner is always full-width.
-        const paletteOffset = BTAPI.TICKER_TEXT_INDEX - 1;
-        let x = this.tickerScrollX;
-        while (x < displayWidth) {
-            this.renderer.drawBitmapText(this.systemFont, new Vector2i(x, 1), BTAPI.TICKER_TEXT, paletteOffset);
-            x += textWidth;
-        }
-
-        this.renderer.setCameraOffset(savedCamera);
-    }
-
-    // #endregion
-
     // #region Camera API
 
     /**
@@ -968,6 +885,7 @@ export class BTAPI {
                 }
 
                 this.activeBackend = 'webgpu';
+                this.ticker = null;
                 console.log('[BT] Renderer initialized');
 
                 return true;
@@ -990,6 +908,7 @@ export class BTAPI {
         }
 
         this.activeBackend = 'software';
+        this.ticker = new SoftwareTicker(`${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
         console.log('[BT] Renderer initialized');
 
         return true;
