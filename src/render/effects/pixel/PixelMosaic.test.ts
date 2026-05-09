@@ -4,7 +4,7 @@ import { createMockGPUDevice, installMockNavigatorGPU, uninstallMockNavigatorGPU
 import { Vector2i } from '../../../utils/Vector2i';
 import { PixelMosaic } from './PixelMosaic';
 
-const FORMAT: GPUTextureFormat = 'bgra8unorm';
+const FORMAT: GPUTextureFormat = 'r8uint';
 const SIZE = new Vector2i(320, 240);
 
 beforeAll(() => {
@@ -20,14 +20,14 @@ describe('PixelMosaic', () => {
         expect(new PixelMosaic().tier).toBe('pixel');
     });
 
-    it('uses nearest sampling', () => {
+    it('does not create a sampler for r8uint pixel chain', () => {
         const device = createMockGPUDevice();
         const createSampler = vi.spyOn(device, 'createSampler');
         const fx = new PixelMosaic();
 
         fx.init(device, FORMAT, SIZE);
 
-        expect(createSampler.mock.calls[0]?.[0]?.magFilter).toBe('nearest');
+        expect(createSampler).not.toHaveBeenCalled();
     });
 
     it('updateUniforms writes blockSize', () => {

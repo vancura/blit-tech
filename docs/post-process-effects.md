@@ -3,9 +3,9 @@
 Blit-Tech ships a **two-tier post-process system** that runs between the scene render and the swap-chain present. It is
 opt-in and adds zero cost while no effect is registered. Effects are organized into two chains by what they operate on:
 
-- **Pixel tier** — runs at the logical render resolution (e.g. `320x240`) on the rendered palette pixels. Hosts effects
-  that respect the pixel-art aesthetic: chunky glitch, block mosaic, palette-aware filters. Effects in this tier sample
-  with `nearest` filtering by default so palette colors are preserved through the chain.
+- **Pixel tier** — runs at the logical render resolution (e.g. `320x240`) on an **`r8uint` index framebuffer** (one byte
+  per pixel: which palette slot each logical pixel uses). Hosts effects that stay palette-native: glitch shifts, mosaic
+  blocks, index manipulation. Sampling uses integer `textureLoad` (no RGB averaging drift).
 - **Display tier** — runs at the canvas output resolution (e.g. `1280x960`) on the upscaled image. Hosts effects that
   simulate the physical display: CRT scanlines, barrel curvature, RGB shadow mask, vignette, chromatic aberration,
   bloom, and so on. Operating at output resolution lets curved sampling (barrel) express smoothly without quantizing
@@ -57,11 +57,11 @@ each frame; the chain re-uploads the uniform block before its `encodePass`.
 ## Architecture
 
 ```text
-[Demo render() draws into the logical framebuffer @ 320x240]
+[Demo render() draws palette indices into logical r8uint targets @ 320x240]
         ↓
-[Pixel chain @ 320x240]      ← palette-friendly: PixelGlitch, PixelMosaic, ...
+[Pixel chain @ 320x240]      ← index-space: PixelGlitch, PixelMosaic, ...
         ↓
-[UpscalePass @ outputSize]   ← 'nearest' (crisp) or 'linear' (soft)
+[PaletteResolveUpscalePass @ outputSize] ← LUT resolve + 'nearest' | 'linear' upscale to RGBA
         ↓
 [Display chain @ outputSize] ← screen sim: BarrelDistortion, Scanlines, RGBMask, ...
         ↓
@@ -70,10 +70,14 @@ each frame; the chain re-uploads the uniform block before its `encodePass`.
 
 Invariants:
 
-- Both chains empty: scene renders directly to the swap chain (zero offscreen allocations).
-- Only the pixel chain has effects: scene → pixel chain → upscale → swap chain.
-- Only the display chain has effects: scene → upscale → display chain → swap chain.
-- The last effect in the active chain writes to the swap chain.
+- WebGPU always keeps the logical stage index-native (`r8uint`); **RGBA exists only after** `PaletteResolveUpscalePass`.
+- Both effect chains empty: scene → logical composite → palette resolve/upscale → swap (two render passes minimum for
+  scene + resolve when no effects are registered).
+- Only the pixel chain has effects: scene → pixel ping-pong → logical composite texture → resolve → swap (or display
+  input when display tier is active).
+- Only the display chain has effects: scene → logical composite → resolve → display chain → swap chain.
+- The last **display-tier** effect writes to the swap chain when display effects are active; otherwise palette resolve
+  writes directly to the swap chain.
 - Adding a `tier='display'` effect when `canvasDisplaySize` is unset throws with a clear message — display effects need
   an output buffer larger than the logical framebuffer to operate.
 
@@ -127,8 +131,9 @@ export class MyEffect implements Effect {
 The chain calls `init` once when the effect is added, `updateUniforms` + `encodePass` once per frame, and `dispose` once
 when removed.
 
-The base class `FullscreenEffect` handles 90% of the boilerplate (pipeline, sampler, uniform buffer, bind-group cache);
-see [Writing a custom effect](#writing-a-custom-effect) below.
+The base class `FullscreenEffect` handles most display-tier boilerplate (pipeline, sampler, uniform buffer, bind-group
+cache). Pixel-tier effects extend `FullscreenPixelEffect`, which compiles separate WGSL for `r8uint` (`texture_2d<u32>`)
+vs RGBA paths — see [Writing a custom effect](#writing-a-custom-effect) below.
 
 ### `HardwareSettings`
 
@@ -144,7 +149,8 @@ interface HardwareSettings {
 ```
 
 When `canvasDisplaySize` is omitted from your **returned** `HardwareSettings`, the WebGPU drawing buffer matches
-`displaySize`, no upscale pass exists, and the display tier is unavailable (adding a display effect throws).
+`displaySize`. Palette resolve still runs (logical indices to RGBA at that size). The display tier remains unavailable
+(adding a display effect throws) because no explicit output buffer was configured.
 
 If the demo **does not** implement `configure()`, the engine uses `defaultConfig()`, which **does** set
 `canvasDisplaySize` (`640x480` for `320x240` logical), so the display tier remains available unless you override with a
@@ -156,8 +162,8 @@ custom `configure()` that omits output sizing.
 
 ### `PixelGlitch` — chunky band shift
 
-Per-row horizontal glitch: every Nth row of source pixels gets a random horizontal shift, quantized to integer
-source-pixel offsets so palette colors are preserved.
+Per-row horizontal glitch: every Nth row of source **palette indices** gets a random horizontal shift in index space
+(integer texel steps), so output stays on valid palette slots without RGB remapping.
 
 | Field        | Default | Purpose                                                             |
 | ------------ | ------- | ------------------------------------------------------------------- |
@@ -297,9 +303,10 @@ Green monochrome PC monitor (think IBM monochrome / VT100). Same caveat as `ambe
 
 ## Writing a custom effect
 
-The simplest path is to extend `FullscreenEffect`, the base class that handles pipeline / sampler / uniform-buffer /
-bind-group-cache boilerplate. Subclasses provide the WGSL fragment shader, declare a tier and uniform-buffer size, and
-write per-frame uniforms.
+### Display tier (`FullscreenEffect`)
+
+Extend `FullscreenEffect` when sampling RGBA at output resolution. Subclasses provide one WGSL fragment shader (`src` +
+`sampler`), declare `tier = 'display'`, set `uniformBytes`, and implement `writeUniforms`.
 
 ```ts
 import type { Vector2i } from 'blit-tech';
@@ -339,12 +346,19 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
 **Notes**
 
-- The base class requires `tier`, `label`, `uniformBytes` (multiple of 16), and `fragmentShader`. Subclasses can also
-  override `samplerFilter` (defaults to `'linear'`; pixel-tier effects typically override to `'nearest'` to preserve
-  palette colors).
+- `FullscreenEffect` subclasses provide `fragmentShader`, `label`, and `uniformBytes` (multiple of 16). Override
+  `samplerFilter` (`'linear'` default; many effects keep `'linear'` at display resolution).
 - The fragment shader sees `Params`, `src`, `samp` at `@group(0) @binding(0..2)`. The shared vertex stage in
   `src/render/effects/fullscreenVS.ts` is concatenated automatically, giving you
   `VsOut { pos: vec4<f32>, uv: vec2<f32> }`.
+
+### Pixel tier (`FullscreenPixelEffect`)
+
+Extend `FullscreenPixelEffect` for logical `r8uint` chains. Provide **both** `fragmentShaderUint` (sample
+`texture_2d<u32>` at `@group(0) @binding(1)`, output `vec4<u32>`) and `fragmentShaderRgba` (only used if a float pixel
+format is ever passed to `init`; keep it minimal). Implement `writeUniforms` like display-tier effects.
+
+- Integer clears use index `0`; treat palette slot `0` as transparent where appropriate.
 - For data-dependent control flow that calls `textureSample`, switch to `textureSampleLevel(..., 0.0)` — WGSL forbids
   `textureSample` outside uniform control flow because of mip derivative requirements.
 - Reuse the inherited `uniformData` `Float32Array` — never allocate per frame.
@@ -354,18 +368,17 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 ## How the chain works internally
 
 ```text
-no effects:                   scene -> swap-chain
-pixel only:                   scene -> texA -> [px] -> swap-chain (no upscale needed)
-display only:                 scene -> upscale -> texA' -> [dsp] -> swap-chain
-both, single px + single dsp: scene -> texA -> [px] -> upscale -> texA' -> [dsp] -> swap-chain
-N pixel + M display:          scene -> texA -> [px1] -> texB -> [px2] -> ... -> texA -> upscale ->
-                              texA' -> [dsp1] -> texB' -> ... -> swap-chain
+no effects:       scene (r8uint) -> paletteResolve (RGBA @ outputSize) -> swap-chain
+pixel only:       scene -> texA -> [px...] -> sceneTex (r8uint) -> paletteResolve -> swap-chain
+display only:     scene -> sceneTex -> paletteResolve -> texA' (RGBA) -> [dsp...] -> swap-chain
+pixel + display:  scene -> texA -> [px...] -> sceneTex -> paletteResolve -> texA' -> [dsp...] -> swap-chain
 ```
 
 - Each chain (`pixel` and `display`) lazily allocates its own ping-pong textures `texA` and `texB` only when it has
-  effects.
-- The `UpscalePass` runs whenever `canvasDisplaySize` differs from `displaySize`, even when no display-tier effects are
-  registered.
+  effects (pixel targets stay `r8uint`; display targets match the swap-chain RGBA format).
+- `PaletteResolveUpscalePass` runs **every frame** on WebGPU: it resolves indices through the active palette and
+  magnifies to `canvasDisplaySize` using `outputUpscaleFilter` (`'nearest'` or `'linear'`), even when no display-tier
+  effects are registered.
 - Frame capture (`BT.captureFrame()`) reads the swap-chain texture, so screenshots reflect the post-processed output.
 
 ---

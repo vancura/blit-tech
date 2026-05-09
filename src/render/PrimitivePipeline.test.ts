@@ -155,7 +155,7 @@ describe('with initialized pipeline', () => {
 
         const paletteBuffer = createMockPaletteBuffer();
 
-        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer);
+        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer, 'r8uint');
     });
 
     afterAll(() => {
@@ -267,7 +267,7 @@ describe('vertex count verification', () => {
 
         const paletteBuffer = createMockPaletteBuffer();
 
-        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer);
+        await pipeline.init(device, new Vector2i(320, 240), paletteBuffer, 'r8uint');
     });
 
     afterAll(() => {

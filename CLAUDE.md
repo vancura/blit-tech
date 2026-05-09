@@ -33,13 +33,15 @@ src/
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
     SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
     SoftwareTicker.ts      # Dismissible in-canvas "SOFTWARE RENDERER" status banner (software mode only)
-    PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
+    PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain
-    UpscalePass.ts         # Logical -> output upscale (nearest/linear)
+    UpscalePass.ts         # RGBA texture upscale helper (tests / utilities)
+    PaletteResolveUpscalePass.ts # r8uint palette indices -> RGBA + upscale
     effects/
       Effect.ts            # Effect interface + EffectTier
       FullscreenEffect.ts  # Base class for typical fullscreen effects
+      FullscreenPixelEffect.ts # Pixel-tier base (logical r8uint chain)
       pixel/               # Pixel-tier effects (PixelGlitch, PixelMosaic)
       display/             # Display-tier effects (BarrelDistortion, Scanlines, ...)
       presets/             # Pre-configured stacks (crtPipBoy, amber, green)
@@ -73,9 +75,14 @@ src/
 Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 
 - **WebGPU** (`'webgpu'`): dual-pipeline hardware renderer.
-  1. **Primitives pipeline** - colored geometry (pixels, lines, rects). Max 50k vertices/frame.
-  2. **Sprites pipeline** - textured quads with tinting. Max 50k vertices (~8333 quads). Nearest-neighbor sampling.
-     Auto-batched by texture.
+  1. **Primitives pipeline** - batched geometry writing **palette indices** (pixels, lines, rects). Max 50k
+     vertices/frame.
+  2. **Sprites pipeline** - batched **palette-indexed** textured quads (sprites, bitmap text). Max 50k vertices (~8333
+     quads). Nearest-neighbor sampling. Auto-batched by texture.
+  3. **Framebuffer & post-process** - the logical composite is an **`r8uint`** attachment at `displaySize` (one palette
+     slot per pixel). **Pixel-tier** effects (`PostProcessChain`, `FullscreenPixelEffect`) run on that index buffer.
+     **`PaletteResolveUpscalePass`** LUT-resolves indices to RGBA and upscales to `canvasDisplaySize`. **Display-tier**
+     effects run on that RGBA before present (see `docs/post-process-effects.md`).
 - **Software** (`'software'`): Canvas 2D fallback. Supports palette rendering, rects, Bresenham lines, indexed sprite
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
   Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the

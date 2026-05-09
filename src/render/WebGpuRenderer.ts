@@ -1,18 +1,17 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
-import { Color32 } from '../utils/Color32';
 import { noActivePaletteError } from '../utils/errorMessages';
 import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import type { IRenderer } from './IRenderer';
+import { PaletteResolveUpscalePass } from './PaletteResolveUpscalePass';
 import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
 import type { UpscaleFilter } from './UpscalePass';
-import { UpscalePass } from './UpscalePass';
 
 // #region Configuration
 
@@ -29,6 +28,9 @@ const PALETTE_BUFFER_SIZE = 256 * 4 * 4;
  */
 const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
 
+/** Logical scene + pixel chain format (palette index in the red channel). */
+const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
+
 // #endregion
 
 /**
@@ -38,19 +40,18 @@ const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.T
  * buffer, frame capture, and the two-tier post-process pipeline. Actual draw
  * batching is delegated to {@link PrimitivePipeline} and {@link SpritePipeline}.
  *
- * Per-frame stage flow when post-process is active:
+ * Per-frame stage flow:
  *
  * ```text
- * scene -> sceneTex (logical res)
- *       -> [pixel chain]
- *       -> upscaledTex (output res)
- *       -> [display chain]
- *       -> swap chain
+ * scene (r8uint logical) -> [pixel chain, r8uint]
+ *                        -> palette resolve + upscale (rgba)
+ *                        -> [display chain, rgba]
+ *                        -> swap chain
  * ```
  *
- * Stages are skipped when their inputs are inactive. With both chains empty
- * and `canvasDisplaySize` matching `displaySize`, the renderer draws straight
- * to the swap chain (zero offscreen allocations).
+ * Pixel-tier effects always run in the index-native logical domain. RGBA output
+ * exists only after palette resolve/upscale, so display-tier effects remain
+ * unchanged while the obsolete logical RGBA path is removed.
  */
 export class WebGpuRenderer implements IRenderer {
     // #region State
@@ -69,9 +70,6 @@ export class WebGpuRenderer implements IRenderer {
 
     /** Magnification filter used between the pixel chain and the display chain. */
     private readonly upscaleFilterMode: UpscaleFilter;
-
-    /** True when the swap chain is larger than the logical framebuffer. */
-    private readonly hasUpscale: boolean;
 
     /**
      * True when the caller explicitly provided an `outputSize` (i.e. set
@@ -125,8 +123,8 @@ export class WebGpuRenderer implements IRenderer {
     /** Display-tier post-process chain (output resolution). */
     private displayChain: PostProcessChain | null = null;
 
-    /** Pass that copies the logical framebuffer to the output buffer. */
-    private upscalePass: UpscalePass | null = null;
+    /** Pass that resolves logical palette indices to RGBA and upscales to output size. */
+    private resolvePass: PaletteResolveUpscalePass | null = null;
 
     /** Logical-resolution scene framebuffer; allocated lazily. */
     private sceneTex: GPUTexture | null = null;
@@ -171,7 +169,6 @@ export class WebGpuRenderer implements IRenderer {
         this.displayTierEnabled = outputSize !== undefined;
         this.outputSize = (outputSize ?? displaySize).clone();
         this.upscaleFilterMode = upscaleFilter;
-        this.hasUpscale = this.outputSize.x !== this.displaySize.x || this.outputSize.y !== this.displaySize.y;
         this.primitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
     }
@@ -195,8 +192,8 @@ export class WebGpuRenderer implements IRenderer {
             this.pixelChain = null;
             this.displayChain?.dispose();
             this.displayChain = null;
-            this.upscalePass?.dispose();
-            this.upscalePass = null;
+            this.resolvePass?.dispose();
+            this.resolvePass = null;
             this.sceneTex?.destroy();
             this.sceneTex = null;
             this.sceneTexView = null;
@@ -217,13 +214,13 @@ export class WebGpuRenderer implements IRenderer {
             // Primitive and sprite pipelines run at logical resolution. The
             // viewport is automatic since each pass binds a target view; only
             // the camera scaling here cares about logical size.
-            await this.primitives.init(this.device, this.displaySize, this.paletteBuffer);
-            await this.sprites.init(this.device, this.displaySize, this.paletteBuffer);
+            await this.primitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
+            await this.sprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
 
             this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
 
             // Pixel chain operates at logical resolution (320x240 etc.).
-            this.pixelChain = new PostProcessChain(this.device, this.swapFormat, this.displaySize, 'pixel');
+            this.pixelChain = new PostProcessChain(this.device, LOGICAL_TARGET_FORMAT, this.displaySize, 'pixel');
 
             // Display chain operates at output resolution. When there is no
             // upscale (output == logical), display-tier effects still run, but
@@ -231,9 +228,9 @@ export class WebGpuRenderer implements IRenderer {
             // so the rest of the engine can introspect it.
             this.displayChain = new PostProcessChain(this.device, this.swapFormat, this.outputSize, 'display');
 
-            // Upscale pass between the two tiers; only used when sizes differ.
-            this.upscalePass = new UpscalePass();
-            this.upscalePass.init(this.device, this.swapFormat, this.upscaleFilterMode);
+            // Resolve + optional upscale sits between logical and display tiers.
+            this.resolvePass = new PaletteResolveUpscalePass();
+            this.resolvePass.init(this.device, this.swapFormat, this.upscaleFilterMode, this.paletteBuffer);
 
             return true;
         } catch (error) {
@@ -315,10 +312,9 @@ export class WebGpuRenderer implements IRenderer {
      * Ends the current frame and presents to the screen.
      *
      * Routing in priority order:
-     * 1. Render scene to the appropriate first-stage view.
-     * 2. Encode pixel chain (if active) -> destination is upscale input or swap chain.
-     * 3. Encode upscale pass (if upscaling and display chain inactive: write to swap;
-     *    if display chain active: write to display-chain input).
+     * 1. Render scene into logical `r8uint` source (or pixel-chain input when active).
+     * 2. Encode pixel chain (if active) -> logical scene texture.
+     * 3. Resolve/upscale logical indices to RGBA (destination is display-chain input or swap).
      * 4. Encode display chain (if active) -> swap chain.
      */
     endFrame(): void {
@@ -334,7 +330,7 @@ export class WebGpuRenderer implements IRenderer {
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
         const pixelActive = this.pixelChain?.isActive() ?? false;
         const displayActive = this.displayChain?.isActive() ?? false;
-        const sceneView = this.resolveSceneView(swapChainView, pixelActive, displayActive);
+        const sceneView = this.resolveSceneView(pixelActive);
 
         const now = performance.now();
         const deltaMs = this.lastFrameMs === 0 ? 0 : Math.max(0, now - this.lastFrameMs);
@@ -601,18 +597,17 @@ export class WebGpuRenderer implements IRenderer {
      * @param sceneView - View to render the scene into.
      */
     private encodeScenePass(encoder: GPUCommandEncoder, sceneView: GPUTextureView): void {
-        const clearColor = this.resolveClearColor();
+        const clearPaletteIndex = this.resolveClearPaletteIndex();
         const renderPass = encoder.beginRenderPass({
             label: 'Render Pass',
             colorAttachments: [
                 {
                     view: sceneView,
-                    // WebGPU expects linear 0-1 floats; Color32 stores 0-255 integers.
                     clearValue: {
-                        r: clearColor.r / 255,
-                        g: clearColor.g / 255,
-                        b: clearColor.b / 255,
-                        a: clearColor.a / 255,
+                        r: clearPaletteIndex,
+                        g: 0,
+                        b: 0,
+                        a: 0,
                     },
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -643,20 +638,15 @@ export class WebGpuRenderer implements IRenderer {
         deltaMs: number,
     ): void {
         if (pixelActive && this.pixelChain) {
-            const dest = this.pixelChainDestView(swapChainView, displayActive);
-            this.pixelChain.encode(encoder, deltaMs, dest);
+            this.pixelChain.encode(encoder, deltaMs, this.pixelChainDestView());
         }
 
-        // sceneTex is the shared bridge between the logical (pixel-tier) output
-        // and the upscale input. When pixelActive is true, pixelChain writes its
-        // final pass into sceneTex via pixelChainDestView(); when pixelActive is
-        // false the scene primitives render directly into sceneTex. Either way
-        // upscalePass reads from requireSceneTexView() and copies to the display
-        // chain input (or the swap chain when no display effects are active).
-        if (this.hasUpscale && this.upscalePass) {
-            const upscaleSrc = this.requireSceneTexView();
-            const upscaleDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
-            this.upscalePass.encode(encoder, upscaleSrc, upscaleDest);
+        // Resolve logical r8uint indices into RGBA (and upscale if needed) before
+        // any display-tier RGBA effects run.
+        if (this.resolvePass) {
+            const resolveSrc = this.requireSceneTexView();
+            const resolveDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
+            this.resolvePass.encode(encoder, resolveSrc, resolveDest, this.displaySize);
         }
 
         if (displayActive && this.displayChain) {
@@ -698,49 +688,27 @@ export class WebGpuRenderer implements IRenderer {
     /**
      * Picks the texture view the scene render pass should target this frame.
      *
-     * @param swapChainView - View of the current swap-chain texture.
      * @param pixelActive - Whether the pixel chain has any registered effects.
-     * @param displayActive - Whether the display chain has any registered effects.
      * @returns Stable view to render the scene into.
      */
-    private resolveSceneView(
-        swapChainView: GPUTextureView,
-        pixelActive: boolean,
-        displayActive: boolean,
-    ): GPUTextureView {
+    private resolveSceneView(pixelActive: boolean): GPUTextureView {
         if (pixelActive && this.pixelChain) {
             return this.pixelChain.getInputView();
         }
 
-        if (this.hasUpscale) {
-            // Need an offscreen at logical resolution before upscaling.
-            return this.requireSceneTexView();
-        }
-
-        if (displayActive && this.displayChain) {
-            return this.displayChain.getInputView();
-        }
-
-        return swapChainView;
+        // Logical scene is always index-native. It must be resolved to RGBA in a
+        // dedicated pass, even when output size equals logical size and no effects
+        // are active.
+        return this.requireSceneTexView();
     }
 
     /**
      * Picks the destination view for the pixel chain's last pass.
      *
-     * @param swapChainView - View of the current swap-chain texture.
-     * @param displayActive - Whether the display chain has any registered effects.
      * @returns Destination view for the final pixel-chain pass.
      */
-    private pixelChainDestView(swapChainView: GPUTextureView, displayActive: boolean): GPUTextureView {
-        if (this.hasUpscale) {
-            return this.requireSceneTexView();
-        }
-
-        if (displayActive && this.displayChain) {
-            return this.displayChain.getInputView();
-        }
-
-        return swapChainView;
+    private pixelChainDestView(): GPUTextureView {
+        return this.requireSceneTexView();
     }
 
     /**
@@ -750,13 +718,10 @@ export class WebGpuRenderer implements IRenderer {
      */
     private requireSceneTexView(): GPUTextureView {
         if (!this.sceneTexView) {
-            if (!this.swapFormat) {
-                throw new Error('WebGpuRenderer.requireSceneTexView: swap format not initialized.');
-            }
             this.sceneTex = this.device.createTexture({
                 label: 'Renderer Scene Framebuffer',
                 size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
-                format: this.swapFormat,
+                format: LOGICAL_TARGET_FORMAT,
                 usage: SCENE_TARGET_USAGE,
             });
             this.sceneTexView = this.sceneTex.createView();
@@ -796,26 +761,23 @@ export class WebGpuRenderer implements IRenderer {
     }
 
     /**
-     * Resolves the clear palette index into a Color32 for the render pass.
-     * Falls back to black if no palette is available.
+     * Resolves the clear palette index for the logical `r8uint` scene target.
      *
-     * @returns Resolved clear color.
+     * @returns Valid clear palette index, or `0` as fallback.
      */
-    private resolveClearColor(): Color32 {
+    private resolveClearPaletteIndex(): number {
         if (!this.palette) {
-            return Color32.black();
+            return 0;
         }
 
-        try {
-            return this.palette.get(this.clearPaletteIndex);
-        } catch (error) {
+        if (this.clearPaletteIndex < 0 || this.clearPaletteIndex >= this.palette.size) {
             console.warn(
-                '[WebGpuRenderer] resolveClearColor: clearPaletteIndex out of range, falling back to black:',
-                error,
+                '[WebGpuRenderer] resolveClearPaletteIndex: clearPaletteIndex out of range, falling back to 0.',
             );
-
-            return Color32.black();
+            return 0;
         }
+
+        return this.clearPaletteIndex;
     }
 
     // #endregion

@@ -3,13 +3,13 @@ import type { Vector2i } from '../../utils/Vector2i';
 /**
  * Tier identifier for a post-processing effect.
  *
- * - `'pixel'` - runs at logical render resolution (e.g. 320x240) on the rendered
- *   palette pixels, before the upscale pass. Use for effects that respect the
- *   palette/pixel-art aesthetic: chunky glitch, palette-aware mosaic, palette
- *   inversion. Effects in this tier should avoid introducing colors that are
- *   not in the active palette (e.g. blurs, gradients).
+ * - `'pixel'` - runs at logical render resolution (e.g. 320x240) on the `r8uint`
+ *   framebuffer that stores **palette indices**, before palette resolve/upscale.
+ *   Use for effects that stay in index space: glitch shifts, mosaic blocks,
+ *   index inversion. Effects in this tier should avoid introducing values that are
+ *   not meaningful palette slots (e.g. blurs, gradients).
  * - `'display'` - runs at the canvas output resolution (e.g. 1280x960) after
- *   the upscale pass. Use for effects that simulate the physical display the
+ *   palette resolve/upscale. Use for effects that simulate the physical display the
  *   game appears on: CRT scanlines, barrel distortion, RGB shadow mask,
  *   vignette, chromatic aberration, monochrome amber/green, bloom, etc. The
  *   higher resolution lets curved sampling (barrel) express smoothly without
@@ -50,8 +50,9 @@ export interface Effect {
      * chain guarantees it is only invoked once per effect instance.
      *
      * @param device - WebGPU device used for resource creation.
-     * @param format - Color attachment format. Always matches the swap chain so
-     *   intermediate ping-pong textures and the final pass can share one pipeline.
+     * @param format - Color attachment format for this chain (`r8uint` for the pixel
+     *   tier, swap-chain format for the display tier) so ping-pong textures match the
+     *   effect pipelines.
      * @param displaySize - Source render target resolution in pixels. Effects use
      *   this for resolution-aware uniforms (e.g. CRT mask scale, bloom texel size).
      */

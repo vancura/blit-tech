@@ -29,8 +29,10 @@ const VERTEX_STRIDE = VALUES_PER_VERTEX * 4;
  * The pipeline collects CPU-side vertices for pixels, lines, rectangles, and
  * placeholder text during a frame, then uploads and draws them in `encodePass()`.
  *
- * Each vertex stores a palette index instead of an RGBA color. The fragment
- * shader performs a flat lookup into a 256-entry palette uniform buffer.
+ * Each vertex stores a palette index. The fragment shader writes that index into
+ * an `r8uint` logical target (palette lookup happens later during resolve/upscale).
+ * Palette uniforms remain bound so fully transparent slots can `discard`, matching
+ * prior RGBA behavior.
  */
 export class PrimitivePipeline {
     // #region State
@@ -109,10 +111,16 @@ export class PrimitivePipeline {
      * @param device - WebGPU device for GPU operations.
      * @param displaySize - Render target resolution in pixels.
      * @param paletteBuffer - Shared palette uniform buffer (256 x vec4f = 4096 bytes).
+     * @param targetFormat - Color attachment format for primitive output.
      */
-    async init(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
+    async init(
+        device: GPUDevice,
+        displaySize: Vector2i,
+        paletteBuffer: GPUBuffer,
+        targetFormat: GPUTextureFormat,
+    ): Promise<void> {
         this.device = device;
-        await this.createPipeline(displaySize, paletteBuffer);
+        await this.createPipeline(displaySize, paletteBuffer, targetFormat);
     }
 
     // #endregion
@@ -334,8 +342,13 @@ export class PrimitivePipeline {
      *
      * @param displaySize - Render target resolution in pixels.
      * @param paletteBuffer - Shared palette uniform buffer.
+     * @param targetFormat - Color attachment format for primitive output.
      */
-    private async createPipeline(displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
+    private async createPipeline(
+        displaySize: Vector2i,
+        paletteBuffer: GPUBuffer,
+        targetFormat: GPUTextureFormat,
+    ): Promise<void> {
         const device = this.device as GPUDevice;
 
         this.uniformBuffer?.destroy();
@@ -385,10 +398,10 @@ export class PrimitivePipeline {
                 }
 
                 @fragment
-                fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+                fn fs_main(input: VertexOutput) -> @location(0) u32 {
                     let color = palette.colors[input.paletteIndex];
                     if (color.a == 0.0) { discard; }
-                    return vec4<f32>(color.rgb, 1.0);
+                    return input.paletteIndex;
                 }
             `,
         });
@@ -414,7 +427,7 @@ export class PrimitivePipeline {
                 entryPoint: 'fs_main',
                 targets: [
                     {
-                        format: navigator.gpu.getPreferredCanvasFormat(),
+                        format: targetFormat,
                     },
                 ],
             },

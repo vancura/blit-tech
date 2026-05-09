@@ -26,9 +26,10 @@ const VERTEX_STRIDE = 20;
  * Batched WebGPU pipeline for indexed-palette sprite rendering.
  *
  * Sprites are stored as `r8uint` palette-index textures. The fragment shader
- * performs a `textureLoad` on the index texture and looks up the color from the
- * shared palette uniform buffer. A `paletteOffset` per-draw call shifts which
- * palette range is used, enabling color variations without duplicate assets.
+ * loads sprite texels, applies {@link paletteOffset}, and writes the combined
+ * palette index into the logical `r8uint` framebuffer (colors resolve later).
+ * Palette uniforms are still used to `discard` pixels mapped to fully transparent
+ * palette slots.
  *
  * Vertices are collected during a frame, grouped by texture, and emitted as one
  * draw call per texture batch in `encodePass()`.
@@ -122,12 +123,18 @@ export class SpritePipeline {
      * @param device - WebGPU device for GPU operations.
      * @param displaySize - Render target resolution in pixels.
      * @param paletteBuffer - Shared palette uniform buffer (256 x vec4f).
+     * @param targetFormat - Color attachment format for sprite output.
      */
-    async init(device: GPUDevice, displaySize: Vector2i, paletteBuffer: GPUBuffer): Promise<void> {
+    async init(
+        device: GPUDevice,
+        displaySize: Vector2i,
+        paletteBuffer: GPUBuffer,
+        targetFormat: GPUTextureFormat,
+    ): Promise<void> {
         this.device = device;
         this.paletteBuffer = paletteBuffer;
 
-        await this.createPipeline(displaySize);
+        await this.createPipeline(displaySize, targetFormat);
     }
 
     // #endregion
@@ -248,8 +255,9 @@ export class SpritePipeline {
      * Creates shader modules, pipeline state, and GPU buffers.
      *
      * @param displaySize - Render target resolution in pixels.
+     * @param targetFormat - Color attachment format for sprite output.
      */
-    private async createPipeline(displaySize: Vector2i): Promise<void> {
+    private async createPipeline(displaySize: Vector2i, targetFormat: GPUTextureFormat): Promise<void> {
         const device = this.device as GPUDevice;
 
         const shaderModule = device.createShaderModule({
@@ -294,7 +302,7 @@ export class SpritePipeline {
                 }
 
                 @fragment
-                fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+                fn fs_main(input: VertexOutput) -> @location(0) u32 {
                     let dims = textureDimensions(spriteTexture);
                     let coords = vec2<i32>(
                         i32(input.uv.x * f32(dims.x)),
@@ -304,12 +312,15 @@ export class SpritePipeline {
                     // r8uint: single-channel unsigned integer index.
                     let rawIndex = textureLoad(spriteTexture, coords, 0).r;
 
-                    // Index 0 means transparent in the source sprite, regardless of offset.
                     if (rawIndex == 0u) { discard; }
 
-                    let index = rawIndex + input.paletteOffset;
+                    let combined = rawIndex + input.paletteOffset;
+                    let index = min(combined, 255u);
 
-                    return vec4<f32>(palette.colors[index].rgb, 1.0);
+                    let color = palette.colors[index];
+                    if (color.a == 0.0) { discard; }
+
+                    return index;
                 }
             `,
         });
@@ -336,11 +347,7 @@ export class SpritePipeline {
                 entryPoint: 'fs_main',
                 targets: [
                     {
-                        format: navigator.gpu.getPreferredCanvasFormat(),
-                        blend: {
-                            color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-                            alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
-                        },
+                        format: targetFormat,
                     },
                 ],
             },
