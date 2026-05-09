@@ -23,6 +23,9 @@
     },
     {
       "pattern": "^https?://renderhjs\\.net(/|$)"
+    },
+    {
+      "pattern": "^https?://github\\.com/[^/]+/[^/]+/actions(/|$)"
     }
   ],
   "replacementPatterns": [
