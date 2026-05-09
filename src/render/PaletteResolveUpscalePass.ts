@@ -9,6 +9,8 @@ import type { UpscaleFilter } from './UpscalePass';
  * Replaces {@link UpscalePass} for logical-index framebuffers: palette lookup happens here,
  * after the pixel-tier chain.
  */
+// #region PaletteResolveUpscalePass
+
 export class PaletteResolveUpscalePass {
     private device: GPUDevice | null = null;
     private pipeline: GPURenderPipeline | null = null;
@@ -34,6 +36,10 @@ export class PaletteResolveUpscalePass {
      * @param paletteBuffer - Shared 256-entry palette uniform buffer (same as scene pipelines).
      */
     init(device: GPUDevice, destFormat: GPUTextureFormat, filter: UpscaleFilter, paletteBuffer: GPUBuffer): void {
+        this.uniformBuffer?.destroy();
+        this.uniformBuffer = null;
+        this.bindGroups = new WeakMap();
+
         this.device = device;
         this.filterMode = filter;
         this.paletteBuffer = paletteBuffer;
@@ -162,6 +168,10 @@ export class PaletteResolveUpscalePass {
     }
 }
 
+// #endregion
+
+// #region RESOLVE_FRAGMENT_WGSL
+
 const RESOLVE_FRAGMENT_WGSL = `
 struct Params {
     logicalSize: vec2<f32>,
@@ -228,3 +238,5 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     return vec4<f32>(pm.rgb / pm.a, pm.a);
 }
 `;
+
+// #endregion
