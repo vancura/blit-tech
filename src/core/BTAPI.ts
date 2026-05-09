@@ -29,7 +29,7 @@ import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
-import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
+import type { HardwareSettings, IBlitTechDemo, RendererBackend } from './IBlitTechDemo';
 import { defaultConfig } from './IBlitTechDemo';
 import { initWebGPU } from './WebGPUContext';
 
@@ -183,6 +183,7 @@ export class BTAPI {
         }
 
         this.hwSettings = configured ?? defaultConfig();
+        this.applyRendererQueryOverride();
 
         const { targetFPS } = this.hwSettings;
 
@@ -877,6 +878,57 @@ export class BTAPI {
         console.log('[BT] Renderer initialized');
 
         return true;
+    }
+
+    /**
+     * Applies URL renderer override from `?renderer=...` when present.
+     *
+     * Supported values:
+     * - `software`
+     *
+     * Unknown values are ignored so accidental query typos do not break startup.
+     */
+    private applyRendererQueryOverride(): void {
+        if (!this.hwSettings) {
+            return;
+        }
+
+        const override = BTAPI.getRendererQueryOverride();
+        if (!override) {
+            return;
+        }
+
+        this.hwSettings.renderer = override;
+        console.info(`[BT] URL override selected renderer backend: ${override}`);
+    }
+
+    /**
+     * Reads renderer override from the current URL query string.
+     *
+     * @returns Supported renderer backend override, or null when absent/invalid.
+     */
+    private static getRendererQueryOverride(): RendererBackend | null {
+        const search =
+            typeof globalThis.location?.search === 'string'
+                ? globalThis.location.search
+                : typeof window !== 'undefined'
+                  ? window.location?.search
+                  : '';
+
+        if (!search) {
+            return null;
+        }
+
+        try {
+            const renderer = new URLSearchParams(search).get('renderer');
+            if (renderer === 'software') {
+                return 'software';
+            }
+        } catch (error) {
+            console.warn('[BT] Failed to parse renderer query override:', error);
+        }
+
+        return null;
     }
 
     /**

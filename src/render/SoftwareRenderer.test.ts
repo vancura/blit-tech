@@ -70,8 +70,18 @@ function makePalette(): Palette {
     return palette;
 }
 
+function hashPixels(imageData: ImageData): number {
+    let hash = 2166136261 >>> 0;
+    for (const value of imageData.data) {
+        hash ^= value;
+        hash = Math.imul(hash, 16777619) >>> 0;
+    }
+    return hash >>> 0;
+}
+
 describe('SoftwareRenderer', () => {
     beforeEach(() => {
+        vi.clearAllMocks();
         context.lastImageData = null;
         logicalContext.lastImageData = null;
         vi.stubGlobal(
@@ -229,5 +239,102 @@ describe('SoftwareRenderer', () => {
         const blob = await capture;
         expect(blob.type).toBe('image/png');
         expect(toBlob).toHaveBeenCalledOnce();
+    });
+
+    it('replaces an older pending capture request with a clear error', async () => {
+        const toBlob = vi.fn((callback: (blob: Blob | null) => void) =>
+            callback(new Blob(['png'], { type: 'image/png' })),
+        );
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: () => context,
+            toBlob,
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const firstCapture = renderer.captureFrame();
+        const secondCapture = renderer.captureFrame();
+
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        await expect(firstCapture).rejects.toThrow('A capture is already in progress');
+        await expect(secondCapture).resolves.toBeInstanceOf(Blob);
+    });
+
+    it('rejects captureFrame when canvas.toBlob is unavailable', async () => {
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: () => context,
+            toBlob: undefined,
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const capture = renderer.captureFrame();
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        await expect(capture).rejects.toThrow("doesn't support canvas image export");
+    });
+
+    it('rejects captureFrame when canvas.toBlob returns no image data', async () => {
+        const toBlob = vi.fn((callback: (blob: Blob | null) => void) => callback(null));
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: () => context,
+            toBlob,
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const capture = renderer.captureFrame();
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        await expect(capture).rejects.toThrow('something went wrong exporting the canvas image');
+    });
+
+    it('produces deterministic output for the same command sequence', async () => {
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: () => context,
+            toBlob: (_cb: (blob: Blob | null) => void) => {},
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(8, 8));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const runSequence = (): number => {
+            renderer.beginFrame();
+            renderer.setClearColor(3);
+            renderer.drawRectFill(new Rect2i(1, 1, 3, 3), 1);
+            renderer.drawLine(new Vector2i(0, 7), new Vector2i(7, 0), 2);
+            renderer.setCameraOffset(new Vector2i(1, 0));
+            renderer.drawRect(new Rect2i(2, 2, 4, 4), 1);
+            renderer.resetCamera();
+            renderer.endFrame();
+
+            const frame = logicalContext.lastImageData;
+            expect(frame).not.toBeNull();
+            return hashPixels(frame as ImageData);
+        };
+
+        const first = runSequence();
+        const second = runSequence();
+
+        expect(second).toBe(first);
     });
 });

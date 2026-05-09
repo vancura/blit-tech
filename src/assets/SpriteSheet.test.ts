@@ -605,4 +605,39 @@ describe('SpriteSheet', () => {
     });
 
     // #endregion
+
+    // #region getIndexedPixels
+
+    describe('getIndexedPixels', () => {
+        it('returns contents equal to the pixels passed to fromIndexedPixels', () => {
+            const pixels = new Uint8Array([
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            ]) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+
+            const result = sheet.getIndexedPixels();
+
+            expect(result).toEqual(pixels);
+        });
+
+        it('returns a defensive copy - mutations do not affect internal state', () => {
+            const pixels = new Uint8Array([0, 1, 2, 3]) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(2, 2, pixels);
+
+            const result = sheet.getIndexedPixels();
+            result[0] = 99;
+
+            expect(sheet.getIndexedPixels()[0]).toBe(0);
+        });
+
+        it('throws when the sheet has not been indexized yet', () => {
+            const sheet = new SpriteSheet(mockImage);
+
+            expect(() => sheet.getIndexedPixels()).toThrow(
+                "This sprite sheet hasn't been converted to palette indices yet. Call sheet.indexize(palette) first.",
+            );
+        });
+    });
+
+    // #endregion
 });

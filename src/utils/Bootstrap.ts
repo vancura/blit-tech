@@ -77,6 +77,26 @@ function buildWebGPUNotSupportedMessage(): string {
     return getWebGPUInstructions(detectBrowser());
 }
 
+/**
+ * Returns true when URL query requests software renderer override.
+ *
+ * Recognizes `?renderer=software`.
+ *
+ * @returns True if `?renderer=software` is present in the current URL.
+ */
+function isSoftwareRendererQueryOverrideEnabled(): boolean {
+    if (typeof window === 'undefined' || !window.location?.search) {
+        return false;
+    }
+
+    try {
+        return new URLSearchParams(window.location.search).get('renderer') === 'software';
+    } catch (error) {
+        console.warn('[BT] Failed to parse renderer query in bootstrap:', error);
+        return false;
+    }
+}
+
 // #endregion
 
 // #region Helper Functions
@@ -295,10 +315,14 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
     }
 
     try {
-        // Validate WebGPU support.
-        const webGPUResult = validateWebGPU(containerId, onError);
-
-        success = webGPUResult.success;
+        // Validate WebGPU support unless software backend is explicitly requested
+        // via `?renderer=software`.
+        if (isSoftwareRendererQueryOverrideEnabled()) {
+            success = true;
+        } else {
+            const webGPUResult = validateWebGPU(containerId, onError);
+            success = webGPUResult.success;
+        }
 
         // Validate canvas element.
         if (success) {

@@ -71,6 +71,8 @@ export interface HardwareSettings {
      * Renderer backend to use. Defaults to `'webgpu'`.
      *
      * Set to `'software'` to opt into the Canvas 2D fallback backend.
+     * You can also force software mode at runtime with `?renderer=software`
+     * in the page URL.
      */
     renderer?: RendererBackend;
 }

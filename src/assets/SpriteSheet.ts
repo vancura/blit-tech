@@ -479,10 +479,7 @@ export class SpriteSheet {
     }
 
     /**
-     * Returns the palette-indexed pixel buffer.
-     *
-     * The returned view references internal storage and is read-only by
-     * convention. Callers must not mutate it.
+     * Returns a copy of the palette-indexed pixel buffer.
      *
      * @returns Indexed pixels as row-major palette indices (1 byte per pixel).
      * @throws If the sheet has not been indexized yet.
@@ -494,7 +491,7 @@ export class SpriteSheet {
             );
         }
 
-        return this.indexedPixels;
+        return this.indexedPixels.slice() as Uint8Array<ArrayBuffer>;
     }
 
     // #endregion

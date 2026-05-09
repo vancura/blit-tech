@@ -10,9 +10,21 @@ import type { IRenderer } from './IRenderer';
 
 // #region Type Definitions
 
-/** A queued filled-rectangle, outline-rectangle, or line draw command. */
-type PrimitiveCommand = {
-    kind: 'rectFill' | 'rect' | 'line';
+/** A queued filled-rectangle or outline-rectangle draw command. */
+type RectCommand = {
+    kind: 'rectFill' | 'rect';
+    x0: number;
+    y0: number;
+    width: number;
+    height: number;
+    paletteIndex: number;
+    cameraX: number;
+    cameraY: number;
+};
+
+/** A queued line draw command between two endpoints. */
+type LineCommand = {
+    kind: 'line';
     x0: number;
     y0: number;
     x1: number;
@@ -21,6 +33,9 @@ type PrimitiveCommand = {
     cameraX: number;
     cameraY: number;
 };
+
+/** A queued filled-rectangle, outline-rectangle, or line draw command. */
+type PrimitiveCommand = RectCommand | LineCommand;
 
 /** A queued sprite blit command, storing the source sheet and destination position. */
 type SpriteCommand = {
@@ -232,8 +247,8 @@ export class SoftwareRenderer implements IRenderer {
             kind: 'rectFill',
             x0: rect.x,
             y0: rect.y,
-            x1: rect.width,
-            y1: rect.height,
+            width: rect.width,
+            height: rect.height,
             paletteIndex,
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
@@ -281,8 +296,8 @@ export class SoftwareRenderer implements IRenderer {
             kind: 'rect',
             x0: rect.x,
             y0: rect.y,
-            x1: rect.width,
-            y1: rect.height,
+            width: rect.width,
+            height: rect.height,
             paletteIndex,
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
@@ -470,8 +485,8 @@ export class SoftwareRenderer implements IRenderer {
                 this.rasterRectFill(
                     command.x0,
                     command.y0,
-                    command.x1,
-                    command.y1,
+                    command.width,
+                    command.height,
                     command.paletteIndex,
                     command.cameraX,
                     command.cameraY,
@@ -481,8 +496,8 @@ export class SoftwareRenderer implements IRenderer {
                 this.rasterRect(
                     command.x0,
                     command.y0,
-                    command.x1,
-                    command.y1,
+                    command.width,
+                    command.height,
                     command.paletteIndex,
                     command.cameraX,
                     command.cameraY,
