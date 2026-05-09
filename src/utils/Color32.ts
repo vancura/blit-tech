@@ -220,33 +220,55 @@ export class Color32 {
     /**
      * Updates an existing named color in the global color registry.
      * Name matching is case-insensitive and trims surrounding whitespace.
+     * All alias keys that share the same object reference are updated in sync.
      *
-     * @param name - Existing named color key.
+     * @param name - Existing named color key (or any alias).
      * @param color - Replacement color value.
      * @throws Error when name is empty after normalization or not registered.
      */
     static updateColor(name: string, color: Color32): void {
         const normalizedName = Color32.normalizeColorName(name);
+        const current = Color32.namedColors.get(normalizedName);
 
-        if (!Color32.namedColors.has(normalizedName)) {
+        if (current === undefined) {
             throw new Error(`Named color '${normalizedName}' is not registered.`);
         }
 
-        Color32.namedColors.set(normalizedName, Color32.freezeSingleton(color));
+        const frozen = Color32.freezeSingleton(color);
+
+        for (const [key, value] of Color32.namedColors) {
+            if (value === current) {
+                Color32.namedColors.set(key, frozen);
+            }
+        }
     }
 
     /**
      * Removes a named color from the global color registry.
      * Name matching is case-insensitive and trims surrounding whitespace.
+     * All alias keys that share the same object reference are removed in sync.
      *
-     * @param name - Existing named color key.
+     * @param name - Existing named color key (or any alias).
      * @throws Error when name is empty after normalization or not registered.
      */
     static unregisterColor(name: string): void {
         const normalizedName = Color32.normalizeColorName(name);
+        const current = Color32.namedColors.get(normalizedName);
 
-        if (!Color32.namedColors.delete(normalizedName)) {
+        if (current === undefined) {
             throw new Error(`Named color '${normalizedName}' is not registered.`);
+        }
+
+        const keysToDelete: string[] = [];
+
+        for (const [key, value] of Color32.namedColors) {
+            if (value === current) {
+                keysToDelete.push(key);
+            }
+        }
+
+        for (const key of keysToDelete) {
+            Color32.namedColors.delete(key);
         }
     }
 

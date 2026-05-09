@@ -287,6 +287,29 @@ describe('named color registry', () => {
         );
     });
 
+    it('updateColor on one alias keeps both gray/grey aliases in sync', () => {
+        const originalGray = Color32.resolveNamedColor('gray');
+        if (originalGray === undefined) {
+            throw new Error('built-in gray must be registered');
+        }
+
+        try {
+            Color32.updateColor('grey', new Color32(200, 200, 200, 255));
+
+            const gray = Color32.resolveNamedColor('gray');
+            const grey = Color32.resolveNamedColor('grey');
+
+            expect(gray).toBeDefined();
+            expect(grey).toBeDefined();
+            expect(gray?.equals(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(grey?.equals(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(gray).toBe(grey);
+            expect(Object.isFrozen(gray)).toBe(true);
+        } finally {
+            Color32.updateColor('gray', originalGray);
+        }
+    });
+
     it('unregisterColor removes entries', () => {
         // cspell:ignore deleteme
         Color32.registerColor('deleteme', new Color32(8, 9, 10, 255));
