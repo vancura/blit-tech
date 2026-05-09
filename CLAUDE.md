@@ -77,7 +77,7 @@ Dual WebGPU pipeline architecture:
 
 - `Vector2i` - integer 2D vector. Constructor auto-floors. Has `width`/`height` aliases.
 - `Rect2i` - integer rectangle. Methods: `contains()`, `intersects()`, `intersection()`.
-- `Color32` - 32-bit RGBA (0-255). Static colors, hex/RGB parsing, float array conversion.
+- `Color32` - 32-bit RGBA (0-255). Static colors, hex parsing, named-color registry, float array conversion.
 
 ## Critical Rules
 

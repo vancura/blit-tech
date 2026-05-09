@@ -546,6 +546,15 @@ Color32.cyan();
 Color32.magenta();
 Color32.transparent();
 
+// String helpers
+Color32.fromHex('#ff8800'); // Parse #RGB/#RGBA/#RRGGBB/#RRGGBBAA (leading # optional)
+Color32.resolveNamedColor('cornflowerblue'); // Resolve named color singleton (case-insensitive)
+
+// Named color registry extensions
+Color32.registerColor('my-ui-accent', new Color32(64, 128, 255)); // Add new name, throws if duplicate
+Color32.updateColor('my-ui-accent', new Color32(80, 180, 255)); // Replace existing name
+Color32.unregisterColor('my-ui-accent'); // Remove existing name
+
 // Assets
 SpriteSheet.load(url); // Load sprite sheet (static method)
 SpriteSheet.loadIndexed(url, palette, startSlot, options?); // Register colors + load + indexize

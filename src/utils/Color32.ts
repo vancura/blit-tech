@@ -56,6 +56,9 @@ export class Color32 {
     /** Cached singleton for magenta color. */
     private static readonly _magenta: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 0, 255, 255));
 
+    /** Internal named-color registry used by string color resolution. */
+    private static readonly namedColors: Map<string, Color32> = Color32.createNamedColorMap();
+
     // #endregion
 
     // #region Instance Properties
@@ -194,6 +197,69 @@ export class Color32 {
      */
     static gray(value: number): Color32 {
         return new Color32(value, value, value, 255);
+    }
+
+    /**
+     * Registers a named color in the global color registry.
+     * Name matching is case-insensitive and trims surrounding whitespace.
+     *
+     * @param name - Named color key (for example `cornflowerblue`).
+     * @param color - Color value to store for that name.
+     * @throws Error when name is empty after normalization or already exists.
+     */
+    static registerColor(name: string, color: Color32): void {
+        const normalizedName = Color32.normalizeColorName(name);
+
+        if (Color32.namedColors.has(normalizedName)) {
+            throw new Error(`Named color '${normalizedName}' is already registered.`);
+        }
+
+        Color32.namedColors.set(normalizedName, Color32.freezeSingleton(color));
+    }
+
+    /**
+     * Updates an existing named color in the global color registry.
+     * Name matching is case-insensitive and trims surrounding whitespace.
+     *
+     * @param name - Existing named color key.
+     * @param color - Replacement color value.
+     * @throws Error when name is empty after normalization or not registered.
+     */
+    static updateColor(name: string, color: Color32): void {
+        const normalizedName = Color32.normalizeColorName(name);
+
+        if (!Color32.namedColors.has(normalizedName)) {
+            throw new Error(`Named color '${normalizedName}' is not registered.`);
+        }
+
+        Color32.namedColors.set(normalizedName, Color32.freezeSingleton(color));
+    }
+
+    /**
+     * Removes a named color from the global color registry.
+     * Name matching is case-insensitive and trims surrounding whitespace.
+     *
+     * @param name - Existing named color key.
+     * @throws Error when name is empty after normalization or not registered.
+     */
+    static unregisterColor(name: string): void {
+        const normalizedName = Color32.normalizeColorName(name);
+
+        if (!Color32.namedColors.delete(normalizedName)) {
+            throw new Error(`Named color '${normalizedName}' is not registered.`);
+        }
+    }
+
+    /**
+     * Looks up a named color from the global registry.
+     * Name matching is case-insensitive and trims surrounding whitespace.
+     *
+     * @param name - Named color key to resolve.
+     * @returns Frozen singleton color, or `undefined` when the name is unknown.
+     */
+    static resolveNamedColor(name: string): Color32 | undefined {
+        const normalizedName = Color32.normalizeColorName(name);
+        return Color32.namedColors.get(normalizedName);
     }
 
     // #endregion
@@ -718,6 +784,90 @@ export class Color32 {
     get luminance(): number {
         return this.r * 0.299 + this.g * 0.587 + this.b * 0.114;
     }
+
+    // #region Named Color Helpers
+
+    /**
+     * Creates the default CSS-like named-color registry.
+     *
+     * @returns Map of normalized names to frozen singleton Color32 values.
+     */
+    private static createNamedColorMap(): Map<string, Color32> {
+        const map = new Map<string, Color32>();
+        const define = (name: string, r: number, g: number, b: number, a: number = 255): void => {
+            map.set(name, Object.freeze(Color32.fromRGBAUnchecked(r, g, b, a)));
+        };
+        const alias = (name: string, target: string): void => {
+            const value = map.get(target);
+            if (value === undefined) {
+                throw new Error(`Named color alias target '${target}' is not registered.`);
+            }
+            map.set(name, value);
+        };
+
+        define('black', 0, 0, 0);
+        define('white', 255, 255, 255);
+        define('red', 255, 0, 0);
+        define('green', 0, 255, 0);
+        define('blue', 0, 0, 255);
+        define('yellow', 255, 255, 0);
+        define('cyan', 0, 255, 255);
+        define('magenta', 255, 0, 255);
+        define('gray', 128, 128, 128);
+        alias('grey', 'gray');
+
+        define('orange', 255, 165, 0);
+        define('pink', 255, 192, 203);
+        define('purple', 128, 0, 128);
+        define('brown', 165, 42, 42);
+        define('lime', 0, 255, 0);
+        define('navy', 0, 0, 128);
+        define('teal', 0, 128, 128);
+        define('maroon', 128, 0, 0);
+        define('olive', 128, 128, 0);
+        define('coral', 255, 127, 80);
+        define('gold', 255, 215, 0);
+        define('silver', 192, 192, 192);
+        define('indigo', 75, 0, 130);
+        define('violet', 238, 130, 238);
+        define('turquoise', 64, 224, 208);
+        define('salmon', 250, 128, 114);
+        define('khaki', 240, 230, 140);
+        define('plum', 221, 160, 221);
+        define('crimson', 220, 20, 60);
+        define('tomato', 255, 99, 71);
+        define('cornflowerblue', 100, 149, 237);
+
+        return map;
+    }
+
+    /**
+     * Normalizes a named-color key for case-insensitive lookups.
+     *
+     * @param name - Input color name.
+     * @returns Trimmed lowercase name.
+     * @throws Error when the normalized name is empty.
+     */
+    private static normalizeColorName(name: string): string {
+        const normalizedName = name.trim().toLowerCase();
+        if (normalizedName.length === 0) {
+            throw new Error('Color name cannot be empty.');
+        }
+
+        return normalizedName;
+    }
+
+    /**
+     * Clones and freezes a color so registry entries are immutable singletons.
+     *
+     * @param color - Source color to freeze.
+     * @returns Frozen singleton copy.
+     */
+    private static freezeSingleton(color: Color32): Color32 {
+        return Object.freeze(Color32.fromRGBAUnchecked(color.r, color.g, color.b, color.a));
+    }
+
+    // #endregion
 
     // #endregion
 }
