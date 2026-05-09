@@ -42,7 +42,7 @@ import { PixelMosaic } from './render/effects/pixel/PixelMosaic';
 import { amber, crtPipBoy, green } from './render/effects/presets';
 import type { BootstrapOptions } from './utils/Bootstrap';
 import { bootstrap } from './utils/Bootstrap';
-import { checkWebGPUSupport, displayError, getCanvas, previewWebGPUErrors } from './utils/BootstrapHelpers';
+import { displayError, getCanvas } from './utils/BootstrapHelpers';
 import { clampCameraToWorld } from './utils/CameraUtils';
 import { Color32 } from './utils/Color32';
 import type { EasingFunction } from './utils/Easing';
@@ -1465,7 +1465,6 @@ export {
     BitmapFont,
     Bloom,
     bootstrap,
-    checkWebGPUSupport,
     ChromaticAberration,
     clampCameraToWorld,
     Color32,
@@ -1480,7 +1479,6 @@ export {
     Palette,
     PixelGlitch,
     PixelMosaic,
-    previewWebGPUErrors,
     Rect2i,
     RGBMask,
     RollLine,

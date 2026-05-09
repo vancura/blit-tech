@@ -5,7 +5,7 @@
  *
  * Covers the DOM-facing startup flow:
  * - optional waiting for `DOMContentLoaded`
- * - WebGPU support validation and canvas lookup failures
+ * - canvas lookup failures
  * - success and failure paths around `BTAPI.init()`
  * - default and custom canvas/container identifiers
  * - propagation of success and error callbacks
@@ -60,18 +60,6 @@ function teardownDOM(): void {
     }
 }
 
-function stubWebGPU(): void {
-    const nav = navigator as unknown as Record<string, unknown>;
-
-    nav.gpu = {};
-}
-
-function unstubWebGPU(): void {
-    const nav = navigator as unknown as Record<string, unknown>;
-
-    delete nav.gpu;
-}
-
 // #endregion
 
 describe('bootstrap', () => {
@@ -82,9 +70,6 @@ describe('bootstrap', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-
-        unstubWebGPU();
-
         teardownDOM();
     });
 
@@ -93,8 +78,6 @@ describe('bootstrap', () => {
     describe('waitForDOMReady', () => {
         it('should skip DOM waiting when waitForDOMReady is false', async () => {
             setupDOM();
-
-            stubWebGPU();
 
             const result = await bootstrap(MockDemo, { waitForDOMReady: false });
 
@@ -105,8 +88,6 @@ describe('bootstrap', () => {
             Object.defineProperty(document, 'readyState', { value: 'loading', writable: true, configurable: true });
 
             setupDOM();
-
-            stubWebGPU();
 
             const bootstrapPromise = bootstrap(MockDemo, { waitForDOMReady: true });
 
@@ -122,8 +103,6 @@ describe('bootstrap', () => {
         it('should proceed immediately when the readyState is complete', async () => {
             setupDOM();
 
-            stubWebGPU();
-
             const result = await bootstrap(MockDemo, { waitForDOMReady: true });
 
             expect(result).toBe(true);
@@ -132,9 +111,9 @@ describe('bootstrap', () => {
 
     // #endregion
 
-    // #region WebGPU validation
+    // #region Backend fallback
 
-    describe('WebGPU validation', () => {
+    describe('backend fallback', () => {
         it('should proceed to engine init when WebGPU is not supported, letting BTAPI handle fallback', async () => {
             setupDOM();
 
@@ -146,32 +125,6 @@ describe('bootstrap', () => {
             expect(result).toBe(true);
             expect(onError).not.toHaveBeenCalled();
         });
-
-        it('should skip WebGPU validation when ?renderer=software is set', async () => {
-            setupDOM();
-            const originalLocation = window.location;
-
-            try {
-                Object.defineProperty(window, 'location', {
-                    configurable: true,
-                    value: {
-                        ...originalLocation,
-                        search: '?renderer=software',
-                    },
-                });
-
-                const onError = vi.fn();
-                const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
-
-                expect(result).toBe(true);
-                expect(onError).not.toHaveBeenCalled();
-            } finally {
-                Object.defineProperty(window, 'location', {
-                    configurable: true,
-                    value: originalLocation,
-                });
-            }
-        });
     });
 
     // #endregion
@@ -180,8 +133,6 @@ describe('bootstrap', () => {
 
     describe('canvas validation', () => {
         it('should return false and call onError when canvas is not found', async () => {
-            stubWebGPU();
-
             // No canvas in DOM — only the container.
             const container = document.createElement('div');
 
@@ -209,7 +160,6 @@ describe('bootstrap', () => {
     describe('engine initialization', () => {
         it('should return false and call onError when demo is missing render/update', async () => {
             setupDOM();
-            stubWebGPU();
             const initSpy = vi.spyOn(BTAPI.instance, 'init');
 
             class BrokenDemo implements IBlitTechDemo {
@@ -243,8 +193,6 @@ describe('bootstrap', () => {
         it('should return false and call onError when BTAPI.init returns false', async () => {
             setupDOM();
 
-            stubWebGPU();
-
             vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(false);
 
             const onError = vi.fn();
@@ -256,8 +204,6 @@ describe('bootstrap', () => {
 
         it('should return false and call onError when BTAPI.init throws', async () => {
             setupDOM();
-
-            stubWebGPU();
 
             vi.spyOn(BTAPI.instance, 'init').mockRejectedValue(new Error('Init exploded'));
 
@@ -271,8 +217,6 @@ describe('bootstrap', () => {
         it('should return true and call onSuccess on successful initialization', async () => {
             setupDOM();
 
-            stubWebGPU();
-
             const onSuccess = vi.fn();
             const result = await bootstrap(MockDemo, { waitForDOMReady: false, onSuccess });
 
@@ -282,8 +226,6 @@ describe('bootstrap', () => {
 
         it('should set canvas tabIndex to 0 and focus the canvas before engine init', async () => {
             const { canvas } = setupDOM();
-
-            stubWebGPU();
 
             const focusSpy = vi.spyOn(canvas, 'focus');
 
@@ -295,7 +237,6 @@ describe('bootstrap', () => {
 
         it('should use default canvas and container IDs when not specified', async () => {
             setupDOM();
-            stubWebGPU();
 
             const result = await bootstrap(MockDemo, { waitForDOMReady: false });
 
@@ -315,8 +256,6 @@ describe('bootstrap', () => {
 
             document.body.appendChild(canvas);
 
-            stubWebGPU();
-
             const result = await bootstrap(MockDemo, {
                 waitForDOMReady: false,
                 canvasId: 'custom-canvas',
@@ -334,8 +273,6 @@ describe('bootstrap', () => {
     describe('unexpected errors', () => {
         it('should return false when BTAPI.init throws synchronously', async () => {
             setupDOM();
-
-            stubWebGPU();
 
             vi.spyOn(BTAPI.instance, 'init').mockImplementation(() => {
                 throw new Error('The synchronous throw from init');
