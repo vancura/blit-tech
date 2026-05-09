@@ -14,7 +14,8 @@ import { GamepadInput } from '../input/GamepadInput';
 import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
-import { Renderer } from '../render/Renderer';
+import type { IRenderer } from '../render/IRenderer';
+import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
 import {
@@ -29,6 +30,7 @@ import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { defaultConfig } from './IBlitTechDemo';
+import type { WebGPUContextResult } from './WebGPUContext';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -80,7 +82,7 @@ export class BTAPI {
     private canvas: HTMLCanvasElement | null = null;
 
     /** Renderer subsystem for all drawing operations. */
-    private renderer: Renderer | null = null;
+    private renderer: IRenderer | null = null;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -209,26 +211,9 @@ export class BTAPI {
         this.device = webGPUResult.device;
         this.context = webGPUResult.context;
 
-        // Initialize subsystems.
-        console.log('[BT] Initializing renderer');
-
-        this.renderer = new Renderer(
-            this.device,
-            this.context,
-            this.hwSettings.displaySize,
-            // Only forward an explicit outputSize when canvasDisplaySize was
-            // provided; that is the signal that unlocks the display tier.
-            this.hwSettings.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
-            this.hwSettings.outputUpscaleFilter ?? 'nearest',
-        );
-
-        if (!(await this.renderer.init())) {
-            console.error('[BT] Failed to initialize renderer');
-
+        if (!(await this.initRenderer(webGPUResult, this.hwSettings))) {
             return false;
         }
-
-        console.log('[BT] Renderer initialized');
 
         // Create the built-in system font (synchronous, no GPU needed yet).
         this.systemFont = createSystemFont();
@@ -382,7 +367,7 @@ export class BTAPI {
      *
      * @returns Renderer instance, or null if not initialized.
      */
-    public getRenderer(): Renderer | null {
+    public getRenderer(): IRenderer | null {
         return this.renderer;
     }
 
@@ -843,6 +828,49 @@ export class BTAPI {
     // #endregion
 
     // #region Private — Initialization Helpers
+
+    /**
+     * Constructs and initializes the renderer for the active hardware settings.
+     *
+     * Logs the selected backend name, creates a {@link WebGpuRenderer}, calls
+     * {@link IRenderer.init}, and reports success or failure. Emits a warning
+     * when a non-`'webgpu'` backend is requested but not yet implemented.
+     *
+     * @param webGPUResult - Initialized WebGPU device, context, and drawing-buffer size.
+     * @param hw - Active hardware settings.
+     * @returns `true` when the renderer is ready; `false` on failure.
+     */
+    private async initRenderer(webGPUResult: WebGPUContextResult, hw: HardwareSettings): Promise<boolean> {
+        const requestedBackend = hw.renderer ?? 'webgpu';
+
+        if (requestedBackend !== 'webgpu') {
+            console.warn(
+                `[BT] Backend '${requestedBackend}' is not yet implemented; falling back to WebGPU (see VV-491)`,
+            );
+        }
+
+        console.log('[BT] Initializing renderer (backend: webgpu)');
+
+        this.renderer = new WebGpuRenderer(
+            webGPUResult.device,
+            webGPUResult.context,
+            hw.displaySize,
+            // Only forward an explicit outputSize when canvasDisplaySize was
+            // provided; that is the signal that unlocks the display tier.
+            hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+            hw.outputUpscaleFilter ?? 'nearest',
+        );
+
+        if (!(await this.renderer.init())) {
+            console.error('[BT] Failed to initialize renderer');
+
+            return false;
+        }
+
+        console.log('[BT] Renderer initialized');
+
+        return true;
+    }
 
     /**
      * Removes pointer, keyboard, and gamepad subsystems.

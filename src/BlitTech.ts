@@ -18,7 +18,7 @@ import { Palette } from './assets/Palette';
 import type { IndexedSpriteLoadResult } from './assets/SpriteSheet';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
-import { defaultConfig, type HardwareSettings, type IBlitTechDemo } from './core/IBlitTechDemo';
+import { defaultConfig, type HardwareSettings, type IBlitTechDemo, type RendererBackend } from './core/IBlitTechDemo';
 import {
     createDefaultKeyboardRuntimeMaps,
     DEFAULT_KEYBOARD_PLAYER1,
@@ -1477,7 +1477,16 @@ export {
     Vector2i,
     Vignette,
 };
-export type { BootstrapOptions, EasingFunction, Effect, EffectTier, HardwareSettings, IBlitTechDemo, TextSize };
+export type {
+    BootstrapOptions,
+    EasingFunction,
+    Effect,
+    EffectTier,
+    HardwareSettings,
+    IBlitTechDemo,
+    RendererBackend,
+    TextSize,
+};
 export type { IndexedSpriteLoadResult };
 
 // #endregion

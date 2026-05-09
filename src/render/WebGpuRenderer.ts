@@ -7,6 +7,7 @@ import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
+import type { IRenderer } from './IRenderer';
 import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
@@ -31,11 +32,11 @@ const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.T
 // #endregion
 
 /**
- * High-level renderer that coordinates primitive and sprite pipelines.
+ * WebGPU renderer implementing {@link IRenderer}.
  *
- * `Renderer` owns frame begin/end, clear color, camera state, palette buffer,
- * frame capture, and the two-tier post-process pipeline. Actual draw batching
- * is delegated to {@link PrimitivePipeline} and {@link SpritePipeline}.
+ * `WebGpuRenderer` owns frame begin/end, clear color, camera state, palette
+ * buffer, frame capture, and the two-tier post-process pipeline. Actual draw
+ * batching is delegated to {@link PrimitivePipeline} and {@link SpritePipeline}.
  *
  * Per-frame stage flow when post-process is active:
  *
@@ -51,7 +52,7 @@ const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.T
  * and `canvasDisplaySize` matching `displaySize`, the renderer draws straight
  * to the swap chain (zero offscreen allocations).
  */
-export class Renderer {
+export class WebGpuRenderer implements IRenderer {
     // #region State
 
     /** WebGPU device for GPU operations. */
@@ -236,7 +237,7 @@ export class Renderer {
 
             return true;
         } catch (error) {
-            console.error('[Renderer] Initialization failed:', error);
+            console.error('[WebGpuRenderer] Initialization failed:', error);
 
             return false;
         }
@@ -497,12 +498,12 @@ export class Renderer {
      */
     addEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.addEffect: renderer not initialized.');
+            throw new Error('WebGpuRenderer.addEffect: renderer not initialized.');
         }
 
         if (effect.tier === 'display' && !this.displayTierEnabled) {
             throw new Error(
-                'Renderer.addEffect: display-tier effects require canvasDisplaySize to be set in configure().',
+                'WebGpuRenderer.addEffect: display-tier effects require canvasDisplaySize to be set in configure().',
             );
         }
 
@@ -523,7 +524,7 @@ export class Renderer {
      */
     removeEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.removeEffect: renderer not initialized.');
+            throw new Error('WebGpuRenderer.removeEffect: renderer not initialized.');
         }
 
         const [primary, fallback] =
@@ -541,7 +542,7 @@ export class Renderer {
      */
     clearEffects(): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('Renderer.clearEffects: renderer not initialized.');
+            throw new Error('WebGpuRenderer.clearEffects: renderer not initialized.');
         }
 
         this.pixelChain.clear();
@@ -564,14 +565,14 @@ export class Renderer {
         try {
             swapTexture = this.context.getCurrentTexture();
         } catch (error) {
-            console.error('[Renderer] Failed to get current texture:', error);
+            console.error('[WebGpuRenderer] Failed to get current texture:', error);
             this.primitives.reset();
             this.sprites.reset();
             return null;
         }
 
         if (swapTexture.width === 0 || swapTexture.height === 0) {
-            console.warn('[Renderer] Texture has zero dimensions, skipping frame');
+            console.warn('[WebGpuRenderer] Texture has zero dimensions, skipping frame');
             this.primitives.reset();
             this.sprites.reset();
             return null;
@@ -750,7 +751,7 @@ export class Renderer {
     private requireSceneTexView(): GPUTextureView {
         if (!this.sceneTexView) {
             if (!this.swapFormat) {
-                throw new Error('Renderer.requireSceneTexView: swap format not initialized.');
+                throw new Error('WebGpuRenderer.requireSceneTexView: swap format not initialized.');
             }
             this.sceneTex = this.device.createTexture({
                 label: 'Renderer Scene Framebuffer',
@@ -773,7 +774,7 @@ export class Renderer {
     private requireDisplayChainInput(): GPUTextureView {
         const chain = this.displayChain;
         if (!chain?.isActive()) {
-            throw new Error('Renderer.requireDisplayChainInput: display chain inactive.');
+            throw new Error('WebGpuRenderer.requireDisplayChainInput: display chain inactive.');
         }
         return chain.getInputView();
     }
@@ -808,7 +809,10 @@ export class Renderer {
         try {
             return this.palette.get(this.clearPaletteIndex);
         } catch (error) {
-            console.warn('[Renderer] resolveClearColor: clearPaletteIndex out of range, falling back to black:', error);
+            console.warn(
+                '[WebGpuRenderer] resolveClearColor: clearPaletteIndex out of range, falling back to black:',
+                error,
+            );
 
             return Color32.black();
         }

@@ -29,7 +29,7 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
 - **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
 - **Bootstrap** - full bootstrap lifecycle (happy-dom)
-- **Renderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
+- **WebGpuRenderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
 - **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
 - **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
