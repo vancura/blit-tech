@@ -237,7 +237,7 @@ blit-tech/
 │   │   ├── Palette.ts          # 256-entry indexed color palette
 │   │   ├── PaletteEffect.ts    # Palette effect system (cycle, fade, flash, swap)
 │   │   ├── SpriteSheet.ts      # GPU texture wrapper with palette indexization
-│   │   └── palettes/           # Built-in preset palette data (VGA, CGA, C64, etc.)
+│   │   └── palettes/           # Built-in preset palette data (VGA, CGA, C64, etc.) + HUD UI preset
 │   ├── core/
 │   │   ├── BTAPI.ts            # Internal API singleton
 │   │   ├── GameLoop.ts         # Fixed-timestep game loop
@@ -345,13 +345,20 @@ BT.paletteGet(); // retrieve the active palette
 palette.setNamed('player', 3);
 palette.getNamed('player'); // returns 3
 
-// Built-in retro presets
+// Built-in retro presets (create a full palette from preset data)
 Palette.vga(); // VGA 256-color
 Palette.cga(); // CGA 16-color
 Palette.c64(); // Commodore 64 16-color
 Palette.gameboy(); // Game Boy 4-shade
 Palette.pico8(); // PICO-8 16-color
 Palette.nes(); // NES 64-color
+
+// Built-in HUD preset (fill 6 common UI slots into an existing palette)
+const palette = new Palette(256);
+palette.applyHUD(1); // fills slots 1-6: white, bg, label, header, dim, code
+// and registers hud_white / hud_bg / hud_label / hud_header / hud_dim / hud_code aliases
+palette.set(2, new Color32(20, 16, 32)); // override bg with your own color
+BT.paletteSet(palette);
 
 // Serialization
 const json = palette.toJSON();
