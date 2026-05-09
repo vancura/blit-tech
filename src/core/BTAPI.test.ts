@@ -435,11 +435,21 @@ describe('BTAPI', () => {
         it('ignores unknown renderer query values and keeps configure renderer', async () => {
             vi.stubGlobal('location', { search: '?renderer=banana' });
 
-            const demo = makeMockDemo();
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
             const result = await BTAPI.instance.init(demo, makeMockCanvas());
 
             expect(result).toBe(true);
-            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBeUndefined();
+            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBe('webgpu');
             expect(BTAPI.instance.getDevice()).not.toBeNull();
         });
 
