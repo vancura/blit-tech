@@ -26,7 +26,4 @@ export const HUD_SLOTS = [
     { hex: '6496c8', name: 'hud_code' },
 ] as const;
 
-/** One HUD palette slot: a canonical color paired with its registered name alias. */
-export type HudSlot = (typeof HUD_SLOTS)[number];
-
 // cspell:enable
