@@ -161,7 +161,7 @@ export class SpriteSheet {
      * without throwing on missing colors.
      *
      * By default colors are sorted darkest-first by perceived luminance
-     * (`0.299*r + 0.587*g + 0.114*b`); pass `{ sort: 'none' }` to keep the
+     * ({@link Color32.luminance}); pass `{ sort: 'none' }` to keep the
      * row-major scan order of the source image.
      *
      * Image loading goes through {@link AssetLoader.loadImage}, so the call
@@ -228,9 +228,7 @@ export class SpriteSheet {
 
         if (sortMode === 'luminance') {
             collected.sort((c1, c2) => {
-                const l1 = c1.r * 0.299 + c1.g * 0.587 + c1.b * 0.114;
-                const l2 = c2.r * 0.299 + c2.g * 0.587 + c2.b * 0.114;
-                return l1 - l2;
+                return c1.luminance - c2.luminance;
             });
         }
 

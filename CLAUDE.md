@@ -101,6 +101,8 @@ Dual WebGPU pipeline architecture:
 
 - Prefer `SpriteSheet.loadIndexed(...)` for demo/game sprite setup; use manual `loadColorsIntoPalette` + `load` +
   `indexize` only for advanced flows
+- Prefer `Color32#luminance` for perceived brightness calculations instead of duplicating `0.299*r + 0.587*g + 0.114*b`
+  at call sites
 - Prefer fixed-step helpers `BT.deltaSeconds()` / `BT.timeSeconds()` over hardcoded `1 / TARGET_FPS` in update loops
 - Prefer `BT.cameraClamp(...)` (or `clampCameraToWorld(...)` in utility code) over ad-hoc clamp math
 

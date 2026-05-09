@@ -434,6 +434,8 @@ describe('SpriteSheet', () => {
             expect(colors[0]?.b).toBe(30); // darkest first (blue)
             expect(colors[1]?.r).toBe(200); // red middle
             expect(colors[2]?.r).toBe(255); // brightest last (white)
+            expect(colors[0]?.luminance).toBeLessThanOrEqual(colors[1]?.luminance ?? 0);
+            expect(colors[1]?.luminance).toBeLessThanOrEqual(colors[2]?.luminance ?? 0);
         });
 
         it('preserves scan order when sort: "none"', async () => {
