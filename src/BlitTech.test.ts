@@ -1337,3 +1337,34 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
 });
 
 // #endregion
+
+// #region BT.getActiveBackend
+
+describe('BT.getActiveBackend', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('delegates to BTAPI.instance.getActiveBackend', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue('webgpu');
+
+        const result = BT.getActiveBackend();
+
+        expect(spy).toHaveBeenCalled();
+        expect(result).toBe('webgpu');
+    });
+
+    it('returns null before initialization', () => {
+        vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue(null);
+
+        expect(BT.getActiveBackend()).toBeNull();
+    });
+
+    it('returns software when BTAPI reports software backend active', () => {
+        vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue('software');
+
+        expect(BT.getActiveBackend()).toBe('software');
+    });
+});
+
+// #endregion
