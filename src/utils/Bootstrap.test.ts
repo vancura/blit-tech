@@ -145,6 +145,32 @@ describe('bootstrap', () => {
             expect(result).toBe(false);
             expect(onError).toHaveBeenCalledOnce();
         });
+
+        it('should skip WebGPU validation when ?renderer=software is set', async () => {
+            setupDOM();
+            const originalLocation = window.location;
+
+            try {
+                Object.defineProperty(window, 'location', {
+                    configurable: true,
+                    value: {
+                        ...originalLocation,
+                        search: '?renderer=software',
+                    },
+                });
+
+                const onError = vi.fn();
+                const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+
+                expect(result).toBe(true);
+                expect(onError).not.toHaveBeenCalled();
+            } finally {
+                Object.defineProperty(window, 'location', {
+                    configurable: true,
+                    value: originalLocation,
+                });
+            }
+        });
     });
 
     // #endregion

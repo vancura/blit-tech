@@ -280,7 +280,7 @@ export class SpriteSheet {
 
         if (indexedPixels.length !== expectedLength) {
             throw new RangeError(
-                `indexedPixels length ${indexedPixels.length} does not match ${width}x${height} (expected ${expectedLength}).`,
+                `The pixel data has ${indexedPixels.length} values, but a ${width}x${height} sheet needs exactly ${expectedLength}. Make sure indexedPixels has one entry per pixel.`,
             );
         }
 
@@ -476,6 +476,22 @@ export class SpriteSheet {
      */
     isIndexized(): boolean {
         return this.indexedPixels !== null;
+    }
+
+    /**
+     * Returns a copy of the palette-indexed pixel buffer.
+     *
+     * @returns Indexed pixels as row-major palette indices (1 byte per pixel).
+     * @throws If the sheet has not been indexized yet.
+     */
+    getIndexedPixels(): Uint8Array<ArrayBuffer> {
+        if (this.indexedPixels === null) {
+            throw new Error(
+                "This sprite sheet hasn't been converted to palette indices yet. Call sheet.indexize(palette) first.",
+            );
+        }
+
+        return this.indexedPixels.slice() as Uint8Array<ArrayBuffer>;
     }
 
     // #endregion

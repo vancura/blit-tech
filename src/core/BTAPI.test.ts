@@ -62,6 +62,50 @@ function makeMockCanvas(): HTMLCanvasElement {
     } as unknown as HTMLCanvasElement;
 }
 
+function makeMock2DCanvas(): HTMLCanvasElement {
+    return {
+        ...makeMockCanvas(),
+        getContext: (type: string) => {
+            if (type === '2d') {
+                return {
+                    imageSmoothingEnabled: false,
+                    createImageData: (w: number, h: number) =>
+                        ({
+                            data: new Uint8ClampedArray(w * h * 4),
+                            width: w,
+                            height: h,
+                        }) as ImageData,
+                    putImageData: vi.fn(),
+                    clearRect: vi.fn(),
+                    drawImage: vi.fn(),
+                };
+            }
+            return null;
+        },
+        toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
+    } as unknown as HTMLCanvasElement;
+}
+
+/** Minimal 2D context shape for {@link OffscreenCanvas#getContext} mocks; rejects non-`2d` types. */
+type OffscreenCanvas2DMock = {
+    imageSmoothingEnabled: boolean;
+    createImageData: (w: number, h: number) => ImageData;
+    putImageData: ReturnType<typeof vi.fn>;
+};
+
+function makeOffscreenCanvas2dContext(): OffscreenCanvas2DMock {
+    return {
+        imageSmoothingEnabled: false,
+        createImageData: (w: number, h: number) =>
+            ({
+                data: new Uint8ClampedArray(w * h * 4),
+                width: w,
+                height: h,
+            }) as ImageData,
+        putImageData: vi.fn(),
+    };
+}
+
 // #endregion
 
 describe('BTAPI', () => {
@@ -316,6 +360,99 @@ describe('BTAPI', () => {
             expect(result).toBe(false);
         });
 
+        it('initializes successfully in software mode when WebGPU is unavailable', async () => {
+            uninstallMockNavigatorGPU();
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'software',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMock2DCanvas();
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getDevice()).toBeNull();
+            expect(BTAPI.instance.getContext()).toBeNull();
+            expect(BTAPI.instance.getRenderer()).not.toBeNull();
+        });
+
+        it('URL override ?renderer=software wins over configure().renderer=webgpu', async () => {
+            vi.stubGlobal('location', { search: '?renderer=software' });
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            uninstallMockNavigatorGPU();
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const canvas = makeMock2DCanvas();
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBe('software');
+            expect(BTAPI.instance.getDevice()).toBeNull();
+        });
+
+        it('ignores unknown renderer query values and keeps configure renderer', async () => {
+            vi.stubGlobal('location', { search: '?renderer=banana' });
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const result = await BTAPI.instance.init(demo, makeMockCanvas());
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBe('webgpu');
+            expect(BTAPI.instance.getDevice()).not.toBeNull();
+        });
+
         it('should throw with WEBGPU_ADAPTER_MESSAGE when WebGPU adapter is unavailable', async () => {
             Object.defineProperty(globalThis, 'navigator', {
                 value: {
@@ -507,6 +644,50 @@ describe('BTAPI', () => {
             const result = await BTAPI.instance.captureFrame();
 
             expect(result).toBe(mockBlob);
+        });
+
+        it('captureFrame works in software mode after a rendered frame', async () => {
+            vi.stubGlobal('location', { search: '?renderer=software' });
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            uninstallMockNavigatorGPU();
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    renderer: 'software',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const canvas = makeMock2DCanvas();
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const capturePromise = BTAPI.instance.captureFrame();
+            const renderer = BTAPI.instance.getRenderer();
+            expect(renderer).not.toBeNull();
+
+            renderer?.beginFrame();
+            renderer?.endFrame();
+
+            const blob = await capturePromise;
+            expect(blob.type).toBe('image/png');
         });
     });
 

@@ -16,8 +16,7 @@ export type OutputUpscaleFilter = 'nearest' | 'linear';
  *   effects.
  * - `'software'` - Canvas 2D software fallback. Supports draw primitives,
  *   sprites, palette, and camera. Fullscreen shader effects are not available
- *   and will throw when added. Implemented in VV-490; actual backend selection
- *   is wired in VV-491.
+ *   and will throw when added.
  */
 export type RendererBackend = 'webgpu' | 'software';
 
@@ -71,9 +70,9 @@ export interface HardwareSettings {
     /**
      * Renderer backend to use. Defaults to `'webgpu'`.
      *
-     * Set to `'software'` to opt into the Canvas 2D fallback backend (VV-490).
-     * The engine auto-selects WebGPU first regardless of this setting until
-     * backend selection is fully wired (VV-491).
+     * Set to `'software'` to opt into the Canvas 2D fallback backend.
+     * You can also force software mode at runtime with `?renderer=software`
+     * in the page URL.
      */
     renderer?: RendererBackend;
 }
@@ -100,7 +99,7 @@ export interface IBlitTechDemo {
     configure?(): HardwareSettings;
 
     /**
-     * Called once after WebGPU and the renderer have been initialized.
+     * Called once after the selected renderer backend has been initialized.
      * Load assets and prepare a demo state here.
      *
      * @returns Promise that resolves to true if successful, false to abort.

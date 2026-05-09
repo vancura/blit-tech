@@ -23,7 +23,8 @@ primitives, and fonts.
 
 ## Features
 
-- **WebGPU rendering** with dual-pipeline architecture (primitives + sprites)
+- **WebGPU rendering** with dual-pipeline architecture (primitives + sprites); **Canvas 2D software fallback** for
+  environments without WebGPU — select via `HardwareSettings.renderer: 'software'` or `?renderer=software` URL param
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
 - **Post-process effects**: two-tier system — pixel-tier effects (chunky glitch, mosaic) at logical resolution, plus
@@ -244,7 +245,9 @@ blit-tech/
 │   │   ├── IBlitTechDemo.ts    # Demo interface + HardwareSettings
 │   │   └── WebGPUContext.ts    # WebGPU adapter/device/context setup
 │   ├── render/
-│   │   ├── Renderer.ts         # High-level renderer (coordinates pipelines + chains)
+│   │   ├── IRenderer.ts        # Backend-agnostic renderer contract (interface)
+│   │   ├── WebGpuRenderer.ts   # WebGPU concrete renderer implementing IRenderer
+│   │   ├── SoftwareRenderer.ts # Canvas 2D software fallback implementing IRenderer
 │   │   ├── PrimitivePipeline.ts # Batched palette-indexed geometry
 │   │   ├── SpritePipeline.ts   # Batched palette-indexed textured quads
 │   │   ├── PostProcessChain.ts # Tier-aware fullscreen effect chain
@@ -397,10 +400,11 @@ organized into two chains by what they operate on:
   RGB shadow mask, vignette, chromatic aberration, bloom, etc. Operating at output resolution is what lets curved
   sampling (barrel) express smoothly without quantizing onto the source pixel grid.
 
-Both chains add zero cost when empty. The display tier is already enabled when you omit `configure()` because
-`defaultConfig()` sets `canvasDisplaySize` (and related fields). Implement `configure()` and set `canvasDisplaySize`
-there only when you need to override those defaults (for example a different output or logical resolution than
-`defaultConfig()` provides).
+Both chains add zero cost when empty. Post-process effects are unsupported by the Canvas 2D software backend — calling
+`BT.effectAdd` / `BT.effectRemove` / `BT.effectClear` in software mode throws a clear error directing you to the WebGPU
+backend. The display tier is already enabled when you omit `configure()` because `defaultConfig()` sets
+`canvasDisplaySize` (and related fields). Implement `configure()` and set `canvasDisplaySize` there only when you need
+to override those defaults (for example a different output or logical resolution than `defaultConfig()` provides).
 
 ```ts
 import { BT, Vector2i, BarrelDistortion, Scanlines, Bloom, PixelGlitch } from 'blit-tech';

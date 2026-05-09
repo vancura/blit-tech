@@ -31,6 +31,7 @@ src/
   render/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
+    SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
     PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain
@@ -68,11 +69,15 @@ src/
 
 ### Rendering
 
-Dual WebGPU pipeline architecture:
+Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 
-1. **Primitives pipeline** - colored geometry (pixels, lines, rects). Max 50k vertices/frame.
-2. **Sprites pipeline** - textured quads with tinting. Max 50k vertices (~8333 quads). Nearest-neighbor sampling.
-   Auto-batched by texture.
+- **WebGPU** (`'webgpu'`): dual-pipeline hardware renderer.
+  1. **Primitives pipeline** - colored geometry (pixels, lines, rects). Max 50k vertices/frame.
+  2. **Sprites pipeline** - textured quads with tinting. Max 50k vertices (~8333 quads). Nearest-neighbor sampling.
+     Auto-batched by texture.
+- **Software** (`'software'`): Canvas 2D fallback. Supports palette rendering, rects, Bresenham lines, indexed sprite
+  blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
+  Force at runtime with the `?renderer=software` URL query parameter.
 
 ### Core Types
 
@@ -102,6 +107,8 @@ Dual WebGPU pipeline architecture:
 
 - Prefer `SpriteSheet.loadIndexed(...)` for demo/game sprite setup; use manual `loadColorsIntoPalette` + `load` +
   `indexize` only for advanced flows
+- Use `SpriteSheet.getIndexedPixels()` when the software renderer needs CPU-side pixel data; it returns a defensive copy
+  of the internal palette-indexed `Uint8Array` (throws if the sheet has not been indexized)
 - Prefer `Color32#luminance` for perceived brightness calculations instead of duplicating `0.299*r + 0.587*g + 0.114*b`
   at call sites
 - Prefer fixed-step helpers `BT.deltaSeconds()` / `BT.timeSeconds()` over hardcoded `1 / TARGET_FPS` in update loops
