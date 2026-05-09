@@ -8,15 +8,7 @@
 import { BTAPI } from '../core/BTAPI';
 import type { IBlitTechDemo } from '../core/IBlitTechDemo';
 import type { ErrorContent } from './BootstrapHelpers';
-import {
-    checkWebGPUSupport,
-    DEFAULT_CANVAS_ID,
-    DEFAULT_CONTAINER_ID,
-    detectBrowser,
-    displayError,
-    getCanvas,
-    getWebGPUInstructions,
-} from './BootstrapHelpers';
+import { DEFAULT_CANVAS_ID, DEFAULT_CONTAINER_ID, displayError, getCanvas } from './BootstrapHelpers';
 import { CANVAS_NOT_FOUND_MESSAGE, INIT_FAILED_MESSAGE } from './errorMessages';
 
 // #region Types
@@ -65,40 +57,6 @@ interface BootstrapResult {
 
 // #endregion
 
-// #region Error Messages
-
-/**
- * Builds a browser-specific WebGPU not-supported message.
- * Detects the current browser and returns actionable instructions.
- *
- * @returns Plain-text error message with per-browser guidance.
- */
-function buildWebGPUNotSupportedMessage(): string {
-    return getWebGPUInstructions(detectBrowser());
-}
-
-/**
- * Returns true when URL query requests software renderer override.
- *
- * Recognizes `?renderer=software`.
- *
- * @returns True if `?renderer=software` is present in the current URL.
- */
-function isSoftwareRendererQueryOverrideEnabled(): boolean {
-    if (typeof window === 'undefined' || !window.location?.search) {
-        return false;
-    }
-
-    try {
-        return new URLSearchParams(window.location.search).get('renderer') === 'software';
-    } catch (error) {
-        console.warn('[BT] Failed to parse renderer query in bootstrap:', error);
-        return false;
-    }
-}
-
-// #endregion
-
 // #region Helper Functions
 
 /**
@@ -134,37 +92,6 @@ function handleBootstrapError(
     displayError(title, message, containerId);
     onError?.(error);
     return { success: false, error };
-}
-
-/**
- * Validates WebGPU support and returns the result.
- *
- * @param containerId - Container ID for error display.
- * @param onError - Optional error callback.
- * @returns BootstrapResult with success status.
- */
-function validateWebGPU(containerId: string, onError?: (error: Error) => void): BootstrapResult {
-    let result: BootstrapResult;
-
-    if (checkWebGPUSupport()) {
-        result = { success: true };
-    } else {
-        console.error("[BT] WebGPU isn't supported in this browser.");
-        console.error(
-            '[BT] Browser: ',
-            typeof navigator !== 'undefined' ? navigator.userAgent : 'navigator unavailable',
-        );
-
-        result = handleBootstrapError(
-            'WebGPU Not Supported',
-            buildWebGPUNotSupportedMessage(),
-            new Error("WebGPU isn't supported in this browser"),
-            containerId,
-            onError,
-        );
-    }
-
-    return result;
 }
 
 /**
@@ -315,14 +242,11 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
     }
 
     try {
-        // Validate WebGPU support unless software backend is explicitly requested
-        // via `?renderer=software`.
-        if (isSoftwareRendererQueryOverrideEnabled()) {
-            success = true;
-        } else {
-            const webGPUResult = validateWebGPU(containerId, onError);
-            success = webGPUResult.success;
-        }
+        // BTAPI handles backend selection and auto-fallback to software when
+        // WebGPU is unavailable. Always proceed to initDemo() here.
+        // validateWebGPU and isSoftwareRendererQueryOverrideEnabled remain for
+        // VV-492 which will delete the now-obsolete helper code.
+        success = true;
 
         // Validate canvas element.
         if (success) {

@@ -135,15 +135,16 @@ describe('bootstrap', () => {
     // #region WebGPU validation
 
     describe('WebGPU validation', () => {
-        it('should return false and call onError when WebGPU is not supported', async () => {
+        it('should proceed to engine init when WebGPU is not supported, letting BTAPI handle fallback', async () => {
             setupDOM();
 
-            // No navigator.gpu installed.
+            // No navigator.gpu installed. BTAPI.init is mocked to return true (set in beforeEach).
             const onError = vi.fn();
             const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
 
-            expect(result).toBe(false);
-            expect(onError).toHaveBeenCalledOnce();
+            // Bootstrap no longer hard-stops on missing WebGPU; BTAPI handles backend selection.
+            expect(result).toBe(true);
+            expect(onError).not.toHaveBeenCalled();
         });
 
         it('should skip WebGPU validation when ?renderer=software is set', async () => {
