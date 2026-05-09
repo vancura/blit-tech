@@ -29,7 +29,8 @@ src/
     GameLoop.ts            # Fixed-timestep game loop
     WebGPUContext.ts       # WebGPU adapter/device/context setup
   render/
-    Renderer.ts            # High-level renderer (coordinates pipelines + chains)
+    IRenderer.ts           # Backend-agnostic renderer contract (interface)
+    WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
     PrimitivePipeline.ts   # Batched colored geometry (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain

@@ -1,7 +1,7 @@
 /**
- * Unit tests for {@link Renderer}.
+ * Unit tests for {@link WebGpuRenderer}.
  *
- * Exercises the engine's render coordinator:
+ * Exercises the engine's WebGPU render coordinator:
  * - constructor behavior and pre-initialization safety
  * - camera state ownership and copy semantics
  * - successful renderer initialization and repeated frame lifecycles
@@ -29,7 +29,7 @@ import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
-import { Renderer } from './Renderer';
+import { WebGpuRenderer } from './WebGpuRenderer';
 
 // #region Test Helpers
 
@@ -53,15 +53,15 @@ function createTestPalette(): Palette {
 
 // #region Constructor
 
-describe('Renderer constructor', () => {
+describe('WebGpuRenderer constructor', () => {
     it('creates an instance with mock objects', () => {
         const device = createMockGPUDevice();
         const context = createMockGPUCanvasContext();
         const displaySize = new Vector2i(320, 240);
-        const renderer = new Renderer(device, context, displaySize);
+        const renderer = new WebGpuRenderer(device, context, displaySize);
 
         expect(renderer).toBeDefined();
-        expect(renderer).toBeInstanceOf(Renderer);
+        expect(renderer).toBeInstanceOf(WebGpuRenderer);
     });
 });
 
@@ -71,7 +71,11 @@ describe('Renderer constructor', () => {
 
 describe('pre-initialization methods', () => {
     it('setClearColor does not throw', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         expect(() => {
             renderer.setClearColor(1);
@@ -79,7 +83,11 @@ describe('pre-initialization methods', () => {
     });
 
     it('setCameraOffset does not throw', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         expect(() => {
             renderer.setCameraOffset(new Vector2i(10, 20));
@@ -87,7 +95,11 @@ describe('pre-initialization methods', () => {
     });
 
     it('getCameraOffset returns a zero vector initially', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
         const offset = renderer.getCameraOffset();
 
         expect(offset.x).toBe(0);
@@ -95,7 +107,11 @@ describe('pre-initialization methods', () => {
     });
 
     it('resetCamera sets camera back to zero', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         renderer.setCameraOffset(new Vector2i(50, 75));
         renderer.resetCamera();
@@ -107,7 +123,11 @@ describe('pre-initialization methods', () => {
     });
 
     it('beginFrame throws without active palette', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         expect(() => {
             renderer.beginFrame();
@@ -115,7 +135,11 @@ describe('pre-initialization methods', () => {
     });
 
     it('beginFrame succeeds with active palette', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         renderer.setPalette(createTestPalette());
 
@@ -131,7 +155,11 @@ describe('pre-initialization methods', () => {
 
 describe('camera operations', () => {
     it('getCameraOffset returns a copy, not the internal reference', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         renderer.setCameraOffset(new Vector2i(42, 84));
 
@@ -150,7 +178,11 @@ describe('camera operations', () => {
     });
 
     it('setCameraOffset stores the offset correctly', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         renderer.setCameraOffset(new Vector2i(100, 200));
 
@@ -161,7 +193,11 @@ describe('camera operations', () => {
     });
 
     it('setCameraOffset clones the input vector', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
         const input = new Vector2i(30, 60);
 
         renderer.setCameraOffset(input);
@@ -182,7 +218,11 @@ describe('camera operations', () => {
 
 describe('palette enforcement', () => {
     it('setPalette stores and returns palette', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
         const palette = createTestPalette();
 
         renderer.setPalette(palette);
@@ -197,7 +237,11 @@ describe('palette enforcement', () => {
     });
 
     it('getPalette returns null when no palette is set', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         expect(renderer.getPalette()).toBeNull();
     });
@@ -211,7 +255,7 @@ describe('with initialized renderer', () => {
     const device = createMockGPUDevice();
     const context = createMockGPUCanvasContext();
     const displaySize = new Vector2i(320, 240);
-    const renderer = new Renderer(device, context, displaySize);
+    const renderer = new WebGpuRenderer(device, context, displaySize);
 
     beforeAll(async () => {
         installMockNavigatorGPU();
@@ -228,7 +272,7 @@ describe('with initialized renderer', () => {
     });
 
     it('init returns true on success', async () => {
-        const r = new Renderer(device, context, displaySize);
+        const r = new WebGpuRenderer(device, context, displaySize);
         const result = await r.init();
 
         expect(result).toBe(true);
@@ -383,7 +427,7 @@ describe('with initialized renderer', () => {
 
 describe('resolveClearColor fallbacks', () => {
     it('returns black (no throw) when no palette is set', async () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -396,7 +440,7 @@ describe('resolveClearColor fallbacks', () => {
     });
 
     it('returns black (no throw) when palette.get throws', async () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -435,7 +479,7 @@ describe('frame capture', () => {
         });
 
         const context = createMockGPUCanvasContext();
-        const renderer = new Renderer(device, context, new Vector2i(4, 4));
+        const renderer = new WebGpuRenderer(device, context, new Vector2i(4, 4));
 
         installMockNavigatorGPU();
 
@@ -494,7 +538,7 @@ describe('frame capture', () => {
         });
 
         const context = createMockGPUCanvasContext();
-        const renderer = new Renderer(device, context, new Vector2i(4, 4));
+        const renderer = new WebGpuRenderer(device, context, new Vector2i(4, 4));
 
         installMockNavigatorGPU();
 
@@ -555,7 +599,7 @@ describe('frame capture', () => {
         });
 
         const context = createMockGPUCanvasContext();
-        const renderer = new Renderer(device, context, new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(device, context, new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -586,7 +630,7 @@ describe('endFrame error paths', () => {
             },
         } as unknown as GPUCanvasContext;
 
-        const renderer = new Renderer(device, throwingContext, new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(device, throwingContext, new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -630,7 +674,7 @@ describe('endFrame error paths', () => {
             }),
         } as unknown as GPUCanvasContext;
 
-        const renderer = new Renderer(device, zeroTextureContext, new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(device, zeroTextureContext, new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -664,7 +708,7 @@ describe('init error paths', () => {
             },
         } as unknown as GPUDevice;
 
-        const renderer = new Renderer(throwingDevice, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(throwingDevice, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -689,7 +733,11 @@ describe('init error paths', () => {
 
 describe('palette dirty-flag auto-propagation', () => {
     it('setPalette stores a reference, not a clone', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
         const palette = createTestPalette();
 
         renderer.setPalette(palette);
@@ -702,7 +750,11 @@ describe('palette dirty-flag auto-propagation', () => {
     });
 
     it('getPalette still returns a clone, not the internal reference', () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
         const palette = createTestPalette();
 
         renderer.setPalette(palette);
@@ -711,7 +763,11 @@ describe('palette dirty-flag auto-propagation', () => {
     });
 
     it('palette.dirty is cleared after endFrame uploads', async () => {
-        const renderer = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(
+            createMockGPUDevice(),
+            createMockGPUCanvasContext(),
+            new Vector2i(320, 240),
+        );
 
         installMockNavigatorGPU();
 
@@ -739,7 +795,7 @@ describe('palette dirty-flag auto-propagation', () => {
         const device = createMockGPUDevice();
         const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
 
-        const renderer = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -773,7 +829,7 @@ describe('palette dirty-flag auto-propagation', () => {
         const device = createMockGPUDevice();
         const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
 
-        const renderer = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const renderer = new WebGpuRenderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         installMockNavigatorGPU();
 
@@ -842,25 +898,25 @@ describe('post-process effects', () => {
     }
 
     it('addEffect throws before init', () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.addEffect(createStubEffect())).toThrow(/not initialized/);
     });
 
     it('removeEffect throws before init', () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.removeEffect(createStubEffect())).toThrow(/not initialized/);
     });
 
     it('clearEffects throws before init', () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         expect(() => r.clearEffects()).toThrow(/not initialized/);
     });
 
     it('addEffect / clearEffects work after init', async () => {
-        const r = new Renderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         await r.init();
 
@@ -887,7 +943,7 @@ describe('post-process effects', () => {
             return encoder;
         });
 
-        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         await r.init();
         r.setPalette(createTestPalette());
@@ -901,7 +957,7 @@ describe('post-process effects', () => {
 
     it('endFrame drives chain.encode for each registered effect', async () => {
         const device = createMockGPUDevice();
-        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         await r.init();
         r.setPalette(createTestPalette());
@@ -924,7 +980,7 @@ describe('post-process effects', () => {
 
     it('endFrame drives every effect when multiple are stacked', async () => {
         const device = createMockGPUDevice();
-        const r = new Renderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
+        const r = new WebGpuRenderer(device, createMockGPUCanvasContext(), new Vector2i(320, 240));
 
         await r.init();
         r.setPalette(createTestPalette());
@@ -967,7 +1023,7 @@ describe('post-process effects', () => {
             getCurrentTexture: () => swapTexture,
         } as unknown as GPUCanvasContext;
 
-        const r = new Renderer(device, context, new Vector2i(320, 240));
+        const r = new WebGpuRenderer(device, context, new Vector2i(320, 240));
 
         await r.init();
         r.setPalette(createTestPalette());
@@ -1017,7 +1073,7 @@ describe('post-process effects', () => {
             getCurrentTexture: () => swapTexture,
         } as unknown as GPUCanvasContext;
 
-        const r = new Renderer(device, context, new Vector2i(320, 240));
+        const r = new WebGpuRenderer(device, context, new Vector2i(320, 240));
 
         await r.init();
         r.setPalette(createTestPalette());

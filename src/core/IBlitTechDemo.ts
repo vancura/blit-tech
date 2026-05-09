@@ -9,6 +9,19 @@ import { Vector2i } from '../utils/Vector2i';
 export type OutputUpscaleFilter = 'nearest' | 'linear';
 
 /**
+ * Renderer backend selection for {@link HardwareSettings.renderer}.
+ *
+ * - `'webgpu'` - Hardware-accelerated WebGPU renderer (default). Supports all
+ *   draw primitives, sprites, palette, camera, and fullscreen post-process
+ *   effects.
+ * - `'software'` - Canvas 2D software fallback. Supports draw primitives,
+ *   sprites, palette, and camera. Fullscreen shader effects are not available
+ *   and will throw when added. Implemented in VV-490; actual backend selection
+ *   is wired in VV-491.
+ */
+export type RendererBackend = 'webgpu' | 'software';
+
+/**
  * Engine-facing hardware configuration returned by `configure()` when a demo
  * implements that optional hook, or by {@link defaultConfig} otherwise.
  */
@@ -54,6 +67,15 @@ export interface HardwareSettings {
      * at `targetFPS`.
      */
     detectDroppedFrames?: boolean;
+
+    /**
+     * Renderer backend to use. Defaults to `'webgpu'`.
+     *
+     * Set to `'software'` to opt into the Canvas 2D fallback backend (VV-490).
+     * The engine auto-selects WebGPU first regardless of this setting until
+     * backend selection is fully wired (VV-491).
+     */
+    renderer?: RendererBackend;
 }
 
 /**
