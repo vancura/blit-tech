@@ -23,8 +23,9 @@ primitives, and fonts.
 
 ## Features
 
-- **WebGPU rendering** with dual-pipeline architecture (primitives + sprites); **Canvas 2D software fallback** for
-  environments without WebGPU — select via `HardwareSettings.renderer: 'software'` or `?renderer=software` URL param
+- **WebGPU rendering** with dual-pipeline architecture (primitives + sprites); **Canvas 2D software fallback** that
+  activates automatically when WebGPU is unavailable — or force it via `HardwareSettings.renderer: 'software'` or
+  `?renderer=software` URL param. A dismissible in-canvas "SOFTWARE RENDERER" banner confirms fallback mode is active
 - **Palette system**: 256-entry indexed color palette with built-in presets (VGA, CGA, C64, Game Boy, PICO-8, NES)
 - **Palette effects**: cycling, fade, flash, swap with easing functions -- animated color manipulation each frame
 - **Post-process effects**: two-tier system — pixel-tier effects (chunky glitch, mosaic) at logical resolution, plus
@@ -657,7 +658,10 @@ WebGPU support varies by browser:
 | Firefox     | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux/Android |
 | Safari      | 26+            | Enabled by default; Safari 18–25 available via Feature Flags     |
 
-The engine displays an error message if the browser doesn’t support WebGPU.
+When WebGPU is unavailable the engine automatically falls back to the Canvas 2D software renderer — no error page, no
+hard stop. A dismissible in-canvas "SOFTWARE RENDERER" banner appears at the top of the canvas to confirm the fallback
+is active; click or tap it to dismiss. Use `BTAPI.getActiveBackend()` (returns `’webgpu’` or `’software’`) to detect
+which backend is running at runtime.
 
 ## Technologies
 
