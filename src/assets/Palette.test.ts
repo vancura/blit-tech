@@ -394,6 +394,18 @@ describe('applyHUD', () => {
         expect(() => palette.applyHUD(-1)).toThrow('HUD preset slots start from 1');
     });
 
+    it('throws when startSlot is fractional', () => {
+        const palette = new Palette(16);
+
+        expect(() => palette.applyHUD(1.5)).toThrow('HUD preset slots start from 1');
+    });
+
+    it('throws when startSlot is NaN', () => {
+        const palette = new Palette(16);
+
+        expect(() => palette.applyHUD(NaN)).toThrow('HUD preset slots start from 1');
+    });
+
     it('throws when the six slots exceed the palette size', () => {
         const palette = new Palette(256);
 

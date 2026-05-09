@@ -319,13 +319,13 @@ export class Palette {
      * - `hud_dim`    — `#646464` dim gray (FPS, secondary info)
      * - `hud_code`   — `#6496c8` slate blue code snippets
      *
-     * @param startSlot - First palette index to write. Must be >= 1 and leave room
-     *   for all six entries within the palette size. Defaults to `1`.
-     * @throws Error if `startSlot` is less than 1.
+     * @param startSlot - First palette index to write. Must be a positive integer >= 1
+     *   and leave room for all six entries within the palette size. Defaults to `1`.
+     * @throws Error if `startSlot` is not an integer, is NaN, or is less than 1.
      * @throws Error if the six entries would exceed the palette size.
      */
     public applyHUD(startSlot: number = 1): void {
-        if (startSlot < 1) {
+        if (!Number.isInteger(startSlot) || startSlot < 1) {
             throw new Error(hudStartSlotError(startSlot));
         }
 

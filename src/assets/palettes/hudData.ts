@@ -7,9 +7,6 @@
  * and a slate blue for code snippets.
  */
 
-/** One HUD palette slot: a canonical color paired with its registered name alias. */
-export type HudSlot = { readonly hex: string; readonly name: string };
-
 // cspell:disable
 
 /**
@@ -20,13 +17,16 @@ export type HudSlot = { readonly hex: string; readonly name: string };
  * The `name` is the alias registered by `palette.setNamed()` so callers can
  * resolve the slot index later via `palette.getNamed('hud_white')` etc.
  */
-export const HUD_SLOTS: readonly HudSlot[] = [
+export const HUD_SLOTS = [
     { hex: 'ffffff', name: 'hud_white' },
     { hex: '1e1428', name: 'hud_bg' },
     { hex: 'c8c8c8', name: 'hud_label' },
     { hex: 'ffdc64', name: 'hud_header' },
     { hex: '646464', name: 'hud_dim' },
     { hex: '6496c8', name: 'hud_code' },
-];
+] as const;
+
+/** One HUD palette slot: a canonical color paired with its registered name alias. */
+export type HudSlot = (typeof HUD_SLOTS)[number];
 
 // cspell:enable
