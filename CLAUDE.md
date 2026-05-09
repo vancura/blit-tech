@@ -49,7 +49,7 @@ src/
     BitmapFont.ts          # Bitmap font system (.btfont)
     Palette.ts             # 256-entry indexed color palette
     PaletteEffect.ts       # Palette effect system (cycle, fade, flash, swap)
-    palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.)
+    palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.) + HUD UI preset (hudData.ts)
   input/
     PointerInput.ts        # DOM-backed pointer / mouse / touch / pen tracker (4 slots)
     KeyboardInput.ts       # KeyboardEvent.code state, edges, tick repeat, beforeinput text
@@ -116,6 +116,9 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
   at call sites
 - Prefer fixed-step helpers `BT.deltaSeconds()` / `BT.timeSeconds()` over hardcoded `1 / TARGET_FPS` in update loops
 - Prefer `BT.cameraClamp(...)` (or `clampCameraToWorld(...)` in utility code) over ad-hoc clamp math
+- Prefer `palette.applyHUD(startSlot?)` (default `1`) to fill the six common UI slots (white, bg, label, header, dim,
+  FPS) and register their `hud_*` name aliases, rather than six manual `palette.set()` calls; override individual slots
+  afterward for demo-specific colors
 
 ## Code Style
 
