@@ -23,7 +23,6 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { Effect } from '../render/effects/Effect';
-import { WEBGPU_ADAPTER_MESSAGE } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
@@ -352,9 +351,11 @@ describe('BTAPI', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when navigator.gpu is absent', async () => {
+        it('returns false when both WebGPU and software renderer init fail', async () => {
             uninstallMockNavigatorGPU();
 
+            // makeMockCanvas() returns null for getContext('2d'), so the auto-fallback
+            // SoftwareRenderer also fails to initialize.
             const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(result).toBe(false);
@@ -453,7 +454,7 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getDevice()).not.toBeNull();
         });
 
-        it('should throw with WEBGPU_ADAPTER_MESSAGE when WebGPU adapter is unavailable', async () => {
+        it('falls back to software (and fails cleanly) when WebGPU adapter is unavailable', async () => {
             Object.defineProperty(globalThis, 'navigator', {
                 value: {
                     gpu: {
@@ -466,7 +467,11 @@ describe('BTAPI', () => {
                 configurable: true,
             });
 
-            await expect(BTAPI.instance.init(makeMockDemo(), makeMockCanvas())).rejects.toThrow(WEBGPU_ADAPTER_MESSAGE);
+            // BTAPI catches the adapter throw and falls back to software.
+            // makeMockCanvas() has no 2D context, so software init also fails -> false.
+            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
+
+            expect(result).toBe(false);
         });
 
         it('should return false when renderer initialization fails', async () => {
@@ -689,6 +694,52 @@ describe('BTAPI', () => {
             const blob = await capturePromise;
             expect(blob.type).toBe('image/png');
         });
+
+        it('auto-falls back to software when WebGPU is unavailable and 2D canvas is available', async () => {
+            uninstallMockNavigatorGPU();
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    // No renderer field - defaults to 'webgpu', should auto-fallback
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMock2DCanvas();
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getDevice()).toBeNull();
+            expect(BTAPI.instance.getContext()).toBeNull();
+            expect(BTAPI.instance.getRenderer()).not.toBeNull();
+            expect(BTAPI.instance.getActiveBackend()).toBe('software');
+        });
+
+        it('reports webgpu as active backend when WebGPU succeeds', async () => {
+            const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
+
+            expect(result).toBe(true);
+            expect(BTAPI.instance.getActiveBackend()).toBe('webgpu');
+        });
+
+        it('reports null active backend before init', () => {
+            expect(BTAPI.instance.getActiveBackend()).toBeNull();
+        });
     });
 
     // #endregion
@@ -766,6 +817,111 @@ describe('BTAPI', () => {
             BTAPI.instance.effectRemove(effect);
 
             expect(removeSpy).toHaveBeenCalledWith(effect);
+        });
+    });
+
+    // #endregion
+
+    // #region Software ticker
+
+    describe('software ticker', () => {
+        it('renders ticker when software backend is active', async () => {
+            const rafCallbacks: FrameRequestCallback[] = [];
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((cb: FrameRequestCallback) => {
+                    rafCallbacks.push(cb);
+                    return rafCallbacks.length;
+                }),
+            );
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            uninstallMockNavigatorGPU();
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    renderer: 'software' as const,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMock2DCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const renderer = BTAPI.instance.getRenderer();
+            expect(renderer).not.toBeNull();
+
+            const drawRectFillSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFill');
+            const drawBitmapTextSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawBitmapText');
+
+            // Drain rAF queue (double-rAF bootstrap + first tick).
+            const maxIterations = 1000;
+            let iterations = 0;
+            while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error('rAF drain exceeded max iterations');
+                }
+                const cb = rafCallbacks.shift();
+                cb?.(16);
+                if (drawRectFillSpy.mock.calls.length > 0) break;
+            }
+
+            expect(drawRectFillSpy).toHaveBeenCalled();
+            expect(drawBitmapTextSpy).toHaveBeenCalled();
+
+            // Background rect should start at (0, 0) and span the full display width.
+            const firstRectCall = drawRectFillSpy.mock.calls[0];
+            expect(firstRectCall).toBeDefined();
+            const [bgRect] = firstRectCall ?? [];
+            expect(bgRect.x).toBe(0);
+            expect(bgRect.y).toBe(0);
+            expect(bgRect.width).toBe(320);
+        });
+
+        it('does not render ticker when WebGPU backend is active', async () => {
+            const rafCallbacks: FrameRequestCallback[] = [];
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((cb: FrameRequestCallback) => {
+                    rafCallbacks.push(cb);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            // navigator.gpu is installed by beforeEach; WebGPU succeeds.
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            expect(BTAPI.instance.getActiveBackend()).toBe('webgpu');
+
+            const renderer = BTAPI.instance.getRenderer();
+            const drawRectFillSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFill');
+
+            // Drain a few rAF ticks.
+            let drained = 0;
+            while (rafCallbacks.length > 0 && drained < 10) {
+                drained++;
+                const cb = rafCallbacks.shift();
+                cb?.(16);
+            }
+
+            // The demo's render() is a vi.fn() no-op, so any drawRectFill would be from the ticker.
+            expect(drawRectFillSpy).not.toHaveBeenCalled();
         });
     });
 

@@ -25,7 +25,7 @@ import {
     paletteIndexOutOfRangeError,
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
-import type { Rect2i } from '../utils/Rect2i';
+import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
@@ -56,6 +56,45 @@ export class BTAPI {
 
     // #endregion
 
+    // #region Software Ticker Constants
+
+    /** Height in pixels of the software-mode ticker banner strip. */
+    private static readonly TICKER_HEIGHT = 16;
+
+    /** System font glyph advance in pixels (matches SYSTEM_FONT_GLYPH_WIDTH = 6). */
+    private static readonly TICKER_CHAR_ADVANCE = 6;
+
+    /** Pixels to scroll left per rendered frame. */
+    private static readonly TICKER_SCROLL_SPEED = 1;
+
+    /** Palette index used for the ticker background fill. */
+    private static readonly TICKER_BG_INDEX = 1;
+
+    /**
+     * Palette index used for the ticker text.
+     *
+     * The system font stores foreground pixels as palette index 1; passing
+     * `TICKER_TEXT_INDEX - 1` as `paletteOffset` remaps those pixels to this index.
+     */
+    private static readonly TICKER_TEXT_INDEX = 2;
+
+    /**
+     * Text displayed in the software-mode ticker.
+     *
+     * Drawn using palette indices TICKER_BG_INDEX (background) and TICKER_TEXT_INDEX
+     * (text). The actual colors depend on the active palette.
+     */
+    private static readonly TICKER_TEXT =
+        'SOFTWARE RENDERER - blit-tech v' +
+        BTAPI.VERSION_MAJOR +
+        '.' +
+        BTAPI.VERSION_MINOR +
+        '.' +
+        BTAPI.VERSION_PATCH +
+        '  ';
+
+    // #endregion
+
     // #region Module State - Demo Instance
 
     /** Current demo instance implementing IBlitTechDemo. */
@@ -83,6 +122,12 @@ export class BTAPI {
 
     /** Renderer subsystem for all drawing operations. */
     private renderer: IRenderer | null = null;
+
+    /** Backend that was successfully initialized, or null before init. */
+    private activeBackend: RendererBackend | null = null;
+
+    /** X scroll position for the software-mode ticker overlay; advances left each frame. */
+    private tickerScrollX = 0;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -252,6 +297,11 @@ export class BTAPI {
                         this.paletteEffects.update(this.palette);
                     }
 
+                    // Software ticker renders on top of the demo, after user draw calls.
+                    if (this.activeBackend === 'software') {
+                        this.renderSoftwareTicker();
+                    }
+
                     this.renderer.endFrame();
                 }
 
@@ -358,6 +408,15 @@ export class BTAPI {
      */
     public getRenderer(): IRenderer | null {
         return this.renderer;
+    }
+
+    /**
+     * Returns the renderer backend that was actually initialized.
+     *
+     * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
+     */
+    public getActiveBackend(): RendererBackend | null {
+        return this.activeBackend;
     }
 
     /**
@@ -624,6 +683,51 @@ export class BTAPI {
 
     // #endregion
 
+    // #region Software Ticker
+
+    /**
+     * Renders the software-mode status ticker at the top of the canvas.
+     *
+     * Draws a filled background strip and tiled scrolling text using the system font.
+     * Saves and restores the camera so the banner is always viewport-relative
+     * regardless of the demo's camera position.
+     *
+     * Called each frame from the GameLoop render callback when activeBackend is 'software'.
+     */
+    private renderSoftwareTicker(): void {
+        if (!this.renderer || !this.hwSettings || !this.systemFont) {
+            return;
+        }
+
+        const displayWidth = this.hwSettings.displaySize.x;
+        const textWidth = BTAPI.TICKER_TEXT.length * BTAPI.TICKER_CHAR_ADVANCE;
+
+        // Advance scroll state; wrap with modular arithmetic so tiled copies remain seamless.
+        this.tickerScrollX -= BTAPI.TICKER_SCROLL_SPEED;
+        if (this.tickerScrollX < -textWidth) {
+            this.tickerScrollX += textWidth;
+        }
+
+        // Suppress camera offset for overlay rendering; restore after.
+        const savedCamera = this.renderer.getCameraOffset();
+        this.renderer.resetCamera();
+
+        // Background strip across the full display width.
+        this.renderer.drawRectFill(new Rect2i(0, 0, displayWidth, BTAPI.TICKER_HEIGHT), BTAPI.TICKER_BG_INDEX);
+
+        // Tile text copies so the banner is always full-width.
+        const paletteOffset = BTAPI.TICKER_TEXT_INDEX - 1;
+        let x = this.tickerScrollX;
+        while (x < displayWidth) {
+            this.renderer.drawBitmapText(this.systemFont, new Vector2i(x, 1), BTAPI.TICKER_TEXT, paletteOffset);
+            x += textWidth;
+        }
+
+        this.renderer.setCameraOffset(savedCamera);
+    }
+
+    // #endregion
+
     // #region Camera API
 
     /**
@@ -830,44 +934,54 @@ export class BTAPI {
      */
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
         const requestedBackend = hw.renderer ?? 'webgpu';
-        if (requestedBackend === 'software') {
-            this.device = null;
-            this.context = null;
-            console.log('[BT] Initializing renderer (backend: software)');
-            this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
 
-            if (!(await this.renderer.init())) {
-                console.error('[BT] Failed to initialize renderer');
-
-                return false;
+        if (requestedBackend !== 'software') {
+            // Try WebGPU. initWebGPU returns null when navigator.gpu is absent and
+            // throws when the adapter or device cannot be created. Both cases fall
+            // through to the software renderer below.
+            let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
+            try {
+                webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
+            } catch {
+                // Adapter/device unavailable; fall through to software.
             }
 
-            console.log('[BT] Renderer initialized');
+            if (webGPUResult) {
+                this.device = webGPUResult.device;
+                this.context = webGPUResult.context;
+                console.log('[BT] Initializing renderer (backend: webgpu)');
 
-            return true;
+                this.renderer = new WebGpuRenderer(
+                    webGPUResult.device,
+                    webGPUResult.context,
+                    hw.displaySize,
+                    // Only forward an explicit outputSize when canvasDisplaySize was
+                    // provided; that is the signal that unlocks the display tier.
+                    hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+                    hw.outputUpscaleFilter ?? 'nearest',
+                );
+
+                if (!(await this.renderer.init())) {
+                    console.error('[BT] Failed to initialize renderer');
+
+                    return false;
+                }
+
+                this.activeBackend = 'webgpu';
+                console.log('[BT] Renderer initialized');
+
+                return true;
+            }
+
+            console.warn('[BT] WebGPU unavailable, falling back to software renderer');
         }
 
-        const webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
-        if (!webGPUResult) {
-            console.error('[BT] Failed to initialize WebGPU');
+        // Software renderer path: explicit selection or automatic fallback.
+        this.device = null;
+        this.context = null;
+        console.log('[BT] Initializing renderer (backend: software)');
 
-            return false;
-        }
-
-        this.device = webGPUResult.device;
-        this.context = webGPUResult.context;
-
-        console.log('[BT] Initializing renderer (backend: webgpu)');
-
-        this.renderer = new WebGpuRenderer(
-            webGPUResult.device,
-            webGPUResult.context,
-            hw.displaySize,
-            // Only forward an explicit outputSize when canvasDisplaySize was
-            // provided; that is the signal that unlocks the display tier.
-            hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
-            hw.outputUpscaleFilter ?? 'nearest',
-        );
+        this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
 
         if (!(await this.renderer.init())) {
             console.error('[BT] Failed to initialize renderer');
@@ -875,6 +989,7 @@ export class BTAPI {
             return false;
         }
 
+        this.activeBackend = 'software';
         console.log('[BT] Renderer initialized');
 
         return true;
