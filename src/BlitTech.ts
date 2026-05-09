@@ -49,6 +49,7 @@ import type { EasingFunction } from './utils/Easing';
 import { applyEasing } from './utils/Easing';
 import { noActivePaletteError } from './utils/errorMessages';
 import { Rect2i } from './utils/Rect2i';
+import { Timer } from './utils/Timer';
 import { Vector2i } from './utils/Vector2i';
 
 /** Runtime face-button → key-code lists for keyboard player 0 (mutable via {@link BT.inputMap}). */
@@ -1472,6 +1473,7 @@ export {
     RollLine,
     Scanlines,
     SpriteSheet,
+    Timer,
     Vector2i,
     Vignette,
 };

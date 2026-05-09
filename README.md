@@ -44,7 +44,7 @@ primitives, and fonts.
 - **Gamepad input**: up to four players via standard Gamepad API (`BT.gamepadConnected`, `BT.gamepadCount`,
   `BT.getAxis`), with stick dead zone and face-button support through `BT.button*`
 - **Fixed timestep**: deterministic update loop with tick counter and timing helpers (`BT.deltaSeconds`,
-  `BT.timeSeconds`)
+  `BT.timeSeconds`, `Timer`)
 - **Clean API**: all engine access through the `BT` namespace
 - **Display scaling**: `canvasDisplaySize` drives the WebGPU drawing buffer and CSS size for crisp pixel art; engine
   `defaultConfig()` uses a `640x480` output for `320x240` logical (2x nearest) when a demo omits `configure()`
@@ -317,6 +317,12 @@ BT.deltaSeconds(); // Fixed-step seconds per update
 BT.timeSeconds(); // Fixed-step elapsed seconds
 BT.ticks(); // Get current tick count
 BT.ticksReset(); // Reset tick counter
+
+// Optional helper for periodic update events.
+const spawnTimer = new Timer(180); // fire every 180 ticks
+if (spawnTimer.tick(BT.ticks())) {
+  spawnParticle();
+}
 ```
 
 A palette must be set via `BT.paletteSet()` before any draw calls are made. The recommended place is `init()` in the
@@ -550,6 +556,9 @@ Color32.transparent();
 SpriteSheet.load(url); // Load sprite sheet (static method)
 SpriteSheet.loadIndexed(url, palette, startSlot, options?); // Register colors + load + indexize
 BitmapFont.load(url); // Load bitmap font (static method)
+
+// Timing helper
+new Timer(intervalTicks); // Fixed-tick interval helper for update loops
 ```
 
 ### Input
