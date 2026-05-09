@@ -1,0 +1,73 @@
+import { BTAPI } from '../core/BTAPI';
+
+/**
+ * Fixed-tick interval helper for update loops.
+ *
+ * Tracks a "last fired" tick and reports when a configured interval has elapsed.
+ * Useful for periodic events such as particle spawning, score ticks, or palette swaps.
+ */
+export class Timer {
+    /** Interval size in ticks. */
+    public readonly intervalTicks: number;
+
+    /** Tick when this timer last fired (or was reset). */
+    private lastFiredTick: number;
+
+    /**
+     * Creates a timer that fires once per fixed-tick interval.
+     *
+     * @param intervalTicks - Number of ticks required between firings; must be a positive integer.
+     */
+    public constructor(intervalTicks: number) {
+        if (!Number.isInteger(intervalTicks) || intervalTicks <= 0) {
+            throw new RangeError('Timer intervalTicks must be a positive integer.');
+        }
+
+        this.intervalTicks = intervalTicks;
+        this.lastFiredTick = BTAPI.instance.getTicks();
+    }
+
+    /**
+     * Returns true once per interval and advances the internal last-fired tick.
+     *
+     * @param currentTick - Tick to evaluate against; defaults to engine tick counter.
+     * @returns True when at least `intervalTicks` have elapsed since the last fire/reset.
+     */
+    public tick(currentTick: number = BTAPI.instance.getTicks()): boolean {
+        if (this.elapsedTicks(currentTick) < this.intervalTicks) {
+            return false;
+        }
+
+        this.lastFiredTick = currentTick;
+        return true;
+    }
+
+    /**
+     * Resets the timer baseline to a tick value.
+     *
+     * @param currentTick - Tick to reset against; defaults to engine tick counter.
+     */
+    public reset(currentTick: number = BTAPI.instance.getTicks()): void {
+        this.lastFiredTick = currentTick;
+    }
+
+    /**
+     * Returns ticks elapsed since this timer last fired or reset.
+     *
+     * @param currentTick - Tick to compare against; defaults to engine tick counter.
+     * @returns Number of elapsed ticks.
+     */
+    public elapsedTicks(currentTick: number = BTAPI.instance.getTicks()): number {
+        return currentTick - this.lastFiredTick;
+    }
+
+    /**
+     * Returns ticks remaining until the timer will fire.
+     *
+     * @param currentTick - Tick to compare against; defaults to engine tick counter.
+     * @returns Remaining ticks in `[0, intervalTicks]`.
+     */
+    public remainingTicks(currentTick: number = BTAPI.instance.getTicks()): number {
+        return Math.max(0, this.intervalTicks - this.elapsedTicks(currentTick));
+    }
+}
