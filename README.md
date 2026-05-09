@@ -204,25 +204,23 @@ class MyDemo implements IBlitTechDemo {
   }
 }
 
-// One-liner bootstrap - handles WebGPU detection, DOM ready, and error display
+// One-liner bootstrap - handles DOM ready, canvas lookup, backend selection, and error display
 bootstrap(MyDemo);
 ```
 
-For more control over initialization:
+For more control over initialization (without `bootstrap`):
 
 ```ts
-import { BT, checkWebGPUSupport, displayError, getCanvas } from '../src/BlitTech';
+import { BT, displayError, getCanvas } from '../src/BlitTech';
 
-// Manual initialization with custom error handling
-if (!checkWebGPUSupport()) {
-  displayError(
-    'WebGPU Not Supported',
-    'Please use a WebGPU-compatible browser (Chrome/Edge 113+, Firefox 141+ on Windows, Safari 18+ with Feature Flags or Safari 26+).',
-  );
-} else {
-  const canvas = getCanvas('my-canvas-id');
-  if (canvas) {
-    await BT.init(new MyDemo(), canvas);
+// Manual initialization — BT.init selects WebGPU or software fallback automatically
+const canvas = getCanvas('my-canvas-id');
+if (canvas) {
+  const success = await BT.init(new MyDemo(), canvas);
+  if (success) {
+    console.log('Backend:', BT.getActiveBackend()); // 'webgpu' or 'software'
+  } else {
+    displayError('Initialization Failed', 'Engine could not start.');
   }
 }
 ```
@@ -265,7 +263,7 @@ blit-tech/
 │   │   └── defaultKeyboardMap.ts   # Default face-button key tables (VV-435)
 │   ├── utils/
 │   │   ├── Bootstrap.ts        # Demo bootstrap utilities
-│   │   ├── BootstrapHelpers.ts # WebGPU detection, error display
+│   │   ├── BootstrapHelpers.ts # Canvas lookup and error display utilities
 │   │   ├── Color32.ts          # 32-bit RGBA color
 │   │   ├── Easing.ts           # Easing functions for palette effects
 │   │   ├── FrameCapture.ts     # GPU readback + PNG export
@@ -290,7 +288,7 @@ blit-tech/
 
 ### Bootstrap Utilities
 
-The bootstrap utilities provide a streamlined way to initialize demos with automatic WebGPU detection and error
+The bootstrap utilities provide a streamlined way to initialize demos with automatic backend selection and error
 handling:
 
 ```ts
@@ -306,7 +304,6 @@ bootstrap(MyDemo, {
 });
 
 // Individual utilities for manual control
-checkWebGPUSupport(); // Returns true if WebGPU is available
 displayError(title, message, containerId?); // Show styled error in DOM
 getCanvas(canvasId?); // Get canvas element safely
 ```

@@ -56,7 +56,7 @@ src/
     defaultKeyboardMap.ts  # Default face-button key tables; clone helpers for BT.inputMapReset
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
-    BootstrapHelpers.ts    # WebGPU detection, canvas lookup, error display
+    BootstrapHelpers.ts    # Canvas lookup and error display utilities
     CameraUtils.ts         # Camera clamp helper (world/view bounds)
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
