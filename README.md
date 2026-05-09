@@ -660,8 +660,8 @@ WebGPU support varies by browser:
 
 When WebGPU is unavailable the engine automatically falls back to the Canvas 2D software renderer — no error page, no
 hard stop. A dismissible in-canvas "SOFTWARE RENDERER" banner appears at the top of the canvas to confirm the fallback
-is active; click or tap it to dismiss. Use `BTAPI.getActiveBackend()` (returns `’webgpu’` or `’software’`) to detect
-which backend is running at runtime.
+is active; click or tap it to dismiss. Use `BT.getActiveBackend()` (returns `’webgpu’` or `’software’`) to detect which
+backend is running at runtime.
 
 ## Technologies
 

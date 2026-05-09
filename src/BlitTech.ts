@@ -469,6 +469,19 @@ export const BT = {
     },
 
     /**
+     * Returns the renderer backend that is currently active.
+     *
+     * Call this after initialization to check which backend the engine started.
+     * Useful when you want to adjust demo behavior — for example, skipping
+     * post-process effects that only work under WebGPU.
+     *
+     * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
+     */
+    getActiveBackend: (): RendererBackend | null => {
+        return BTAPI.instance.getActiveBackend();
+    },
+
+    /**
      * Creates a standalone palette instance.
      *
      * @param size - Palette size. Defaults to 256 colors.
