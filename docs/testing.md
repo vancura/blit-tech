@@ -24,21 +24,27 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 `// @vitest-environment happy-dom` directive.
 
 - **AssetLoader** - image caching and deduplication (Node + vi stubs)
-- **SpriteSheet** - UV calculation, lazy texture creation, indexization, and `loadIndexed()` convenience flow (Node +
-  GPU mocks)
+- **SpriteSheet** - UV calculation, lazy texture creation, indexization, `loadIndexed()` convenience flow, and
+  `getIndexedPixels()` defensive-copy semantics (Node + GPU mocks)
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
 - **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
-- **Bootstrap** - full bootstrap lifecycle (happy-dom)
+- **Bootstrap** - full bootstrap lifecycle, including `?renderer=software` WebGPU-skip path (happy-dom)
 - **WebGpuRenderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
+- **SoftwareRenderer** - frame lifecycle, palette enforcement, camera offsets, indexed sprite blits, bitmap text,
+  `captureFrame()` semantics, and unsupported-effects assertions (Node + 2D canvas mocks)
 - **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
 - **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
-- **BTAPI** - singleton coordinator (Node + GPU mocks)
+- **BTAPI** - singleton coordinator; includes software-mode init, `?renderer=software` URL override, and
+  `captureFrame()` in software mode (Node + GPU mocks + 2D canvas mocks)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
 
 ### Tier 3: Visual Regression (Playwright, Chromium)
 
 Actual GPU rendering verified via screenshot comparison. Requires Chrome with WebGPU flags enabled.
+
+Each spec covers both the default WebGPU backend and the `?renderer=software` software backend, producing separate
+baseline screenshots for each.
 
 - **Primitives** - pixel, line, and rectangle rendering
 - **Sprites** - palette-indexed sprite rendering, palette offsets, batching
@@ -125,6 +131,10 @@ Available mocks:
 - `createMockRenderPassEncoder()` - returns a stub GPURenderPassEncoder
 - `createMockPaletteBuffer()` - returns a 4096-byte stub GPUBuffer for palette uniform tests
 - `installMockNavigatorGPU()` / `uninstallMockNavigatorGPU()` - install/remove global navigator.gpu
+
+For software-renderer tests that need a Canvas 2D context, use the `makeMock2DCanvas()` helper defined in
+`src/core/BTAPI.test.ts`. It returns an `HTMLCanvasElement` stub whose `getContext('2d')` yields a minimal
+`CanvasRenderingContext2D` mock (with `createImageData`, `putImageData`, `drawImage`, and `toBlob` stubs).
 
 `src/__test__/setup.ts` also installs a global `OffscreenCanvas` stub in Node.js (returns zero-filled pixel data from
 `getImageData`). This is needed by `SpriteSheet.indexize()` tests that run outside a browser environment.

@@ -85,17 +85,18 @@ Invariants:
 
 Appends an effect to the chain matching its declared `tier`. Effects can be added at any time; the first add allocates
 the chain's offscreen render targets, the second add allocates a second target for ping-pong. Throws if the engine has
-not been initialized or if a `tier='display'` effect is added without `canvasDisplaySize`.
+not been initialized, if a `tier='display'` effect is added without `canvasDisplaySize`, or if the active renderer
+backend is `'software'` (Canvas 2D does not support post-process effects).
 
 ### `BT.effectRemove(effect: Effect): void`
 
 Removes a previously registered effect. Searches both tiers and disposes the effect from whichever chain holds it.
 Removing an effect that was never added is a no-op. When the last effect in either chain is removed, that chain's
-offscreen textures are destroyed.
+offscreen textures are destroyed. Throws in `'software'` mode.
 
 ### `BT.effectClear(): void`
 
-Removes every effect in both tiers and destroys all offscreen GPU resources.
+Removes every effect in both tiers and destroys all offscreen GPU resources. Throws in `'software'` mode.
 
 ### `Effect` interface
 
@@ -138,6 +139,7 @@ interface HardwareSettings {
   outputUpscaleFilter?: 'nearest' | 'linear'; // default 'nearest'
   targetFPS: number;
   detectDroppedFrames?: boolean;
+  renderer?: 'webgpu' | 'software'; // default 'webgpu'; 'software' disables all post-process effects
 }
 ```
 
