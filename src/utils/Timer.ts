@@ -58,7 +58,7 @@ export class Timer {
      * @returns Number of elapsed ticks.
      */
     public elapsedTicks(currentTick: number = BTAPI.instance.getTicks()): number {
-        return currentTick - this.lastFiredTick;
+        return Math.max(0, currentTick - this.lastFiredTick);
     }
 
     /**
@@ -68,6 +68,6 @@ export class Timer {
      * @returns Remaining ticks in `[0, intervalTicks]`.
      */
     public remainingTicks(currentTick: number = BTAPI.instance.getTicks()): number {
-        return Math.max(0, this.intervalTicks - this.elapsedTicks(currentTick));
+        return Math.min(this.intervalTicks, Math.max(0, this.intervalTicks - this.elapsedTicks(currentTick)));
     }
 }

@@ -18,6 +18,7 @@ describe('Timer', () => {
         });
 
         it('throws when interval is not a positive integer', () => {
+            vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             expect(() => new Timer(0)).toThrow('positive integer');
             expect(() => new Timer(-5)).toThrow('positive integer');
             expect(() => new Timer(1.5)).toThrow('positive integer');
@@ -26,6 +27,7 @@ describe('Timer', () => {
 
     describe('tick', () => {
         it('returns false before interval, true at interval, then resets baseline', () => {
+            vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(5);
 
             expect(timer.tick(4)).toBe(false);
@@ -35,6 +37,7 @@ describe('Timer', () => {
         });
 
         it('fires once per call when large gaps pass', () => {
+            vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(5);
 
             expect(timer.tick(20)).toBe(true);
@@ -43,8 +46,9 @@ describe('Timer', () => {
         });
 
         it('uses engine ticks when current tick is omitted', () => {
-            const timer = new Timer(3);
             const spy = vi.spyOn(BTAPI.instance, 'getTicks');
+            spy.mockReturnValue(0);
+            const timer = new Timer(3);
 
             spy.mockReturnValue(2);
             expect(timer.tick()).toBe(false);
@@ -52,10 +56,21 @@ describe('Timer', () => {
             spy.mockReturnValue(3);
             expect(timer.tick()).toBe(true);
         });
+
+        it('does not lock when current tick rewinds', () => {
+            vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
+            const timer = new Timer(5);
+
+            expect(timer.tick(5)).toBe(true);
+            expect(timer.elapsedTicks(3)).toBe(0);
+            expect(timer.remainingTicks(3)).toBe(5);
+            expect(timer.tick(10)).toBe(true);
+        });
     });
 
     describe('reset and helpers', () => {
         it('resets baseline and reports elapsed and remaining ticks', () => {
+            vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(12);
 
             expect(timer.elapsedTicks(5)).toBe(5);
