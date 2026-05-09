@@ -198,6 +198,144 @@ describe('static color getters', () => {
     });
 });
 
+describe('named color registry', () => {
+    it('resolves required CSS level 1 names', () => {
+        expect(Color32.resolveNamedColor('black')?.equals(Color32.black())).toBe(true);
+        expect(Color32.resolveNamedColor('white')?.equals(Color32.white())).toBe(true);
+        expect(Color32.resolveNamedColor('red')?.equals(Color32.red())).toBe(true);
+        expect(Color32.resolveNamedColor('green')?.equals(Color32.green())).toBe(true);
+        expect(Color32.resolveNamedColor('blue')?.equals(Color32.blue())).toBe(true);
+        expect(Color32.resolveNamedColor('yellow')?.equals(Color32.yellow())).toBe(true);
+        expect(Color32.resolveNamedColor('cyan')?.equals(Color32.cyan())).toBe(true);
+        expect(Color32.resolveNamedColor('magenta')?.equals(Color32.magenta())).toBe(true);
+    });
+
+    it('resolves gray and grey to the same singleton', () => {
+        const gray = Color32.resolveNamedColor('gray');
+        const grey = Color32.resolveNamedColor('grey');
+
+        expect(gray).toBeDefined();
+        expect(gray).toBe(grey);
+        expect(gray?.equals(Color32.gray(128))).toBe(true);
+    });
+
+    it('resolves common extra names', () => {
+        expect(Color32.resolveNamedColor('cornflowerblue')?.equals(Color32.fromRGBAUnchecked(100, 149, 237, 255))).toBe(
+            true,
+        );
+        expect(Color32.resolveNamedColor('tomato')?.equals(Color32.fromRGBAUnchecked(255, 99, 71, 255))).toBe(true);
+    });
+
+    it('normalizes lookup names with trim + lowercase', () => {
+        const color = Color32.resolveNamedColor('  CoRnFlOwErBlUe  ');
+        expect(color?.equals(Color32.fromRGBAUnchecked(100, 149, 237, 255))).toBe(true);
+    });
+
+    it('returns same instance on repeated lookups', () => {
+        expect(Color32.resolveNamedColor('turquoise')).toBe(Color32.resolveNamedColor('turquoise'));
+    });
+
+    it('returns undefined for unknown names', () => {
+        expect(Color32.resolveNamedColor('this-color-does-not-exist')).toBeUndefined();
+    });
+
+    it('throws on empty lookup name', () => {
+        expect(() => Color32.resolveNamedColor('   ')).toThrow('Color name cannot be empty.');
+    });
+
+    it('registerColor stores frozen singleton and normalizes the key', () => {
+        const source = new Color32(1, 2, 3, 4);
+        // cspell:ignore mycustomcolor
+        Color32.registerColor('  MyCustomColor  ', source);
+
+        try {
+            const resolved = Color32.resolveNamedColor('mycustomcolor');
+            expect(resolved).toBeDefined();
+            expect(resolved).not.toBe(source);
+            expect(resolved?.equals(source)).toBe(true);
+            expect(Object.isFrozen(resolved)).toBe(true);
+        } finally {
+            Color32.unregisterColor('mycustomcolor');
+        }
+    });
+
+    it('registerColor throws on duplicates (including built-ins)', () => {
+        expect(() => Color32.registerColor('RED', new Color32(1, 1, 1))).toThrow(
+            "Named color 'red' is already registered.",
+        );
+    });
+
+    it('registerColor throws on empty names', () => {
+        expect(() => Color32.registerColor('   ', new Color32(1, 2, 3))).toThrow('Color name cannot be empty.');
+    });
+
+    it('updateColor replaces existing entries with frozen singleton', () => {
+        Color32.registerColor('updatablecolor', new Color32(10, 20, 30, 40));
+
+        try {
+            const updatedSource = new Color32(200, 201, 202, 203);
+            Color32.updateColor('  UpdatableColor  ', updatedSource);
+
+            const resolved = Color32.resolveNamedColor('updatablecolor');
+            expect(resolved?.equals(updatedSource)).toBe(true);
+            expect(resolved).not.toBe(updatedSource);
+            expect(Object.isFrozen(resolved)).toBe(true);
+        } finally {
+            Color32.unregisterColor('updatablecolor');
+        }
+    });
+
+    it('updateColor throws when entry is missing', () => {
+        expect(() => Color32.updateColor('not-registered', new Color32(1, 2, 3))).toThrow(
+            "Named color 'not-registered' is not registered.",
+        );
+    });
+
+    it('updateColor on one alias keeps both gray/grey aliases in sync', () => {
+        const originalGray = Color32.resolveNamedColor('gray');
+        if (originalGray === undefined) {
+            throw new Error('built-in gray must be registered');
+        }
+
+        try {
+            Color32.updateColor('grey', new Color32(200, 200, 200, 255));
+
+            const gray = Color32.resolveNamedColor('gray');
+            const grey = Color32.resolveNamedColor('grey');
+
+            expect(gray).toBeDefined();
+            expect(grey).toBeDefined();
+            expect(gray?.equals(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(grey?.equals(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(gray).toBe(grey);
+            expect(Object.isFrozen(gray)).toBe(true);
+        } finally {
+            Color32.updateColor('gray', originalGray);
+        }
+    });
+
+    it('unregisterColor removes entries', () => {
+        // cspell:ignore deleteme
+        Color32.registerColor('deleteme', new Color32(8, 9, 10, 255));
+
+        try {
+            expect(Color32.resolveNamedColor('deleteme')).toBeDefined();
+            Color32.unregisterColor('deleteme');
+            expect(Color32.resolveNamedColor('deleteme')).toBeUndefined();
+        } finally {
+            if (Color32.resolveNamedColor('deleteme') !== undefined) {
+                Color32.unregisterColor('deleteme');
+            }
+        }
+    });
+
+    it('unregisterColor throws when entry is missing', () => {
+        expect(() => Color32.unregisterColor('not-registered')).toThrow(
+            "Named color 'not-registered' is not registered.",
+        );
+    });
+});
+
 // #endregion
 
 // #region Static Factory Methods
