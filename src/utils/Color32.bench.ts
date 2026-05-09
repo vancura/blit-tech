@@ -240,9 +240,9 @@ describe('Color32 utility benchmarks', () => {
     );
 
     bench(
-        'luminance()',
+        'luminance',
         () => {
-            color.luminance();
+            Math.trunc(color.luminance);
         },
         BENCH_OPTIONS,
     );

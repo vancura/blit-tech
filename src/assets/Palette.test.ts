@@ -56,7 +56,7 @@ describe('Palette', () => {
         expect(palette.get(5).equals(color)).toBe(true);
         expect(palette.get(5)).not.toBe(color);
         expect(() => palette.get(16)).toThrow('The color number 16 is too big');
-        expect(() => palette.set(-1, color)).toThrow('The color number -1 is too big');
+        expect(() => palette.set(-1, color)).toThrow('0 or higher');
     });
 
     it('get() returns a defensive copy — mutating the result does not change the stored entry', () => {

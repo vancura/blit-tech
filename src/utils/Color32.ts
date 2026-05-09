@@ -711,14 +711,12 @@ export class Color32 {
     // #region Utility Methods
 
     /**
-     * Calculates the perceived luminance (brightness) of the color.
-     * Uses the standard relative luminance formula from WCAG.
+     * Perceived (Rec. 601) luminance of this color, ignoring alpha.
      *
-     * @returns Luminance value in range 0.0-1.0.
+     * @returns Luminance value in range 0-255 using 0.299*R + 0.587*G + 0.114*B.
      */
-    luminance(): number {
-        // Use standard relative luminance coefficients.
-        return (0.2126 * this.r + 0.7152 * this.g + 0.0722 * this.b) * INV_255;
+    get luminance(): number {
+        return this.r * 0.299 + this.g * 0.587 + this.b * 0.114;
     }
 
     // #endregion

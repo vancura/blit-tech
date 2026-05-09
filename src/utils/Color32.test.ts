@@ -918,27 +918,33 @@ describe('copyFrom', () => {
 // #region Utility
 
 describe('luminance', () => {
-    it('returns approximately 1.0 for white', () => {
+    it('returns 255 for white', () => {
         const c = new Color32(255, 255, 255, 255);
 
-        expect(c.luminance()).toBeCloseTo(1.0, 3);
+        expect(c.luminance).toBeCloseTo(255, 5);
     });
 
-    it('returns approximately 0.0 for black', () => {
+    it('returns 0 for black', () => {
         const c = new Color32(0, 0, 0, 255);
 
-        expect(c.luminance()).toBeCloseTo(0.0, 5);
+        expect(c.luminance).toBeCloseTo(0, 5);
     });
 
-    it('uses WCAG coefficients (green contributes most)', () => {
-        const r = new Color32(255, 0, 0, 255).luminance();
-        const g = new Color32(0, 255, 0, 255).luminance();
-        const b = new Color32(0, 0, 255, 255).luminance();
+    it('uses Rec.601 coefficients (green contributes most)', () => {
+        const r = new Color32(255, 0, 0, 255).luminance;
+        const g = new Color32(0, 255, 0, 255).luminance;
+        const b = new Color32(0, 0, 255, 255).luminance;
 
         // Green should have the highest luminance contribution
         expect(g).toBeGreaterThan(r);
         expect(g).toBeGreaterThan(b);
         expect(r).toBeGreaterThan(b);
+    });
+
+    it('matches known Rec.601 output for a mixed color', () => {
+        const c = new Color32(120, 65, 210, 255);
+
+        expect(c.luminance).toBeCloseTo(97.975, 3);
     });
 });
 
