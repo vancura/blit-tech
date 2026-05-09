@@ -164,15 +164,16 @@ struct Palette {
 @group(0) @binding(1) var<uniform> palette: Palette;
 @group(0) @binding(2) var srcIndices: texture_2d<u32>;
 
-fn resolve_rgb_coord(ic: vec2<i32>, lw: i32, lh: i32) -> vec3<f32> {
+fn resolve_premultiplied_coord(ic: vec2<i32>, lw: i32, lh: i32) -> vec4<f32> {
     let sx = clamp(ic.x, 0, lw - 1);
     let sy = clamp(ic.y, 0, lh - 1);
     let idx = textureLoad(srcIndices, vec2<i32>(sx, sy), 0).r;
     let color = palette.colors[idx];
-    if (color.a == 0.0) {
-        return vec3<f32>(0.0, 0.0, 0.0);
+    let a = color.a;
+    if (a == 0.0) {
+        return vec4<f32>(0.0, 0.0, 0.0, 0.0);
     }
-    return color.rgb;
+    return vec4<f32>(color.rgb * a, a);
 }
 
 @fragment
@@ -200,15 +201,18 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     let fx = px - f32(x0);
     let fy = py - f32(y0);
 
-    let c00 = resolve_rgb_coord(vec2<i32>(x0, y0), lw, lh);
-    let c10 = resolve_rgb_coord(vec2<i32>(x1, y0), lw, lh);
-    let c01 = resolve_rgb_coord(vec2<i32>(x0, y1), lw, lh);
-    let c11 = resolve_rgb_coord(vec2<i32>(x1, y1), lw, lh);
+    let c00 = resolve_premultiplied_coord(vec2<i32>(x0, y0), lw, lh);
+    let c10 = resolve_premultiplied_coord(vec2<i32>(x1, y0), lw, lh);
+    let c01 = resolve_premultiplied_coord(vec2<i32>(x0, y1), lw, lh);
+    let c11 = resolve_premultiplied_coord(vec2<i32>(x1, y1), lw, lh);
 
     let top = mix(c00, c10, fx);
     let bot = mix(c01, c11, fx);
-    let rgb = mix(top, bot, fy);
+    let pm = mix(top, bot, fy);
 
-    return vec4<f32>(rgb, 1.0);
+    if (pm.a <= 0.0) {
+        return vec4<f32>(0.0, 0.0, 0.0, 0.0);
+    }
+    return vec4<f32>(pm.rgb / pm.a, pm.a);
 }
 `;
