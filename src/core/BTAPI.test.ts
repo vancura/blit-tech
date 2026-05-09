@@ -887,10 +887,12 @@ describe('BTAPI', () => {
             // Background rect should start at (0, 0) and span the full display width.
             const firstRectCall = drawRectFillSpy.mock.calls[0];
             expect(firstRectCall).toBeDefined();
-            const [bgRect] = firstRectCall ?? [];
-            expect(bgRect.x).toBe(0);
-            expect(bgRect.y).toBe(0);
-            expect(bgRect.width).toBe(320);
+            if (firstRectCall) {
+                const [bgRect] = firstRectCall;
+                expect(bgRect.x).toBe(0);
+                expect(bgRect.y).toBe(0);
+                expect(bgRect.width).toBe(320);
+            }
         });
 
         it('does not render ticker when WebGPU backend is active', async () => {
