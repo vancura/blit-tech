@@ -196,7 +196,8 @@ async function initDemo(
 
 /**
  * One-liner bootstrap function for Blit-Tech demos.
- * Handles WebGPU detection, canvas retrieval, and engine initialization.
+ * Handles canvas retrieval and engine initialization. Backend selection
+ * (WebGPU or software fallback) is managed internally by BTAPI.
  *
  * This function provides a streamlined way to start a demo with sensible defaults
  * while allowing customization through options.
@@ -242,32 +243,22 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
     }
 
     try {
-        // BTAPI handles backend selection and auto-fallback to software when
-        // WebGPU is unavailable. Always proceed to initDemo() here.
-        // validateWebGPU and isSoftwareRendererQueryOverrideEnabled remain for
-        // VV-492 which will delete the now-obsolete helper code.
-        success = true;
+        const { canvas, result: canvasResult } = validateCanvas(canvasId, containerId, onError);
 
-        // Validate canvas element.
-        if (success) {
-            const { canvas, result: canvasResult } = validateCanvas(canvasId, containerId, onError);
+        success = canvasResult.success;
 
-            success = canvasResult.success;
+        if (success && canvas) {
+            canvas.tabIndex = 0;
 
-            // Initialize the demo.
-            if (success && canvas) {
-                canvas.tabIndex = 0;
-
-                try {
-                    canvas.focus({ preventScroll: true });
-                } catch {
-                    canvas.focus();
-                }
-
-                const initResult = await initDemo(DemoClass, canvas, containerId, onSuccess, onError);
-
-                success = initResult.success;
+            try {
+                canvas.focus({ preventScroll: true });
+            } catch {
+                canvas.focus();
             }
+
+            const initResult = await initDemo(DemoClass, canvas, containerId, onSuccess, onError);
+
+            success = initResult.success;
         }
     } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
