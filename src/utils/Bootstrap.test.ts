@@ -150,19 +150,26 @@ describe('bootstrap', () => {
             setupDOM();
             const originalLocation = window.location;
 
-            Object.defineProperty(window, 'location', {
-                configurable: true,
-                value: {
-                    ...originalLocation,
-                    search: '?renderer=software',
-                },
-            });
+            try {
+                Object.defineProperty(window, 'location', {
+                    configurable: true,
+                    value: {
+                        ...originalLocation,
+                        search: '?renderer=software',
+                    },
+                });
 
-            const onError = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+                const onError = vi.fn();
+                const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
 
-            expect(result).toBe(true);
-            expect(onError).not.toHaveBeenCalled();
+                expect(result).toBe(true);
+                expect(onError).not.toHaveBeenCalled();
+            } finally {
+                Object.defineProperty(window, 'location', {
+                    configurable: true,
+                    value: originalLocation,
+                });
+            }
         });
     });
 

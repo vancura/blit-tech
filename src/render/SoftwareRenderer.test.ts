@@ -9,6 +9,8 @@ import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import { SoftwareRenderer } from './SoftwareRenderer';
 
+// #region Types and helpers
+
 type MockContext = {
     imageSmoothingEnabled: boolean;
     createImageData: (w: number, h: number) => ImageData;
@@ -45,9 +47,13 @@ class MockOffscreenCanvas {
         public width: number,
         public height: number,
     ) {}
-    getContext(): MockContext {
-        return logicalContext;
+    getContext(contextId?: string): MockContext | null {
+        return contextId === '2d' ? logicalContext : null;
     }
+}
+
+function canvasGet2d(ctx: MockContext): (type?: string) => MockContext | null {
+    return (type?: string) => (type === '2d' ? ctx : null);
 }
 
 function getPixel(imageData: ImageData, width: number, x: number, y: number): [number, number, number, number] {
@@ -79,7 +85,11 @@ function hashPixels(imageData: ImageData): number {
     return hash >>> 0;
 }
 
+// #endregion
+
 describe('SoftwareRenderer', () => {
+    // #region Setup
+
     beforeEach(() => {
         vi.clearAllMocks();
         context.lastImageData = null;
@@ -101,12 +111,16 @@ describe('SoftwareRenderer', () => {
         vi.unstubAllGlobals();
     });
 
+    // #endregion
+
+    // #region Basic lifecycle
+
     it('requires palette before beginFrame', async () => {
         const canvas = {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -115,12 +129,16 @@ describe('SoftwareRenderer', () => {
         expect(() => renderer.beginFrame()).toThrow('No palette set yet. Call BT.paletteSet');
     });
 
+    // #endregion
+
+    // #region Rendering behaviors
+
     it('renders primitives with camera offset applied', async () => {
         const canvas = {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -142,7 +160,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -169,7 +187,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -204,7 +222,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -217,6 +235,10 @@ describe('SoftwareRenderer', () => {
         expect(() => renderer.clearEffects()).toThrow("doesn't support fullscreen effects");
     });
 
+    // #endregion
+
+    // #region Capture behavior
+
     it('resolves captureFrame on next endFrame', async () => {
         const toBlob = vi.fn((callback: (blob: Blob | null) => void) =>
             callback(new Blob(['png'], { type: 'image/png' })),
@@ -225,7 +247,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob,
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -249,7 +271,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob,
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -271,7 +293,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: undefined,
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -291,7 +313,7 @@ describe('SoftwareRenderer', () => {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob,
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
@@ -305,12 +327,16 @@ describe('SoftwareRenderer', () => {
         await expect(capture).rejects.toThrow('something went wrong exporting the canvas image');
     });
 
+    // #endregion
+
+    // #region Determinism
+
     it('produces deterministic output for the same command sequence', async () => {
         const canvas = {
             width: 0,
             height: 0,
             style: { width: '', height: '' },
-            getContext: () => context,
+            getContext: canvasGet2d(context),
             toBlob: (_cb: (blob: Blob | null) => void) => {},
         } as unknown as HTMLCanvasElement;
         const renderer = new SoftwareRenderer(canvas, new Vector2i(8, 8));
@@ -337,4 +363,6 @@ describe('SoftwareRenderer', () => {
 
         expect(second).toBe(first);
     });
+
+    // #endregion
 });

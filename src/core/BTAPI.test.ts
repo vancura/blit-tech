@@ -62,6 +62,26 @@ function makeMockCanvas(): HTMLCanvasElement {
     } as unknown as HTMLCanvasElement;
 }
 
+/** Minimal 2D context shape for {@link OffscreenCanvas#getContext} mocks; rejects non-`2d` types. */
+type OffscreenCanvas2DMock = {
+    imageSmoothingEnabled: boolean;
+    createImageData: (w: number, h: number) => ImageData;
+    putImageData: ReturnType<typeof vi.fn>;
+};
+
+function makeOffscreenCanvas2dContext(): OffscreenCanvas2DMock {
+    return {
+        imageSmoothingEnabled: false,
+        createImageData: (w: number, h: number) =>
+            ({
+                data: new Uint8ClampedArray(w * h * 4),
+                width: w,
+                height: h,
+            }) as ImageData,
+        putImageData: vi.fn(),
+    };
+}
+
 // #endregion
 
 describe('BTAPI', () => {
@@ -325,21 +345,8 @@ describe('BTAPI', () => {
                         public width: number,
                         public height: number,
                     ) {}
-                    getContext(): {
-                        imageSmoothingEnabled: boolean;
-                        createImageData: (w: number, h: number) => ImageData;
-                        putImageData: ReturnType<typeof vi.fn>;
-                    } {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                        };
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
                     }
                 },
             );
@@ -393,21 +400,8 @@ describe('BTAPI', () => {
                         public width: number,
                         public height: number,
                     ) {}
-                    getContext(): {
-                        imageSmoothingEnabled: boolean;
-                        createImageData: (w: number, h: number) => ImageData;
-                        putImageData: ReturnType<typeof vi.fn>;
-                    } {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                        };
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
                     }
                 },
             );
@@ -667,21 +661,8 @@ describe('BTAPI', () => {
                         public width: number,
                         public height: number,
                     ) {}
-                    getContext(): {
-                        imageSmoothingEnabled: boolean;
-                        createImageData: (w: number, h: number) => ImageData;
-                        putImageData: ReturnType<typeof vi.fn>;
-                    } {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                        };
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
                     }
                 },
             );
