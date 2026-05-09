@@ -1,13 +1,15 @@
 /**
  * Unit tests for {@link SoftwareTicker}.
  *
- * Verifies scroll state, banner dimensions, camera save/restore, and text
- * tiling — all without running the full BTAPI engine.
+ * Verifies static banner rendering, camera save/restore, click-to-dismiss
+ * behavior across pointer slots, and no-op behavior after dismissal.
+ * Does not run the full BTAPI engine.
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BitmapFont } from '../assets/BitmapFont';
+import type { PointerInput } from '../input/PointerInput';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { IRenderer } from './IRenderer';
@@ -44,6 +46,21 @@ function makeMockFont(): BitmapFont {
     return {} as unknown as BitmapFont;
 }
 
+/**
+ * Builds a minimal PointerInput stand-in.
+ *
+ * @param pressedSlot - Slot index that has a button-A press this frame, or -1 for no press.
+ * @param pressY - Y coordinate of the press (display pixels).
+ */
+function makeMockPointer(pressedSlot: number, pressY: number): PointerInput {
+    return {
+        isButtonPressed: vi.fn().mockImplementation((button: number, slot: number) => {
+            return button === 20 && slot === pressedSlot;
+        }),
+        getPos: vi.fn().mockReturnValue(new Vector2i(100, pressY)),
+    } as unknown as PointerInput;
+}
+
 // #endregion
 
 describe('SoftwareTicker', () => {
@@ -55,10 +72,10 @@ describe('SoftwareTicker', () => {
         font = makeMockFont();
     });
 
-    // #region Constructor
+    // #region Construction
 
     describe('constructor', () => {
-        it('embeds the version string in the ticker text', () => {
+        it('embeds the version string in the rendered text', () => {
             const ticker = new SoftwareTicker('1.2.3');
             const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
 
@@ -67,7 +84,7 @@ describe('SoftwareTicker', () => {
             expect(drawBitmapText.mock.calls[0]?.[2]).toContain('1.2.3');
         });
 
-        it('includes SOFTWARE RENDERER prefix in the ticker text', () => {
+        it('includes SOFTWARE RENDERER prefix in the rendered text', () => {
             const ticker = new SoftwareTicker('0.2.0');
             const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
 
@@ -124,13 +141,13 @@ describe('SoftwareTicker', () => {
     // #region Text rendering
 
     describe('text rendering', () => {
-        it('draws at least one text tile per render call', () => {
+        it('draws exactly one text call per render (no tiling)', () => {
             const ticker = new SoftwareTicker('0.2.0');
             const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
 
             ticker.render(renderer, 320, font);
 
-            expect(drawBitmapText).toHaveBeenCalled();
+            expect(drawBitmapText).toHaveBeenCalledOnce();
         });
 
         it('draws text with palette offset 1 (foreground pixel index 1 -> palette index 2)', () => {
@@ -143,54 +160,27 @@ describe('SoftwareTicker', () => {
             expect(paletteOffset).toBe(1);
         });
 
-        it('tiles text to fill a wide display (multiple drawBitmapText calls)', () => {
+        it('centers text within the display width', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
+            const text = 'SOFTWARE RENDERER - blit-tech v0.2.0';
+            const textWidth = text.length * 6;
+            const expectedX = Math.floor((320 - textWidth) / 2);
+
+            ticker.render(renderer, 320, font);
+
+            const pos = drawBitmapText.mock.calls[0]?.[1] as Vector2i | undefined;
+            expect(pos?.x).toBe(expectedX);
+        });
+
+        it('clamps text x to 0 when display is narrower than the text', () => {
             const ticker = new SoftwareTicker('0.2.0');
             const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
 
-            // With a display much wider than the text, multiple tiles are needed.
-            ticker.render(renderer, 9999, font);
+            ticker.render(renderer, 10, font);
 
-            expect(drawBitmapText.mock.calls.length).toBeGreaterThan(1);
-        });
-    });
-
-    // #endregion
-
-    // #region Scroll state
-
-    describe('scroll state', () => {
-        it('advances the scroll position each render call', () => {
-            const ticker = new SoftwareTicker('0.2.0');
-            const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
-
-            ticker.render(renderer, 320, font);
-            const xAfterFirstFrame = (drawBitmapText.mock.calls[0]?.[1] as Vector2i | undefined)?.x ?? 0;
-
-            drawBitmapText.mockClear();
-            ticker.render(renderer, 320, font);
-            const xAfterSecondFrame = (drawBitmapText.mock.calls[0]?.[1] as Vector2i | undefined)?.x ?? 0;
-
-            // Ticker scrolls left (x decreases by 1 each frame).
-            expect(xAfterSecondFrame).toBe(xAfterFirstFrame - 1);
-        });
-
-        it('wraps scroll back to within text-width bounds after many frames', () => {
-            const ticker = new SoftwareTicker('X');
-            const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
-
-            // Drive many frames to force multiple wraps.
-            for (let i = 0; i < 5000; i++) {
-                ticker.render(renderer, 320, font);
-            }
-
-            // Inspect only the first tile of a fresh frame so we read scrollX directly.
-            drawBitmapText.mockClear();
-            ticker.render(renderer, 320, font);
-
-            const firstX = (drawBitmapText.mock.calls[0]?.[1] as Vector2i | undefined)?.x ?? 0;
-            const textWidth = 'SOFTWARE RENDERER - blit-tech vX  '.length * 6;
-            expect(firstX).toBeGreaterThan(-textWidth);
-            expect(firstX).toBeLessThanOrEqual(0);
+            const pos = drawBitmapText.mock.calls[0]?.[1] as Vector2i | undefined;
+            expect(pos?.x).toBe(0);
         });
     });
 
@@ -199,7 +189,7 @@ describe('SoftwareTicker', () => {
     // #region Camera save/restore
 
     describe('camera save/restore', () => {
-        it('saves camera, resets it, then restores after render', () => {
+        it('saves the camera, resets it, then restores it after drawing', () => {
             const savedOffset = new Vector2i(50, 30);
             vi.spyOn(renderer, 'getCameraOffset').mockReturnValue(savedOffset);
             const resetCamera = vi.spyOn(renderer, 'resetCamera');
@@ -210,6 +200,79 @@ describe('SoftwareTicker', () => {
 
             expect(resetCamera).toHaveBeenCalledOnce();
             expect(setCameraOffset).toHaveBeenCalledWith(savedOffset);
+        });
+    });
+
+    // #endregion
+
+    // #region Dismiss on click/tap
+
+    describe('dismiss on click/tap', () => {
+        it('is not dismissed before any render', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            expect(ticker.isDismissed).toBe(false);
+        });
+
+        it('dismisses when primary button pressed within banner area on slot 0 (mouse)', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            const pointer = makeMockPointer(0, 7); // y=7 < TICKER_HEIGHT=15
+
+            ticker.render(renderer, 320, font, pointer);
+
+            expect(ticker.isDismissed).toBe(true);
+        });
+
+        it('dismisses when primary button pressed within banner area on touch slot 1', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            const pointer = makeMockPointer(1, 7);
+
+            ticker.render(renderer, 320, font, pointer);
+
+            expect(ticker.isDismissed).toBe(true);
+        });
+
+        it('does not dismiss when press is below the banner area', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            const pointer = makeMockPointer(0, 50); // y=50 > TICKER_HEIGHT=15
+
+            ticker.render(renderer, 320, font, pointer);
+
+            expect(ticker.isDismissed).toBe(false);
+        });
+
+        it('does not dismiss when no pointer is supplied', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+
+            ticker.render(renderer, 320, font);
+            ticker.render(renderer, 320, font, null);
+
+            expect(ticker.isDismissed).toBe(false);
+        });
+
+        it('skips drawing on the dismissal frame (returns before drawRectFill)', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+            const drawRectFill = vi.spyOn(renderer, 'drawRectFill');
+            const pointer = makeMockPointer(0, 7);
+
+            ticker.render(renderer, 320, font, pointer);
+
+            expect(drawRectFill).not.toHaveBeenCalled();
+        });
+
+        it('does not render at all after being dismissed', () => {
+            const ticker = new SoftwareTicker('0.2.0');
+
+            // Dismiss via a click.
+            ticker.render(renderer, 320, font, makeMockPointer(0, 7));
+            expect(ticker.isDismissed).toBe(true);
+
+            // Subsequent renders should be no-ops.
+            const drawRectFill = vi.spyOn(renderer, 'drawRectFill');
+            const drawBitmapText = vi.spyOn(renderer, 'drawBitmapText');
+            ticker.render(renderer, 320, font);
+
+            expect(drawRectFill).not.toHaveBeenCalled();
+            expect(drawBitmapText).not.toHaveBeenCalled();
         });
     });
 

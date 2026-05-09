@@ -261,7 +261,16 @@ export class BTAPI {
 
                     // Software ticker renders on top of the demo, after user draw calls.
                     if (this.ticker && this.systemFont) {
-                        this.ticker.render(this.renderer, this.hwSettings?.displaySize.x ?? 0, this.systemFont);
+                        this.ticker.render(
+                            this.renderer,
+                            this.hwSettings?.displaySize.x ?? 0,
+                            this.systemFont,
+                            this.pointer,
+                        );
+
+                        if (this.ticker.isDismissed) {
+                            this.ticker = null;
+                        }
                     }
 
                     this.renderer.endFrame();
