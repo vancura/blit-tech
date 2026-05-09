@@ -248,13 +248,15 @@ describe('named color registry', () => {
         // cspell:ignore mycustomcolor
         Color32.registerColor('  MyCustomColor  ', source);
 
-        const resolved = Color32.resolveNamedColor('mycustomcolor');
-        expect(resolved).toBeDefined();
-        expect(resolved).not.toBe(source);
-        expect(resolved?.equals(source)).toBe(true);
-        expect(Object.isFrozen(resolved)).toBe(true);
-
-        Color32.unregisterColor('mycustomcolor');
+        try {
+            const resolved = Color32.resolveNamedColor('mycustomcolor');
+            expect(resolved).toBeDefined();
+            expect(resolved).not.toBe(source);
+            expect(resolved?.equals(source)).toBe(true);
+            expect(Object.isFrozen(resolved)).toBe(true);
+        } finally {
+            Color32.unregisterColor('mycustomcolor');
+        }
     });
 
     it('registerColor throws on duplicates (including built-ins)', () => {
@@ -270,15 +272,17 @@ describe('named color registry', () => {
     it('updateColor replaces existing entries with frozen singleton', () => {
         Color32.registerColor('updatablecolor', new Color32(10, 20, 30, 40));
 
-        const updatedSource = new Color32(200, 201, 202, 203);
-        Color32.updateColor('  UpdatableColor  ', updatedSource);
+        try {
+            const updatedSource = new Color32(200, 201, 202, 203);
+            Color32.updateColor('  UpdatableColor  ', updatedSource);
 
-        const resolved = Color32.resolveNamedColor('updatablecolor');
-        expect(resolved?.equals(updatedSource)).toBe(true);
-        expect(resolved).not.toBe(updatedSource);
-        expect(Object.isFrozen(resolved)).toBe(true);
-
-        Color32.unregisterColor('updatablecolor');
+            const resolved = Color32.resolveNamedColor('updatablecolor');
+            expect(resolved?.equals(updatedSource)).toBe(true);
+            expect(resolved).not.toBe(updatedSource);
+            expect(Object.isFrozen(resolved)).toBe(true);
+        } finally {
+            Color32.unregisterColor('updatablecolor');
+        }
     });
 
     it('updateColor throws when entry is missing', () => {
@@ -313,10 +317,16 @@ describe('named color registry', () => {
     it('unregisterColor removes entries', () => {
         // cspell:ignore deleteme
         Color32.registerColor('deleteme', new Color32(8, 9, 10, 255));
-        expect(Color32.resolveNamedColor('deleteme')).toBeDefined();
 
-        Color32.unregisterColor('deleteme');
-        expect(Color32.resolveNamedColor('deleteme')).toBeUndefined();
+        try {
+            expect(Color32.resolveNamedColor('deleteme')).toBeDefined();
+            Color32.unregisterColor('deleteme');
+            expect(Color32.resolveNamedColor('deleteme')).toBeUndefined();
+        } finally {
+            if (Color32.resolveNamedColor('deleteme') !== undefined) {
+                Color32.unregisterColor('deleteme');
+            }
+        }
     });
 
     it('unregisterColor throws when entry is missing', () => {
