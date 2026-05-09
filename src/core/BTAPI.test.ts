@@ -62,6 +62,30 @@ function makeMockCanvas(): HTMLCanvasElement {
     } as unknown as HTMLCanvasElement;
 }
 
+function makeMock2DCanvas(): HTMLCanvasElement {
+    return {
+        ...makeMockCanvas(),
+        getContext: (type: string) => {
+            if (type === '2d') {
+                return {
+                    imageSmoothingEnabled: false,
+                    createImageData: (w: number, h: number) =>
+                        ({
+                            data: new Uint8ClampedArray(w * h * 4),
+                            width: w,
+                            height: h,
+                        }) as ImageData,
+                    putImageData: vi.fn(),
+                    clearRect: vi.fn(),
+                    drawImage: vi.fn(),
+                };
+            }
+            return null;
+        },
+        toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
+    } as unknown as HTMLCanvasElement;
+}
+
 /** Minimal 2D context shape for {@link OffscreenCanvas#getContext} mocks; rejects non-`2d` types. */
 type OffscreenCanvas2DMock = {
     imageSmoothingEnabled: boolean;
@@ -361,27 +385,7 @@ describe('BTAPI', () => {
                 update: vi.fn(),
                 render: vi.fn(),
             };
-            const canvas = {
-                ...makeMockCanvas(),
-                getContext: (type: string) => {
-                    if (type === '2d') {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                            clearRect: vi.fn(),
-                            drawImage: vi.fn(),
-                        };
-                    }
-                    return null;
-                },
-                toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
-            } as unknown as HTMLCanvasElement;
+            const canvas = makeMock2DCanvas();
 
             const result = await BTAPI.instance.init(demo, canvas);
 
@@ -419,27 +423,7 @@ describe('BTAPI', () => {
                 render: vi.fn(),
             };
 
-            const canvas = {
-                ...makeMockCanvas(),
-                getContext: (type: string) => {
-                    if (type === '2d') {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                            clearRect: vi.fn(),
-                            drawImage: vi.fn(),
-                        };
-                    }
-                    return null;
-                },
-                toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
-            } as unknown as HTMLCanvasElement;
+            const canvas = makeMock2DCanvas();
 
             const result = await BTAPI.instance.init(demo, canvas);
 
@@ -680,27 +664,7 @@ describe('BTAPI', () => {
                 render: vi.fn(),
             };
 
-            const canvas = {
-                ...makeMockCanvas(),
-                getContext: (type: string) => {
-                    if (type === '2d') {
-                        return {
-                            imageSmoothingEnabled: false,
-                            createImageData: (w: number, h: number) =>
-                                ({
-                                    data: new Uint8ClampedArray(w * h * 4),
-                                    width: w,
-                                    height: h,
-                                }) as ImageData,
-                            putImageData: vi.fn(),
-                            clearRect: vi.fn(),
-                            drawImage: vi.fn(),
-                        };
-                    }
-                    return null;
-                },
-                toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['x'], { type: 'image/png' })),
-            } as unknown as HTMLCanvasElement;
+            const canvas = makeMock2DCanvas();
 
             await BTAPI.instance.init(demo, canvas);
             BTAPI.instance.setPalette(new Palette(16));
