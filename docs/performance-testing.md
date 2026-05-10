@@ -179,7 +179,7 @@ On PRs targeting `main` with the `perf` label, CI:
 4. downloads the latest successful `main` benchmark baseline artifact
 5. compares PR results against the `main` baseline
 6. posts or updates a PR comment with a benchmark comparison table
-7. fails the job if any benchmark is more than **10% slower**
+7. fails the job if any benchmark is more than **25% slower**
 
 PRs without the `perf` label skip the benchmark job to reduce CI cost.
 
@@ -197,7 +197,7 @@ The comparison comment includes:
 
 The benchmark CI job fails if:
 
-- any benchmark regresses by more than 10%
+- any benchmark regresses by more than 25%
 - a previously existing benchmark disappears from the PR run
 
 ---
