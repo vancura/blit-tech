@@ -125,7 +125,7 @@ BT.paletteFadeRange(start, end, targetPalette, durationMs);
 BT.paletteFadeRange(start, end, targetPalette, durationMs, 'ease-out');
 
 // Flash all non-zero slots to a color then restore (lightning, damage)
-BT.paletteFlash(Color32.white(), 200); // 200 ms
+BT.paletteFlash(Color32.white, 200); // 200 ms
 
 // Instant swap of two slots
 BT.paletteSwap(indexA, indexB);

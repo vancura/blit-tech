@@ -184,10 +184,10 @@ r.max; // Vector2i getter (bottom-right)
 ```ts
 const c = new Color32(r, g, b, a);
 
-// Cached color constants
-Color32.white()       Color32.black()       Color32.transparent()
-Color32.red()         Color32.green()       Color32.blue()
-Color32.yellow()      Color32.cyan()        Color32.magenta()
+// Cached color constants (static getters; frozen singletons)
+Color32.white       Color32.black       Color32.transparent
+Color32.red         Color32.green       Color32.blue
+Color32.yellow      Color32.cyan        Color32.magenta
 Color32.gray(value)   // grayscale, value 0–255
 
 // Hex parsing

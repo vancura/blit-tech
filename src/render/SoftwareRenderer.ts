@@ -743,32 +743,32 @@ export class SoftwareRenderer implements IRenderer {
 
     /**
      * Resolves a palette index to a `Color32` for sprite drawing.
-     * Returns `Color32.black()` for out-of-range indices instead of skipping.
+     * Returns `Color32.black` for out-of-range indices instead of skipping.
      *
      * @param paletteIndex - Palette entry index to look up.
      * @returns Resolved color.
      */
     private resolveSpriteColor(paletteIndex: number): Color32 {
         if (!this.palette || paletteIndex >= this.palette.size) {
-            return Color32.black();
+            return Color32.black;
         }
         return this.palette.get(paletteIndex);
     }
 
     /**
-     * Returns the clear color from the palette. Falls back to `Color32.black()`
+     * Returns the clear color from the palette. Falls back to `Color32.black`
      * when no palette is set or the index is out of range.
      *
      * @returns Clear color for the current frame.
      */
     private resolveClearColor(): Color32 {
         if (!this.palette) {
-            return Color32.black();
+            return Color32.black;
         }
         try {
             return this.palette.get(this.clearPaletteIndex);
         } catch {
-            return Color32.black();
+            return Color32.black;
         }
     }
 

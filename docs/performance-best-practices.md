@@ -51,8 +51,8 @@ patterns for managing allocations:
 ```ts
 // Clear and readable
 BT.drawPixel(new Vector2i(x, y), color);
-BT.drawRect(new Rect2i(10, 10, 50, 50), Color32.white());
-BT.printFont(font, new Vector2i(10, 20), 'Hello', Color32.white());
+BT.drawRect(new Rect2i(10, 10, 50, 50), Color32.white);
+BT.printFont(font, new Vector2i(10, 20), 'Hello', Color32.white);
 ```
 
 **Pros:**
@@ -156,7 +156,7 @@ Less optimal:
 
 ```ts
 // Both have the same performance
-BT.drawSprite(sheet, sprite, pos, Color32.white());
+BT.drawSprite(sheet, sprite, pos, Color32.white);
 BT.drawSprite(sheet, sprite, pos, new Color32(255, 100, 100, 200));
 ```
 

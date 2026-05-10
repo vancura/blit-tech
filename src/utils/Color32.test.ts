@@ -75,7 +75,7 @@ describe('Color32 constructor', () => {
 
 describe('static color getters', () => {
     it('white() returns (255, 255, 255, 255)', () => {
-        const w = Color32.white();
+        const w = Color32.white;
 
         expect(w.r).toBe(255);
         expect(w.g).toBe(255);
@@ -84,7 +84,7 @@ describe('static color getters', () => {
     });
 
     it('black() returns (0, 0, 0, 255)', () => {
-        const b = Color32.black();
+        const b = Color32.black;
 
         expect(b.r).toBe(0);
         expect(b.g).toBe(0);
@@ -93,7 +93,7 @@ describe('static color getters', () => {
     });
 
     it('transparent() returns (0, 0, 0, 0)', () => {
-        const t = Color32.transparent();
+        const t = Color32.transparent;
 
         expect(t.r).toBe(0);
         expect(t.g).toBe(0);
@@ -102,7 +102,7 @@ describe('static color getters', () => {
     });
 
     it('red() returns (255, 0, 0, 255)', () => {
-        const c = Color32.red();
+        const c = Color32.red;
 
         expect(c.r).toBe(255);
         expect(c.g).toBe(0);
@@ -111,7 +111,7 @@ describe('static color getters', () => {
     });
 
     it('green() returns (0, 255, 0, 255)', () => {
-        const c = Color32.green();
+        const c = Color32.green;
 
         expect(c.r).toBe(0);
         expect(c.g).toBe(255);
@@ -120,7 +120,7 @@ describe('static color getters', () => {
     });
 
     it('blue() returns (0, 0, 255, 255)', () => {
-        const c = Color32.blue();
+        const c = Color32.blue;
 
         expect(c.r).toBe(0);
         expect(c.g).toBe(0);
@@ -129,7 +129,7 @@ describe('static color getters', () => {
     });
 
     it('yellow() returns (255, 255, 0, 255)', () => {
-        const c = Color32.yellow();
+        const c = Color32.yellow;
 
         expect(c.r).toBe(255);
         expect(c.g).toBe(255);
@@ -138,7 +138,7 @@ describe('static color getters', () => {
     });
 
     it('cyan() returns (0, 255, 255, 255)', () => {
-        const c = Color32.cyan();
+        const c = Color32.cyan;
 
         expect(c.r).toBe(0);
         expect(c.g).toBe(255);
@@ -147,7 +147,7 @@ describe('static color getters', () => {
     });
 
     it('magenta() returns (255, 0, 255, 255)', () => {
-        const c = Color32.magenta();
+        const c = Color32.magenta;
 
         expect(c.r).toBe(255);
         expect(c.g).toBe(0);
@@ -156,27 +156,27 @@ describe('static color getters', () => {
     });
 
     it('all color singletons are frozen', () => {
-        expect(Object.isFrozen(Color32.white())).toBe(true);
-        expect(Object.isFrozen(Color32.black())).toBe(true);
-        expect(Object.isFrozen(Color32.transparent())).toBe(true);
-        expect(Object.isFrozen(Color32.red())).toBe(true);
-        expect(Object.isFrozen(Color32.green())).toBe(true);
-        expect(Object.isFrozen(Color32.blue())).toBe(true);
-        expect(Object.isFrozen(Color32.yellow())).toBe(true);
-        expect(Object.isFrozen(Color32.cyan())).toBe(true);
-        expect(Object.isFrozen(Color32.magenta())).toBe(true);
+        expect(Object.isFrozen(Color32.white)).toBe(true);
+        expect(Object.isFrozen(Color32.black)).toBe(true);
+        expect(Object.isFrozen(Color32.transparent)).toBe(true);
+        expect(Object.isFrozen(Color32.red)).toBe(true);
+        expect(Object.isFrozen(Color32.green)).toBe(true);
+        expect(Object.isFrozen(Color32.blue)).toBe(true);
+        expect(Object.isFrozen(Color32.yellow)).toBe(true);
+        expect(Object.isFrozen(Color32.cyan)).toBe(true);
+        expect(Object.isFrozen(Color32.magenta)).toBe(true);
     });
 
     it('returns the same instance on repeated calls', () => {
-        expect(Color32.white()).toBe(Color32.white());
-        expect(Color32.black()).toBe(Color32.black());
-        expect(Color32.transparent()).toBe(Color32.transparent());
-        expect(Color32.red()).toBe(Color32.red());
-        expect(Color32.green()).toBe(Color32.green());
-        expect(Color32.blue()).toBe(Color32.blue());
-        expect(Color32.yellow()).toBe(Color32.yellow());
-        expect(Color32.cyan()).toBe(Color32.cyan());
-        expect(Color32.magenta()).toBe(Color32.magenta());
+        expect(Color32.white).toBe(Color32.white);
+        expect(Color32.black).toBe(Color32.black);
+        expect(Color32.transparent).toBe(Color32.transparent);
+        expect(Color32.red).toBe(Color32.red);
+        expect(Color32.green).toBe(Color32.green);
+        expect(Color32.blue).toBe(Color32.blue);
+        expect(Color32.yellow).toBe(Color32.yellow);
+        expect(Color32.cyan).toBe(Color32.cyan);
+        expect(Color32.magenta).toBe(Color32.magenta);
     });
 
     it('gray(128) returns (128, 128, 128, 255)', () => {
@@ -200,14 +200,14 @@ describe('static color getters', () => {
 
 describe('named color registry', () => {
     it('resolves required CSS level 1 names', () => {
-        expect(Color32.resolveNamedColor('black')?.equals(Color32.black())).toBe(true);
-        expect(Color32.resolveNamedColor('white')?.equals(Color32.white())).toBe(true);
-        expect(Color32.resolveNamedColor('red')?.equals(Color32.red())).toBe(true);
-        expect(Color32.resolveNamedColor('green')?.equals(Color32.green())).toBe(true);
-        expect(Color32.resolveNamedColor('blue')?.equals(Color32.blue())).toBe(true);
-        expect(Color32.resolveNamedColor('yellow')?.equals(Color32.yellow())).toBe(true);
-        expect(Color32.resolveNamedColor('cyan')?.equals(Color32.cyan())).toBe(true);
-        expect(Color32.resolveNamedColor('magenta')?.equals(Color32.magenta())).toBe(true);
+        expect(Color32.resolveNamedColor('black')?.equals(Color32.black)).toBe(true);
+        expect(Color32.resolveNamedColor('white')?.equals(Color32.white)).toBe(true);
+        expect(Color32.resolveNamedColor('red')?.equals(Color32.red)).toBe(true);
+        expect(Color32.resolveNamedColor('green')?.equals(Color32.green)).toBe(true);
+        expect(Color32.resolveNamedColor('blue')?.equals(Color32.blue)).toBe(true);
+        expect(Color32.resolveNamedColor('yellow')?.equals(Color32.yellow)).toBe(true);
+        expect(Color32.resolveNamedColor('cyan')?.equals(Color32.cyan)).toBe(true);
+        expect(Color32.resolveNamedColor('magenta')?.equals(Color32.magenta)).toBe(true);
     });
 
     it('resolves gray and grey to the same singleton', () => {
