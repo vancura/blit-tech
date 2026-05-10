@@ -27,7 +27,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`           |
 | How do post-process effects work?             | `docs/post-process-effects.md`                             |
 | What does the CI do on this file?             | `.github/workflows/ci.yml`                                 |
-| What is the benchmark threshold?              | `ci.yml` line 199 (`--threshold 25`), not docs             |
+| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs   |
 | What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`         |
 | Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)           |
 | What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                              |
