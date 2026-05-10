@@ -200,6 +200,19 @@ export class Color32 {
     }
 
     /**
+     * Linearly interpolates between two colors.
+     * Each RGBA channel is interpolated independently. `t` is clamped to [0, 1].
+     *
+     * @param a - Color at t = 0.
+     * @param b - Color at t = 1.
+     * @param t - Interpolation factor (0.0 = `a`, 1.0 = `b`).
+     * @returns New color blended between `a` and `b`.
+     */
+    static lerp(a: Color32, b: Color32, t: number): Color32 {
+        return a.lerp(b, t);
+    }
+
+    /**
      * Registers a named color in the global color registry.
      * Name matching is case-insensitive and trims surrounding whitespace.
      *

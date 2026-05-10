@@ -839,6 +839,58 @@ describe('lerp', () => {
     });
 });
 
+describe('Color32.lerp (static)', () => {
+    it('matches instance lerp for representative inputs', () => {
+        const a = new Color32(12, 34, 56, 78);
+        const b = new Color32(200, 100, 50, 254);
+
+        for (const t of [0, 0.25, 0.5, 0.75, 1, -1, 2]) {
+            expect(Color32.lerp(a, b, t).equals(a.lerp(b, t))).toBe(true);
+        }
+    });
+
+    it('returns a at t=0', () => {
+        const a = new Color32(0, 0, 0, 255);
+        const b = new Color32(255, 255, 255, 255);
+        const result = Color32.lerp(a, b, 0);
+
+        expect(result.r).toBe(0);
+        expect(result.g).toBe(0);
+        expect(result.b).toBe(0);
+        expect(result.a).toBe(255);
+    });
+
+    it('returns b at t=1', () => {
+        const a = new Color32(0, 0, 0, 255);
+        const b = new Color32(255, 255, 255, 255);
+        const result = Color32.lerp(a, b, 1);
+
+        expect(result.r).toBe(255);
+        expect(result.g).toBe(255);
+        expect(result.b).toBe(255);
+        expect(result.a).toBe(255);
+    });
+
+    it('returns midpoint at t=0.5 including alpha', () => {
+        const a = new Color32(0, 0, 0, 0);
+        const b = new Color32(200, 100, 50, 254);
+        const result = Color32.lerp(a, b, 0.5);
+
+        expect(result.r).toBe(100);
+        expect(result.g).toBe(50);
+        expect(result.b).toBe(25);
+        expect(result.a).toBe(127);
+    });
+
+    it('clamps t outside [0, 1]', () => {
+        const a = new Color32(100, 100, 100, 255);
+        const b = new Color32(200, 200, 200, 255);
+
+        expect(Color32.lerp(a, b, -5).r).toBe(100);
+        expect(Color32.lerp(a, b, 10).r).toBe(200);
+    });
+});
+
 describe('lerpInPlace', () => {
     it('modifies self and returns this', () => {
         const a = new Color32(0, 0, 0, 0);

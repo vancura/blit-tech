@@ -199,6 +199,10 @@ Color32.resolveNamedColor('brand');   // → Color32 | undefined
 Color32.updateColor('brand', newColor);
 Color32.unregisterColor('brand');
 
+// Interpolation
+Color32.lerp(a, b, t);       // blend a→b; t clamped [0,1]; RGBA independent; truncates like instance lerp
+c.lerp(other, t);            // same semantics as static helper
+
 // Conversion
 c.toFloat32Array()            // [r/255, g/255, b/255, a/255]
 c.luminance                   // perceived brightness: 0.299r + 0.587g + 0.114b
