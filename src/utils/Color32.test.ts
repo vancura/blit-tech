@@ -74,7 +74,7 @@ describe('Color32 constructor', () => {
 // #region Static Color Getters
 
 describe('static color getters', () => {
-    it('white() returns (255, 255, 255, 255)', () => {
+    it('white returns (255, 255, 255, 255)', () => {
         const w = Color32.white;
 
         expect(w.r).toBe(255);
@@ -83,7 +83,7 @@ describe('static color getters', () => {
         expect(w.a).toBe(255);
     });
 
-    it('black() returns (0, 0, 0, 255)', () => {
+    it('black returns (0, 0, 0, 255)', () => {
         const b = Color32.black;
 
         expect(b.r).toBe(0);
@@ -92,7 +92,7 @@ describe('static color getters', () => {
         expect(b.a).toBe(255);
     });
 
-    it('transparent() returns (0, 0, 0, 0)', () => {
+    it('transparent returns (0, 0, 0, 0)', () => {
         const t = Color32.transparent;
 
         expect(t.r).toBe(0);
@@ -101,7 +101,7 @@ describe('static color getters', () => {
         expect(t.a).toBe(0);
     });
 
-    it('red() returns (255, 0, 0, 255)', () => {
+    it('red returns (255, 0, 0, 255)', () => {
         const c = Color32.red;
 
         expect(c.r).toBe(255);
@@ -110,7 +110,7 @@ describe('static color getters', () => {
         expect(c.a).toBe(255);
     });
 
-    it('green() returns (0, 255, 0, 255)', () => {
+    it('green returns (0, 255, 0, 255)', () => {
         const c = Color32.green;
 
         expect(c.r).toBe(0);
@@ -119,7 +119,7 @@ describe('static color getters', () => {
         expect(c.a).toBe(255);
     });
 
-    it('blue() returns (0, 0, 255, 255)', () => {
+    it('blue returns (0, 0, 255, 255)', () => {
         const c = Color32.blue;
 
         expect(c.r).toBe(0);
@@ -128,7 +128,7 @@ describe('static color getters', () => {
         expect(c.a).toBe(255);
     });
 
-    it('yellow() returns (255, 255, 0, 255)', () => {
+    it('yellow returns (255, 255, 0, 255)', () => {
         const c = Color32.yellow;
 
         expect(c.r).toBe(255);
@@ -137,7 +137,7 @@ describe('static color getters', () => {
         expect(c.a).toBe(255);
     });
 
-    it('cyan() returns (0, 255, 255, 255)', () => {
+    it('cyan returns (0, 255, 255, 255)', () => {
         const c = Color32.cyan;
 
         expect(c.r).toBe(0);
@@ -146,7 +146,7 @@ describe('static color getters', () => {
         expect(c.a).toBe(255);
     });
 
-    it('magenta() returns (255, 0, 255, 255)', () => {
+    it('magenta returns (255, 0, 255, 255)', () => {
         const c = Color32.magenta;
 
         expect(c.r).toBe(255);
@@ -167,7 +167,7 @@ describe('static color getters', () => {
         expect(Object.isFrozen(Color32.magenta)).toBe(true);
     });
 
-    it('returns the same instance on repeated calls', () => {
+    it('each preset getter yields the same singleton on repeated reads', () => {
         expect(Color32.white).toBe(Color32.white);
         expect(Color32.black).toBe(Color32.black);
         expect(Color32.transparent).toBe(Color32.transparent);
