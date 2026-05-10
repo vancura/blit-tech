@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "biomejs.biome-vscode",
+    "editorconfig.editorconfig",
+    "ms-playwright.playwright",
+    "vitest.explorer"
+  ]
+}

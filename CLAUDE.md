@@ -15,6 +15,23 @@ fantasy-console-style API.
 - **Commits:** Conventional Commits + DCO sign-off + commitlint
 - **Package manager:** pnpm
 
+## Where to Find Information
+
+Before writing new code, reviewing existing code, or preflighting, check here first:
+
+| Question                                      | Where to look                                              |
+| --------------------------------------------- | ---------------------------------------------------------- |
+| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`              |
+| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file             |
+| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings) |
+| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`           |
+| How do post-process effects work?             | `docs/post-process-effects.md`                             |
+| What does the CI do on this file?             | `.github/workflows/ci.yml`                                 |
+| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs   |
+| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`         |
+| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)           |
+| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                              |
+
 ## Architecture
 
 All engine functionality is accessed through the static `BT` namespace. Demos implement the `IBlitTechDemo` interface
@@ -55,6 +72,7 @@ src/
   input/
     PointerInput.ts        # DOM-backed pointer / mouse / touch / pen tracker (4 slots)
     KeyboardInput.ts       # KeyboardEvent.code state, edges, tick repeat, beforeinput text
+    GamepadInput.ts        # Polling-based gamepad input tracker (4 players, axes, buttons, dead zone)
     defaultKeyboardMap.ts  # Default face-button key tables; clone helpers for BT.inputMapReset
   utils/
     Bootstrap.ts           # Demo bootstrap utilities
@@ -103,6 +121,10 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 4. **Use BT namespace** - never access `BTAPI` directly from demo code
 5. **No `any` types** - use `unknown` or proper types
 6. **Type-only imports** - `import type { ... }` for types
+7. **Documentation is part of every feature** - after any public API change update the relevant `docs/api-*.md`; after
+   any behavior change update the affected `docs/` guide; after any architecture change update the `CLAUDE.md`
+   architecture map. Update `README.md` only when the Quick Start, features list, prerequisites, or browser
+   compatibility is affected. Never wait to be asked.
 
 ## Input Conventions
 
@@ -134,6 +156,8 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 - Always arrow parens
 - Named exports only (no default exports)
 - JSDoc required for public APIs
+- When implementing changes, always update JSDoc and inline comments alongside the code. Never leave stale comments that
+  describe old behavior.
 - Use `// #region` / `// #endregion` for sections in files >100 lines
 
 ## Commands
@@ -195,6 +219,15 @@ sprites.
 **WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See
 [docs/testing.md](docs/testing.md) for full details.
 
+### Known Testing Quirks
+
+- **DOM environment directive**: Add `// @vitest-environment happy-dom` at the top of any test file that touches DOM
+  APIs. Without it, the test runs in Node and DOM APIs are undefined.
+- **happy-dom Image.onload does not fire for data URIs**: AssetLoader image-loading tests are marked `.todo` for this
+  reason. Do not attempt to unit-test asset loading via data URIs in happy-dom.
+- **Vector2i `-0` vs `0`**: JavaScript can produce `-0` when negating vectors. Use `result.x + 0` to coerce in
+  assertions where sign is meaningless.
+
 ## Performance Testing
 
 Use the benchmark system when the user asks about performance, throughput, regressions, hot paths, or CI benchmark
@@ -228,3 +261,16 @@ Claude Code reusable skill:
 - AI-assisted commits include `Co-Authored-By: Claude <noreply@anthropic.com>` trailer
 - Types: feat, fix, refactor, docs, test, chore, perf, ci
 - Scopes: renderer, camera, assets, api, utils, examples, ci, docs
+
+## Working with Claude
+
+- **Planning vs implementation sessions**: During planning work (reviewing Linear tickets, discussing architecture), do
+  not modify source files. Only update Linear. Wait for a separate implementation session before touching code.
+- **User-facing strings**: Follow the two-tier voice guide for all throws, error messages, and canvas-visible text. See
+  [docs/voice.md](docs/voice.md) before writing any throw or user-facing string.
+- **Documentation is part of every feature**: After completing any feature or fix, always update documentation without
+  being asked. The rule: if you changed a public API, update the relevant `docs/api-*.md` file; if you changed engine
+  behavior, update the affected `docs/` guide; if you changed architecture or added a new subsystem file, update the
+  `CLAUDE.md` architecture map and the `## Where to Find Information` table; update `README.md` only if the change
+  affects the Quick Start, prerequisites, features list, or browser compatibility. Never treat documentation as a
+  separate step the user must request.

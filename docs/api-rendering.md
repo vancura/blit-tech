@@ -1,0 +1,175 @@
+# API: Rendering
+
+Primitives, sprites, text, post-process effects, and frame capture.
+
+All draw calls require a palette to be active (`BT.paletteSet(palette)` before the first `BT.drawSprite`,
+`BT.drawRectFill`, etc.). All coordinates are integer pixels — use `Vector2i` and `Rect2i`, never floats.
+
+---
+
+## Primitives
+
+```ts
+BT.clear(paletteIndex); // fill entire display
+BT.clearRect(rect, paletteIndex); // fill rectangular region
+
+BT.drawPixel(pos, paletteIndex); // Vector2i overload
+BT.drawPixel(x, y, paletteIndex); // numeric overload
+
+BT.drawLine(p0, p1, paletteIndex); // pixel-perfect, no antialiasing
+BT.drawRect(rect, paletteIndex); // outline only
+BT.drawRectFill(rect, paletteIndex); // filled
+```
+
+All primitives write palette indices, not RGBA — the active palette resolves colors at frame end.
+
+---
+
+## Sprites
+
+### Drawing
+
+```ts
+BT.drawSprite(sheet, srcRect, destPos);
+BT.drawSprite(sheet, srcRect, destPos, paletteOffset);
+```
+
+- `sheet` — an indexed `SpriteSheet` (must have been prepared via `loadIndexed` or `indexize`).
+- `srcRect` — source region within the sheet in pixels.
+- `destPos` — top-left destination in display coordinates.
+- `paletteOffset` — shift added to every stored pixel index before palette lookup (default `0`).
+
+**Palette offset semantics:** Stored sprite indices start at `1` (index `0` is always transparent and discarded). With
+`paletteOffset = N`, a pixel stored at index `1` renders as `palette[1 + N]`, a pixel at index `2` renders as
+`palette[2 + N]`, and so on. Use this for palette-swap effects such as team colors or damage flashes. Out-of-range
+results render as opaque black; negative values wrap to a large unsigned integer and also produce black.
+
+```ts
+BT.drawSprite(sheet, srcRect, new Vector2i(10, 10)); // normal
+BT.drawSprite(sheet, srcRect, new Vector2i(10, 10), 16); // blue-team shift
+```
+
+Draws are auto-batched by texture. Group draws from the same sheet to minimize GPU state changes.
+
+### Sprite transform constants
+
+The following flags are defined for future use. They are not yet accepted by `BT.drawSprite()`:
+
+```ts
+BT.FLIP_H; // horizontal flip
+BT.FLIP_V; // vertical flip
+BT.ROT_90_CW; // rotate 90° clockwise
+BT.ROT_180_CW; // rotate 180°
+BT.ROT_270_CW; // rotate 270° clockwise
+```
+
+### Refreshing after a palette-layout swap
+
+```ts
+BT.paletteSet(newLayoutPalette);
+BT.spritesRefresh(); // re-maps all tracked sheets to the new slot positions
+```
+
+Call `spritesRefresh()` only after a **palette-layout swap** — when the same colors have moved to different slot
+indices. Do NOT call it after a palette-value swap (when you changed what color a slot holds). In the value-swap case
+the fragment shader picks up the new color automatically; calling `spritesRefresh()` is wasteful and will fail
+reindexing if original RGBA values are gone.
+
+---
+
+## Text
+
+### System font
+
+Built-in 6×14 monospace font covering printable ASCII (characters 32–126).
+
+```ts
+BT.systemPrint(pos, paletteIndex, text); // draw text at pos
+BT.systemPrintMeasure(text); // → Vector2i (pixel width × height)
+```
+
+### Bitmap fonts
+
+Variable-width fonts from `.btfont` files. The font's sprite sheet must be indexized before use.
+
+```ts
+const font = await BitmapFont.load('fonts/MyFont.btfont');
+BT.printFont(font, pos, text);
+BT.printFont(font, pos, text, paletteOffset); // palette-swap variant
+```
+
+See [Bitmap Fonts Guide](bitmap-fonts.md) for the `.btfont` format spec and BMFont conversion.
+
+---
+
+## Post-Process Effects
+
+Two-tier fullscreen pipeline running between scene render and swap-chain present:
+
+1. **Pixel tier** — operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
+   palette-native (chunky glitch, mosaic).
+2. **Palette resolve + upscale** — `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT
+   and upscales to `canvasDisplaySize`.
+3. **Display tier** — operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
+   `canvasDisplaySize` in hardware settings.
+
+Both chains add zero cost when empty. Post-process is unsupported by the Canvas 2D software backend — calling
+`effectAdd` in software mode throws a clear error.
+
+```ts
+// Add effect — routed to pixel or display chain by Effect.tier automatically
+BT.effectAdd(new BarrelDistortion());
+BT.effectAdd(new Scanlines());
+BT.effectAdd(new Bloom());
+BT.effectAdd(new PixelGlitch()); // pixel-tier effect
+
+// Remove or clear
+BT.effectRemove(effect); // remove one; no-op if not found
+BT.effectClear(); // remove all from both chains
+
+// One-line presets (return arrays of Effect)
+for (const fx of BT.preset.crtPipBoy()) BT.effectAdd(fx);
+for (const fx of BT.preset.amber()) BT.effectAdd(fx);
+for (const fx of BT.preset.green()) BT.effectAdd(fx);
+```
+
+**Built-in effects:**
+
+| Tier    | Classes                                                                                                                                |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Pixel   | `PixelGlitch`, `PixelMosaic`                                                                                                           |
+| Display | `BarrelDistortion`, `Scanlines`, `RGBMask`, `Vignette`, `ChromaticAberration`, `Flicker`, `RollLine`, `Interference`, `Noise`, `Bloom` |
+
+All effect classes are exported from `'blit-tech'`. Each instance owns its own GPU resources and may be mutated each
+frame from demo code.
+
+See [Post-Process Effects Guide](post-process-effects.md) for parameter reference, the `Effect` interface, `EffectTier`,
+the `FullscreenEffect` base class, and how to write a custom effect.
+
+---
+
+## Frame Capture
+
+Capture the current rendered frame as a PNG.
+
+```ts
+// Resolves after the next render pass completes
+const blob = await BT.captureFrame();
+const url = URL.createObjectURL(blob);
+
+// Convenience: capture and trigger a browser download
+await BT.downloadFrame();
+await BT.downloadFrame('screenshot-001.png'); // custom filename
+```
+
+---
+
+## See Also
+
+| Guide                                           | What it covers                             |
+| ----------------------------------------------- | ------------------------------------------ |
+| [API: Core](api-core.md)                        | bootstrap, init, camera, core types        |
+| [API: Palette](api-palette.md)                  | palette setup, presets, effects            |
+| [API: Assets](api-assets.md)                    | sprite sheets, bitmap fonts, asset loading |
+| [Post-Process Effects](post-process-effects.md) | effect chain, custom effects               |
+| [Bitmap Fonts](bitmap-fonts.md)                 | .btfont format, BMFont conversion          |
