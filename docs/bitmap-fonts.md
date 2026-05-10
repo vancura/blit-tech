@@ -42,7 +42,7 @@ import { BitmapFont, BT, Color32, Vector2i } from 'blit-tech';
 const font = await BitmapFont.load('fonts/MyFont.btfont');
 
 // Render text
-BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white());
+BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white);
 
 // Measure text width
 const width = font.measureText('Hello');
@@ -278,7 +278,7 @@ const lines = ['Line 1', 'Line 2', 'Line 3'];
 let y = 10;
 
 for (const line of lines) {
-  BT.printFont(font, new Vector2i(10, y), line, Color32.white());
+  BT.printFont(font, new Vector2i(10, y), line, Color32.white);
   y += font.lineHeight;
 }
 ```
@@ -291,7 +291,7 @@ const textWidth = font.measureText(text);
 const screenWidth = BT.displaySize().x;
 const x = Math.floor((screenWidth - textWidth) / 2);
 
-BT.printFont(font, new Vector2i(x, 10), text, Color32.white());
+BT.printFont(font, new Vector2i(x, 10), text, Color32.white);
 ```
 
 ### Rainbow Text Effect

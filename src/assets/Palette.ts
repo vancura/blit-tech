@@ -122,7 +122,7 @@ function createPreset(hexColors: readonly string[], size: number): Palette {
  * Mutable palette of indexed {@link Color32} entries.
  *
  * The palette is the central color authority for all rendering:
- * - **Index 0 is always transparent.** It is initialized with `Color32.transparent()`
+ * - **Index 0 is always transparent.** It is initialized with `Color32.transparent`
  *   and cannot be set to an opaque color. The primitive and sprite shaders discard
  *   any fragment whose palette index resolves to alpha 0.
  * - **Variable sizes:** valid sizes are `2, 4, 16, 32, 64, 128, 256`. The active size
@@ -164,11 +164,11 @@ export class Palette {
 
         this.size = size;
         this.colors = new Array<Color32>(size);
-        this.colors[0] = Color32.transparent();
+        this.colors[0] = Color32.transparent;
 
         for (let i = 1; i < size; i++) {
             // eslint-disable-next-line security/detect-object-injection -- Constructor initializes all indices from 1 to size - 1
-            this.colors[i] = Color32.black().clone();
+            this.colors[i] = Color32.black.clone();
         }
     }
 
@@ -358,7 +358,7 @@ export class Palette {
                 throw new Error('Slot 0 is always see-through (transparent). Put solid colors in slot 1 or higher.');
             }
 
-            this.colors[0] = Color32.transparent();
+            this.colors[0] = Color32.transparent;
 
             return;
         }
@@ -479,7 +479,7 @@ export class Palette {
     public copyFrom(other: Palette): void {
         const copyCount = Math.min(this.size, other.size);
 
-        this.colors[0] = Color32.transparent();
+        this.colors[0] = Color32.transparent;
 
         for (let i = 1; i < copyCount; i++) {
             // eslint-disable-next-line security/detect-object-injection -- Loop bounds restrict i to valid initialized source and destination indices
@@ -488,7 +488,7 @@ export class Palette {
 
         for (let i = copyCount; i < this.size; i++) {
             // eslint-disable-next-line security/detect-object-injection -- Loop bounds restrict i to valid destination indices
-            this.colors[i] = Color32.transparent().clone();
+            this.colors[i] = Color32.transparent.clone();
         }
 
         this.namedIndices.clear();

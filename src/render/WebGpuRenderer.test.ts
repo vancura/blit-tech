@@ -37,14 +37,14 @@ import { WebGpuRenderer } from './WebGpuRenderer';
 function createTestPalette(): Palette {
     const palette = new Palette(16);
 
-    palette.set(1, Color32.black());
-    palette.set(2, Color32.red());
-    palette.set(3, Color32.green());
-    palette.set(4, Color32.blue());
-    palette.set(5, Color32.yellow());
-    palette.set(6, Color32.cyan());
-    palette.set(7, Color32.magenta());
-    palette.set(8, Color32.white());
+    palette.set(1, Color32.black);
+    palette.set(2, Color32.red);
+    palette.set(3, Color32.green);
+    palette.set(4, Color32.blue);
+    palette.set(5, Color32.yellow);
+    palette.set(6, Color32.cyan);
+    palette.set(7, Color32.magenta);
+    palette.set(8, Color32.white);
 
     return palette;
 }

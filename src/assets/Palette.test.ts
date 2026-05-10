@@ -32,19 +32,19 @@ describe('Palette', () => {
     it('keeps index 0 transparent and rejects opaque writes there', () => {
         const palette = new Palette(16);
 
-        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
-        expect(() => palette.set(0, Color32.red())).toThrow(
+        expect(palette.get(0).equals(Color32.transparent)).toBe(true);
+        expect(() => palette.set(0, Color32.red)).toThrow(
             'Slot 0 is always see-through (transparent). Put solid colors in slot 1 or higher.',
         );
 
         palette.set(0, new Color32(12, 34, 56, 0));
 
-        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
+        expect(palette.get(0).equals(Color32.transparent)).toBe(true);
 
         // get() returns a clone, so mutating the result must not change the stored entry.
         const copy = palette.get(0);
         copy.r = 99;
-        expect(palette.get(0).equals(Color32.transparent())).toBe(true);
+        expect(palette.get(0).equals(Color32.transparent)).toBe(true);
     });
 
     it('sets and gets entries within range and throws out of range', () => {
@@ -93,7 +93,7 @@ describe('Palette', () => {
         palette.set(7, color);
 
         expect(palette.findColor(color)).toBe(7);
-        expect(palette.findColor(Color32.blue())).toBe(-1);
+        expect(palette.findColor(Color32.blue)).toBe(-1);
     });
 
     it('clones palettes without sharing mutable entries', () => {
@@ -138,7 +138,7 @@ describe('Palette', () => {
         expect(restored.size).toBe(16);
         expect(restored.get(1).equals(new Color32(11, 22, 33, 255))).toBe(true);
         expect(restored.getNamed('primary')).toBe(1);
-        expect(restored.get(0).equals(Color32.transparent())).toBe(true);
+        expect(restored.get(0).equals(Color32.transparent)).toBe(true);
     });
 
     it('rejects invalid JSON payloads', () => {
@@ -176,7 +176,7 @@ describe('Palette', () => {
         expect(restored.size).toBe(16);
         expect(restored.get(1).equals(new Color32(1, 2, 3, 255))).toBe(true);
         expect(restored.get(15).equals(new Color32(250, 251, 252, 255))).toBe(true);
-        expect(restored.get(0).equals(Color32.transparent())).toBe(true);
+        expect(restored.get(0).equals(Color32.transparent)).toBe(true);
     });
 
     it('rejects invalid raw RGB byte payloads', () => {
@@ -206,7 +206,7 @@ describe('Palette', () => {
 
         expect(target.get(1).equals(new Color32(10, 20, 30, 255))).toBe(true);
         expect(target.get(15).equals(new Color32(200, 210, 220, 255))).toBe(true);
-        expect(target.get(16).equals(Color32.transparent())).toBe(true);
+        expect(target.get(16).equals(Color32.transparent)).toBe(true);
         expect(target.getNamed('last')).toBe(15);
 
         expect(smallTarget.get(1).equals(new Color32(10, 20, 30, 255))).toBe(true);
@@ -247,7 +247,7 @@ describe('Palette', () => {
         expect(Palette.pico8().size).toBe(16);
         expect(Palette.nes().size).toBe(64);
         expect(Palette.c64().findColor(Color32.fromHex('#813338'))).toBe(2);
-        expect(Palette.vga().get(0).equals(Color32.transparent())).toBe(true);
+        expect(Palette.vga().get(0).equals(Color32.transparent)).toBe(true);
         expect(Palette.gameboy().get(1).equals(Color32.fromHex('#306230'))).toBe(true);
         expect(Palette.nes().get(1).equals(Color32.fromHex('#0000fc'))).toBe(true);
         expect(Palette.pico8().get(12).equals(Color32.fromHex('#29adff'))).toBe(true);
@@ -347,8 +347,8 @@ describe('applyHUD', () => {
 
         expect(palette.get(10).equals(Color32.fromHex('#ffffff'))).toBe(true);
         expect(palette.get(15).equals(Color32.fromHex('#6496c8'))).toBe(true);
-        expect(palette.get(9).equals(Color32.black())).toBe(true);
-        expect(palette.get(16).equals(Color32.black())).toBe(true);
+        expect(palette.get(9).equals(Color32.black)).toBe(true);
+        expect(palette.get(16).equals(Color32.black)).toBe(true);
     });
 
     it('registers named aliases at the correct indices', () => {
