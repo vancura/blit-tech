@@ -47,10 +47,10 @@ export class BTAPI {
     /**
      * Major semantic-version component.
      */
-    public static readonly VERSION_MAJOR = 0;
+    public static readonly VERSION_MAJOR = 1;
 
     /** Minor version number. */
-    public static readonly VERSION_MINOR = 2;
+    public static readonly VERSION_MINOR = 0;
 
     /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
