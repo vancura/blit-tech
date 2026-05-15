@@ -62,7 +62,7 @@ export class SoftwareTicker {
     /**
      * Creates a ticker for the given engine version.
      *
-     * @param version - Engine version string (e.g. `"0.2.0"`), embedded in the banner text.
+     * @param version - Engine version string (e.g. `"1.0.0"`), embedded in the banner text.
      */
     constructor(version: string) {
         this.text = `SOFTWARE RENDERER - blit-tech v${version}`;

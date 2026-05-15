@@ -12,6 +12,10 @@
  * stubbed animation-frame scheduling, and per-test singleton reset helpers.
  */
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -138,6 +142,14 @@ describe('BTAPI', () => {
 
         it('should expose VERSION_PATCH as a number', () => {
             expect(typeof BTAPI.VERSION_PATCH).toBe('number');
+        });
+
+        it('should match package.json version', () => {
+            const packageJsonPath = join(dirname(fileURLToPath(import.meta.url)), '../../package.json');
+            const { version } = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string };
+            const btapiVersion = `${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`;
+
+            expect(btapiVersion).toBe(version);
         });
     });
 
