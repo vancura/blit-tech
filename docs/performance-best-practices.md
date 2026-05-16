@@ -219,9 +219,9 @@ Blit-Tech uses a fixed 60 FPS timestep by default. This provides:
 
 ```ts
 // Frame-based timer (recommended)
-if (BT.ticks() - lastActionTick >= 60) {
+if (BT.ticks - lastActionTick >= 60) {
   performAction();
-  lastActionTick = BT.ticks();
+  lastActionTick = BT.ticks;
 }
 
 // Alternative: Delta time (more complex)
@@ -273,7 +273,7 @@ Don't guess what's slow - **measure it**. Use:
 
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
-- FPS counter: `BT.fps()`
+- FPS counter: `BT.targetFPS`
 
 ### 3. Allocating in Hot Paths
 

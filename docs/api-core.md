@@ -50,9 +50,11 @@ displayError('Init Failed', 'WebGPU unavailable.', 'my-container');
 
 ```ts
 const ok = await BT.init(demo, canvas); // low-level init; prefer bootstrap()
-BT.displaySize(); // Vector2i — configured logical resolution
-BT.fps(); // number — target updates per second
-BT.getActiveBackend(); // 'webgpu' | 'software' | null
+BT.displaySize; // Vector2i — configured logical resolution (clone per read)
+BT.canvasDisplaySize; // Vector2i | null — output buffer when set in configure()
+BT.outputSize; // Vector2i — effective drawing-buffer size (clone per read)
+BT.targetFPS; // number — target updates per second
+BT.activeBackend; // 'webgpu' | 'software' | null
 ```
 
 `BT.init()` selects WebGPU or falls back to the Canvas 2D software renderer automatically. When not using `bootstrap()`,
@@ -69,14 +71,19 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 | `outputUpscaleFilter` | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
 | `detectDroppedFrames` | `boolean`                | `false`     | Log a console warning on missed vsync         |
 
+**`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
+names on {@link HardwareSettings}. `outputSize` is the effective drawing-buffer size
+(`canvasDisplaySize ?? displaySize`). `activeBackend` is the backend that actually started (after fallback), not the
+`renderer` value from `configure()`.
+
 ---
 
 ## Game Loop Timing
 
 ```ts
-BT.deltaSeconds(); // seconds per fixed tick (1 / BT.fps())
-BT.timeSeconds(); // elapsed seconds since init (ticks × deltaSeconds)
-BT.ticks(); // current tick counter (increments each update)
+BT.deltaSeconds; // seconds per fixed tick (1 / BT.targetFPS)
+BT.timeSeconds; // elapsed seconds since init (ticks × deltaSeconds)
+BT.ticks; // current tick counter (increments each update)
 BT.ticksReset(); // reset tick counter to 0
 ```
 
@@ -99,7 +106,7 @@ spawn.remainingTicks(); // ticks until next fire
 spawn.intervalTicks; // readonly interval size
 ```
 
-`Timer.tick()` advances the internal baseline on each true return. Pass `BT.ticks()` explicitly only when you need a
+`Timer.tick()` advances the internal baseline on each true return. Pass `BT.ticks` explicitly only when you need a
 specific snapshot; the default is the engine tick counter.
 
 ---
@@ -110,12 +117,12 @@ The camera applies a global pixel offset to all subsequent draw calls. Integer o
 
 ```ts
 BT.cameraSet(new Vector2i(scrollX, scrollY)); // apply offset
-BT.cameraGet(); // Vector2i — current offset
+BT.camera; // Vector2i — current offset
 BT.cameraReset(); // set back to (0, 0)
 
 // Clamp a camera origin so the viewport stays within a world:
 const clamped = BT.cameraClamp(desired, worldSize);
-// Optional third argument overrides the viewport size (default: BT.displaySize()):
+// Optional third argument overrides the viewport size (default: BT.displaySize):
 const clamped = BT.cameraClamp(desired, worldSize, new Vector2i(160, 120));
 ```
 

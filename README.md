@@ -179,8 +179,8 @@ WebGPU support varies by browser:
 | Safari      | 26+            | Enabled by default; Safari 18–25 available via Feature Flags     |
 
 When WebGPU is unavailable the engine falls back to the Canvas 2D software renderer automatically. A dismissible
-in-canvas "SOFTWARE RENDERER" banner appears to confirm the fallback is active. Use `BT.getActiveBackend()` to detect
-which backend is running at runtime.
+in-canvas "SOFTWARE RENDERER" banner appears to confirm the fallback is active. Use `BT.activeBackend` to detect which
+backend is running at runtime.
 
 ## Contributors
 

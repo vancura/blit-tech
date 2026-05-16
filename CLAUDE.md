@@ -21,7 +21,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 
 | Question                                      | Where to look                                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`                                                    |
+| What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                |
 | How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                   |
 | What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                       |
 | What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                               |
@@ -108,7 +108,7 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
   Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the
   `?renderer=software` URL query parameter. A dismissible in-canvas ticker banner is rendered each frame when this
-  backend is active. Use `BT.getActiveBackend()` to query which backend started (`'webgpu' | 'software' | null`).
+  backend is active. Use `BT.activeBackend` to query which backend started (`'webgpu' | 'software' | null`).
 
 ### Core Types
 
@@ -138,6 +138,40 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 - Default gamepad stick dead zone is `0.75`
 - Triggers are axis-only for now (`AXIS_TRIGGER_L` / `AXIS_TRIGGER_R`); trigger button constants are tracked in `VV-481`
 
+## BT API: getters vs methods
+
+The public `BT` namespace uses **getters** for read-only snapshots and **methods** for actions, parameterized queries,
+and async work. Do not add new zero-argument `BT.foo()` functions when a getter is appropriate.
+
+### Use getters (property access, no `()`)
+
+| Category                                                         | Members                                                       | Notes                                                                                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters.          |
+| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                                     |
+| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback), not `configure().renderer`. `palette` is a live reference. |
+| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                                      |
+
+Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
+
+### Use methods (call with `()`)
+
+- **Lifecycle / mutations:** `init`, `ticksReset`, `cameraSet`, `cameraReset`, `paletteSet`, `hideCursor`, all
+  draw/clear/effect APIs.
+- **Parameterized queries:** `pointerPos(index?)`, `pointerDelta`, `pointerPosValid`, `buttonDown` / `Pressed` /
+  `Released`, `getAxis`, `gamepadConnected`, `keyDown` / `Pressed` / `Released`.
+- **Utilities with arguments:** `cameraClamp(camera, worldSize, viewSize?)`, `systemPrintMeasure(text)`.
+- **Async:** `captureFrame`, `downloadFrame`.
+
+### Naming when adding getters
+
+- **Same name as `HardwareSettings`** when exposing configure values (`targetFPS`, not `fps` or `targetFps`).
+- **Descriptive runtime names** when there is no configure field (`activeBackend`, not `renderer`).
+- **Do not** expose `configure().renderer` on `BT` as `renderer` without documenting that it differs from
+  `activeBackend`.
+
+Full tables: `docs/api-core.md`. Style guide: `docs/developer-experience-guide.md` (Naming conventions).
+
 ## API Conventions
 
 - Prefer `SpriteSheet.loadIndexed(...)` for demo/game sprite setup; use manual `loadColorsIntoPalette` + `load` +
@@ -146,7 +180,7 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
   of the internal palette-indexed `Uint8Array` (throws if the sheet has not been indexized)
 - Prefer `Color32#luminance` for perceived brightness calculations instead of duplicating `0.299*r + 0.587*g + 0.114*b`
   at call sites
-- Prefer fixed-step helpers `BT.deltaSeconds()` / `BT.timeSeconds()` over hardcoded `1 / TARGET_FPS` in update loops
+- Prefer fixed-step helpers `BT.deltaSeconds` / `BT.timeSeconds` over hardcoded `1 / TARGET_FPS` in update loops
 - Prefer `BT.cameraClamp(...)` (or `clampCameraToWorld(...)` in utility code) over ad-hoc clamp math
 - Prefer `palette.applyHUD(startSlot?)` (default `1`) to fill the six common UI slots (white, bg, label, header, dim,
   FPS) and register their `hud_*` name aliases, rather than six manual `palette.set()` calls; override individual slots

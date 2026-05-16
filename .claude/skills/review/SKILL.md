@@ -31,6 +31,9 @@ Review current changes against project rules and quality standards.
    - Type imports use `import type` syntax
    - Proper error handling (guard clauses, null checks)
    - Consistent naming conventions
+   - **BT API shape:** read-only zero-arg snapshots use getters (`BT.displaySize`, `BT.targetFPS`), not `BT.foo()`.
+     Actions and parameterized queries stay methods. New configure mirrors use `HardwareSettings` field names
+     (`targetFPS`, not `fps`). See `CLAUDE.md` (**BT API: getters vs methods**).
 
 4. **Summarize findings**
    - List critical issues that must be fixed

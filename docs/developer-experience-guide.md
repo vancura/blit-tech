@@ -122,6 +122,12 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 - Constants: `SCREAMING_SNAKE_CASE` for module-level; camelCase for local
 - Named exports only; no default exports
 - JSDoc required for all public API members
+- **`BT` getters vs methods:** zero-argument read-only snapshots are getters (`BT.displaySize.y`); actions,
+  parameterized queries, and async work are methods (`BT.cameraSet`, `BT.pointerPos(0)`). Full rules:
+  [CLAUDE.md](../CLAUDE.md) (**BT API: getters vs methods**).
+- **`BT` getter names** that surface `configure()` / `HardwareSettings` use the **same field names** (`displaySize`,
+  `targetFPS`, `canvasDisplaySize`, …). Keep acronym spelling consistent (`targetFPS`, not `targetFps`). Runtime-only
+  reads use descriptive names (`activeBackend`, `ticks`, `deltaSeconds`).
 
 ---
 
