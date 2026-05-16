@@ -52,6 +52,7 @@ baseline screenshots for each.
 - **Camera** - camera offset transforms applied to all geometry
 - **Fonts** - placeholder text rendering at known positions
 - **Mixed** - primitives and sprites combined with correct layering
+- **Post-process** - baseline scene, pixel/display-tier effects, CRT preset stacks, upscale filters
 
 ### Tier 4: CPU Benchmarks (Vitest bench)
 
@@ -106,6 +107,7 @@ tests/visual/
   camera.spec.ts         # Camera transform visual test
   fonts.spec.ts          # Text rendering visual test
   mixed.spec.ts          # Combined rendering visual test
+  post-process.spec.ts   # Post-process effect chain visual test
 ```
 
 ## Writing a New Test
@@ -241,9 +243,37 @@ Use the Tasks system. Create `.zed/tasks.json`:
 
 ## CI Integration
 
-- **ci.yml**: Unit tests with coverage run on every push/PR to main
-- **pr-checks.yml**: Unit tests run as part of PR quality checks
-- **ci.yml (visual job)**: Visual regression runs only on PRs, non-blocking
+GitHub Actions runs unit tests and quality gates in CI. Visual regression is local-only today (see below).
+
+### `ci.yml` (`CI` workflow)
+
+Triggers on push to `main` and on pull requests targeting `main`. `labeled` / `unlabeled` PR events skip the `quality`,
+`build-library`, and `test` jobs unless the added label is `perf` (which enables the benchmark job).
+
+| Job             | What it runs                                                                                   |
+| --------------- | ---------------------------------------------------------------------------------------------- |
+| `quality`       | `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm spellcheck`                          |
+| `build-library` | `pnpm build`, declaration tooling check, uploads `dist/` artifact                              |
+| `test`          | `pnpm test:unit:coverage`, Codecov upload                                                      |
+| `benchmark`     | On `main` push or PRs labeled `perf`: `pnpm bench:json`, PR regression compare (25% threshold) |
+
+### `pr-checks.yml` (`PR Checks` workflow)
+
+Runs only on pull requests to `main`. Complements `ci.yml` with commit linting, bundle size limits, knip, and doc link
+checks. It does **not** run unit or visual tests.
+
+| Job           | What it runs                                                                |
+| ------------- | --------------------------------------------------------------------------- |
+| `quality`     | `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm spellcheck`, knip |
+| `commitlint`  | Conventional Commits validation for PR commits                              |
+| `bundle-size` | `pnpm build`, declaration tooling check, gzipped ESM size gate              |
+| `docs-links`  | Markdown link check for `docs/` and `README.md`                             |
+
+### Visual regression (not in CI)
+
+`pnpm test:visual` requires Chrome with WebGPU and is **not** executed in GitHub Actions. Run it locally before merging
+renderer, palette, or post-process changes; use `pnpm test:visual:update` when baselines change intentionally.
+`pnpm preflight` does not include visual tests.
 
 ---
 
