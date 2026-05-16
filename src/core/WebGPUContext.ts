@@ -90,9 +90,6 @@ export async function initWebGPU(
     // Only touch CSS when an explicit canvasDisplaySize was supplied. Demos
     // that omit it can style the canvas via HTML/CSS without us overriding.
     if (canvasDisplaySize) {
-        canvas.style.width = `${canvasDisplaySize.x}px`;
-        canvas.style.height = `${canvasDisplaySize.y}px`;
-
         console.log(
             `[BT] Canvas drawing buffer: ${drawingBufferSize.x}x${drawingBufferSize.y} ` +
                 `(logical render: ${displaySize.x}x${displaySize.y})`,

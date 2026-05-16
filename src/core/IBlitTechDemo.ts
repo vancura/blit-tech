@@ -42,6 +42,13 @@ export interface HardwareSettings {
     canvasDisplaySize?: Vector2i;
 
     /**
+     * Maximum on-screen canvas size in CSS pixels. The demos layout scales the
+     * canvas up to the viewport (preserving aspect ratio) but not beyond this
+     * size. Defaults to `960x720` in {@link defaultConfig}.
+     */
+    maxCanvasDisplaySize?: Vector2i;
+
+    /**
      * Magnification filter applied between the pixel chain and the display
      * chain. `'nearest'` preserves crisp pixel edges (default); `'linear'`
      * gives a soft "old TV" feel.
@@ -147,6 +154,7 @@ export function defaultConfig(): HardwareSettings {
     return {
         displaySize: new Vector2i(320, 240),
         canvasDisplaySize: new Vector2i(640, 480),
+        maxCanvasDisplaySize: new Vector2i(960, 720),
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
     };

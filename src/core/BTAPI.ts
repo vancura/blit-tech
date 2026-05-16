@@ -18,6 +18,7 @@ import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
 import { SoftwareTicker } from '../render/SoftwareTicker';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
+import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
 import {
@@ -859,6 +860,14 @@ export class BTAPI {
      * @returns `true` when the renderer is ready; `false` on failure.
      */
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
+        applyCanvasLayoutStyles(canvas, {
+            displaySize: hw.displaySize,
+            maxCanvasDisplaySize:
+                hw.maxCanvasDisplaySize ??
+                new Vector2i(DEFAULT_MAX_CANVAS_DISPLAY_SIZE.x, DEFAULT_MAX_CANVAS_DISPLAY_SIZE.y),
+            ...(hw.canvasDisplaySize !== undefined ? { canvasDisplaySize: hw.canvasDisplaySize } : {}),
+        });
+
         const requestedBackend = hw.renderer ?? 'webgpu';
 
         if (requestedBackend !== 'software') {
