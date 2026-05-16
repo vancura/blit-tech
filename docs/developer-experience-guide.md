@@ -18,6 +18,66 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key
 
 ---
 
+## Repository Scripts
+
+These commands apply when building or maintaining **blit-tech** from a repository checkout (not when consuming the npm
+package).
+
+| Command                     | Description                                                              |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `pnpm build`                | Build the library for npm distribution                                   |
+| `pnpm lint`                 | Run ESLint                                                               |
+| `pnpm lint:fix`             | Run ESLint with auto-fix                                                 |
+| `pnpm format`               | Format all code (Biome + Prettier)                                       |
+| `pnpm format:check`         | Check all formatting without changes                                     |
+| `pnpm format:biome`         | Format TS/JS/JSON/CSS only (Biome)                                       |
+| `pnpm format:prettier`      | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
+| `pnpm typecheck`            | Run TypeScript type checking                                             |
+| `pnpm spellcheck`           | Check spelling in source files                                           |
+| `pnpm test`                 | Run all unit tests (alias for `test:unit`)                               |
+| `pnpm test:unit`            | Run all unit tests                                                       |
+| `pnpm test:unit:watch`      | Run unit tests in watch mode                                             |
+| `pnpm test:unit:coverage`   | Run unit tests with coverage report (80% threshold)                      |
+| `pnpm test:visual`          | Playwright visual regression tests (requires Chrome with WebGPU)         |
+| `pnpm test:visual:update`   | Update visual test baseline screenshots                                  |
+| `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                           |
+| `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
+| `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
+| `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
+| `pnpm knip`                 | Find unused exports and dependencies                                     |
+| `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                 |
+| `pnpm clean`                | Remove dist and cache directories                                        |
+| `pnpm release`              | Build library and publish to npm                                         |
+| `pnpm convert-font`         | Convert BMFont to .btfont format                                         |
+| `pnpm system-font:export`   | Export system font data to PNG atlas (`assets/system-font.png`)          |
+| `pnpm system-font:convert`  | Regenerate `systemFontData.ts` from edited PNG atlas                     |
+| `pnpm security:audit`       | Run dependency security audit                                            |
+| `pnpm security:audit:fix`   | Run dependency security audit and auto-fix                               |
+
+---
+
+## Documentation Index
+
+| Guide                                                       | What it covers                                         |
+| ----------------------------------------------------------- | ------------------------------------------------------ |
+| [API: Core](api-core.md)                                    | bootstrap, init, game loop, camera, Timer, core types  |
+| [API: Rendering](api-rendering.md)                          | primitives, sprites, text, post-process, frame capture |
+| [API: Palette](api-palette.md)                              | palette setup, presets, effects, serialization         |
+| [Palette Guide](palette-guide.md)                           | palette-first workflow, offsets, effects, performance  |
+| [Palette Presets](palette-presets.md)                       | built-in preset reference and exact color data         |
+| [API: Assets](api-assets.md)                                | sprite sheets, bitmap fonts, asset loading             |
+| [Input Guide](input.md)                                     | pointer, keyboard, gamepad                             |
+| [Post-Process Effects](post-process-effects.md)             | effect chain, built-in effects, custom effects         |
+| [Bitmap Fonts](bitmap-fonts.md)                             | .btfont format, BMFont conversion                      |
+| [Testing](testing.md)                                       | test tiers, WebGPU mocks, visual regression            |
+| [Performance Testing](performance-testing.md)               | CPU benchmarks, CI regression checks                   |
+| [Performance Best Practices](performance-best-practices.md) | optimization guidelines                                |
+| [Developer Experience](developer-experience-guide.md)       | contributing workflow, IDE setup                       |
+| [Tooling](tooling.md)                                       | TypeScript pin, declaration checks, CI enforcement     |
+| [Voice Guide](voice.md)                                     | error messages and user-facing string style            |
+
+---
+
 ## Commit Guidelines
 
 Format: `<type>(<scope>): <description>`
@@ -144,7 +204,8 @@ each build. It fails on known drift-warning patterns and verifies the API Extrac
 - [ ] Test library build
 - [ ] Test examples deployment
 - [ ] Create a GitHub release with notes
-- [ ] Publish to npm (when ready)
+- [ ] Publish `blit-tech` to npm (`npm publish --access public`)
+- [ ] Verify package page and install flow: https://www.npmjs.com/package/blit-tech and `npm install blit-tech`
 - [ ] Announce on socials/discussions
 
 ### Quarterly

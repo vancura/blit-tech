@@ -1,6 +1,7 @@
 # Blit-Tech
 
 [![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/blit-tech.svg)](https://www.npmjs.com/package/blit-tech)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
@@ -64,7 +65,7 @@ complex frameworks, just sprites, primitives, and fonts.
 
 ## Installation
 
-Install **blit-tech** from npm (1.0.0):
+Install **blit-tech** from npm:
 
 ```bash
 pnpm add blit-tech
@@ -75,6 +76,8 @@ Or with npm:
 ```bash
 npm install blit-tech
 ```
+
+Package page: [npmjs.com/package/blit-tech](https://www.npmjs.com/package/blit-tech)
 
 ## Examples & Demos
 
@@ -149,69 +152,21 @@ pnpm add blit-tech
 pnpm dev
 ```
 
-See [API: Core](docs/api-core.md) for `bootstrap()` options and
-[Developer Experience](docs/developer-experience-guide.md) when working from a git clone.
-
-## Developing the library
-
-The commands below apply when building or contributing to **blit-tech** from a repository checkout (not when consuming
-the npm package). See [CONTRIBUTING.md](CONTRIBUTING.md) for clone setup, DCO sign-off, and pull request workflow.
-
-**Repository prerequisites:** **Node.js** >=22.18.0 (see `engines` in `package.json`); **pnpm** v10.26.2 or higher (see
-`packageManager` in `package.json`).
-
-### Scripts
-
-| Command                     | Description                                                              |
-| --------------------------- | ------------------------------------------------------------------------ |
-| `pnpm build`                | Build the library for npm distribution                                   |
-| `pnpm lint`                 | Run ESLint                                                               |
-| `pnpm lint:fix`             | Run ESLint with auto-fix                                                 |
-| `pnpm format`               | Format all code (Biome + Prettier)                                       |
-| `pnpm format:check`         | Check all formatting without changes                                     |
-| `pnpm format:biome`         | Format TS/JS/JSON/CSS only (Biome)                                       |
-| `pnpm format:prettier`      | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
-| `pnpm typecheck`            | Run TypeScript type checking                                             |
-| `pnpm spellcheck`           | Check spelling in source files                                           |
-| `pnpm test`                 | Run all unit tests (alias for `test:unit`)                               |
-| `pnpm test:unit`            | Run all unit tests                                                       |
-| `pnpm test:unit:watch`      | Run unit tests in watch mode                                             |
-| `pnpm test:unit:coverage`   | Run unit tests with coverage report (80% threshold)                      |
-| `pnpm test:visual`          | Playwright visual regression tests (requires Chrome with WebGPU)         |
-| `pnpm test:visual:update`   | Update visual test baseline screenshots                                  |
-| `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                           |
-| `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
-| `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
-| `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
-| `pnpm knip`                 | Find unused exports and dependencies                                     |
-| `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                 |
-| `pnpm clean`                | Remove dist and cache directories                                        |
-| `pnpm release`              | Build library and publish to npm                                         |
-| `pnpm convert-font`         | Convert BMFont to .btfont format                                         |
-| `pnpm system-font:export`   | Export system font data to PNG atlas (`assets/system-font.png`)          |
-| `pnpm system-font:convert`  | Regenerate `systemFontData.ts` from edited PNG atlas                     |
-| `pnpm security:audit`       | Run dependency security audit                                            |
-| `pnpm security:audit:fix`   | Run dependency security audit and auto-fix                               |
-
 ## Documentation
 
-| Guide                                                            | What it covers                                         |
-| ---------------------------------------------------------------- | ------------------------------------------------------ |
-| [API: Core](docs/api-core.md)                                    | bootstrap, init, game loop, camera, Timer, core types  |
-| [API: Rendering](docs/api-rendering.md)                          | primitives, sprites, text, post-process, frame capture |
-| [API: Palette](docs/api-palette.md)                              | palette setup, presets, effects, serialization         |
-| [Palette Guide](docs/palette-guide.md)                           | palette-first workflow, offsets, effects, performance  |
-| [Palette Presets](docs/palette-presets.md)                       | built-in preset reference and exact color data         |
-| [API: Assets](docs/api-assets.md)                                | sprite sheets, bitmap fonts, asset loading             |
-| [Input Guide](docs/input.md)                                     | pointer, keyboard, gamepad                             |
-| [Post-Process Effects](docs/post-process-effects.md)             | effect chain, built-in effects, custom effects         |
-| [Bitmap Fonts](docs/bitmap-fonts.md)                             | .btfont format, BMFont conversion                      |
-| [Testing](docs/testing.md)                                       | test tiers, WebGPU mocks, visual regression            |
-| [Performance Testing](docs/performance-testing.md)               | CPU benchmarks, CI regression checks                   |
-| [Performance Best Practices](docs/performance-best-practices.md) | optimization guidelines                                |
-| [Developer Experience](docs/developer-experience-guide.md)       | contributing workflow, IDE setup                       |
-| [Tooling](docs/tooling.md)                                       | TypeScript pin, declaration checks, CI enforcement     |
-| [Voice Guide](docs/voice.md)                                     | error messages and user-facing string style            |
+See [API: Core](docs/api-core.md) for `bootstrap()` options.
+
+| Guide                                                | What it covers                                         |
+| ---------------------------------------------------- | ------------------------------------------------------ |
+| [API: Core](docs/api-core.md)                        | bootstrap, game loop, camera, Timer, core types        |
+| [API: Rendering](docs/api-rendering.md)              | primitives, sprites, text, post-process, frame capture |
+| [API: Palette](docs/api-palette.md)                  | palette setup, presets, effects, serialization         |
+| [API: Assets](docs/api-assets.md)                    | sprite sheets, bitmap fonts, asset loading             |
+| [Input Guide](docs/input.md)                         | pointer, keyboard, gamepad                             |
+| [Palette Guide](docs/palette-guide.md)               | palette-first workflow, offsets, effects               |
+| [Palette Presets](docs/palette-presets.md)           | built-in preset reference and exact color data         |
+| [Post-Process Effects](docs/post-process-effects.md) | effect chain, built-in effects, custom effects         |
+| [Bitmap Fonts](docs/bitmap-fonts.md)                 | `.btfont` format and BMFont conversion                 |
 
 ## Browser Compatibility
 
@@ -227,19 +182,10 @@ When WebGPU is unavailable the engine falls back to the Canvas 2D software rende
 in-canvas "SOFTWARE RENDERER" banner appears to confirm the fallback is active. Use `BT.getActiveBackend()` to detect
 which backend is running at runtime.
 
-## Contributing
+## Contributors
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
-
-- Developer Certificate of Origin (DCO) requirements
-- Commit message format (Conventional Commits)
-- Code style guidelines
-- Pull request process
-
-All commits must be signed off with a DCO. Use `git commit -s` to automatically add the sign-off.
-
-Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before participating. To report a security vulnerability, follow
-the process in [SECURITY.md](SECURITY.md).
+Contributor workflow, scripts, release process, and repository tooling docs live in
+[Developer Experience](docs/developer-experience-guide.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
