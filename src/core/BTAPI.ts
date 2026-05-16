@@ -53,7 +53,7 @@ export class BTAPI {
     public static readonly VERSION_MINOR = 0;
 
     /** Patch version number. */
-    public static readonly VERSION_PATCH = 0;
+    public static readonly VERSION_PATCH = 2;
 
     // #endregion
 
