@@ -22,16 +22,16 @@ in `VV-491` to cover auto-fallback and the dismissible ticker banner.
 
 ## Matrix
 
-| Scene                                   | What to verify                                   | Software expected result                                              | Notes                                 |
-| --------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------- | ------------------------------------- |
-| Any page without `?renderer=software`   | Auto-fallback when WebGPU is absent              | Demo boots; `BTAPI.getActiveBackend()` = `'software'`; ticker visible | No error page or hard stop            |
-| Any page with software active           | Dismissible ticker banner at top of canvas       | Banner centered, dismisses on click/tap; absent next frame            | Height 15 px; palette indices 1/2     |
-| `tests/visual/fixtures/primitives.html` | clear + clearRect + primitive rasterization      | Matches expected primitive layout and colors                          | Check pixel edges are crisp           |
-| `tests/visual/fixtures/camera.html`     | camera offset applied to all draw calls          | Geometry is shifted consistently by camera offset                     | No partial drift between primitives   |
-| `tests/visual/fixtures/sprites.html`    | indexed sprites + palette offsets + transparency | Sprite shapes/colors match expected output                            | Transparent pixels stay see-through   |
-| `tests/visual/fixtures/fonts.html`      | system text + bitmap font rendering              | Text positions and glyph colors are correct                           | No missing glyph blocks               |
-| `tests/visual/fixtures/mixed.html`      | primitives + sprites + layering order            | Same stacking as WebGPU for this fixture                              | Parity covered by Playwright snapshot |
-| Frame capture via `BT.captureFrame()`   | PNG export in software mode                      | Promise resolves with PNG blob                                        | Repeat capture across multiple frames |
+| Scene                                   | What to verify                                   | Software expected result                                           | Notes                                 |
+| --------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------- |
+| Any page without `?renderer=software`   | Auto-fallback when WebGPU is absent              | Demo boots; `BT.getActiveBackend()` = `'software'`; ticker visible | No error page or hard stop            |
+| Any page with software active           | Dismissible ticker banner at top of canvas       | Banner centered, dismisses on click/tap; absent next frame         | Height 15 px; palette indices 1/2     |
+| `tests/visual/fixtures/primitives.html` | clear + clearRect + primitive rasterization      | Matches expected primitive layout and colors                       | Check pixel edges are crisp           |
+| `tests/visual/fixtures/camera.html`     | camera offset applied to all draw calls          | Geometry is shifted consistently by camera offset                  | No partial drift between primitives   |
+| `tests/visual/fixtures/sprites.html`    | indexed sprites + palette offsets + transparency | Sprite shapes/colors match expected output                         | Transparent pixels stay see-through   |
+| `tests/visual/fixtures/fonts.html`      | system text + bitmap font rendering              | Text positions and glyph colors are correct                        | No missing glyph blocks               |
+| `tests/visual/fixtures/mixed.html`      | primitives + sprites + layering order            | Same stacking as WebGPU for this fixture                           | Parity covered by Playwright snapshot |
+| Frame capture via `BT.captureFrame()`   | PNG export in software mode                      | Promise resolves with PNG blob                                     | Repeat capture across multiple frames |
 
 ## Automated regression
 

@@ -1,7 +1,7 @@
 # Blit-Tech
 
-Lightweight WebGPU retro engine for TypeScript, inspired by RetroBlit. Pixel-perfect 2D rendering with a
-fantasy-console-style API.
+A palette-first WebGPU retro engine for TypeScript, inspired by RetroBlit. Pixel-perfect 2D rendering where primitives
+and sprites resolve through a shared indexed palette.
 
 ## Tech Stack
 
@@ -24,7 +24,8 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`                                                    |
 | How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                   |
 | What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                       |
-| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`                                                 |
+| What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                               |
+| Which preset has which exact color values?    | `docs/palette-presets.md`                                                                        |
 | How do post-process effects work?             | `docs/post-process-effects.md`                                                                   |
 | What does the CI do on this file?             | `.github/workflows/ci.yml`                                                                       |
 | What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                         |
@@ -35,8 +36,9 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 
 ## Architecture
 
-All engine functionality is accessed through the static `BT` namespace. Demos implement the `IBlitTechDemo` interface
-(`configure?`, `init`, `update`, `render`).
+All engine functionality is accessed through the static `BT` namespace. The architecture is palette-first: primitives,
+sprites, and bitmap text resolve color through the active `Palette` before final RGBA output. Demos implement the
+`IBlitTechDemo` interface (`configure?`, `init`, `update`, `render`).
 
 ```text
 src/
@@ -89,11 +91,11 @@ src/
     setup.ts               # Vitest global setup (GPU constants)
 ```
 
-### Rendering
+### Palette-First Rendering
 
 Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 
-- **WebGPU** (`'webgpu'`): dual-pipeline hardware renderer.
+- **WebGPU** (`'webgpu'`): indexed, palette-first hardware renderer.
   1. **Primitives pipeline** - batched geometry writing **palette indices** (pixels, lines, rects). Max 50k
      vertices/frame.
   2. **Sprites pipeline** - batched **palette-indexed** textured quads (sprites, bitmap text). Max 50k vertices (~8333
@@ -106,7 +108,7 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
   Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the
   `?renderer=software` URL query parameter. A dismissible in-canvas ticker banner is rendered each frame when this
-  backend is active. Use `BTAPI.getActiveBackend()` to query which backend started (`'webgpu' | 'software' | null`).
+  backend is active. Use `BT.getActiveBackend()` to query which backend started (`'webgpu' | 'software' | null`).
 
 ### Core Types
 
