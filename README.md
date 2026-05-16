@@ -47,7 +47,7 @@ complex frameworks, just sprites, primitives, and fonts.
 
 ## Installation
 
-Install [blit-tech](https://www.npmjs.com/package/blit-tech) from npm:
+Install **blit-tech** from npm:
 
 ```bash
 pnpm add blit-tech
