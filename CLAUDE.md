@@ -5,9 +5,9 @@ fantasy-console-style API.
 
 ## Tech Stack
 
-- **Language:** TypeScript (strict mode)
+- **Language:** TypeScript 5.9.3 (strict mode; pinned to match API Extractor for declaration rollup)
 - **Runtime:** Browser (WebGPU)
-- **Build:** Vite + vite-plugin-dts
+- **Build:** Vite + vite-plugin-dts (`rollupTypes` uses API Extractor)
 - **Formatting:** Biome (TS/JS) + Prettier (MD/YAML)
 - **Linting:** ESLint with perfectionist, jsdoc, security, promise plugins
 - **Spelling:** cspell
@@ -19,18 +19,19 @@ fantasy-console-style API.
 
 Before writing new code, reviewing existing code, or preflighting, check here first:
 
-| Question                                      | Where to look                                              |
-| --------------------------------------------- | ---------------------------------------------------------- |
-| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`              |
-| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file             |
-| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings) |
-| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`           |
-| How do post-process effects work?             | `docs/post-process-effects.md`                             |
-| What does the CI do on this file?             | `.github/workflows/ci.yml`                                 |
-| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs   |
-| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`         |
-| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)           |
-| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                              |
+| Question                                      | Where to look                                                                 |
+| --------------------------------------------- | ----------------------------------------------------------------------------- |
+| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`                                 |
+| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                |
+| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                    |
+| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`                              |
+| How do post-process effects work?             | `docs/post-process-effects.md`                                                |
+| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                    |
+| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                      |
+| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                            |
+| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                              |
+| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                 |
+| Declaration tooling / TS version alignment?   | `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs` |
 
 ## Architecture
 
@@ -171,7 +172,7 @@ pnpm format:check       # Check formatting (Biome + Prettier)
 pnpm typecheck          # TypeScript type checking
 pnpm spellcheck         # cspell check
 pnpm knip               # Find unused exports/deps
-pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test:unit)
+pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test:unit + test:declarations)
 ```
 
 ## Testing
@@ -183,6 +184,7 @@ pnpm test                # Run all unit tests (alias for test:unit)
 pnpm test:unit           # Run all unit tests
 pnpm test:unit:watch     # Watch mode for development
 pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
+pnpm test:declarations   # Declaration tooling log checker (Node test)
 pnpm test:visual         # Playwright visual regression tests (requires Chrome with WebGPU)
 pnpm test:visual:update  # Update visual test baselines
 pnpm bench               # Run CPU benchmarks (Vitest bench)

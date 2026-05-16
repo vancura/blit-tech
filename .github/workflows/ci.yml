@@ -70,9 +70,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build library
-        run: pnpm build
+        run: pnpm build 2>&1 | tee build.log
         env:
           NODE_ENV: production
+
+      - name: Verify declaration tooling alignment
+        run: node scripts/check-declaration-tooling.mjs build.log
 
       - name: Upload library artifacts
         uses: actions/upload-artifact@v7

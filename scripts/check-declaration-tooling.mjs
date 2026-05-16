@@ -1,0 +1,139 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'package.json');
+const DECLARATION_OUTPUT = path.join(REPO_ROOT, 'dist', 'blit-tech.d.ts');
+
+/** Substrings that indicate TS/API Extractor compiler drift during declaration rollup. */
+export const DRIFT_WARNING_PATTERNS = [
+    /incompatible versions/i,
+    /TypeScript version used (?:for analysis )?is different/i,
+    /compiler version.*(?:different|mismatch|drift)/i,
+    /typescript.*(?:mismatch|drift)/i,
+    /Using TypeScript \d+\.\d+\.\d+ but API Extractor/i,
+];
+
+/**
+ * Returns the pinned workspace TypeScript version from package.json.
+ *
+ * @returns {string} Semver string (for example `5.9.3`).
+ */
+export function readPinnedTypeScriptVersion() {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'));
+    const version = packageJson.devDependencies?.typescript;
+
+    if (typeof version !== 'string' || version.length === 0) {
+        throw new Error('package.json devDependencies.typescript is missing or invalid');
+    }
+
+    return version;
+}
+
+/**
+ * Scans build log text for known declaration-tooling drift warnings.
+ *
+ * @param {string} logText Full stdout/stderr from `pnpm build`.
+ * @returns {string[]} Human-readable failure messages (empty when clean).
+ */
+export function findDriftWarnings(logText) {
+    const failures = [];
+
+    for (const pattern of DRIFT_WARNING_PATTERNS) {
+        const match = logText.match(pattern);
+        if (match) {
+            failures.push(`Declaration tooling drift pattern matched: ${match[0]}`);
+        }
+    }
+
+    return failures;
+}
+
+/**
+ * Verifies API Extractor reports the same bundled TypeScript version as the workspace pin.
+ *
+ * @param {string} logText Full stdout/stderr from `pnpm build`.
+ * @param {string} expectedVersion Workspace TypeScript version from package.json.
+ * @returns {string[]} Human-readable failure messages (empty when aligned).
+ */
+export function findAlignmentFailures(logText, expectedVersion) {
+    const failures = [];
+    const alignmentPattern = /Analysis will use the bundled TypeScript version (\d+\.\d+\.\d+)/i;
+    const match = logText.match(alignmentPattern);
+
+    if (!match) {
+        failures.push(
+            'Expected API Extractor alignment log line "Analysis will use the bundled TypeScript version X.Y.Z" was not found',
+        );
+        return failures;
+    }
+
+    const reportedVersion = match[1];
+    if (reportedVersion !== expectedVersion) {
+        failures.push(
+            `API Extractor bundled TypeScript ${reportedVersion} does not match workspace pin ${expectedVersion}`,
+        );
+    }
+
+    return failures;
+}
+
+/**
+ * Validates declaration build output and log alignment.
+ *
+ * @param {string} logText Full stdout/stderr from `pnpm build`.
+ * @param {{ requireOutputFile?: boolean }} [options]
+ * @returns {string[]} All failure messages (empty when checks pass).
+ */
+export function validateDeclarationTooling(logText, options = {}) {
+    const { requireOutputFile = true } = options;
+    const expectedVersion = readPinnedTypeScriptVersion();
+    const failures = [...findDriftWarnings(logText), ...findAlignmentFailures(logText, expectedVersion)];
+
+    if (requireOutputFile && !fs.existsSync(DECLARATION_OUTPUT)) {
+        failures.push(`Missing rolled-up declaration output: ${path.relative(REPO_ROOT, DECLARATION_OUTPUT)}`);
+    }
+
+    return failures;
+}
+
+/**
+ * @param {string[]} failures
+ * @returns {never}
+ */
+function exitWithFailures(failures) {
+    console.error('Declaration tooling check failed:');
+    for (const failure of failures) {
+        console.error(`  - ${failure}`);
+    }
+    process.exit(1);
+}
+
+function main() {
+    const logPath = process.argv[2];
+    let logText;
+
+    if (logPath) {
+        logText = fs.readFileSync(path.resolve(logPath), 'utf8');
+    } else if (!process.stdin.isTTY) {
+        logText = fs.readFileSync(0, 'utf8');
+    } else {
+        console.error('Usage: node scripts/check-declaration-tooling.mjs <build.log>');
+        process.exit(2);
+    }
+
+    const failures = validateDeclarationTooling(logText);
+    if (failures.length > 0) {
+        exitWithFailures(failures);
+    }
+
+    const version = readPinnedTypeScriptVersion();
+    console.log(
+        `Declaration tooling OK (TypeScript ${version}, ${path.relative(REPO_ROOT, DECLARATION_OUTPUT)} present)`,
+    );
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+    main();
+}

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
 
@@ -91,36 +91,37 @@ bootstrap(MyDemo);
 
 ## Scripts
 
-| Command                     | Description                                                              |
-| --------------------------- | ------------------------------------------------------------------------ |
-| `pnpm build`                | Build the library for npm distribution                                   |
-| `pnpm lint`                 | Run ESLint                                                               |
-| `pnpm lint:fix`             | Run ESLint with auto-fix                                                 |
-| `pnpm format`               | Format all code (Biome + Prettier)                                       |
-| `pnpm format:check`         | Check all formatting without changes                                     |
-| `pnpm format:biome`         | Format TS/JS/JSON/CSS only (Biome)                                       |
-| `pnpm format:prettier`      | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
-| `pnpm typecheck`            | Run TypeScript type checking                                             |
-| `pnpm spellcheck`           | Check spelling in source files                                           |
-| `pnpm test`                 | Run all unit tests (alias for `test:unit`)                               |
-| `pnpm test:unit`            | Run all unit tests                                                       |
-| `pnpm test:unit:watch`      | Run unit tests in watch mode                                             |
-| `pnpm test:unit:coverage`   | Run unit tests with coverage report (80% threshold)                      |
-| `pnpm test:visual`          | Playwright visual regression tests (requires Chrome with WebGPU)         |
-| `pnpm test:visual:update`   | Update visual test baseline screenshots                                  |
-| `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                           |
-| `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
-| `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
-| `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
-| `pnpm knip`                 | Find unused exports and dependencies                                     |
-| `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                 |
-| `pnpm clean`                | Remove dist and cache directories                                        |
-| `pnpm release`              | Build library and publish to npm                                         |
-| `pnpm convert-font`         | Convert BMFont to .btfont format                                         |
-| `pnpm system-font:export`   | Export system font data to PNG atlas (`assets/system-font.png`)          |
-| `pnpm system-font:convert`  | Regenerate `systemFontData.ts` from edited PNG atlas                     |
-| `pnpm security:audit`       | Run dependency security audit                                            |
-| `pnpm security:audit:fix`   | Run dependency security audit and auto-fix                               |
+| Command                     | Description                                                               |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `pnpm build`                | Build the library for npm distribution                                    |
+| `pnpm lint`                 | Run ESLint                                                                |
+| `pnpm lint:fix`             | Run ESLint with auto-fix                                                  |
+| `pnpm format`               | Format all code (Biome + Prettier)                                        |
+| `pnpm format:check`         | Check all formatting without changes                                      |
+| `pnpm format:biome`         | Format TS/JS/JSON/CSS only (Biome)                                        |
+| `pnpm format:prettier`      | Format Markdown/YAML/HTML/HBS (Prettier)                                  |
+| `pnpm typecheck`            | Run TypeScript type checking                                              |
+| `pnpm spellcheck`           | Check spelling in source files                                            |
+| `pnpm test`                 | Run all unit tests (alias for `test:unit`)                                |
+| `pnpm test:unit`            | Run all unit tests                                                        |
+| `pnpm test:unit:watch`      | Run unit tests in watch mode                                              |
+| `pnpm test:unit:coverage`   | Run unit tests with coverage report (80% threshold)                       |
+| `pnpm test:declarations`    | Verify declaration-tooling log checks (TypeScript / API Extractor)        |
+| `pnpm test:visual`          | Playwright visual regression tests (requires Chrome with WebGPU)          |
+| `pnpm test:visual:update`   | Update visual test baseline screenshots                                   |
+| `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                            |
+| `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                  |
+| `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                  |
+| `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, tests) |
+| `pnpm knip`                 | Find unused exports and dependencies                                      |
+| `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                  |
+| `pnpm clean`                | Remove dist and cache directories                                         |
+| `pnpm release`              | Build library and publish to npm                                          |
+| `pnpm convert-font`         | Convert BMFont to .btfont format                                          |
+| `pnpm system-font:export`   | Export system font data to PNG atlas (`assets/system-font.png`)           |
+| `pnpm system-font:convert`  | Regenerate `systemFontData.ts` from edited PNG atlas                      |
+| `pnpm security:audit`       | Run dependency security audit                                             |
+| `pnpm security:audit:fix`   | Run dependency security audit and auto-fix                                |
 
 ## Documentation
 

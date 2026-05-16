@@ -65,6 +65,10 @@ describe('RGBMask', () => {
         );
 
         expect(beginSpy).toHaveBeenCalledTimes(1);
-        expect(beginSpy.mock.calls[0]?.[0]?.colorAttachments[0]?.view.label).toBe('dst');
+        const passDescriptor = beginSpy.mock.calls[0]?.[0];
+        const firstColorAttachment = passDescriptor?.colorAttachments
+            ? [...passDescriptor.colorAttachments][0]
+            : undefined;
+        expect(firstColorAttachment?.view.label).toBe('dst');
     });
 });

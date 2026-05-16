@@ -59,7 +59,7 @@ export abstract class FullscreenEffect implements Effect {
      * Backing array for the uniform block. Lazily allocated in {@link init}
      * after subclass constants are set on `this`.
      */
-    protected uniformData: Float32Array | null = null;
+    protected uniformData: Float32Array<ArrayBuffer> | null = null;
     /**
      * Per-source-view bind group cache. The chain ping-pongs between two
      * stable views, so a `WeakMap` keyed by view is safe.
@@ -84,7 +84,7 @@ export abstract class FullscreenEffect implements Effect {
         }
 
         this.device = device;
-        this.uniformData = new Float32Array(this.uniformBytes / 4);
+        this.uniformData = new Float32Array(new ArrayBuffer(this.uniformBytes));
 
         const module = device.createShaderModule({
             label: `${this.label} Shader`,

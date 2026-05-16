@@ -26,7 +26,7 @@ export abstract class FullscreenPixelEffect implements Effect {
     protected device: GPUDevice | null = null;
     protected pipeline: GPURenderPipeline | null = null;
     protected uniformBuffer: GPUBuffer | null = null;
-    protected uniformData: Float32Array | null = null;
+    protected uniformData: Float32Array<ArrayBuffer> | null = null;
     protected sampler: GPUSampler | null = null;
     private attachmentFormat: GPUTextureFormat | null = null;
 
@@ -51,7 +51,7 @@ export abstract class FullscreenPixelEffect implements Effect {
 
         this.device = device;
         this.attachmentFormat = format;
-        this.uniformData = new Float32Array(this.uniformBytes / 4);
+        this.uniformData = new Float32Array(new ArrayBuffer(this.uniformBytes));
 
         const fragment = format === 'r8uint' ? this.fragmentShaderUint : this.fragmentShaderRgba;
         const module = device.createShaderModule({
