@@ -93,7 +93,6 @@ export class SoftwareRenderer implements IRenderer {
     private readonly canvas: HTMLCanvasElement;
     private readonly displaySize: Vector2i;
     private readonly outputSize: Vector2i;
-    private readonly explicitOutputSize: boolean;
 
     private outputCtx: Canvas2D | null = null;
     private logicalCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
@@ -121,7 +120,6 @@ export class SoftwareRenderer implements IRenderer {
     constructor(canvas: HTMLCanvasElement, displaySize: Vector2i, outputSize?: Vector2i) {
         this.canvas = canvas;
         this.displaySize = displaySize.clone();
-        this.explicitOutputSize = outputSize !== undefined;
         this.outputSize = (outputSize ?? displaySize).clone();
         this.framePixels = new Uint8ClampedArray(this.displaySize.x * this.displaySize.y * 4);
     }
@@ -138,11 +136,6 @@ export class SoftwareRenderer implements IRenderer {
     async init(): Promise<boolean> {
         this.canvas.width = this.outputSize.x;
         this.canvas.height = this.outputSize.y;
-
-        if (this.explicitOutputSize) {
-            this.canvas.style.width = `${this.outputSize.x}px`;
-            this.canvas.style.height = `${this.outputSize.y}px`;
-        }
 
         this.outputCtx = this.canvas.getContext('2d') as Canvas2D | null;
         if (!this.outputCtx) {

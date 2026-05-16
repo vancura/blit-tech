@@ -58,7 +58,13 @@ function makeMockCanvas(): HTMLCanvasElement {
     return {
         width: 0,
         height: 0,
-        style: { width: '', height: '', touchAction: '' },
+        style: {
+            width: '',
+            height: '',
+            touchAction: '',
+            setProperty: vi.fn(),
+            getPropertyValue: vi.fn(() => ''),
+        },
         getContext: (type: string) => (type === 'webgpu' ? createMockGPUCanvasContext() : null),
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),

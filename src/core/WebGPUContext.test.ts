@@ -143,7 +143,7 @@ describe('initWebGPU', () => {
         expect(canvas.height).toBe(240);
     });
 
-    it('should set CSS size when canvasDisplaySize is provided', async () => {
+    it('should set drawing-buffer size from canvasDisplaySize when provided', async () => {
         installMockNavigatorGPU();
 
         const canvas = createMockCanvas();
@@ -151,19 +151,8 @@ describe('initWebGPU', () => {
 
         await initWebGPU(canvas, displaySize, canvasDisplaySize);
 
-        expect(canvas.style.width).toBe('640px');
-        expect(canvas.style.height).toBe('480px');
-    });
-
-    it('should not set CSS size when canvasDisplaySize is not provided', async () => {
-        installMockNavigatorGPU();
-
-        const canvas = createMockCanvas();
-
-        await initWebGPU(canvas, displaySize);
-
-        expect(canvas.style.width).toBe('');
-        expect(canvas.style.height).toBe('');
+        expect(canvas.width).toBe(640);
+        expect(canvas.height).toBe(480);
     });
 
     // #endregion

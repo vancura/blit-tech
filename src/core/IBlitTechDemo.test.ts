@@ -32,6 +32,13 @@ describe('defaultConfig', () => {
         expect(settings.canvasDisplaySize?.y).toBe(480);
     });
 
+    it('should include 960x720 maxCanvasDisplaySize by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.maxCanvasDisplaySize?.x).toBe(960);
+        expect(settings.maxCanvasDisplaySize?.y).toBe(720);
+    });
+
     it("should default outputUpscaleFilter to 'nearest'", () => {
         const settings = defaultConfig();
 
@@ -45,5 +52,6 @@ describe('defaultConfig', () => {
         expect(a).not.toBe(b);
         expect(a.displaySize).not.toBe(b.displaySize);
         expect(a.canvasDisplaySize).not.toBe(b.canvasDisplaySize);
+        expect(a.maxCanvasDisplaySize).not.toBe(b.maxCanvasDisplaySize);
     });
 });
