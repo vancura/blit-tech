@@ -18,6 +18,7 @@ build/
 # Git
 .git/
 .remember/
+.claude/
 
 # Generated/minified files
 **/*.min.js

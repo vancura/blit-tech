@@ -19,19 +19,19 @@ fantasy-console-style API.
 
 Before writing new code, reviewing existing code, or preflighting, check here first:
 
-| Question                                      | Where to look                                                                 |
-| --------------------------------------------- | ----------------------------------------------------------------------------- |
-| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`                                 |
-| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                |
-| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                    |
-| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`                              |
-| How do post-process effects work?             | `docs/post-process-effects.md`                                                |
-| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                    |
-| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                      |
-| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                            |
-| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                              |
-| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                 |
-| Declaration tooling / TS version alignment?   | `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs` |
+| Question                                      | Where to look                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| What does `BT.X()` do?                        | `src/BlitTech.ts` JSDoc, then `docs/api-*.md`                                                    |
+| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                   |
+| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                       |
+| What palette/sprite setup pattern is correct? | `docs/api-assets.md`, then `docs/api-palette.md`                                                 |
+| How do post-process effects work?             | `docs/post-process-effects.md`                                                                   |
+| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                                       |
+| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                         |
+| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                                               |
+| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                                                 |
+| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                                    |
+| Declaration tooling / TS version alignment?   | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs` |
 
 ## Architecture
 
