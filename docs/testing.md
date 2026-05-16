@@ -1,6 +1,7 @@
 # Testing
 
-Blit-Tech uses a three-tier testing strategy to cover both pure logic and GPU-dependent rendering code.
+Blit-Tech uses three primary testing tiers (unit, integration, visual) plus a benchmark tier for CPU performance
+regression tracking.
 
 ## Architecture
 
@@ -52,6 +53,11 @@ baseline screenshots for each.
 - **Fonts** - placeholder text rendering at known positions
 - **Mixed** - primitives and sprites combined with correct layering
 
+### Tier 4: CPU Benchmarks (Vitest bench)
+
+Hot-path performance checks for methods and allocation patterns. Benchmarks are tracked in CI benchmark jobs and
+documented in [Performance Testing](performance-testing.md).
+
 ## Declaration tooling checks
 
 Public types are rolled up during `pnpm build` via `vite-plugin-dts` and API Extractor. The workspace pins TypeScript to
@@ -75,6 +81,8 @@ pnpm test:declarations   # Declaration tooling log checker (Node test)
 pnpm test:visual            # Playwright visual regression (requires Chrome)
 pnpm test:visual:update     # Update visual test baselines
 pnpm test:visual:coverage   # Visual tests with Istanbul coverage report
+pnpm bench                  # Run CPU benchmarks (Vitest bench)
+pnpm bench:json             # Run CPU benchmarks and write benchmark-results.json
 ```
 
 ## Test File Location
@@ -124,6 +132,22 @@ Conventions:
 - Follow source code style (4-space indent, single quotes, semicolons)
 - No emoji in test descriptions
 - No JSDoc required in test files
+
+## Palette Testing Patterns
+
+Use these patterns when adding or reviewing palette-related features:
+
+- **Slot-zero invariants**: assert slot `0` remains transparent and draw paths treat it as discarded/clear.
+- **Preset correctness**: verify preset factories (`Palette.vga`, `cga`, `c64`, `gameboy`, `pico8`, `nes`) and
+  `palette.applyHUD()` produce expected hex values at known slots.
+- **Effect determinism**: for `paletteCycle`, `paletteFade`, `paletteFadeRange`, `paletteFlash`, and `paletteSwap`,
+  assert both mid-effect and completion states under fixed timestep progression.
+- **Dirty flag contract**: assert `set()` / `copyFrom()` / effect updates mark palettes dirty and renderer upload paths
+  clear the flag after upload.
+- **Offset rendering behavior**: add visual assertions that `BT.drawSprite(..., paletteOffset)` remaps the same indexed
+  sprite data to different slot ranges without duplicating textures.
+- **Layout-swap safety**: after swapping to a different index layout, assert `BT.spritesRefresh()` re-indexes tracked
+  sheets and catches missing-color cases.
 
 ## WebGPU Mock Usage
 
@@ -220,3 +244,14 @@ Use the Tasks system. Create `.zed/tasks.json`:
 - **ci.yml**: Unit tests with coverage run on every push/PR to main
 - **pr-checks.yml**: Unit tests run as part of PR quality checks
 - **ci.yml (visual job)**: Visual regression runs only on PRs, non-blocking
+
+---
+
+## See Also
+
+| Guide                                 | What it covers                             |
+| ------------------------------------- | ------------------------------------------ |
+| [API: Palette](api-palette.md)        | palette APIs and effect signatures         |
+| [Palette Guide](palette-guide.md)     | palette-first workflow and refresh rules   |
+| [Palette Presets](palette-presets.md) | exact built-in preset and HUD color values |
+| [API: Assets](api-assets.md)          | indexed sprite setup and palette offsets   |

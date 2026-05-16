@@ -2,7 +2,7 @@
   "name": "blit-tech",
   "version": "1.0.0",
   "type": "module",
-  "description": "A lightweight WebGPU retro engine for TypeScript, inspired by RetroBlit.",
+  "description": "A palette-first WebGPU retro engine for TypeScript, inspired by RetroBlit.",
   "author": "Václav Vančura",
   "license": "ISC",
   "repository": {

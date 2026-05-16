@@ -161,8 +161,11 @@ Effects that auto-remove (fade, flash) clean up when their duration elapses. `pa
 
 ## See Also
 
-| Guide                              | What it covers                             |
-| ---------------------------------- | ------------------------------------------ |
-| [API: Core](api-core.md)           | bootstrap, init, game loop, core types     |
-| [API: Rendering](api-rendering.md) | primitives, sprites, text, post-process    |
-| [API: Assets](api-assets.md)       | sprite sheets, bitmap fonts, asset loading |
+| Guide                                 | What it covers                             |
+| ------------------------------------- | ------------------------------------------ |
+| [API: Core](api-core.md)              | bootstrap, init, game loop, core types     |
+| [API: Rendering](api-rendering.md)    | primitives, sprites, text, post-process    |
+| [API: Assets](api-assets.md)          | sprite sheets, bitmap fonts, asset loading |
+| [Palette Guide](palette-guide.md)     | end-to-end palette workflow and best usage |
+| [Palette Presets](palette-presets.md) | exact built-in palette and HUD color data  |
+| [Testing](testing.md)                 | test tiers and palette testing patterns    |

@@ -126,9 +126,11 @@ Use `BT.systemPrint()` for debug overlays and simple HUDs. For styled variable-w
 
 ## See Also
 
-| Guide                              | What it covers                          |
-| ---------------------------------- | --------------------------------------- |
-| [API: Core](api-core.md)           | bootstrap, init, game loop, core types  |
-| [API: Rendering](api-rendering.md) | primitives, sprites, text, post-process |
-| [API: Palette](api-palette.md)     | palette setup, presets, effects         |
-| [Bitmap Fonts](bitmap-fonts.md)    | .btfont format, BMFont conversion       |
+| Guide                                 | What it covers                          |
+| ------------------------------------- | --------------------------------------- |
+| [API: Core](api-core.md)              | bootstrap, init, game loop, core types  |
+| [API: Rendering](api-rendering.md)    | primitives, sprites, text, post-process |
+| [API: Palette](api-palette.md)        | palette setup, presets, effects         |
+| [Palette Guide](palette-guide.md)     | palette-first setup, offsets, refresh   |
+| [Palette Presets](palette-presets.md) | built-in preset reference               |
+| [Bitmap Fonts](bitmap-fonts.md)       | .btfont format, BMFont conversion       |

@@ -1,0 +1,180 @@
+# Palette Guide
+
+Blit-Tech is palette-first: every visible pixel stores a palette slot index, and final RGB color comes from the active
+`Palette`. Changing palette data changes every pixel that references those slots.
+
+This guide covers the end-to-end workflow: setup, indexed sprites, palette offsets, runtime effects, and when to call
+`BT.spritesRefresh()`.
+
+---
+
+## 1) Create and activate a palette
+
+```ts
+import { BT, Color32, Palette } from 'blit-tech';
+
+const palette = Palette.c64(); // or new Palette(256)
+palette.set(1, new Color32(20, 30, 40, 255)); // custom background slot
+BT.paletteSet(palette);
+```
+
+Key rules:
+
+- Slot `0` is always transparent.
+- Valid sizes are `2, 4, 16, 32, 64, 128, 256`.
+- `BT.paletteSet()` makes one palette active for all drawing.
+
+---
+
+## 2) Draw using palette indices
+
+Draw calls accept numeric palette slots, not direct RGBA values:
+
+```ts
+BT.clear(1);
+BT.drawRectFill(rect, 6);
+BT.drawLine(start, end, 12);
+```
+
+When slot `6` changes in the active palette, every pixel drawn with slot `6` changes automatically.
+
+---
+
+## 3) Index sprites (preferred and manual flows)
+
+### Preferred: `SpriteSheet.loadIndexed(...)`
+
+Use this when loading sprites for normal game/demo work.
+
+```ts
+import { SpriteSheet } from 'blit-tech';
+
+const indexed = await SpriteSheet.loadIndexed('sprites/hero.png', palette, 32, { sort: 'luminance' });
+BT.paletteSet(palette);
+BT.drawSprite(indexed.sheet, indexed.srcRect, pos);
+```
+
+What it does:
+
+1. Extracts image colors
+2. Registers them into the palette at `startSlot`
+3. Loads the sheet
+4. Converts source pixels to palette indices
+
+### Manual: low-level control
+
+Use this when you need custom slot planning across multiple images.
+
+```ts
+await SpriteSheet.loadColorsIntoPalette('sprites/hero.png', palette, 32);
+const sheet = await SpriteSheet.load('sprites/hero.png');
+sheet.indexize(palette);
+BT.paletteSet(palette);
+```
+
+---
+
+## 4) Palette offsets (zero-cost color variants)
+
+`BT.drawSprite(..., paletteOffset)` shifts every stored sprite index before lookup:
+
+```ts
+BT.drawSprite(heroSheet, heroSrc, leftTeamPos, 0); // base range
+BT.drawSprite(heroSheet, heroSrc, rightTeamPos, 16); // same art, shifted color range
+```
+
+Use this for:
+
+- Team colors
+- Seasonal variants
+- Damage-state tint sets
+- Faction/UI themes
+
+No duplicate textures required.
+
+---
+
+## 5) Runtime palette effects
+
+Palette effects mutate slots over time and are applied in the engine frame pipeline.
+
+```ts
+// Cycling: water/lava/plasma
+BT.paletteCycle(240, 248, 4);
+
+// Full-palette fade
+BT.paletteFade(nightPalette, 2000, 'ease-in-out');
+
+// Range-only fade
+BT.paletteFadeRange(32, 63, dangerPalette, 400, 'ease-out');
+
+// Temporary flash (slot 0 transparency preserved)
+BT.paletteFlash(Color32.white, 120);
+
+// Instant swap
+BT.paletteSwap(10, 11);
+
+// Cancel running effects
+BT.paletteClearEffects();
+```
+
+---
+
+## 6) Layout swap vs value swap (`BT.spritesRefresh()`)
+
+This distinction is critical.
+
+### Value swap (no sprite refresh)
+
+If slot numbers stay the same and only RGB values change, do **not** refresh sprites.
+
+Examples:
+
+- Day/night tinting by editing slot colors
+- Palette cycling/fade/flash effects
+- Theme tweaks in place
+
+### Layout swap (refresh required)
+
+If the same colors move to different slot indices, call:
+
+```ts
+BT.paletteSet(newLayoutPalette);
+BT.spritesRefresh();
+```
+
+Why: sprite textures store indices. If your palette layout changes, old indices point to wrong colors until re-indexed.
+
+---
+
+## 7) Practical palette-first patterns
+
+- **Cycling water:** reserve 8 contiguous slots and run `paletteCycle`.
+- **Damage flash:** trigger `paletteFlash(Color32.white, durationMs)`.
+- **Day/night:** prebuild day/night palettes and use `paletteFade`.
+- **HUD stability:** reserve a dedicated slot range and avoid cycling over it.
+- **Variant economy:** organize palette in fixed ranges and use sprite offsets instead of duplicate art.
+
+---
+
+## 8) Performance notes
+
+Palette-first rendering minimizes color-update cost:
+
+- Color changes are palette writes, not full scene texture rewrites.
+- Sprite textures are indexed (one byte per pixel) rather than four-channel RGBA storage.
+- Primitive and sprite draws reuse compact index-based pipelines.
+
+For benchmark workflow and CI thresholds, see [Performance Testing](performance-testing.md).
+
+---
+
+## See Also
+
+| Guide                                 | What it covers                                     |
+| ------------------------------------- | -------------------------------------------------- |
+| [API: Palette](api-palette.md)        | API reference for palette methods and effect calls |
+| [API: Assets](api-assets.md)          | `SpriteSheet.loadIndexed`, fonts, and asset flow   |
+| [API: Rendering](api-rendering.md)    | sprite offset semantics and draw APIs              |
+| [Palette Presets](palette-presets.md) | exact built-in palette color data                  |
+| [Testing](testing.md)                 | palette testing patterns and visual regression     |

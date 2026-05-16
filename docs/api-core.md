@@ -217,6 +217,7 @@ c.toHex()                     // '#rrggbb' string
 | ---------------------------------- | ------------------------------------------------------ |
 | [API: Rendering](api-rendering.md) | primitives, sprites, text, post-process, frame capture |
 | [API: Palette](api-palette.md)     | palette setup, presets, effects                        |
+| [Palette Guide](palette-guide.md)  | palette-first workflow and practical patterns          |
 | [API: Assets](api-assets.md)       | sprite sheets, bitmap fonts, asset loading             |
 | [Input Guide](input.md)            | pointer, keyboard, gamepad                             |
 | [Testing](testing.md)              | test tiers, WebGPU mocks                               |

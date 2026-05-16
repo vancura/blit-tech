@@ -170,6 +170,7 @@ await BT.downloadFrame('screenshot-001.png'); // custom filename
 | ----------------------------------------------- | ------------------------------------------ |
 | [API: Core](api-core.md)                        | bootstrap, init, camera, core types        |
 | [API: Palette](api-palette.md)                  | palette setup, presets, effects            |
+| [Palette Guide](palette-guide.md)               | palette-first workflow and offset patterns |
 | [API: Assets](api-assets.md)                    | sprite sheets, bitmap fonts, asset loading |
 | [Post-Process Effects](post-process-effects.md) | effect chain, custom effects               |
 | [Bitmap Fonts](bitmap-fonts.md)                 | .btfont format, BMFont conversion          |
