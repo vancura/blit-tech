@@ -1,0 +1,29 @@
+# Tooling
+
+Build, declaration, and quality-tooling notes for contributors. For the full contributing workflow and IDE setup, see
+[Developer Experience Guide](developer-experience-guide.md).
+
+## TypeScript version
+
+The workspace pins **TypeScript 5.9.3** in `package.json` to match the compiler bundled with **API Extractor** (invoked
+by `vite-plugin-dts` when `rollupTypes: true`). This avoids TS/API Extractor drift warnings during `pnpm build` and
+keeps rolled-up `dist/blit-tech.d.ts` deterministic.
+
+When bumping `typescript` or `vite-plugin-dts`, confirm the build log reports the same bundled version and that
+`node scripts/check-declaration-tooling.mjs build.log` passes. See
+[Declaration tooling](developer-experience-guide.md#declaration-tooling-typescript--api-extractor) in the DX guide for
+CI details.
+
+## Declaration tooling commands
+
+| Command                                                                  | Description                                                                                                                      |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm test:declarations`                                                 | Node tests for `scripts/check-declaration-tooling.mjs` (drift patterns and alignment log parsing). Included in `pnpm preflight`. |
+| `pnpm build` then `node scripts/check-declaration-tooling.mjs build.log` | Manual check after a local build (same assertion CI runs).                                                                       |
+
+CI runs the checker after `pnpm build` in:
+
+- `.github/workflows/ci.yml` — `build-library` job
+- `.github/workflows/pr-checks.yml` — `bundle-size` job
+
+More context: [Testing — Declaration tooling checks](testing.md#declaration-tooling-checks).

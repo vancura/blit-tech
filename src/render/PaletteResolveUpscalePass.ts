@@ -17,7 +17,7 @@ export class PaletteResolveUpscalePass {
     private paletteBuffer: GPUBuffer | null = null;
     private uniformBuffer: GPUBuffer | null = null;
     /** logicalW, logicalH, filterLinear (0|1), pad */
-    private uniformData: Float32Array = new Float32Array(4);
+    private uniformData: Float32Array<ArrayBuffer> = new Float32Array(new ArrayBuffer(16));
     private filterMode: UpscaleFilter = 'nearest';
     private bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
 

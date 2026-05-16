@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/vancura/blit-tech/actions/workflows/ci.yml/badge.svg)](https://github.com/vancura/blit-tech/actions/workflows/ci.yml)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue.svg)](https://www.typescriptlang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.26.2-yellow.svg)](https://pnpm.io/)
 
@@ -141,6 +140,7 @@ bootstrap(MyDemo);
 | [Performance Testing](docs/performance-testing.md)               | CPU benchmarks, CI regression checks                   |
 | [Performance Best Practices](docs/performance-best-practices.md) | optimization guidelines                                |
 | [Developer Experience](docs/developer-experience-guide.md)       | contributing workflow, IDE setup                       |
+| [Tooling](docs/tooling.md)                                       | TypeScript pin, declaration checks, CI enforcement     |
 | [Voice Guide](docs/voice.md)                                     | error messages and user-facing string style            |
 
 ## Browser Compatibility

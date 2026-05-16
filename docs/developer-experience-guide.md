@@ -103,6 +103,21 @@ before 6 AM:
 - Major updates: manual review with `major-update` label
 - Vulnerability alerts are enabled
 
+### Declaration tooling (TypeScript / API Extractor)
+
+Public `.d.ts` output is produced by `vite-plugin-dts` with `rollupTypes: true`, which runs **API Extractor** during
+`pnpm build`. API Extractor currently ships against **TypeScript 5.9.3**, so the workspace pins the same version in
+`package.json` (not TypeScript 6.x) to avoid compiler drift warnings and keep declaration analysis deterministic.
+
+When bumping `typescript` or `vite-plugin-dts`, confirm `pnpm build` logs **no** TS/API Extractor version mismatch and
+that `dist/blit-tech.d.ts` still rolls up cleanly. Re-run `pnpm typecheck` after any TypeScript line change; TS 5.9
+stricter WebGPU typings may require small test/production fixes (for example `ArrayBuffer`-backed uniform buffers).
+
+**CI guard:** the `build-library` job runs `node scripts/check-declaration-tooling.mjs` on the `pnpm build` log after
+each build. It fails on known drift-warning patterns and verifies the API Extractor bundled TypeScript version matches
+`package.json`. Locally: `pnpm build` then `node scripts/check-declaration-tooling.mjs build.log`, or run
+`pnpm test:declarations` for the checker unit tests.
+
 ---
 
 ## Maintenance Checklist

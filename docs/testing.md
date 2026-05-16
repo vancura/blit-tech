@@ -52,6 +52,18 @@ baseline screenshots for each.
 - **Fonts** - placeholder text rendering at known positions
 - **Mixed** - primitives and sprites combined with correct layering
 
+## Declaration tooling checks
+
+Public types are rolled up during `pnpm build` via `vite-plugin-dts` and API Extractor. The workspace pins TypeScript to
+the same version API Extractor bundles (see `docs/developer-experience-guide.md`).
+
+- **`pnpm test:declarations`** — Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
+  alignment log parsing). Included in `pnpm preflight`.
+- **CI** — after `pnpm build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
+  `.github/workflows/ci.yml` (build-library job) and `.github/workflows/pr-checks.yml` (bundle-size job) to fail on
+  drift warnings and version mismatch.
+- **Manual** — `pnpm build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
+
 ## Commands
 
 ```bash
@@ -59,6 +71,7 @@ pnpm test                # Run all unit tests (alias for test:unit)
 pnpm test:unit           # Run all unit tests
 pnpm test:unit:watch     # Watch mode for development
 pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
+pnpm test:declarations   # Declaration tooling log checker (Node test)
 pnpm test:visual            # Playwright visual regression (requires Chrome)
 pnpm test:visual:update     # Update visual test baselines
 pnpm test:visual:coverage   # Visual tests with Istanbul coverage report

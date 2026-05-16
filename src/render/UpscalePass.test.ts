@@ -101,8 +101,11 @@ describe('UpscalePass.encode', () => {
         );
 
         expect(beginSpy).toHaveBeenCalledTimes(1);
-        const args = beginSpy.mock.calls[0]?.[0];
-        expect(args?.colorAttachments[0]?.view.label).toBe('dst');
+        const passDescriptor = beginSpy.mock.calls[0]?.[0];
+        const firstColorAttachment = passDescriptor?.colorAttachments
+            ? [...passDescriptor.colorAttachments][0]
+            : undefined;
+        expect(firstColorAttachment?.view.label).toBe('dst');
     });
 
     it('caches bind groups per source view', () => {

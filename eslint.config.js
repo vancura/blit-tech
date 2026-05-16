@@ -27,6 +27,8 @@ export default [
             '**/.pnpm-store/**',
             'vite.config.ts.timestamp-*',
             'tests/visual/**/*.html',
+            '.remember/**',
+            '.claude/**',
         ],
     },
 
