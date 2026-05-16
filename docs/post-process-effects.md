@@ -309,8 +309,7 @@ Extend `FullscreenEffect` when sampling RGBA at output resolution. Subclasses pr
 `sampler`), declare `tier = 'display'`, set `uniformBytes`, and implement `writeUniforms`.
 
 ```ts
-import type { Vector2i } from 'blit-tech';
-import { FullscreenEffect } from 'blit-tech/render/effects/FullscreenEffect';
+import { FullscreenEffect, type Vector2i } from 'blit-tech';
 
 export class GammaEffect extends FullscreenEffect {
   public readonly tier = 'display' as const;

@@ -16,6 +16,9 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
 /** Imports that bypass the published package entry point. */
 const FORBIDDEN_SOURCE_IMPORT = /from\s+['"]\.\.\/src\/BlitTech['"]/;
 
+/** Deep package subpath imports not exposed in package.json exports. */
+const FORBIDDEN_DEEP_PACKAGE_IMPORT = /from\s+['"]blit-tech\/render\//;
+
 /**
  * Recursively collects markdown file paths under a directory.
  *
@@ -48,6 +51,13 @@ describe('consumer documentation imports', () => {
             const match = FORBIDDEN_SOURCE_IMPORT.exec(content);
 
             expect(match, `found forbidden source import in ${relativePath}: ${match?.[0] ?? ''}`).toBeNull();
+        });
+
+        it(`${relativePath} must not deep-import blit-tech/render/...`, () => {
+            const content = readFileSync(join(REPO_ROOT, relativePath), 'utf8');
+            const match = FORBIDDEN_DEEP_PACKAGE_IMPORT.exec(content);
+
+            expect(match, `found forbidden deep package import in ${relativePath}: ${match?.[0] ?? ''}`).toBeNull();
         });
     }
 });

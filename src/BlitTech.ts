@@ -37,6 +37,8 @@ import { RollLine } from './render/effects/display/RollLine';
 import { Scanlines } from './render/effects/display/Scanlines';
 import { Vignette } from './render/effects/display/Vignette';
 import type { Effect, EffectTier } from './render/effects/Effect';
+import { FullscreenEffect } from './render/effects/FullscreenEffect';
+import { FullscreenPixelEffect } from './render/effects/FullscreenPixelEffect';
 import { PixelGlitch } from './render/effects/pixel/PixelGlitch';
 import { PixelMosaic } from './render/effects/pixel/PixelMosaic';
 import { amber, crtPipBoy, green } from './render/effects/presets';
@@ -1472,6 +1474,8 @@ export {
     defaultConfig,
     displayError,
     Flicker,
+    FullscreenEffect,
+    FullscreenPixelEffect,
     getCanvas,
     green,
     Interference,
