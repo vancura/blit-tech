@@ -47,12 +47,16 @@ complex frameworks, just sprites, primitives, and fonts.
 
 ## Installation
 
-**Note:** Blit-Tech is currently in development and not yet published to npm. Clone the repository to use it:
+Install [blit-tech](https://www.npmjs.com/package/blit-tech) from npm:
 
 ```bash
-git clone https://github.com/vancura/blit-tech.git
-cd blit-tech
-pnpm install
+pnpm add blit-tech
+```
+
+Or with npm:
+
+```bash
+npm install blit-tech
 ```
 
 ## Examples & Demos
@@ -62,7 +66,7 @@ For interactive examples and demos, visit the [Blit-Tech Demos repository](https
 ## Quick Start
 
 ```ts
-import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i, type IBlitTechDemo } from '../src/BlitTech';
+import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i, type IBlitTechDemo } from 'blit-tech';
 
 const BG = 1;
 const RED = 2;
