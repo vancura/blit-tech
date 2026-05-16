@@ -72,9 +72,8 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 | `detectDroppedFrames` | `boolean`                | `false`     | Log a console warning on missed vsync         |
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
-names on {@link HardwareSettings}. `outputSize` is the effective drawing-buffer size
-(`canvasDisplaySize ?? displaySize`). `activeBackend` is the backend that actually started (after fallback), not the
-`renderer` value from `configure()`.
+names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
+`activeBackend` is the backend that actually started (after fallback), not the `renderer` value from `configure()`.
 
 ---
 

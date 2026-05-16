@@ -155,6 +155,18 @@ describe('BT.canvasDisplaySize', () => {
         expect(size?.x).toBe(640);
         expect(size?.y).toBe(480);
     });
+
+    it('returns an independent clone per read', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
+            ...mockHardwareSettings(),
+            canvasDisplaySize: new Vector2i(640, 480),
+        });
+
+        const first = BT.canvasDisplaySize;
+        first!.x = 999;
+
+        expect(BT.canvasDisplaySize?.x).toBe(640);
+    });
 });
 
 describe('BT.outputSize', () => {
@@ -190,6 +202,15 @@ describe('BT.outputSize', () => {
 
         expect(size.x).toBe(640);
         expect(size.y).toBe(480);
+    });
+
+    it('returns an independent clone per read', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(320, 240)));
+
+        const first = BT.outputSize;
+        first.x = 999;
+
+        expect(BT.outputSize.x).toBe(320);
     });
 });
 
@@ -544,6 +565,16 @@ describe('BT.camera', () => {
         const result = BT.camera;
 
         expect(result).toBe(expected);
+    });
+
+    it('returns an independent clone per read', () => {
+        const stored = new Vector2i(64, 32);
+        vi.spyOn(BTAPI.instance, 'getCameraOffset').mockImplementation(() => stored.clone());
+
+        const first = BT.camera;
+        first.x = 999;
+
+        expect(BT.camera.x).toBe(64);
     });
 });
 
