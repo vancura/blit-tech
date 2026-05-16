@@ -12,6 +12,11 @@ Run comprehensive quality checks before committing or pushing code.
 /preflight
 ```
 
+## Prerequisites
+
+- **Node.js** >=22.18.0 (`engines` in `package.json`)
+- **pnpm** 10.26.2+ (`packageManager` in `package.json`)
+
 ## Steps
 
 1. **Run all checks**

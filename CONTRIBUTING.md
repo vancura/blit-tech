@@ -132,9 +132,14 @@ All code must follow the project's style guidelines:
 - **Linting** - Code must pass all linting checks
 - **JSDoc** - Required for public APIs
 
+### Development environment
+
+- **Node.js** >=22.18.0 (`engines` in `package.json`)
+- **pnpm** 10.26.2+ (`packageManager` in `package.json`)
+
 ### Pre-commit Checks
 
-Before committing, run the preflight checks:
+Before committing, run the preflight checks (requires the Node.js version above):
 
 ```bash
 pnpm preflight

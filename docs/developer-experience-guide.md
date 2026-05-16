@@ -10,6 +10,7 @@ Blit-Tech project.
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key points:
 
 - Fork the repository and create a feature branch from `main`.
+- Use **Node.js** >=22.18.0 and **pnpm** 10.26.2+ (see `engines` and `packageManager` in `package.json`).
 - Run `pnpm install` and confirm `pnpm preflight` passes before opening a PR.
 - All commits require a DCO sign-off: use `git commit -s`.
 - Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.

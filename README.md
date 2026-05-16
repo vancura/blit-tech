@@ -59,7 +59,7 @@ complex frameworks, just sprites, primitives, and fonts.
 
 **App toolchain**
 
-- **Node.js** v22 or higher (LTS)
+- **Node.js** >=22.18.0 (LTS)
 - An **ESM bundler** (Vite, webpack, esbuild, and similar) to load the published package in the browser
 
 ## Installation
@@ -157,7 +157,8 @@ See [API: Core](docs/api-core.md) for `bootstrap()` options and
 The commands below apply when building or contributing to **blit-tech** from a repository checkout (not when consuming
 the npm package). See [CONTRIBUTING.md](CONTRIBUTING.md) for clone setup, DCO sign-off, and pull request workflow.
 
-**Repository prerequisites:** **pnpm** v10.26.2 or higher (see `packageManager` in `package.json`).
+**Repository prerequisites:** **Node.js** >=22.18.0 (see `engines` in `package.json`); **pnpm** v10.26.2 or higher (see
+`packageManager` in `package.json`).
 
 ### Scripts
 
