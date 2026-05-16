@@ -66,6 +66,9 @@ export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: Canv
     if (options.canvasDisplaySize) {
         canvas.style.width = `${options.canvasDisplaySize.x}px`;
         canvas.style.height = `${options.canvasDisplaySize.y}px`;
+    } else {
+        canvas.style.width = '';
+        canvas.style.height = '';
     }
 }
 

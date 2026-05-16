@@ -48,4 +48,28 @@ describe('applyCanvasLayoutStyles', () => {
         expect(container.style.getPropertyValue('--canvas-display-h')).toBe('300');
         expect(canvas.style.width).toBe('');
     });
+
+    it('clears inline width/height when canvasDisplaySize is removed on second call', () => {
+        const container = document.createElement('div');
+        const canvas = document.createElement('canvas');
+
+        container.id = 'canvas-container';
+        container.appendChild(canvas);
+
+        applyCanvasLayoutStyles(canvas, {
+            displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
+            maxCanvasDisplaySize: new Vector2i(960, 720),
+        });
+
+        applyCanvasLayoutStyles(canvas, {
+            displaySize: new Vector2i(320, 240),
+            maxCanvasDisplaySize: new Vector2i(960, 720),
+        });
+
+        expect(container.style.getPropertyValue('--canvas-display-w')).toBe('320');
+        expect(container.style.getPropertyValue('--canvas-display-h')).toBe('240');
+        expect(canvas.style.width).toBe('');
+        expect(canvas.style.height).toBe('');
+    });
 });

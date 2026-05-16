@@ -1,3 +1,4 @@
+import { DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import { Vector2i } from '../utils/Vector2i';
 
 // #region Type Definitions
@@ -154,7 +155,7 @@ export function defaultConfig(): HardwareSettings {
     return {
         displaySize: new Vector2i(320, 240),
         canvasDisplaySize: new Vector2i(640, 480),
-        maxCanvasDisplaySize: new Vector2i(960, 720),
+        maxCanvasDisplaySize: new Vector2i(DEFAULT_MAX_CANVAS_DISPLAY_SIZE.x, DEFAULT_MAX_CANVAS_DISPLAY_SIZE.y),
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
     };
