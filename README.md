@@ -37,16 +37,21 @@ complex frameworks, just sprites, primitives, and fonts.
 
 ## Prerequisites
 
-- **Node.js** v22 or higher (LTS)
-- **pnpm** v10.26.2 or higher
-- A **WebGPU-compatible browser**:
+**Runtime (browser)**
+
+- A **WebGPU-compatible browser** (the engine falls back to Canvas 2D software rendering when WebGPU is unavailable):
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
   - Firefox 141+ on Windows; 145+/147+ on macOS; Nightly on Linux and Android
   - Safari 26+ (macOS Tahoe / iOS 26); or Safari 18–25 with WebGPU enabled via Feature Flags
 
+**App toolchain**
+
+- **Node.js** v22 or higher (LTS)
+- An **ESM bundler** (Vite, webpack, esbuild, and similar) to load the published package in the browser
+
 ## Installation
 
-Install **blit-tech** from npm:
+Install **blit-tech** from npm (1.0.0):
 
 ```bash
 pnpm add blit-tech
@@ -64,8 +69,30 @@ For interactive examples and demos, visit the [Blit-Tech Demos repository](https
 
 ## Quick Start
 
+`bootstrap()` expects a canvas inside `#canvas-container` (defaults: canvas id `blit-tech-canvas`, container id
+`canvas-container`). Pair the HTML below with a TypeScript entry module in any ESM bundler setup.
+
+**`index.html`**
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Blit-Tech Demo</title>
+  </head>
+  <body>
+    <div id="canvas-container"><canvas id="blit-tech-canvas"></canvas></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+```
+
+**`src/main.ts`**
+
 ```ts
-import { bootstrap, BT, Color32, Palette, Rect2i, Vector2i, type IBlitTechDemo } from 'blit-tech';
+import { bootstrap, BT, Color32, Palette, Rect2i, type IBlitTechDemo } from 'blit-tech';
 
 const BG = 1;
 const RED = 2;
@@ -92,7 +119,27 @@ class MyDemo implements IBlitTechDemo {
 bootstrap(MyDemo);
 ```
 
-## Scripts
+**Scaffold and run** (Vite + TypeScript):
+
+```bash
+pnpm create vite my-demo --template vanilla-ts
+cd my-demo
+pnpm add blit-tech
+# Add the HTML and main.ts snippets above, then:
+pnpm dev
+```
+
+See [API: Core](docs/api-core.md) for `bootstrap()` options and
+[Developer Experience](docs/developer-experience-guide.md) when working from a git clone.
+
+## Developing the library
+
+The commands below apply when building or contributing to **blit-tech** from a repository checkout (not when consuming
+the npm package). See [CONTRIBUTING.md](CONTRIBUTING.md) for clone setup, DCO sign-off, and pull request workflow.
+
+**Repository prerequisites:** **pnpm** v10.26.2 or higher (see `packageManager` in `package.json`).
+
+### Scripts
 
 | Command                     | Description                                                              |
 | --------------------------- | ------------------------------------------------------------------------ |
