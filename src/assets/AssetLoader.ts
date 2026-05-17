@@ -1,3 +1,5 @@
+import { assertImageElementWithinLimits } from '../utils/AssetLimits';
+
 // #region Module State
 
 /**
@@ -117,6 +119,14 @@ export class AssetLoader {
             const img = new Image();
 
             img.onload = () => {
+                try {
+                    assertImageElementWithinLimits('image', img);
+                } catch (error) {
+                    loadingPromises.delete(url);
+                    reject(error);
+                    return;
+                }
+
                 loadedImages.set(url, img);
                 loadingPromises.delete(url);
                 resolve(img);

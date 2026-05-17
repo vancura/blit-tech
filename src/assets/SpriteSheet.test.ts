@@ -17,6 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
+import { AssetLimitError, MAX_ASSET_DIMENSION } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { AssetLoader } from './AssetLoader';
@@ -345,6 +346,15 @@ describe('SpriteSheet', () => {
             expect(closeSpy).toHaveBeenCalledOnce();
         });
 
+        it('rejects oversized images returned from AssetLoader', async () => {
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue({
+                width: MAX_ASSET_DIMENSION + 1,
+                height: 16,
+            } as HTMLImageElement);
+
+            await expect(SpriteSheet.load('huge.png')).rejects.toBeInstanceOf(AssetLimitError);
+        });
+
         it('should close imageBitmap on destroy when getTexture was never called', async () => {
             const closeSpy = vi.fn();
             vi.stubGlobal(
@@ -581,13 +591,26 @@ describe('SpriteSheet', () => {
             expect(() => sheet.getImage()).toThrow('not available for sheets created from raw indexed data');
         });
 
-        it('throws RangeError when pixel array length mismatches dimensions', () => {
+        it('throws AssetLimitError when pixel array length mismatches dimensions', () => {
             const pixels = new Uint8Array(10) as Uint8Array<ArrayBuffer>;
 
-            expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(RangeError);
+            expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(AssetLimitError);
             expect(() => SpriteSheet.fromIndexedPixels(4, 4, pixels)).toThrow(
                 'The pixel data has 10 values, but a 4x4 sheet needs exactly 16.',
             );
+        });
+
+        it('rejects invalid raw dimensions before retaining buffers', () => {
+            const pixels = new Uint8Array(16) as Uint8Array<ArrayBuffer>;
+
+            expect(() => SpriteSheet.fromIndexedPixels(0, 4, pixels)).toThrow(AssetLimitError);
+            expect(() => SpriteSheet.fromIndexedPixels(Number.NaN, 4, pixels)).toThrow(AssetLimitError);
+        });
+
+        it('rejects oversized indexed dimensions before allocation', () => {
+            const pixels = new Uint8Array(16) as Uint8Array<ArrayBuffer>;
+
+            expect(() => SpriteSheet.fromIndexedPixels(MAX_ASSET_DIMENSION + 1, 16, pixels)).toThrow(AssetLimitError);
         });
 
         it('creates r8uint GPU texture via getTexture', () => {

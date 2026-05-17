@@ -182,6 +182,54 @@ describe('SoftwareRenderer', () => {
         expect(getPixel(frame as ImageData, 4, 1, 0)).toEqual([255, 255, 0, 255]);
     });
 
+    it('skips invalid sprite source rectangles in software rendering', async () => {
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: canvasGet2d(context),
+            toBlob: (_cb: (blob: Blob | null) => void) => {},
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const sheet = SpriteSheet.fromIndexedPixels(2, 2, new Uint8Array([1, 2, 3, 4]));
+        renderer.beginFrame();
+        renderer.drawSprite(sheet, new Rect2i(0, 0, 2, 2), new Vector2i(0, 0), 0);
+        renderer.drawSprite(sheet, new Rect2i(2, 0, -1, 2), new Vector2i(2, 0), 0);
+        renderer.endFrame();
+
+        const frame = logicalContext.lastImageData;
+        expect(frame).not.toBeNull();
+        expect(getPixel(frame as ImageData, 4, 0, 0)).toEqual([255, 0, 0, 255]);
+        expect(getPixel(frame as ImageData, 4, 2, 0)).toEqual([0, 0, 0, 0]);
+    });
+
+    it('clips partial sprite source rectangles while preserving destination alignment', async () => {
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: canvasGet2d(context),
+            toBlob: (_cb: (blob: Blob | null) => void) => {},
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const sheet = SpriteSheet.fromIndexedPixels(2, 2, new Uint8Array([1, 2, 3, 0]));
+        renderer.beginFrame();
+        renderer.drawSprite(sheet, new Rect2i(-1, 0, 2, 2), new Vector2i(0, 0), 0);
+        renderer.endFrame();
+
+        const frame = logicalContext.lastImageData;
+        expect(frame).not.toBeNull();
+        expect(getPixel(frame as ImageData, 4, 0, 0)).toEqual([0, 0, 0, 0]);
+        expect(getPixel(frame as ImageData, 4, 1, 0)).toEqual([255, 0, 0, 255]);
+        expect(getPixel(frame as ImageData, 4, 1, 1)).toEqual([0, 255, 0, 255]);
+    });
+
     it('renders bitmap text through sprite-backed glyphs', async () => {
         const canvas = {
             width: 0,

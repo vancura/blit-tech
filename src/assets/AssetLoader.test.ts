@@ -14,6 +14,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AssetLimitError, MAX_ASSET_DIMENSION } from '../utils/AssetLimits';
 import { AssetLoader } from './AssetLoader';
 
 afterEach(() => {
@@ -152,6 +153,8 @@ describe('AssetLoader', () => {
                 class {
                     onload: (() => void) | null = null;
                     onerror: (() => void) | null = null;
+                    width = 100;
+                    height = 100;
                     private _src = '';
 
                     get src(): string {
@@ -203,6 +206,24 @@ describe('AssetLoader', () => {
             await expect(AssetLoader.loadImage('fail/sprites/hero.png')).rejects.toThrow(
                 "Did you mean '/images/fail/sprites/hero.png' or './images/fail/sprites/hero.png'?",
             );
+        });
+
+        it('should reject oversized images after decode', async () => {
+            vi.stubGlobal(
+                'Image',
+                class {
+                    onload: (() => void) | null = null;
+                    onerror: (() => void) | null = null;
+                    width = MAX_ASSET_DIMENSION + 1;
+                    height = 16;
+
+                    set src(_: string) {
+                        this.onload?.();
+                    }
+                },
+            );
+
+            await expect(AssetLoader.loadImage('huge.png')).rejects.toBeInstanceOf(AssetLimitError);
         });
 
         it('should suggest .png when a font extension is used for an image URL', async () => {

@@ -14,6 +14,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_BTFONT_JSON_BYTES, MAX_GLYPH_COUNT } from '../utils/AssetLimits';
 import { Rect2i } from '../utils/Rect2i';
 import { BitmapFont } from './BitmapFont';
 import { SpriteSheet } from './SpriteSheet';
@@ -81,6 +82,21 @@ function createStubImage({
  * Includes ASCII glyphs plus one extended Unicode glyph so the tests can cover
  * both the fast ASCII lookup table and the fallback Unicode map path.
  */
+/**
+ * Builds a mocked fetch response that returns JSON text like {@link BitmapFont.load} expects.
+ *
+ * @param data - Font descriptor object to serialize.
+ * @returns Resolved fetch response stub.
+ */
+function mockFontFetchResponse(data: unknown) {
+    return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: vi.fn().mockResolvedValue(JSON.stringify(data)),
+    };
+}
+
 const MOCK_FONT_DATA: FontData = {
     name: 'TestFont',
     size: 12,
@@ -106,15 +122,7 @@ describe('BitmapFont', () => {
         vi.stubGlobal('Image', createStubImage());
 
         // Stub fetch to return the mock font data.
-        vi.stubGlobal(
-            'fetch',
-            vi.fn().mockResolvedValue({
-                ok: true,
-                status: 200,
-                statusText: 'OK',
-                json: vi.fn().mockResolvedValue(MOCK_FONT_DATA),
-            }),
-        );
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockFontFetchResponse(MOCK_FONT_DATA)));
 
         font = await BitmapFont.load('test.btfont');
     });
@@ -283,16 +291,15 @@ describe('BitmapFont', () => {
         it('should throw when font JSON is missing the texture field', async () => {
             vi.stubGlobal(
                 'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
                         name: 'Test',
                         size: 12,
                         lineHeight: 14,
                         baseline: 10,
                         glyphs: {},
                     }),
-                }),
+                ),
             );
 
             await expect(BitmapFont.load('bad.btfont')).rejects.toThrow(
@@ -303,16 +310,15 @@ describe('BitmapFont', () => {
         it('should throw when font JSON is missing the glyphs field', async () => {
             vi.stubGlobal(
                 'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
                         name: 'Test',
                         size: 12,
                         lineHeight: 14,
                         baseline: 10,
                         texture: 'data:image/png;base64,aGVsbG8=',
                     }),
-                }),
+                ),
             );
 
             await expect(BitmapFont.load('bad.btfont')).rejects.toThrow(
@@ -322,13 +328,7 @@ describe('BitmapFont', () => {
 
         it('should throw when the font texture image fails to load', async () => {
             vi.stubGlobal('Image', createStubImage({ fireError: true }));
-            vi.stubGlobal(
-                'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue(MOCK_FONT_DATA),
-                }),
-            );
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockFontFetchResponse(MOCK_FONT_DATA)));
 
             await expect(BitmapFont.load('test.btfont')).rejects.toThrow("Can't find the font texture image");
         });
@@ -339,6 +339,69 @@ describe('BitmapFont', () => {
             await expect(BitmapFont.load('missing.json')).rejects.toThrow(
                 "The extension '.json' looks wrong for this file. Did you mean '.btfont'?",
             );
+        });
+
+        it('should reject oversized .btfont JSON before parsing glyphs', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    text: vi.fn().mockResolvedValue(' '.repeat(MAX_BTFONT_JSON_BYTES + 1)),
+                }),
+            );
+
+            await expect(BitmapFont.load('huge.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+        });
+
+        it('should reject fonts with too many glyphs', async () => {
+            const glyphs: Record<string, GlyphData> = {};
+
+            for (let i = 0; i < MAX_GLYPH_COUNT + 1; i++) {
+                glyphs[`g${i}`] = { x: 0, y: 0, w: 1, h: 1, ox: 0, oy: 0, adv: 1 };
+            }
+
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockFontFetchResponse({ ...MOCK_FONT_DATA, glyphs })));
+
+            await expect(BitmapFont.load('many-glyphs.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+        });
+
+        it('should reject glyph rectangles outside the texture atlas', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        glyphs: {
+                            A: { x: 60, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 },
+                        },
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('bad-glyph.btfont')).rejects.toThrow('outside the 64x16 font texture');
+        });
+
+        it('should reject invalid glyph metrics', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        glyphs: {
+                            A: { x: 0, y: 0, w: 8.5, h: 12, ox: 0, oy: 0, adv: 9 },
+                        },
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('bad-metrics.btfont')).rejects.toThrow('invalid width (w)');
+        });
+
+        it('should reject oversized font textures before creating a sprite sheet', async () => {
+            vi.stubGlobal('Image', createStubImage({ width: MAX_ASSET_DIMENSION + 1, height: 16 }));
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockFontFetchResponse(MOCK_FONT_DATA)));
+
+            await expect(BitmapFont.load('huge-texture.btfont')).rejects.toBeInstanceOf(AssetLimitError);
         });
 
         it('should suggest absolute and relative paths when font URL omits / or ./', async () => {
@@ -363,10 +426,7 @@ describe('BitmapFont', () => {
 
             vi.stubGlobal(
                 'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({ ...MOCK_FONT_DATA, texture: 'font-atlas.png' }),
-                }),
+                vi.fn().mockResolvedValue(mockFontFetchResponse({ ...MOCK_FONT_DATA, texture: 'font-atlas.png' })),
             );
 
             const loaded = await BitmapFont.load('fonts/test.btfont');
@@ -384,13 +444,12 @@ describe('BitmapFont', () => {
         it('should use defaults when name, size, lineHeight, baseline are missing', async () => {
             vi.stubGlobal(
                 'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
                         texture: 'data:image/png;base64,aGVsbG8=',
                         glyphs: { A: { x: 0, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 } },
                     }),
-                }),
+                ),
             );
 
             const f = await BitmapFont.load('minimal.btfont');
@@ -401,18 +460,39 @@ describe('BitmapFont', () => {
             expect(f.baseline).toBe(12);
         });
 
+        it('should fall back when size, lineHeight, and baseline are invalid', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        name: 'BadMetricsFont',
+                        size: -5,
+                        lineHeight: 'not-a-number',
+                        baseline: 0,
+                        texture: 'data:image/png;base64,aGVsbG8=',
+                        glyphs: { A: { x: 0, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 } },
+                    }),
+                ),
+            );
+
+            const f = await BitmapFont.load('bad-meta.btfont');
+
+            expect(f.size).toBe(12);
+            expect(f.lineHeight).toBe(12);
+            expect(f.baseline).toBe(12);
+        });
+
         it('should use size as a fallback for lineHeight and baseline', async () => {
             vi.stubGlobal(
                 'fetch',
-                vi.fn().mockResolvedValue({
-                    ok: true,
-                    json: vi.fn().mockResolvedValue({
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
                         name: 'CustomFont',
                         size: 16,
                         texture: 'data:image/png;base64,aGVsbG8=',
                         glyphs: { A: { x: 0, y: 0, w: 8, h: 16, ox: 0, oy: 0, adv: 9 } },
                     }),
-                }),
+                ),
             );
 
             const f = await BitmapFont.load('partial.btfont');
