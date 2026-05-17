@@ -30,7 +30,11 @@ export interface HardwareSettings {
      * Logical render resolution in pixels (e.g. `320x240`).
      *
      * Must use positive whole-number dimensions no larger than `8192x8192`
-     * and no more than `16,777,216` total pixels.
+     * and no more than `16,777,216` total pixels. When running in WebGPU mode
+     * the width and height must also not exceed the active adapter's
+     * `maxTextureDimension2D` limit (typically `8192` or `16384` depending on
+     * the GPU); compare both the numeric caps above and
+     * `GPUAdapter.limits.maxTextureDimension2D` when choosing dimensions.
      */
     displaySize: Vector2i;
 
@@ -46,7 +50,11 @@ export interface HardwareSettings {
      * logical pixel grid.
      *
      * Must use positive whole-number dimensions no larger than `8192x8192`
-     * and no more than `16,777,216` total pixels.
+     * and no more than `16,777,216` total pixels. When running in WebGPU mode
+     * the width and height must also not exceed the active adapter's
+     * `maxTextureDimension2D` limit (typically `8192` or `16384` depending on
+     * the GPU); compare both the numeric caps above and
+     * `GPUAdapter.limits.maxTextureDimension2D` when choosing dimensions.
      */
     canvasDisplaySize?: Vector2i;
 
@@ -56,7 +64,11 @@ export interface HardwareSettings {
      * size. Defaults to `960x720` in {@link defaultConfig}.
      *
      * Must use positive whole-number dimensions no larger than `8192x8192`
-     * and no more than `16,777,216` total pixels.
+     * and no more than `16,777,216` total pixels. When running in WebGPU mode
+     * the width and height must also not exceed the active adapter's
+     * `maxTextureDimension2D` limit (typically `8192` or `16384` depending on
+     * the GPU); compare both the numeric caps above and
+     * `GPUAdapter.limits.maxTextureDimension2D` when choosing dimensions.
      */
     maxCanvasDisplaySize?: Vector2i;
 
