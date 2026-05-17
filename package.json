@@ -85,9 +85,9 @@
       "vite-node": "^5.2.0",
       "esbuild": "^0.25.0"
     },
-    "ignoredBuiltDependencies": [
-      "esbuild"
-    ]
+    "allowBuilds": {
+      "esbuild": true
+    }
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
