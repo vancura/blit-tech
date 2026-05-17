@@ -28,6 +28,7 @@ import {
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
 import type { Rect2i } from '../utils/Rect2i';
+import { RenderDimensionLimitError, validateRenderDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
@@ -194,6 +195,13 @@ export class BTAPI {
         this.applyRendererQueryOverride();
 
         const { targetFPS } = this.hwSettings;
+        const renderDimensionError = validateRenderDimensions(this.hwSettings);
+
+        if (renderDimensionError) {
+            console.error(`[BT] ${renderDimensionError}`);
+
+            return false;
+        }
 
         if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
             console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
@@ -877,7 +885,11 @@ export class BTAPI {
             let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
             try {
                 webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
-            } catch {
+            } catch (error) {
+                if (error instanceof RenderDimensionLimitError) {
+                    return false;
+                }
+
                 // Adapter/device unavailable; fall through to software.
             }
 

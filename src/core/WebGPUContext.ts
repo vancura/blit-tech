@@ -1,4 +1,5 @@
 import { WEBGPU_ADAPTER_MESSAGE, WEBGPU_DEVICE_MESSAGE } from '../utils/errorMessages';
+import { RenderDimensionLimitError, validateWebGPUTextureDimension } from '../utils/RenderLimits';
 import type { Vector2i } from '../utils/Vector2i';
 
 // #region Types
@@ -68,6 +69,22 @@ export async function initWebGPU(
         throw new Error(WEBGPU_ADAPTER_MESSAGE);
     }
 
+    // Drawing buffer = canvasDisplaySize when provided, else logical displaySize.
+    const drawingBufferSize = canvasDisplaySize ?? displaySize;
+    const adapterLimit = adapter.limits?.maxTextureDimension2D;
+    const adapterDisplayError = validateWebGPUTextureDimension('displaySize', displaySize, adapterLimit);
+    const adapterOutputError =
+        canvasDisplaySize === undefined
+            ? null
+            : validateWebGPUTextureDimension('canvasDisplaySize', drawingBufferSize, adapterLimit);
+    const adapterDimensionError = adapterDisplayError ?? adapterOutputError;
+
+    if (adapterDimensionError) {
+        console.error(`[BT] ${adapterDimensionError}`);
+
+        throw new RenderDimensionLimitError(adapterDimensionError);
+    }
+
     // Request device.
     let device: GPUDevice;
 
@@ -79,11 +96,22 @@ export async function initWebGPU(
         throw new Error(WEBGPU_DEVICE_MESSAGE, { cause: err });
     }
 
-    // Drawing buffer = canvasDisplaySize when provided, else logical displaySize.
+    const deviceLimit = device.limits?.maxTextureDimension2D;
+    const deviceDisplayError = validateWebGPUTextureDimension('displaySize', displaySize, deviceLimit);
+    const deviceOutputError =
+        canvasDisplaySize === undefined
+            ? null
+            : validateWebGPUTextureDimension('canvasDisplaySize', drawingBufferSize, deviceLimit);
+    const deviceDimensionError = deviceDisplayError ?? deviceOutputError;
+
+    if (deviceDimensionError) {
+        console.error(`[BT] ${deviceDimensionError}`);
+
+        throw new RenderDimensionLimitError(deviceDimensionError);
+    }
+
     // Set canvas resolution BEFORE getting the WebGPU context so getCurrentTexture()
     // returns valid textures.
-    const drawingBufferSize = canvasDisplaySize ?? displaySize;
-
     canvas.width = drawingBufferSize.x;
     canvas.height = drawingBufferSize.y;
 

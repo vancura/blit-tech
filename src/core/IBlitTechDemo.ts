@@ -26,7 +26,12 @@ export type RendererBackend = 'webgpu' | 'software';
  * implements that optional hook, or by {@link defaultConfig} otherwise.
  */
 export interface HardwareSettings {
-    /** Logical render resolution in pixels (e.g. `320x240`). */
+    /**
+     * Logical render resolution in pixels (e.g. `320x240`).
+     *
+     * Must use positive whole-number dimensions no larger than `8192x8192`
+     * and no more than `16,777,216` total pixels.
+     */
     displaySize: Vector2i;
 
     /**
@@ -39,6 +44,9 @@ export interface HardwareSettings {
      * Display-tier effects need this to be larger than `displaySize` to express
      * curvature/scanlines/etc. cleanly without floor-quantizing onto the
      * logical pixel grid.
+     *
+     * Must use positive whole-number dimensions no larger than `8192x8192`
+     * and no more than `16,777,216` total pixels.
      */
     canvasDisplaySize?: Vector2i;
 
@@ -46,6 +54,9 @@ export interface HardwareSettings {
      * Maximum on-screen canvas size in CSS pixels. The demos layout scales the
      * canvas up to the viewport (preserving aspect ratio) but not beyond this
      * size. Defaults to `960x720` in {@link defaultConfig}.
+     *
+     * Must use positive whole-number dimensions no larger than `8192x8192`
+     * and no more than `16,777,216` total pixels.
      */
     maxCanvasDisplaySize?: Vector2i;
 

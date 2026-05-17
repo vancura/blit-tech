@@ -62,14 +62,20 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 
 **`HardwareSettings`** (returned from `configure()`):
 
-| Field                 | Type                     | Default     | Description                                   |
-| --------------------- | ------------------------ | ----------- | --------------------------------------------- |
-| `displaySize`         | `Vector2i`               | `320×240`   | Logical render resolution                     |
-| `canvasDisplaySize`   | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects |
-| `targetFPS`           | `number`                 | `60`        | Fixed-update rate                             |
-| `renderer`            | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                 |
-| `outputUpscaleFilter` | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
-| `detectDroppedFrames` | `boolean`                | `false`     | Log a console warning on missed vsync         |
+| Field                  | Type                     | Default     | Description                                   |
+| ---------------------- | ------------------------ | ----------- | --------------------------------------------- |
+| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                     |
+| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects |
+| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size             |
+| `targetFPS`            | `number`                 | `60`        | Fixed-update rate                             |
+| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                 |
+| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
+| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync         |
+
+`displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
+is capped at `8192×8192` per axis and `16,777,216` total pixels. Invalid sizes make initialization fail before the
+engine applies canvas layout or allocates renderer buffers. In WebGPU mode, the requested logical and output sizes must
+also fit the active adapter/device `maxTextureDimension2D` limit.
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).

@@ -20,6 +20,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUCanvasContext,
+    createMockGPUDevice,
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
@@ -367,6 +368,92 @@ describe('BTAPI', () => {
             const result = await BTAPI.instance.init(makeMockDemo(-30), makeMockCanvas());
 
             expect(result).toBe(false);
+        });
+
+        it('rejects invalid displaySize before layout or renderer setup', async () => {
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: { x: 0, y: 240 } as Vector2i,
+                    targetFPS: 60,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMockCanvas();
+            const getContext = vi.fn(canvas.getContext.bind(canvas));
+            (canvas as unknown as { getContext: typeof getContext }).getContext = getContext;
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(canvas.style.setProperty).not.toHaveBeenCalled();
+            expect(getContext).not.toHaveBeenCalled();
+            expect(demo.init).not.toHaveBeenCalled();
+        });
+
+        it('rejects invalid software canvasDisplaySize before software renderer allocation', async () => {
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: { x: 8193, y: 480 } as Vector2i,
+                    targetFPS: 60,
+                    renderer: 'software',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMock2DCanvas();
+            const getContext = vi.fn(canvas.getContext.bind(canvas));
+            (canvas as unknown as { getContext: typeof getContext }).getContext = getContext;
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(getContext).not.toHaveBeenCalled();
+        });
+
+        it('rejects WebGPU dimensions above adapter texture limits before canvas allocation', async () => {
+            const requestDevice = vi.fn(async () => createMockGPUDevice());
+            Object.defineProperty(globalThis, 'navigator', {
+                value: {
+                    gpu: {
+                        requestAdapter: async () => ({
+                            requestDevice,
+                            features: new Set(),
+                            limits: { maxTextureDimension2D: 1024 } as GPUSupportedLimits,
+                        }),
+                        getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                    },
+                    userAgent: 'test',
+                },
+                writable: true,
+                configurable: true,
+            });
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(2048, 1024),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMockCanvas();
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(requestDevice).not.toHaveBeenCalled();
+            expect(demo.init).not.toHaveBeenCalled();
         });
 
         it('returns false when both WebGPU and software renderer init fail', async () => {
