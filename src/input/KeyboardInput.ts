@@ -8,7 +8,7 @@
 /** Options supplied when attaching to the canvas. */
 export interface KeyboardAttachOptions {
     /**
-     * Returns the current fixed-update tick (same as `BT.ticks()`).
+     * Returns the current fixed-update tick (same as `BT.ticks`).
      * Used when recording first key-down time for `keyPressed(..., repeatRate)`.
      */
     getTicks: () => number;
@@ -105,7 +105,7 @@ export class KeyboardInput {
      * Snapshots held keys into `prevHeld` for next frame's edge detection.
      * Clears the text buffer after the frame (call after demo has read {@link getInputString}).
      *
-     * @param _currentTick - Fixed-update tick count after this frame's updates (`BT.ticks()`).
+     * @param _currentTick - Fixed-update tick count after this frame's updates (`BT.ticks`).
      */
     public endFrame(_currentTick: number): void {
         this.prevHeld.clear();
@@ -132,7 +132,7 @@ export class KeyboardInput {
      *
      * @param code - DOM key code string.
      * @param repeatRate - Ticks between repeats; omit or non-positive for edge only.
-     * @param currentTick - Current fixed-update tick (`BT.ticks()`).
+     * @param currentTick - Current fixed-update tick (`BT.ticks`).
      * @returns `true` on the initial press edge or on repeat ticks when configured.
      */
     public isKeyPressed(code: string, repeatRate: number | undefined, currentTick: number): boolean {
@@ -205,7 +205,7 @@ export class KeyboardInput {
      *
      * @param codes - `KeyboardEvent.code` values for one logical button.
      * @param repeatRate - Optional tick repeat interval for held buttons.
-     * @param currentTick - Current fixed-update tick (`BT.ticks()`).
+     * @param currentTick - Current fixed-update tick (`BT.ticks`).
      * @returns `true` on the initial edge or on repeat ticks when configured.
      */
     public isButtonPressed(codes: readonly string[], repeatRate: number | undefined, currentTick: number): boolean {

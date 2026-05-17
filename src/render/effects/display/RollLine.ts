@@ -6,7 +6,7 @@ import { FullscreenEffect } from '../FullscreenEffect';
  * stripe of the image. Combination of three cosines + smoothstep gives the
  * stripe a soft top/bottom edge.
  *
- * Display-tier. Demo drives {@link time} (typically `BT.ticks() / BT.fps()`).
+ * Display-tier. Demo drives {@link time} (typically `BT.ticks / BT.targetFPS`).
  */
 export class RollLine extends FullscreenEffect {
     public readonly tier = 'display' as const;

@@ -288,7 +288,7 @@ for (const line of lines) {
 ```ts
 const text = 'Centered';
 const textWidth = font.measureText(text);
-const screenWidth = BT.displaySize().x;
+const screenWidth = BT.displaySize.x;
 const x = Math.floor((screenWidth - textWidth) / 2);
 
 BT.printFont(font, new Vector2i(x, 10), text, Color32.white);

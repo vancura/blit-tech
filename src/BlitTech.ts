@@ -398,68 +398,97 @@ export const BT = {
     // #region Hardware Information
 
     /**
-     * Returns the active internal display resolution in pixels.
+     * Active internal display resolution in pixels.
      *
      * This is the logical render size configured by the demo, not the canvas
-     * element's CSS size.
+     * element's CSS size. Each read returns a clone.
      *
      * @returns Configured display size, or `Vector2i.zero()` before initialization.
      */
-    displaySize: (): Vector2i => {
+    get displaySize(): Vector2i {
         const settings = BTAPI.instance.getHardwareSettings();
 
         return settings ? settings.displaySize.clone() : Vector2i.zero();
     },
 
     /**
-     * Returns the fixed update rate.
+     * Configured output drawing-buffer size in pixels, when set in `configure()`.
      *
-     * `update()` runs at this target frequency, while rendering may occur at a
-     * different cadence.
+     * `null` when `canvasDisplaySize` was omitted (logical resolution only; no
+     * display-tier post-process). Each read returns a clone when non-null.
+     *
+     * @returns Configured output buffer size, or `null` when not set.
+     */
+    get canvasDisplaySize(): Vector2i | null {
+        const settings = BTAPI.instance.getHardwareSettings();
+        const size = settings?.canvasDisplaySize;
+
+        return size ? size.clone() : null;
+    },
+
+    /**
+     * Effective drawing-buffer size in pixels (`canvasDisplaySize ?? displaySize`).
+     *
+     * Each read returns a clone.
+     *
+     * @returns Effective output buffer size, or `Vector2i.zero()` before initialization.
+     */
+    get outputSize(): Vector2i {
+        const settings = BTAPI.instance.getHardwareSettings();
+
+        if (!settings) {
+            return Vector2i.zero();
+        }
+
+        return (settings.canvasDisplaySize ?? settings.displaySize).clone();
+    },
+
+    /**
+     * Target fixed-update rate in frames per second.
+     *
+     * Mirrors {@link HardwareSettings.targetFPS} from `configure()`.
+     * `update()` runs at this frequency; rendering may occur at a different cadence.
      *
      * @returns Target updates per second, or `60` before initialization.
      */
-    fps: (): number => {
+    get targetFPS(): number {
         const settings = BTAPI.instance.getHardwareSettings();
 
         return settings ? settings.targetFPS : 60;
     },
 
     /**
-     * Returns fixed-step seconds per update tick.
+     * Fixed-step seconds per update tick.
      *
-     * Equivalent to `1 / BT.fps()` when `BT.fps()` is finite and positive.
-     * Falls back to `1 / 60` when FPS is non-finite or non-positive.
+     * Equivalent to `1 / BT.targetFPS` when `BT.targetFPS` is finite and positive.
+     * Falls back to `1 / 60` when target FPS is non-finite or non-positive.
      *
      * @returns Seconds advanced by one fixed update tick.
      */
-    deltaSeconds: (): number => {
-        const fps = BT.fps();
+    get deltaSeconds(): number {
+        const fps = BT.targetFPS;
         const validatedFps = Number.isFinite(fps) && fps > 0 ? fps : 60;
 
         return 1 / validatedFps;
     },
 
     /**
-     * Returns fixed-step elapsed time in seconds.
+     * Fixed-step elapsed time in seconds (`BT.ticks * BT.deltaSeconds`).
      *
-     * Equivalent to `BT.ticks() * BT.deltaSeconds()`.
-     *
-     * @returns Elapsed fixed-step time in seconds.
+     * @returns Elapsed fixed-step time in seconds since initialization.
      */
-    timeSeconds: (): number => {
-        return BT.ticks() * BT.deltaSeconds();
+    get timeSeconds(): number {
+        return BT.ticks * BT.deltaSeconds;
     },
 
     /**
-     * Returns the current fixed-update tick counter.
+     * Current fixed-update tick counter.
      *
-     * The counter increments once per engine update and is typically used for
-     * frame-based timing.
+     * Increments once per engine update. Reset via {@link BT.ticksReset}.
      *
-     * @returns Tick count since initialization or the last {@link BT.ticksReset}.
+     * @returns Current tick count since initialization or last reset.
      */
-    ticks: (): number => {
+    get ticks(): number {
         return BTAPI.instance.getTicks();
     },
 
@@ -471,15 +500,15 @@ export const BT = {
     },
 
     /**
-     * Returns the renderer backend that is currently active.
+     * Renderer backend that is currently active.
      *
-     * Call this after initialization to check which backend the engine started.
-     * Useful when you want to adjust demo behavior — for example, skipping
-     * post-process effects that only work under WebGPU.
+     * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
+     * Useful when adjusting demo behavior — for example, skipping post-process effects
+     * that only work under WebGPU.
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      */
-    getActiveBackend: (): RendererBackend | null => {
+    get activeBackend(): RendererBackend | null {
         return BTAPI.instance.getActiveBackend();
     },
 
@@ -525,12 +554,14 @@ export const BT = {
     },
 
     /**
-     * Gets the active engine palette.
+     * Active engine palette (live reference — not a copy).
      *
-     * @returns Active palette.
+     * Mutating slots updates colors on the next frame without {@link BT.paletteSet}.
+     *
+     * @returns The active palette instance.
      * @throws Error if no palette has been set.
      */
-    paletteGet: (): Palette => {
+    get palette(): Palette {
         const palette = BTAPI.instance.getPalette();
 
         if (!palette) {
@@ -827,11 +858,11 @@ export const BT = {
     },
 
     /**
-     * Returns the current global camera offset.
+     * Current global camera offset (clone; safe to mutate without affecting the engine).
      *
      * @returns Camera translation in display pixels.
      */
-    cameraGet: (): Vector2i => {
+    get camera(): Vector2i {
         return BTAPI.instance.getCameraOffset();
     },
 
@@ -839,7 +870,7 @@ export const BT = {
      * Clamps a camera origin so the viewport stays within world bounds.
      *
      * Uses integer clamping per axis: `[0, worldSize - viewSize]`.
-     * If `viewSize` is omitted, the active `BT.displaySize()` is used.
+     * If `viewSize` is omitted, the active {@link BT.displaySize} is used.
      *
      * @param camera - Desired camera origin in world coordinates.
      * @param worldSize - Full world size in pixels.
@@ -847,7 +878,7 @@ export const BT = {
      * @returns Clamped camera origin.
      */
     cameraClamp: (camera: Vector2i, worldSize: Vector2i, viewSize?: Vector2i): Vector2i => {
-        return clampCameraToWorld(camera, worldSize, viewSize ?? BT.displaySize());
+        return clampCameraToWorld(camera, worldSize, viewSize ?? BT.displaySize);
     },
 
     /**
@@ -906,15 +937,14 @@ export const BT = {
     },
 
     /**
-     * Returns the wheel scroll delta accumulated during the current frame, in pixels.
+     * Wheel scroll delta accumulated during the current frame, in pixels.
      *
      * Aggregates `WheelEvent.deltaY` across all wheel events received since
      * the last frame, normalizing line and page delta modes to pixels.
-     * Returns `0` when the engine is not initialized.
      *
-     * @returns Vertical scroll delta in pixels for the current frame.
+     * @returns Vertical scroll delta in pixels for the current frame, or `0` when not initialized.
      */
-    pointerScrollDelta: (): number => {
+    get pointerScrollDelta(): number {
         return BTAPI.instance.getPointer()?.getScrollDelta() ?? 0;
     },
 
@@ -1200,11 +1230,11 @@ export const BT = {
     },
 
     /**
-     * Returns the number of currently connected gamepads (max 4).
+     * Number of currently connected gamepads (max 4).
      *
-     * @returns Connected gamepad count.
+     * @returns Connected gamepad count (0..4).
      */
-    gamepadCount: (): number => {
+    get gamepadCount(): number {
         return BTAPI.instance.getGamepad()?.connectedCount() ?? 0;
     },
 
@@ -1256,9 +1286,9 @@ export const BT = {
      * (and Tab / Escape where `beforeinput` is unreliable). Read during `update()` /
      * `render()`; the buffer clears after each frame.
      *
-     * @returns Characters for text-entry helpers (VV-396).
+     * @returns Characters typed since the last frame flush.
      */
-    inputString: (): string => {
+    get inputString(): string {
         return BTAPI.instance.getKeyboard()?.getInputString() ?? '';
     },
 

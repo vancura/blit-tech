@@ -107,7 +107,7 @@ describe('BT.displaySize', () => {
     it('returns zero vector when hardware settings are not available', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
 
-        const size = BT.displaySize();
+        const size = BT.displaySize;
 
         expect(size.x).toBe(0);
         expect(size.y).toBe(0);
@@ -116,7 +116,7 @@ describe('BT.displaySize', () => {
     it('returns a clone of displaySize from hardware settings', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(640, 480)));
 
-        const size = BT.displaySize();
+        const size = BT.displaySize;
 
         expect(size.x).toBe(640);
         expect(size.y).toBe(480);
@@ -125,9 +125,100 @@ describe('BT.displaySize', () => {
 
 // #endregion
 
-// #region BT.fps
+// #region BT.canvasDisplaySize / BT.outputSize
 
-describe('BT.fps', () => {
+describe('BT.canvasDisplaySize', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns null when hardware settings are not available', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
+
+        expect(BT.canvasDisplaySize).toBeNull();
+    });
+
+    it('returns null when canvasDisplaySize was not configured', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings());
+
+        expect(BT.canvasDisplaySize).toBeNull();
+    });
+
+    it('returns a clone when canvasDisplaySize is configured', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
+            ...mockHardwareSettings(),
+            canvasDisplaySize: new Vector2i(640, 480),
+        });
+
+        const size = BT.canvasDisplaySize;
+
+        expect(size?.x).toBe(640);
+        expect(size?.y).toBe(480);
+    });
+
+    it('returns an independent clone per read', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
+            ...mockHardwareSettings(),
+            canvasDisplaySize: new Vector2i(640, 480),
+        });
+
+        const first = BT.canvasDisplaySize;
+        first!.x = 999;
+
+        expect(BT.canvasDisplaySize?.x).toBe(640);
+    });
+});
+
+describe('BT.outputSize', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('returns zero vector when hardware settings are not available', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
+
+        const size = BT.outputSize;
+
+        expect(size.x).toBe(0);
+        expect(size.y).toBe(0);
+    });
+
+    it('matches displaySize when canvasDisplaySize is omitted', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(320, 240)));
+
+        const size = BT.outputSize;
+
+        expect(size.x).toBe(320);
+        expect(size.y).toBe(240);
+    });
+
+    it('returns canvasDisplaySize when configured', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
+            ...mockHardwareSettings(new Vector2i(320, 240)),
+            canvasDisplaySize: new Vector2i(640, 480),
+        });
+
+        const size = BT.outputSize;
+
+        expect(size.x).toBe(640);
+        expect(size.y).toBe(480);
+    });
+
+    it('returns an independent clone per read', () => {
+        vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(320, 240)));
+
+        const first = BT.outputSize;
+        first.x = 999;
+
+        expect(BT.outputSize.x).toBe(320);
+    });
+});
+
+// #endregion
+
+// #region BT.targetFPS
+
+describe('BT.targetFPS', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -135,7 +226,7 @@ describe('BT.fps', () => {
     it('returns 60 when hardware settings are not available', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
 
-        expect(BT.fps()).toBe(60);
+        expect(BT.targetFPS).toBe(60);
     });
 
     it('returns targetFPS from hardware settings', () => {
@@ -143,7 +234,7 @@ describe('BT.fps', () => {
             mockHardwareSettings(new Vector2i(320, 240), 30),
         );
 
-        expect(BT.fps()).toBe(30);
+        expect(BT.targetFPS).toBe(30);
     });
 });
 
@@ -159,7 +250,7 @@ describe('BT.deltaSeconds', () => {
     it('returns 1/60 when hardware settings are not available', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
 
-        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(BT.deltaSeconds).toBeCloseTo(1 / 60);
     });
 
     it('returns reciprocal of targetFPS from hardware settings', () => {
@@ -167,7 +258,7 @@ describe('BT.deltaSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), 50),
         );
 
-        expect(BT.deltaSeconds()).toBeCloseTo(0.02);
+        expect(BT.deltaSeconds).toBeCloseTo(0.02);
     });
 
     it('falls back to 1/60 when targetFPS is non-positive', () => {
@@ -175,7 +266,7 @@ describe('BT.deltaSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), 0),
         );
 
-        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(BT.deltaSeconds).toBeCloseTo(1 / 60);
     });
 
     it('falls back to 1/60 when targetFPS is non-finite', () => {
@@ -183,7 +274,7 @@ describe('BT.deltaSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), Number.NaN),
         );
 
-        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        expect(BT.deltaSeconds).toBeCloseTo(1 / 60);
     });
 });
 
@@ -198,7 +289,7 @@ describe('BT.timeSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), 30),
         );
 
-        expect(BT.timeSeconds()).toBeCloseTo(3);
+        expect(BT.timeSeconds).toBeCloseTo(3);
     });
 
     it('uses fallback delta when targetFPS is non-positive, producing finite time', () => {
@@ -207,8 +298,8 @@ describe('BT.timeSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), 0),
         );
 
-        const time = BT.timeSeconds();
-        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        const time = BT.timeSeconds;
+        expect(BT.deltaSeconds).toBeCloseTo(1 / 60);
         expect(Number.isFinite(time)).toBe(true);
         expect(time).toBeCloseTo(2);
     });
@@ -219,8 +310,8 @@ describe('BT.timeSeconds', () => {
             mockHardwareSettings(new Vector2i(320, 240), Number.POSITIVE_INFINITY),
         );
 
-        const time = BT.timeSeconds();
-        expect(BT.deltaSeconds()).toBeCloseTo(1 / 60);
+        const time = BT.timeSeconds;
+        expect(BT.deltaSeconds).toBeCloseTo(1 / 60);
         expect(Number.isFinite(time)).toBe(true);
         expect(time).toBeCloseTo(2);
     });
@@ -238,7 +329,7 @@ describe('BT.ticks', () => {
     it('delegates to BTAPI.instance.getTicks', () => {
         vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(42);
 
-        expect(BT.ticks()).toBe(42);
+        expect(BT.ticks).toBe(42);
     });
 });
 
@@ -258,7 +349,7 @@ describe('BT.ticksReset', () => {
 
 // #endregion
 
-// #region BT.paletteCreate / BT.paletteSet / BT.paletteGet
+// #region BT.paletteCreate / BT.paletteSet / BT.palette
 
 describe('BT.paletteCreate', () => {
     it('creates a palette with the requested size', () => {
@@ -302,7 +393,7 @@ describe('BT.paletteSet', () => {
     });
 });
 
-describe('BT.paletteGet', () => {
+describe('BT.palette', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -312,13 +403,13 @@ describe('BT.paletteGet', () => {
 
         vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(palette);
 
-        expect(BT.paletteGet()).toBe(palette);
+        expect(BT.palette).toBe(palette);
     });
 
     it('throws when no palette is set', () => {
         vi.spyOn(BTAPI.instance, 'getPalette').mockReturnValue(null);
 
-        expect(() => BT.paletteGet()).toThrow('No palette set yet. Call BT.paletteSet');
+        expect(() => BT.palette).toThrow('No palette set yet. Call BT.paletteSet');
     });
 });
 
@@ -445,7 +536,7 @@ describe('BT.drawRectFill', () => {
 
 // #endregion
 
-// #region BT.cameraSet / BT.cameraGet / BT.cameraClamp / BT.cameraReset
+// #region BT.cameraSet / BT.camera / BT.cameraClamp / BT.cameraReset
 
 describe('BT.cameraSet', () => {
     beforeEach(() => {
@@ -462,7 +553,7 @@ describe('BT.cameraSet', () => {
     });
 });
 
-describe('BT.cameraGet', () => {
+describe('BT.camera', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -471,9 +562,19 @@ describe('BT.cameraGet', () => {
         const expected = new Vector2i(64, 32);
         vi.spyOn(BTAPI.instance, 'getCameraOffset').mockReturnValue(expected);
 
-        const result = BT.cameraGet();
+        const result = BT.camera;
 
         expect(result).toBe(expected);
+    });
+
+    it('returns an independent clone per read', () => {
+        const stored = new Vector2i(64, 32);
+        vi.spyOn(BTAPI.instance, 'getCameraOffset').mockImplementation(() => stored.clone());
+
+        const first = BT.camera;
+        first.x = 999;
+
+        expect(BT.camera.x).toBe(64);
     });
 });
 
@@ -874,14 +975,14 @@ describe('BT.pointerScrollDelta', () => {
     it('returns 0 when the engine is not initialized', () => {
         vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue(null);
 
-        expect(BT.pointerScrollDelta()).toBe(0);
+        expect(BT.pointerScrollDelta).toBe(0);
     });
 
     it('delegates to the pointer subsystem', () => {
         const getScrollDelta = vi.fn().mockReturnValue(42);
         vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ getScrollDelta } as never);
 
-        expect(BT.pointerScrollDelta()).toBe(42);
+        expect(BT.pointerScrollDelta).toBe(42);
     });
 });
 
@@ -939,7 +1040,7 @@ describe('BT gamepad constants and APIs', () => {
         expect(getAxis).toHaveBeenCalledWith(BT.AXIS_LEFT_X, 1);
         expect(BT.gamepadConnected(1)).toBe(true);
         expect(isConnected).toHaveBeenCalledWith(1);
-        expect(BT.gamepadCount()).toBe(2);
+        expect(BT.gamepadCount).toBe(2);
         expect(connectedCount).toHaveBeenCalledWith();
     });
 
@@ -958,7 +1059,7 @@ describe('BT gamepad constants and APIs', () => {
     it('returns 0 from gamepadCount when the gamepad subsystem is not initialized', () => {
         vi.spyOn(BTAPI.instance, 'getGamepad').mockReturnValue(null);
 
-        expect(BT.gamepadCount()).toBe(0);
+        expect(BT.gamepadCount).toBe(0);
     });
 });
 
@@ -1338,9 +1439,9 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
 
 // #endregion
 
-// #region BT.getActiveBackend
+// #region BT.activeBackend
 
-describe('BT.getActiveBackend', () => {
+describe('BT.activeBackend', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -1348,7 +1449,7 @@ describe('BT.getActiveBackend', () => {
     it('delegates to BTAPI.instance.getActiveBackend', () => {
         const spy = vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue('webgpu');
 
-        const result = BT.getActiveBackend();
+        const result = BT.activeBackend;
 
         expect(spy).toHaveBeenCalled();
         expect(result).toBe('webgpu');
@@ -1357,13 +1458,13 @@ describe('BT.getActiveBackend', () => {
     it('returns null before initialization', () => {
         vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue(null);
 
-        expect(BT.getActiveBackend()).toBeNull();
+        expect(BT.activeBackend).toBeNull();
     });
 
     it('returns software when BTAPI reports software backend active', () => {
         vi.spyOn(BTAPI.instance, 'getActiveBackend').mockReturnValue('software');
 
-        expect(BT.getActiveBackend()).toBe('software');
+        expect(BT.activeBackend).toBe('software');
     });
 });
 

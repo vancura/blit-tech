@@ -21,7 +21,7 @@ palette.getRef(1); // → Color32 (live reference — do not store)
 
 // Activate for rendering
 BT.paletteSet(palette);
-BT.paletteGet(); // → active Palette; throws if none set
+BT.palette; // → active Palette; throws if none set
 ```
 
 ---

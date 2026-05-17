@@ -2,7 +2,7 @@
 
 Blit-Tech provides DOM-backed input: **pointer** (mouse, touch, pen), **keyboard** (`KeyboardEvent.code` tracking and
 virtual face buttons), **gamepad** (up to four players via `navigator.getGamepads()`), and **text accumulation** for UI
-entry (`BT.inputString()`).
+entry (`BT.inputString`).
 
 All pointer coordinates are returned in logical display space (the `displaySize` from `configure()` or
 `defaultConfig()`), independent of the canvas's CSS or backing-buffer size.
@@ -164,7 +164,7 @@ BT.inputMap(0, BT.BTN_X); // player 0 X has no keyboard keys until remapped
 
 ```ts
 BT.gamepadConnected(0); // true when player 0 has a connected gamepad
-BT.gamepadCount(); // number of connected gamepads (0..4)
+BT.gamepadCount; // number of connected gamepads (0..4)
 
 BT.getAxis(BT.AXIS_LEFT_X, 0); // -1.0 .. 1.0 (dead-zone filtered)
 BT.getAxis(BT.AXIS_TRIGGER_L, 0); // 0.0 .. 1.0
@@ -187,15 +187,14 @@ Default dead zone for analog sticks is `0.75` (`GamepadInput.DEFAULT_GAMEPAD_DEA
 
 ### Text input buffer
 
-`BT.inputString()` returns characters accumulated from filtered `beforeinput` (and Tab / Escape where needed). The
-buffer clears after each frame once the engine flushes input at end-of-frame. See public JSDoc on `BT.inputString` for
-details.
+`BT.inputString` returns characters accumulated from filtered `beforeinput` (and Tab / Escape where needed). The buffer
+clears after each frame once the engine flushes input at end-of-frame. See public JSDoc on `BT.inputString` for details.
 
 ## Scroll Delta
 
 ```ts
 // Accumulated vertical scroll for the current frame, in pixels
-const scroll = BT.pointerScrollDelta();
+const scroll = BT.pointerScrollDelta;
 
 if (scroll > 0) {
   /* scrolled down */
