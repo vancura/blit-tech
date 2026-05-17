@@ -19,20 +19,21 @@ and sprites resolve through a shared indexed palette.
 
 Before writing new code, reviewing existing code, or preflighting, check here first:
 
-| Question                                      | Where to look                                                                                    |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                |
-| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                   |
-| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                       |
-| What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                               |
-| Which preset has which exact color values?    | `docs/palette-presets.md`                                                                        |
-| How do post-process effects work?             | `docs/post-process-effects.md`                                                                   |
-| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                                       |
-| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                         |
-| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                                               |
-| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                                                 |
-| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                                    |
-| Declaration tooling / TS version alignment?   | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs` |
+| Question                                      | Where to look                                                                                                                                                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                                                                                                                       |
+| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
+| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
+| What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
+| What are the render/asset dimension limits?   | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
+| Which preset has which exact color values?    | `docs/palette-presets.md`                                                                                                                                                                               |
+| How do post-process effects work?             | `docs/post-process-effects.md`                                                                                                                                                                          |
+| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                                                                                                                                              |
+| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                                                                                                                                |
+| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                                                                                                                                                      |
+| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                        |
+| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                                                                                                                                           |
+| Declaration tooling / TS version alignment?   | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                        |
 
 ## Architecture
 
@@ -81,6 +82,9 @@ src/
     Bootstrap.ts           # Demo bootstrap utilities
     BootstrapHelpers.ts    # Canvas lookup and error display utilities
     CameraUtils.ts         # Camera clamp helper (world/view bounds)
+    CanvasLayoutStyles.ts  # Canvas layout CSS custom properties helper
+    RenderLimits.ts        # Render dimension validation and max-size constants (8192px / 16M px)
+    AssetLimits.ts         # Asset dimension validation, btfont/glyph limits, sprite-blit clipping
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
