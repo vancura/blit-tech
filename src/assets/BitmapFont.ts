@@ -271,19 +271,31 @@ export class BitmapFont {
         const atlasHeight = spriteSheet.height;
 
         const { glyphs, asciiGlyphs } = BitmapFont.buildGlyphsFromEntries(glyphEntries, atlasWidth, atlasHeight);
+        const size = BitmapFont.resolvePositiveFontMetric(data.size, 12);
+        const lineHeight = BitmapFont.resolvePositiveFontMetric(data.lineHeight, size);
+        const baseline = BitmapFont.resolvePositiveFontMetric(data.baseline, size);
 
-        return new BitmapFont(
-            spriteSheet,
-            glyphs,
-            asciiGlyphs,
-            data.name || 'Unknown',
-            data.size || 12,
-            data.lineHeight || data.size || 12,
-            data.baseline || data.size || 12,
-        );
+        return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, data.name || 'Unknown', size, lineHeight, baseline);
     }
 
     // #region Loading Helpers
+
+    /**
+     * Coerces a `.btfont` metadata field to a positive finite number.
+     *
+     * @param value - Raw JSON value for `size`, `lineHeight`, or `baseline`.
+     * @param fallback - Value used when `value` is missing or invalid.
+     * @returns Safe positive metric for {@link BitmapFont} construction.
+     */
+    private static resolvePositiveFontMetric(value: unknown, fallback: number): number {
+        const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
+
+        if (Number.isFinite(parsed) && parsed > 0) {
+            return parsed;
+        }
+
+        return fallback;
+    }
 
     /**
      * Parses and validates a `.btfont` JSON payload after byte-size checks.

@@ -460,6 +460,28 @@ describe('BitmapFont', () => {
             expect(f.baseline).toBe(12);
         });
 
+        it('should fall back when size, lineHeight, and baseline are invalid', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        name: 'BadMetricsFont',
+                        size: -5,
+                        lineHeight: 'not-a-number',
+                        baseline: 0,
+                        texture: 'data:image/png;base64,aGVsbG8=',
+                        glyphs: { A: { x: 0, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 } },
+                    }),
+                ),
+            );
+
+            const f = await BitmapFont.load('bad-meta.btfont');
+
+            expect(f.size).toBe(12);
+            expect(f.lineHeight).toBe(12);
+            expect(f.baseline).toBe(12);
+        });
+
         it('should use size as a fallback for lineHeight and baseline', async () => {
             vi.stubGlobal(
                 'fetch',
