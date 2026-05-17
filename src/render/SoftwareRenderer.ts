@@ -1,6 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import { clipSpriteSourceRect } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { noActivePaletteError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
@@ -649,24 +650,29 @@ export class SoftwareRenderer implements IRenderer {
         const sheetHeight = command.spriteSheet.height;
         const srcRect = command.srcRect;
         const destPos = command.destPos;
+        const clipped = clipSpriteSourceRect(srcRect, sheetWidth, sheetHeight);
 
-        for (let y = 0; y < srcRect.height; y++) {
-            for (let x = 0; x < srcRect.width; x++) {
-                const srcX = srcRect.x + x;
-                const srcY = srcRect.y + y;
-                if (srcX < 0 || srcY < 0 || srcX >= sheetWidth || srcY >= sheetHeight) {
-                    continue;
-                }
+        if (clipped === null) {
+            return;
+        }
 
+        const destOffsetX = clipped.x - srcRect.x;
+        const destOffsetY = clipped.y - srcRect.y;
+
+        for (let y = 0; y < clipped.height; y++) {
+            for (let x = 0; x < clipped.width; x++) {
+                const srcX = clipped.x + x;
+                const srcY = clipped.y + y;
                 const rawIndex = indexedPixels[srcY * sheetWidth + srcX] ?? 0;
+
                 if (rawIndex === 0) {
                     continue;
                 }
 
                 const finalIndex = (rawIndex + command.paletteOffset) >>> 0;
                 const color = this.resolveSpriteColor(finalIndex);
-                const destX = destPos.x + x - command.cameraX;
-                const destY = destPos.y + y - command.cameraY;
+                const destX = destPos.x + destOffsetX + x - command.cameraX;
+                const destY = destPos.y + destOffsetY + y - command.cameraY;
                 this.writePixel(destX, destY, color.r, color.g, color.b, 255);
             }
         }

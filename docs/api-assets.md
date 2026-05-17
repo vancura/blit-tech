@@ -4,9 +4,34 @@ Sprite sheets, bitmap fonts, and asset loading.
 
 ---
 
+## Asset size limits
+
+Sprite sheets, font atlases, and raw indexed buffers share the same decoded-size policy as render configuration (`8192`
+pixels per side, `16,777,216` total pixels). Limits are enforced before canvas readback, CPU buffer retention, GPU
+texture creation, and software sprite loops.
+
+| Limit                   | Default                      | Applies to                                                       |
+| ----------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| Max width / height      | `8192`                       | Decoded PNGs, font atlas textures, `fromIndexedPixels()`         |
+| Max total pixels        | `16,777,216` (`4096 × 4096`) | Same sources                                                     |
+| Max `.btfont` JSON size | `1,048,576` bytes (`1 MiB`)  | `BitmapFont.load()` before `JSON.parse()`                        |
+| Max glyph count         | `8192`                       | Glyph map entries in a `.btfont` file                            |
+| Max software blit area  | `16,777,216` pixels          | Software renderer source rectangles (clipped to the sheet first) |
+
+When a limit is exceeded, loading throws an `AssetLimitError` with a beginner-friendly message. The software renderer
+skips sprite blits whose source rectangle is empty, non-integer, fully outside the sheet, or still too large after
+clipping.
+
+`.btfont` files may reference either a relative PNG path or an embedded `data:` image URI. Embedded textures use the
+same decoded dimension limits as external PNGs. Prefer separate PNG files for large atlases so the JSON payload stays
+under the JSON size limit.
+
+---
+
 ## Loading Assets
 
-`AssetLoader` caches images by URL so repeated loads share the same `HTMLImageElement`.
+`AssetLoader` caches images by URL so repeated loads share the same `HTMLImageElement`. Oversized images are rejected as
+soon as the browser reports decoded dimensions.
 
 ```ts
 import { AssetLoader } from 'blit-tech';

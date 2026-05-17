@@ -1,3 +1,4 @@
+import { assertAssetDimensions, assertImageElementWithinLimits, assertIndexedPixelInput } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { spriteColorNotInPaletteError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
@@ -68,8 +69,10 @@ export class SpriteSheet {
         this.image = image;
 
         if (image) {
+            assertImageElementWithinLimits('sprite sheet', image);
             this.size = new Vector2i(image.width, image.height);
         } else if (size) {
+            assertAssetDimensions('sprite sheet', size.x, size.y);
             this.size = size;
         } else {
             throw new Error('Either an image or explicit size must be provided.');
@@ -188,6 +191,7 @@ export class SpriteSheet {
         options?: { sort?: 'luminance' | 'none' },
     ): Promise<Color32[]> {
         const image = await AssetLoader.loadImage(url);
+        assertImageElementWithinLimits('sprite sheet', image);
         const w = image.width;
         const h = image.height;
 
@@ -276,13 +280,7 @@ export class SpriteSheet {
      * @returns Sprite sheet ready for rendering.
      */
     static fromIndexedPixels(width: number, height: number, indexedPixels: Uint8Array<ArrayBuffer>): SpriteSheet {
-        const expectedLength = width * height;
-
-        if (indexedPixels.length !== expectedLength) {
-            throw new RangeError(
-                `The pixel data has ${indexedPixels.length} values, but a ${width}x${height} sheet needs exactly ${expectedLength}. Make sure indexedPixels has one entry per pixel.`,
-            );
-        }
+        assertIndexedPixelInput(width, height, indexedPixels.length);
 
         const sheet = new SpriteSheet(null, new Vector2i(width, height));
 
@@ -314,6 +312,7 @@ export class SpriteSheet {
             throw new Error('indexize: not available for sheets created from raw indexed data.');
         }
 
+        assertImageElementWithinLimits('sprite sheet', this.image);
         const w = this.size.x;
         const h = this.size.y;
 
@@ -623,6 +622,7 @@ export class SpriteSheet {
             throw new Error('createTexture: no source image available.');
         }
 
+        assertAssetDimensions('sprite sheet texture', this.size.x, this.size.y);
         this.texture = device.createTexture({
             label: 'Sprite Sheet Texture',
             size: [this.size.x, this.size.y, 1],
@@ -651,6 +651,7 @@ export class SpriteSheet {
      * @param device - WebGPU device for texture creation.
      */
     private createIndexedTexture(device: GPUDevice): void {
+        assertAssetDimensions('sprite sheet texture', this.size.x, this.size.y);
         this.texture = device.createTexture({
             label: 'Sprite Sheet Indexed Texture',
             size: [this.size.x, this.size.y, 1],

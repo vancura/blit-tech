@@ -1,3 +1,11 @@
+import {
+    assertImageElementWithinLimits,
+    AssetLimitError,
+    validateBtfontGlyphData,
+    validateBtfontJsonByteSize,
+    validateGlyphCount,
+} from '../utils/AssetLimits';
+import { btfontGlyphEntryNotObjectError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
 import { SpriteSheet } from './SpriteSheet';
 
@@ -248,51 +256,21 @@ export class BitmapFont {
      * @throws Error if the font descriptor or texture cannot be loaded.
      */
     static async load(url: string): Promise<BitmapFont> {
-        // Fetch and parse the JSON file.
         const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error(BitmapFont.buildFontLoadErrorMessage(url, response.status));
         }
 
-        const data: FontFileData = await response.json();
+        const { data, glyphEntries } = BitmapFont.parseBtfontFile(url, await response.text());
 
-        // Validate required fields.
-        if (!data.texture || !data.glyphs) {
-            throw new Error(
-                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
-                    BitmapFont.buildExtensionHint(url, '.btfont'),
-            );
-        }
-
-        // Load texture – either from data URI or relative path.
+        // Load texture – embedded `data:` URIs and relative PNG paths are both allowed.
         const image = await BitmapFont.loadTexture(data.texture, url);
         const spriteSheet = new SpriteSheet(image);
+        const atlasWidth = spriteSheet.width;
+        const atlasHeight = spriteSheet.height;
 
-        // Convert glyph data to internal format.
-        const glyphs = new Map<string, Glyph>();
-        const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
-
-        for (const [char, glyphData] of Object.entries(data.glyphs)) {
-            const glyph: Glyph = {
-                rect: new Rect2i(glyphData.x, glyphData.y, glyphData.w, glyphData.h),
-                offsetX: glyphData.ox,
-                offsetY: glyphData.oy,
-                advance: glyphData.adv,
-            };
-
-            glyphs.set(char, glyph);
-
-            // Populate the ASCII fast-lookup array for single-byte characters.
-            if (char.length === 1) {
-                const code = char.charCodeAt(0);
-
-                if (code < ASCII_CACHE_SIZE) {
-                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                    asciiGlyphs[code] = glyph;
-                }
-            }
-        }
+        const { glyphs, asciiGlyphs } = BitmapFont.buildGlyphsFromEntries(glyphEntries, atlasWidth, atlasHeight);
 
         return new BitmapFont(
             spriteSheet,
@@ -306,6 +284,112 @@ export class BitmapFont {
     }
 
     // #region Loading Helpers
+
+    /**
+     * Parses and validates a `.btfont` JSON payload after byte-size checks.
+     *
+     * @param url - Path to the `.btfont` file (used in error messages).
+     * @param jsonText - Raw JSON text from the font file.
+     * @returns Parsed font descriptor and glyph map entries.
+     */
+    private static parseBtfontFile(
+        url: string,
+        jsonText: string,
+    ): { data: FontFileData; glyphEntries: Array<[string, GlyphData]> } {
+        const jsonByteLength = new TextEncoder().encode(jsonText).length;
+        const jsonSizeError = validateBtfontJsonByteSize(jsonByteLength);
+
+        if (jsonSizeError) {
+            throw new AssetLimitError(jsonSizeError);
+        }
+
+        let data: FontFileData;
+
+        try {
+            data = JSON.parse(jsonText) as FontFileData;
+        } catch {
+            throw new Error(
+                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
+                    BitmapFont.buildExtensionHint(url, '.btfont'),
+            );
+        }
+
+        if (
+            typeof data.texture !== 'string' ||
+            data.texture.length === 0 ||
+            data.glyphs === null ||
+            typeof data.glyphs !== 'object' ||
+            Array.isArray(data.glyphs)
+        ) {
+            throw new Error(
+                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
+                    BitmapFont.buildExtensionHint(url, '.btfont'),
+            );
+        }
+
+        const glyphEntries = Object.entries(data.glyphs);
+        const glyphCountError = validateGlyphCount(glyphEntries.length);
+
+        if (glyphCountError) {
+            throw new AssetLimitError(glyphCountError);
+        }
+
+        return { data, glyphEntries };
+    }
+
+    /**
+     * Converts validated `.btfont` glyph entries into runtime glyph maps.
+     *
+     * @param glyphEntries - Glyph map entries from the parsed font file.
+     * @param atlasWidth - Font texture atlas width in pixels.
+     * @param atlasHeight - Font texture atlas height in pixels.
+     * @returns Glyph lookup tables for Unicode and ASCII fast paths.
+     */
+    private static buildGlyphsFromEntries(
+        glyphEntries: Array<[string, GlyphData]>,
+        atlasWidth: number,
+        atlasHeight: number,
+    ): { glyphs: Map<string, Glyph>; asciiGlyphs: (Glyph | null)[] } {
+        const glyphs = new Map<string, Glyph>();
+        const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+
+        for (const [char, glyphData] of glyphEntries) {
+            if (glyphData === null || typeof glyphData !== 'object' || Array.isArray(glyphData)) {
+                throw new AssetLimitError(btfontGlyphEntryNotObjectError(BitmapFont.formatGlyphCharLabel(char)));
+            }
+
+            const glyphError = validateBtfontGlyphData(
+                glyphData,
+                atlasWidth,
+                atlasHeight,
+                BitmapFont.formatGlyphCharLabel(char),
+            );
+
+            if (glyphError) {
+                throw new AssetLimitError(glyphError);
+            }
+
+            const glyph: Glyph = {
+                rect: new Rect2i(glyphData.x, glyphData.y, glyphData.w, glyphData.h),
+                offsetX: glyphData.ox,
+                offsetY: glyphData.oy,
+                advance: glyphData.adv,
+            };
+
+            glyphs.set(char, glyph);
+
+            if (char.length === 1) {
+                const code = char.charCodeAt(0);
+
+                if (code < ASCII_CACHE_SIZE) {
+                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
+                    asciiGlyphs[code] = glyph;
+                }
+            }
+        }
+
+        return { glyphs, asciiGlyphs };
+    }
 
     /**
      * Loads a texture from either a base64 data URI or a relative path.
@@ -396,6 +480,24 @@ export class BitmapFont {
     }
 
     /**
+     * Formats a glyph character label for user-facing validation errors.
+     *
+     * @param char - Glyph map key from the `.btfont` file.
+     * @returns Printable label or a Unicode code point for control characters.
+     */
+    private static formatGlyphCharLabel(char: string): string {
+        if (char.length === 1) {
+            const code = char.charCodeAt(0);
+
+            if (code < 32 || code === 127) {
+                return `U+${code.toString(16).toUpperCase().padStart(4, '0')}`;
+            }
+        }
+
+        return char;
+    }
+
+    /**
      * Returns whether the URL already has an explicit scheme or protocol.
      *
      * @param url - URL to inspect.
@@ -425,7 +527,16 @@ export class BitmapFont {
         return new Promise((resolve, reject) => {
             const image = new Image();
 
-            image.onload = () => resolve(image);
+            image.onload = () => {
+                try {
+                    assertImageElementWithinLimits('font texture', image);
+                } catch (error) {
+                    reject(error);
+                    return;
+                }
+
+                resolve(image);
+            };
             image.onerror = () =>
                 reject(
                     new Error(
