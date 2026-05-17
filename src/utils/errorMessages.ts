@@ -44,6 +44,66 @@ export const WEBGPU_ADAPTER_MESSAGE =
 export const WEBGPU_DEVICE_MESSAGE =
     "Couldn't connect to the graphics card. Try closing other tabs or restarting the browser.";
 
+// #region Runtime — Render configuration
+
+/**
+ * Returns the error message for a render dimension that is not a positive whole-number pixel size.
+ *
+ * @param field - Hardware settings field that contains the invalid size.
+ * @param size - Invalid size formatted as `WIDTHxHEIGHT`.
+ * @returns User-facing error string.
+ */
+export function renderDimensionInvalidError(field: string, size: string): string {
+    return (
+        `${field} must use whole-number pixel dimensions greater than 0 (got ${size}). ` +
+        'Update configure() to return a positive integer width and height'
+    );
+}
+
+/**
+ * Returns the error message for a render dimension whose width or height exceeds engine limits.
+ *
+ * @param field - Hardware settings field that contains the invalid size.
+ * @param size - Invalid size formatted as `WIDTHxHEIGHT`.
+ * @param maxWidth - Maximum accepted width in pixels.
+ * @param maxHeight - Maximum accepted height in pixels.
+ * @returns User-facing error string.
+ */
+export function renderDimensionTooLargeError(field: string, size: string, maxWidth: number, maxHeight: number): string {
+    return (
+        `${field} is too large (got ${size}). ` + `Use a size no larger than ${maxWidth}x${maxHeight} in configure()`
+    );
+}
+
+/**
+ * Returns the error message for a render dimension whose total pixel area exceeds engine limits.
+ *
+ * @param field - Hardware settings field that contains the invalid size.
+ * @param size - Invalid size formatted as `WIDTHxHEIGHT`.
+ * @param maxPixels - Maximum accepted total pixels.
+ * @returns User-facing error string.
+ */
+export function renderDimensionAreaTooLargeError(field: string, size: string, maxPixels: number): string {
+    return `${field} uses too many pixels (got ${size}). Use a size with ${maxPixels.toLocaleString('en-US')} total pixels or fewer`;
+}
+
+/**
+ * Returns the error message for a render dimension that exceeds the active WebGPU texture limit.
+ *
+ * @param field - Hardware settings field that contains the invalid size.
+ * @param size - Invalid size formatted as `WIDTHxHEIGHT`.
+ * @param maxTextureDimension2D - WebGPU adapter/device texture dimension limit.
+ * @returns User-facing error string.
+ */
+export function renderDimensionGpuLimitError(field: string, size: string, maxTextureDimension2D: number): string {
+    return (
+        `${field} is too large for this graphics card (got ${size}). ` +
+        `Use a width and height of ${maxTextureDimension2D} pixels or fewer`
+    );
+}
+
+// #endregion
+
 // #region Runtime — Palette
 
 /**
