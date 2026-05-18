@@ -1,11 +1,13 @@
 {
-  "version": "0.0.1",
+  "version": "0.2.0",
   "configurations": [
     {
       "name": "demos",
+      "type": "node",
+      "request": "launch",
       "runtimeExecutable": "sh",
       "runtimeArgs": ["-c", "cd ../blit-tech-demos && pnpm dev"],
-      "port": 5173
+      "console": "integratedTerminal"
     }
   ]
 }
