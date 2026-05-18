@@ -63,13 +63,9 @@ export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: Canv
     canvas.style.setProperty('max-width', maxW, 'important');
     canvas.style.setProperty('max-height', maxH, 'important');
 
-    if (options.canvasDisplaySize) {
-        canvas.style.width = `${options.canvasDisplaySize.x}px`;
-        canvas.style.height = `${options.canvasDisplaySize.y}px`;
-    } else {
-        canvas.style.width = '';
-        canvas.style.height = '';
-    }
+    // Width/height are sized by layout.html min(100dvw, 100dvh, …); only CSS variables are needed here.
+    canvas.style.width = '';
+    canvas.style.height = '';
 }
 
 // #endregion

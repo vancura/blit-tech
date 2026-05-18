@@ -60,7 +60,12 @@ BT.activeBackend; // 'webgpu' | 'software' | null
 `BT.init()` selects WebGPU or falls back to the Canvas 2D software renderer automatically. When not using `bootstrap()`,
 set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the canvas.
 
-**`HardwareSettings`** (returned from `configure()`):
+**`HardwareSettings`** (resolved after `configure()`; the hook may return a partial object):
+
+`configure()` may return only the fields you want to override. The engine merges them with `defaultConfig()` via
+`mergeHardwareSettings()` (also exported). Omit `displaySize` to inherit the full default resolution and `640×480`
+output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
+example no `canvasDisplaySize` means a 1:1 drawing buffer).
 
 | Field                  | Type                     | Default     | Description                                   |
 | ---------------------- | ------------------------ | ----------- | --------------------------------------------- |

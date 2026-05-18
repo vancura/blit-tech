@@ -18,7 +18,13 @@ import { Palette } from './assets/Palette';
 import type { IndexedSpriteLoadResult } from './assets/SpriteSheet';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
-import { defaultConfig, type HardwareSettings, type IBlitTechDemo, type RendererBackend } from './core/IBlitTechDemo';
+import {
+    defaultConfig,
+    type HardwareSettings,
+    type IBlitTechDemo,
+    mergeHardwareSettings,
+    type RendererBackend,
+} from './core/IBlitTechDemo';
 import {
     createDefaultKeyboardRuntimeMaps,
     DEFAULT_KEYBOARD_PLAYER1,
@@ -1509,6 +1515,7 @@ export {
     getCanvas,
     green,
     Interference,
+    mergeHardwareSettings,
     Noise,
     Palette,
     PixelGlitch,

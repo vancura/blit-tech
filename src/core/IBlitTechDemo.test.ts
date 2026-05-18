@@ -9,7 +9,8 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { defaultConfig } from './IBlitTechDemo';
+import { Vector2i } from '../utils/Vector2i';
+import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 
 describe('defaultConfig', () => {
     it('should return 320x240 display size', () => {
@@ -53,5 +54,46 @@ describe('defaultConfig', () => {
         expect(a.displaySize).not.toBe(b.displaySize);
         expect(a.canvasDisplaySize).not.toBe(b.canvasDisplaySize);
         expect(a.maxCanvasDisplaySize).not.toBe(b.maxCanvasDisplaySize);
+    });
+});
+
+describe('mergeHardwareSettings', () => {
+    it('returns defaultConfig when partial is undefined', () => {
+        const settings = mergeHardwareSettings();
+
+        expect(settings.displaySize.x).toBe(320);
+        expect(settings.canvasDisplaySize?.x).toBe(640);
+        expect(settings.targetFPS).toBe(60);
+    });
+
+    it('merges targetFPS-only partials with full defaults', () => {
+        const settings = mergeHardwareSettings({ targetFPS: 30 });
+
+        expect(settings.displaySize.x).toBe(320);
+        expect(settings.canvasDisplaySize?.x).toBe(640);
+        expect(settings.targetFPS).toBe(30);
+    });
+
+    it('keeps canvasDisplaySize unset when displaySize is provided without output sizing', () => {
+        const settings = mergeHardwareSettings({
+            displaySize: defaultConfig().displaySize,
+            targetFPS: 60,
+        });
+
+        expect(settings.displaySize.x).toBe(320);
+        expect(settings.canvasDisplaySize).toBeUndefined();
+        expect(settings.targetFPS).toBe(60);
+    });
+
+    it('applies only provided fields when displaySize is set', () => {
+        const settings = mergeHardwareSettings({
+            displaySize: new Vector2i(320, 240),
+            canvasDisplaySize: new Vector2i(640, 480),
+            renderer: 'software',
+        });
+
+        expect(settings.canvasDisplaySize?.x).toBe(640);
+        expect(settings.renderer).toBe('software');
+        expect(settings.targetFPS).toBe(60);
     });
 });

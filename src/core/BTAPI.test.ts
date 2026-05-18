@@ -625,6 +625,26 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getGamepad()).not.toBeNull();
         });
 
+        it('should merge partial configure with defaultConfig', async () => {
+            const demo: IBlitTechDemo = {
+                configure: () => ({ targetFPS: 30 }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const result = await BTAPI.instance.init(demo, makeMockCanvas());
+
+            expect(result).toBe(true);
+
+            const hw = BTAPI.instance.getHardwareSettings();
+
+            expect(hw).not.toBeNull();
+            expect(hw?.displaySize.x).toBe(320);
+            expect(hw?.canvasDisplaySize?.x).toBe(640);
+            expect(hw?.targetFPS).toBe(30);
+        });
+
         it('should use defaultConfig when configure is omitted', async () => {
             const demo: IBlitTechDemo = {
                 init: vi.fn().mockResolvedValue(true),

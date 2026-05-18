@@ -33,7 +33,7 @@ import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { HardwareSettings, IBlitTechDemo, RendererBackend } from './IBlitTechDemo';
-import { defaultConfig } from './IBlitTechDemo';
+import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -179,7 +179,7 @@ export class BTAPI {
         // Hardware settings: demo hook or defaults (320x240 @ 60 FPS).
         console.log('[BT] Reading hardware configuration');
 
-        let configured: HardwareSettings | undefined;
+        let configured: Partial<HardwareSettings> | undefined;
 
         try {
             configured = demo.configure?.();
@@ -191,7 +191,7 @@ export class BTAPI {
             return false;
         }
 
-        this.hwSettings = configured ?? defaultConfig();
+        this.hwSettings = mergeHardwareSettings(configured);
         this.applyRendererQueryOverride();
 
         const { targetFPS } = this.hwSettings;

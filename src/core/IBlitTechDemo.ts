@@ -125,9 +125,16 @@ export interface IBlitTechDemo {
      * When omitted, the engine uses {@link defaultConfig} (`320x240` at
      * `60` FPS).
      *
-     * @returns Hardware configuration for this demo.
+     * When present, you may return only the fields you want to change; the
+     * engine merges them with {@link defaultConfig} via
+     * {@link mergeHardwareSettings}. Omit `displaySize` to inherit the full
+     * default resolution and output buffer. Include `displaySize` when you
+     * want a custom logical size; optional fields you omit then stay unset
+     * (for example no `canvasDisplaySize` means a 1:1 drawing buffer).
+     *
+     * @returns Partial hardware configuration for this demo.
      */
-    configure?(): HardwareSettings;
+    configure?(): Partial<HardwareSettings>;
 
     /**
      * Called once after the selected renderer backend has been initialized.
@@ -182,6 +189,133 @@ export function defaultConfig(): HardwareSettings {
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
     };
+}
+
+/**
+ * Clones a {@link Vector2i} so merged settings do not share mutable references.
+ *
+ * @param size - Source vector.
+ * @returns Fresh vector with the same components.
+ */
+function cloneVector2i(size: Vector2i): Vector2i {
+    return new Vector2i(size.x, size.y);
+}
+
+/**
+ * Copies only defined fields from a partial configure() return value.
+ *
+ * @param partial - Values returned by the demo's `configure()` hook.
+ * @returns Partial settings containing only defined entries, with vectors cloned.
+ */
+function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partial<HardwareSettings> {
+    const picked: Partial<HardwareSettings> = {};
+
+    if (partial.displaySize !== undefined) {
+        picked.displaySize = cloneVector2i(partial.displaySize);
+    }
+
+    if (partial.canvasDisplaySize !== undefined) {
+        picked.canvasDisplaySize = cloneVector2i(partial.canvasDisplaySize);
+    }
+
+    if (partial.maxCanvasDisplaySize !== undefined) {
+        picked.maxCanvasDisplaySize = cloneVector2i(partial.maxCanvasDisplaySize);
+    }
+
+    if (partial.targetFPS !== undefined) {
+        picked.targetFPS = partial.targetFPS;
+    }
+
+    if (partial.outputUpscaleFilter !== undefined) {
+        picked.outputUpscaleFilter = partial.outputUpscaleFilter;
+    }
+
+    if (partial.detectDroppedFrames !== undefined) {
+        picked.detectDroppedFrames = partial.detectDroppedFrames;
+    }
+
+    if (partial.renderer !== undefined) {
+        picked.renderer = partial.renderer;
+    }
+
+    return picked;
+}
+
+/**
+ * Merges partial settings with {@link defaultConfig} when the demo did not set
+ * `displaySize` (for example only `{ targetFPS: 30 }`).
+ *
+ * @param picked - Defined fields from `configure()`.
+ * @param defaults - Baseline hardware settings.
+ * @returns Resolved settings with full default resolution and output buffer.
+ */
+function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
+    const canvasDisplaySize =
+        picked.canvasDisplaySize ??
+        (defaults.canvasDisplaySize !== undefined ? cloneVector2i(defaults.canvasDisplaySize) : undefined);
+    const maxCanvasDisplaySize =
+        picked.maxCanvasDisplaySize ??
+        (defaults.maxCanvasDisplaySize !== undefined ? cloneVector2i(defaults.maxCanvasDisplaySize) : undefined);
+    const outputUpscaleFilter = picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter;
+    const detectDroppedFrames = picked.detectDroppedFrames ?? defaults.detectDroppedFrames;
+    const renderer = picked.renderer ?? defaults.renderer;
+
+    return {
+        displaySize: cloneVector2i(defaults.displaySize),
+        targetFPS: picked.targetFPS ?? defaults.targetFPS,
+        ...(canvasDisplaySize !== undefined ? { canvasDisplaySize } : {}),
+        ...(maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize } : {}),
+        ...(outputUpscaleFilter !== undefined ? { outputUpscaleFilter } : {}),
+        ...(detectDroppedFrames !== undefined ? { detectDroppedFrames } : {}),
+        ...(renderer !== undefined ? { renderer } : {}),
+    };
+}
+
+/**
+ * Applies only fields present in `configure()` when the demo set `displaySize`.
+ *
+ * @param picked - Defined fields with vectors cloned.
+ * @param defaults - Baseline hardware settings for required fallbacks.
+ * @returns Resolved settings; omitted optionals such as `canvasDisplaySize` stay unset.
+ */
+function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
+    return {
+        displaySize: picked.displaySize ?? cloneVector2i(defaults.displaySize),
+        targetFPS: picked.targetFPS ?? defaults.targetFPS,
+        ...(picked.canvasDisplaySize !== undefined ? { canvasDisplaySize: picked.canvasDisplaySize } : {}),
+        ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
+        ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
+        ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
+        ...(picked.renderer !== undefined ? { renderer: picked.renderer } : {}),
+    };
+}
+
+/**
+ * Resolves demo `configure()` output into complete {@link HardwareSettings}.
+ *
+ * When `displaySize` is omitted from `partial`, unset fields inherit from
+ * {@link defaultConfig} (including `canvasDisplaySize`). When `displaySize` is
+ * provided, only fields present in `partial` are applied; omitted optionals such
+ * as `canvasDisplaySize` remain unset so the drawing buffer can match logical
+ * resolution.
+ *
+ * @param partial - Optional partial settings from `configure()`.
+ * @returns Resolved hardware settings for initialization.
+ */
+export function mergeHardwareSettings(partial?: Partial<HardwareSettings>): HardwareSettings {
+    const defaults = defaultConfig();
+
+    if (partial === undefined) {
+        return defaults;
+    }
+
+    const picked = pickDefinedHardwareSettings(partial);
+
+    if (partial.displaySize === undefined) {
+        return mergePartialWithFullDefaults(picked, defaults);
+    }
+
+    return mergeExplicitDisplayProfile(picked, defaults);
 }
 
 // #endregion

@@ -148,13 +148,14 @@ interface HardwareSettings {
 }
 ```
 
-When `canvasDisplaySize` is omitted from your **returned** `HardwareSettings`, the WebGPU drawing buffer matches
-`displaySize`. Palette resolve still runs (logical indices to RGBA at that size). The display tier remains unavailable
-(adding a display effect throws) because no explicit output buffer was configured.
+When `canvasDisplaySize` is omitted from a `configure()` return value that **includes** `displaySize`, the WebGPU
+drawing buffer matches `displaySize`. Palette resolve still runs (logical indices to RGBA at that size). The display
+tier remains unavailable (adding a display effect throws) because no explicit output buffer was configured.
 
-If the demo **does not** implement `configure()`, the engine uses `defaultConfig()`, which **does** set
-`canvasDisplaySize` (`640x480` for `320x240` logical), so the display tier remains available unless you override with a
-custom `configure()` that omits output sizing.
+If the demo **does not** implement `configure()`, or returns a partial object **without** `displaySize` (for example
+only `{ targetFPS: 30 }`), the engine merges with `defaultConfig()`, which **does** set `canvasDisplaySize` (`640x480`
+for `320x240` logical), so the display tier remains available unless you set a custom `displaySize` and omit output
+sizing.
 
 ---
 
