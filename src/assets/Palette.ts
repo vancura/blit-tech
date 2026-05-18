@@ -150,7 +150,7 @@ export class Palette {
      *
      * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
      * the renderer has uploaded the updated palette uniform buffer. Not set by the
-     * constructor — initial upload is always triggered by {@link Renderer.setPalette}.
+     * constructor - initial upload is always triggered by {@link Renderer.setPalette}.
      */
     private _dirty: boolean = false;
 
@@ -312,12 +312,12 @@ export class Palette {
      * without hardcoding numbers.
      *
      * Default colors (matching common demo usage):
-     * - `hud_white`  — `#ffffff` pure white
-     * - `hud_bg`     — `#1e1428` dark purple background
-     * - `hud_label`  — `#c8c8c8` medium gray labels
-     * - `hud_header` — `#ffdc64` golden header text
-     * - `hud_dim`    — `#646464` dim gray (FPS, secondary info)
-     * - `hud_code`   — `#6496c8` slate blue code snippets
+     * - `hud_white`  - `#ffffff` pure white
+     * - `hud_bg`     - `#1e1428` dark purple background
+     * - `hud_label`  - `#c8c8c8` medium gray labels
+     * - `hud_header` - `#ffdc64` golden header text
+     * - `hud_dim`    - `#646464` dim gray (FPS, secondary info)
+     * - `hud_code`   - `#6496c8` slate blue code snippets
      *
      * @param startSlot - First palette index to write. Must be a positive integer >= 1
      *   and leave room for all six entries within the palette size. Defaults to `1`.
@@ -507,7 +507,7 @@ export class Palette {
      *
      * The renderer checks this flag each frame and re-uploads the palette uniform
      * buffer when it is set, then calls {@link clearDirty} to reset it. Palette
-     * animation works automatically — no per-frame {@link BT.paletteSet} required.
+     * animation works automatically - no per-frame {@link BT.paletteSet} required.
      *
      * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
      *   since the last call to {@link clearDirty}.

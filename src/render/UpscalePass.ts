@@ -153,7 +153,7 @@ export class UpscalePass {
 
     // #endregion
 
-    // #region Helpers — texture allocation
+    // #region Helpers - texture allocation
 
     /**
      * Allocates a texture for the upscale pass output at the supplied size and

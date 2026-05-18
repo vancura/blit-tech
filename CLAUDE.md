@@ -241,7 +241,7 @@ pnpm bench:json          # Run benchmarks and write benchmark-results.json
 ### Visual Regression Tests
 
 `pnpm test:visual` runs Playwright with Chromium + WebGPU and captures PNG snapshots of actual rendered frames. This is
-the primary tool for verifying that visual output is correct — not performance, but pixel-level correctness.
+the primary tool for verifying that visual output is correct - not performance, but pixel-level correctness.
 
 Use it when implementing or changing:
 
@@ -276,7 +276,7 @@ Use the benchmark system when the user asks about performance, throughput, regre
 coverage.
 
 - Use **CPU benchmarks** for isolated methods, helpers, caches, and allocation patterns
-- For rendering correctness, use visual regression tests (`pnpm test:visual`) — they produce PNG snapshots
+- For rendering correctness, use visual regression tests (`pnpm test:visual`) - they produce PNG snapshots
 
 Recommended commands:
 

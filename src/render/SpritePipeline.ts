@@ -58,10 +58,10 @@ export class SpritePipeline {
     /** Backing buffer for all vertex data. */
     private readonly vertexArrayBuffer: ArrayBuffer;
 
-    /** Float32 view over vertexArrayBuffer — for x, y, u, v (indices i*5+0..+3). */
+    /** Float32 view over vertexArrayBuffer - for x, y, u, v (indices i*5+0..+3). */
     private readonly vertexFloats: Float32Array;
 
-    /** Uint32 view over vertexArrayBuffer — for paletteOffset (index i*5+4). */
+    /** Uint32 view over vertexArrayBuffer - for paletteOffset (index i*5+4). */
     private readonly vertexUints: Uint32Array;
 
     /** Number of vertices in the current (unflushed) batch. */
@@ -368,7 +368,7 @@ export class SpritePipeline {
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-        // Shared bind group (group 0): uniforms + palette — created once and reused for all textures.
+        // Shared bind group (group 0): uniforms + palette - created once and reused for all textures.
         this.sharedBindGroup = device.createBindGroup({
             label: 'Sprite Shared Bind Group',
             layout: (this.pipeline as GPURenderPipeline).getBindGroupLayout(0),
@@ -424,7 +424,7 @@ export class SpritePipeline {
                 this.flushCurrentBatch();
             }
 
-            // Check again after flush — if still no space, the buffer is full for this frame.
+            // Check again after flush - if still no space, the buffer is full for this frame.
             if (!this.hasSpaceForQuad()) {
                 console.warn('[SpritePipeline] Sprite buffer capacity exceeded for this frame, quad dropped');
 

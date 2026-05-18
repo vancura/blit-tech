@@ -3,7 +3,7 @@
 Primitives, sprites, text, post-process effects, and frame capture.
 
 All draw calls require a palette to be active (`BT.paletteSet(palette)` before the first `BT.drawSprite`,
-`BT.drawRectFill`, etc.). All coordinates are integer pixels — use `Vector2i` and `Rect2i`, never floats.
+`BT.drawRectFill`, etc.). All coordinates are integer pixels - use `Vector2i` and `Rect2i`, never floats.
 
 ---
 
@@ -21,7 +21,7 @@ BT.drawRect(rect, paletteIndex); // outline only
 BT.drawRectFill(rect, paletteIndex); // filled
 ```
 
-All primitives write palette indices, not RGBA — the active palette resolves colors at frame end.
+All primitives write palette indices, not RGBA - the active palette resolves colors at frame end.
 
 ---
 
@@ -34,10 +34,10 @@ BT.drawSprite(sheet, srcRect, destPos);
 BT.drawSprite(sheet, srcRect, destPos, paletteOffset);
 ```
 
-- `sheet` — an indexed `SpriteSheet` (must have been prepared via `loadIndexed` or `indexize`).
-- `srcRect` — source region within the sheet in pixels.
-- `destPos` — top-left destination in display coordinates.
-- `paletteOffset` — shift added to every stored pixel index before palette lookup (default `0`).
+- `sheet` - an indexed `SpriteSheet` (must have been prepared via `loadIndexed` or `indexize`).
+- `srcRect` - source region within the sheet in pixels.
+- `destPos` - top-left destination in display coordinates.
+- `paletteOffset` - shift added to every stored pixel index before palette lookup (default `0`).
 
 **Palette offset semantics:** Stored sprite indices start at `1` (index `0` is always transparent and discarded). With
 `paletteOffset = N`, a pixel stored at index `1` renders as `palette[1 + N]`, a pixel at index `2` renders as
@@ -70,7 +70,7 @@ BT.paletteSet(newLayoutPalette);
 BT.spritesRefresh(); // re-maps all tracked sheets to the new slot positions
 ```
 
-Call `spritesRefresh()` only after a **palette-layout swap** — when the same colors have moved to different slot
+Call `spritesRefresh()` only after a **palette-layout swap** - when the same colors have moved to different slot
 indices. Do NOT call it after a palette-value swap (when you changed what color a slot holds). In the value-swap case
 the fragment shader picks up the new color automatically; calling `spritesRefresh()` is wasteful and will fail
 reindexing if original RGBA values are gone.
@@ -81,7 +81,7 @@ reindexing if original RGBA values are gone.
 
 ### System font
 
-Built-in 6×14 monospace font covering printable ASCII (characters 32–126).
+Built-in 6×14 monospace font covering printable ASCII (characters 32-126).
 
 ```ts
 BT.systemPrint(pos, paletteIndex, text); // draw text at pos
@@ -106,18 +106,18 @@ See [Bitmap Fonts Guide](bitmap-fonts.md) for the `.btfont` format spec and BMFo
 
 Two-tier fullscreen pipeline running between scene render and swap-chain present:
 
-1. **Pixel tier** — operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
+1. **Pixel tier** - operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
    palette-native (chunky glitch, mosaic).
-2. **Palette resolve + upscale** — `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT
+2. **Palette resolve + upscale** - `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT
    and upscales to `canvasDisplaySize`.
-3. **Display tier** — operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
+3. **Display tier** - operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
    `canvasDisplaySize` in hardware settings.
 
-Both chains add zero cost when empty. Post-process is unsupported by the Canvas 2D software backend — calling
+Both chains add zero cost when empty. Post-process is unsupported by the Canvas 2D software backend - calling
 `effectAdd` in software mode throws a clear error.
 
 ```ts
-// Add effect — routed to pixel or display chain by Effect.tier automatically
+// Add effect - routed to pixel or display chain by Effect.tier automatically
 BT.effectAdd(new BarrelDistortion());
 BT.effectAdd(new Scanlines());
 BT.effectAdd(new Bloom());

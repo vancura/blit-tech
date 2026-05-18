@@ -198,7 +198,7 @@ describe('SpriteSheet', () => {
         });
 
         it('maps transparent pixels (alpha=0) to palette index 0', () => {
-            // All pixels fully transparent — expect no throws and all indices to be 0.
+            // All pixels fully transparent - expect no throws and all indices to be 0.
             const palette = new Palette(16);
             const sheet = new SpriteSheet({ width: 2, height: 2 } as HTMLImageElement);
 
@@ -226,7 +226,7 @@ describe('SpriteSheet', () => {
         it('throws when an opaque pixel color is not in the palette', () => {
             const w = 1;
             const h = 1;
-            // Solid red pixel — not in an empty palette.
+            // Solid red pixel - not in an empty palette.
             const pixels = new Uint8ClampedArray([200, 100, 50, 255]);
 
             vi.stubGlobal('OffscreenCanvas', makeOffscreenCanvasMock(pixels, w, h));
@@ -260,7 +260,7 @@ describe('SpriteSheet', () => {
             sheet.indexize(palette);
             const first = sheet.getTexture(device);
 
-            // Call indexize again — should destroy the existing texture.
+            // Call indexize again - should destroy the existing texture.
             sheet.indexize(palette);
             const second = sheet.getTexture(device);
 
@@ -488,7 +488,7 @@ describe('SpriteSheet', () => {
         });
 
         it('forces alpha to 255 even when source alpha is partial', async () => {
-            // Source has alpha=128 — should be stored as 255 to match indexize() lookup.
+            // Source has alpha=128 - should be stored as 255 to match indexize() lookup.
             const pixels = new Uint8ClampedArray([200, 100, 50, 128]);
             stubLoad(pixels, 1, 1);
 

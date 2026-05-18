@@ -101,7 +101,7 @@ export class Color32 {
 
     /**
      * Pure white color (255, 255, 255, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared white Color32 instance.
      */
     static get white(): Color32 {
@@ -110,7 +110,7 @@ export class Color32 {
 
     /**
      * Pure black color (0, 0, 0, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared black Color32 instance.
      */
     static get black(): Color32 {
@@ -119,7 +119,7 @@ export class Color32 {
 
     /**
      * Fully transparent color (0, 0, 0, 0).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared transparent Color32 instance.
      */
     static get transparent(): Color32 {
@@ -128,7 +128,7 @@ export class Color32 {
 
     /**
      * Pure red color (255, 0, 0, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared red Color32 instance.
      */
     static get red(): Color32 {
@@ -137,7 +137,7 @@ export class Color32 {
 
     /**
      * Pure green color (0, 255, 0, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared green Color32 instance.
      */
     static get green(): Color32 {
@@ -146,7 +146,7 @@ export class Color32 {
 
     /**
      * Pure blue color (0, 0, 255, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared blue Color32 instance.
      */
     static get blue(): Color32 {
@@ -155,7 +155,7 @@ export class Color32 {
 
     /**
      * Yellow color (255, 255, 0, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared yellow Color32 instance.
      */
     static get yellow(): Color32 {
@@ -164,7 +164,7 @@ export class Color32 {
 
     /**
      * Cyan color (0, 255, 255, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared cyan Color32 instance.
      */
     static get cyan(): Color32 {
@@ -173,7 +173,7 @@ export class Color32 {
 
     /**
      * Magenta color (255, 0, 255, 255).
-     * Cached frozen singleton — do not modify.
+     * Cached frozen singleton - do not modify.
      * @returns The shared magenta Color32 instance.
      */
     static get magenta(): Color32 {

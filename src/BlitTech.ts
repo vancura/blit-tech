@@ -186,7 +186,7 @@ function executeDrawCall(methodName: string, callback: () => void): void {
 
 /**
  * Returns runtime keyboard `KeyboardEvent.code` list for a face button and player,
- * or `null` when there is no keyboard fallback (e.g. players 2–3 for face buttons).
+ * or `null` when there is no keyboard fallback (e.g. players 2-3 for face buttons).
  *
  * @param button - Face button constant (`BT.BTN_UP` … `BT.BTN_SELECT`).
  * @param player - Zero-based player index.
@@ -503,7 +503,7 @@ export const BT = {
      * Renderer backend that is currently active.
      *
      * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
-     * Useful when adjusting demo behavior — for example, skipping post-process effects
+     * Useful when adjusting demo behavior - for example, skipping post-process effects
      * that only work under WebGPU.
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
@@ -531,7 +531,7 @@ export const BT = {
      *
      * **Palette-value swap (change what a slot looks like):** mutate the current
      * palette with `palette.set(slot, newColor)` and then call `paletteSet()`. The
-     * sprite sheets' stored indices are unchanged — no {@link BT.spritesRefresh}
+     * sprite sheets' stored indices are unchanged - no {@link BT.spritesRefresh}
      * needed.
      *
      * **Palette-layout swap (same colors, different slot positions):** build a new
@@ -554,7 +554,7 @@ export const BT = {
     },
 
     /**
-     * Active engine palette (live reference — not a copy).
+     * Active engine palette (live reference - not a copy).
      *
      * Mutating slots updates colors on the next frame without {@link BT.paletteSet}.
      *
@@ -1428,7 +1428,7 @@ export const BT = {
      * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
      * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
      * robust buffer access returns 0 for every component; because the fragment shader forces alpha
-     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden — a negative
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden - a negative
      * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
      * produces out-of-bounds black pixels.
      *
@@ -1455,7 +1455,7 @@ export const BT = {
     /**
      * Re-indexizes all tracked sprite sheets against the current active palette.
      *
-     * Only call this after a **palette-layout swap** — when the same colors have
+     * Only call this after a **palette-layout swap** - when the same colors have
      * moved to different slot positions and existing sprite indices now point to
      * the wrong slots. Each sheet re-runs exact RGBA-to-index matching against the
      * active palette via `SpriteSheet.reindexize()`. If any opaque pixel's original
@@ -1465,7 +1465,7 @@ export const BT = {
      *
      * **Do not call this after a palette-value swap.** If you changed what color a
      * slot holds (e.g. palette animation, theme tinting), the stored indices are
-     * still correct — the fragment shader picks up the new color automatically.
+     * still correct - the fragment shader picks up the new color automatically.
      * Calling `spritesRefresh()` in that case is wasteful at best; at worst, if the
      * original RGBA values are gone from the palette, sheets with missing colors
      * will fail reindexing and be removed from the registry.

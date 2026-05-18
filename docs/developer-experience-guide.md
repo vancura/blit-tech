@@ -143,7 +143,7 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 | `ms-playwright.playwright`  | Playwright test runner |
 | `vitest.explorer`           | Vitest test explorer   |
 
-`.vscode/settings.json` and `.vscode/extensions.json` are committed to the repository — clone the repo and they appear
+`.vscode/settings.json` and `.vscode/extensions.json` are committed to the repository - clone the repo and they appear
 automatically in VS Code.
 
 ### Settings included

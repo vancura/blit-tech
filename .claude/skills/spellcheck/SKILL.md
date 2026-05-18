@@ -19,8 +19,8 @@ Run the project-wide spellcheck, then fix all reported errors.
    - Capture the full error output
 
 2. **Analyze each error** For every word flagged by cspell, determine if it is:
-   - **A typo** – a misspelled word in source code, comments, strings, or content
-   - **A legitimate term** – a technical term, brand name, abbreviation, or proper noun that cspell doesn’t know
+   - **A typo** - a misspelled word in source code, comments, strings, or content
+   - **A legitimate term** - a technical term, brand name, abbreviation, or proper noun that cspell doesn’t know
 
 3. **Fix typos in source files**
    - Open the file and fix the misspelled word in place

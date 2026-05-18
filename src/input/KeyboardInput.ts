@@ -347,7 +347,7 @@ export class KeyboardInput {
             for (let i = 0; i < data.length; i++) {
                 const cp = data.charCodeAt(i);
 
-                // Printable ASCII 32–127, plus Tab (9) and ESC (27) when present as text.
+                // Printable ASCII 32-127, plus Tab (9) and ESC (27) when present as text.
                 if ((cp >= 32 && cp <= 127) || cp === 9 || cp === 27) {
                     this.inputBuffer += String.fromCharCode(cp);
                 }

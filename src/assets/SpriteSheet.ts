@@ -157,7 +157,7 @@ export class SpriteSheet {
      * Walks a PNG's pixels and registers every unique opaque color into the
      * supplied palette starting at `startSlot`.
      *
-     * Pixels with alpha 0 are skipped — they map to the engine's transparent
+     * Pixels with alpha 0 are skipped - they map to the engine's transparent
      * sentinel slot 0 at draw time. Opaque pixels are deduplicated on RGB and
      * stored with alpha forced to 255, matching the lookup performed by
      * `indexize()` so a subsequent `sheet.indexize(palette)` call resolves
@@ -266,7 +266,7 @@ export class SpriteSheet {
     /**
      * Creates a sprite sheet from pre-computed palette-indexed pixel data.
      *
-     * The resulting sheet is immediately indexized -- its `getTexture()` call
+     * The resulting sheet is immediately indexized - its `getTexture()` call
      * will produce an `r8uint` GPU texture without needing `indexize()`. This
      * is used for embedded assets like the built-in system font where the pixel
      * data is already expressed as palette indices.
@@ -332,7 +332,7 @@ export class SpriteSheet {
             const a = rgba[base + 3];
 
             if (a === 0) {
-                // Index 0 is the transparent sentinel — the shader discards any pixel with rawIndex == 0.
+                // Index 0 is the transparent sentinel - the shader discards any pixel with rawIndex == 0.
                 // eslint-disable-next-line security/detect-object-injection
                 indexed[i] = 0;
                 continue;
@@ -373,14 +373,14 @@ export class SpriteSheet {
     /**
      * Re-converts retained RGBA pixels to palette indices using a new palette.
      *
-     * Use this only when the **slot layout** of the palette has changed — that is,
+     * Use this only when the **slot layout** of the palette has changed - that is,
      * when the same colors now live at different index positions. It works by
      * replaying the original RGBA data through `palette.findColor()` and assigning
      * each opaque pixel the index of its matching color in the new palette.
      *
      * **Do not call this to change what color a slot displays.** If you only want
      * to swap the visible color at a slot (e.g. animate a fire effect), mutate the
-     * palette entry directly — the stored indices remain valid and the fragment
+     * palette entry directly - the stored indices remain valid and the fragment
      * shader picks up the new color automatically on the next frame:
      *
      * ```ts
@@ -430,7 +430,7 @@ export class SpriteSheet {
             const a = rgba[base + 3];
 
             if (a === 0) {
-                // Index 0 is the transparent sentinel — the shader discards any pixel with rawIndex == 0.
+                // Index 0 is the transparent sentinel - the shader discards any pixel with rawIndex == 0.
                 // eslint-disable-next-line security/detect-object-injection
                 indexed[i] = 0;
                 continue;

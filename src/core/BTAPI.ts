@@ -552,7 +552,7 @@ export class BTAPI {
     public drawSystemText(pos: Vector2i, paletteIndex: number, text: string): void {
         this.assertPaletteIndex(paletteIndex);
 
-        // Palette index 0 is transparent -- nothing to draw.
+        // Palette index 0 is transparent - nothing to draw.
         if (paletteIndex === 0) {
             return;
         }
@@ -855,7 +855,7 @@ export class BTAPI {
 
     // #endregion
 
-    // #region Private — Initialization Helpers
+    // #region Private - Initialization Helpers
 
     /**
      * Constructs and initializes the renderer for the active hardware settings.

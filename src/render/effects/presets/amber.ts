@@ -9,7 +9,7 @@ import type { Effect } from '../Effect';
 /**
  * Amber monochrome PC monitor look (think IBM 5151 / Hercules).
  *
- * Ships as a parameter-only set — the underlying colors stay full-RGB until
+ * Ships as a parameter-only set - the underlying colors stay full-RGB until
  * the {@link MonochromeQuantize} effect lands (tracked in
  * [VV-479](https://linear.app/vancura/issue/VV-479/monochrome-re-quantization-display-effect)).
  * For now this preset gives you the *feel* (CRT curvature + scanlines +

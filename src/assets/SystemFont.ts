@@ -3,7 +3,7 @@
  *
  * Expands the embedded glyph bitmaps from {@link systemFontData} into a
  * palette-indexed texture atlas and wraps the result in a {@link BitmapFont}.
- * The font is fully synchronous to create -- no `fetch()`, no image decode.
+ * The font is fully synchronous to create - no `fetch()`, no image decode.
  *
  * The glyph data lives in `src/assets/fonts/systemFontData.ts`. To edit it
  * visually, export the current bitmaps to a PNG, redraw in a pixel editor,

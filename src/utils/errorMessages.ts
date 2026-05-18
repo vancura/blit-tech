@@ -44,7 +44,7 @@ export const WEBGPU_ADAPTER_MESSAGE =
 export const WEBGPU_DEVICE_MESSAGE =
     "Couldn't connect to the graphics card. Try closing other tabs or restarting the browser.";
 
-// #region Runtime — Render configuration
+// #region Runtime - Render configuration
 
 /**
  * Returns the error message for a render dimension that is not a positive whole-number pixel size.
@@ -104,7 +104,7 @@ export function renderDimensionGpuLimitError(field: string, size: string, maxTex
 
 // #endregion
 
-// #region Runtime — Assets
+// #region Runtime - Assets
 
 /**
  * Returns the error message for an asset whose width or height is not a positive whole number.
@@ -370,7 +370,7 @@ export function btfontGlyphAreaTooLargeError(charLabel: string): string {
 
 // #endregion
 
-// #region Runtime — Palette
+// #region Runtime - Palette
 
 /**
  * Returns the "no active palette" error message used whenever a palette must
@@ -431,7 +431,7 @@ export function hudRangeError(startSlot: number, count: number, size: number): s
 
 // #endregion
 
-// #region Runtime — Sprites
+// #region Runtime - Sprites
 
 /**
  * Returns the error message for a sprite pixel whose color is absent from the

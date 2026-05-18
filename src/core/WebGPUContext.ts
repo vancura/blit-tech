@@ -28,7 +28,7 @@ export interface WebGPUContextResult {
  * The WebGPU drawing buffer is sized to `canvasDisplaySize` when provided so
  * the engine can run display-tier post-processing (CRT scanlines, barrel
  * distortion, etc.) at output resolution. The CSS size of the canvas matches
- * the drawing-buffer size — when the demo wants different on-screen and
+ * the drawing-buffer size - when the demo wants different on-screen and
  * GPU-internal sizes it must apply CSS itself after init.
  *
  * When `canvasDisplaySize` is omitted, the drawing buffer matches the logical

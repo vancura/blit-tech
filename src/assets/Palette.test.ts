@@ -59,7 +59,7 @@ describe('Palette', () => {
         expect(() => palette.set(-1, color)).toThrow('0 or higher');
     });
 
-    it('get() returns a defensive copy — mutating the result does not change the stored entry', () => {
+    it('get() returns a defensive copy - mutating the result does not change the stored entry', () => {
         const palette = new Palette(16);
 
         palette.set(3, new Color32(10, 20, 30, 255));

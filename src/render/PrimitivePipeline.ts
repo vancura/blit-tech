@@ -580,7 +580,7 @@ export class PrimitivePipeline {
     /**
      * Records the current vertex batch and resets the vertex count.
      * Used for early flush when the buffer is full mid-frame.
-     * Does not write to GPU -- encodePass() uploads all batches at once.
+     * Does not write to GPU - encodePass() uploads all batches at once.
      */
     private earlyFlush(): void {
         if (this.vertexCount === 0) {
