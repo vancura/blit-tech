@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "demos",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd ../blit-tech-demos && pnpm dev"],
+      "port": 5173
+    }
+  ]
+}
