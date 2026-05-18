@@ -14,7 +14,7 @@ with palette indices, animate with palette cycling and fades, and ship authentic
 ## Inspiration
 
 Blit-Tech draws heavy inspiration from [RetroBlit](https://www.badcastle.com/retroblit/docs/doc/index.html) by Martin
-Cietwierkowski ([@daafu](https://github.com/daafu)) — a retro pixel demo framework for Unity that replaces the editor
+Cietwierkowski ([@daafu](https://github.com/daafu)) - a retro pixel demo framework for Unity that replaces the editor
 with a clean, low-level demo loop. Blit-Tech brings the same philosophy to the web using WebGPU: no scene graphs, no
 complex frameworks, just sprites, primitives, and fonts.
 
@@ -26,7 +26,7 @@ complex frameworks, just sprites, primitives, and fonts.
 - **Palette offset variants**: recolor one sprite sheet into team colors, states, or themes without duplicate textures
 - **Performance-first data model**: tiny palette uploads (4 KB), smaller sprite textures, and compact primitive vertices
 - **WebGPU rendering** with dual-pipeline architecture (primitives + sprites); automatic Canvas 2D software fallback
-- **Post-process effects**: two-tier system — pixel tier on the `r8uint` index framebuffer; display tier on upscaled
+- **Post-process effects**: two-tier system - pixel tier on the `r8uint` index framebuffer; display tier on upscaled
   RGBA; bundled CRT presets
 - **Primitive drawing**: pixels, lines, rectangles (outline and filled)
 - **Sprite system**: palette-indexed textures, palette offset, automatic texture batching
@@ -56,7 +56,7 @@ complex frameworks, just sprites, primitives, and fonts.
 - A **WebGPU-compatible browser** (the engine falls back to Canvas 2D software rendering when WebGPU is unavailable):
   - Chrome/Edge 113+ (Windows, macOS, Linux, Android)
   - Firefox 141+ on Windows; 145+/147+ on macOS; Nightly on Linux and Android
-  - Safari 26+ (macOS Tahoe / iOS 26); or Safari 18–25 with WebGPU enabled via Feature Flags
+  - Safari 26+ (macOS Tahoe / iOS 26); or Safari 18-25 with WebGPU enabled via Feature Flags
 
 **App toolchain**
 
@@ -176,7 +176,7 @@ WebGPU support varies by browser:
 | ----------- | -------------- | ---------------------------------------------------------------- |
 | Chrome/Edge | 113+           | Enabled by default                                               |
 | Firefox     | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux/Android |
-| Safari      | 26+            | Enabled by default; Safari 18–25 available via Feature Flags     |
+| Safari      | 26+            | Enabled by default; Safari 18-25 available via Feature Flags     |
 
 When WebGPU is unavailable the engine falls back to the Canvas 2D software renderer automatically. A dismissible
 in-canvas "SOFTWARE RENDERER" banner appears to confirm the fallback is active. Use `BT.activeBackend` to detect which

@@ -34,7 +34,7 @@ export abstract class FullscreenEffect implements Effect {
     abstract readonly tier: EffectTier;
 
     /**
-     * Sampler filter mode. Defaults to `'linear'` (smooth — appropriate for
+     * Sampler filter mode. Defaults to `'linear'` (smooth - appropriate for
      * display-tier effects). Pixel-tier effects can override to `'nearest'` to
      * preserve palette colors during sampling.
      */

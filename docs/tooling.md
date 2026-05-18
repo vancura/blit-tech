@@ -23,7 +23,7 @@ CI details.
 
 CI runs the checker after `pnpm build` in:
 
-- `.github/workflows/ci.yml` — `build-library` job
-- `.github/workflows/pr-checks.yml` — `bundle-size` job
+- `.github/workflows/ci.yml` - `build-library` job
+- `.github/workflows/pr-checks.yml` - `bundle-size` job
 
-More context: [Testing — Declaration tooling checks](testing.md#declaration-tooling-checks).
+More context: [Testing - Declaration tooling checks](testing.md#declaration-tooling-checks).

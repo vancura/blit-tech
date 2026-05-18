@@ -64,12 +64,12 @@ documented in [Performance Testing](performance-testing.md).
 Public types are rolled up during `pnpm build` via `vite-plugin-dts` and API Extractor. The workspace pins TypeScript to
 the same version API Extractor bundles (see `docs/developer-experience-guide.md`).
 
-- **`pnpm test:declarations`** — Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
+- **`pnpm test:declarations`** - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
   alignment log parsing). Included in `pnpm preflight`.
-- **CI** — after `pnpm build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
+- **CI** - after `pnpm build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
   `.github/workflows/ci.yml` (build-library job) and `.github/workflows/pr-checks.yml` (bundle-size job) to fail on
   drift warnings and version mismatch.
-- **Manual** — `pnpm build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
+- **Manual** - `pnpm build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
 
 ## Commands
 

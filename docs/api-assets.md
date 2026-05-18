@@ -47,7 +47,7 @@ if (AssetLoader.isLoaded('sprites.png')) {
 
 ---
 
-## Sprite Setup — Preferred Path
+## Sprite Setup - Preferred Path
 
 Use `SpriteSheet.loadIndexed()` for all standard sprite setup. It combines color registration, image loading, and
 palette indexization in one call.
@@ -60,7 +60,7 @@ const palette = new Palette(256);
 const indexed = await SpriteSheet.loadIndexed(
   'sprites/hero.png', // URL
   palette, // palette to populate
-  10, // startSlot — first palette slot to write colors into
+  10, // startSlot - first palette slot to write colors into
   { sort: 'luminance' }, // optional: color order in palette ('luminance' | 'none')
 );
 
@@ -69,16 +69,16 @@ BT.paletteSet(palette); // activate AFTER loadIndexed returns
 // Draw using the returned sheet and source rectangle:
 BT.drawSprite(indexed.sheet, indexed.srcRect, new Vector2i(20, 20));
 
-// indexed.colors — list of Color32 values registered into the palette
-// indexed.srcRect — Rect2i spanning the full image
+// indexed.colors - list of Color32 values registered into the palette
+// indexed.srcRect - Rect2i spanning the full image
 ```
 
 Colors are sorted by perceived luminance (darkest-first) by default. Pass `{ sort: 'none' }` to preserve row-major scan
-order. Slot 0 is never touched — transparent pixels in the image map to slot 0 at draw time.
+order. Slot 0 is never touched - transparent pixels in the image map to slot 0 at draw time.
 
 ---
 
-## Sprite Setup — Manual Path
+## Sprite Setup - Manual Path
 
 Use this only when you need fine-grained control over the palette layout or want to load several sheets into the same
 palette sequentially.
@@ -138,7 +138,7 @@ See [Bitmap Fonts Guide](bitmap-fonts.md) for the `.btfont` format specification
 
 ## System Font
 
-A built-in 6×14 monospace font covering printable ASCII (characters 32–126). No load step needed.
+A built-in 6×14 monospace font covering printable ASCII (characters 32-126). No load step needed.
 
 ```ts
 BT.systemPrint(new Vector2i(10, 10), paletteIndex, 'Score: 100');

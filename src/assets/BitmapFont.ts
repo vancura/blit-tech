@@ -264,7 +264,7 @@ export class BitmapFont {
 
         const { data, glyphEntries } = BitmapFont.parseBtfontFile(url, await response.text());
 
-        // Load texture – embedded `data:` URIs and relative PNG paths are both allowed.
+        // Load texture - embedded `data:` URIs and relative PNG paths are both allowed.
         const image = await BitmapFont.loadTexture(data.texture, url);
         const spriteSheet = new SpriteSheet(image);
         const atlasWidth = spriteSheet.width;
@@ -648,7 +648,7 @@ export class BitmapFont {
                 // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
                 glyph = this.asciiGlyphs[code] ?? null;
             } else {
-                // Unicode fallback – index is guaranteed valid within loop bounds.
+                // Unicode fallback - index is guaranteed valid within loop bounds.
                 // eslint-disable-next-line security/detect-object-injection -- Index is within loop bounds
                 const char = text[i];
 

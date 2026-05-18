@@ -46,7 +46,7 @@ const touch = BT.pointerPos(1); // slot 1 (first touch)
 const delta = BT.pointerDelta(); // slot 0 (mouse)
 const td = BT.pointerDelta(1); // slot 1
 
-// Validity check — false means no live pointer in this slot
+// Validity check - false means no live pointer in this slot
 if (BT.pointerPosValid()) {
   /* mouse is over the canvas */
 }
@@ -239,9 +239,9 @@ means:
 
 `attach()` installs three guards on the canvas to prevent browser defaults from interfering:
 
-- `wheel` with `{ passive: false }` and `preventDefault()` — prevents page scroll on wheel events.
-- `canvas.style.touchAction = 'none'` — prevents iOS Safari pinch-zoom and double-tap-zoom.
-- `contextmenu` with `preventDefault()` — prevents the OS context menu on right-click so `BTN_POINTER_B` works.
+- `wheel` with `{ passive: false }` and `preventDefault()` - prevents page scroll on wheel events.
+- `canvas.style.touchAction = 'none'` - prevents iOS Safari pinch-zoom and double-tap-zoom.
+- `contextmenu` with `preventDefault()` - prevents the OS context menu on right-click so `BTN_POINTER_B` works.
 
 `detach()` reverses all three and removes all event listeners. This happens automatically when the engine stops or when
 `demo.init()` throws.

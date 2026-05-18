@@ -408,7 +408,7 @@ export class SoftwareRenderer implements IRenderer {
     // #region Effects
 
     /**
-     * Not supported — always throws.
+     * Not supported - always throws.
      *
      * @param _effect - Ignored.
      */
@@ -417,7 +417,7 @@ export class SoftwareRenderer implements IRenderer {
     }
 
     /**
-     * Not supported — always throws.
+     * Not supported - always throws.
      *
      * @param _effect - Ignored.
      */
@@ -425,7 +425,7 @@ export class SoftwareRenderer implements IRenderer {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
 
-    /** Not supported — always throws. */
+    /** Not supported - always throws. */
     clearEffects(): void {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
@@ -797,7 +797,7 @@ export class SoftwareRenderer implements IRenderer {
         if (typeof this.canvas.toBlob !== 'function') {
             this.pendingCapture.reject(
                 new Error(
-                    "Can't save this frame — your browser doesn't support canvas image export. Try Chrome or Edge.",
+                    "Can't save this frame - your browser doesn't support canvas image export. Try Chrome or Edge.",
                 ),
             );
             this.pendingCapture = null;
@@ -810,7 +810,7 @@ export class SoftwareRenderer implements IRenderer {
             if (!blob) {
                 request.reject(
                     new Error(
-                        "Can't save this frame — something went wrong exporting the canvas image. Try again on the next frame.",
+                        "Can't save this frame - something went wrong exporting the canvas image. Try again on the next frame.",
                     ),
                 );
                 return;

@@ -247,7 +247,7 @@ export class WebGpuRenderer implements IRenderer {
     /**
      * Sets the active palette used for rendering.
      *
-     * Stores a reference to the supplied palette — no clone is made. Subsequent
+     * Stores a reference to the supplied palette - no clone is made. Subsequent
      * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
      * will be detected via {@link Palette.dirty} and uploaded automatically at the
      * start of the next frame. {@link paletteDirty} is set to guarantee the initial
@@ -272,7 +272,7 @@ export class WebGpuRenderer implements IRenderer {
      * Returns a clone to prevent callers from accidentally mutating the active
      * palette through the returned reference in ways that may be surprising.
      * To intentionally update palette colors, mutate the original palette object
-     * that was passed to {@link setPalette} — changes will auto-propagate via the
+     * that was passed to {@link setPalette} - changes will auto-propagate via the
      * dirty flag on the next frame.
      *
      * @returns Clone of the active palette instance, or null.
@@ -547,7 +547,7 @@ export class WebGpuRenderer implements IRenderer {
 
     // #endregion
 
-    // #region Private — frame encoding
+    // #region Private - frame encoding
 
     /**
      * Tries to acquire the swap-chain texture and validate its dimensions.
@@ -746,7 +746,7 @@ export class WebGpuRenderer implements IRenderer {
 
     // #endregion
 
-    // #region Private — drawing
+    // #region Private - drawing
 
     /**
      * Fast-path pixel draw using raw integer coordinates.

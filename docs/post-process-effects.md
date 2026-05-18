@@ -3,10 +3,10 @@
 Blit-Tech ships a **two-tier post-process system** that runs between the scene render and the swap-chain present. It is
 opt-in and adds zero cost while no effect is registered. Effects are organized into two chains by what they operate on:
 
-- **Pixel tier** — runs at the logical render resolution (e.g. `320x240`) on an **`r8uint` index framebuffer** (one byte
+- **Pixel tier** - runs at the logical render resolution (e.g. `320x240`) on an **`r8uint` index framebuffer** (one byte
   per pixel: which palette slot each logical pixel uses). Hosts effects that stay palette-native: glitch shifts, mosaic
   blocks, index manipulation. Sampling uses integer `textureLoad` (no RGB averaging drift).
-- **Display tier** — runs at the canvas output resolution (e.g. `1280x960`) on the upscaled image. Hosts effects that
+- **Display tier** - runs at the canvas output resolution (e.g. `1280x960`) on the upscaled image. Hosts effects that
   simulate the physical display: CRT scanlines, barrel curvature, RGB shadow mask, vignette, chromatic aberration,
   bloom, and so on. Operating at output resolution lets curved sampling (barrel) express smoothly without quantizing
   onto the source pixel grid.
@@ -78,7 +78,7 @@ Invariants:
 - Only the display chain has effects: scene → logical composite → resolve → display chain → swap chain.
 - The last **display-tier** effect writes to the swap chain when display effects are active; otherwise palette resolve
   writes directly to the swap chain.
-- Adding a `tier='display'` effect when `canvasDisplaySize` is unset throws with a clear message — display effects need
+- Adding a `tier='display'` effect when `canvasDisplaySize` is unset throws with a clear message - display effects need
   an output buffer larger than the logical framebuffer to operate.
 
 ---
@@ -133,7 +133,7 @@ when removed.
 
 The base class `FullscreenEffect` handles most display-tier boilerplate (pipeline, sampler, uniform buffer, bind-group
 cache). Pixel-tier effects extend `FullscreenPixelEffect`, which compiles separate WGSL for `r8uint` (`texture_2d<u32>`)
-vs RGBA paths — see [Writing a custom effect](#writing-a-custom-effect) below.
+vs RGBA paths - see [Writing a custom effect](#writing-a-custom-effect) below.
 
 ### `HardwareSettings`
 
@@ -160,7 +160,7 @@ custom `configure()` that omits output sizing.
 
 ## Pixel-tier effects
 
-### `PixelGlitch` — chunky band shift
+### `PixelGlitch` - chunky band shift
 
 Per-row horizontal glitch: every Nth row of source **palette indices** gets a random horizontal shift in index space
 (integer texel steps), so output stays on valid palette slots without RGB remapping.
@@ -171,7 +171,7 @@ Per-row horizontal glitch: every Nth row of source **palette indices** gets a ra
 | `bandHeight` | `4`     | Height of each glitch band in source pixels                         |
 | `seed`       | `0`     | Per-glitch seed; change between bursts to vary the band noise       |
 
-### `PixelMosaic` — block down-quantize
+### `PixelMosaic` - block down-quantize
 
 Replaces each `blockSize x blockSize` group of source pixels with a single sample. Useful for transitions, dream
 sequences, and "low-res mode" effects.
@@ -184,16 +184,16 @@ sequences, and "low-res mode" effects.
 
 ## Display-tier effects
 
-### `BarrelDistortion` — pincushion curve
+### `BarrelDistortion` - pincushion curve
 
 `warp(uv) = uv + delta * d2 * curvature`. Operates at output resolution so the curve has enough pixels to express
-smoothly — no stepping artifacts on diagonals.
+smoothly - no stepping artifacts on diagonals.
 
 | Field       | Default | Purpose                                                             |
 | ----------- | ------- | ------------------------------------------------------------------- |
 | `curvature` | `0.05`  | Curve strength. `0.02` flat panel, `0.05` desktop, `0.10` pocket TV |
 
-### `Scanlines` — bright/dark horizontal bands
+### `Scanlines` - bright/dark horizontal bands
 
 Gaussian-weighted scanline pattern matched to source pixel rows.
 
@@ -203,7 +203,7 @@ Gaussian-weighted scanline pattern matched to source pixel rows.
 | `strength` | `-8`    | Negative gaussian falloff; more negative = sharper bands  |
 | `density`  | `240`   | Cycles per view (set to your logical vertical resolution) |
 
-### `RGBMask` — CRT shadow mask
+### `RGBMask` - CRT shadow mask
 
 R/G/B vertical-stripe pattern with darkened cell borders, simulating an aperture-grille CRT.
 
@@ -213,7 +213,7 @@ R/G/B vertical-stripe pattern with darkened cell borders, simulating an aperture
 | `size`      | `6`     | Mask cell pitch in source pixels      |
 | `border`    | `0.5`   | Border darkening within each cell     |
 
-### `Vignette` — edge darkening
+### `Vignette` - edge darkening
 
 Smooth radial fade. `pow(edge.x * edge.y, amount)`.
 
@@ -221,7 +221,7 @@ Smooth radial fade. `pow(edge.x * edge.y, amount)`.
 | -------- | ------- | ----------------------------------------------- |
 | `amount` | `0.35`  | Darkening exponent. Higher = stronger / sharper |
 
-### `ChromaticAberration` — RGB channel offset
+### `ChromaticAberration` - RGB channel offset
 
 Red samples left of the fragment, blue samples right. Cheap CRT optics produce a tiny version of this naturally.
 
@@ -229,7 +229,7 @@ Red samples left of the fragment, blue samples right. Cheap CRT optics produce a
 | ------------ | ------- | ------------------------------- |
 | `aberration` | `1.0`   | Channel offset in source pixels |
 
-### `Flicker` — brightness multiplier
+### `Flicker` - brightness multiplier
 
 The simplest CRT animation knob. `color *= amount`. Demo drives it per-frame.
 
@@ -237,7 +237,7 @@ The simplest CRT animation knob. `color *= amount`. Demo drives it per-frame.
 | -------- | ------- | ------------------------------------ |
 | `amount` | `1.0`   | Brightness multiplier. 1 unmodulated |
 
-### `RollLine` — scrolling interference band
+### `RollLine` - scrolling interference band
 
 A horizontal bright stripe slowly scrolls down the screen.
 
@@ -247,7 +247,7 @@ A horizontal bright stripe slowly scrolls down the screen.
 | `speed`  | `1.0`   | Scroll velocity multiplier                      |
 | `time`   | `0`     | Wall-clock seconds; demos drive this each frame |
 
-### `Interference` — per-row analog jitter
+### `Interference` - per-row analog jitter
 
 Each row gets a random horizontal offset reseeded each frame.
 
@@ -256,7 +256,7 @@ Each row gets a random horizontal offset reseeded each frame.
 | `amount` | `0.06`  | Maximum offset as a UV fraction        |
 | `time`   | `0`     | Wall-clock seconds; reseeds each frame |
 
-### `Noise` — additive pseudo-random noise
+### `Noise` - additive pseudo-random noise
 
 Per-pixel film grain. Reseeds each frame from `time`.
 
@@ -265,7 +265,7 @@ Per-pixel film grain. Reseeds each frame from `time`.
 | `amount` | `0.025` | Noise amplitude as `[-amount, +amount]` perturbation |
 | `time`   | `0`     | Wall-clock seconds                                   |
 
-### `Bloom` — soft phosphor glow
+### `Bloom` - soft phosphor glow
 
 Single-pass 5x5 box blur (25 taps) mixed with the original color.
 
@@ -292,7 +292,7 @@ Demos that want the full kitchen-sink effect should use this.
 
 ### `BT.preset.amber()`
 
-Amber monochrome PC monitor (think IBM 5151 / Hercules). Currently ships as a parameter-only set — the actual amber tint
+Amber monochrome PC monitor (think IBM 5151 / Hercules). Currently ships as a parameter-only set - the actual amber tint
 quantization will land with [VV-479](https://linear.app/vancura/issue/VV-479/monochrome-re-quantization-display-effect).
 
 ### `BT.preset.green()`
@@ -358,9 +358,9 @@ Extend `FullscreenPixelEffect` for logical `r8uint` chains. Provide **both** `fr
 format is ever passed to `init`; keep it minimal). Implement `writeUniforms` like display-tier effects.
 
 - Integer clears use index `0`; treat palette slot `0` as transparent where appropriate.
-- For data-dependent control flow that calls `textureSample`, switch to `textureSampleLevel(..., 0.0)` — WGSL forbids
+- For data-dependent control flow that calls `textureSample`, switch to `textureSampleLevel(..., 0.0)` - WGSL forbids
   `textureSample` outside uniform control flow because of mip derivative requirements.
-- Reuse the inherited `uniformData` `Float32Array` — never allocate per frame.
+- Reuse the inherited `uniformData` `Float32Array` - never allocate per frame.
 
 ---
 
@@ -396,7 +396,7 @@ codebase derive from the same shader.
 
 The glitch / flicker / roll-line / chromatic-aberration extensions and the uniform set the pre-decomposition
 `PipBoyEffect` replicated come from a community PipBoy fork written for p5.js's `createFilterShader`. The fork's source
-URL and author are **unknown** to us at the time of writing, and **no license has been confirmed** — the only header it
+URL and author are **unknown** to us at the time of writing, and **no license has been confirmed** - the only header it
 carried was a Fallout-themed "RobCo Industries (Unlicensed Wasteland Fork)" comment, which is character flavour rather
 than a license grant. Treat the upstream provenance as unverified; do not assume permissive rights for the borrowed
 extensions until the upstream source and license have been identified.

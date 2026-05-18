@@ -112,7 +112,7 @@ export class Vector2i {
     }
 
     /**
-     * Returns an up direction vector (0, –1).
+     * Returns an up direction vector (0, -1).
      * In screen coordinates, Y increases downward, so up is negative.
      * Returns a cached frozen singleton - do not modify.
      *
@@ -173,7 +173,7 @@ export class Vector2i {
      * Creates an integer vector from floating-point coordinates.
      * Both values are truncated to integers using |0.
      *
-     * Note: |0 truncates toward zero (e.g., –1.7 becomes –1, not –2).
+     * Note: |0 truncates toward zero (e.g., -1.7 becomes -1, not -2).
      *
      * @param x - Floating-point x coordinate.
      * @param y - Floating-point y coordinate.

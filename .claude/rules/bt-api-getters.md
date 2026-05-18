@@ -11,7 +11,7 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 ## Getter list
 
 | Category | Members |
-| --- | --- |
+| - | - |
 | Configure-time (mirror `HardwareSettings` names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` |
 | Loop timing | `deltaSeconds`, `timeSeconds`, `ticks` |
 | Runtime state | `activeBackend`, `camera`, `palette` |
@@ -19,7 +19,7 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 
 `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). `Vector2i` getters return a clone per read.
 `activeBackend` is what actually started after fallback, not `configure().renderer`.
-`palette` is a live reference — mutating slots affects rendering on the next frame.
+`palette` is a live reference - mutating slots affects rendering on the next frame.
 
 ## Naming when adding getters
 

@@ -229,9 +229,9 @@ If you prefer to convert manually:
 
 3. **Export with padding** between characters to prevent bleeding artifacts.
 
-4. **Use white glyphs** on a transparent background – colors are applied at render time via tinting.
+4. **Use white glyphs** on a transparent background - colors are applied at render time via tinting.
 
-5. **Include common symbols** beyond ASCII: `×`, `÷`, `·`, `—`, `…`, etc.
+5. **Include common symbols** beyond ASCII: `×`, `÷`, `·`, `-`, `…`, etc.
 
 ## API Reference
 

@@ -12,7 +12,7 @@ The `bootstrap()` function is the recommended entry point. It handles DOM ready,
 ```ts
 import { bootstrap, type BootstrapOptions } from 'blit-tech';
 
-// One-liner — canvas id defaults to 'blit-tech-canvas', container to 'canvas-container'
+// One-liner - canvas id defaults to 'blit-tech-canvas', container to 'canvas-container'
 bootstrap(MyDemo);
 
 // With options
@@ -31,8 +31,8 @@ bootstrap(MyDemo, {
 | ----------------- | ------------------------ | -------------------- | ------------------------------ |
 | `canvasId`        | `string`                 | `'blit-tech-canvas'` | Canvas element id              |
 | `containerId`     | `string`                 | `'canvas-container'` | Container id for error display |
-| `onSuccess`       | `() => void`             | —                    | Called after successful init   |
-| `onError`         | `(error: Error) => void` | —                    | Called on any init failure     |
+| `onSuccess`       | `() => void`             | -                    | Called after successful init   |
+| `onError`         | `(error: Error) => void` | -                    | Called on any init failure     |
 | `waitForDOMReady` | `boolean`                | `true`               | Wait for `DOMContentLoaded`    |
 
 **Manual utilities** (for custom initialization flows):
@@ -50,10 +50,10 @@ displayError('Init Failed', 'WebGPU unavailable.', 'my-container');
 
 ```ts
 const ok = await BT.init(demo, canvas); // low-level init; prefer bootstrap()
-BT.displaySize; // Vector2i — configured logical resolution (clone per read)
-BT.canvasDisplaySize; // Vector2i | null — output buffer when set in configure()
-BT.outputSize; // Vector2i — effective drawing-buffer size (clone per read)
-BT.targetFPS; // number — target updates per second
+BT.displaySize; // Vector2i - configured logical resolution (clone per read)
+BT.canvasDisplaySize; // Vector2i | null - output buffer when set in configure()
+BT.outputSize; // Vector2i - effective drawing-buffer size (clone per read)
+BT.targetFPS; // number - target updates per second
 BT.activeBackend; // 'webgpu' | 'software' | null
 ```
 
@@ -118,11 +118,11 @@ specific snapshot; the default is the engine tick counter.
 
 ## Camera
 
-The camera applies a global pixel offset to all subsequent draw calls. Integer only — pass `Vector2i`, never floats.
+The camera applies a global pixel offset to all subsequent draw calls. Integer only - pass `Vector2i`, never floats.
 
 ```ts
 BT.cameraSet(new Vector2i(scrollX, scrollY)); // apply offset
-BT.camera; // Vector2i — current offset
+BT.camera; // Vector2i - current offset
 BT.cameraReset(); // set back to (0, 0)
 
 // Clamp a camera origin so the viewport stays within a world:
@@ -147,8 +147,8 @@ v.width;
 v.height; // aliases for x / y (useful when treating the vector as a size)
 
 // Static factories
-Vector2i.zero(); // (0, 0) — cached frozen singleton
-Vector2i.one(); // (1, 1) — cached frozen singleton
+Vector2i.zero(); // (0, 0) - cached frozen singleton
+Vector2i.one(); // (1, 1) - cached frozen singleton
 Vector2i.up(); // (0, -1)
 Vector2i.down(); // (0, 1)
 Vector2i.left(); // (-1, 0)
@@ -174,16 +174,16 @@ Integer rectangle with `x, y, width, height` fields.
 const r = new Rect2i(x, y, width, height);
 
 // Static factories
-Rect2i.zero(); // (0,0,0,0) — cached frozen singleton
+Rect2i.zero(); // (0,0,0,0) - cached frozen singleton
 Rect2i.fromMinMax(min, max); // from corner vectors
 Rect2i.fromMinMaxXY(minX, minY, maxX, maxY); // zero-allocation variant
 Rect2i.fromCenterSize(center, size); // centered rectangle
 Rect2i.fromCenterSizeXY(cx, cy, w, h); // zero-allocation variant
 
 // Instance methods
-r.contains(point); // boolean — point inside rect
-r.intersects(other); // boolean — rects overlap
-r.intersection(other); // Rect2i | null — overlap area
+r.contains(point); // boolean - point inside rect
+r.intersects(other); // boolean - rects overlap
+r.intersection(other); // Rect2i | null - overlap area
 r.center; // Vector2i getter
 r.min; // Vector2i getter (top-left)
 r.max; // Vector2i getter (bottom-right)
@@ -191,7 +191,7 @@ r.max; // Vector2i getter (bottom-right)
 
 ### Color32
 
-32-bit RGBA color (channels 0–255).
+32-bit RGBA color (channels 0-255).
 
 ```ts
 const c = new Color32(r, g, b, a);
@@ -200,7 +200,7 @@ const c = new Color32(r, g, b, a);
 Color32.white       Color32.black       Color32.transparent
 Color32.red         Color32.green       Color32.blue
 Color32.yellow      Color32.cyan        Color32.magenta
-Color32.gray(value)   // grayscale, value 0–255
+Color32.gray(value)   // grayscale, value 0-255
 
 // Hex parsing
 Color32.fromHex('#ff8800')    // returns Color32

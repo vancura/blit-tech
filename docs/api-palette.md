@@ -17,7 +17,7 @@ const palette = BT.paletteCreate(256); // equivalent BT-namespace shorthand
 // Set and get colors
 palette.set(1, new Color32(255, 0, 0, 255)); // red at slot 1
 palette.get(1); // → Color32 (defensive copy)
-palette.getRef(1); // → Color32 (live reference — do not store)
+palette.getRef(1); // → Color32 (live reference - do not store)
 
 // Activate for rendering
 BT.paletteSet(palette);
@@ -46,8 +46,8 @@ Palette.nes(); // NES 64-color
 Fills six consecutive UI-purpose slots into an existing palette and registers `hud_*` name aliases.
 
 ```ts
-palette.applyHUD(); // fills slots 1–6 (default startSlot = 1)
-palette.applyHUD(10); // fills slots 10–15
+palette.applyHUD(); // fills slots 1-6 (default startSlot = 1)
+palette.applyHUD(10); // fills slots 10-15
 BT.paletteSet(palette);
 ```
 
@@ -109,7 +109,7 @@ const slot = palette.findColor(color); // → index, or -1 if not found
 
 Animated effects run automatically each frame in the engine's end-of-frame pass (after `demo.render()`, before the GPU
 upload). Multiple effects can run simultaneously on different palette ranges and will not conflict. Effects process via
-the `dirty` flag — no polling needed.
+the `dirty` flag - no polling needed.
 
 ```ts
 // Cycle a range of slots (water, fire, plasma)
@@ -152,7 +152,7 @@ Used by `paletteFade` and `paletteFadeRange`. Type: `EasingFunction`.
 ## Timing Note
 
 Effects are applied after `demo.render()` but before the GPU palette upload in `Renderer.endFrame()`. This means user
-draw calls and palette effects see the same consistent snapshot within a frame — they never interleave mid-frame.
+draw calls and palette effects see the same consistent snapshot within a frame - they never interleave mid-frame.
 
 Effects that auto-remove (fade, flash) clean up when their duration elapses. `paletteCycle` runs indefinitely until
 `paletteClearEffects()` is called.
