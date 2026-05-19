@@ -438,7 +438,7 @@ export class BitmapFont {
      */
     private static loadTexture(texture: string, fontUrl: string): Promise<HTMLImageElement> {
         // Embedded PNG data URIs are validated in parseBtfontFile before decode.
-        if (texture.startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
+        if (texture.toLowerCase().startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
             return BitmapFont.loadImage(texture);
         }
 

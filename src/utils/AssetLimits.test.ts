@@ -103,6 +103,14 @@ describe('AssetLimits', () => {
             expect(validateBtfontEmbeddedTextureUri('data:image/jpeg;base64,abc')).toContain('PNG data URI');
         });
 
+        it('rejects case-variant non-PNG data URIs', () => {
+            expect(validateBtfontEmbeddedTextureUri('DATA:image/jpeg;base64,abc')).toContain('PNG data URI');
+        });
+
+        it('accepts case-variant PNG data URIs within the payload cap', () => {
+            expect(validateBtfontEmbeddedTextureUri('DATA:image/png;base64,aGVsbG8=')).toBeNull();
+        });
+
         it('rejects oversized embedded texture payloads', () => {
             const oversized = `data:image/png;base64,${'A'.repeat(MAX_BTFONT_EMBEDDED_TEXTURE_BYTES + 1)}`;
             const error = validateBtfontEmbeddedTextureUri(oversized);

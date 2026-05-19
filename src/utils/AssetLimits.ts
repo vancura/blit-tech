@@ -300,11 +300,13 @@ export function validateGlyphCount(count: number): string | null {
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
 export function validateBtfontEmbeddedTextureUri(texture: string): string | null {
-    if (!texture.startsWith('data:')) {
+    const lowerTexture = texture.toLowerCase();
+
+    if (!lowerTexture.startsWith('data:')) {
         return null;
     }
 
-    if (!texture.startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
+    if (!lowerTexture.startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
         return btfontEmbeddedTextureFormatError();
     }
 
