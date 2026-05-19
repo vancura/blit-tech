@@ -11,14 +11,16 @@
  * the suite can validate setup logic deterministically.
  */
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     createMockGPUCanvasContext,
+    createMockGPUDevice,
     installMockNavigatorGPU,
     uninstallMockNavigatorGPU,
 } from '../__test__/webgpu-mock';
 import { WEBGPU_ADAPTER_MESSAGE, WEBGPU_DEVICE_MESSAGE } from '../utils/errorMessages';
+import { RenderDimensionLimitError } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import { initWebGPU } from './WebGPUContext';
 
@@ -114,6 +116,95 @@ describe('initWebGPU', () => {
         const result = await initWebGPU(canvas, displaySize);
 
         expect(result).toBeNull();
+    });
+
+    // #endregion
+
+    // #region Dimension limits
+
+    it('throws RenderDimensionLimitError when displaySize exceeds adapter texture limit', async () => {
+        const requestDevice = vi.fn(async () => createMockGPUDevice());
+        Object.defineProperty(globalThis, 'navigator', {
+            value: {
+                gpu: {
+                    requestAdapter: async () => ({
+                        requestDevice,
+                        features: new Set(),
+                        limits: { maxTextureDimension2D: 1024 } as GPUSupportedLimits,
+                    }),
+                    getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                },
+                userAgent: 'test',
+            },
+            writable: true,
+            configurable: true,
+        });
+
+        const canvas = createMockCanvas();
+
+        await expect(initWebGPU(canvas, new Vector2i(2048, 1024))).rejects.toBeInstanceOf(RenderDimensionLimitError);
+        expect(requestDevice).not.toHaveBeenCalled();
+        expect(canvas.width).toBe(0);
+        expect(canvas.height).toBe(0);
+    });
+
+    it('throws RenderDimensionLimitError when canvasDisplaySize exceeds device texture limit', async () => {
+        const requestDevice = vi.fn(async () => ({
+            ...createMockGPUDevice(),
+            limits: { maxTextureDimension2D: 512 } as GPUSupportedLimits,
+        }));
+        Object.defineProperty(globalThis, 'navigator', {
+            value: {
+                gpu: {
+                    requestAdapter: async () => ({
+                        requestDevice,
+                        features: new Set(),
+                        limits: { maxTextureDimension2D: 2048 } as GPUSupportedLimits,
+                    }),
+                    getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                },
+                userAgent: 'test',
+            },
+            writable: true,
+            configurable: true,
+        });
+
+        const canvas = createMockCanvas();
+        const displaySize = new Vector2i(320, 240);
+        const canvasDisplaySize = new Vector2i(1024, 768);
+
+        await expect(initWebGPU(canvas, displaySize, canvasDisplaySize)).rejects.toBeInstanceOf(
+            RenderDimensionLimitError,
+        );
+        expect(canvas.width).toBe(0);
+        expect(canvas.height).toBe(0);
+    });
+
+    it('succeeds when dimensions are exactly at the adapter texture limit', async () => {
+        Object.defineProperty(globalThis, 'navigator', {
+            value: {
+                gpu: {
+                    requestAdapter: async () => ({
+                        requestDevice: async () => createMockGPUDevice(),
+                        features: new Set(),
+                        limits: { maxTextureDimension2D: 1024 } as GPUSupportedLimits,
+                    }),
+                    getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                },
+                userAgent: 'test',
+            },
+            writable: true,
+            configurable: true,
+        });
+
+        const canvas = createMockCanvas();
+        const size = new Vector2i(1024, 1024);
+
+        const result = await initWebGPU(canvas, size);
+
+        expect(result).not.toBeNull();
+        expect(canvas.width).toBe(1024);
+        expect(canvas.height).toBe(1024);
     });
 
     // #endregion

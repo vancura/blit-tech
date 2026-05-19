@@ -78,9 +78,11 @@ example no `canvasDisplaySize` means a 1:1 drawing buffer).
 | `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync         |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
-is capped at `8192×8192` per axis and `16,777,216` total pixels. Invalid sizes make initialization fail before the
-engine applies canvas layout or allocates renderer buffers. In WebGPU mode, the requested logical and output sizes must
-also fit the active adapter/device `maxTextureDimension2D` limit.
+is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
+before the engine applies canvas layout, sets canvas backing dimensions, or allocates renderer buffers. `BT.init()`
+returns `false` and logs a specific `[BT]` message to the browser console (press F12); the on-canvas bootstrap error
+stays a generic init failure message. In WebGPU mode, the requested logical and output sizes must also fit the active
+adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall back to the software renderer.
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).

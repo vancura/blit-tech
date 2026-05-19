@@ -418,6 +418,31 @@ describe('BTAPI', () => {
             expect(getContext).not.toHaveBeenCalled();
         });
 
+        it('rejects invalid maxCanvasDisplaySize before layout or renderer setup', async () => {
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(320, 240),
+                    maxCanvasDisplaySize: { x: Number.NaN, y: 720 } as Vector2i,
+                    targetFPS: 60,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMockCanvas();
+            const getContext = vi.fn(canvas.getContext.bind(canvas));
+            (canvas as unknown as { getContext: typeof getContext }).getContext = getContext;
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(canvas.style.setProperty).not.toHaveBeenCalled();
+            expect(getContext).not.toHaveBeenCalled();
+            expect(demo.init).not.toHaveBeenCalled();
+        });
+
         it('rejects WebGPU dimensions above adapter texture limits before canvas allocation', async () => {
             const requestDevice = vi.fn(async () => createMockGPUDevice());
             Object.defineProperty(globalThis, 'navigator', {
@@ -453,6 +478,91 @@ describe('BTAPI', () => {
             expect(canvas.width).toBe(0);
             expect(canvas.height).toBe(0);
             expect(requestDevice).not.toHaveBeenCalled();
+            expect(demo.init).not.toHaveBeenCalled();
+        });
+
+        it('rejects WebGPU canvasDisplaySize above adapter texture limits before canvas allocation', async () => {
+            const requestDevice = vi.fn(async () => createMockGPUDevice());
+            Object.defineProperty(globalThis, 'navigator', {
+                value: {
+                    gpu: {
+                        requestAdapter: async () => ({
+                            requestDevice,
+                            features: new Set(),
+                            limits: { maxTextureDimension2D: 1024 } as GPUSupportedLimits,
+                        }),
+                        getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                    },
+                    userAgent: 'test',
+                },
+                writable: true,
+                configurable: true,
+            });
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(2048, 1024),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMockCanvas();
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(requestDevice).not.toHaveBeenCalled();
+            expect(demo.init).not.toHaveBeenCalled();
+        });
+
+        it('rejects WebGPU dimensions above device texture limits without software fallback', async () => {
+            const requestDevice = vi.fn(async () => ({
+                ...createMockGPUDevice(),
+                limits: { maxTextureDimension2D: 512 } as GPUSupportedLimits,
+            }));
+            Object.defineProperty(globalThis, 'navigator', {
+                value: {
+                    gpu: {
+                        requestAdapter: async () => ({
+                            requestDevice,
+                            features: new Set(),
+                            limits: { maxTextureDimension2D: 2048 } as GPUSupportedLimits,
+                        }),
+                        getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
+                    },
+                    userAgent: 'test',
+                },
+                writable: true,
+                configurable: true,
+            });
+            const demo: IBlitTechDemo = {
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(320, 240),
+                    canvasDisplaySize: new Vector2i(1024, 768),
+                    targetFPS: 60,
+                    renderer: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+            const canvas = makeMock2DCanvas();
+            const getContext = vi.fn(canvas.getContext.bind(canvas));
+            (canvas as unknown as { getContext: typeof getContext }).getContext = getContext;
+
+            const result = await BTAPI.instance.init(demo, canvas);
+
+            expect(result).toBe(false);
+            expect(canvas.width).toBe(0);
+            expect(canvas.height).toBe(0);
+            expect(requestDevice).toHaveBeenCalled();
+            expect(getContext).not.toHaveBeenCalledWith('2d');
+            expect(BTAPI.instance.getActiveBackend()).toBeNull();
             expect(demo.init).not.toHaveBeenCalled();
         });
 
