@@ -139,40 +139,49 @@ export function isRunlayerManagedEntry(entry) {
 
 /**
  * @param {string} configPath
- * @returns {{ path: string, servers: { name: string, classification: 'runlayer-managed' | 'shadow-remote' | 'shadow-stdio' | 'unknown' }[] }}
+ * @returns {{
+ *   path: string,
+ *   servers: { name: string, classification: 'runlayer-managed' | 'shadow-remote' | 'shadow-stdio' | 'unknown' }[],
+ *   error: string | null,
+ * }}
  */
 export function scanMcpConfigFile(configPath) {
-    const raw = fs.readFileSync(configPath, 'utf8');
-    const parsed = JSON.parse(raw);
-    const serversObject = parsed.mcpServers;
+    try {
+        const raw = fs.readFileSync(configPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        const serversObject = parsed.mcpServers;
 
-    if (serversObject === null || typeof serversObject !== 'object') {
-        return { path: configPath, servers: [] };
-    }
-
-    /** @type {{ name: string, classification: 'runlayer-managed' | 'shadow-remote' | 'shadow-stdio' | 'unknown' }[]} */
-    const servers = [];
-
-    for (const [name, entry] of Object.entries(serversObject)) {
-        if (isRunlayerManagedEntry(entry)) {
-            servers.push({ name, classification: 'runlayer-managed' });
-            continue;
+        if (serversObject === null || typeof serversObject !== 'object') {
+            return { path: configPath, servers: [], error: null };
         }
 
-        const record = /** @type {Record<string, unknown>} */ (entry ?? {});
-        const url = typeof record.url === 'string' ? record.url : '';
-        const command = typeof record.command === 'string' ? record.command : '';
+        /** @type {{ name: string, classification: 'runlayer-managed' | 'shadow-remote' | 'shadow-stdio' | 'unknown' }[]} */
+        const servers = [];
 
-        if (url.length > 0) {
-            servers.push({ name, classification: 'shadow-remote' });
-        } else if (command.length > 0) {
-            servers.push({ name, classification: 'shadow-stdio' });
-        } else {
-            servers.push({ name, classification: 'unknown' });
+        for (const [name, entry] of Object.entries(serversObject)) {
+            if (isRunlayerManagedEntry(entry)) {
+                servers.push({ name, classification: 'runlayer-managed' });
+                continue;
+            }
+
+            const record = /** @type {Record<string, unknown>} */ (entry ?? {});
+            const url = typeof record.url === 'string' ? record.url : '';
+            const command = typeof record.command === 'string' ? record.command : '';
+
+            if (url.length > 0) {
+                servers.push({ name, classification: 'shadow-remote' });
+            } else if (command.length > 0) {
+                servers.push({ name, classification: 'shadow-stdio' });
+            } else {
+                servers.push({ name, classification: 'unknown' });
+            }
         }
-    }
 
-    return { path: configPath, servers };
+        return { path: configPath, servers, error: null };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { path: configPath, servers: [], error: message };
+    }
 }
 
 /**
@@ -257,7 +266,8 @@ export function collectRecommendedFallbacks(mcpServers) {
  */
 export function runMcpPreflight(options) {
     const repoRoot = options.repoRoot ?? DEFAULT_REPO_ROOT;
-    const mcpServers = buildMcpServerReport(options.mcpsDir);
+    const governanceOnly = options.governanceOnly ?? false;
+    const mcpServers = governanceOnly ? [] : buildMcpServerReport(options.mcpsDir);
     const governance = discoverMcpConfigPaths(repoRoot, {
         includeUserConfig: options.includeUserConfig ?? false,
     });
@@ -268,20 +278,21 @@ export function runMcpPreflight(options) {
             .map((server) => ({ config: config.path, name: server.name, classification: server.classification })),
     );
 
-    const criticalUsable = criticalMcpUsable(mcpServers);
-    const recommendedFallbacks = collectRecommendedFallbacks(mcpServers);
+    const criticalUsable = governanceOnly ? false : criticalMcpUsable(mcpServers);
+    const recommendedFallbacks = governanceOnly ? [] : collectRecommendedFallbacks(mcpServers);
 
     /** @type {McpPreflightReport} */
     const report = {
         generatedAt: new Date().toISOString(),
         mcpsDir: options.mcpsDir,
         repoRoot,
-        governanceOnly: options.governanceOnly ?? false,
-        mcpServers: options.governanceOnly ? [] : mcpServers,
+        governanceOnly,
+        mcpServers,
         governance: {
             configs: governance.map((config) => ({
                 path: config.path,
                 serverNames: config.servers.map((server) => server.name),
+                readError: config.error,
                 shadowServers: config.servers
                     .filter((server) => server.classification.startsWith('shadow'))
                     .map((server) => ({ name: server.name, classification: server.classification })),
@@ -292,8 +303,8 @@ export function runMcpPreflight(options) {
         summary: {
             criticalUsable,
             allowFallback: options.allowFallback ?? false,
-            recommendedFallbacks: options.governanceOnly ? [] : recommendedFallbacks,
-            proceed: options.governanceOnly ? true : criticalUsable || (options.allowFallback ?? false),
+            recommendedFallbacks,
+            proceed: governanceOnly ? true : criticalUsable || (options.allowFallback ?? false),
         },
     };
 
@@ -332,7 +343,11 @@ export function formatPreflightSummary(report) {
     lines.push('', 'MCP config governance:');
     for (const config of report.governance.configs) {
         const names = config.serverNames.length > 0 ? config.serverNames.join(', ') : '(none)';
-        lines.push(`  - ${config.path}: ${names}`);
+        if (config.readError) {
+            lines.push(`  - ${config.path}: (read error: ${config.readError})`);
+        } else {
+            lines.push(`  - ${config.path}: ${names}`);
+        }
     }
     if (report.governance.shadowCount > 0) {
         lines.push('', 'Shadow MCP servers flagged:');
@@ -363,7 +378,7 @@ export function formatPreflightSummary(report) {
  *   usable: boolean,
  * }>} mcpServers
  * @property {{
- *   configs: Array<{ path: string, serverNames: string[], shadowServers: Array<{ name: string, classification: string }> }>,
+ *   configs: Array<{ path: string, serverNames: string[], readError: string | null, shadowServers: Array<{ name: string, classification: string }> }>,
  *   shadowCount: number,
  *   shadowServers: Array<{ config: string, name: string, classification: string }>,
  * }} governance

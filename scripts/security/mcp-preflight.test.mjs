@@ -100,20 +100,29 @@ describe('runMcpPreflight', () => {
     });
 
     it('supports governance-only mode without MCP server checks', () => {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-governance-'));
-        const configPath = path.join(tempDir, '.mcp.json');
-        fs.copyFileSync(path.join(FIXTURE_ROOT, 'governance', 'shadow.mcp.json'), configPath);
+        const previousCwd = process.cwd();
+        const searchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-governance-'));
+        const tempDir = path.join(searchRoot, 'repo');
+        fs.mkdirSync(tempDir);
 
-        const report = runMcpPreflight({
-            mcpsDir: MCPS_FIXTURE,
-            repoRoot: tempDir,
-            governanceOnly: true,
-        });
+        try {
+            process.chdir(searchRoot);
+            fs.copyFileSync(path.join(FIXTURE_ROOT, 'governance', 'shadow.mcp.json'), path.join(tempDir, '.mcp.json'));
 
-        assert.equal(report.governanceOnly, true);
-        assert.equal(report.mcpServers.length, 0);
-        assert.equal(report.summary.proceed, true);
-        assert.ok(report.governance.shadowCount >= 2);
+            const report = runMcpPreflight({
+                mcpsDir: MCPS_FIXTURE,
+                repoRoot: tempDir,
+                governanceOnly: true,
+            });
+
+            assert.equal(report.governanceOnly, true);
+            assert.equal(report.mcpServers.length, 0);
+            assert.equal(report.summary.criticalUsable, false);
+            assert.equal(report.summary.proceed, true);
+            assert.ok(report.governance.shadowCount >= 2);
+        } finally {
+            process.chdir(previousCwd);
+        }
     });
 });
 
@@ -155,13 +164,38 @@ describe('parseArgs', () => {
     });
 });
 
+describe('scanMcpConfigFile error handling', () => {
+    it('returns empty servers and error message for malformed JSON', () => {
+        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-bad-json-'));
+        const configPath = path.join(tempDir, '.mcp.json');
+        fs.writeFileSync(configPath, '{ not valid json');
+
+        const config = scanMcpConfigFile(configPath);
+        assert.equal(config.servers.length, 0);
+        assert.ok(config.error);
+    });
+});
+
 describe('discoverMcpConfigPaths', () => {
     it('finds repo-local MCP config files', () => {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-repo-'));
-        fs.copyFileSync(path.join(FIXTURE_ROOT, 'governance', 'runlayer.mcp.json'), path.join(tempDir, '.mcp.json'));
+        const previousCwd = process.cwd();
+        const searchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-search-root-'));
+        const tempDir = path.join(searchRoot, 'repo');
+        fs.mkdirSync(tempDir);
 
-        const configs = discoverMcpConfigPaths(tempDir);
-        assert.equal(configs.length, 1);
-        assert.equal(configs[0]?.servers[0]?.name, 'managed');
+        try {
+            process.chdir(searchRoot);
+            fs.copyFileSync(
+                path.join(FIXTURE_ROOT, 'governance', 'runlayer.mcp.json'),
+                path.join(tempDir, '.mcp.json'),
+            );
+
+            const configs = discoverMcpConfigPaths(tempDir);
+            assert.equal(configs.length, 1);
+            assert.equal(configs[0]?.servers[0]?.name, 'managed');
+            assert.equal(configs[0]?.error, null);
+        } finally {
+            process.chdir(previousCwd);
+        }
     });
 });

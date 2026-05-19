@@ -15,7 +15,7 @@ Agents must pass the Cursor project MCP descriptor path from the session (for ex
 `~/.cursor/projects/<workspace-id>/mcps`).
 
 ```bash
-cd /Users/vancura/Repos/_BLIT_TECH_/blit-tech
+cd <repo-root>   # blit-tech: directory containing this repo's package.json
 
 pnpm security:mcp-preflight -- \
   --mcps-dir "<cursor-project-mcps-path>" \
@@ -82,7 +82,7 @@ When Opsera `compliance-audit` MCP is unavailable, gather evidence manually:
 ### blit-tech
 
 ```bash
-cd /Users/vancura/Repos/_BLIT_TECH_/blit-tech
+cd <repo-root>   # or: cd "$PWD" after cloning blit-tech
 
 pnpm security:mcp-preflight -- --mcps-dir "<mcps>" --repo-root . --allow-fallback
 pnpm security:audit
@@ -101,11 +101,11 @@ npm view typescript version time.modified license
 ### blit-tech-demos
 
 ```bash
-cd /Users/vancura/Repos/_BLIT_TECH_/blit-tech-demos
+cd <repo-root>   # blit-tech-demos: directory containing this repo's package.json
 
 pnpm security:mcp-preflight -- \
   --mcps-dir "<mcps>" \
-  --repo-root /Users/vancura/Repos/_BLIT_TECH_/blit-tech-demos \
+  --repo-root . \
   --allow-fallback
 
 pnpm security:audit
