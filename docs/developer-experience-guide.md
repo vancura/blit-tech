@@ -51,10 +51,14 @@ package).
 | `pnpm convert-font`            | Convert BMFont to .btfont format                                         |
 | `pnpm system-font:export`      | Export system font data to PNG atlas (`assets/system-font.png`)          |
 | `pnpm system-font:convert`     | Regenerate `systemFontData.ts` from edited PNG atlas                     |
-| `pnpm security:audit`          | Run dependency security audit                                            |
+| `pnpm security:audit`          | Run dependency security audit (all deps, moderate+; matches CI)          |
+| `pnpm security:audit:prod`     | Run production-only dependency audit (moderate+)                         |
 | `pnpm security:audit:fix`      | Run dependency security audit and auto-fix                               |
 | `pnpm security:mcp-preflight`  | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`) |
 | `pnpm test:security-preflight` | Unit tests for MCP preflight script                                      |
+
+Dependency audit severity policy and CI gate: [dependency-policy.md](security/dependency-policy.md). Temporary
+exceptions: [audit-exceptions.md](security/audit-exceptions.md).
 
 ---
 
@@ -76,6 +80,8 @@ package).
 | [Performance Best Practices](performance-best-practices.md) | optimization guidelines                                |
 | [Developer Experience](developer-experience-guide.md)       | contributing workflow, IDE setup                       |
 | [Security runbook](security/security-runbook.md)            | MCP preflight, fallbacks, governance, security runs    |
+| [Dependency policy](security/dependency-policy.md)          | CI audit gate, severity threshold, refresh cadence     |
+| [Audit exceptions](security/audit-exceptions.md)            | Temporary GHSA acceptance playbook                     |
 | [Tooling](tooling.md)                                       | TypeScript pin, declaration checks, CI enforcement     |
 | [Voice Guide](voice.md)                                     | error messages and user-facing string style            |
 

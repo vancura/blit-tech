@@ -19,7 +19,7 @@ export const SECURITY_MCP_REGISTRY = [
         tier: 'critical',
         fallbacks: [
             'pnpm security:audit',
-            'pnpm audit --prod --audit-level=moderate',
+            'pnpm security:audit:prod',
             'pnpm lint',
             'docs/security/security-runbook.md (SAST/compliance fallbacks)',
         ],
@@ -27,7 +27,12 @@ export const SECURITY_MCP_REGISTRY = [
     {
         id: 'plugin-jfrog-jfrog',
         tier: 'recommended',
-        fallbacks: ['pnpm security:audit', 'pnpm outdated --format json', 'npm view <pkg> version'],
+        fallbacks: [
+            'pnpm security:audit',
+            'pnpm security:audit:prod',
+            'pnpm outdated --format json',
+            'npm view <pkg> version',
+        ],
     },
     {
         id: 'plugin-semgrep-plugin-semgrep',

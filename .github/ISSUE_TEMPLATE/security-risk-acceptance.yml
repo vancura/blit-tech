@@ -1,0 +1,94 @@
+name: Security risk acceptance
+description: Request temporary acceptance of a dependency vulnerability (moderate+)
+title: '[security] Risk acceptance: '
+labels:
+  - security
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use for **moderate or higher** findings that cannot be fixed before merge.
+        See [audit-exceptions.md](../../docs/security/audit-exceptions.md) and [dependency-policy.md](../../docs/security/dependency-policy.md).
+
+  - type: input
+    id: ghsa-ids
+    attributes:
+      label: GHSA / CVE identifiers
+      description: Comma-separated GitHub Advisory IDs (e.g. GHSA-xxxx-xxxx-xxxx)
+      placeholder: GHSA-xxxx-xxxx-xxxx
+    validations:
+      required: true
+
+  - type: input
+    id: package-path
+    attributes:
+      label: Affected package and dependency path
+      description: As shown in `pnpm audit` output
+      placeholder: 'ws via happy-dom'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - moderate
+        - high
+        - critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale for acceptance
+      description: Why remediation is blocked and what risk remains
+    validations:
+      required: true
+
+  - type: textarea
+    id: compensating-controls
+    attributes:
+      label: Compensating controls
+      description: e.g. dev-only dependency, not used in CI publish artifact, network isolation
+    validations:
+      required: true
+
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: GitHub handle or name responsible for removal
+    validations:
+      required: true
+
+  - type: input
+    id: review-by
+    attributes:
+      label: Review-by date
+      description: ISO date when the exception must be removed or renewed (default 30 days)
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: input
+    id: remediation-issue
+    attributes:
+      label: Linked remediation issue
+      description: Linear or GitHub issue URL that tracks the fix
+      placeholder: https://linear.app/...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation checklist
+      options:
+        - label: Row added to docs/security/audit-exceptions.md
+          required: true
+        - label: GHSA added to pnpm.auditConfig.ignoreGhsas in package.json
+          required: true
+        - label: Calendar reminder set to remove exception by review-by date
+          required: true
