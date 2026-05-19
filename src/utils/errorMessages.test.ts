@@ -6,6 +6,10 @@ import {
     noActivePaletteError,
     paletteIndexNegativeError,
     paletteIndexOutOfRangeError,
+    renderDimensionAreaTooLargeError,
+    renderDimensionGpuLimitError,
+    renderDimensionInvalidError,
+    renderDimensionTooLargeError,
     spriteColorNotInPaletteError,
     spriteNotIndexizedError,
     WEBGPU_ADAPTER_MESSAGE,
@@ -57,6 +61,54 @@ describe('errorMessages', () => {
 
         it('should suggest closing other tabs or restarting', () => {
             expect(WEBGPU_DEVICE_MESSAGE).toContain('closing other tabs');
+        });
+    });
+
+    describe('renderDimensionInvalidError', () => {
+        it('includes the field name and invalid size', () => {
+            const message = renderDimensionInvalidError('displaySize', '0x240');
+
+            expect(message).toContain('displaySize');
+            expect(message).toContain('0x240');
+        });
+
+        it('directs the author to update configure()', () => {
+            expect(renderDimensionInvalidError('canvasDisplaySize', '320.5x240')).toContain('configure()');
+        });
+    });
+
+    describe('renderDimensionTooLargeError', () => {
+        it('includes the field name, size, and axis limits', () => {
+            const message = renderDimensionTooLargeError('maxCanvasDisplaySize', '9000x720', 8192, 8192);
+
+            expect(message).toContain('maxCanvasDisplaySize');
+            expect(message).toContain('9000x720');
+            expect(message).toContain('8192x8192');
+        });
+
+        it('directs the author to use a smaller configure() size', () => {
+            expect(renderDimensionTooLargeError('displaySize', '9000x240', 8192, 8192)).toContain('configure()');
+        });
+    });
+
+    describe('renderDimensionAreaTooLargeError', () => {
+        it('includes the field name, size, and formatted pixel cap', () => {
+            const message = renderDimensionAreaTooLargeError('displaySize', '4096x4097', 16_777_216);
+
+            expect(message).toContain('displaySize');
+            expect(message).toContain('4096x4097');
+            expect(message).toContain('16,777,216');
+        });
+    });
+
+    describe('renderDimensionGpuLimitError', () => {
+        it('includes the field name, size, and graphics-card limit', () => {
+            const message = renderDimensionGpuLimitError('canvasDisplaySize', '2048x1024', 1024);
+
+            expect(message).toContain('canvasDisplaySize');
+            expect(message).toContain('2048x1024');
+            expect(message).toContain('graphics card');
+            expect(message).toContain('1024');
         });
     });
 });

@@ -4,7 +4,9 @@ import {
     MAX_RENDER_DIMENSION,
     MAX_RENDER_PIXELS,
     type RenderDimensionField,
+    RenderDimensionLimitError,
     type RenderDimensionSettings,
+    validateRenderDimension,
     validateRenderDimensions,
     validateWebGPUTextureDimension,
 } from './RenderLimits';
@@ -90,6 +92,61 @@ describe('RenderLimits', () => {
 
             expect(error).toContain(MAX_RENDER_PIXELS.toLocaleString('en-US'));
         });
+
+        it('rejects 8192x8192 when per-axis limits pass but total area exceeds cap', () => {
+            const error = validateRenderDimensions({
+                displaySize: rawSize(MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION),
+            });
+
+            expect(error).toContain('displaySize');
+            expect(error).toContain(MAX_RENDER_PIXELS.toLocaleString('en-US'));
+        });
+
+        it('accepts dimensions at the per-axis maximum with area within cap', () => {
+            expect(
+                validateRenderDimensions({
+                    displaySize: rawSize(MAX_RENDER_DIMENSION, 2048),
+                }),
+            ).toBeNull();
+        });
+
+        it('accepts dimensions at the total pixel area maximum', () => {
+            expect(
+                validateRenderDimensions({
+                    displaySize: rawSize(4096, 4096),
+                }),
+            ).toBeNull();
+        });
+
+        it('accepts dimensions at the per-axis maximum on a single axis', () => {
+            expect(
+                validateRenderDimensions({
+                    displaySize: rawSize(MAX_RENDER_DIMENSION, 1),
+                }),
+            ).toBeNull();
+        });
+    });
+
+    describe('validateRenderDimension', () => {
+        it('returns null for a valid size at engine limits', () => {
+            expect(validateRenderDimension('displaySize', new Vector2i(4096, 4096))).toBeNull();
+        });
+
+        it('returns a field-specific message for invalid sizes', () => {
+            const error = validateRenderDimension('canvasDisplaySize', rawSize(0, 480));
+
+            expect(error).toContain('canvasDisplaySize');
+        });
+    });
+
+    describe('RenderDimensionLimitError', () => {
+        it('uses the expected error name', () => {
+            const error = new RenderDimensionLimitError('test message');
+
+            expect(error.name).toBe('RenderDimensionLimitError');
+            expect(error).toBeInstanceOf(Error);
+            expect(error).toBeInstanceOf(RenderDimensionLimitError);
+        });
     });
 
     describe('validateWebGPUTextureDimension', () => {
@@ -99,8 +156,27 @@ describe('RenderLimits', () => {
             expect(error).toContain('graphics card');
         });
 
+        it('rejects when height alone exceeds the WebGPU texture limit', () => {
+            const error = validateWebGPUTextureDimension('displaySize', new Vector2i(512, 2048), 1024);
+
+            expect(error).toContain('displaySize');
+            expect(error).toContain('graphics card');
+        });
+
+        it('accepts dimensions exactly at the WebGPU texture limit', () => {
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(1024, 1024), 1024)).toBeNull();
+        });
+
         it('ignores missing WebGPU texture limits', () => {
             expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), undefined)).toBeNull();
+        });
+
+        it('ignores non-finite WebGPU texture limits', () => {
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), Number.NaN)).toBeNull();
+        });
+
+        it('ignores non-positive WebGPU texture limits', () => {
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), 0)).toBeNull();
         });
     });
 });
