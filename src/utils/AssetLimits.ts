@@ -4,6 +4,8 @@ import {
     assetDimensionTooLargeError,
     assetIndexedPixelLengthError,
     assetIndexedPixelOverflowError,
+    btfontEmbeddedTextureFormatError,
+    btfontEmbeddedTextureTooLargeError,
     btfontGlyphAreaTooLargeError,
     btfontGlyphCountTooLargeError,
     btfontGlyphMetricNotIntegerError,
@@ -34,6 +36,12 @@ export const ASSET_DIMENSION_LIMITS = {
 
 /** Maximum `.btfont` JSON payload size in bytes before parsing. */
 export const MAX_BTFONT_JSON_BYTES = 1_048_576;
+
+/** Required prefix for embedded `.btfont` texture data URIs. */
+export const BTFONT_EMBEDDED_TEXTURE_PREFIX = 'data:image/png;base64,';
+
+/** Maximum base64 payload size for an embedded `.btfont` texture (characters after the data-URI prefix). */
+export const MAX_BTFONT_EMBEDDED_TEXTURE_BYTES = 524_288;
 
 /** Maximum number of glyph entries accepted from a `.btfont` file. */
 export const MAX_GLYPH_COUNT = 8192;
@@ -283,6 +291,33 @@ export function validateGlyphCount(count: number): string | null {
 }
 
 /**
+ * Validates an embedded `.btfont` texture URI before image decode.
+ *
+ * Relative PNG paths are accepted without additional checks. Embedded textures must
+ * use {@link BTFONT_EMBEDDED_TEXTURE_PREFIX} and stay within {@link MAX_BTFONT_EMBEDDED_TEXTURE_BYTES}.
+ *
+ * @param texture - Texture field from a `.btfont` file.
+ * @returns A user-facing error message when invalid, otherwise `null`.
+ */
+export function validateBtfontEmbeddedTextureUri(texture: string): string | null {
+    if (!texture.startsWith('data:')) {
+        return null;
+    }
+
+    if (!texture.startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
+        return btfontEmbeddedTextureFormatError();
+    }
+
+    const payloadLength = texture.length - BTFONT_EMBEDDED_TEXTURE_PREFIX.length;
+
+    if (payloadLength > MAX_BTFONT_EMBEDDED_TEXTURE_BYTES) {
+        return btfontEmbeddedTextureTooLargeError(payloadLength, MAX_BTFONT_EMBEDDED_TEXTURE_BYTES);
+    }
+
+    return null;
+}
+
+/**
  * Validates numeric glyph metrics before atlas bounds are checked.
  *
  * @param glyph - Glyph metrics from the `.btfont` file.
@@ -322,20 +357,13 @@ function validateBtfontGlyphMetrics(glyph: BtfontGlyphData, charLabel: string): 
 }
 
 /**
- * Validates one serialized glyph entry against atlas bounds and metric rules.
+ * Validates glyph metrics and per-glyph size limits before the font atlas image is decoded.
  *
  * @param glyph - Glyph metrics from the `.btfont` file.
- * @param atlasWidth - Font texture atlas width in pixels.
- * @param atlasHeight - Font texture atlas height in pixels.
  * @param charLabel - Character label used in error text.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateBtfontGlyphData(
-    glyph: BtfontGlyphData,
-    atlasWidth: number,
-    atlasHeight: number,
-    charLabel: string,
-): string | null {
+export function validateBtfontGlyphDataPreAtlas(glyph: BtfontGlyphData, charLabel: string): string | null {
     const metricError = validateBtfontGlyphMetrics(glyph, charLabel);
 
     if (metricError) {
@@ -352,10 +380,6 @@ export function validateBtfontGlyphData(
         );
     }
 
-    if (glyph.x + glyph.w > atlasWidth || glyph.y + glyph.h > atlasHeight) {
-        return btfontGlyphOutsideAtlasError(charLabel, glyph.x, glyph.y, glyph.w, glyph.h, atlasWidth, atlasHeight);
-    }
-
     const glyphArea = glyph.w * glyph.h;
 
     if (glyph.w > 0 && glyph.h > 0 && (!Number.isSafeInteger(glyphArea) || glyphArea > MAX_SPRITE_BLIT_PIXELS)) {
@@ -363,6 +387,52 @@ export function validateBtfontGlyphData(
     }
 
     return null;
+}
+
+/**
+ * Validates that a glyph rectangle fits inside the decoded font atlas.
+ *
+ * @param glyph - Glyph metrics from the `.btfont` file.
+ * @param atlasWidth - Font texture atlas width in pixels.
+ * @param atlasHeight - Font texture atlas height in pixels.
+ * @param charLabel - Character label used in error text.
+ * @returns A user-facing error message when invalid, otherwise `null`.
+ */
+export function validateBtfontGlyphAtlasBounds(
+    glyph: BtfontGlyphData,
+    atlasWidth: number,
+    atlasHeight: number,
+    charLabel: string,
+): string | null {
+    if (glyph.x + glyph.w > atlasWidth || glyph.y + glyph.h > atlasHeight) {
+        return btfontGlyphOutsideAtlasError(charLabel, glyph.x, glyph.y, glyph.w, glyph.h, atlasWidth, atlasHeight);
+    }
+
+    return null;
+}
+
+/**
+ * Validates one serialized glyph entry against atlas bounds and metric rules.
+ *
+ * @param glyph - Glyph metrics from the `.btfont` file.
+ * @param atlasWidth - Font texture atlas width in pixels.
+ * @param atlasHeight - Font texture atlas height in pixels.
+ * @param charLabel - Character label used in error text.
+ * @returns A user-facing error message when invalid, otherwise `null`.
+ */
+export function validateBtfontGlyphData(
+    glyph: BtfontGlyphData,
+    atlasWidth: number,
+    atlasHeight: number,
+    charLabel: string,
+): string | null {
+    const preAtlasError = validateBtfontGlyphDataPreAtlas(glyph, charLabel);
+
+    if (preAtlasError) {
+        return preAtlasError;
+    }
+
+    return validateBtfontGlyphAtlasBounds(glyph, atlasWidth, atlasHeight, charLabel);
 }
 
 /**

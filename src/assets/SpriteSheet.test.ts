@@ -17,7 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
-import { AssetLimitError, MAX_ASSET_DIMENSION } from '../utils/AssetLimits';
+import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_ASSET_PIXELS } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { AssetLoader } from './AssetLoader';
@@ -355,6 +355,16 @@ describe('SpriteSheet', () => {
             await expect(SpriteSheet.load('huge.png')).rejects.toBeInstanceOf(AssetLimitError);
         });
 
+        it('rejects images whose total pixel area exceeds engine limits', async () => {
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue({
+                width: 4096,
+                height: 4097,
+            } as HTMLImageElement);
+
+            await expect(SpriteSheet.load('huge-area.png')).rejects.toBeInstanceOf(AssetLimitError);
+            await expect(SpriteSheet.load('huge-area.png')).rejects.toThrow(MAX_ASSET_PIXELS.toLocaleString('en-US'));
+        });
+
         it('should close imageBitmap on destroy when getTexture was never called', async () => {
             const closeSpy = vi.fn();
             vi.stubGlobal(
@@ -521,6 +531,38 @@ describe('SpriteSheet', () => {
             await expect(SpriteSheet.loadColorsIntoPalette('missing.png', palette, 1)).rejects.toThrow(
                 /Failed to load image/,
             );
+        });
+
+        it('rejects oversized images before canvas readback', async () => {
+            const getImageData = vi.fn(() => ({ data: new Uint8ClampedArray(0) }));
+
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+
+                    getContext() {
+                        return {
+                            drawImage: vi.fn(),
+                            imageSmoothingEnabled: false,
+                            getImageData,
+                        };
+                    }
+                },
+            );
+            vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue({
+                width: MAX_ASSET_DIMENSION + 1,
+                height: 16,
+            } as HTMLImageElement);
+
+            const palette = new Palette(16);
+            await expect(SpriteSheet.loadColorsIntoPalette('huge.png', palette, 1)).rejects.toBeInstanceOf(
+                AssetLimitError,
+            );
+            expect(getImageData).not.toHaveBeenCalled();
         });
 
         it('rejects atomically when startSlot + discovered colors exceed palette size', async () => {

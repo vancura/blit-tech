@@ -203,6 +203,33 @@ export function btfontJsonTooLargeError(byteLength: number, maxBytes: number): s
 }
 
 /**
+ * Returns the error message when an embedded `.btfont` texture URI is not a PNG data URI.
+ *
+ * @returns User-facing error string.
+ */
+export function btfontEmbeddedTextureFormatError(): string {
+    return (
+        'Embedded font textures must use a PNG data URI (data:image/png;base64,...). ' +
+        'Use a relative PNG path in the texture field, or re-export the font with --embed'
+    );
+}
+
+/**
+ * Returns the error message when an embedded `.btfont` texture payload exceeds the size cap.
+ *
+ * @param payloadLength - Base64 payload length in characters (after the data-URI prefix).
+ * @param maxPayloadBytes - Maximum accepted embedded texture payload size.
+ * @returns User-facing error string.
+ */
+export function btfontEmbeddedTextureTooLargeError(payloadLength: number, maxPayloadBytes: number): string {
+    return (
+        `The embedded font texture is too large (${payloadLength.toLocaleString('en-US')} characters of base64 data). ` +
+        `Keep embedded textures under ${maxPayloadBytes.toLocaleString('en-US')} bytes, ` +
+        'or save the atlas as a separate PNG file and reference it by path'
+    );
+}
+
+/**
  * Returns the error message when a `.btfont` file defines too many glyphs.
  *
  * @param count - Number of glyph entries found.

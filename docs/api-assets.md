@@ -10,21 +10,23 @@ Sprite sheets, font atlases, and raw indexed buffers share the same decoded-size
 pixels per side, `16,777,216` total pixels). Limits are enforced before canvas readback, CPU buffer retention, GPU
 texture creation, and software sprite loops.
 
-| Limit                   | Default                      | Applies to                                                       |
-| ----------------------- | ---------------------------- | ---------------------------------------------------------------- |
-| Max width / height      | `8192`                       | Decoded PNGs, font atlas textures, `fromIndexedPixels()`         |
-| Max total pixels        | `16,777,216` (`4096 × 4096`) | Same sources                                                     |
-| Max `.btfont` JSON size | `1,048,576` bytes (`1 MiB`)  | `BitmapFont.load()` before `JSON.parse()`                        |
-| Max glyph count         | `8192`                       | Glyph map entries in a `.btfont` file                            |
-| Max software blit area  | `16,777,216` pixels          | Software renderer source rectangles (clipped to the sheet first) |
+| Limit                        | Default                      | Applies to                                                       |
+| ---------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| Max width / height           | `8192`                       | Decoded PNGs, font atlas textures, `fromIndexedPixels()`         |
+| Max total pixels             | `16,777,216` (`4096 × 4096`) | Same sources                                                     |
+| Max `.btfont` JSON size      | `1,048,576` bytes (`1 MiB`)  | `BitmapFont.load()` before `JSON.parse()`                        |
+| Max embedded texture payload | `524,288` bytes (`512 KiB`)  | Base64 data in `texture` when using `data:image/png;base64,...`  |
+| Max glyph count              | `8192`                       | Glyph map entries in a `.btfont` file                            |
+| Max software blit area       | `16,777,216` pixels          | Software renderer source rectangles (clipped to the sheet first) |
 
 When a limit is exceeded, loading throws an `AssetLimitError` with a beginner-friendly message. The software renderer
 skips sprite blits whose source rectangle is empty, non-integer, fully outside the sheet, or still too large after
 clipping.
 
-`.btfont` files may reference either a relative PNG path or an embedded `data:` image URI. Embedded textures use the
-same decoded dimension limits as external PNGs. Prefer separate PNG files for large atlases so the JSON payload stays
-under the JSON size limit.
+`.btfont` files may reference either a relative PNG path or an embedded PNG data URI. Embedded textures must use
+`data:image/png;base64,...` and stay within the embedded payload cap above. Other `data:` schemes (for example JPEG) are
+rejected before image decode. Decoded atlas dimensions use the same width, height, and pixel-area limits as sprite
+sheets. Prefer separate PNG files for large atlases so the JSON payload stays under the JSON size limit.
 
 ---
 
