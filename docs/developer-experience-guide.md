@@ -179,6 +179,9 @@ before 6 AM:
 - Major updates: manual review with `major-update` label
 - Vulnerability alerts are enabled
 
+CI workflows pin third-party actions by commit SHA (not `@vN` tags). See
+[dependency-policy.md](security/dependency-policy.md#github-actions-pinning) for bumping SHAs and job permissions.
+
 ### Declaration tooling (TypeScript / API Extractor)
 
 Public `.d.ts` output is produced by `vite-plugin-dts` with `rollupTypes: true`, which runs **API Extractor** during
@@ -223,8 +226,12 @@ each build. It fails on known drift-warning patterns and verifies the API Extrac
 - [ ] Test library build
 - [ ] Test examples deployment
 - [ ] Create a GitHub release with notes
-- [ ] Publish `blit-tech` to npm (`npm publish --access public`)
+- [ ] Publish `blit-tech` to npm (`pnpm release` or `pnpm publish --access public` after `pnpm build`)
 - [ ] Verify package page and install flow: https://www.npmjs.com/package/blit-tech and `npm install blit-tech`
+
+npm **provenance** is not enabled: publishing is local-only today. `pnpm publish --provenance` needs an OIDC-backed CI
+publish job; see [dependency-policy.md](security/dependency-policy.md#npm-publish-provenance).
+
 - [ ] Announce on socials/discussions
 
 ### Quarterly
