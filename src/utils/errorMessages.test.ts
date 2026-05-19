@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    MAX_ASSET_PIXELS,
+    MAX_BTFONT_EMBEDDED_TEXTURE_BYTES,
+    MAX_BTFONT_JSON_BYTES,
+    MAX_GLYPH_COUNT,
+} from './AssetLimits';
+import {
+    assetDimensionAreaTooLargeError,
+    assetDimensionInvalidError,
+    assetDimensionTooLargeError,
+    assetIndexedPixelLengthError,
+    btfontEmbeddedTextureFormatError,
+    btfontEmbeddedTextureTooLargeError,
+    btfontGlyphCountTooLargeError,
+    btfontJsonTooLargeError,
     CANVAS_NOT_FOUND_MESSAGE,
     INIT_FAILED_MESSAGE,
     noActivePaletteError,
@@ -110,6 +124,50 @@ describe('errorMessages', () => {
             expect(message).toContain('graphics card');
             expect(message).toContain('1024');
         });
+    });
+});
+
+describe('asset limit error message helpers', () => {
+    it('assetDimensionInvalidError mentions whole-number dimensions', () => {
+        expect(assetDimensionInvalidError('sprite sheet', '0x16')).toContain('whole-number');
+    });
+
+    it('assetDimensionTooLargeError includes per-axis limits', () => {
+        expect(assetDimensionTooLargeError('sprite sheet', '9000x16', 8192, 8192)).toContain('8192x8192');
+    });
+
+    it('assetDimensionAreaTooLargeError formats the pixel cap', () => {
+        expect(assetDimensionAreaTooLargeError('sprite sheet', '4096x4097', MAX_ASSET_PIXELS)).toContain(
+            MAX_ASSET_PIXELS.toLocaleString('en-US'),
+        );
+    });
+
+    it('assetIndexedPixelLengthError compares actual and expected lengths', () => {
+        expect(assetIndexedPixelLengthError(10, 4, 4, 16)).toContain('10 values');
+        expect(assetIndexedPixelLengthError(10, 4, 4, 16)).toContain('16');
+    });
+
+    it('btfontJsonTooLargeError suggests moving textures to a PNG file', () => {
+        expect(btfontJsonTooLargeError(MAX_BTFONT_JSON_BYTES + 1, MAX_BTFONT_JSON_BYTES)).toContain('separate PNG');
+    });
+
+    it('btfontGlyphCountTooLargeError includes the glyph cap', () => {
+        expect(btfontGlyphCountTooLargeError(MAX_GLYPH_COUNT + 1, MAX_GLYPH_COUNT)).toContain(
+            MAX_GLYPH_COUNT.toLocaleString('en-US'),
+        );
+    });
+
+    it('btfontEmbeddedTextureFormatError requires a PNG data URI', () => {
+        expect(btfontEmbeddedTextureFormatError()).toContain('data:image/png;base64');
+    });
+
+    it('btfontEmbeddedTextureTooLargeError includes the payload cap', () => {
+        expect(
+            btfontEmbeddedTextureTooLargeError(
+                MAX_BTFONT_EMBEDDED_TEXTURE_BYTES + 1,
+                MAX_BTFONT_EMBEDDED_TEXTURE_BYTES,
+            ),
+        ).toContain(MAX_BTFONT_EMBEDDED_TEXTURE_BYTES.toLocaleString('en-US'));
     });
 });
 

@@ -1,7 +1,10 @@
 import {
     assertImageElementWithinLimits,
     AssetLimitError,
-    validateBtfontGlyphData,
+    BTFONT_EMBEDDED_TEXTURE_PREFIX,
+    validateBtfontEmbeddedTextureUri,
+    validateBtfontGlyphAtlasBounds,
+    validateBtfontGlyphDataPreAtlas,
     validateBtfontJsonByteSize,
     validateGlyphCount,
 } from '../utils/AssetLimits';
@@ -248,8 +251,8 @@ export class BitmapFont {
     /**
      * Loads a bitmap font from a `.btfont` JSON file.
      *
-     * The font descriptor can reference either an embedded data URI or a
-     * texture file path relative to the font JSON file.
+     * The font descriptor can reference either an embedded PNG data URI
+     * (`data:image/png;base64,...`) or a texture file path relative to the font JSON file.
      *
      * @param url - Path to the .btfont file.
      * @returns Loaded bitmap font instance.
@@ -264,7 +267,9 @@ export class BitmapFont {
 
         const { data, glyphEntries } = BitmapFont.parseBtfontFile(url, await response.text());
 
-        // Load texture - embedded `data:` URIs and relative PNG paths are both allowed.
+        BitmapFont.validateGlyphEntriesPreAtlas(glyphEntries);
+
+        // Load texture - embedded PNG data URIs and relative PNG paths are both allowed.
         const image = await BitmapFont.loadTexture(data.texture, url);
         const spriteSheet = new SpriteSheet(image);
         const atlasWidth = spriteSheet.width;
@@ -346,7 +351,32 @@ export class BitmapFont {
             throw new AssetLimitError(glyphCountError);
         }
 
+        const embeddedTextureError = validateBtfontEmbeddedTextureUri(data.texture);
+
+        if (embeddedTextureError) {
+            throw new AssetLimitError(embeddedTextureError);
+        }
+
         return { data, glyphEntries };
+    }
+
+    /**
+     * Validates glyph entries before the font atlas image is decoded.
+     *
+     * @param glyphEntries - Glyph map entries from the parsed font file.
+     */
+    private static validateGlyphEntriesPreAtlas(glyphEntries: Array<[string, GlyphData]>): void {
+        for (const [char, glyphData] of glyphEntries) {
+            if (glyphData === null || typeof glyphData !== 'object' || Array.isArray(glyphData)) {
+                throw new AssetLimitError(btfontGlyphEntryNotObjectError(BitmapFont.formatGlyphCharLabel(char)));
+            }
+
+            const glyphError = validateBtfontGlyphDataPreAtlas(glyphData, BitmapFont.formatGlyphCharLabel(char));
+
+            if (glyphError) {
+                throw new AssetLimitError(glyphError);
+            }
+        }
     }
 
     /**
@@ -366,11 +396,7 @@ export class BitmapFont {
         const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
 
         for (const [char, glyphData] of glyphEntries) {
-            if (glyphData === null || typeof glyphData !== 'object' || Array.isArray(glyphData)) {
-                throw new AssetLimitError(btfontGlyphEntryNotObjectError(BitmapFont.formatGlyphCharLabel(char)));
-            }
-
-            const glyphError = validateBtfontGlyphData(
+            const glyphError = validateBtfontGlyphAtlasBounds(
                 glyphData,
                 atlasWidth,
                 atlasHeight,
@@ -411,8 +437,8 @@ export class BitmapFont {
      * @returns Loaded texture image for the font atlas.
      */
     private static loadTexture(texture: string, fontUrl: string): Promise<HTMLImageElement> {
-        // Check if it's a data URI (embedded base64).
-        if (texture.startsWith('data:')) {
+        // Embedded PNG data URIs are validated in parseBtfontFile before decode.
+        if (texture.toLowerCase().startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
             return BitmapFont.loadImage(texture);
         }
 

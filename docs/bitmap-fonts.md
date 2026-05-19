@@ -119,8 +119,22 @@ the PNG without regenerating the JSON.
 }
 ```
 
-The entire texture is embedded as a base64-encoded data URI. This creates a single self-contained file, ideal for
-distribution.
+The entire texture is embedded as a base64-encoded PNG data URI (`data:image/png;base64,...`). This creates a single
+self-contained file, ideal for distribution. Other embedded formats (for example `data:image/jpeg`) are rejected.
+
+## Loading limits
+
+`BitmapFont.load()` enforces the same resource limits as sprite sheets. See [API: Assets](api-assets.md) for the full
+table. In short:
+
+- `.btfont` JSON must be `1 MiB` or smaller; glyph maps are capped at `8192` entries.
+- Embedded PNG payloads must stay within `512 KiB` of base64 data (after the `data:image/png;base64,` prefix).
+- Font atlas textures obey the `8192` per-side and `16,777,216` total-pixel decoded limits.
+- Invalid glyph metrics (non-integer values, negative sizes, rectangles outside the atlas) throw `AssetLimitError`
+  before rendering.
+
+When validation fails, loading throws `AssetLimitError` with a beginner-friendly message. Prefer a separate PNG texture
+for large atlases instead of embedding multi-megabyte base64 in the JSON file.
 
 ## Converting from BMFont Format
 

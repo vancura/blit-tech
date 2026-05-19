@@ -6,10 +6,13 @@ import {
     computeSafePixelArea,
     MAX_ASSET_DIMENSION,
     MAX_ASSET_PIXELS,
+    MAX_BTFONT_EMBEDDED_TEXTURE_BYTES,
     MAX_BTFONT_JSON_BYTES,
     MAX_GLYPH_COUNT,
     validateAssetDimensions,
+    validateBtfontEmbeddedTextureUri,
     validateBtfontGlyphData,
+    validateBtfontGlyphDataPreAtlas,
     validateBtfontJsonByteSize,
     validateGlyphCount,
     validateIndexedPixelInput,
@@ -87,6 +90,46 @@ describe('AssetLimits', () => {
         });
     });
 
+    describe('validateBtfontEmbeddedTextureUri', () => {
+        it('accepts relative texture paths', () => {
+            expect(validateBtfontEmbeddedTextureUri('MyFont.png')).toBeNull();
+        });
+
+        it('accepts PNG data URIs within the payload cap', () => {
+            expect(validateBtfontEmbeddedTextureUri('data:image/png;base64,aGVsbG8=')).toBeNull();
+        });
+
+        it('rejects non-PNG data URIs', () => {
+            expect(validateBtfontEmbeddedTextureUri('data:image/jpeg;base64,abc')).toContain('PNG data URI');
+        });
+
+        it('rejects case-variant non-PNG data URIs', () => {
+            expect(validateBtfontEmbeddedTextureUri('DATA:image/jpeg;base64,abc')).toContain('PNG data URI');
+        });
+
+        it('accepts case-variant PNG data URIs within the payload cap', () => {
+            expect(validateBtfontEmbeddedTextureUri('DATA:image/png;base64,aGVsbG8=')).toBeNull();
+        });
+
+        it('rejects oversized embedded texture payloads', () => {
+            const oversized = `data:image/png;base64,${'A'.repeat(MAX_BTFONT_EMBEDDED_TEXTURE_BYTES + 1)}`;
+            const error = validateBtfontEmbeddedTextureUri(oversized);
+
+            expect(error).toContain(MAX_BTFONT_EMBEDDED_TEXTURE_BYTES.toLocaleString('en-US'));
+        });
+    });
+
+    describe('validateBtfontGlyphDataPreAtlas', () => {
+        it('rejects glyph areas that are too large to render safely', () => {
+            const error = validateBtfontGlyphDataPreAtlas(
+                { x: 0, y: 0, w: 4096, h: 4097, ox: 0, oy: 0, adv: 4096 },
+                'A',
+            );
+
+            expect(error).toContain('covers too many pixels');
+        });
+    });
+
     describe('validateBtfontGlyphData', () => {
         it('rejects glyph rectangles outside the atlas', () => {
             const error = validateBtfontGlyphData({ x: 60, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 8 }, 64, 16, 'A');
@@ -124,6 +167,17 @@ describe('AssetLimits', () => {
 
         it('returns null for rectangles with non-positive size', () => {
             expect(clipSpriteSourceRect(new Rect2i(0, 0, 0, 2), 4, 4)).toBeNull();
+        });
+
+        it('returns null for non-integer source rectangles', () => {
+            const srcRect = new Rect2i(0, 0, 2, 2);
+            srcRect.x = 0.5;
+
+            expect(clipSpriteSourceRect(srcRect, 4, 4)).toBeNull();
+        });
+
+        it('returns null for rectangles fully outside the sheet', () => {
+            expect(clipSpriteSourceRect(new Rect2i(10, 10, 2, 2), 4, 4)).toBeNull();
         });
     });
 });

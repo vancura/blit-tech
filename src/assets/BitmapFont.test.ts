@@ -14,7 +14,13 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_BTFONT_JSON_BYTES, MAX_GLYPH_COUNT } from '../utils/AssetLimits';
+import {
+    AssetLimitError,
+    MAX_ASSET_DIMENSION,
+    MAX_BTFONT_EMBEDDED_TEXTURE_BYTES,
+    MAX_BTFONT_JSON_BYTES,
+    MAX_GLYPH_COUNT,
+} from '../utils/AssetLimits';
 import { Rect2i } from '../utils/Rect2i';
 import { BitmapFont } from './BitmapFont';
 import { SpriteSheet } from './SpriteSheet';
@@ -402,6 +408,80 @@ describe('BitmapFont', () => {
             vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockFontFetchResponse(MOCK_FONT_DATA)));
 
             await expect(BitmapFont.load('huge-texture.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+        });
+
+        it('should reject non-PNG embedded textures before image decode', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        texture: 'data:image/jpeg;base64,aGVsbG8=',
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('jpeg-texture.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+            await expect(BitmapFont.load('jpeg-texture.btfont')).rejects.toThrow('PNG data URI');
+        });
+
+        it('should reject oversized embedded texture payloads before image decode', async () => {
+            const oversizedTexture = `data:image/png;base64,${'A'.repeat(MAX_BTFONT_EMBEDDED_TEXTURE_BYTES + 1)}`;
+
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        texture: oversizedTexture,
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('huge-embedded.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+            await expect(BitmapFont.load('huge-embedded.btfont')).rejects.toThrow(
+                MAX_BTFONT_EMBEDDED_TEXTURE_BYTES.toLocaleString('en-US'),
+            );
+        });
+
+        it('should reject invalid glyph entries before loading the texture', async () => {
+            const loadImageSpy = vi.fn();
+
+            vi.stubGlobal('Image', createStubImage({ onSrcSet: loadImageSpy }));
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        glyphs: {
+                            A: null,
+                        },
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('bad-entry.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+            expect(loadImageSpy).not.toHaveBeenCalled();
+        });
+
+        it('should reject negative glyph metrics before loading the texture', async () => {
+            const loadImageSpy = vi.fn();
+
+            vi.stubGlobal('Image', createStubImage({ onSrcSet: loadImageSpy }));
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        ...MOCK_FONT_DATA,
+                        glyphs: {
+                            A: { x: -1, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 },
+                        },
+                    }),
+                ),
+            );
+
+            await expect(BitmapFont.load('negative-glyph.btfont')).rejects.toBeInstanceOf(AssetLimitError);
+            expect(loadImageSpy).not.toHaveBeenCalled();
         });
 
         it('should suggest absolute and relative paths when font URL omits / or ./', async () => {
