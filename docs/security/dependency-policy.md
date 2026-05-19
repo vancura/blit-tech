@@ -44,6 +44,32 @@ updates require manual review.
 blocked by release age may be listed in `minimum-release-age-exclude[]` together with `pnpm.overrides` in
 [`package.json`](../../package.json). Document the reason in the PR that introduces the exclude or override.
 
+## GitHub Actions pinning
+
+Workflows under [`.github/workflows/`](../../.github/workflows/) pin third-party actions to a **40-character commit
+SHA**, with an optional trailing comment for the human-readable tag (for example `actions/checkout@<sha> # v6`). Mutable
+`@vN` tags are not used in [`ci.yml`](../../.github/workflows/ci.yml) or
+[`pr-checks.yml`](../../.github/workflows/pr-checks.yml).
+
+Each job declares the **minimum** `permissions` it needs (for example `contents: read` for build-only jobs; the
+benchmark job adds `actions: read` and `pull-requests: write` only where artifact lookup and PR comments require it).
+
+### Bumping pinned actions
+
+| Path        | Who updates SHAs                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Routine** | [Renovate](../../renovate.json) `github-actions` manager — grouped PRs, 3-day `minimumReleaseAge`, patch automerge    |
+| **Manual**  | Resolve the release tag commit on the action repo, replace the SHA in the workflow, keep or update the `# vN` comment |
+
+After any workflow edit, confirm the affected jobs still pass in CI (artifact upload, Codecov, benchmark baseline
+lookup, PR benchmark comments).
+
+### npm publish provenance
+
+Library releases use the local `pnpm release` script (`pnpm build && pnpm publish`). **npm provenance**
+(`pnpm publish --provenance`) expects an OIDC-backed publish environment (typically a dedicated GitHub Actions release
+workflow). That flow is not wired today; provenance would be a separate change if releases move into CI.
+
 ## Temporary risk acceptance
 
 Do not merge with a failing audit unless the finding is formally accepted:
