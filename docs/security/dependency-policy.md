@@ -56,5 +56,6 @@ See [audit-exceptions.md](./audit-exceptions.md) for the full playbook.
 
 ## Related docs
 
-- [security-runbook.md](./security-runbook.md) — MCP preflight, fallback matrix, report template
+- [security-runbook.md](./security-runbook.md) — MCP preflight, fallback matrix, maintainers / incident triage, report
+  template
 - [developer-experience-guide.md](../developer-experience-guide.md) — script reference
