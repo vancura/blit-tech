@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "managed": {
+      "url": "https://api.runlayer.com/mcp/example"
+    }
+  }
+}

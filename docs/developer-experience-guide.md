@@ -23,36 +23,38 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key
 These commands apply when building or maintaining **blit-tech** from a repository checkout (not when consuming the npm
 package).
 
-| Command                     | Description                                                              |
-| --------------------------- | ------------------------------------------------------------------------ |
-| `pnpm build`                | Build the library for npm distribution                                   |
-| `pnpm lint`                 | Run ESLint                                                               |
-| `pnpm lint:fix`             | Run ESLint with auto-fix                                                 |
-| `pnpm format`               | Format all code (Biome + Prettier)                                       |
-| `pnpm format:check`         | Check all formatting without changes                                     |
-| `pnpm format:biome`         | Format TS/JS/JSON/CSS only (Biome)                                       |
-| `pnpm format:prettier`      | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
-| `pnpm typecheck`            | Run TypeScript type checking                                             |
-| `pnpm spellcheck`           | Check spelling in source files                                           |
-| `pnpm test`                 | Run all unit tests (alias for `test:unit`)                               |
-| `pnpm test:unit`            | Run all unit tests                                                       |
-| `pnpm test:unit:watch`      | Run unit tests in watch mode                                             |
-| `pnpm test:unit:coverage`   | Run unit tests with coverage report (80% threshold)                      |
-| `pnpm test:visual`          | Playwright visual regression tests (requires Chrome with WebGPU)         |
-| `pnpm test:visual:update`   | Update visual test baseline screenshots                                  |
-| `pnpm test:visual:coverage` | Run visual tests with Istanbul coverage report                           |
-| `pnpm bench`                | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
-| `pnpm bench:json`           | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
-| `pnpm preflight`            | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
-| `pnpm knip`                 | Find unused exports and dependencies                                     |
-| `pnpm knip:fix`             | Auto-fix unused exports and dependencies                                 |
-| `pnpm clean`                | Remove dist and cache directories                                        |
-| `pnpm release`              | Build library and publish to npm                                         |
-| `pnpm convert-font`         | Convert BMFont to .btfont format                                         |
-| `pnpm system-font:export`   | Export system font data to PNG atlas (`assets/system-font.png`)          |
-| `pnpm system-font:convert`  | Regenerate `systemFontData.ts` from edited PNG atlas                     |
-| `pnpm security:audit`       | Run dependency security audit                                            |
-| `pnpm security:audit:fix`   | Run dependency security audit and auto-fix                               |
+| Command                        | Description                                                              |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| `pnpm build`                   | Build the library for npm distribution                                   |
+| `pnpm lint`                    | Run ESLint                                                               |
+| `pnpm lint:fix`                | Run ESLint with auto-fix                                                 |
+| `pnpm format`                  | Format all code (Biome + Prettier)                                       |
+| `pnpm format:check`            | Check all formatting without changes                                     |
+| `pnpm format:biome`            | Format TS/JS/JSON/CSS only (Biome)                                       |
+| `pnpm format:prettier`         | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
+| `pnpm typecheck`               | Run TypeScript type checking                                             |
+| `pnpm spellcheck`              | Check spelling in source files                                           |
+| `pnpm test`                    | Run all unit tests (alias for `test:unit`)                               |
+| `pnpm test:unit`               | Run all unit tests                                                       |
+| `pnpm test:unit:watch`         | Run unit tests in watch mode                                             |
+| `pnpm test:unit:coverage`      | Run unit tests with coverage report (80% threshold)                      |
+| `pnpm test:visual`             | Playwright visual regression tests (requires Chrome with WebGPU)         |
+| `pnpm test:visual:update`      | Update visual test baseline screenshots                                  |
+| `pnpm test:visual:coverage`    | Run visual tests with Istanbul coverage report                           |
+| `pnpm bench`                   | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
+| `pnpm bench:json`              | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
+| `pnpm preflight`               | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
+| `pnpm knip`                    | Find unused exports and dependencies                                     |
+| `pnpm knip:fix`                | Auto-fix unused exports and dependencies                                 |
+| `pnpm clean`                   | Remove dist and cache directories                                        |
+| `pnpm release`                 | Build library and publish to npm                                         |
+| `pnpm convert-font`            | Convert BMFont to .btfont format                                         |
+| `pnpm system-font:export`      | Export system font data to PNG atlas (`assets/system-font.png`)          |
+| `pnpm system-font:convert`     | Regenerate `systemFontData.ts` from edited PNG atlas                     |
+| `pnpm security:audit`          | Run dependency security audit                                            |
+| `pnpm security:audit:fix`      | Run dependency security audit and auto-fix                               |
+| `pnpm security:mcp-preflight`  | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`) |
+| `pnpm test:security-preflight` | Unit tests for MCP preflight script                                      |
 
 ---
 
@@ -73,6 +75,7 @@ package).
 | [Performance Testing](performance-testing.md)               | CPU benchmarks, CI regression checks                   |
 | [Performance Best Practices](performance-best-practices.md) | optimization guidelines                                |
 | [Developer Experience](developer-experience-guide.md)       | contributing workflow, IDE setup                       |
+| [Security runbook](security/security-runbook.md)            | MCP preflight, fallbacks, governance, security runs    |
 | [Tooling](tooling.md)                                       | TypeScript pin, declaration checks, CI enforcement     |
 | [Voice Guide](voice.md)                                     | error messages and user-facing string style            |
 
@@ -201,6 +204,10 @@ each build. It fails on known drift-warning patterns and verifies the API Extrac
 - [ ] Review analytics/usage (if available)
 - [ ] Update roadmap
 - [ ] Check for security advisories
+- [ ] Run MCP governance preflight for `blit-tech` and `blit-tech-demos`
+      (`pnpm security:mcp-preflight -- --governance-only`; see
+      [docs/security/security-runbook.md](security/security-runbook.md))
+- [ ] Review shadow MCP flags and re-auth critical security MCPs if needed
 - [ ] Review and close stale issues
 
 ### Before Releases
