@@ -12,13 +12,17 @@ the `/security-run` skill and `pnpm security:mcp-preflight`.
 
 **Incident triage (solo maintainer):**
 
-1. Open or triage a [GitHub issue](https://github.com/vancura/blit-tech/issues) with label `security` when available.
+1. Open or triage a [GitHub issue](https://github.com/vancura/blit-tech/issues): apply label `security` if that label
+   exists in the repository and you have permission; if it does not exist, create the issue and add the label when you
+   can edit repository labels. If you cannot create or label issues, contact [@vancura](https://github.com/vancura)
+   (primary security owner) and record the incident in Linear.
 2. Run [Repo-native commands](#repo-native-commands) for the affected repo (`pnpm security:audit`, `pnpm preflight`).
 3. Follow [dependency-policy.md](./dependency-policy.md) for CI failures or temporary risk acceptance.
 4. Record findings using the [Report template](#report-template) (Linear comment or issue body).
 
 Bus-factor evidence (optional): run the `security-ownership-map` skill and attach `summary.json` to hardening reviews.
-VV-522 (backup-owner process) was canceled; this section is the documented fallback instead of a fictional backup owner.
+VV-522 (backup-owner process) was canceled; the **Maintainers** section above (including incident triage) is the
+documented fallback instead of a fictional backup owner.
 
 ## When to run
 
