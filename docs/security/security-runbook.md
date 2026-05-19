@@ -117,10 +117,18 @@ pnpm build
 
 After toolchain or dependency upgrades, always run `pnpm build` as a smoke test.
 
-Demos can invoke the canonical preflight script from the library repo:
+Demos can invoke the canonical preflight script from the library repo (prefer `pnpm security:mcp-preflight` when the
+sibling layout matches `package.json`). If invoking the script directly, set `<blit-tech-root>` to the blit-tech repo
+path (or export `BLIT_TECH_ROOT` and use `"$BLIT_TECH_ROOT"`):
 
 ```bash
-node ../blit-tech/scripts/security/mcp-preflight.mjs --mcps-dir "<mcps>" --repo-root . --allow-fallback
+node "<blit-tech-root>/scripts/security/mcp-preflight.mjs" \
+  --mcps-dir "<mcps>" \
+  --repo-root . \
+  --allow-fallback
+
+# Example: export BLIT_TECH_ROOT=/path/to/blit-tech
+# node "$BLIT_TECH_ROOT/scripts/security/mcp-preflight.mjs" --mcps-dir "<mcps>" --repo-root . --allow-fallback
 ```
 
 ## Periodic governance (monthly)
