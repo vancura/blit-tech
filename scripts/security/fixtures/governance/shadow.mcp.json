@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "shadow-remote": {
+      "url": "https://example.com/mcp"
+    },
+    "shadow-stdio": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-example"]
+    }
+  }
+}

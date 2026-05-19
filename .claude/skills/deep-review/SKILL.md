@@ -15,6 +15,11 @@ pushing significant changes or creating pull requests.
 
 ## Steps
 
+0. **Security MCP preflight (when security tooling is in scope)**
+   - Run `/security-run` or `pnpm security:mcp-preflight` with the session MCP descriptor path and `--allow-fallback`
+   - See [docs/security/security-runbook.md](../../../docs/security/security-runbook.md)
+   - Do not skip scans when Opsera/JFrog/Semgrep MCP is degraded; use documented fallbacks
+
 1. **Run preflight checks**
    - Execute `pnpm preflight` (format, lint, typecheck, spellcheck, knip, test:unit)
    - If any check fails, report issues and stop

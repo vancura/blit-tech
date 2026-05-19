@@ -77,7 +77,9 @@
     "prepublishOnly": "pnpm run build",
     "prepare": "husky",
     "security:audit": "pnpm audit --audit-level=moderate",
-    "security:audit:fix": "pnpm audit --fix"
+    "security:audit:fix": "pnpm audit --fix",
+    "security:mcp-preflight": "node scripts/security/mcp-preflight.mjs",
+    "test:security-preflight": "node --test scripts/security/mcp-preflight.test.mjs"
   },
   "packageManager": "pnpm@10.26.2",
   "pnpm": {
