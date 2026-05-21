@@ -58,7 +58,8 @@ Store the list of commit SHAs and subjects. These are the commits the release no
 ### 4. Fetch PRs merged since the last tag
 
 ```bash
-gh pr list --state merged --limit 100 \
+# 500 is a safe ceiling for a single-maintainer repo; raise if a release ever spans more PRs
+gh pr list --state merged --limit 500 \
   --json number,title,body,mergedAt | \
   jq --arg tag_date "$TAG_DATE" \
   '[.[] | select(.mergedAt > $tag_date) | select(.title | test("^(feat|chore|fix): release ") | not)]'
