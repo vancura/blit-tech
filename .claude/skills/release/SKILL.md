@@ -59,20 +59,27 @@ Store the list of commit SHAs and subjects. These are the commits the release no
 
 ```bash
 gh pr list --state merged --limit 100 \
-  --json number,title,body,mergedAt \
-  --jq '[.[] | select(.mergedAt > "TAG_DATE") | select(.title | test("^(feat|chore|fix): release ") | not)]'
+  --json number,title,body,mergedAt | \
+  jq --arg tag_date "$TAG_DATE" \
+  '[.[] | select(.mergedAt > $tag_date) | select(.title | test("^(feat|chore|fix): release ") | not)]'
 ```
 
-Substitute the actual TAG_DATE value. This returns a JSON array where each element has `.number`, `.title`, `.body`, `.mergedAt`.
+This returns a JSON array where each element has `.number`, `.title`, `.body`, `.mergedAt`.
 
 If the list is empty, tell the user there are no PRs since the last tag and stop.
 
 ### 5. Identify direct pushes (commits not associated with any PR)
 
+First detect the current repository:
+
+```bash
+REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+```
+
 For each commit SHA from step 3, query the GitHub API to find its associated PR:
 
 ```bash
-gh api repos/vancura/blit-tech/commits/COMMIT_SHA/pulls \
+gh api repos/$REPO/commits/COMMIT_SHA/pulls \
   --jq '.[0].number // empty'
 ```
 
@@ -130,7 +137,7 @@ Then one bullet per PR:
 - Write the concrete change, not the commit type. "Bitmap font textures must now use `data:image/png;base64`" not "added validation for bitmap fonts".
 - Name the actual thing changed: function name, constant name, file type, error class name.
 - State user impact: what breaks, what is new, what improves, what is fixed.
-- End with the PR number as a bare GitHub auto-link reference: `(#153)`. GitHub renders `#N` as a clickable link to the PR - use this format, not a full URL and not a markdown link.
+- End with the PR number as a bare GitHub auto-link reference: `(#153)`. GitHub renders `#N` as a clickable link to the PR - use this format, not a full URL and not a Markdown link.
 - Never mention the author (`@vancura` or any username).
 - For breaking changes, lead the bullet: `**Breaking:** <description> (#N)`
 
