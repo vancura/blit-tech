@@ -14,6 +14,12 @@ ai-rules/
 .rules
 CLAUDE.md
 .claude/
+.mcp.json
+mcp.json
+.codex/
+.aider*
+.continue/
+.windsurf/
 
 *.config.js
 *.config.ts
@@ -32,6 +38,11 @@ vite.config.*.timestamp-*
 
 # Documentation (keep README.md and LICENSE)
 docs/
+
+# Tests, scripts, and local security reports
+tests/
+scripts/
+security-reports/
 
 # Build artifacts
 node_modules/

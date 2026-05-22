@@ -1,0 +1,12 @@
+---
+description: Use blit-tech CLAUDE.md as canonical engineering rules
+alwaysApply: true
+---
+
+# blit-tech CLAUDE Is Canonical
+
+- Treat `/Users/vancura/Repos/_BLIT_TECH_/blit-tech/CLAUDE.md` as canonical for implementation in this repo.
+- Follow its API conventions (especially BT getters vs methods), architecture map, command set, and docs-update rules.
+- Do not invent alternate conventions when `CLAUDE.md` provides project-specific direction.
+- Public API or behavior changes must include matching docs updates in `docs/` as described in `CLAUDE.md`.
+- Keep performance-first and strict TypeScript standards from `CLAUDE.md` (no `any`, use type-only imports, integer coordinates where required).
