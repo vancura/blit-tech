@@ -205,31 +205,34 @@ Full tables: `docs/api-core.md`. Style guide: `docs/developer-experience-guide.m
 ## Commands
 
 ```bash
-pnpm build              # Build library
-pnpm lint               # ESLint
-pnpm lint:fix           # ESLint with auto-fix
-pnpm format             # Format all files (Biome + Prettier)
-pnpm format:check       # Check formatting (Biome + Prettier)
-pnpm typecheck          # TypeScript type checking
-pnpm spellcheck         # cspell check
-pnpm knip               # Find unused exports/deps
-pnpm preflight          # All checks (format + lint + typecheck + spellcheck + knip + test:unit + test:declarations)
+pnpm run build              # Build library
+pnpm run lint               # ESLint
+pnpm run lint:fix           # ESLint with auto-fix
+pnpm run format             # Format all files (Biome + Prettier)
+pnpm run format:check       # Check formatting (Biome + Prettier)
+pnpm run typecheck          # TypeScript type checking
+pnpm run spellcheck         # cspell check
+pnpm run knip               # Find unused exports/deps
+pnpm run preflight          # All checks (format + lint + typecheck + spellcheck + knip + test:unit + test:declarations)
 ```
+
+**RTK:** Shell commands are rewritten via `rtk hook cursor` (Cursor) / `rtk hook claude` (Claude Code). Use `pnpm run …`
+for scripts. Prefer `rtk read` / `rtk grep` / shell over native Read/Grep for exploration. See `~/.claude/RTK.md`.
 
 ## Testing
 
 Test files are colocated next to source: `src/utils/Vector2i.test.ts`.
 
 ```bash
-pnpm test                # Run all unit tests (alias for test:unit)
-pnpm test:unit           # Run all unit tests
-pnpm test:unit:watch     # Watch mode for development
-pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
-pnpm test:declarations   # Declaration tooling log checker (Node test)
-pnpm test:visual         # Playwright visual regression tests (requires Chrome with WebGPU)
-pnpm test:visual:update  # Update visual test baselines
-pnpm bench               # Run CPU benchmarks (Vitest bench)
-pnpm bench:json          # Run benchmarks and write benchmark-results.json
+pnpm run test                # Run all unit tests (alias for test:unit)
+pnpm run test:unit           # Run all unit tests
+pnpm run test:unit:watch     # Watch mode for development
+pnpm run test:unit:coverage  # Coverage report (80% minimum threshold)
+pnpm run test:declarations   # Declaration tooling log checker (Node test)
+pnpm run test:visual         # Playwright visual regression tests (requires Chrome with WebGPU)
+pnpm run test:visual:update  # Update visual test baselines
+pnpm run bench               # Run CPU benchmarks (Vitest bench)
+pnpm run bench:json          # Run benchmarks and write benchmark-results.json
 ```
 
 **Test tiers:**
@@ -241,8 +244,8 @@ pnpm bench:json          # Run benchmarks and write benchmark-results.json
 
 ### Visual Regression Tests
 
-`pnpm test:visual` runs Playwright with Chromium + WebGPU and captures PNG snapshots of actual rendered frames. This is
-the primary tool for verifying that visual output is correct - not performance, but pixel-level correctness.
+`pnpm run test:visual` runs Playwright with Chromium + WebGPU and captures PNG snapshots of actual rendered frames. This
+is the primary tool for verifying that visual output is correct - not performance, but pixel-level correctness.
 
 Use it when implementing or changing:
 
@@ -253,7 +256,7 @@ Use it when implementing or changing:
 - Palette-indexed rendering
 - Camera offsets
 
-Run `pnpm test:visual:update` to regenerate baselines after an intentional visual change. Snapshots live in
+Run `pnpm run test:visual:update` to regenerate baselines after an intentional visual change. Snapshots live in
 `tests/visual/__snapshots__/`.
 
 The suite covers: camera, fonts, mixed (primitives + sprites), post-process (baseline/CRT/CRT+bloom), primitives, and
@@ -277,13 +280,13 @@ Use the benchmark system when the user asks about performance, throughput, regre
 coverage.
 
 - Use **CPU benchmarks** for isolated methods, helpers, caches, and allocation patterns
-- For rendering correctness, use visual regression tests (`pnpm test:visual`) - they produce PNG snapshots
+- For rendering correctness, use visual regression tests (`pnpm run test:visual`) - they produce PNG snapshots
 
 Recommended commands:
 
 ```bash
-pnpm bench
-pnpm bench:json
+pnpm run bench
+pnpm run bench:json
 ```
 
 CI status:

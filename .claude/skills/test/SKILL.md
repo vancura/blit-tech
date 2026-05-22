@@ -19,10 +19,10 @@ Run the test suite with various options.
 ## Steps
 
 1. **Determine test scope** from the user’s arguments:
-   - No arguments: Run `pnpm test:unit` (all Vitest tests)
-   - `coverage`: Run `pnpm test:unit:coverage` (with coverage thresholds)
-   - `watch`: Run `pnpm test:unit:watch` (interactive watch mode)
-   - `visual`: Run `pnpm test:visual` (Playwright visual regression)
+   - No arguments: Run `pnpm run test:unit` (all Vitest tests)
+   - `coverage`: Run `pnpm run test:unit:coverage` (with coverage thresholds)
+   - `watch`: Run `pnpm run test:unit:watch` (interactive watch mode)
+   - `visual`: Run `pnpm run test:visual` (Playwright visual regression)
    - File path: Run `pnpm exec vitest run <path>`
 
 2. **Report results**
@@ -34,7 +34,7 @@ Run the test suite with various options.
    - For assertion errors: Show expected vs. actual values
    - For type errors in tests: Check test imports and types
    - For coverage gaps: Identify untested functions/branches
-   - For visual regression: Suggest `pnpm test:visual:update` if change is intentional
+   - For visual regression: Suggest `pnpm run test:visual:update` if change is intentional
 
 ## Test Conventions
 

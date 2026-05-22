@@ -10,7 +10,7 @@ Use this skill when the task involves:
 - benchmarking a new hot method or allocation pattern
 - working on benchmark CI behavior
 
-For visual correctness verification (not performance), use `pnpm test:visual` - see the Visual Regression Tests section
+For visual correctness verification (not performance), use `pnpm run test:visual` - see the Visual Regression Tests section
 in CLAUDE.md.
 
 ## CPU Benchmarks
@@ -28,8 +28,8 @@ Examples:
 Commands:
 
 ```bash
-pnpm bench
-pnpm bench:json
+pnpm run bench
+pnpm run bench:json
 ```
 
 Rules:
@@ -37,14 +37,14 @@ Rules:
 - colocate benchmarks as `*.bench.ts` next to the source
 - compare meaningful alternatives in the same file
 - prefer realistic hot-path inputs
-- use `pnpm bench:json` when validating CI-facing output
+- use `pnpm run bench:json` when validating CI-facing output
 
 ## CI Behavior
 
 CPU benchmark regression checks run in CI with the `perf` label.
 
-- `main` pushes run `pnpm bench:json` and refresh the stored baseline artifact
-- PRs labeled `perf` run `pnpm bench:json`
+- `main` pushes run `pnpm run bench:json` and refresh the stored baseline artifact
+- PRs labeled `perf` run `pnpm run bench:json`
 - CI compares against the latest successful `main` baseline artifact
 - CI posts or updates a PR comment with the comparison table
 - CI fails if any benchmark regresses by more than 10%

@@ -10,23 +10,23 @@ pushing significant changes or creating pull requests.
 ## Usage
 
 ```text
-/deep-review
+/bt-deep-review
 ```
 
 ## Steps
 
 0. **Security MCP preflight (when security tooling is in scope)**
-   - Run `/security-run` or `pnpm security:mcp-preflight` with the session MCP descriptor path and `--allow-fallback`
+   - Run `/bt-security-run` or `pnpm run security:mcp-preflight` with the session MCP descriptor path and `--allow-fallback`
    - See [docs/security/security-runbook.md](../../../docs/security/security-runbook.md)
    - Do not skip scans when Opsera/JFrog/Semgrep MCP is degraded; use documented fallbacks
 
 1. **Run preflight checks**
-   - Execute `pnpm preflight` (format, lint, typecheck, spellcheck, knip, test:unit)
+   - Execute `pnpm run preflight` (format, lint, typecheck, spellcheck, knip, test:unit)
    - If any check fails, report issues and stop
    - All automated checks must pass before AI review
 
 2. **Run security audit**
-   - Execute `pnpm security:audit` (pnpm audit)
+   - Execute `pnpm run security:audit` (pnpm audit)
    - Report any vulnerabilities found (moderate and above)
 
 3. **Gather change context**
