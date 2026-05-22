@@ -95,15 +95,16 @@ When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space 
 top of all demo content. Layout is computed once at init from `displaySize` and the system font metrics (no per-frame
 size queries).
 
-- **Top bar:** active backend and logical resolution (for example `webgpu | 320x240`)
-- **Bottom bar:** measured FPS, configured target FPS, and a short demo title from `document.title`
+- **Top bar (left):** short demo title derived from `document.title` (registry pages titled `Blit-Tech Demo NNN - Topic`
+  show as `Topic Demo`); **top bar (right):** active backend and logical resolution (for example `webgpu | 320x240`)
+- **Bottom bar (left):** measured FPS and configured target FPS; **bottom bar (right):** same derived demo title
 
 Toggle visibility at runtime with **Backquote** (`~`) or a primary pointer press in the **bottom-right 48x48 px**
 corner. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay and all toggle input (for example
 release builds).
 
-Palette colors prefer HUD named slots (`hud_bg`, `hud_dim`, `hud_header`) when `palette.applyHUD()` was used; otherwise
-the overlay falls back to palette indices `1` (bar), `2` (dim text), and `3` (title).
+Palette colors prefer HUD named slots (`hud_bg`, `hud_dim`) when `palette.applyHUD()` was used; otherwise the overlay
+falls back to palette indices `1` (bar) and `2` (text).
 
 Demos should not duplicate FPS or page-title footer text; the overlay provides those. When drawing custom top or bottom
 HUD panels, leave about **15 px** clear at each edge for the overlay bars, or set `statsOverlayEnabled: false` for

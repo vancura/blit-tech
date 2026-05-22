@@ -5,7 +5,7 @@
  * `true` (default). Layout is computed once at init from logical `displaySize` and
  * system font metrics; per-frame work samples render timing and draws two 15 px bars:
  *
- * - **Top:** `backend | WxH` (left-aligned)
+ * - **Top:** demo title (left) and `backend | WxH` (right)
  * - **Bottom:** `FPS: N | Target: T` (left) and demo title (right)
  *
  * Drawn in screen space (camera reset) after demo `render()`, palette effects, and
@@ -13,9 +13,8 @@
  * press in the bottom-right 48x48 px region. When `statsOverlayEnabled` is `false`,
  * {@link BTAPI} does not construct an overlay and does not process toggle input.
  *
- * Palette colors prefer `hud_bg`, `hud_dim`, and `hud_header` when
- * {@link Palette.applyHUD} registered those aliases; otherwise indices `1` (bars),
- * `2` (dim text), and `3` (title) are used.
+ * Palette colors prefer `hud_bg` and `hud_dim` when {@link Palette.applyHUD} registered those
+ * aliases; otherwise indices `1` (bars) and `2` (text) are used.
  */
 
 import type { BitmapFont } from '../assets/BitmapFont';
@@ -31,7 +30,7 @@ import type { IRenderer } from './IRenderer';
 // #region Constants
 
 /** Height of each stats bar strip in pixels. */
-const STATS_BAR_HEIGHT = 15;
+const STATS_BAR_HEIGHT = 16;
 
 /** Horizontal inset from screen edges for stats text. */
 const STATS_EDGE_MARGIN_PX = 5;
@@ -59,8 +58,7 @@ const MS_PER_SECOND = 1000;
 
 /** Default palette indices when HUD named slots are unavailable. */
 const DEFAULT_IDX_BG = 1;
-const DEFAULT_IDX_DIM = 2;
-const DEFAULT_IDX_BRIGHT = 3;
+const DEFAULT_IDX_TEXT = 2;
 
 /** System font glyph advance in pixels. */
 const SYSTEM_CHAR_ADVANCE = 6;
@@ -111,20 +109,20 @@ function validateTargetFps(targetFps: number): number {
  * Turns the browser page title into a short bottom-bar demo label.
  *
  * @param pageTitle - Browser document title when available.
- * @returns Short demo label for the bottom-right title (registry titles become
- *   `Blit-Tech - Topic Demo`).
+ * @returns Short demo label for the top-left and bottom-right bars (registry titles such as
+ *   `Blit-Tech Demo 002 - Primitives` become `Primitives Demo`).
  */
 export function resolveStatsDemoLabel(pageTitle: string | undefined): string {
     const raw = typeof pageTitle === 'string' ? pageTitle.trim() : '';
 
     if (raw.length === 0) {
-        return 'Blit-Tech Demo';
+        return 'Demo';
     }
 
     const match = raw.match(REGISTRY_TITLE_PATTERN);
 
     if (match) {
-        return `Blit-Tech - ${match[1]} Demo`;
+        return `${match[1]} Demo`;
     }
 
     return raw;
@@ -170,6 +168,19 @@ export function createStatsOverlayLayout(
  */
 export function isPointerInStatsToggleCorner(pos: Vector2i, toggleRect: Rect2i): boolean {
     return toggleRect.contains(pos);
+}
+
+/**
+ * X position for right-aligned stats text inside a bar.
+ *
+ * @param text - Label to place flush right with {@link STATS_EDGE_MARGIN_PX} inset.
+ * @param displayWidth - Logical display width in pixels.
+ * @returns Left edge X for `drawBitmapText` (never less than the margin).
+ */
+export function statsRightAlignedTextX(text: string, displayWidth: number): number {
+    const width = text.length * SYSTEM_CHAR_ADVANCE;
+
+    return Math.max(STATS_EDGE_MARGIN_PX, displayWidth - width - STATS_EDGE_MARGIN_PX + 1);
 }
 
 // #endregion
@@ -256,9 +267,7 @@ export class StatsOverlay {
 
     #idxBg = DEFAULT_IDX_BG;
 
-    #idxDim = DEFAULT_IDX_DIM;
-
-    #idxBright = DEFAULT_IDX_BRIGHT;
+    #idxText = DEFAULT_IDX_TEXT;
 
     #activeBackend: RendererBackend | null = null;
 
@@ -266,7 +275,7 @@ export class StatsOverlay {
      * Creates an overlay with fixed layout and label strings.
      *
      * @param layout - Cached display layout from {@link createStatsOverlayLayout}.
-     * @param demoLabel - Short title shown on the bottom-right.
+     * @param demoLabel - Short title shown on the top-left and bottom-right.
      * @param targetFps - Configured fixed-update rate for the target FPS line.
      */
     constructor(layout: StatsOverlayLayout, demoLabel: string, targetFps: number) {
@@ -286,7 +295,7 @@ export class StatsOverlay {
     }
 
     /**
-     * Updates the backend label shown on the top bar.
+     * Updates the backend label shown on the top bar (right).
      *
      * @param backend - Active renderer backend, or `null` before init completes.
      */
@@ -306,8 +315,7 @@ export class StatsOverlay {
 
         try {
             this.#idxBg = palette.getNamed('hud_bg');
-            this.#idxDim = palette.getNamed('hud_dim');
-            this.#idxBright = palette.getNamed('hud_header');
+            this.#idxText = palette.getNamed('hud_dim');
         } catch {
             // Keep default indices when HUD aliases were not registered.
         }
@@ -386,16 +394,15 @@ export class StatsOverlay {
             this.#idxBg,
         );
 
-        const backendLabel = this.#activeBackend ?? '…';
-        const topLeft = `${backendLabel} | ${displayWidth}x${displayHeight}`;
-        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, topTextY), topLeft, this.#idxDim - 1);
-
+        const backendText = `${this.#activeBackend ?? '…'} | ${displayWidth}x${displayHeight}`;
         const fpsText = `FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
-        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, bottomTextY), fpsText, this.#idxDim - 1);
+        const topRightX = statsRightAlignedTextX(backendText, displayWidth);
+        const bottomTitleX = statsRightAlignedTextX(this.#demoLabel, displayWidth);
 
-        const titleWidth = this.#demoLabel.length * SYSTEM_CHAR_ADVANCE;
-        const titleX = Math.max(STATS_EDGE_MARGIN_PX, displayWidth - titleWidth - STATS_EDGE_MARGIN_PX);
-        renderer.drawBitmapText(font, new Vector2i(titleX, bottomTextY), this.#demoLabel, this.#idxBright - 1);
+        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, topTextY), this.#demoLabel, this.#idxText - 1);
+        renderer.drawBitmapText(font, new Vector2i(topRightX, topTextY), backendText, this.#idxText - 1);
+        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, bottomTextY), fpsText, this.#idxText - 1);
+        renderer.drawBitmapText(font, new Vector2i(bottomTitleX, bottomTextY), this.#demoLabel, this.#idxText - 1);
 
         renderer.setCameraOffset(savedCamera);
     }

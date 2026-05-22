@@ -38,7 +38,8 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
 - **BTAPI** - singleton coordinator; includes software-mode init, `?renderer=software` URL override, `captureFrame()` in
   software mode, and stats overlay render path (Node + GPU mocks + 2D canvas mocks)
-- **StatsOverlay** - layout helpers, demo label parsing, toggle hit-testing (Node)
+- **StatsOverlay** - layout helpers, demo label parsing, right-aligned text X, toggle hit-testing, `updateAndRender` bar
+  layout (Node)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
 
 ### Tier 3: Visual Regression (Playwright, Chromium)
