@@ -36,7 +36,7 @@ in `VV-491` to cover auto-fallback and the dismissible ticker banner.
 ## Automated regression
 
 Visual parity for software mode is exercised by Playwright under `tests/visual/` (`primitives`, `camera`, `sprites`,
-`fonts`, `mixed` specs load fixtures with `?renderer=software`). Run `pnpm test:visual` after renderer changes that
+`fonts`, `mixed` specs load fixtures with `?renderer=software`). Run `pnpm run test:visual` after renderer changes that
 affect pixel output.
 
 ## Known exclusions (expected in MVP)

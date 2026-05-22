@@ -41,5 +41,5 @@ Do **not** use exceptions for low-severity findings (CI does not gate on them).
 - Prefer `pnpm.overrides` and direct dependency upgrades over `ignoreGhsas` when a patched version exists.
 - If `minimum-release-age` in [`.npmrc`](../../.npmrc) blocks a security patch, add the package to
   `minimum-release-age-exclude[]` in the same PR as the override and document why.
-- After any exception, still run `pnpm security:audit:prod` — production dependencies must remain clean unless
+- After any exception, still run `pnpm run security:audit:prod` — production dependencies must remain clean unless
   explicitly documented otherwise.

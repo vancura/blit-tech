@@ -134,7 +134,7 @@ The font's internal sprite sheet is indexized automatically when loaded. Font re
 pipeline as `BT.drawSprite()` and is auto-batched.
 
 See [Bitmap Fonts Guide](bitmap-fonts.md) for the `.btfont` format specification and the BMFont conversion workflow
-(`pnpm convert-font`).
+(`pnpm run convert-font`).
 
 ---
 

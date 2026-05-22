@@ -6,7 +6,7 @@ Build, declaration, and quality-tooling notes for contributors. For the full con
 ## TypeScript version
 
 The workspace pins **TypeScript 5.9.3** in `package.json` to match the compiler bundled with **API Extractor** (invoked
-by `vite-plugin-dts` when `rollupTypes: true`). This avoids TS/API Extractor drift warnings during `pnpm build` and
+by `vite-plugin-dts` when `rollupTypes: true`). This avoids TS/API Extractor drift warnings during `pnpm run build` and
 keeps rolled-up `dist/blit-tech.d.ts` deterministic.
 
 When bumping `typescript` or `vite-plugin-dts`, confirm the build log reports the same bundled version and that
@@ -16,12 +16,12 @@ CI details.
 
 ## Declaration tooling commands
 
-| Command                                                                  | Description                                                                                                                      |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test:declarations`                                                 | Node tests for `scripts/check-declaration-tooling.mjs` (drift patterns and alignment log parsing). Included in `pnpm preflight`. |
-| `pnpm build` then `node scripts/check-declaration-tooling.mjs build.log` | Manual check after a local build (same assertion CI runs).                                                                       |
+| Command                                                                      | Description                                                                                                                          |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm run test:declarations`                                                 | Node tests for `scripts/check-declaration-tooling.mjs` (drift patterns and alignment log parsing). Included in `pnpm run preflight`. |
+| `pnpm run build` then `node scripts/check-declaration-tooling.mjs build.log` | Manual check after a local build (same assertion CI runs).                                                                           |
 
-CI runs the checker after `pnpm build` in:
+CI runs the checker after `pnpm run build` in:
 
 - `.github/workflows/ci.yml` - `build-library` job
 - `.github/workflows/pr-checks.yml` - `bundle-size` job

@@ -142,7 +142,7 @@ All code must follow the project's style guidelines:
 Before committing, run the preflight checks (requires the Node.js version above):
 
 ```bash
-pnpm preflight
+pnpm run preflight
 ```
 
 This runs:
@@ -157,15 +157,15 @@ This runs:
 ### Available Commands
 
 ```bash
-pnpm build            # Build for production
-pnpm lint             # Lint code
-pnpm lint:fix         # Fix linting issues
-pnpm format           # Format code
-pnpm format:check     # Check formatting
-pnpm typecheck        # Run TypeScript checks
-pnpm spellcheck       # Check spelling
-pnpm knip             # Find unused exports and dependencies
-pnpm preflight        # Run all quality checks
+pnpm run build            # Build for production
+pnpm run lint             # Lint code
+pnpm run lint:fix         # Fix linting issues
+pnpm run format           # Format code
+pnpm run format:check     # Check formatting
+pnpm run typecheck        # Run TypeScript checks
+pnpm run spellcheck       # Check spelling
+pnpm run knip             # Find unused exports and dependencies
+pnpm run preflight        # Run all quality checks
 ```
 
 ## Pull Request Process
@@ -175,7 +175,7 @@ pnpm preflight        # Run all quality checks
 3. Make your changes
 4. Ensure all commits are signed off (DCO)
 5. Follow the commit message format
-6. Run `pnpm preflight` to ensure code quality
+6. Run `pnpm run preflight` to ensure code quality
 7. Push to your fork
 8. Open a pull request against `main`
 

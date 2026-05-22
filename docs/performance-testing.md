@@ -19,8 +19,8 @@ and how CI uses the results.
 Blit-Tech uses Vitest bench for CPU micro-benchmarks. These measure isolated methods, hot loops, cache lookups, math
 helpers, and allocation patterns.
 
-For visual correctness (not performance), use the visual regression tests: `pnpm test:visual`. They run Playwright with
-Chromium + WebGPU and produce PNG snapshots. See `docs/testing.md` for details.
+For visual correctness (not performance), use the visual regression tests: `pnpm run test:visual`. They run Playwright
+with Chromium + WebGPU and produce PNG snapshots. See `docs/testing.md` for details.
 
 ### When to Use CPU Benchmarks
 
@@ -131,27 +131,27 @@ Good benchmark comparisons usually measure one meaningful tradeoff:
 ### Run CPU Benchmarks
 
 ```bash
-pnpm bench
-pnpm bench:json
+pnpm run bench
+pnpm run bench:json
 ```
 
-`pnpm bench` gives the terminal report.
+`pnpm run bench` gives the terminal report.
 
-`pnpm bench:json` writes `benchmark-results.json`, which is what CI uses.
+`pnpm run bench:json` writes `benchmark-results.json`, which is what CI uses.
 
 ---
 
 ## Commands
 
 ```bash
-pnpm bench       # Run all CPU benchmarks
-pnpm bench:json  # Run benchmarks and write benchmark-results.json
+pnpm run bench       # Run all CPU benchmarks
+pnpm run bench:json  # Run benchmarks and write benchmark-results.json
 ```
 
 ### Which Command Should I Use?
 
-- **New hot method:** `pnpm bench`
-- **Need machine-readable result for comparison:** `pnpm bench:json`
+- **New hot method:** `pnpm run bench`
+- **Need machine-readable result for comparison:** `pnpm run bench:json`
 
 ---
 
@@ -163,7 +163,7 @@ CPU benchmark regression detection is wired into GitHub Actions.
 
 On pushes to `main`, CI:
 
-1. runs `pnpm bench:json`
+1. runs `pnpm run bench:json`
 2. produces `benchmark-results.json`
 3. uploads that file as the latest benchmark baseline artifact
 
@@ -175,7 +175,7 @@ On PRs targeting `main` with the `perf` label, CI:
 
 1. runs the normal `quality` job first
 2. runs the `benchmark` job
-3. runs `pnpm bench:json`
+3. runs `pnpm run bench:json`
 4. downloads the latest successful `main` benchmark baseline artifact
 5. compares PR results against the `main` baseline
 6. posts or updates a PR comment with a benchmark comparison table
@@ -208,8 +208,8 @@ If you add a new sprite operation, follow this order:
 
 1. **Write the code clearly first.**
 2. **Add a CPU benchmark** if the method can run in Node.
-3. **Run `pnpm bench` locally** to compare the new method against the old behavior or an alternative implementation.
-4. **Run `pnpm bench:json`** if you want to inspect the machine-readable output used by CI.
+3. **Run `pnpm run bench` locally** to compare the new method against the old behavior or an alternative implementation.
+4. **Run `pnpm run bench:json`** if you want to inspect the machine-readable output used by CI.
 5. **Open a PR** and add the `perf` label for CPU benchmark comparison.
 
 ### Best Default

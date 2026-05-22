@@ -11,7 +11,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key
 
 - Fork the repository and create a feature branch from `main`.
 - Use **Node.js** >=22.18.0 and **pnpm** 10.26.2+ (see `engines` and `packageManager` in `package.json`).
-- Run `pnpm install` and confirm `pnpm preflight` passes before opening a PR.
+- Run `pnpm install` and confirm `pnpm run preflight` passes before opening a PR.
 - All commits require a DCO sign-off: use `git commit -s`.
 - Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
 - Open a pull request against `main`. CI must be green before merge.
@@ -23,39 +23,39 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key
 These commands apply when building or maintaining **blit-tech** from a repository checkout (not when consuming the npm
 package).
 
-| Command                        | Description                                                              |
-| ------------------------------ | ------------------------------------------------------------------------ |
-| `pnpm build`                   | Build the library for npm distribution                                   |
-| `pnpm lint`                    | Run ESLint                                                               |
-| `pnpm lint:fix`                | Run ESLint with auto-fix                                                 |
-| `pnpm format`                  | Format all code (Biome + Prettier)                                       |
-| `pnpm format:check`            | Check all formatting without changes                                     |
-| `pnpm format:biome`            | Format TS/JS/JSON/CSS only (Biome)                                       |
-| `pnpm format:prettier`         | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
-| `pnpm typecheck`               | Run TypeScript type checking                                             |
-| `pnpm spellcheck`              | Check spelling in source files                                           |
-| `pnpm test`                    | Run all unit tests (alias for `test:unit`)                               |
-| `pnpm test:unit`               | Run all unit tests                                                       |
-| `pnpm test:unit:watch`         | Run unit tests in watch mode                                             |
-| `pnpm test:unit:coverage`      | Run unit tests with coverage report (80% threshold)                      |
-| `pnpm test:visual`             | Playwright visual regression tests (requires Chrome with WebGPU)         |
-| `pnpm test:visual:update`      | Update visual test baseline screenshots                                  |
-| `pnpm test:visual:coverage`    | Run visual tests with Istanbul coverage report                           |
-| `pnpm bench`                   | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
-| `pnpm bench:json`              | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
-| `pnpm preflight`               | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
-| `pnpm knip`                    | Find unused exports and dependencies                                     |
-| `pnpm knip:fix`                | Auto-fix unused exports and dependencies                                 |
-| `pnpm clean`                   | Remove dist and cache directories                                        |
-| `pnpm release`                 | Build library and publish to npm                                         |
-| `pnpm convert-font`            | Convert BMFont to .btfont format                                         |
-| `pnpm system-font:export`      | Export system font data to PNG atlas (`assets/system-font.png`)          |
-| `pnpm system-font:convert`     | Regenerate `systemFontData.ts` from edited PNG atlas                     |
-| `pnpm security:audit`          | Run dependency security audit (all deps, moderate+; matches CI)          |
-| `pnpm security:audit:prod`     | Run production-only dependency audit (moderate+)                         |
-| `pnpm security:audit:fix`      | Run dependency security audit and auto-fix                               |
-| `pnpm security:mcp-preflight`  | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`) |
-| `pnpm test:security-preflight` | Unit tests for MCP preflight script                                      |
+| Command                            | Description                                                              |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `pnpm run build`                   | Build the library for npm distribution                                   |
+| `pnpm run lint`                    | Run ESLint                                                               |
+| `pnpm run lint:fix`                | Run ESLint with auto-fix                                                 |
+| `pnpm run format`                  | Format all code (Biome + Prettier)                                       |
+| `pnpm run format:check`            | Check all formatting without changes                                     |
+| `pnpm run format:biome`            | Format TS/JS/JSON/CSS only (Biome)                                       |
+| `pnpm run format:prettier`         | Format Markdown/YAML/HTML/HBS (Prettier)                                 |
+| `pnpm run typecheck`               | Run TypeScript type checking                                             |
+| `pnpm run spellcheck`              | Check spelling in source files                                           |
+| `pnpm run test`                    | Run all unit tests (alias for `test:unit`)                               |
+| `pnpm run test:unit`               | Run all unit tests                                                       |
+| `pnpm run test:unit:watch`         | Run unit tests in watch mode                                             |
+| `pnpm run test:unit:coverage`      | Run unit tests with coverage report (80% threshold)                      |
+| `pnpm run test:visual`             | Playwright visual regression tests (requires Chrome with WebGPU)         |
+| `pnpm run test:visual:update`      | Update visual test baseline screenshots                                  |
+| `pnpm run test:visual:coverage`    | Run visual tests with Istanbul coverage report                           |
+| `pnpm run bench`                   | Run Tier 1 CPU benchmarks (Vitest bench)                                 |
+| `pnpm run bench:json`              | Run Tier 1 benchmarks and write `benchmark-results.json`                 |
+| `pnpm run preflight`               | Run all quality checks (format, lint, typecheck, spellcheck, knip, test) |
+| `pnpm run knip`                    | Find unused exports and dependencies                                     |
+| `pnpm run knip:fix`                | Auto-fix unused exports and dependencies                                 |
+| `pnpm run clean`                   | Remove dist and cache directories                                        |
+| `pnpm run release`                 | Build library and publish to npm                                         |
+| `pnpm run convert-font`            | Convert BMFont to .btfont format                                         |
+| `pnpm run system-font:export`      | Export system font data to PNG atlas (`assets/system-font.png`)          |
+| `pnpm run system-font:convert`     | Regenerate `systemFontData.ts` from edited PNG atlas                     |
+| `pnpm run security:audit`          | Run dependency security audit (all deps, moderate+; matches CI)          |
+| `pnpm run security:audit:prod`     | Run production-only dependency audit (moderate+)                         |
+| `pnpm run security:audit:fix`      | Run dependency security audit and auto-fix                               |
+| `pnpm run security:mcp-preflight`  | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`) |
+| `pnpm run test:security-preflight` | Unit tests for MCP preflight script                                      |
 
 Dependency audit severity policy and CI gate: [dependency-policy.md](security/dependency-policy.md). Temporary
 exceptions: [audit-exceptions.md](security/audit-exceptions.md).
@@ -117,12 +117,12 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 - 4-space indent, 120-character line width
 - Single quotes, always semicolons, always trailing commas
 - Biome formats TypeScript/JavaScript; Prettier formats Markdown/YAML
-- Run `pnpm format` to auto-format; `pnpm format:check` to verify
+- Run `pnpm run format` to auto-format; `pnpm run format:check` to verify
 
 **Linting:**
 
 - ESLint with perfectionist, jsdoc, security, and promise plugins
-- `pnpm lint` to check; `pnpm lint:fix` to auto-fix
+- `pnpm run lint` to check; `pnpm run lint:fix` to auto-fix
 
 **Naming conventions:**
 
@@ -185,17 +185,17 @@ CI workflows pin third-party actions by commit SHA (not `@vN` tags). See
 ### Declaration tooling (TypeScript / API Extractor)
 
 Public `.d.ts` output is produced by `vite-plugin-dts` with `rollupTypes: true`, which runs **API Extractor** during
-`pnpm build`. API Extractor currently ships against **TypeScript 5.9.3**, so the workspace pins the same version in
+`pnpm run build`. API Extractor currently ships against **TypeScript 5.9.3**, so the workspace pins the same version in
 `package.json` (not TypeScript 6.x) to avoid compiler drift warnings and keep declaration analysis deterministic.
 
-When bumping `typescript` or `vite-plugin-dts`, confirm `pnpm build` logs **no** TS/API Extractor version mismatch and
-that `dist/blit-tech.d.ts` still rolls up cleanly. Re-run `pnpm typecheck` after any TypeScript line change; TS 5.9
-stricter WebGPU typings may require small test/production fixes (for example `ArrayBuffer`-backed uniform buffers).
+When bumping `typescript` or `vite-plugin-dts`, confirm `pnpm run build` logs **no** TS/API Extractor version mismatch
+and that `dist/blit-tech.d.ts` still rolls up cleanly. Re-run `pnpm run typecheck` after any TypeScript line change; TS
+5.9 stricter WebGPU typings may require small test/production fixes (for example `ArrayBuffer`-backed uniform buffers).
 
-**CI guard:** the `build-library` job runs `node scripts/check-declaration-tooling.mjs` on the `pnpm build` log after
-each build. It fails on known drift-warning patterns and verifies the API Extractor bundled TypeScript version matches
-`package.json`. Locally: `pnpm build` then `node scripts/check-declaration-tooling.mjs build.log`, or run
-`pnpm test:declarations` for the checker unit tests.
+**CI guard:** the `build-library` job runs `node scripts/check-declaration-tooling.mjs` on the `pnpm run build` log
+after each build. It fails on known drift-warning patterns and verifies the API Extractor bundled TypeScript version
+matches `package.json`. Locally: `pnpm run build` then `node scripts/check-declaration-tooling.mjs build.log`, or run
+`pnpm run test:declarations` for the checker unit tests.
 
 ---
 
@@ -214,7 +214,7 @@ each build. It fails on known drift-warning patterns and verifies the API Extrac
 - [ ] Update roadmap
 - [ ] Check for security advisories
 - [ ] Run MCP governance preflight for `blit-tech` and `blit-tech-demos`
-      (`pnpm security:mcp-preflight -- --governance-only`; see
+      (`pnpm run security:mcp-preflight -- --governance-only`; see
       [docs/security/security-runbook.md](security/security-runbook.md))
 - [ ] Review shadow MCP flags and re-auth critical security MCPs if needed
 - [ ] Review and close stale issues
@@ -226,7 +226,7 @@ each build. It fails on known drift-warning patterns and verifies the API Extrac
 - [ ] Test library build
 - [ ] Test examples deployment
 - [ ] Create a GitHub release with notes
-- [ ] Publish `blit-tech` to npm (`pnpm release` or `pnpm publish --access public` after `pnpm build`)
+- [ ] Publish `blit-tech` to npm (`pnpm run release` or `pnpm publish --access public` after `pnpm run build`)
 - [ ] Verify package page and install flow: https://www.npmjs.com/package/blit-tech and `npm install blit-tech`
 
 npm **provenance** is not enabled: publishing is local-only today. `pnpm publish --provenance` needs an OIDC-backed CI

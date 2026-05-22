@@ -21,9 +21,9 @@ const size = BT.systemPrintMeasure('Hello'); // returns Vector2i(width, height)
 The glyph data is stored as bit patterns in `src/assets/fonts/systemFontData.ts`. To edit it visually:
 
 ```bash
-pnpm system-font:export   # exports current data to assets/system-font.png (96x84, 16x6 grid of 6x14 cells)
+pnpm run system-font:export   # exports current data to assets/system-font.png (96x84, 16x6 grid of 6x14 cells)
 # open assets/system-font.png in a pixel editor and redraw glyphs
-pnpm system-font:convert  # reads the PNG and regenerates systemFontData.ts
+pnpm run system-font:convert  # reads the PNG and regenerates systemFontData.ts
 ```
 
 White pixels become foreground (palette index 1), black pixels become transparent (palette index 0). Only the top 6 bits
@@ -148,7 +148,7 @@ the included conversion script to convert these to `.btfont`:
 node scripts/convert-bmfont.mjs <input.fnt> <output.btfont> [--embed]
 
 # Or via pnpm:
-pnpm convert-font <input.fnt> <output.btfont> [--embed]
+pnpm run convert-font <input.fnt> <output.btfont> [--embed]
 
 # Examples:
 node scripts/convert-bmfont.mjs tmp/MyFont.fnt examples/fonts/MyFont.btfont

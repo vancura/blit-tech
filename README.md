@@ -149,7 +149,7 @@ pnpm create vite my-demo --template vanilla-ts
 cd my-demo
 pnpm add blit-tech
 # Add the HTML and main.ts snippets above, then:
-pnpm dev
+pnpm run dev
 ```
 
 ## Documentation
