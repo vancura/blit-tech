@@ -114,8 +114,18 @@ export class WebGpuRenderer implements IRenderer {
     /** Pipeline for palette-indexed geometry (pixels, lines, rectangles). */
     private readonly primitives: PrimitivePipeline;
 
+    /**
+     * Primitives encoded after the sprite pass (stats overlay bars, etc.).
+     */
+    private readonly overlayPrimitives: PrimitivePipeline;
+
     /** Pipeline for textured quads (sprites, bitmap text). */
     private readonly sprites: SpritePipeline;
+
+    /**
+     * Sprites encoded after overlay bar primitives (stats overlay labels, etc.).
+     */
+    private readonly overlaySprites: SpritePipeline;
 
     /** Pixel-tier post-process chain (logical resolution). */
     private pixelChain: PostProcessChain | null = null;
@@ -170,7 +180,9 @@ export class WebGpuRenderer implements IRenderer {
         this.outputSize = (outputSize ?? displaySize).clone();
         this.upscaleFilterMode = upscaleFilter;
         this.primitives = new PrimitivePipeline();
+        this.overlayPrimitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
+        this.overlaySprites = new SpritePipeline();
     }
 
     // #endregion
@@ -215,7 +227,9 @@ export class WebGpuRenderer implements IRenderer {
             // viewport is automatic since each pass binds a target view; only
             // the camera scaling here cares about logical size.
             await this.primitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
+            await this.overlayPrimitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
             await this.sprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
+            await this.overlaySprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
 
             this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
 
@@ -296,7 +310,9 @@ export class WebGpuRenderer implements IRenderer {
         }
 
         this.primitives.reset();
+        this.overlayPrimitives.reset();
         this.sprites.reset();
+        this.overlaySprites.reset();
     }
 
     /**
@@ -353,6 +369,16 @@ export class WebGpuRenderer implements IRenderer {
      */
     drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.primitives.drawRectFill(rect, paletteIndex);
+    }
+
+    /**
+     * Draws a filled rectangle in the post-sprite primitive batch.
+     *
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void {
+        this.overlayPrimitives.drawRectFill(rect, paletteIndex);
     }
 
     /**
@@ -426,6 +452,18 @@ export class WebGpuRenderer implements IRenderer {
         this.sprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
+    /**
+     * Draws bitmap text in the post-overlay-bar sprite batch.
+     *
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.overlaySprites.drawBitmapText(font, pos, text, paletteOffset);
+    }
+
     // #endregion
 
     // #region Frame Capture API
@@ -454,7 +492,9 @@ export class WebGpuRenderer implements IRenderer {
     setCameraOffset(offset: Vector2i): void {
         this.cameraOffset = offset.clone();
         this.primitives.setCameraOffset(this.cameraOffset);
+        this.overlayPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
+        this.overlaySprites.setCameraOffset(this.cameraOffset);
     }
 
     /**
@@ -472,7 +512,9 @@ export class WebGpuRenderer implements IRenderer {
     resetCamera(): void {
         this.cameraOffset = Vector2i.zero();
         this.primitives.setCameraOffset(this.cameraOffset);
+        this.overlayPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
+        this.overlaySprites.setCameraOffset(this.cameraOffset);
     }
 
     // #endregion
@@ -563,14 +605,18 @@ export class WebGpuRenderer implements IRenderer {
         } catch (error) {
             console.error('[WebGpuRenderer] Failed to get current texture:', error);
             this.primitives.reset();
+            this.overlayPrimitives.reset();
             this.sprites.reset();
+            this.overlaySprites.reset();
             return null;
         }
 
         if (swapTexture.width === 0 || swapTexture.height === 0) {
             console.warn('[WebGpuRenderer] Texture has zero dimensions, skipping frame');
             this.primitives.reset();
+            this.overlayPrimitives.reset();
             this.sprites.reset();
+            this.overlaySprites.reset();
             return null;
         }
 
@@ -617,6 +663,8 @@ export class WebGpuRenderer implements IRenderer {
 
         this.primitives.encodePass(renderPass);
         this.sprites.encodePass(renderPass);
+        this.overlayPrimitives.encodePass(renderPass);
+        this.overlaySprites.encodePass(renderPass);
         renderPass.end();
     }
 
@@ -678,7 +726,9 @@ export class WebGpuRenderer implements IRenderer {
         // called next. beginFrame() also resets; this prevents stale data from
         // persisting across frames.
         this.primitives.reset();
+        this.overlayPrimitives.reset();
         this.sprites.reset();
+        this.overlaySprites.reset();
     }
 
     // #endregion
