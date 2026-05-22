@@ -106,21 +106,31 @@ export interface HardwareSettings {
      * in the page URL.
      */
     renderer?: RendererBackend;
+
+    /**
+     * When `true` (default), the engine draws a screen-space stats overlay after
+     * each demo `render()` call (FPS, target rate, resolution, backend, demo title).
+     * Users can hide or show it with Backquote or a primary press in the
+     * bottom-right 48x48 px corner. Set to `false` to disable the overlay and all
+     * toggle input (for release builds that must not expose debug HUD).
+     */
+    statsOverlayEnabled?: boolean;
 }
 
 /**
  * Demo contract implemented by Blit-Tech applications.
  *
  * Engine lifecycle order:
- * 1. configure() - Optional; called first to set display size, output buffer, FPS
- * 2. init() - Called after WebGPU setup, load assets here
+ * 1. configure() - Optional; called first to set display size, output buffer, FPS, stats overlay
+ * 2. init() - Called after renderer setup, load assets here
  * 3. update() - Fixed timestep via accumulator (may run 0..N times per frame)
  * 4. render() - Called once per requestAnimationFrame (browser refresh rate)
+ * 5. (engine) stats overlay - When {@link HardwareSettings.statsOverlayEnabled} is true, drawn after `render()` on top
  */
 export interface IBlitTechDemo {
     /**
      * Optional hook to declare display size, optional output drawing-buffer size,
-     * upscale filter, and the target fixed-update rate.
+     * upscale filter, target fixed-update rate, renderer backend, and stats overlay.
      *
      * When omitted, the engine uses {@link defaultConfig} (`320x240` at
      * `60` FPS).
@@ -161,6 +171,12 @@ export interface IBlitTechDemo {
      * Called once per `requestAnimationFrame` tick (browser refresh rate).
      * Issue all draw calls for the current frame here.
      *
+     * When {@link HardwareSettings.statsOverlayEnabled} is `true` (default), the engine
+     * draws a screen-space stats HUD after this method returns (FPS, backend, demo
+     * title). Demos do not need to draw those lines themselves. Reserve the bottom
+     * and top ~15 px bands for the overlay bars, or disable the overlay in
+     * `configure()` when using custom full-screen HUD layouts.
+     *
      * This is a hot path. Batch draws by texture to reduce GPU state changes
      * and reuse Color32/Vector2i instances instead of allocating per frame.
      *
@@ -177,7 +193,8 @@ export interface IBlitTechDemo {
  * Creates a fresh default hardware configuration for quick demos.
  *
  * Matches the most common setup across Blit-Tech demos: `320x240` logical resolution,
- * `640x480` canvas output (2x nearest upscale), and `60` FPS fixed updates.
+ * `640x480` canvas output (2x nearest upscale), `60` FPS fixed updates, and the engine
+ * stats overlay enabled.
  *
  * @returns Default HardwareSettings configuration.
  */
@@ -188,6 +205,7 @@ export function defaultConfig(): HardwareSettings {
         maxCanvasDisplaySize: new Vector2i(DEFAULT_MAX_CANVAS_DISPLAY_SIZE.x, DEFAULT_MAX_CANVAS_DISPLAY_SIZE.y),
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
+        statsOverlayEnabled: true,
     };
 }
 
@@ -238,7 +256,78 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
         picked.renderer = partial.renderer;
     }
 
+    if (partial.statsOverlayEnabled !== undefined) {
+        picked.statsOverlayEnabled = partial.statsOverlayEnabled;
+    }
+
     return picked;
+}
+
+/**
+ * Resolves an optional vector from picked configure values or defaults.
+ *
+ * @param picked - Value from `configure()`, if any.
+ * @param fallback - Default vector when picked is omitted.
+ * @returns Cloned vector or `undefined` when neither side provides a size.
+ */
+function resolveMergedOptionalVector(
+    picked: Vector2i | undefined,
+    fallback: Vector2i | undefined,
+): Vector2i | undefined {
+    if (picked !== undefined) {
+        return picked;
+    }
+
+    return fallback !== undefined ? cloneVector2i(fallback) : undefined;
+}
+
+/**
+ * Collects optional hardware fields for the full-default merge path.
+ *
+ * @param picked - Defined fields from `configure()`.
+ * @param defaults - Baseline hardware settings.
+ * @returns Partial settings to spread into the resolved profile.
+ */
+function buildFullDefaultMergeOptionals(
+    picked: Partial<HardwareSettings>,
+    defaults: HardwareSettings,
+): Partial<HardwareSettings> {
+    const optionals: Partial<HardwareSettings> = {};
+
+    const canvasDisplaySize = resolveMergedOptionalVector(picked.canvasDisplaySize, defaults.canvasDisplaySize);
+
+    if (canvasDisplaySize !== undefined) {
+        optionals.canvasDisplaySize = canvasDisplaySize;
+    }
+
+    const maxCanvasDisplaySize = resolveMergedOptionalVector(
+        picked.maxCanvasDisplaySize,
+        defaults.maxCanvasDisplaySize,
+    );
+
+    if (maxCanvasDisplaySize !== undefined) {
+        optionals.maxCanvasDisplaySize = maxCanvasDisplaySize;
+    }
+
+    const outputUpscaleFilter = picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter;
+
+    if (outputUpscaleFilter !== undefined) {
+        optionals.outputUpscaleFilter = outputUpscaleFilter;
+    }
+
+    const detectDroppedFrames = picked.detectDroppedFrames ?? defaults.detectDroppedFrames;
+
+    if (detectDroppedFrames !== undefined) {
+        optionals.detectDroppedFrames = detectDroppedFrames;
+    }
+
+    const renderer = picked.renderer ?? defaults.renderer;
+
+    if (renderer !== undefined) {
+        optionals.renderer = renderer;
+    }
+
+    return optionals;
 }
 
 /**
@@ -250,24 +339,11 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
  * @returns Resolved settings with full default resolution and output buffer.
  */
 function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
-    const canvasDisplaySize =
-        picked.canvasDisplaySize ??
-        (defaults.canvasDisplaySize !== undefined ? cloneVector2i(defaults.canvasDisplaySize) : undefined);
-    const maxCanvasDisplaySize =
-        picked.maxCanvasDisplaySize ??
-        (defaults.maxCanvasDisplaySize !== undefined ? cloneVector2i(defaults.maxCanvasDisplaySize) : undefined);
-    const outputUpscaleFilter = picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter;
-    const detectDroppedFrames = picked.detectDroppedFrames ?? defaults.detectDroppedFrames;
-    const renderer = picked.renderer ?? defaults.renderer;
-
     return {
         displaySize: cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
-        ...(canvasDisplaySize !== undefined ? { canvasDisplaySize } : {}),
-        ...(maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize } : {}),
-        ...(outputUpscaleFilter !== undefined ? { outputUpscaleFilter } : {}),
-        ...(detectDroppedFrames !== undefined ? { detectDroppedFrames } : {}),
-        ...(renderer !== undefined ? { renderer } : {}),
+        statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
+        ...buildFullDefaultMergeOptionals(picked, defaults),
     };
 }
 
@@ -282,6 +358,7 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
     return {
         displaySize: picked.displaySize ?? cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
+        statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
         ...(picked.canvasDisplaySize !== undefined ? { canvasDisplaySize: picked.canvasDisplaySize } : {}),
         ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
@@ -294,10 +371,10 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
  * Resolves demo `configure()` output into complete {@link HardwareSettings}.
  *
  * When `displaySize` is omitted from `partial`, unset fields inherit from
- * {@link defaultConfig} (including `canvasDisplaySize`). When `displaySize` is
- * provided, only fields present in `partial` are applied; omitted optionals such
- * as `canvasDisplaySize` remain unset so the drawing buffer can match logical
- * resolution.
+ * {@link defaultConfig} (including `canvasDisplaySize` and `statsOverlayEnabled`).
+ * When `displaySize` is provided, only fields present in `partial` are applied;
+ * omitted optionals such as `canvasDisplaySize` remain unset so the drawing buffer
+ * can match logical resolution. `statsOverlayEnabled` defaults to `true` when omitted.
  *
  * @param partial - Optional partial settings from `configure()`.
  * @returns Resolved hardware settings for initialization.

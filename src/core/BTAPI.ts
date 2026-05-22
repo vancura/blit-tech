@@ -16,7 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
-import { SoftwareTicker } from '../render/SoftwareTicker';
+import { createStatsOverlayLayout, resolveStatsDemoLabel, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
@@ -90,8 +90,11 @@ export class BTAPI {
     /** Backend that was successfully initialized, or null before init. */
     private activeBackend: RendererBackend | null = null;
 
-    /** Software-mode ticker overlay; non-null only when the software backend is active. */
-    private ticker: SoftwareTicker | null = null;
+    /**
+     * Engine stats overlay; non-null when {@link HardwareSettings.statsOverlayEnabled}
+     * is not `false`. Layout is fixed at init; drawn after demo `render()` each frame.
+     */
+    private statsOverlay: StatsOverlay | null = null;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -162,7 +165,8 @@ export class BTAPI {
      *
      * The initialization sequence is:
      * - read hardware settings from the demo (`configure()` or defaults)
-     * - initialize WebGPU and create the renderer
+     * - initialize WebGPU (or software fallback) and create the renderer
+     * - create the built-in system font and optional {@link StatsOverlay}
      * - run the demo's async `init()`
      * - start the fixed-timestep game loop
      *
@@ -179,65 +183,30 @@ export class BTAPI {
         // Hardware settings: demo hook or defaults (320x240 @ 60 FPS).
         console.log('[BT] Reading hardware configuration');
 
-        let configured: Partial<HardwareSettings> | undefined;
-
-        try {
-            configured = demo.configure?.();
-        } catch (error) {
-            console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
-
-            this.hwSettings = defaultConfig();
-
+        if (!this.loadHardwareSettings(demo)) {
             return false;
         }
 
-        this.hwSettings = mergeHardwareSettings(configured);
-        this.applyRendererQueryOverride();
-
-        const { targetFPS } = this.hwSettings;
-        const renderDimensionError = validateRenderDimensions(this.hwSettings);
-
-        if (renderDimensionError) {
-            console.error(`[BT] ${renderDimensionError}`);
-
+        const hwSettings = this.hwSettings;
+        if (!hwSettings) {
             return false;
         }
 
-        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
-            console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
-
-            return false;
-        }
-
-        const updateInterval = 1000 / targetFPS;
+        const updateInterval = 1000 / hwSettings.targetFPS;
 
         console.log('[BT] Hardware settings:', {
-            displaySize: `${this.hwSettings.displaySize.x}x${this.hwSettings.displaySize.y}`,
-            targetFPS: this.hwSettings.targetFPS,
+            displaySize: `${hwSettings.displaySize.x}x${hwSettings.displaySize.y}`,
+            targetFPS: hwSettings.targetFPS,
         });
 
-        if (!(await this.initRenderer(canvas, this.hwSettings))) {
+        if (!(await this.initRenderer(canvas, hwSettings))) {
             return false;
         }
 
         // Create the built-in system font (synchronous, no GPU needed yet).
         this.systemFont = createSystemFont();
-
-        // Initialize pointer input. Listeners attach to the canvas; per-frame
-        // resets are wired to GameLoop.onTickStart below.
-        this.pointer?.detach();
-        this.pointer = new PointerInput();
-        this.pointer.attach(canvas, this.hwSettings.displaySize);
-
-        this.keyboard?.detach();
-        this.keyboard = new KeyboardInput();
-        this.keyboard.attach(canvas, {
-            getTicks: () => this.loop?.getTicks() ?? 0,
-        });
-
-        this.gamepad?.detach();
-        this.gamepad = new GamepadInput();
-        this.gamepad.attach();
+        this.setupStatsOverlay();
+        this.attachInputSubsystems(canvas);
 
         // TODO: Initialize audio.
 
@@ -251,7 +220,7 @@ export class BTAPI {
         // Start the loop. The GameLoop's double-RAF delay ensures the canvas is
         // fully ready before the first tick.
         const onFrameDrop: FrameDropCallback | undefined =
-            this.hwSettings.detectDroppedFrames === true ? (event) => this.handleFrameDrop(event) : undefined;
+            hwSettings.detectDroppedFrames === true ? (event) => this.handleFrameDrop(event) : undefined;
 
         this.loop = new GameLoop(
             updateInterval,
@@ -268,18 +237,17 @@ export class BTAPI {
                         this.paletteEffects.update(this.palette);
                     }
 
-                    // Software ticker renders on top of the demo, after user draw calls.
-                    if (this.ticker && this.systemFont) {
-                        this.ticker.render(
+                    // Stats overlay: screen-space HUD after demo content (top/bottom bars).
+                    if (this.statsOverlay && this.systemFont) {
+                        this.statsOverlay.setActiveBackend(this.activeBackend);
+                        this.statsOverlay.updateAndRender(
                             this.renderer,
-                            this.hwSettings?.displaySize.x ?? 0,
                             this.systemFont,
+                            this.palette,
                             this.pointer,
+                            this.keyboard,
+                            this.loop?.getTicks() ?? 0,
                         );
-
-                        if (this.ticker.isDismissed) {
-                            this.ticker = null;
-                        }
                     }
 
                     this.renderer.endFrame();
@@ -304,6 +272,91 @@ export class BTAPI {
         console.log('[BT] Initialization complete');
 
         return true;
+    }
+
+    /**
+     * Reads and validates demo `configure()` output into {@link hwSettings}.
+     *
+     * @param demo - Demo implementing {@link IBlitTechDemo}.
+     * @returns `false` when configure throws or hardware settings are invalid.
+     */
+    private loadHardwareSettings(demo: IBlitTechDemo): boolean {
+        try {
+            this.hwSettings = mergeHardwareSettings(demo.configure?.());
+        } catch (error) {
+            console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
+
+            this.hwSettings = defaultConfig();
+
+            return false;
+        }
+
+        this.applyRendererQueryOverride();
+
+        const renderDimensionError = validateRenderDimensions(this.hwSettings);
+
+        if (renderDimensionError) {
+            console.error(`[BT] ${renderDimensionError}`);
+
+            return false;
+        }
+
+        const { targetFPS } = this.hwSettings;
+
+        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
+            console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates the engine stats overlay when enabled in hardware settings.
+     */
+    private setupStatsOverlay(): void {
+        this.statsOverlay = null;
+
+        const hw = this.hwSettings;
+
+        if (!hw || hw.statsOverlayEnabled === false || !this.systemFont) {
+            return;
+        }
+
+        const lineHeight = this.systemFont.measureTextSize('A').height;
+        const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight > 0 ? lineHeight : 14);
+        const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
+
+        this.statsOverlay = new StatsOverlay(layout, resolveStatsDemoLabel(pageTitle), hw.targetFPS);
+        this.statsOverlay.setActiveBackend(this.activeBackend);
+    }
+
+    /**
+     * Attaches pointer, keyboard, and gamepad input to the canvas.
+     *
+     * @param canvas - Render target canvas.
+     */
+    private attachInputSubsystems(canvas: HTMLCanvasElement): void {
+        const hw = this.hwSettings;
+
+        if (!hw) {
+            return;
+        }
+
+        this.pointer?.detach();
+        this.pointer = new PointerInput();
+        this.pointer.attach(canvas, hw.displaySize);
+
+        this.keyboard?.detach();
+        this.keyboard = new KeyboardInput();
+        this.keyboard.attach(canvas, {
+            getTicks: () => this.loop?.getTicks() ?? 0,
+        });
+
+        this.gamepad?.detach();
+        this.gamepad = new GamepadInput();
+        this.gamepad.attach();
     }
 
     /**
@@ -915,7 +968,7 @@ export class BTAPI {
                 }
 
                 this.activeBackend = 'webgpu';
-                this.ticker = null;
+                this.statsOverlay?.setActiveBackend('webgpu');
                 console.log('[BT] Renderer initialized');
 
                 return true;
@@ -938,7 +991,7 @@ export class BTAPI {
         }
 
         this.activeBackend = 'software';
-        this.ticker = new SoftwareTicker(`${BTAPI.VERSION_MAJOR}.${BTAPI.VERSION_MINOR}.${BTAPI.VERSION_PATCH}`);
+        this.statsOverlay?.setActiveBackend('software');
         console.log('[BT] Renderer initialized');
 
         return true;

@@ -46,6 +46,12 @@ describe('defaultConfig', () => {
         expect(settings.outputUpscaleFilter).toBe('nearest');
     });
 
+    it('should enable stats overlay by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayEnabled).toBe(true);
+    });
+
     it('should return a fresh object on each call', () => {
         const a = defaultConfig();
         const b = defaultConfig();
@@ -95,5 +101,12 @@ describe('mergeHardwareSettings', () => {
         expect(settings.canvasDisplaySize?.x).toBe(640);
         expect(settings.renderer).toBe('software');
         expect(settings.targetFPS).toBe(60);
+        expect(settings.statsOverlayEnabled).toBe(true);
+    });
+
+    it('honors statsOverlayEnabled: false from configure()', () => {
+        const settings = mergeHardwareSettings({ statsOverlayEnabled: false });
+
+        expect(settings.statsOverlayEnabled).toBe(false);
     });
 });
