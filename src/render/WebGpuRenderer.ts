@@ -485,7 +485,9 @@ export class WebGpuRenderer implements IRenderer {
 
     /**
      * Sets the camera offset for scrolling.
-     * The offset is propagated to both internal pipelines.
+     *
+     * The offset is propagated to all four scene pipelines: `primitives`,
+     * `overlayPrimitives`, `sprites`, and `overlaySprites`.
      *
      * @param offset - Camera position in pixels.
      */
@@ -507,7 +509,7 @@ export class WebGpuRenderer implements IRenderer {
     }
 
     /**
-     * Resets the camera to the origin (0, 0).
+     * Resets the camera to the origin (0, 0) on all four scene pipelines.
      */
     resetCamera(): void {
         this.cameraOffset = Vector2i.zero();
@@ -637,10 +639,14 @@ export class WebGpuRenderer implements IRenderer {
     }
 
     /**
-     * Encodes the primitive + sprite scene render pass into the supplied target view.
+     * Encodes the scene render pass into the supplied target view.
+     *
+     * Draw order: `primitives`, `sprites`, `overlayPrimitives` (for example HUD
+     * bars via {@link drawRectFillOnTop}), then `overlaySprites` (overlay labels
+     * via {@link drawBitmapTextOnTop}).
      *
      * @param encoder - Active command encoder.
-     * @param sceneView - View to render the scene into.
+     * @param sceneView - Logical scene attachment view to render into.
      */
     private encodeScenePass(encoder: GPUCommandEncoder, sceneView: GPUTextureView): void {
         const clearPaletteIndex = this.resolveClearPaletteIndex();
