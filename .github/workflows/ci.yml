@@ -33,10 +33,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Audit all dependencies (moderate+)
-        run: pnpm security:audit
+        run: pnpm run security:audit
 
       - name: Audit production dependencies (moderate+)
-        run: pnpm security:audit:prod
+        run: pnpm run security:audit:prod
 
       - name: Security audit summary
         if: always()
@@ -46,8 +46,8 @@ jobs:
             echo ''
             echo '| Check | Command |'
             echo '|-------|---------|'
-            echo '| All dependencies | `pnpm security:audit` |'
-            echo '| Production only | `pnpm security:audit:prod` |'
+            echo '| All dependencies | `pnpm run security:audit` |'
+            echo '| Production only | `pnpm run security:audit:prod` |'
             echo ''
             echo "Policy: moderate and above fail CI. See docs/security/dependency-policy.md."
           } >> "$GITHUB_STEP_SUMMARY"
@@ -80,16 +80,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check formatting
-        run: pnpm format:check
+        run: pnpm run format:check
 
       - name: Lint code
-        run: pnpm lint
+        run: pnpm run lint
 
       - name: Type check
-        run: pnpm typecheck
+        run: pnpm run typecheck
 
       - name: Spell check
-        run: pnpm spellcheck
+        run: pnpm run spellcheck
 
   build-library:
     name: Build Library
@@ -118,7 +118,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build library
-        run: pnpm build 2>&1 | tee build.log
+        run: pnpm run build 2>&1 | tee build.log
         env:
           NODE_ENV: production
 
@@ -164,7 +164,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run benchmarks
-        run: pnpm bench:json
+        run: pnpm run bench:json
 
       - name: Upload current benchmark results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -350,7 +350,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run unit tests with coverage
-        run: pnpm test:unit:coverage
+        run: pnpm run test:unit:coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5

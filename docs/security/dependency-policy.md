@@ -4,10 +4,10 @@ Continuous dependency vulnerability gating for the `blit-tech` library repo.
 
 ## Severity gate
 
-| Scope                         | Command                    | Fail threshold         |
-| ----------------------------- | -------------------------- | ---------------------- |
-| All dependencies (dev + prod) | `pnpm security:audit`      | **Moderate** and above |
-| Production / runtime only     | `pnpm security:audit:prod` | **Moderate** and above |
+| Scope                         | Command                        | Fail threshold         |
+| ----------------------------- | ------------------------------ | ---------------------- |
+| All dependencies (dev + prod) | `pnpm run security:audit`      | **Moderate** and above |
+| Production / runtime only     | `pnpm run security:audit:prod` | **Moderate** and above |
 
 Low and informational advisories do **not** fail CI or local gates.
 
@@ -19,11 +19,11 @@ CI runs both checks on every pull request and push to `main` via the **Dependenc
 ```bash
 cd blit-tech
 pnpm install --frozen-lockfile
-pnpm security:audit
-pnpm security:audit:prod
+pnpm run security:audit
+pnpm run security:audit:prod
 ```
 
-`pnpm security:audit` must match what CI runs. Do not rely on `pnpm audit --fix` alone before a release without
+`pnpm run security:audit` must match what CI runs. Do not rely on `pnpm audit --fix` alone before a release without
 re-running both commands.
 
 ## Dependency refresh cadence
@@ -33,7 +33,7 @@ re-running both commands.
 | **Automated (weekly)**  | [Renovate](https://docs.renovatebot.com/) — Monday before 06:00 Europe/Prague; `vulnerabilityAlerts` open PRs with the `security` label |
 | **Automated (monthly)** | Renovate `lockFileMaintenance` — first day of the month                                                                                 |
 | **Manual (monthly)**    | Review `pnpm outdated`; run the [security runbook](./security-runbook.md) MCP preflight and audits                                      |
-| **Per release**         | Run `pnpm security:audit` and `pnpm security:audit:prod` before tagging                                                                 |
+| **Per release**         | Run `pnpm run security:audit` and `pnpm run security:audit:prod` before tagging                                                         |
 
 Patch updates for GitHub Actions and npm patches may automerge per [renovate.json](../../renovate.json). Minor and major
 updates require manual review.
@@ -66,7 +66,7 @@ lookup, PR benchmark comments).
 
 ### npm publish provenance
 
-Library releases use the local `pnpm release` script (`pnpm build && pnpm publish`). **npm provenance**
+Library releases use the local `pnpm run release` script (`pnpm run build && pnpm publish`). **npm provenance**
 (`pnpm publish --provenance`) expects an OIDC-backed publish environment (typically a dedicated GitHub Actions release
 workflow). That flow is not wired today; provenance would be a separate change if releases move into CI.
 

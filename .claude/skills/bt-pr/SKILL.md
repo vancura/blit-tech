@@ -9,10 +9,10 @@ Create a pull request with automatic quality checks, and a proper commit message
 ## Usage
 
 ```text
-/pr Add sprite batching optimization
+/bt-pr Add sprite batching optimization
 ```
 
-The description after `/pr` becomes the commit subject.
+The description after `/bt-pr` becomes the commit subject.
 
 ## Steps
 
@@ -21,9 +21,9 @@ The description after `/pr` becomes the commit subject.
    - Run `git status` to see all changes
 
 2. **Run quality checks**
-   - Execute `pnpm preflight` (all checks)
+   - Execute `pnpm run preflight` (all checks)
    - If any check fails, stop and report errors
-   - Don’t proceed with failing checks
+   - Don't proceed with failing checks
 
 3. **Review changes**
    - Run `git diff` to review all modifications
@@ -53,6 +53,6 @@ The description after `/pr` becomes the commit subject.
 ## Requirements
 
 - `gh` CLI must be installed and authenticated
-- The current branch mustn’t be `main` or `master`
+- The current branch mustn't be `main` or `master`
 - All quality checks must pass
 - All commits must be signed off (DCO)

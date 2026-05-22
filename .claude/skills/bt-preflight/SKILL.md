@@ -9,7 +9,7 @@ Run comprehensive quality checks before committing or pushing code.
 ## Usage
 
 ```text
-/preflight
+/bt-preflight
 ```
 
 ## Prerequisites
@@ -20,7 +20,7 @@ Run comprehensive quality checks before committing or pushing code.
 ## Steps
 
 1. **Run all checks**
-   - Execute `pnpm preflight` which runs:
+   - Execute `pnpm run preflight` which runs:
      - `format:check` - Verify formatting (Biome for TS/JS/JSON/CSS, Prettier for MD/YAML)
      - `lint` - Check for lint errors (ESLint)
      - `typecheck` - Validate TypeScript types
@@ -33,8 +33,8 @@ Run comprehensive quality checks before committing or pushing code.
    - If any check fails: Report specific failures with file locations
 
 3. **Suggest fixes**
-   - For formatting issues: Suggest `pnpm format`
-   - For lint errors: Suggest `pnpm lint:fix`
+   - For formatting issues: Suggest `pnpm run format`
+   - For lint errors: Suggest `pnpm run lint:fix`
    - For type errors: Review the specific TypeScript issues
    - For spelling: Add words to `cspell.json` or fix typos
    - For unused exports: Remove unused code or add to knip ignore
