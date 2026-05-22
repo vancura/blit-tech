@@ -38,6 +38,8 @@ complex frameworks, just sprites, primitives, and fonts.
 - **Gamepad input**: up to four players via standard Gamepad API, stick dead zone, face buttons
 - **Fixed timestep**: deterministic update loop with tick counter, `Timer`, and timing helpers
 - **Frame capture**: `BT.captureFrame()` and `BT.downloadFrame()` for PNG export
+- **Stats overlay**: engine-drawn FPS, backend, resolution, and demo title (toggle with `~` or bottom-right corner;
+  disable via `statsOverlayEnabled: false` in `configure()`)
 
 ## Why Blit-Tech?
 

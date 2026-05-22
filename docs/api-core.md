@@ -76,6 +76,7 @@ example no `canvasDisplaySize` means a 1:1 drawing buffer).
 | `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                 |
 | `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
 | `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync         |
+| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`        |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
 is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -87,6 +88,35 @@ adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall bac
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
 `activeBackend` is the backend that actually started (after fallback), not the `renderer` value from `configure()`.
+
+### Stats overlay
+
+When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
+top of all demo content. Layout is computed once at init from `displaySize` and the system font metrics (no per-frame
+size queries).
+
+- **Top bar:** active backend and logical resolution (for example `webgpu | 320x240`)
+- **Bottom bar:** measured FPS, configured target FPS, and a short demo title from `document.title`
+
+Toggle visibility at runtime with **Backquote** (`~`) or a primary pointer press in the **bottom-right 48x48 px**
+corner. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay and all toggle input (for example
+release builds).
+
+Palette colors prefer HUD named slots (`hud_bg`, `hud_dim`, `hud_header`) when `palette.applyHUD()` was used; otherwise
+the overlay falls back to palette indices `1` (bar), `2` (dim text), and `3` (title).
+
+Demos should not duplicate FPS or page-title footer text; the overlay provides those. When drawing custom top or bottom
+HUD panels, leave about **15 px** clear at each edge for the overlay bars, or set `statsOverlayEnabled: false` for
+full-screen layouts (for example terminal-style demos).
+
+```ts
+configure() {
+  return {
+    displaySize: new Vector2i(320, 240),
+    statsOverlayEnabled: false, // release build or custom full-screen HUD
+  };
+}
+```
 
 ---
 

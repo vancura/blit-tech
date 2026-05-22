@@ -147,7 +147,10 @@ BT.systemPrint(new Vector2i(10, 10), paletteIndex, 'Score: 100');
 BT.systemPrintMeasure('Score: 100'); // → Vector2i (pixel width, height)
 ```
 
-Use `BT.systemPrint()` for debug overlays and simple HUDs. For styled variable-width text, use a bitmap font instead.
+Use `BT.systemPrint()` for demo-specific HUD panels and labels. The engine draws a default stats overlay (FPS, target
+FPS, backend, resolution, demo title) after each `render()` when `statsOverlayEnabled` is true; see
+[API: Core - Stats overlay](api-core.md#stats-overlay). Prefer `palette.applyHUD()` so overlay bars match your UI
+colors. For styled variable-width text, use a bitmap font instead.
 
 ---
 

@@ -24,6 +24,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                                                                                                                       |
 | How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
 | What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
+| How does the stats overlay work?              | `src/render/StatsOverlay.ts`, `docs/api-core.md` (Stats overlay), `HardwareSettings.statsOverlayEnabled`                                                                                                |
 | What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
 | What are the render/asset dimension limits?   | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
 | Which preset has which exact color values?    | `docs/palette-presets.md`                                                                                                                                                                               |
@@ -54,7 +55,7 @@ src/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
     SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
-    SoftwareTicker.ts      # Dismissible in-canvas "SOFTWARE RENDERER" status banner (software mode only)
+    StatsOverlay.ts        # Engine-managed stats HUD (FPS, backend, demo title; toggle via `~` or corner tap)
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain
@@ -112,8 +113,8 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
 - **Software** (`'software'`): Canvas 2D fallback. Supports palette rendering, rects, Bresenham lines, indexed sprite
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
   Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the
-  `?renderer=software` URL query parameter. A dismissible in-canvas ticker banner is rendered each frame when this
-  backend is active. Use `BT.activeBackend` to query which backend started (`'webgpu' | 'software' | null`).
+  `?renderer=software` URL query parameter. Use `BT.activeBackend` to query which backend started
+  (`'webgpu' | 'software' | null`). The engine stats overlay shows the active backend on the top bar when enabled.
 
 ### Core Types
 
