@@ -271,6 +271,18 @@ export class StatsOverlay {
 
     #activeBackend: RendererBackend | null = null;
 
+    readonly #topBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
+
+    readonly #bottomBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
+
+    readonly #demoTopPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+
+    readonly #topRightPos = new Vector2i(0, 0);
+
+    readonly #fpsPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+
+    readonly #demoBottomPos = new Vector2i(0, 0);
+
     /**
      * Creates an overlay with fixed layout and label strings.
      *
@@ -283,6 +295,18 @@ export class StatsOverlay {
         this.#demoLabel = demoLabel;
         this.#targetFps = validateTargetFps(targetFps);
         this.#fps = new FpsSampler(this.#targetFps);
+
+        const { displayWidth, displayHeight, bottomTextY, topTextY } = layout;
+
+        this.#topBarRect.width = displayWidth;
+        this.#bottomBarRect.y = displayHeight - STATS_BAR_HEIGHT;
+        this.#bottomBarRect.width = displayWidth;
+        this.#demoTopPos.y = topTextY;
+        this.#topRightPos.y = topTextY;
+        this.#fpsPos.y = bottomTextY;
+        this.#demoBottomPos.y = bottomTextY;
+        this.#demoBottomPos.x = statsRightAlignedTextX(demoLabel, displayWidth);
+        this.#syncTopRightPos();
     }
 
     /**
@@ -301,6 +325,15 @@ export class StatsOverlay {
      */
     setActiveBackend(backend: RendererBackend | null): void {
         this.#activeBackend = backend;
+        this.#syncTopRightPos();
+    }
+
+    /**
+     * Updates cached top-right text X from the active backend and fixed display size.
+     */
+    #syncTopRightPos(): void {
+        const backendText = `${this.#activeBackend ?? '…'} | ${this.#layout.displayWidth}x${this.#layout.displayHeight}`;
+        this.#topRightPos.x = statsRightAlignedTextX(backendText, this.#layout.displayWidth);
     }
 
     /**
@@ -384,25 +417,18 @@ export class StatsOverlay {
         }
 
         const savedCamera = renderer.getCameraOffset();
+
         renderer.resetCamera();
 
-        const { displayWidth, displayHeight, bottomTextY, topTextY } = this.#layout;
-
-        renderer.drawRectFill(new Rect2i(0, 0, displayWidth, STATS_BAR_HEIGHT), this.#idxBg);
-        renderer.drawRectFill(
-            new Rect2i(0, displayHeight - STATS_BAR_HEIGHT, displayWidth, STATS_BAR_HEIGHT),
-            this.#idxBg,
-        );
-
-        const backendText = `${this.#activeBackend ?? '…'} | ${displayWidth}x${displayHeight}`;
+        const backendText = `${this.#activeBackend ?? '…'} | ${this.#layout.displayWidth}x${this.#layout.displayHeight}`;
         const fpsText = `FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
-        const topRightX = statsRightAlignedTextX(backendText, displayWidth);
-        const bottomTitleX = statsRightAlignedTextX(this.#demoLabel, displayWidth);
 
-        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, topTextY), this.#demoLabel, this.#idxText - 1);
-        renderer.drawBitmapText(font, new Vector2i(topRightX, topTextY), backendText, this.#idxText - 1);
-        renderer.drawBitmapText(font, new Vector2i(STATS_EDGE_MARGIN_PX, bottomTextY), fpsText, this.#idxText - 1);
-        renderer.drawBitmapText(font, new Vector2i(bottomTitleX, bottomTextY), this.#demoLabel, this.#idxText - 1);
+        renderer.drawRectFill(this.#topBarRect, this.#idxBg);
+        renderer.drawRectFill(this.#bottomBarRect, this.#idxBg);
+        renderer.drawBitmapText(font, this.#demoTopPos, this.#demoLabel, this.#idxText - 1);
+        renderer.drawBitmapText(font, this.#topRightPos, backendText, this.#idxText - 1);
+        renderer.drawBitmapText(font, this.#fpsPos, fpsText, this.#idxText - 1);
+        renderer.drawBitmapText(font, this.#demoBottomPos, this.#demoLabel, this.#idxText - 1);
 
         renderer.setCameraOffset(savedCamera);
     }
