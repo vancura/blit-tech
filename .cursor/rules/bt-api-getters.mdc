@@ -1,0 +1,41 @@
+---
+description: BT namespace uses getters for read-only state; methods for actions and parameterized queries
+alwaysApply: true
+---
+
+# BT API: getters vs methods
+
+When editing `src/BlitTech.ts`, demos, or API docs:
+
+## Prefer getters (no parentheses)
+
+Zero-argument **read-only** values on `BT`:
+
+- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize`
+- **Loop:** `deltaSeconds`, `timeSeconds`, `ticks`
+- **Runtime:** `activeBackend`, `camera`, `palette`
+- **Per-frame input:** `pointerScrollDelta`, `inputString`, `gamepadCount`
+
+Good: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 180`
+
+Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use property forms)
+
+## Keep as methods
+
+- Mutations and draws: `cameraSet`, `paletteSet`, `drawSprite`, `effectAdd`, …
+- Any **parameter**: `pointerPos(0)`, `buttonDown(BT.BTN_A)`, `cameraClamp(...)`
+- **Async**: `captureFrame`, `downloadFrame`
+
+## Naming
+
+- Match `HardwareSettings` spelling: `targetFPS` (not `fps`, not `targetFps`)
+- `activeBackend` = backend that started; `configure().renderer` = requested backend only (not exposed as `BT.renderer`)
+
+## New API checklist
+
+1. Zero args + read-only snapshot → **getter** on `BT`
+2. Takes args or mutates → **method**
+3. Mirrors configure? → **same field name** as `HardwareSettings`
+4. Update `docs/api-*.md`, `CLAUDE.md`, demos if public
+
+See `CLAUDE.md` section **BT API: getters vs methods** and `docs/api-core.md`.

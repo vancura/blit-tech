@@ -1,0 +1,14 @@
+---
+description: Require docs updates for API and behavior changes
+globs: {src/**/*.ts,docs/**/*.md,README.md,CLAUDE.md}
+alwaysApply: false
+---
+
+# Docs Sync Required
+
+- Documentation is part of the implementation, not a follow-up task.
+- When public API changes, update relevant `docs/api-*.md` and related examples in the same change.
+- When runtime behavior changes, update affected guides under `docs/`.
+- When architecture or subsystem structure changes, update `CLAUDE.md` architecture sections.
+- Update `README.md` only when quick start, prerequisites, feature list, or compatibility is affected.
+- If no docs update is needed, state why explicitly in the final response.
