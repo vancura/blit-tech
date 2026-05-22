@@ -61,29 +61,29 @@ documented in [Performance Testing](performance-testing.md).
 
 ## Declaration tooling checks
 
-Public types are rolled up during `pnpm build` via `vite-plugin-dts` and API Extractor. The workspace pins TypeScript to
-the same version API Extractor bundles (see `docs/developer-experience-guide.md`).
+Public types are rolled up during `pnpm run build` via `vite-plugin-dts` and API Extractor. The workspace pins
+TypeScript to the same version API Extractor bundles (see `docs/developer-experience-guide.md`).
 
-- **`pnpm test:declarations`** - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
-  alignment log parsing). Included in `pnpm preflight`.
-- **CI** - after `pnpm build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
+- **`pnpm run test:declarations`** - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
+  alignment log parsing). Included in `pnpm run preflight`.
+- **CI** - after `pnpm run build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
   `.github/workflows/ci.yml` (build-library job) and `.github/workflows/pr-checks.yml` (bundle-size job) to fail on
   drift warnings and version mismatch.
-- **Manual** - `pnpm build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
+- **Manual** - `pnpm run build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
 
 ## Commands
 
 ```bash
-pnpm test                # Run all unit tests (alias for test:unit)
-pnpm test:unit           # Run all unit tests
-pnpm test:unit:watch     # Watch mode for development
-pnpm test:unit:coverage  # Coverage report (80% minimum threshold)
-pnpm test:declarations   # Declaration tooling log checker (Node test)
-pnpm test:visual            # Playwright visual regression (requires Chrome)
-pnpm test:visual:update     # Update visual test baselines
-pnpm test:visual:coverage   # Visual tests with Istanbul coverage report
-pnpm bench                  # Run CPU benchmarks (Vitest bench)
-pnpm bench:json             # Run CPU benchmarks and write benchmark-results.json
+pnpm run test                # Run all unit tests (alias for test:unit)
+pnpm run test:unit           # Run all unit tests
+pnpm run test:unit:watch     # Watch mode for development
+pnpm run test:unit:coverage  # Coverage report (80% minimum threshold)
+pnpm run test:declarations   # Declaration tooling log checker (Node test)
+pnpm run test:visual            # Playwright visual regression (requires Chrome)
+pnpm run test:visual:update     # Update visual test baselines
+pnpm run test:visual:coverage   # Visual tests with Istanbul coverage report
+pnpm run bench                  # Run CPU benchmarks (Vitest bench)
+pnpm run bench:json             # Run CPU benchmarks and write benchmark-results.json
 ```
 
 ## Test File Location
@@ -187,7 +187,7 @@ Minimum thresholds enforced in `vitest.config.ts`:
 - Functions: 80%
 - Lines: 80%
 
-Run `pnpm test:unit:coverage` to check. Coverage reports are generated in `coverage/`.
+Run `pnpm run test:unit:coverage` to check. Coverage reports are generated in `coverage/`.
 
 ### Visual Test Coverage
 
@@ -195,7 +195,7 @@ Visual test coverage uses Istanbul instrumentation via `vite-plugin-istanbul`. I
 (different provider: Istanbul vs V8) and generates reports in `coverage-visual/`.
 
 ```bash
-pnpm test:visual:coverage  # Runs visual tests with instrumented code, then generates lcov report
+pnpm run test:visual:coverage  # Runs visual tests with instrumented code, then generates lcov report
 ```
 
 Coverage is collected via a custom Playwright fixture (`tests/visual/coverage-fixture.ts`) that captures
@@ -205,9 +205,9 @@ Coverage is collected via a custom Playwright fixture (`tests/visual/coverage-fi
 
 1. Create a fixture HTML page in `tests/visual/fixtures/`
 2. Write a Playwright spec in `tests/visual/`
-3. Run `pnpm test:visual` to generate baseline screenshots
+3. Run `pnpm run test:visual` to generate baseline screenshots
 4. Screenshots are committed to `tests/visual/__snapshots__/`
-5. After intentional rendering changes, run `pnpm test:visual:update`
+5. After intentional rendering changes, run `pnpm run test:visual:update`
 
 ## IDE Setup
 
@@ -230,7 +230,7 @@ Use the Tasks system. Create `.zed/tasks.json`:
 [
   {
     "label": "Test: Run All",
-    "command": "pnpm test",
+    "command": "pnpm run test",
     "cwd": "$ZED_WORKTREE_ROOT"
   },
   {
@@ -250,30 +250,30 @@ GitHub Actions runs unit tests and quality gates in CI. Visual regression is loc
 Triggers on push to `main` and on pull requests targeting `main`. `labeled` / `unlabeled` PR events skip the `quality`,
 `build-library`, and `test` jobs unless the added label is `perf` (which enables the benchmark job).
 
-| Job             | What it runs                                                                                   |
-| --------------- | ---------------------------------------------------------------------------------------------- |
-| `quality`       | `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm spellcheck`                          |
-| `build-library` | `pnpm build`, declaration tooling check, uploads `dist/` artifact                              |
-| `test`          | `pnpm test:unit:coverage`, Codecov upload                                                      |
-| `benchmark`     | On `main` push or PRs labeled `perf`: `pnpm bench:json`, PR regression compare (25% threshold) |
+| Job             | What it runs                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------- |
+| `quality`       | `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run spellcheck`              |
+| `build-library` | `pnpm run build`, declaration tooling check, uploads `dist/` artifact                              |
+| `test`          | `pnpm run test:unit:coverage`, Codecov upload                                                      |
+| `benchmark`     | On `main` push or PRs labeled `perf`: `pnpm run bench:json`, PR regression compare (25% threshold) |
 
 ### `pr-checks.yml` (`PR Checks` workflow)
 
 Runs only on pull requests to `main`. Complements `ci.yml` with commit linting, bundle size limits, knip, and doc link
 checks. It does **not** run unit or visual tests.
 
-| Job           | What it runs                                                                |
-| ------------- | --------------------------------------------------------------------------- |
-| `quality`     | `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm spellcheck`, knip |
-| `commitlint`  | Conventional Commits validation for PR commits                              |
-| `bundle-size` | `pnpm build`, declaration tooling check, gzipped ESM size gate              |
-| `docs-links`  | Markdown link check for `docs/` and `README.md`                             |
+| Job           | What it runs                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| `quality`     | `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run spellcheck`, knip |
+| `commitlint`  | Conventional Commits validation for PR commits                                              |
+| `bundle-size` | `pnpm run build`, declaration tooling check, gzipped ESM size gate                          |
+| `docs-links`  | Markdown link check for `docs/` and `README.md`                                             |
 
 ### Visual regression (not in CI)
 
-`pnpm test:visual` requires Chrome with WebGPU and is **not** executed in GitHub Actions. Run it locally before merging
-renderer, palette, or post-process changes; use `pnpm test:visual:update` when baselines change intentionally.
-`pnpm preflight` does not include visual tests.
+`pnpm run test:visual` requires Chrome with WebGPU and is **not** executed in GitHub Actions. Run it locally before
+merging renderer, palette, or post-process changes; use `pnpm run test:visual:update` when baselines change
+intentionally. `pnpm run preflight` does not include visual tests.
 
 ---
 

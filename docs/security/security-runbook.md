@@ -1,7 +1,7 @@
 # Security runbook
 
 Deterministic security workflow for Blit-Tech repos when MCP scanners are healthy, degraded, or unavailable. Use with
-the `/security-run` skill and `pnpm security:mcp-preflight`.
+the `/security-run` skill and `pnpm run security:mcp-preflight`.
 
 ## Maintainers
 
@@ -16,7 +16,8 @@ the `/security-run` skill and `pnpm security:mcp-preflight`.
    exists in the repository and you have permission; if it does not exist, create the issue and add the label when you
    can edit repository labels. If you cannot create or label issues, contact [@vancura](https://github.com/vancura)
    (primary security owner) and record the incident in Linear.
-2. Run [Repo-native commands](#repo-native-commands) for the affected repo (`pnpm security:audit`, `pnpm preflight`).
+2. Run [Repo-native commands](#repo-native-commands) for the affected repo (`pnpm run security:audit`,
+   `pnpm run preflight`).
 3. Follow [dependency-policy.md](./dependency-policy.md) for CI failures or temporary risk acceptance.
 4. Record findings using the [Report template](#report-template) (Linear comment or issue body).
 
@@ -38,7 +39,7 @@ Agents must pass the Cursor project MCP descriptor path from the session (for ex
 ```bash
 cd <repo-root>   # blit-tech: directory containing this repo's package.json
 
-pnpm security:mcp-preflight -- \
+pnpm run security:mcp-preflight -- \
   --mcps-dir "<cursor-project-mcps-path>" \
   --repo-root . \
   --allow-fallback \
@@ -48,7 +49,7 @@ pnpm security:mcp-preflight -- \
 Governance-only (monthly):
 
 ```bash
-pnpm security:mcp-preflight -- \
+pnpm run security:mcp-preflight -- \
   --mcps-dir "<cursor-project-mcps-path>" \
   --repo-root . \
   --governance-only \
@@ -66,14 +67,14 @@ the report.
 
 ## Fallback matrix
 
-| Capability            | Primary MCP                   | Fallback (always available)                                                                                                                              |
-| --------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dependency / SCA      | Opsera `security-scan`, JFrog | `pnpm security:audit`, `pnpm security:audit:prod` (per repo); CI gate in blit-tech [dependency-policy.md](./dependency-policy.md)                        |
-| SAST / code patterns  | Opsera, Semgrep MCP           | `pnpm lint` (eslint-plugin-security), targeted `rg` patterns (below), optional `semgrep --config auto` only if CLI is already installed (do not install) |
-| Compliance            | Opsera `compliance-audit`     | Manual checklist below                                                                                                                                   |
-| Architecture          | Opsera `architecture-analyze` | `security-threat-model` and `security-ownership-map` skills under `~/.codex/skills/`                                                                     |
-| Supply chain metadata | JFrog MCP                     | `pnpm outdated --format json`, `npm view <pkg> version time.modified license` for key direct deps                                                        |
-| MCP governance        | —                             | `pnpm security:mcp-preflight --governance-only` plus Runlayer MCP governance rules                                                                       |
+| Capability            | Primary MCP                   | Fallback (always available)                                                                                                                                  |
+| --------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dependency / SCA      | Opsera `security-scan`, JFrog | `pnpm run security:audit`, `pnpm run security:audit:prod` (per repo); CI gate in blit-tech [dependency-policy.md](./dependency-policy.md)                    |
+| SAST / code patterns  | Opsera, Semgrep MCP           | `pnpm run lint` (eslint-plugin-security), targeted `rg` patterns (below), optional `semgrep --config auto` only if CLI is already installed (do not install) |
+| Compliance            | Opsera `compliance-audit`     | Manual checklist below                                                                                                                                       |
+| Architecture          | Opsera `architecture-analyze` | `security-threat-model` and `security-ownership-map` skills under `~/.codex/skills/`                                                                         |
+| Supply chain metadata | JFrog MCP                     | `pnpm outdated --format json`, `npm view <pkg> version time.modified license` for key direct deps                                                            |
+| MCP governance        | —                             | `pnpm run security:mcp-preflight --governance-only` plus Runlayer MCP governance rules                                                                       |
 
 ### SAST `rg` patterns (fallback)
 
@@ -88,16 +89,16 @@ rg -n "CSP|Content-Security-Policy|X-Frame-Options|frame-ancestors|Referrer-Poli
 
 When Opsera `compliance-audit` MCP is unavailable, gather evidence manually:
 
-| Control area                 | Evidence source                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Dependency vulnerabilities   | `pnpm security:audit`, `pnpm security:audit:prod` — see [dependency-policy.md](./dependency-policy.md) |
-| CI dependency gate           | `.github/workflows/ci.yml` job **Dependency Security Audit** (moderate+, every PR and `main`)          |
-| Code quality / static checks | `pnpm preflight`, `pnpm lint`                                                                          |
-| Secrets in repo              | `.gitignore`, hooks blocking `.env`; `rg` for hardcoded tokens (no secret values in reports)           |
-| CI integrity                 | `.github/workflows/*.yml` — pinned actions, least privilege                                            |
-| Deploy headers (demos)       | `blit-tech-demos/public/_headers`, `curl -I` on deployed URLs                                          |
-| Ownership / bus factor       | [Maintainers](#maintainers) (solo); optional `security-ownership-map` skill output (`summary.json`)    |
-| MCP governance               | `pnpm security:mcp-preflight --governance-only`                                                        |
+| Control area                 | Evidence source                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Dependency vulnerabilities   | `pnpm run security:audit`, `pnpm run security:audit:prod` — see [dependency-policy.md](./dependency-policy.md) |
+| CI dependency gate           | `.github/workflows/ci.yml` job **Dependency Security Audit** (moderate+, every PR and `main`)                  |
+| Code quality / static checks | `pnpm run preflight`, `pnpm run lint`                                                                          |
+| Secrets in repo              | `.gitignore`, hooks blocking `.env`; `rg` for hardcoded tokens (no secret values in reports)                   |
+| CI integrity                 | `.github/workflows/*.yml` — pinned actions, least privilege                                                    |
+| Deploy headers (demos)       | `blit-tech-demos/public/_headers`, `curl -I` on deployed URLs                                                  |
+| Ownership / bus factor       | [Maintainers](#maintainers) (solo); optional `security-ownership-map` skill output (`summary.json`)            |
+| MCP governance               | `pnpm run security:mcp-preflight --governance-only`                                                            |
 
 ## Repo-native commands
 
@@ -106,11 +107,11 @@ When Opsera `compliance-audit` MCP is unavailable, gather evidence manually:
 ```bash
 cd <repo-root>   # or: cd "$PWD" after cloning blit-tech
 
-pnpm security:mcp-preflight -- --mcps-dir "<mcps>" --repo-root . --allow-fallback
-pnpm security:audit
-pnpm security:audit:prod
+pnpm run security:mcp-preflight -- --mcps-dir "<mcps>" --repo-root . --allow-fallback
+pnpm run security:audit
+pnpm run security:audit:prod
 pnpm audit --dev --audit-level=moderate
-pnpm preflight
+pnpm run preflight
 ```
 
 Key direct dependencies for supply-chain spot checks: `vite`, `typescript`, `eslint`, `vitest`, `happy-dom`.
@@ -125,21 +126,21 @@ npm view typescript version time.modified license
 ```bash
 cd <repo-root>   # blit-tech-demos: directory containing this repo's package.json
 
-pnpm security:mcp-preflight -- \
+pnpm run security:mcp-preflight -- \
   --mcps-dir "<mcps>" \
   --repo-root . \
   --allow-fallback
 
-pnpm security:audit
-pnpm security:audit:prod
+pnpm run security:audit
+pnpm run security:audit:prod
 pnpm audit --dev --audit-level=moderate
-pnpm preflight
-pnpm build
+pnpm run preflight
+pnpm run build
 ```
 
-After toolchain or dependency upgrades, always run `pnpm build` as a smoke test.
+After toolchain or dependency upgrades, always run `pnpm run build` as a smoke test.
 
-Demos can invoke the canonical preflight script from the library repo (prefer `pnpm security:mcp-preflight` when the
+Demos can invoke the canonical preflight script from the library repo (prefer `pnpm run security:mcp-preflight` when the
 sibling layout matches `package.json`). If invoking the script directly, set `<blit-tech-root>` to the blit-tech repo
 path (or export `BLIT_TECH_ROOT` and use `"$BLIT_TECH_ROOT"`):
 

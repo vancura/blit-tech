@@ -66,9 +66,9 @@
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:coverage": "VISUAL_COVERAGE=1 playwright test && nyc report --reporter=lcov --reporter=text-summary --temp-dir=.nyc_output --report-dir=coverage-visual",
-    "preflight": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm spellcheck && pnpm knip && pnpm test:unit && pnpm test:declarations",
+    "preflight": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run spellcheck && pnpm run knip && pnpm run test:unit && pnpm run test:declarations",
     "clean": "rm -rf dist node_modules/.vite",
-    "release": "pnpm build && pnpm publish",
+    "release": "pnpm run build && pnpm publish",
     "knip": "knip",
     "knip:fix": "knip --fix",
     "convert-font": "node scripts/convert-bmfont.mjs",
@@ -88,11 +88,23 @@
       "vite-node": "^5.2.0",
       "esbuild": "^0.25.0",
       "brace-expansion@>=5.0.0 <5.0.6": "^5.0.6",
-      "ws@>=8.0.0 <8.20.1": "^8.20.1"
+      "ws@>=8.0.0 <8.20.1": "^8.20.1",
+      "uuid@>=8.0.0 <11.1.1": "^11.1.1"
     },
     "allowBuilds": {
       "esbuild": true
     }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,cjs,mjs,json,jsonc,css}": [
+      "biome check --write"
+    ],
+    "*.{md,mdx,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,cjs,mjs,md,mdx}": [
+      "cspell --no-progress"
+    ]
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

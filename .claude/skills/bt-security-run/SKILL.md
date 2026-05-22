@@ -4,12 +4,13 @@ description: Run MCP security preflight, governance checks, and documented fallb
 
 # Security Run
 
-Deterministic security workflow for `blit-tech` and cross-repo assessments. Use before comprehensive security scans, hardening passes, or when MCP scanner availability is uncertain.
+Deterministic security workflow for `blit-tech` and cross-repo assessments. Use before comprehensive security scans,
+hardening passes, or when MCP scanner availability is uncertain.
 
 ## Usage
 
 ```text
-/security-run
+/bt-security-run
 ```
 
 ## Prerequisites
@@ -24,7 +25,7 @@ Deterministic security workflow for `blit-tech` and cross-repo assessments. Use 
    - Run:
 
      ```bash
-     pnpm security:mcp-preflight -- \
+     pnpm run security:mcp-preflight -- \
        --mcps-dir "<cursor-project-mcps-path>" \
        --repo-root . \
        --allow-fallback \
@@ -32,13 +33,14 @@ Deterministic security workflow for `blit-tech` and cross-repo assessments. Use 
      ```
 
    - Record each security MCP status: `healthy`, `auth_required`, `errored`, or `absent`.
-   - If Opsera (`plugin-opsera-devsecops-opsera`) is not `healthy`, do **not** skip scans; continue with fallbacks from [docs/security/security-runbook.md](../../../docs/security/security-runbook.md).
+   - If Opsera (`plugin-opsera-devsecops-opsera`) is not `healthy`, do **not** skip scans; continue with
+     fallbacks from [docs/security/security-runbook.md](../../../docs/security/security-runbook.md).
 
 2. **Repo-native checks (this repo)**
-   - `pnpm security:audit`
+   - `pnpm run security:audit`
    - `pnpm audit --prod --audit-level=moderate`
    - `pnpm audit --dev --audit-level=moderate`
-   - `pnpm preflight`
+   - `pnpm run preflight`
 
 3. **Optional MCP-backed scans (only when healthy)**
    - Opsera: `architecture-analyze`, `security-scan`, `compliance-audit` (inspect plugin tool schemas first).
@@ -57,7 +59,7 @@ Deterministic security workflow for `blit-tech` and cross-repo assessments. Use 
 Run once per month for each repo:
 
 ```bash
-pnpm security:mcp-preflight -- \
+pnpm run security:mcp-preflight -- \
   --mcps-dir "<cursor-project-mcps-path>" \
   --repo-root . \
   --governance-only \
