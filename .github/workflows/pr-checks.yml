@@ -32,19 +32,19 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check formatting
-        run: pnpm format:check
+        run: pnpm run format:check
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm run lint
 
       - name: Type check
-        run: pnpm typecheck
+        run: pnpm run typecheck
 
       - name: Spell check
-        run: pnpm spellcheck
+        run: pnpm run spellcheck
 
       - name: Check unused exports and dependencies
-        run: pnpm knip
+        run: pnpm run knip
 
   commitlint:
     name: Lint Commits
@@ -99,7 +99,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build library
-        run: pnpm build 2>&1 | tee build.log
+        run: pnpm run build 2>&1 | tee build.log
         env:
           NODE_ENV: production
 
