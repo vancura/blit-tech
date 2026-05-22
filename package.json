@@ -94,6 +94,17 @@
       "esbuild": true
     }
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,cjs,mjs,json,jsonc,css}": [
+      "biome check --write"
+    ],
+    "*.{md,mdx,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,cjs,mjs,md,mdx}": [
+      "cspell --no-progress"
+    ]
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@commitlint/cli": "^20.5.0",
