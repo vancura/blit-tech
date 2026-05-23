@@ -172,11 +172,12 @@ export function buildUsedPaletteLookup(usedIndices: readonly number[], paletteSi
  */
 function drawUnusedSwatch(renderer: IRenderer, x: number, y: number, swatchSize: number, markIndex: number): void {
     const last = swatchSize - 1;
-    const span = last;
 
-    for (let step = 2; step <= span - 2; step++) {
-        renderer.drawRectFillOnTop(new Rect2i(x + step, y + last - step, 1, 1), markIndex);
+    if (last <= 0) {
+        return;
     }
+
+    renderer.drawRectFillOnTop(new Rect2i(x + 2, y + 2, 3, 3), markIndex);
 }
 
 /**

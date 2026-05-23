@@ -42,13 +42,13 @@ describe('computePaletteGrid', () => {
     it('uses 32 columns and 8 rows at 320 px width for a 256-color palette', () => {
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
 
-        expect(grid).toEqual({
-            cols: 32,
-            rows: 8,
-            swatchSize: DEFAULT_PALETTE_SWATCH_SIZE,
-            gap: 1,
-            totalHeight: paletteGridRowStackHeight(8, DEFAULT_PALETTE_SWATCH_SIZE, 1) + PALETTE_GRID_PADDING_PX * 2,
-        });
+        expect(grid.cols).toBe(32);
+        expect(grid.rows).toBe(8);
+        expect(grid.swatchSize).toBe(DEFAULT_PALETTE_SWATCH_SIZE);
+        expect(grid.gap).toBe(PALETTE_SWATCH_GAP_PX);
+        expect(grid.totalHeight).toBe(
+            paletteGridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
+        );
         expect(paletteGridRowWidth(grid.cols, grid.swatchSize, grid.gap)).toBeLessThanOrEqual(320 - 6);
     });
 
@@ -71,7 +71,9 @@ describe('computePaletteGrid', () => {
 
         expect(grid.cols).toBe(1);
         expect(grid.rows).toBe(256);
-        expect(grid.totalHeight).toBe(paletteGridRowStackHeight(256, 4, 1) + PALETTE_GRID_PADDING_PX * 2);
+        expect(grid.totalHeight).toBe(
+            paletteGridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
+        );
     });
 
     it('returns an empty grid when color count is zero', () => {
@@ -142,6 +144,11 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(usedSwatch).toBeDefined();
 
         const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const unusedSwatchOutline = calls.find(
+            (call) => call.rect.x === unusedPos.x && call.rect.y === unusedPos.y && call.index === DEFAULT_IDX_TEXT,
+        );
+        expect(unusedSwatchOutline).toBeDefined();
+
         const unusedSwatchFill = calls.find(
             (call) =>
                 call.rect.x === unusedPos.x &&
