@@ -90,7 +90,9 @@ Invariants:
 Appends an effect to the chain matching its declared `tier`. Effects can be added at any time; the first add allocates
 the chain's offscreen render targets, the second add allocates a second target for ping-pong. Throws if the engine has
 not been initialized, if a `tier='display'` effect is added without `canvasDisplaySize`, or if the active backend is
-`'software'` (Canvas 2D does not support post-process effects).
+`'software'` (Canvas 2D does not support post-process effects). At runtime, gate registration with
+`BT.activeBackend === 'webgpu'` (not `BT.requestedBackend` - WebGPU may have been requested but fallen back). See
+[api-core.md](api-core.md#requested-vs-active-backend).
 
 ### `BT.effectRemove(effect: Effect): void`
 

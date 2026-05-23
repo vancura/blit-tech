@@ -12,6 +12,7 @@ When editing `src/BlitTech.ts`, demos, or API docs:
 Zero-argument **read-only** values on `BT`:
 
 - **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize`
+- **Configure-time (backend):** `requestedBackend` mirrors resolved `HardwareSettings.backend` (includes `?backend=software`)
 - **Loop:** `deltaSeconds`, `timeSeconds`, `ticks`
 - **Runtime:** `activeBackend`, `camera`, `palette`
 - **Per-frame input:** `pointerScrollDelta`, `inputString`, `gamepadCount`
@@ -29,7 +30,8 @@ Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use prope
 ## Naming
 
 - Match `HardwareSettings` spelling: `targetFPS` (not `fps`, not `targetFps`)
-- `activeBackend` = backend that started; `configure().backend` = requested backend only (not exposed on `BT`)
+- `requestedBackend` = resolved request (`configure()` merge + URL override); `activeBackend` = backend that started (after fallback)
+- Runtime feature gates (post-process, etc.) use `activeBackend`, not `requestedBackend`
 
 ## New API checklist
 

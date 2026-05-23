@@ -151,12 +151,13 @@ and async work. Do not add new zero-argument `BT.foo()` functions when a getter 
 
 ### Use getters (property access, no `()`)
 
-| Category                                                         | Members                                                       | Notes                                                                                                                |
-| ---------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters.         |
-| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                                    |
-| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback), not `configure().backend`. `palette` is a live reference. |
-| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                                     |
+| Category                                                         | Members                                                       | Notes                                                                                                        |
+| ---------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters. |
+| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                            |
+| **Configure-time (backend)**                                     | `requestedBackend`                                            | Resolved `HardwareSettings.backend` after merge and `?backend=software`; defaults to `'webgpu'`.             |
+| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback). `palette` is a live reference.                    |
+| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                             |
 
 Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
 
@@ -173,7 +174,8 @@ Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
 
 - **Same name as `HardwareSettings`** when exposing configure values (`targetFPS`, not `fps` or `targetFps`).
 - **Descriptive runtime names** when there is no configure field (`activeBackend`, not `renderer`).
-- **Do not** expose `configure().backend` on `BT` as a getter without documenting that it differs from `activeBackend`.
+- **`requestedBackend` vs `activeBackend`:** use `requestedBackend` for the resolved init request; use `activeBackend`
+  for runtime gates (post-process, capture). They differ when WebGPU was requested but fell back to software.
 
 Full tables: `docs/api-core.md`. Style guide: `docs/developer-experience-guide.md` (Naming conventions).
 

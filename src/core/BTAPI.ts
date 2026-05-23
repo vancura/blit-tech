@@ -453,6 +453,23 @@ export class BTAPI {
     }
 
     /**
+     * Returns the rendering backend requested for initialization.
+     *
+     * Mirrors resolved {@link HardwareSettings.backend} after `configure()` merge and
+     * any `?backend=software` URL override. Defaults to `'webgpu'` when omitted.
+     * Does not reflect WebGPU-to-software fallback; use {@link getActiveBackend} for that.
+     *
+     * @returns `'webgpu'` or `'software'` once hardware settings are loaded; `null` before that.
+     */
+    public getRequestedBackend(): Backend | null {
+        if (!this.hwSettings) {
+            return null;
+        }
+
+        return this.hwSettings.backend ?? 'webgpu';
+    }
+
+    /**
      * Returns the rendering backend that was actually initialized.
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.

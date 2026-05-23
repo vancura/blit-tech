@@ -5,6 +5,7 @@ import {
     DRIFT_WARNING_PATTERNS,
     findAlignmentFailures,
     findDriftWarnings,
+    findMissingBtDeclarationMembers,
     validateDeclarationTooling,
 } from './check-declaration-tooling.mjs';
 
@@ -43,5 +44,22 @@ describe('check-declaration-tooling', () => {
         const log = 'Analysis will use the bundled TypeScript version 5.9.3';
         const failures = validateDeclarationTooling(log, { requireOutputFile: false });
         assert.deepEqual(failures, []);
+    });
+
+    it('findMissingBtDeclarationMembers fails when requestedBackend is absent', () => {
+        const dts = 'declare namespace BT { readonly activeBackend: Backend | null; }';
+        const failures = findMissingBtDeclarationMembers(dts);
+        assert.equal(failures.length, 1);
+        assert.match(failures[0], /requestedBackend/);
+    });
+
+    it('findMissingBtDeclarationMembers passes when required getters are present', () => {
+        const dts = [
+            'declare namespace BT {',
+            '  readonly requestedBackend: Backend | null;',
+            '  readonly activeBackend: Backend | null;',
+            '}',
+        ].join('\n');
+        assert.deepEqual(findMissingBtDeclarationMembers(dts), []);
     });
 });

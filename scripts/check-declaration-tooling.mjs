@@ -6,6 +6,12 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const PACKAGE_JSON_PATH = path.join(REPO_ROOT, 'package.json');
 const DECLARATION_OUTPUT = path.join(REPO_ROOT, 'dist', 'blit-tech.d.ts');
 
+/**
+ * Public `BT` getters that must appear in rolled-up `dist/blit-tech.d.ts`.
+ * Add entries here when shipping new configure/runtime getters on the facade.
+ */
+export const REQUIRED_BT_DECLARATION_MEMBERS = ['requestedBackend', 'activeBackend'];
+
 /** Substrings that indicate TS/API Extractor compiler drift during declaration rollup. */
 export const DRIFT_WARNING_PATTERNS = [
     /incompatible versions/i,
@@ -80,6 +86,26 @@ export function findAlignmentFailures(logText, expectedVersion) {
 }
 
 /**
+ * Verifies rolled-up declarations export required `BT` facade members.
+ *
+ * @param {string} dtsText Contents of `dist/blit-tech.d.ts`.
+ * @param {readonly string[]} [requiredMembers] Getter names that must be present.
+ * @returns {string[]} Human-readable failure messages (empty when all members are found).
+ */
+export function findMissingBtDeclarationMembers(dtsText, requiredMembers = REQUIRED_BT_DECLARATION_MEMBERS) {
+    const failures = [];
+
+    for (const member of requiredMembers) {
+        const pattern = new RegExp(`\\breadonly\\s+${member}\\s*:`, 'm');
+        if (!pattern.test(dtsText)) {
+            failures.push(`dist/blit-tech.d.ts is missing BT getter: ${member}`);
+        }
+    }
+
+    return failures;
+}
+
+/**
  * Validates declaration build output and log alignment.
  *
  * @param {string} logText Full stdout/stderr from `pnpm build`.
@@ -93,6 +119,9 @@ export function validateDeclarationTooling(logText, options = {}) {
 
     if (requireOutputFile && !fs.existsSync(DECLARATION_OUTPUT)) {
         failures.push(`Missing rolled-up declaration output: ${path.relative(REPO_ROOT, DECLARATION_OUTPUT)}`);
+    } else if (requireOutputFile) {
+        const dtsText = fs.readFileSync(DECLARATION_OUTPUT, 'utf8');
+        failures.push(...findMissingBtDeclarationMembers(dtsText));
     }
 
     return failures;

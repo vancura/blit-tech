@@ -10,7 +10,8 @@ by `vite-plugin-dts` when `rollupTypes: true`). This avoids TS/API Extractor dri
 keeps rolled-up `dist/blit-tech.d.ts` deterministic.
 
 When bumping `typescript` or `vite-plugin-dts`, confirm the build log reports the same bundled version and that
-`node scripts/check-declaration-tooling.mjs build.log` passes. See
+`node scripts/check-declaration-tooling.mjs build.log` passes (log alignment plus required `BT` getters in
+`dist/blit-tech.d.ts`, including `requestedBackend` and `activeBackend`). See
 [Declaration tooling](developer-experience-guide.md#declaration-tooling-typescript--api-extractor) in the DX guide for
 CI details.
 
