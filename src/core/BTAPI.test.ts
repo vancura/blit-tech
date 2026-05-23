@@ -28,10 +28,11 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { Effect } from '../render/effects/Effect';
+import { StatsOverlay } from '../render/StatsOverlay';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
-import type { IBlitTechDemo } from './IBlitTechDemo';
+import type { IBlitTechDemo, StatsOverlayRow } from './IBlitTechDemo';
 
 // #region Helpers
 
@@ -819,6 +820,54 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(requestAnimationFrame).toHaveBeenCalled();
+        });
+
+        it('forwards statsOverlayRows from the demo into StatsOverlay.updateAndRender', async () => {
+            const customRows: StatsOverlayRow[] = [{ leftText: 'Position: 1, 2' }];
+            const demo: IBlitTechDemo = {
+                ...makeMockDemo(),
+                statsOverlayRows: vi.fn().mockReturnValue(customRows),
+            };
+            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const rafCallbacks: FrameRequestCallback[] = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error('Exceeded max rAF callback drain iterations before overlay render.');
+                }
+
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16);
+                }
+
+                if (overlaySpy.mock.calls.length > 0) {
+                    break;
+                }
+            }
+
+            expect(demo.statsOverlayRows).toHaveBeenCalled();
+            expect(overlaySpy).toHaveBeenCalled();
+            const lastCall = overlaySpy.mock.calls.at(-1);
+            const getCustomRows = lastCall?.[6] as (() => typeof customRows) | undefined;
+
+            expect(getCustomRows?.()).toBe(customRows);
         });
 
         it('calls gamepad.endFrame during render-phase input flush', async () => {

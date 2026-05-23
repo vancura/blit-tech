@@ -115,6 +115,53 @@ export interface HardwareSettings {
      * toggle input (for release builds that must not expose debug HUD).
      */
     statsOverlayEnabled?: boolean;
+
+    /**
+     * Palette indices for the built-in stats overlay bars (top and bottom) and as defaults
+     * for custom {@link StatsOverlayRow} entries that omit per-row colors.
+     *
+     * When omitted, the overlay prefers `hud_bg` / `hud_dim` after {@link Palette.applyHUD},
+     * otherwise palette indices `1` (bar) and `2` (text).
+     */
+    statsOverlayStyle?: StatsOverlayStyle;
+}
+
+/**
+ * Palette indices for stats overlay bar fills and system-font text.
+ */
+export interface StatsOverlayStyle {
+    /** Palette index for bar backgrounds (top, bottom, and custom rows unless overridden). */
+    barPaletteIndex?: number;
+
+    /** Palette index for overlay text (built-in labels and custom rows unless overridden). */
+    textPaletteIndex?: number;
+}
+
+/**
+ * One optional stats-overlay row supplied by a demo (left label, optional right label).
+ *
+ * Rendered as a 16 px bar stacked above the bottom FPS bar with 1 px gaps. Reuse the same
+ * array instance from {@link IBlitTechDemo.statsOverlayRows} when possible to avoid
+ * per-frame allocations.
+ */
+export interface StatsOverlayRow {
+    /** Left-aligned text (for example `Position: 120, 80`). */
+    leftText: string;
+
+    /** Optional right-aligned text in the same bar. */
+    rightText?: string;
+
+    /**
+     * Bar fill palette index for this row only. Falls back to
+     * {@link HardwareSettings.statsOverlayStyle} then HUD/defaults.
+     */
+    barPaletteIndex?: number;
+
+    /**
+     * Text palette index for this row only (left and right labels). Falls back to
+     * {@link HardwareSettings.statsOverlayStyle} then HUD/defaults.
+     */
+    textPaletteIndex?: number;
 }
 
 /**
@@ -173,9 +220,10 @@ export interface IBlitTechDemo {
      *
      * When {@link HardwareSettings.statsOverlayEnabled} is `true` (default), the engine
      * draws a screen-space stats HUD after this method returns (FPS, backend, demo
-     * title). Demos do not need to draw those lines themselves. Reserve the bottom
-     * and top ~15 px bands for the overlay bars, or disable the overlay in
-     * `configure()` when using custom full-screen HUD layouts.
+     * title). Optional {@link statsOverlayRows} adds stacked bars above the footer.
+     * Demos do not need to duplicate FPS or page-title text. Reserve the bottom and top
+     * ~15 px bands (plus ~17 px per custom overlay row) for overlay bars, or disable
+     * the overlay in `configure()` when using custom full-screen HUD layouts.
      *
      * This is a hot path. Batch draws by texture to reduce GPU state changes
      * and reuse Color32/Vector2i instances instead of allocating per frame.
@@ -183,6 +231,21 @@ export interface IBlitTechDemo {
      * Avoid mutating the simulation state here unless it is strictly visual.
      */
     render(): void;
+
+    /**
+     * Optional hook returning extra stats-overlay rows for the current frame.
+     *
+     * Called once per render frame after `render()` when {@link HardwareSettings.statsOverlayEnabled}
+     * is `true` and the overlay is visible (not hidden via Backquote or corner toggle). Rows stack
+     * upward from just above the bottom FPS bar (1 px gap between bars). Omit this hook or return
+     * an empty array when no custom rows are needed.
+     *
+     * Hot path: reuse the same array and row objects when content is unchanged; avoid
+     * allocating new strings or arrays every frame when values only change in place.
+     *
+     * @returns Read-only list of overlay rows, or `undefined` for none.
+     */
+    statsOverlayRows?(): readonly StatsOverlayRow[] | undefined;
 }
 
 // #endregion
@@ -260,6 +323,10 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
         picked.statsOverlayEnabled = partial.statsOverlayEnabled;
     }
 
+    if (partial.statsOverlayStyle !== undefined) {
+        picked.statsOverlayStyle = { ...partial.statsOverlayStyle };
+    }
+
     return picked;
 }
 
@@ -327,6 +394,12 @@ function buildFullDefaultMergeOptionals(
         optionals.renderer = renderer;
     }
 
+    const statsOverlayStyle = picked.statsOverlayStyle ?? defaults.statsOverlayStyle;
+
+    if (statsOverlayStyle !== undefined) {
+        optionals.statsOverlayStyle = { ...statsOverlayStyle };
+    }
+
     return optionals;
 }
 
@@ -364,6 +437,7 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
         ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
         ...(picked.renderer !== undefined ? { renderer: picked.renderer } : {}),
+        ...(picked.statsOverlayStyle !== undefined ? { statsOverlayStyle: { ...picked.statsOverlayStyle } } : {}),
     };
 }
 

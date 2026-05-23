@@ -109,4 +109,13 @@ describe('mergeHardwareSettings', () => {
 
         expect(settings.statsOverlayEnabled).toBe(false);
     });
+
+    it('merges statsOverlayStyle from configure()', () => {
+        const settings = mergeHardwareSettings({
+            statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
+        });
+
+        expect(settings.statsOverlayStyle?.barPaletteIndex).toBe(2);
+        expect(settings.statsOverlayStyle?.textPaletteIndex).toBe(3);
+    });
 });

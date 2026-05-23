@@ -16,7 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
-import { createStatsOverlayLayout, resolveStatsDemoLabel, StatsOverlay } from '../render/StatsOverlay';
+import { createStatsOverlayLayout, resolveStatsDemoText, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
@@ -247,6 +247,7 @@ export class BTAPI {
                             this.pointer,
                             this.keyboard,
                             this.loop?.getTicks() ?? 0,
+                            () => this.demo?.statsOverlayRows?.(),
                         );
                     }
 
@@ -328,7 +329,13 @@ export class BTAPI {
         const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight > 0 ? lineHeight : 14);
         const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
 
-        this.statsOverlay = new StatsOverlay(layout, resolveStatsDemoLabel(pageTitle), hw.targetFPS);
+        this.statsOverlay = new StatsOverlay(
+            layout,
+            resolveStatsDemoText(pageTitle),
+            hw.targetFPS,
+            hw.statsOverlayStyle,
+        );
+
         this.statsOverlay.setActiveBackend(this.activeBackend);
     }
 

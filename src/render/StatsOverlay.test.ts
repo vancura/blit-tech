@@ -4,18 +4,20 @@
  * Layout contract (see {@link StatsOverlay} and docs/api-core.md Stats overlay):
  * - Top left: demo title; top right: `backend | WxH`
  * - Bottom left: `FPS: N | Target: T`; bottom right: demo title
+ * - Custom rows: demo-supplied bars stacked above the bottom bar (1 px gaps)
  */
 
 import { describe, expect, it, vi } from 'vitest';
 
 import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
+import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { IRenderer } from './IRenderer';
 import {
     createStatsOverlayLayout,
     isPointerInStatsToggleCorner,
-    resolveStatsDemoLabel,
+    resolveStatsDemoText,
     StatsOverlay,
     statsRightAlignedTextX,
 } from './StatsOverlay';
@@ -24,6 +26,8 @@ import {
 
 const STATS_EDGE_MARGIN_PX = 5;
 const STATS_TOP_TEXT_Y = 1;
+const STATS_BAR_HEIGHT = 16;
+const STATS_ROW_GAP_PX = 1;
 const SYSTEM_CHAR_ADVANCE = 6;
 
 type BitmapTextCall = {
@@ -39,14 +43,21 @@ type BitmapTextCall = {
  */
 function createMockRenderer(): IRenderer & {
     drawBitmapText: ReturnType<typeof vi.fn>;
+    drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
+    drawRectFillOnTop: ReturnType<typeof vi.fn>;
 } {
+    const drawRectFillOnTop = vi.fn();
+    const drawBitmapTextOnTop = vi.fn();
+
     return {
         getCameraOffset: vi.fn(() => Vector2i.zero()),
         resetCamera: vi.fn(),
         setCameraOffset: vi.fn(),
         drawRectFill: vi.fn(),
+        drawRectFillOnTop,
         drawBitmapText: vi.fn(),
+        drawBitmapTextOnTop,
     } as never;
 }
 
@@ -57,11 +68,28 @@ function createMockRenderer(): IRenderer & {
  * @returns Parsed draw calls in invocation order.
  */
 function getBitmapTextCalls(renderer: ReturnType<typeof createMockRenderer>): BitmapTextCall[] {
-    return renderer.drawBitmapText.mock.calls.map((call) => ({
+    return renderer.drawBitmapTextOnTop.mock.calls.map((call) => ({
         pos: call[1] as Vector2i,
         text: call[2] as string,
         paletteOffset: call[3] as number,
     }));
+}
+
+/**
+ * Collects {@link IRenderer.drawRectFill} rects from a mock renderer.
+ *
+ * @param renderer - Mock from {@link createMockRenderer}.
+ * @returns Filled rectangles in invocation order.
+ */
+function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect2i[] {
+    return renderer.drawRectFillOnTop.mock.calls.map((call) => call[0] as Rect2i);
+}
+
+/** Y of custom row bar top stacked above the bottom FPS bar. */
+function customBarY(displayHeight: number, rowIndex: number): number {
+    const bottomBarY = displayHeight - STATS_BAR_HEIGHT;
+
+    return bottomBarY - (rowIndex + 1) * (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
 }
 
 const mockFont = {} as BitmapFont;
@@ -72,17 +100,17 @@ const mockFont = {} as BitmapFont;
 
 describe('resolveStatsDemoLabel', () => {
     it('formats registry-style page titles without a Blit-Tech prefix', () => {
-        expect(resolveStatsDemoLabel('Blit-Tech Demo 006 - Patterns')).toBe('Patterns Demo');
-        expect(resolveStatsDemoLabel('Blit-Tech Demo 002 - Primitives')).toBe('Primitives Demo');
+        expect(resolveStatsDemoText('Blit-Tech Demo 006 - Patterns')).toBe('Patterns Demo');
+        expect(resolveStatsDemoText('Blit-Tech Demo 002 - Primitives')).toBe('Primitives Demo');
     });
 
     it('falls back when title is empty', () => {
-        expect(resolveStatsDemoLabel('')).toBe('Demo');
-        expect(resolveStatsDemoLabel(undefined)).toBe('Demo');
+        expect(resolveStatsDemoText('')).toBe('Demo');
+        expect(resolveStatsDemoText(undefined)).toBe('Demo');
     });
 
     it('passes through non-registry titles unchanged', () => {
-        expect(resolveStatsDemoLabel('Custom Page')).toBe('Custom Page');
+        expect(resolveStatsDemoText('Custom Page')).toBe('Custom Page');
     });
 });
 
@@ -228,8 +256,8 @@ describe('StatsOverlay', () => {
         overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
         overlay.updateAndRender(renderer, mockFont, null, null, null, 2);
 
-        expect(renderer.drawRectFill).not.toHaveBeenCalled();
-        expect(renderer.drawBitmapText).not.toHaveBeenCalled();
+        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
+        expect(renderer.drawBitmapTextOnTop).not.toHaveBeenCalled();
     });
 
     it('resets camera for overlay draws then restores the saved offset', () => {
@@ -258,6 +286,100 @@ describe('StatsOverlay', () => {
         const hudDim = palette.getNamed('hud_dim');
 
         expect(calls.every((call) => call.paletteOffset === hudDim - 1)).toBe(true);
+    });
+
+    it('uses statsOverlayStyle palette indices instead of HUD defaults', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, { barPaletteIndex: 8, textPaletteIndex: 9 });
+        const renderer = createMockRenderer();
+        const palette = new Palette(16);
+
+        palette.applyHUD(1);
+        overlay.updateAndRender(renderer, mockFont, palette, null, null, 0);
+
+        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(expect.anything(), 8);
+
+        const calls = getBitmapTextCalls(renderer);
+
+        expect(calls[0]?.paletteOffset).toBe(8);
+    });
+
+    it('draws custom rows with per-row palette indices', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, { barPaletteIndex: 2, textPaletteIndex: 3 });
+        const renderer = createMockRenderer();
+        const customRows = [{ leftText: 'Left', barPaletteIndex: 5, textPaletteIndex: 6 }];
+
+        overlay.updateAndRender(renderer, mockFont, null, null, null, 0, () => customRows);
+
+        const fills = getRectFillCalls(renderer);
+
+        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(fills[2], 5);
+
+        const calls = getBitmapTextCalls(renderer);
+
+        expect(calls[0]?.paletteOffset).toBe(5);
+    });
+
+    it('draws custom rows stacked above the bottom bar with 1px gaps', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60);
+        const renderer = createMockRenderer();
+        const customRows = [{ leftText: 'Position: 10, 20' }, { leftText: 'Bounces: 3', rightText: 'ok' }];
+
+        overlay.updateAndRender(renderer, mockFont, null, null, null, 0, () => customRows);
+
+        const fills = getRectFillCalls(renderer);
+        const row0BarY = customBarY(240, 0);
+        const row1BarY = customBarY(240, 1);
+
+        expect(fills).toHaveLength(4);
+        expect(fills[2]).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
+        expect(fills[3]).toMatchObject({ y: row1BarY, width: 320, height: STATS_BAR_HEIGHT });
+        expect(row0BarY - row1BarY).toBe(STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
+
+        const calls = getBitmapTextCalls(renderer);
+        const rightX = statsRightAlignedTextX('ok', 320);
+
+        expect(calls).toHaveLength(7);
+        expect(calls[0]).toEqual({
+            pos: new Vector2i(STATS_EDGE_MARGIN_PX, row0BarY + STATS_TOP_TEXT_Y),
+            text: 'Position: 10, 20',
+            paletteOffset: 1,
+        });
+        expect(calls[1]).toEqual({
+            pos: new Vector2i(STATS_EDGE_MARGIN_PX, row1BarY + STATS_TOP_TEXT_Y),
+            text: 'Bounces: 3',
+            paletteOffset: 1,
+        });
+        expect(calls[2]).toEqual({
+            pos: new Vector2i(rightX, row1BarY + STATS_TOP_TEXT_Y),
+            text: 'ok',
+            paletteOffset: 1,
+        });
+    });
+
+    it('skips extra custom row draws when customRows is empty', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60);
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, null, 0, () => []);
+
+        expect(getRectFillCalls(renderer)).toHaveLength(2);
+        expect(getBitmapTextCalls(renderer)).toHaveLength(4);
+    });
+
+    it('does not invoke getCustomRows while the overlay is hidden', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60);
+        const renderer = createMockRenderer();
+        const getCustomRows = vi.fn(() => [{ leftText: 'Hidden row' }] as const);
+
+        overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
+        overlay.updateAndRender(renderer, mockFont, null, null, null, 0, getCustomRows);
+
+        expect(getCustomRows).not.toHaveBeenCalled();
     });
 });
 
