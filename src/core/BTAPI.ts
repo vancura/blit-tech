@@ -116,6 +116,30 @@ export class BTAPI {
     /** Built-in 6x14 system font for BT.systemPrint(). */
     private systemFont: BitmapFont | null = null;
 
+    /** Accumulated fixed-step update time for the frame currently being rendered. */
+    private pendingUpdateMs = 0;
+
+    /** Number of fixed-step updates accumulated for the current render frame. */
+    private pendingUpdateSteps = 0;
+
+    /** Number of demo draw API calls issued since the last rendered frame. */
+    private pendingDrawCalls = 0;
+
+    /** Reused timing snapshot passed into the stats overlay each frame. */
+    private readonly statsOverlayTiming: {
+        frameMs: number;
+        updateMs: number;
+        renderMs: number;
+        updateSteps: number;
+        drawCalls: number;
+    } = {
+        frameMs: 0,
+        updateMs: 0,
+        renderMs: 0,
+        updateSteps: 0,
+        drawCalls: 0,
+    };
+
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
 
@@ -223,13 +247,32 @@ export class BTAPI {
         const onFrameDrop: FrameDropCallback | undefined =
             hwSettings.detectDroppedFrames === true ? (event) => this.handleFrameDrop(event) : undefined;
 
+        this.pendingUpdateMs = 0;
+        this.pendingUpdateSteps = 0;
+        this.pendingDrawCalls = 0;
+        this.statsOverlayTiming.frameMs = 0;
+        this.statsOverlayTiming.updateMs = 0;
+        this.statsOverlayTiming.renderMs = 0;
+        this.statsOverlayTiming.updateSteps = 0;
+        this.statsOverlayTiming.drawCalls = 0;
+
         this.loop = new GameLoop(
             updateInterval,
-            () => this.demo?.update(),
             () => {
+                const updateStartMs = performance.now();
+                this.demo?.update();
+                this.pendingUpdateMs += Math.max(0, performance.now() - updateStartMs);
+                this.pendingUpdateSteps++;
+            },
+            () => {
+                const frameStartMs = performance.now();
+                let renderMs = 0;
+
                 if (this.renderer) {
                     this.renderer.beginFrame();
+                    const renderStartMs = performance.now();
                     this.demo?.render();
+                    renderMs = Math.max(0, performance.now() - renderStartMs);
 
                     // Palette effects run after demo render (so user's explicit palette
                     // changes in render() are respected) but before endFrame (so effects
@@ -247,6 +290,7 @@ export class BTAPI {
                             this.keyboard,
                             this.loop?.getTicks() ?? 0,
                             () => this.demo?.statsOverlayRows?.(),
+                            this.statsOverlayTiming,
                         );
                     }
 
@@ -263,6 +307,16 @@ export class BTAPI {
 
                 this.keyboard?.endFrame(tick);
                 this.gamepad?.endFrame(tick);
+
+                this.statsOverlayTiming.frameMs = Math.max(0, performance.now() - frameStartMs);
+                this.statsOverlayTiming.updateMs = this.pendingUpdateMs;
+                this.statsOverlayTiming.renderMs = renderMs;
+                this.statsOverlayTiming.updateSteps = this.pendingUpdateSteps;
+                this.statsOverlayTiming.drawCalls = this.pendingDrawCalls;
+
+                this.pendingUpdateMs = 0;
+                this.pendingUpdateSteps = 0;
+                this.pendingDrawCalls = 0;
             },
             onFrameDrop,
         );
@@ -564,6 +618,7 @@ export class BTAPI {
      */
     public clearRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.markDrawCall();
         this.renderer?.clearRect(rect, paletteIndex);
     }
 
@@ -575,6 +630,7 @@ export class BTAPI {
      */
     public drawPixel(pos: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.markDrawCall();
         this.renderer?.drawPixel(pos, paletteIndex);
     }
 
@@ -588,6 +644,7 @@ export class BTAPI {
      */
     public drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.markDrawCall();
         this.renderer?.drawLine(p0, p1, paletteIndex);
     }
 
@@ -603,6 +660,7 @@ export class BTAPI {
      */
     public drawRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.markDrawCall();
         this.renderer?.drawRect(rect, paletteIndex);
     }
 
@@ -614,6 +672,7 @@ export class BTAPI {
      */
     public drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.markDrawCall();
         this.renderer?.drawRectFill(rect, paletteIndex);
     }
 
@@ -637,6 +696,7 @@ export class BTAPI {
         }
 
         if (this.systemFont) {
+            this.markDrawCall();
             // Offset math: font stores foreground as index 1.
             // Shader computes 1 + (paletteIndex - 1) = paletteIndex.
             this.renderer?.drawBitmapText(this.systemFont, pos, text, paletteIndex - 1);
@@ -665,6 +725,7 @@ export class BTAPI {
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(spriteSheet);
+        this.markDrawCall();
         this.renderer?.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
@@ -681,6 +742,7 @@ export class BTAPI {
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(font.getSpriteSheet());
+        this.markDrawCall();
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -1161,6 +1223,13 @@ export class BTAPI {
         if (!Number.isFinite(durationMs) || durationMs < 0) {
             throw new Error(`${method}: the time should be a non-negative number of milliseconds (got ${durationMs}).`);
         }
+    }
+
+    /**
+     * Tracks one demo-issued draw API call for the current frame snapshot.
+     */
+    private markDrawCall(): void {
+        this.pendingDrawCalls++;
     }
 
     /**

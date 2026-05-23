@@ -81,7 +81,7 @@ export interface HardwareSettings {
     /**
      * Target fixed-update rate: how often {@link IBlitTechDemo.update} runs per second.
      *
-     * Not the measured render rate shown as `Render FPS` on the stats overlay; `render()` follows
+     * Not the measured render rate shown as `Present` on the stats overlay; `render()` follows
      * `requestAnimationFrame` and may differ (for example 60 Hz updates on a 120 Hz display).
      */
     targetFPS: number;
@@ -143,7 +143,7 @@ export interface StatsOverlayStyle {
 /**
  * One optional stats-overlay row supplied by a demo (left label, optional right label).
  *
- * Rendered as a 16 px bar stacked above the bottom FPS bar with 1 px gaps. Reuse the same
+ * Rendered as a 13 px bar stacked above the bottom `[~]` bar with 1 px gaps. Reuse the same
  * array instance from {@link IBlitTechDemo.statsOverlayRows} when possible to avoid
  * per-frame allocations.
  */
@@ -222,10 +222,11 @@ export interface IBlitTechDemo {
      * Issue all draw calls for the current frame here.
      *
      * When {@link HardwareSettings.statsOverlayEnabled} is `true` (default), the engine
-     * draws a screen-space stats HUD after this method returns (render FPS, target FPS, backend, demo
-     * title). Optional {@link statsOverlayRows} adds stacked bars above the footer.
-     * Demos do not need to duplicate FPS or page-title text. Reserve the bottom and top
-     * ~15 px bands (plus ~17 px per custom overlay row) for overlay bars, or disable
+     * draws a screen-space stats HUD after this method returns (present FPS, target FPS, draw calls,
+     * frame/update()/render() timings, backend, demo title). Optional {@link statsOverlayRows} adds stacked bars above
+     * the footer.
+     * Demos do not need to duplicate engine stats text. Reserve about ~42 px at the top and ~13 px at the bottom
+     * (plus ~14 px per custom overlay row) for overlay bars, or disable
      * the overlay in `configure()` when using custom full-screen HUD layouts.
      *
      * This is a hot path. Batch draws by texture to reduce GPU state changes
@@ -240,7 +241,7 @@ export interface IBlitTechDemo {
      *
      * Called once per render frame after `render()` when {@link HardwareSettings.statsOverlayEnabled}
      * is `true` and the overlay is visible (not hidden via Backquote or corner toggle). Rows stack
-     * upward from just above the bottom FPS bar (1 px gap between bars). Omit this hook or return
+     * upward from just above the bottom `[~]` bar (1 px gap between bars). Omit this hook or return
      * an empty array when no custom rows are needed.
      *
      * Hot path: reuse the same array and row objects when content is unchanged; avoid
