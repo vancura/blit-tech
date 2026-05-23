@@ -2,8 +2,10 @@
  * Unit tests for {@link StatsOverlay} layout helpers, label parsing, and draw layout.
  *
  * Layout contract (see {@link StatsOverlay} and docs/api-core.md Stats overlay):
- * - Top left: demo title; top right: `backend | WxH`
- * - Bottom left: `Render FPS: N | Target: T`; bottom right: `[HIDE ~]`
+ * - Top row 1: demo title (left), `backend | WxH` (right)
+ * - Top row 2: `Present FPS | Target FPS | Draw Calls`
+ * - Top row 3: `Frame | update() | render()`
+ * - Bottom row: `[~]` hint (right)
  * - Custom rows: demo-supplied bars stacked above the bottom bar (1 px gaps)
  */
 
@@ -23,9 +25,9 @@ import {
 
 // #region Test Helpers
 
-const STATS_EDGE_MARGIN_PX = 5;
-const STATS_TOP_TEXT_Y = 1;
-const STATS_BAR_HEIGHT = 16;
+const STATS_EDGE_MARGIN_PX = 3;
+const STATS_TOP_TEXT_Y = 0;
+const STATS_BAR_HEIGHT = 13;
 const STATS_ROW_GAP_PX = 1;
 const SYSTEM_CHAR_ADVANCE = 6;
 
@@ -84,7 +86,7 @@ function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect
     return renderer.drawRectFillOnTop.mock.calls.map((call) => call[0] as Rect2i);
 }
 
-/** Y of custom row bar top stacked above the bottom FPS bar. */
+/** Y of custom row bar top stacked above the bottom `[~]` bar. */
 function customBarY(displayHeight: number, rowIndex: number): number {
     const bottomBarY = displayHeight - STATS_BAR_HEIGHT;
 
@@ -118,12 +120,12 @@ describe('resolveStatsTopLeftLabel', () => {
 // #region createStatsOverlayLayout
 
 describe('createStatsOverlayLayout', () => {
-    it('places bottom text one line above the display bottom', () => {
+    it('places bottom text at the configured bottom gap offset', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
 
         expect(layout.displayWidth).toBe(320);
         expect(layout.displayHeight).toBe(240);
-        expect(layout.bottomTextY).toBe(240 - 14 - 1);
+        expect(layout.bottomTextY).toBe(240 - 14 + 1);
         expect(layout.topTextY).toBe(STATS_TOP_TEXT_Y);
         expect(layout.toggleRect.x).toBe(320 - 48);
         expect(layout.toggleRect.y).toBe(240 - 48);
@@ -200,7 +202,7 @@ describe('StatsOverlay', () => {
         expect(overlay.visible).toBe(true);
     });
 
-    it('draws top-left, top-right, bottom-left, and bottom-right labels', () => {
+    it('draws top and bottom overlay labels', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const topLeftLabel = 'Patterns Demo';
         const overlay = new StatsOverlay(layout, topLeftLabel, 60, 'webgpu');
@@ -211,10 +213,10 @@ describe('StatsOverlay', () => {
         const calls = getBitmapTextCalls(renderer);
         const topRightLabel = 'webgpu | 320x240';
         const topRightX = statsRightAlignedTextX(topRightLabel, 320);
-        const bottomRightLabel = '[HIDE ~]';
+        const bottomRightLabel = '[~]';
         const bottomRightX = statsRightAlignedTextX(bottomRightLabel, 320);
 
-        expect(calls).toHaveLength(4);
+        expect(calls).toHaveLength(5);
         expect(calls[0]).toEqual({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, STATS_TOP_TEXT_Y),
             text: topLeftLabel,
@@ -226,11 +228,19 @@ describe('StatsOverlay', () => {
             paletteOffset: 1,
         });
         expect(calls[2]).toMatchObject({
-            pos: new Vector2i(STATS_EDGE_MARGIN_PX, layout.bottomTextY),
-            text: expect.stringMatching(/^Render FPS: \d+ \| Target: 60$/),
+            pos: new Vector2i(STATS_EDGE_MARGIN_PX, STATS_BAR_HEIGHT + STATS_ROW_GAP_PX + STATS_TOP_TEXT_Y),
+            text: expect.stringMatching(/^Present FPS: \d+ \| Target FPS: 60 \| Draw Calls: \d+$/),
             paletteOffset: 1,
         });
-        expect(calls[3]).toEqual({
+        expect(calls[3]).toMatchObject({
+            pos: new Vector2i(STATS_EDGE_MARGIN_PX, (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX) * 2 + STATS_TOP_TEXT_Y),
+            text: expect.any(String),
+            paletteOffset: 1,
+        });
+        expect(calls[3]?.text).toContain('Frame: ');
+        expect(calls[3]?.text).toContain(' | update(): ');
+        expect(calls[3]?.text).toContain(' | render(): ');
+        expect(calls[4]).toEqual({
             pos: new Vector2i(bottomRightX, layout.bottomTextY),
             text: bottomRightLabel,
             paletteOffset: 1,
@@ -246,6 +256,26 @@ describe('StatsOverlay', () => {
 
         const topRightCall = getBitmapTextCalls(renderer)[1];
         expect(topRightCall?.text).toBe('software | 320x240');
+    });
+
+    it('uses provided frame timings and shows update-step suffix when multiple updates ran', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 8.25,
+            updateMs: 1.5,
+            renderMs: 3.75,
+            updateSteps: 3,
+            drawCalls: 42,
+        });
+
+        const calls = getBitmapTextCalls(renderer);
+        expect(calls[2]?.text).toContain('Draw Calls: 42');
+        expect(calls[3]?.text).toContain('Frame: 8.3ms');
+        expect(calls[3]?.text).toContain('update(): 1.5msx3');
+        expect(calls[3]?.text).toContain('render(): 3.8ms');
     });
 
     it('skips draw calls when hidden', () => {
@@ -308,7 +338,7 @@ describe('StatsOverlay', () => {
 
         const fills = getRectFillCalls(renderer);
 
-        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(fills[2], 5);
+        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(fills[4], 5);
 
         const calls = getBitmapTextCalls(renderer);
 
@@ -327,15 +357,15 @@ describe('StatsOverlay', () => {
         const row0BarY = customBarY(240, 0);
         const row1BarY = customBarY(240, 1);
 
-        expect(fills).toHaveLength(4);
-        expect(fills[2]).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
-        expect(fills[3]).toMatchObject({ y: row1BarY, width: 320, height: STATS_BAR_HEIGHT });
+        expect(fills).toHaveLength(6);
+        expect(fills[4]).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
+        expect(fills[5]).toMatchObject({ y: row1BarY, width: 320, height: STATS_BAR_HEIGHT });
         expect(row0BarY - row1BarY).toBe(STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
 
         const calls = getBitmapTextCalls(renderer);
         const rightX = statsRightAlignedTextX('ok', 320);
 
-        expect(calls).toHaveLength(7);
+        expect(calls).toHaveLength(8);
         expect(calls[0]).toEqual({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, row0BarY + STATS_TOP_TEXT_Y),
             text: 'Position: 10, 20',
@@ -360,8 +390,8 @@ describe('StatsOverlay', () => {
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => []);
 
-        expect(getRectFillCalls(renderer)).toHaveLength(2);
-        expect(getBitmapTextCalls(renderer)).toHaveLength(4);
+        expect(getRectFillCalls(renderer)).toHaveLength(4);
+        expect(getBitmapTextCalls(renderer)).toHaveLength(5);
     });
 
     it('does not invoke getCustomRows while the overlay is hidden', () => {
