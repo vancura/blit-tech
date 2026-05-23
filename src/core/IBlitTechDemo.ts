@@ -425,6 +425,7 @@ function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, default
  * @param picked - Defined fields with vectors cloned.
  * @param defaults - Baseline hardware settings for required fallbacks.
  * @returns Resolved settings; omitted optionals such as `canvasDisplaySize` stay unset.
+ * `backend` always inherits from {@link defaultConfig} when omitted from `configure()`.
  */
 function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
     return {
@@ -435,7 +436,7 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
         ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
-        ...(picked.backend !== undefined ? { backend: picked.backend } : {}),
+        backend: picked.backend ?? defaults.backend ?? 'webgpu',
         ...(picked.statsOverlayStyle !== undefined ? { statsOverlayStyle: { ...picked.statsOverlayStyle } } : {}),
     };
 }

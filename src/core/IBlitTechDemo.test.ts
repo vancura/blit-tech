@@ -96,6 +96,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.canvasDisplaySize).toBeUndefined();
         expect(settings.targetFPS).toBe(60);
+        expect(settings.backend).toBe('webgpu');
     });
 
     it('applies only provided fields when displaySize is set', () => {
