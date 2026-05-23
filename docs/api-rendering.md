@@ -5,6 +5,10 @@ Primitives, sprites, text, post-process effects, and frame capture.
 All draw calls require a palette to be active (`BT.paletteSet(palette)` before the first `BT.drawSprite`,
 `BT.drawRectFill`, etc.). All coordinates are integer pixels - use `Vector2i` and `Rect2i`, never floats.
 
+**Palette addressing:** primitives and `BT.systemPrint` use an absolute **`paletteIndex`**. Sprites and `BT.printFont`
+use an optional **`paletteOffset`** added to stored texel indices. See
+[Palette addressing](api-palette.md#palette-addressing).
+
 ---
 
 ## Primitives
@@ -41,8 +45,10 @@ BT.drawSprite(sheet, srcRect, destPos, paletteOffset);
 
 **Palette offset semantics:** Stored sprite indices start at `1` (index `0` is always transparent and discarded). With
 `paletteOffset = N`, a pixel stored at index `1` renders as `palette[1 + N]`, a pixel at index `2` renders as
-`palette[2 + N]`, and so on. Use this for palette-swap effects such as team colors or damage flashes. Out-of-range
-results render as opaque black; negative values wrap to a large unsigned integer and also produce black.
+`palette[2 + N]`, and so on. Use this for palette-swap effects such as team colors or damage flashes. The WebGPU sprite
+shader clamps with `index = min(combined, 255u)` where `combined = storedIndex + paletteOffset`, so oversized sums map
+to palette slot `255`. The `paletteOffset` argument must be a non-negative integer below the active palette size;
+otherwise the draw throws.
 
 ```ts
 BT.drawSprite(sheet, srcRect, new Vector2i(10, 10)); // normal

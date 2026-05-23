@@ -6,6 +6,9 @@ Blit-Tech is palette-first: every visible pixel stores a palette slot index, and
 This guide covers the end-to-end workflow: setup, indexed sprites, palette offsets, runtime effects, and when to call
 `BT.spritesRefresh()`.
 
+For terminology (**slot** vs **`paletteIndex`** vs **`paletteOffset`**) and when to call `BT.paletteSet()` vs mutating
+`BT.palette`, see [Palette addressing](api-palette.md#palette-addressing) in the API palette reference.
+
 ---
 
 ## 1) Create and activate a palette
@@ -22,21 +25,24 @@ Key rules:
 
 - Slot `0` is always transparent.
 - Valid sizes are `2, 4, 16, 32, 64, 128, 256`.
-- `BT.paletteSet()` makes one palette active for all drawing.
+- `BT.paletteSet()` activates a palette before the first draw (or when swapping to another `Palette` instance).
+- After activation, edit colors with `BT.palette.set(...)`; you do not need to call `paletteSet()` again for value-only
+  changes (see [Palette addressing](api-palette.md#palette-addressing)).
 
 ---
 
-## 2) Draw using palette indices
+## 2) Draw using absolute palette indices
 
-Draw calls accept numeric palette slots, not direct RGBA values:
+Primitive and clear APIs take an absolute **`paletteIndex`** (the exact slot written to the framebuffer), not direct
+RGBA values. See [Palette addressing](api-palette.md#palette-addressing).
 
 ```ts
-BT.clear(1);
-BT.drawRectFill(rect, 6);
-BT.drawLine(start, end, 12);
+BT.clear(1); // absolute paletteIndex 1
+BT.drawRectFill(rect, 6); // absolute paletteIndex 6
+BT.drawLine(start, end, 12); // absolute paletteIndex 12
 ```
 
-When slot `6` changes in the active palette, every pixel drawn with slot `6` changes automatically.
+When slot `6` changes in the active palette, every pixel drawn with absolute index `6` changes automatically.
 
 ---
 
@@ -74,9 +80,10 @@ BT.paletteSet(palette);
 
 ---
 
-## 4) Palette offsets (zero-cost color variants)
+## 4) Per-draw palette offsets (zero-cost color variants)
 
-`BT.drawSprite(..., paletteOffset)` shifts every stored sprite index before lookup:
+`BT.drawSprite(..., paletteOffset)` adds a shift to each **stored** sprite index before lookup (not an absolute slot).
+See [Palette addressing](api-palette.md#palette-addressing).
 
 ```ts
 BT.drawSprite(heroSheet, heroSrc, leftTeamPos, 0); // base range

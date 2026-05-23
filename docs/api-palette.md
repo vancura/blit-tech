@@ -7,6 +7,58 @@ active palette with `BT.paletteSet()` before any draw calls. Valid sizes: `2, 4,
 
 ---
 
+## Palette Addressing
+
+A palette is a fixed-size table of color **slots** (positions `0` through `size - 1`). Docs and APIs use three related
+terms; they are not interchangeable.
+
+| Term                | Role                                                                  | Typical APIs                                            |
+| ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| **slot**            | Prose name for a position in the palette table                        | `palette.set()`, `palette.get()`, `applyHUD()`, effects |
+| **`paletteIndex`**  | **Absolute** slot number written to the framebuffer                   | `BT.clear`, primitives, `BT.systemPrint`                |
+| **`paletteOffset`** | **Per-draw shift** added to each **stored** texel index before lookup | `BT.drawSprite`, `BT.printFont`                         |
+
+**Slot** and **`paletteIndex`** mean the same integer: which entry in the active palette a pixel uses. Parameter names
+use `paletteIndex` on draw calls; guides may say "slot" when reserving ranges or editing colors with `palette.set()`.
+
+### Absolute index (`paletteIndex`)
+
+The draw call picks the slot directly. Slot `0` stays transparent (not drawn).
+
+```ts
+BT.drawRectFill(rect, 6); // every pixel uses palette slot 6 (absolute)
+BT.systemPrint(pos, 3, 'Score'); // glyphs use absolute slot 3
+```
+
+### Per-draw offset (`paletteOffset`)
+
+Indexed sprites and bitmap fonts store small indices in the texture (starting at `1`; stored `0` is transparent). At
+draw time the WebGPU sprite shader computes `combined = storedIndex + paletteOffset`, then `index = min(combined, 255u)`
+before palette lookup.
+
+```ts
+BT.drawSprite(sheet, src, pos, 0); // stored 1 → palette[1], stored 2 → palette[2]
+BT.drawSprite(sheet, src, pos, 16); // stored 1 → palette[17], stored 2 → palette[18]
+```
+
+Use offsets for team colors, tints, and variants without duplicating art. When `combined` exceeds `255`, lookup uses
+palette slot `255` from the clamp, not an inherent error color.
+
+### Active palette: `BT.paletteSet()` vs `BT.palette`
+
+| Action                                                         | Use                                                                             |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| First activation or swap to a **different** `Palette` instance | `BT.paletteSet(palette)`                                                        |
+| Edit colors on the **current** active palette                  | `BT.palette.set(slot, color)` — live reference, no second `paletteSet()` needed |
+| Read the active palette                                        | `BT.palette` (throws if none set)                                               |
+
+`BT.palette` returns the same object the engine draws with. Mutating slots updates colors on the next frame. Call
+`BT.paletteSet()` again only when replacing the whole palette object (for example a prebuilt day vs night palette), or
+after a **layout swap** when colors moved to different slot numbers (then also call `BT.spritesRefresh()`). See
+[Palette Guide](palette-guide.md) section 6.
+
+---
+
 ## Palette Setup
 
 ```ts
@@ -14,8 +66,8 @@ active palette with `BT.paletteSet()` before any draw calls. Valid sizes: `2, 4,
 const palette = new Palette(256);
 const palette = BT.paletteCreate(256); // equivalent BT-namespace shorthand
 
-// Set and get colors
-palette.set(1, new Color32(255, 0, 0, 255)); // red at slot 1
+// Set and get colors (slot = absolute palette index; see Palette addressing above)
+palette.set(1, new Color32(255, 0, 0, 255)); // red at absolute slot 1
 palette.get(1); // → Color32 (defensive copy)
 palette.getRef(1); // → Color32 (live reference - do not store)
 
@@ -161,11 +213,11 @@ Effects that auto-remove (fade, flash) clean up when their duration elapses. `pa
 
 ## See Also
 
-| Guide                                 | What it covers                             |
-| ------------------------------------- | ------------------------------------------ |
-| [API: Core](api-core.md)              | bootstrap, init, game loop, core types     |
-| [API: Rendering](api-rendering.md)    | primitives, sprites, text, post-process    |
-| [API: Assets](api-assets.md)          | sprite sheets, bitmap fonts, asset loading |
-| [Palette Guide](palette-guide.md)     | end-to-end palette workflow and best usage |
-| [Palette Presets](palette-presets.md) | exact built-in palette and HUD color data  |
-| [Testing](testing.md)                 | test tiers and palette testing patterns    |
+| Guide                                 | What it covers                                   |
+| ------------------------------------- | ------------------------------------------------ |
+| [API: Core](api-core.md)              | bootstrap, init, game loop, core types           |
+| [API: Rendering](api-rendering.md)    | primitives, sprites, text, post-process          |
+| [API: Assets](api-assets.md)          | sprite sheets, bitmap fonts, asset loading       |
+| [Palette Guide](palette-guide.md)     | end-to-end workflow; links to Palette addressing |
+| [Palette Presets](palette-presets.md) | exact built-in palette and HUD color data        |
+| [Testing](testing.md)                 | test tiers and palette testing patterns          |
