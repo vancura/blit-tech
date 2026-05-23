@@ -29,9 +29,29 @@ import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
+import type { PrimitivePipeline } from './PrimitivePipeline';
+import type { SpritePipeline } from './SpritePipeline';
 import { WebGpuRenderer } from './WebGpuRenderer';
 
 // #region Test Helpers
+
+/** Internal pipeline batches on {@link WebGpuRenderer} (compile-time private, runtime-accessible). */
+type WebGpuRendererPipelineAccess = {
+    primitives: PrimitivePipeline;
+    overlayPrimitives: PrimitivePipeline;
+    sprites: SpritePipeline;
+    overlaySprites: SpritePipeline;
+};
+
+/**
+ * Returns the four scene-pass pipeline batches for encode-order and routing tests.
+ *
+ * @param renderer - Initialized {@link WebGpuRenderer}.
+ * @returns Primitive and sprite pipeline instances.
+ */
+function getRendererPipelines(renderer: WebGpuRenderer): WebGpuRendererPipelineAccess {
+    return renderer as unknown as WebGpuRendererPipelineAccess;
+}
 
 /** Creates a small 16-color test palette with known color assignments. */
 function createTestPalette(): Palette {
@@ -416,6 +436,88 @@ describe('with initialized renderer', () => {
         expect(() => {
             renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
         }).not.toThrow();
+
+        renderer.endFrame();
+    });
+
+    it('drawRectFillOnTop routes fills to overlayPrimitives, not primitives', () => {
+        const pipelines = getRendererPipelines(renderer);
+        const sceneFill = vi.spyOn(pipelines.primitives, 'drawRectFill');
+        const overlayFill = vi.spyOn(pipelines.overlayPrimitives, 'drawRectFill');
+        const rect = new Rect2i(1, 2, 8, 8);
+
+        renderer.beginFrame();
+        renderer.drawRectFill(rect, 2);
+        renderer.drawRectFillOnTop(rect, 5);
+        renderer.endFrame();
+
+        expect(sceneFill).toHaveBeenCalledOnce();
+        expect(sceneFill).toHaveBeenCalledWith(rect, 2);
+        expect(overlayFill).toHaveBeenCalledOnce();
+        expect(overlayFill).toHaveBeenCalledWith(rect, 5);
+    });
+
+    it('drawBitmapTextOnTop routes text to overlaySprites, not sprites', () => {
+        const pipelines = getRendererPipelines(renderer);
+        const sceneText = vi.spyOn(pipelines.sprites, 'drawBitmapText');
+        const overlayText = vi.spyOn(pipelines.overlaySprites, 'drawBitmapText');
+        const mockFont = {
+            getSpriteSheet: () => ({}),
+            getGlyphByCode: () => null,
+        } as unknown as BitmapFont;
+
+        renderer.beginFrame();
+        renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
+        renderer.drawBitmapTextOnTop(mockFont, new Vector2i(4, 4), '');
+        renderer.endFrame();
+
+        expect(sceneText).toHaveBeenCalledOnce();
+        expect(sceneText).toHaveBeenCalledWith(mockFont, new Vector2i(0, 0), '', 0);
+        expect(overlayText).toHaveBeenCalledOnce();
+        expect(overlayText).toHaveBeenCalledWith(mockFont, new Vector2i(4, 4), '', 0);
+    });
+
+    it('encodes scene pass as primitives, sprites, overlayPrimitives, overlaySprites', () => {
+        const pipelines = getRendererPipelines(renderer);
+        const encodeOrder: string[] = [];
+
+        vi.spyOn(pipelines.primitives, 'encodePass').mockImplementation(() => {
+            encodeOrder.push('primitives');
+        });
+        vi.spyOn(pipelines.sprites, 'encodePass').mockImplementation(() => {
+            encodeOrder.push('sprites');
+        });
+        vi.spyOn(pipelines.overlayPrimitives, 'encodePass').mockImplementation(() => {
+            encodeOrder.push('overlayPrimitives');
+        });
+        vi.spyOn(pipelines.overlaySprites, 'encodePass').mockImplementation(() => {
+            encodeOrder.push('overlaySprites');
+        });
+
+        const mockFont = {
+            getSpriteSheet: () => ({}),
+            getGlyphByCode: () => null,
+        } as unknown as BitmapFont;
+
+        renderer.beginFrame();
+        renderer.drawRectFill(new Rect2i(0, 0, 4, 4), 2);
+        renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
+        renderer.drawRectFillOnTop(new Rect2i(0, 220, 320, 16), 1);
+        renderer.drawBitmapTextOnTop(mockFont, new Vector2i(5, 225), 'HUD');
+        renderer.endFrame();
+
+        expect(encodeOrder).toEqual(['primitives', 'sprites', 'overlayPrimitives', 'overlaySprites']);
+    });
+
+    it('resets overlay batches on beginFrame', () => {
+        const pipelines = getRendererPipelines(renderer);
+        const overlayPrimitiveReset = vi.spyOn(pipelines.overlayPrimitives, 'reset');
+        const overlaySpriteReset = vi.spyOn(pipelines.overlaySprites, 'reset');
+
+        renderer.beginFrame();
+
+        expect(overlayPrimitiveReset).toHaveBeenCalledOnce();
+        expect(overlaySpriteReset).toHaveBeenCalledOnce();
 
         renderer.endFrame();
     });

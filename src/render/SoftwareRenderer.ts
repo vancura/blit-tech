@@ -250,6 +250,16 @@ export class SoftwareRenderer implements IRenderer {
     }
 
     /**
+     * Queues a filled rectangle after prior commands (same FIFO queue as {@link drawRectFill}).
+     *
+     * @param rect - Rectangle to fill in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
+     */
+    drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void {
+        this.drawRectFill(rect, paletteIndex);
+    }
+
+    /**
      * Queues a single pixel draw command at the given position.
      *
      * @param pos - Pixel position in logical coordinates.
@@ -350,6 +360,18 @@ export class SoftwareRenderer implements IRenderer {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+    }
+
+    /**
+     * Queues bitmap text after prior commands (same FIFO queue as {@link drawBitmapText}).
+     *
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text origin in logical pixels.
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.drawBitmapText(font, pos, text, paletteOffset);
     }
 
     // #endregion

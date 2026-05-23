@@ -82,6 +82,18 @@ export interface IRenderer {
     drawRectFill(rect: Rect2i, paletteIndex: number): void;
 
     /**
+     * Draws a filled rectangle above sprite content for this frame.
+     *
+     * On WebGPU, batched after the sprite pass so HUD bars (for example the stats
+     * overlay) appear on top of {@link drawSprite} calls. Software backends may
+     * implement this as a normal {@link drawRectFill} when call order is preserved.
+     *
+     * @param rect - Rectangle bounds in display coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void;
+
+    /**
      * Draws a single pixel.
      *
      * @param pos - Pixel position.
@@ -137,6 +149,20 @@ export interface IRenderer {
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
+
+    /**
+     * Draws bitmap text above overlay bar fills for this frame.
+     *
+     * On WebGPU, batched after the post-sprite primitive pass so labels (for example
+     * stats overlay text) appear on top of {@link drawRectFillOnTop} bars. Software
+     * backends may implement this as {@link drawBitmapText} when call order is preserved.
+     *
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
 
     // #endregion
 
