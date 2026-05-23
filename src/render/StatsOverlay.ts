@@ -1,12 +1,14 @@
 /**
- * Engine-managed stats overlay (render FPS, target rate, demo text, backend).
+ * Engine-managed stats overlay (present FPS, timing metrics, demo text, backend).
  *
  * Instantiated by {@link BTAPI} when {@link HardwareSettings.statsOverlayEnabled} is
  * `true` (default). Layout is computed once at init from logical `displaySize` and
- * system font metrics; per-frame work samples render timing and draws two 16 px bars:
+ * system font metrics; per-frame work samples cadence/timing and draws four 13 px bars:
  *
- * - **Top:** demo title (left) and `backend | WxH` (right)
- * - **Bottom:** `Render FPS: N | Target: T` (left) and `[HIDE ~]` hint (right)
+ * - **Top row 1:** demo title (left) and `backend | WxH` (right)
+ * - **Top row 2:** `Present FPS`, `Target FPS`, and draw-call counter
+ * - **Top row 3:** `Frame`, `update()`, and `render()` timings
+ * - **Bottom:** `[~]` hint (right)
  * - **Custom rows (optional):** demo-supplied bars stacked above the bottom bar, 1 px apart
  *
  * Drawn in screen space (camera reset) after demo `render()`, palette effects, and
@@ -30,16 +32,16 @@ import type { IRenderer } from './IRenderer';
 // #region Constants
 
 /** Height of each stats bar strip in pixels. */
-const STATS_BAR_HEIGHT = 16;
+const STATS_BAR_HEIGHT = 13;
 
 /** Horizontal inset from screen edges for stats text. */
-const STATS_EDGE_MARGIN_PX = 5;
+const STATS_EDGE_MARGIN_PX = 3;
 
 /** Gap between the bottom text baseline and the display bottom edge. */
-const STATS_BOTTOM_TEXT_GAP_PX = 1;
+const STATS_BOTTOM_TEXT_GAP_PX = -1;
 
 /** Vertical offset for top-row text inside the top bar. */
-const STATS_TOP_TEXT_Y = 1;
+const STATS_TOP_TEXT_Y = 0;
 
 /** Gap between stacked stats bars (custom rows and bottom bar). */
 const STATS_ROW_GAP_PX = 1;
@@ -92,6 +94,29 @@ export interface StatsOverlayLayout {
 
     /** Bottom-right 48x48 px region that toggles overlay visibility on primary press. */
     readonly toggleRect: Rect2i;
+}
+
+/**
+ * Per-frame timing snapshot fed into {@link StatsOverlay.updateAndRender}.
+ *
+ * Values are wall-clock CPU timings from `performance.now()` measured by
+ * {@link BTAPI} and smoothed inside the overlay before display.
+ */
+export interface StatsOverlayTimingSnapshot {
+    /** Total frame CPU time in milliseconds (update + render callback work). */
+    readonly frameMs: number;
+
+    /** Sum of all fixed `update()` calls that ran for this frame, in milliseconds. */
+    readonly updateMs: number;
+
+    /** Demo `render()` wall time for this frame, in milliseconds. */
+    readonly renderMs: number;
+
+    /** Number of fixed update steps processed for this frame (0..8). */
+    readonly updateSteps: number;
+
+    /** Number of draw API calls issued by the demo for this frame. */
+    readonly drawCalls: number;
 }
 
 // #endregion
@@ -247,6 +272,97 @@ class FpsSampler {
 
 // #endregion
 
+// #region TimingSampler
+
+/**
+ * Exponentially smoothed overlay timings sourced from {@link StatsOverlayTimingSnapshot}.
+ */
+class TimingSampler {
+    #hasSample = false;
+
+    #smoothedFrameMs = 0;
+
+    #smoothedUpdateMs = 0;
+
+    #smoothedRenderMs = 0;
+
+    #updateSteps = 0;
+
+    #drawCalls = 0;
+
+    /**
+     * Ingests one frame-timing snapshot.
+     *
+     * @param sample - Current-frame timing values from BTAPI.
+     */
+    sample(sample: StatsOverlayTimingSnapshot): void {
+        const frameMs = Math.max(0, sample.frameMs);
+        const updateMs = Math.max(0, sample.updateMs);
+        const renderMs = Math.max(0, sample.renderMs);
+
+        if (!this.#hasSample) {
+            this.#smoothedFrameMs = frameMs;
+            this.#smoothedUpdateMs = updateMs;
+            this.#smoothedRenderMs = renderMs;
+            this.#hasSample = true;
+        } else {
+            this.#smoothedFrameMs += (frameMs - this.#smoothedFrameMs) * FPS_SMOOTHING;
+            this.#smoothedUpdateMs += (updateMs - this.#smoothedUpdateMs) * FPS_SMOOTHING;
+            this.#smoothedRenderMs += (renderMs - this.#smoothedRenderMs) * FPS_SMOOTHING;
+        }
+
+        this.#updateSteps = Math.max(0, Math.floor(sample.updateSteps));
+        this.#drawCalls = Math.max(0, Math.floor(sample.drawCalls));
+    }
+
+    /**
+     * Smoothed full-frame CPU time in milliseconds.
+     *
+     * @returns Smoothed frame time.
+     */
+    get frameMs(): number {
+        return this.#smoothedFrameMs;
+    }
+
+    /**
+     * Smoothed update-loop CPU time in milliseconds.
+     *
+     * @returns Smoothed update time.
+     */
+    get updateMs(): number {
+        return this.#smoothedUpdateMs;
+    }
+
+    /**
+     * Smoothed demo render CPU time in milliseconds.
+     *
+     * @returns Smoothed demo render time.
+     */
+    get renderMs(): number {
+        return this.#smoothedRenderMs;
+    }
+
+    /**
+     * Most recent fixed-step count for the frame.
+     *
+     * @returns Fixed update-step count.
+     */
+    get updateSteps(): number {
+        return this.#updateSteps;
+    }
+
+    /**
+     * Most recent draw-call count for the frame.
+     *
+     * @returns Draw-call count from demo draw APIs.
+     */
+    get drawCalls(): number {
+        return this.#drawCalls;
+    }
+}
+
+// #endregion
+
 // #region StatsOverlay
 
 /**
@@ -266,6 +382,8 @@ export class StatsOverlay {
 
     readonly #fps: FpsSampler;
 
+    readonly #timing: TimingSampler = new TimingSampler();
+
     #visible = true;
 
     #idxBg = DEFAULT_IDX_BG;
@@ -276,13 +394,19 @@ export class StatsOverlay {
 
     readonly #topBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
 
+    readonly #topMetricsBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
+
+    readonly #topTimingBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
+
     readonly #bottomBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
 
     readonly #topLeftPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
 
     readonly #topRightPos = new Vector2i(0, 0);
 
-    readonly #bottomLeftPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+    readonly #topMetricsPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+
+    readonly #topTimingPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
 
     readonly #bottomRightPos = new Vector2i(0, 0);
 
@@ -313,7 +437,7 @@ export class StatsOverlay {
     ) {
         this.#layout = layout;
         this.#topLeftLabel = topLeftLabel;
-        this.#bottomRightLabel = '[HIDE ~]';
+        this.#bottomRightLabel = '[~]';
         this.#targetFps = targetFps;
         this.#fps = new FpsSampler(this.#targetFps);
         this.#idxBg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
@@ -322,11 +446,16 @@ export class StatsOverlay {
         const { displayWidth, displayHeight, bottomTextY, topTextY } = layout;
 
         this.#topBarRect.width = displayWidth;
+        this.#topMetricsBarRect.y = STATS_BAR_HEIGHT + STATS_ROW_GAP_PX;
+        this.#topMetricsBarRect.width = displayWidth;
+        this.#topTimingBarRect.y = (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX) * 2;
+        this.#topTimingBarRect.width = displayWidth;
         this.#bottomBarRect.y = displayHeight - STATS_BAR_HEIGHT;
         this.#bottomBarRect.width = displayWidth;
         this.#topLeftPos.y = topTextY;
         this.#topRightPos.y = topTextY;
-        this.#bottomLeftPos.y = bottomTextY;
+        this.#topMetricsPos.y = this.#topMetricsBarRect.y + STATS_TOP_TEXT_Y;
+        this.#topTimingPos.y = this.#topTimingBarRect.y + STATS_TOP_TEXT_Y;
         this.#bottomRightPos.y = bottomTextY;
         this.#bottomRightPos.x = statsRightAlignedTextX(this.#bottomRightLabel, displayWidth);
         this.#topRightLabel = `${activeBackend} | ${displayWidth}x${displayHeight}`;
@@ -404,7 +533,7 @@ export class StatsOverlay {
     /**
      * Y coordinate of the top edge of a custom row bar stacked above the bottom bar.
      *
-     * @param rowIndex - `0` is directly above the bottom FPS bar.
+     * @param rowIndex - `0` is directly above the bottom `[~]` bar.
      * @returns Bar top Y in display pixels.
      */
     #customBarY(rowIndex: number): number {
@@ -472,6 +601,7 @@ export class StatsOverlay {
      * @param keyboard - Keyboard subsystem for Backquote toggle.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
+     * @param timing - Optional timing snapshot from the previous rendered frame.
      */
     updateAndRender(
         renderer: IRenderer,
@@ -480,8 +610,14 @@ export class StatsOverlay {
         keyboard: KeyboardInput | null,
         currentTick: number,
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
+        timing?: StatsOverlayTimingSnapshot,
     ): void {
         this.#fps.sample();
+
+        if (timing) {
+            this.#timing.sample(timing);
+        }
+
         this.handleToggle(pointer, keyboard, currentTick);
 
         if (!this.#visible) {
@@ -493,9 +629,15 @@ export class StatsOverlay {
 
         renderer.resetCamera();
 
-        const bottomLeftLabel = `Render FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
+        const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
+        const topMetricsLabel = `Present FPS: ${this.#fps.measuredFps} | Target FPS: ${this.#targetFps} | Draw Calls: ${this.#timing.drawCalls}`;
+        const topTimingLabel =
+            `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
+            `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
 
         renderer.drawRectFillOnTop(this.#topBarRect, this.#idxBg);
+        renderer.drawRectFillOnTop(this.#topMetricsBarRect, this.#idxBg);
+        renderer.drawRectFillOnTop(this.#topTimingBarRect, this.#idxBg);
         renderer.drawRectFillOnTop(this.#bottomBarRect, this.#idxBg);
 
         if (customRows !== undefined && customRows.length > 0) {
@@ -506,7 +648,8 @@ export class StatsOverlay {
 
         renderer.drawBitmapTextOnTop(font, this.#topLeftPos, this.#topLeftLabel, textPaletteOffset);
         renderer.drawBitmapTextOnTop(font, this.#topRightPos, this.#topRightLabel, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, this.#bottomLeftPos, bottomLeftLabel, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#topMetricsPos, topMetricsLabel, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#topTimingPos, topTimingLabel, textPaletteOffset);
         renderer.drawBitmapTextOnTop(font, this.#bottomRightPos, this.#bottomRightLabel, textPaletteOffset);
 
         renderer.setCameraOffset(savedCamera);

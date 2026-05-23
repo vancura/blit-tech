@@ -53,7 +53,7 @@ const ok = await BT.init(demo, canvas); // low-level init; prefer bootstrap()
 BT.displaySize; // Vector2i - configured logical resolution (clone per read)
 BT.canvasDisplaySize; // Vector2i | null - output buffer when set in configure()
 BT.outputSize; // Vector2i - effective drawing-buffer size (clone per read)
-BT.targetFPS; // number - fixed update() rate (simulation), not measured render FPS
+BT.targetFPS; // number - fixed update() rate (simulation), not measured present FPS
 BT.requestedBackend; // 'webgpu' | 'software' | null - resolved request (see below)
 BT.activeBackend; // 'webgpu' | 'software' | null - backend that actually started
 ```
@@ -181,12 +181,15 @@ When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space 
 top of all demo content. Layout is computed once at init from `displaySize` and the system font metrics (no per-frame
 size queries).
 
-- **Top bar (left):** short demo title derived from `document.title` (registry pages titled `Blit-Tech Demo NNN - Topic`
-  show as `Topic Demo`); **top bar (right):** active backend and logical resolution (for example `webgpu | 320x240`)
-- **Bottom bar (left):** measured **render FPS** (`requestAnimationFrame` cadence) and configured **target FPS**
-  (`update()` rate); **bottom bar (right):** `[HIDE ~]` hint
+- **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
+  `Blit-Tech Demo NNN - Topic` show as `Topic Demo`); **top row 1 (right):** active backend and logical resolution (for
+  example `webgpu | 320x240`)
+- **Top row 2 (left):** `Present FPS: N | Target FPS: T | Draw Calls: C`
+- **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
+  updates ran this frame)
+- **Bottom row (right):** `[~]` hint
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom bar, **1 px** apart, each
-  with left text and optional right text (same 16 px bar style as the built-in rows)
+  with left text and optional right text (same 13 px bar style as the built-in rows)
 
 Demos may implement optional `statsOverlayRows()` on `IBlitTechDemo`. The engine calls it once per render frame after
 `render()` when the overlay is enabled and visible (not hidden with Backquote or the corner toggle). Return `undefined`
@@ -215,14 +218,15 @@ Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defa
 override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
 `StatsOverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
 
-The overlay label `Render FPS: N` is **not** the same as `BT.targetFPS`: render FPS reflects how often `render()` runs
-(browser refresh rate); target FPS is how often `update()` runs (fixed timestep). Do not use overlay render FPS for
-simulation timing—use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead.
+The overlay label `Present FPS: N` is **not** the same as `BT.targetFPS`: present FPS reflects how often `render()` runs
+(browser refresh rate), while `Target` is the fixed `update()` rate. `Frame`, `update()`, and `render()` timings are
+smoothed CPU wall-time samples from `performance.now()`. `Draw Calls` counts demo-issued draw API calls during the
+rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead.
 
-Demos should not duplicate FPS or page-title footer text; the overlay provides those. Reserve about **17 px** per custom
-overlay row above the bottom bar (16 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **15
-px** clear at each edge for the built-in overlay bars, or set `statsOverlayEnabled: false` for full-screen layouts (for
-example terminal-style demos).
+Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
+above the bottom bar (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
+at the top (three built-in rows + gaps) and about **13 px** clear at the bottom for the built-in overlay bars, or set
+`statsOverlayEnabled: false` for full-screen layouts (for example terminal-style demos).
 
 ```ts
 configure() {
@@ -243,10 +247,10 @@ Blit-Tech runs two independent cadences:
 | Concept             | Where                                                      | Meaning                                                        |
 | ------------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
 | **Simulation rate** | `targetFPS`, `BT.targetFPS`, `BT.deltaSeconds`, `BT.ticks` | Fixed `update()` step; game logic and `Timer` use ticks        |
-| **Render rate**     | Stats overlay `Render FPS: N`                              | Measured `requestAnimationFrame` cadence; `render()` runs here |
+| **Render rate**     | Stats overlay `Present FPS: N`                             | Measured `requestAnimationFrame` cadence; `render()` runs here |
 
 `render()` may run more or fewer times per second than `update()` (for example 120 Hz display with `targetFPS: 60`). Use
-tick-based timing for gameplay; use overlay render FPS only to spot GPU or draw-call bottlenecks.
+tick-based timing for gameplay; use overlay present FPS only to spot GPU or draw-call bottlenecks.
 
 ```ts
 BT.deltaSeconds; // seconds per fixed tick (1 / BT.targetFPS)
