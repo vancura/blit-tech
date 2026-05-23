@@ -4,10 +4,12 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { Palette } from '../../assets/Palette';
 import { Vector2i } from '../../utils/Vector2i';
 import { STATS_BAR_HEIGHT, STATS_ROW_GAP_PX } from './constants';
 import { createStatsOverlayLayout, statsRightAlignedTextX } from './layoutHelpers';
 import { StatsOverlay } from './StatsOverlay';
+import { computePaletteGrid } from './StatsOverlayPaletteView';
 import {
     createMockRenderer,
     customRowBarY,
@@ -18,10 +20,12 @@ import {
     STATS_TOP_TEXT_Y,
 } from './testFixtures';
 
+const LEGACY_PALETTE_VIEW = false;
+
 describe('StatsOverlay', () => {
     it('starts visible and toggles visibility', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Test Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Test Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
 
         expect(overlay.visible).toBe(true);
 
@@ -49,7 +53,7 @@ describe('StatsOverlay', () => {
     it('draws top and bottom overlay labels', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const topLeftLabel = 'Patterns Demo';
-        const overlay = new StatsOverlay(layout, topLeftLabel, 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, topLeftLabel, 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -93,7 +97,7 @@ describe('StatsOverlay', () => {
 
     it('uses activeBackend for the top-right label', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'software');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'software', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -104,7 +108,7 @@ describe('StatsOverlay', () => {
 
     it('uses provided frame timings and shows update-step suffix when multiple updates ran', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
@@ -124,7 +128,7 @@ describe('StatsOverlay', () => {
 
     it('skips draw calls when hidden', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
 
         overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
@@ -136,7 +140,7 @@ describe('StatsOverlay', () => {
 
     it('resets camera for overlay draws then restores the saved offset', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
         const saved = new Vector2i(12, 34);
 
@@ -149,7 +153,7 @@ describe('StatsOverlay', () => {
 
     it('uses default overlay palette indices when style is omitted', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
@@ -161,7 +165,14 @@ describe('StatsOverlay', () => {
 
     it('uses statsOverlayStyle palette indices when provided', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', { barPaletteIndex: 8, textPaletteIndex: 9 });
+        const overlay = new StatsOverlay(
+            layout,
+            'Demo',
+            60,
+            'webgpu',
+            { barPaletteIndex: 8, textPaletteIndex: 9 },
+            LEGACY_PALETTE_VIEW,
+        );
         const renderer = createMockRenderer();
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
@@ -174,7 +185,14 @@ describe('StatsOverlay', () => {
 
     it('draws custom rows with per-row palette indices', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', { barPaletteIndex: 2, textPaletteIndex: 3 });
+        const overlay = new StatsOverlay(
+            layout,
+            'Demo',
+            60,
+            'webgpu',
+            { barPaletteIndex: 2, textPaletteIndex: 3 },
+            LEGACY_PALETTE_VIEW,
+        );
         const renderer = createMockRenderer();
         const customRows = [{ leftText: 'Left', barPaletteIndex: 5, textPaletteIndex: 6 }];
 
@@ -191,7 +209,7 @@ describe('StatsOverlay', () => {
 
     it('draws custom rows stacked above the bottom bar with 1px gaps', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
         const customRows = [{ leftText: 'Position: 10, 20' }, { leftText: 'Bounces: 3', rightText: 'ok' }];
 
@@ -229,7 +247,7 @@ describe('StatsOverlay', () => {
 
     it('skips extra custom row draws when customRows is empty', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => []);
@@ -240,7 +258,7 @@ describe('StatsOverlay', () => {
 
     it('does not invoke getCustomRows while the overlay is hidden', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, LEGACY_PALETTE_VIEW);
         const renderer = createMockRenderer();
         const getCustomRows = vi.fn(() => [{ leftText: 'Hidden row' }] as const);
 
@@ -248,5 +266,54 @@ describe('StatsOverlay', () => {
         overlay.updateAndRender(renderer, mockFont, null, null, 0, getCustomRows);
 
         expect(getCustomRows).not.toHaveBeenCalled();
+    });
+
+    it('renders palette grid by default with a variable bottom band', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const renderer = createMockRenderer();
+        const palette = Palette.vga();
+        const usedIndices = [1, 2, 3, 4, 5, 6, 7, 8];
+        const grid = computePaletteGrid(320, undefined, palette.size);
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, palette, usedIndices);
+
+        const fills = getRectFillCalls(renderer);
+        expect(fills[3]).toMatchObject({ y: 240 - grid.totalHeight, height: grid.totalHeight, width: 320 });
+        expect(renderer.drawRectFillOnTop.mock.calls.length).toBeGreaterThan(4);
+    });
+
+    it('preserves legacy bottom bar height when palette view is disabled', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu', undefined, false);
+        const renderer = createMockRenderer();
+        const palette = Palette.vga();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, palette);
+
+        const fills = getRectFillCalls(renderer);
+        expect(fills[3]).toMatchObject({ y: 227, height: STATS_BAR_HEIGHT, width: 320 });
+        const swatchCalls = renderer.drawRectFillOnTop.mock.calls.filter(
+            (call) => (call[0] as { width: number }).width === 1,
+        );
+        expect(swatchCalls).toHaveLength(0);
+    });
+
+    it('stacks custom rows above the palette grid bottom band', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Demo', 60, 'webgpu');
+        const renderer = createMockRenderer();
+        const palette = Palette.vga();
+        const usedIndices = [1, 2, 3, 4, 5, 6, 7, 8];
+        const grid = computePaletteGrid(320, undefined, palette.size);
+        const customRows = [{ leftText: 'Palette row' }];
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, () => customRows, undefined, palette, usedIndices);
+
+        const fills = getRectFillCalls(renderer);
+        const row0BarY = customRowBarY(240, 0, grid.totalHeight);
+        const customRowFill = fills.find((rect) => rect.height === STATS_BAR_HEIGHT && rect.y === row0BarY);
+
+        expect(customRowFill).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
     });
 });

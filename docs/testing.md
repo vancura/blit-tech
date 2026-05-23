@@ -40,7 +40,8 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
   `BT.requestedBackend` vs `BT.activeBackend` after WebGPU fallback, `captureFrame()` in software mode, and stats
   overlay render path (Node + GPU mocks + 2D canvas mocks)
 - **StatsOverlay** - colocated tests under `src/render/stats-overlay/*.test.ts`: label parsing, layout helpers,
-  `layoutPlan` golden Y positions for 320x240 (including custom rows and scaffold cases), toggle hit-testing, and
+  `layoutPlan` golden Y positions for 320x240 (including custom rows, palette grid variable bottom band, and timing
+  chart scaffold cases), `StatsOverlayPaletteView.computePaletteGrid` width/size matrix, toggle hit-testing, and
   `updateAndRender` integration (Node)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
 

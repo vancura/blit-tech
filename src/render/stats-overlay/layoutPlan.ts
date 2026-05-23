@@ -2,8 +2,8 @@
  * Dynamic Y-band planner for the stats overlay.
  *
  * Computes bar rects and text anchors each frame from display size, custom row count,
- * and optional timing-chart / palette-grid feature flags (default off for parity with
- * the legacy fixed layout).
+ * and optional timing-chart / palette-grid feature flags (palette view on by default;
+ * timing chart default off for parity with the legacy fixed layout).
  */
 
 import { Rect2i } from '../../utils/Rect2i';

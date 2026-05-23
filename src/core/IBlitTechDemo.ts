@@ -121,6 +121,19 @@ export interface HardwareSettings {
     statsOverlayEnabled?: boolean;
 
     /**
+     * When `true` (default), the engine draws a live palette swatch grid in the stats
+     * overlay bottom band showing the active indexed palette. Set to `false` to restore
+     * the legacy 13 px hint bar only.
+     */
+    statsOverlayPaletteView?: boolean;
+
+    /**
+     * Maximum palette swatches per row in the stats overlay grid. When unset, the engine
+     * picks the widest column count that fits {@link HardwareSettings.displaySize}.
+     */
+    statsOverlayPaletteColumns?: number;
+
+    /**
      * Palette indices for the built-in stats overlay bars (top and bottom) and as defaults
      * for custom {@link StatsOverlayRow} entries that omit per-row colors.
      *
@@ -143,7 +156,8 @@ export interface StatsOverlayStyle {
 /**
  * One optional stats-overlay row supplied by a demo (left label, optional right label).
  *
- * Rendered as a 13 px bar stacked above the bottom `[~]` bar with 1 px gaps. Reuse the same
+ * Rendered as a 13 px bar stacked above the bottom palette grid (or legacy hint bar when
+ * {@link HardwareSettings.statsOverlayPaletteView} is `false`) with 1 px gaps. Reuse the same
  * array instance from {@link IBlitTechDemo.statsOverlayRows} when possible to avoid
  * per-frame allocations.
  */
@@ -225,9 +239,10 @@ export interface IBlitTechDemo {
      * draws a screen-space stats HUD after this method returns (present FPS, target FPS, draw calls,
      * frame/update()/render() timings, backend, demo title). Optional {@link statsOverlayRows} adds stacked bars above
      * the footer.
-     * Demos do not need to duplicate engine stats text. Reserve about ~42 px at the top and ~13 px at the bottom
-     * (plus ~14 px per custom overlay row) for overlay bars, or disable
-     * the overlay in `configure()` when using custom full-screen HUD layouts.
+     * Demos do not need to duplicate engine stats text. Reserve about ~42 px at the top and space for the bottom palette
+     * grid (or ~13 px when {@link HardwareSettings.statsOverlayPaletteView} is `false`) at the bottom (plus ~14 px per
+     * custom overlay row) for overlay bars, or disable the overlay in `configure()` when using custom full-screen HUD
+     * layouts.
      *
      * This is a hot path. Batch draws by texture to reduce GPU state changes
      * and reuse Color32/Vector2i instances instead of allocating per frame.
@@ -274,6 +289,7 @@ export function defaultConfig(): HardwareSettings {
         outputUpscaleFilter: 'nearest',
         backend: 'webgpu',
         statsOverlayEnabled: true,
+        statsOverlayPaletteView: false,
     };
 }
 
@@ -326,6 +342,14 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
 
     if (partial.statsOverlayEnabled !== undefined) {
         picked.statsOverlayEnabled = partial.statsOverlayEnabled;
+    }
+
+    if (partial.statsOverlayPaletteView !== undefined) {
+        picked.statsOverlayPaletteView = partial.statsOverlayPaletteView;
+    }
+
+    if (partial.statsOverlayPaletteColumns !== undefined) {
+        picked.statsOverlayPaletteColumns = partial.statsOverlayPaletteColumns;
     }
 
     if (partial.statsOverlayStyle !== undefined) {
@@ -405,6 +429,16 @@ function buildFullDefaultMergeOptionals(
         optionals.statsOverlayStyle = { ...statsOverlayStyle };
     }
 
+    const statsOverlayPaletteView = picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView;
+
+    if (statsOverlayPaletteView !== undefined) {
+        optionals.statsOverlayPaletteView = statsOverlayPaletteView;
+    }
+
+    if (picked.statsOverlayPaletteColumns !== undefined) {
+        optionals.statsOverlayPaletteColumns = picked.statsOverlayPaletteColumns;
+    }
+
     return optionals;
 }
 
@@ -421,6 +455,7 @@ function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, default
         displaySize: cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
+        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? true,
         ...buildFullDefaultMergeOptionals(picked, defaults),
     };
 }
@@ -438,12 +473,16 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         displaySize: picked.displaySize ?? cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
+        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? true,
         ...(picked.canvasDisplaySize !== undefined ? { canvasDisplaySize: picked.canvasDisplaySize } : {}),
         ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
         ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
         backend: picked.backend ?? defaults.backend ?? 'webgpu',
         ...(picked.statsOverlayStyle !== undefined ? { statsOverlayStyle: { ...picked.statsOverlayStyle } } : {}),
+        ...(picked.statsOverlayPaletteColumns !== undefined
+            ? { statsOverlayPaletteColumns: picked.statsOverlayPaletteColumns }
+            : {}),
     };
 }
 

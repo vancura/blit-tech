@@ -56,6 +56,9 @@ export interface PaletteGridLayout {
     /** Side length of each swatch in pixels. */
     readonly swatchSize: number;
 
+    /** Gap between swatches horizontally and vertically. */
+    readonly gap: number;
+
     /** Total bottom band height including padding. */
     readonly totalHeight: number;
 }

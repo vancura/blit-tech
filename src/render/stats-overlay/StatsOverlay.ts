@@ -23,7 +23,12 @@ import { computePaletteGrid, DEFAULT_PALETTE_GRID, StatsOverlayPaletteView } fro
 import { StatsOverlayTimingChart } from './StatsOverlayTimingChart';
 import { StatsOverlayToggle } from './StatsOverlayToggle';
 import { TimingSampler } from './TimingSampler';
-import type { StatsOverlayLayout, StatsOverlayTimingSnapshot } from './types';
+import type {
+    StatsOverlayLayout,
+    StatsOverlayLayoutConfig,
+    StatsOverlayLayoutPlan,
+    StatsOverlayTimingSnapshot,
+} from './types';
 
 /**
  * Screen-space stats HUD rendered after demo content each frame.
@@ -52,6 +57,8 @@ export class StatsOverlay {
 
     readonly #paletteView: StatsOverlayPaletteView;
 
+    readonly #paletteColumns: number | undefined;
+
     readonly #layoutScratch = createStatsOverlayLayoutPlanScratch();
 
     readonly #barStyle = { barIndex: DEFAULT_IDX_BG, textIndex: DEFAULT_IDX_TEXT };
@@ -68,6 +75,8 @@ export class StatsOverlay {
      * @param targetFps - Configured fixed-update rate for the target FPS line.
      * @param activeBackend - Backend started by BTAPI (`webgpu` or `software`).
      * @param style - Optional palette indices from {@link HardwareSettings.statsOverlayStyle}.
+     * @param paletteViewEnabled - When true (default), draws the live palette swatch grid.
+     * @param paletteColumns - Optional max swatches per row from {@link HardwareSettings.statsOverlayPaletteColumns}.
      */
     constructor(
         layout: StatsOverlayLayout,
@@ -75,6 +84,8 @@ export class StatsOverlay {
         targetFps: number,
         activeBackend: Backend,
         style?: StatsOverlayStyle,
+        paletteViewEnabled = true,
+        paletteColumns?: number,
     ) {
         this.#layout = layout;
         this.#topLeftLabel = topLeftLabel;
@@ -84,7 +95,8 @@ export class StatsOverlay {
         this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
         this.#timingChart = new StatsOverlayTimingChart(false);
-        this.#paletteView = new StatsOverlayPaletteView(false);
+        this.#paletteView = new StatsOverlayPaletteView(paletteViewEnabled);
+        this.#paletteColumns = paletteColumns;
     }
 
     /**
@@ -108,6 +120,111 @@ export class StatsOverlay {
     }
 
     /**
+     * Records timing samples when a snapshot is provided.
+     *
+     * @param timing - Optional timing snapshot from the previous rendered frame.
+     */
+    #sampleTiming(timing?: StatsOverlayTimingSnapshot): void {
+        if (!timing) {
+            return;
+        }
+
+        this.#timing.sample(timing);
+        this.#timingChart.sample(timing);
+    }
+
+    /**
+     * Builds per-frame layout config including optional palette grid dimensions.
+     *
+     * @param customRowCount - Demo custom row count for this frame.
+     * @param palette - Active demo palette, if any.
+     * @returns Layout config for {@link buildStatsOverlayLayoutPlan}.
+     */
+    #createLayoutConfig(customRowCount: number, palette: Palette | null | undefined): StatsOverlayLayoutConfig {
+        const paletteViewEnabled = this.#paletteView.enabled;
+        const colorCount = palette?.size ?? 256;
+        const paletteGrid = paletteViewEnabled
+            ? computePaletteGrid(this.#layout.displayWidth, undefined, colorCount, undefined, this.#paletteColumns)
+            : undefined;
+
+        return {
+            ...createDefaultLayoutConfig(
+                this.#layout.displayWidth,
+                this.#layout.displayHeight,
+                this.#layout.lineHeight,
+                customRowCount,
+            ),
+            paletteViewEnabled,
+            ...(paletteGrid !== undefined ? { paletteGrid } : {}),
+        };
+    }
+
+    /**
+     * Draws overlay bars, palette grid, and labels for one visible frame.
+     *
+     * @param renderer - Active renderer.
+     * @param font - System bitmap font.
+     * @param plan - Computed layout plan for this frame.
+     * @param layoutConfig - Layout config used to build the plan.
+     * @param customRows - Optional demo rows, if any.
+     * @param palette - Active demo palette.
+     * @param usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
+     */
+    #renderVisible(
+        renderer: IRenderer,
+        font: BitmapFont,
+        plan: StatsOverlayLayoutPlan,
+        layoutConfig: StatsOverlayLayoutConfig,
+        customRows: readonly StatsOverlayRow[] | undefined,
+        palette: Palette | null | undefined,
+        usedPaletteIndices: readonly number[],
+    ): void {
+        const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
+        const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
+        const topTimingLabel =
+            `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
+            `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
+
+        this.#barStyle.barIndex = this.#idxBg;
+        this.#barStyle.textIndex = this.#idxText;
+
+        this.#timingChart.draw(renderer, plan.timingChart, {
+            updateBarIndex: this.#idxBg,
+            renderBarIndex: this.#idxText,
+        });
+
+        this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
+
+        this.#paletteView.draw(
+            renderer,
+            plan.bottomArea,
+            palette ?? null,
+            layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID,
+            this.#layout.bottomTextY,
+            this.#layout.displayWidth,
+            this.#layout.lineHeight,
+            usedPaletteIndices,
+            this.#idxText,
+        );
+
+        if (customRows !== undefined && customRows.length > 0) {
+            this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
+        }
+
+        this.#bars.drawFixedLabels(
+            renderer,
+            font,
+            plan,
+            this.#barStyle,
+            this.#topLeftLabel,
+            this.#topRightLabel,
+            topMetricsLabel,
+            topTimingLabel,
+            STATS_BOTTOM_HINT_LABEL,
+        );
+    }
+
+    /**
      * Processes toggle input then draws the overlay.
      *
      * @param renderer - Active {@link IRenderer} instance.
@@ -118,6 +235,7 @@ export class StatsOverlay {
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
      * @param palette - Active demo palette for optional palette grid (stub when disabled).
+     * @param usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
      */
     updateAndRender(
         renderer: IRenderer,
@@ -128,14 +246,10 @@ export class StatsOverlay {
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
         timing?: StatsOverlayTimingSnapshot,
         palette?: Palette | null,
+        usedPaletteIndices: readonly number[] = [],
     ): void {
         this.#fps.sample();
-
-        if (timing) {
-            this.#timing.sample(timing);
-            this.#timingChart.sample(timing);
-        }
-
+        this.#sampleTiming(timing);
         this.handleToggle(pointer, keyboard, currentTick);
 
         if (!this.#toggle.visible) {
@@ -143,14 +257,7 @@ export class StatsOverlay {
         }
 
         const customRows = getCustomRows?.();
-        const customRowCount = customRows?.length ?? 0;
-        const layoutConfig = createDefaultLayoutConfig(
-            this.#layout.displayWidth,
-            this.#layout.displayHeight,
-            this.#layout.lineHeight,
-            customRowCount,
-        );
-
+        const layoutConfig = this.#createLayoutConfig(customRows?.length ?? 0, palette);
         const plan = buildStatsOverlayLayoutPlan(
             layoutConfig,
             this.#layoutScratch,
@@ -165,45 +272,7 @@ export class StatsOverlay {
         renderer.resetCamera();
 
         try {
-            const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
-            const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
-            const topTimingLabel =
-                `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
-                `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
-
-            this.#barStyle.barIndex = this.#idxBg;
-            this.#barStyle.textIndex = this.#idxText;
-
-            this.#timingChart.draw(renderer, plan.timingChart, {
-                updateBarIndex: this.#idxBg,
-                renderBarIndex: this.#idxText,
-            });
-
-            const paletteGrid =
-                layoutConfig.paletteGrid ??
-                (layoutConfig.paletteViewEnabled
-                    ? computePaletteGrid(layoutConfig.displayWidth)
-                    : DEFAULT_PALETTE_GRID);
-
-            this.#paletteView.draw(renderer, plan.bottomArea, palette ?? null, paletteGrid);
-
-            this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
-
-            if (customRows !== undefined && customRows.length > 0) {
-                this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
-            }
-
-            this.#bars.drawFixedLabels(
-                renderer,
-                font,
-                plan,
-                this.#barStyle,
-                this.#topLeftLabel,
-                this.#topRightLabel,
-                topMetricsLabel,
-                topTimingLabel,
-                STATS_BOTTOM_HINT_LABEL,
-            );
+            this.#renderVisible(renderer, font, plan, layoutConfig, customRows, palette, usedPaletteIndices);
         } finally {
             renderer.setCameraOffset(savedCamera);
         }

@@ -7,6 +7,7 @@ import {
     createDefaultLayoutConfig,
     createStatsOverlayLayoutPlanScratch,
 } from './layoutPlan';
+import { computePaletteGrid } from './StatsOverlayPaletteView';
 
 describe('buildStatsOverlayLayoutPlan', () => {
     it('matches legacy fixed layout for 320x240 with no custom rows', () => {
@@ -79,10 +80,11 @@ describe('buildStatsOverlayLayoutPlan', () => {
     it('uses variable bottom height when palette grid is enabled', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const scratch = createStatsOverlayLayoutPlanScratch();
+        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
             paletteViewEnabled: true,
-            paletteGrid: { cols: 32, rows: 8, swatchSize: 4, totalHeight: 32 },
+            paletteGrid,
         };
 
         const plan = buildStatsOverlayLayoutPlan(
@@ -94,6 +96,36 @@ describe('buildStatsOverlayLayoutPlan', () => {
             layout.toggleRect,
         );
 
-        expect(plan.bottomArea).toMatchObject({ y: 208, height: 32, width: 320 });
+        expect(plan.bottomArea).toMatchObject({
+            y: 240 - paletteGrid.totalHeight,
+            height: paletteGrid.totalHeight,
+            width: 320,
+        });
+    });
+
+    it('stacks custom rows above a palette grid bottom band', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const scratch = createStatsOverlayLayoutPlanScratch();
+        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
+        const config = {
+            ...createDefaultLayoutConfig(320, 240, 14, 1),
+            paletteViewEnabled: true,
+            paletteGrid,
+        };
+
+        const plan = buildStatsOverlayLayoutPlan(
+            config,
+            scratch,
+            '[~]',
+            'webgpu | 320x240',
+            layout.bottomTextY,
+            layout.toggleRect,
+        );
+
+        expect(plan.customBars[0]).toMatchObject({
+            y: plan.bottomArea.y - (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX),
+            width: 320,
+            height: STATS_BAR_HEIGHT,
+        });
     });
 });

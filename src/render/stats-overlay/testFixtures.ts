@@ -26,11 +26,13 @@ export type BitmapTextCall = {
 export function createMockRenderer(): IRenderer & {
     drawBitmapText: ReturnType<typeof vi.fn>;
     drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
+    drawPixel: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
     drawRectFillOnTop: ReturnType<typeof vi.fn>;
 } {
     const drawRectFillOnTop = vi.fn();
     const drawBitmapTextOnTop = vi.fn();
+    const drawPixel = vi.fn();
 
     return {
         getCameraOffset: vi.fn(() => Vector2i.zero()),
@@ -40,6 +42,7 @@ export function createMockRenderer(): IRenderer & {
         drawRectFillOnTop,
         drawBitmapText: vi.fn(),
         drawBitmapTextOnTop,
+        drawPixel,
     } as never;
 }
 
@@ -68,14 +71,15 @@ export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>
 }
 
 /**
- * Y of custom row bar top stacked above the bottom band (legacy helper for tests).
+ * Y of custom row bar top stacked above the bottom band.
  *
  * @param displayHeight - Logical display height.
  * @param rowIndex - Custom row index.
+ * @param bottomAreaHeight - Bottom band height (defaults to legacy 13 px bar).
  * @returns Bar top Y.
  */
-export function customRowBarY(displayHeight: number, rowIndex: number): number {
-    const bottomAreaY = displayHeight - STATS_BAR_HEIGHT;
+export function customRowBarY(displayHeight: number, rowIndex: number, bottomAreaHeight = STATS_BAR_HEIGHT): number {
+    const bottomAreaY = displayHeight - bottomAreaHeight;
 
     return customBarY(displayHeight, bottomAreaY, rowIndex);
 }

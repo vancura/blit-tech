@@ -60,7 +60,7 @@ src/
       StatsOverlay.ts      # Orchestrator: sample, toggle, layout plan, delegate draws
       layoutPlan.ts        # Dynamic Y-band planner (chart + palette grid scaffold)
       StatsOverlayTimingChart.ts  # Timing chart band (stub; default off)
-      StatsOverlayPaletteView.ts  # Palette swatch grid (stub; default off)
+      StatsOverlayPaletteView.ts  # Palette swatch grid (default on via statsOverlayPaletteView)
       StatsOverlayBars.ts  # Fixed and custom row bars + labels
       StatsOverlayToggle.ts # Backquote and corner toggle input
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)

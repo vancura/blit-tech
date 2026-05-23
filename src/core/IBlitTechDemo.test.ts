@@ -58,6 +58,12 @@ describe('defaultConfig', () => {
         expect(settings.statsOverlayEnabled).toBe(true);
     });
 
+    it('should enable stats overlay palette view by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayPaletteView).toBe(true);
+    });
+
     it('should return a fresh object on each call', () => {
         const a = defaultConfig();
         const b = defaultConfig();

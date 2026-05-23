@@ -418,6 +418,8 @@ export class BTAPI {
             hw.targetFPS,
             this.activeBackend,
             hw.statsOverlayStyle,
+            hw.statsOverlayPaletteView !== false,
+            hw.statsOverlayPaletteColumns,
         );
     }
 
