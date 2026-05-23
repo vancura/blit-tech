@@ -35,6 +35,11 @@ import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { Backend, HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
+import {
+    collectUsedRenderPaletteIndices,
+    markRenderPaletteIndexUsed,
+    resetRenderPaletteUsage,
+} from './RenderPaletteUsage';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -124,6 +129,12 @@ export class BTAPI {
 
     /** Number of demo draw API calls issued since the last rendered frame. */
     private pendingDrawCalls = 0;
+
+    /** Bitmask of palette indices referenced by demo draw calls this frame. */
+    private readonly framePaletteUsageMask = new Uint8Array(256);
+
+    /** Reusable sorted list of used palette indices for the stats overlay grid. */
+    private readonly framePaletteUsageScratch: number[] = [];
 
     /** Reused timing snapshot passed into the stats overlay each frame. */
     private readonly statsOverlayTiming: {
@@ -269,9 +280,14 @@ export class BTAPI {
                 let renderMs = 0;
 
                 if (this.renderer) {
+                    resetRenderPaletteUsage(this.framePaletteUsageMask);
+
                     this.renderer.beginFrame();
+
                     const renderStartMs = performance.now();
+
                     this.demo?.render();
+
                     renderMs = Math.max(0, performance.now() - renderStartMs);
 
                     // Palette effects run after demo render (so user's explicit palette
@@ -280,6 +296,14 @@ export class BTAPI {
                     if (this.palette && this.paletteEffects.activeCount > 0) {
                         this.paletteEffects.update(this.palette);
                     }
+
+                    const usedPaletteIndices = this.palette
+                        ? collectUsedRenderPaletteIndices(
+                              this.framePaletteUsageMask,
+                              this.palette.size,
+                              this.framePaletteUsageScratch,
+                          )
+                        : this.framePaletteUsageScratch;
 
                     // Stats overlay: screen-space HUD after demo content (top/bottom bars).
                     if (this.statsOverlay && this.systemFont) {
@@ -292,6 +316,7 @@ export class BTAPI {
                             () => this.demo?.statsOverlayRows?.(),
                             this.statsOverlayTiming,
                             this.palette,
+                            usedPaletteIndices,
                         );
                     }
 
@@ -608,6 +633,8 @@ export class BTAPI {
      */
     public setClearColor(paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.renderer?.setClearColor(paletteIndex);
     }
 
@@ -619,7 +646,10 @@ export class BTAPI {
      */
     public clearRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.markDrawCall();
+
         this.renderer?.clearRect(rect, paletteIndex);
     }
 
@@ -631,7 +661,10 @@ export class BTAPI {
      */
     public drawPixel(pos: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.markDrawCall();
+
         this.renderer?.drawPixel(pos, paletteIndex);
     }
 
@@ -645,7 +678,10 @@ export class BTAPI {
      */
     public drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.markDrawCall();
+
         this.renderer?.drawLine(p0, p1, paletteIndex);
     }
 
@@ -661,7 +697,10 @@ export class BTAPI {
      */
     public drawRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.markDrawCall();
+
         this.renderer?.drawRect(rect, paletteIndex);
     }
 
@@ -673,7 +712,10 @@ export class BTAPI {
      */
     public drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.trackPaletteIndexUsed(paletteIndex);
+
         this.markDrawCall();
+
         this.renderer?.drawRectFill(rect, paletteIndex);
     }
 
@@ -697,7 +739,9 @@ export class BTAPI {
         }
 
         if (this.systemFont) {
+            this.trackPaletteIndexUsed(paletteIndex);
             this.markDrawCall();
+
             // Offset math: font stores foreground as index 1.
             // Shader computes 1 + (paletteIndex - 1) = paletteIndex.
             this.renderer?.drawBitmapText(this.systemFont, pos, text, paletteIndex - 1);
@@ -726,7 +770,13 @@ export class BTAPI {
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(spriteSheet);
+
+        if (this.renderer) {
+            spriteSheet.markPaletteIndicesInRect(srcRect, paletteOffset, this.framePaletteUsageMask);
+        }
+
         this.markDrawCall();
+
         this.renderer?.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
     }
 
@@ -743,7 +793,13 @@ export class BTAPI {
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(font.getSpriteSheet());
+
+        if (this.renderer) {
+            this.markBitmapTextPaletteUsage(font, text, paletteOffset);
+        }
+
         this.markDrawCall();
+
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -1025,6 +1081,7 @@ export class BTAPI {
             // throws when the adapter or device cannot be created. Both cases fall
             // through to the software renderer below.
             let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
+
             try {
                 webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
             } catch (error) {
@@ -1038,12 +1095,14 @@ export class BTAPI {
             if (webGPUResult) {
                 this.device = webGPUResult.device;
                 this.context = webGPUResult.context;
+
                 console.log('[BT] Initializing renderer (backend: webgpu)');
 
                 this.renderer = new WebGpuRenderer(
                     webGPUResult.device,
                     webGPUResult.context,
                     hw.displaySize,
+
                     // Only forward an explicit outputSize when canvasDisplaySize was
                     // provided; that is the signal that unlocks the display tier.
                     hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
@@ -1068,6 +1127,7 @@ export class BTAPI {
         // Software renderer path: explicit selection or automatic fallback.
         this.device = null;
         this.context = null;
+
         console.log('[BT] Initializing renderer (backend: software)');
 
         this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
@@ -1098,11 +1158,13 @@ export class BTAPI {
         }
 
         const override = BTAPI.getBackendQueryOverride();
+
         if (!override) {
             return;
         }
 
         this.hwSettings.backend = override;
+
         console.info(`[BT] URL override selected backend: ${override}`);
     }
 
@@ -1125,6 +1187,7 @@ export class BTAPI {
 
         try {
             const backend = new URLSearchParams(search).get('backend');
+
             if (backend === 'software') {
                 return 'software';
             }
@@ -1144,8 +1207,10 @@ export class BTAPI {
     private clearInputSubsystems(): void {
         this.pointer?.detach();
         this.pointer = null;
+
         this.keyboard?.detach();
         this.keyboard = null;
+
         this.gamepad?.detach();
         this.gamepad = null;
     }
@@ -1164,6 +1229,7 @@ export class BTAPI {
 
             if (!ok) {
                 console.error('[BT] Demo initialization failed');
+
                 this.clearInputSubsystems();
 
                 return false;
@@ -1172,6 +1238,7 @@ export class BTAPI {
             return true;
         } catch (err) {
             console.error('[BT] Demo initialization threw', err);
+
             this.clearInputSubsystems();
 
             return false;
@@ -1231,6 +1298,36 @@ export class BTAPI {
      */
     private markDrawCall(): void {
         this.pendingDrawCalls++;
+    }
+
+    /**
+     * Marks a palette index as used for the current frame.
+     *
+     * @param index - Palette index to track.
+     */
+    private trackPaletteIndexUsed(index: number): void {
+        if (this.renderer) {
+            markRenderPaletteIndexUsed(this.framePaletteUsageMask, index);
+        }
+    }
+
+    /**
+     * Marks palette indices referenced by bitmap text glyphs in a string.
+     *
+     * @param font - Bitmap font whose glyph atlas is scanned.
+     * @param text - Text about to be drawn.
+     * @param paletteOffset - Palette offset applied at draw time.
+     */
+    private markBitmapTextPaletteUsage(font: BitmapFont, text: string, paletteOffset: number): void {
+        const sheet = font.getSpriteSheet();
+
+        for (const char of text) {
+            const glyph = font.getGlyph(char);
+
+            if (glyph !== null) {
+                sheet.markPaletteIndicesInRect(glyph.rect, paletteOffset, this.framePaletteUsageMask);
+            }
+        }
     }
 
     /**
