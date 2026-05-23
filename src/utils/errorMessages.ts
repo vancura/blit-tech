@@ -44,6 +44,14 @@ export const WEBGPU_ADAPTER_MESSAGE =
 export const WEBGPU_DEVICE_MESSAGE =
     "Couldn't connect to the graphics card. Try closing other tabs or restarting the browser.";
 
+/**
+ * Friendly message for the stats-overlay setup path when runtime renderer state is unavailable.
+ *
+ * Shown when overlay initialization runs before a renderer has been selected.
+ */
+export const STATS_OVERLAY_NO_BACKEND =
+    "Couldn't start the stats overlay because the renderer isn't ready yet. Try initializing the renderer before creating the overlay.";
+
 // #region Runtime - Render configuration
 
 /**

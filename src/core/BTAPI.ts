@@ -21,6 +21,7 @@ import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
+import * as errorMessages from '../utils/errorMessages';
 import {
     noActivePaletteError,
     paletteIndexNegativeError,
@@ -328,7 +329,7 @@ export class BTAPI {
         const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
 
         if (!this.activeBackend) {
-            throw new Error('[BT] Stats overlay requires an initialized renderer backend.');
+            throw new Error(errorMessages.STATS_OVERLAY_NO_BACKEND);
         }
 
         this.statsOverlay = new StatsOverlay(
