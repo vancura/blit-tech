@@ -26,6 +26,7 @@ import {
     renderDimensionTooLargeError,
     spriteColorNotInPaletteError,
     spriteNotIndexizedError,
+    STATS_OVERLAY_NO_BACKEND,
     WEBGPU_ADAPTER_MESSAGE,
     WEBGPU_DEVICE_MESSAGE,
 } from './errorMessages';
@@ -75,6 +76,17 @@ describe('errorMessages', () => {
 
         it('should suggest closing other tabs or restarting', () => {
             expect(WEBGPU_DEVICE_MESSAGE).toContain('closing other tabs');
+        });
+    });
+
+    describe('STATS_OVERLAY_NO_BACKEND', () => {
+        it('should be a non-empty string', () => {
+            expect(typeof STATS_OVERLAY_NO_BACKEND).toBe('string');
+            expect(STATS_OVERLAY_NO_BACKEND.length).toBeGreaterThan(0);
+        });
+
+        it('should mention renderer readiness', () => {
+            expect(STATS_OVERLAY_NO_BACKEND).toContain("renderer isn't ready");
         });
     });
 

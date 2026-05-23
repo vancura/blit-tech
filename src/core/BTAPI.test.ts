@@ -28,10 +28,11 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { Effect } from '../render/effects/Effect';
+import { StatsOverlay } from '../render/StatsOverlay';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
-import type { IBlitTechDemo } from './IBlitTechDemo';
+import type { IBlitTechDemo, StatsOverlayRow } from './IBlitTechDemo';
 
 // #region Helpers
 
@@ -821,6 +822,54 @@ describe('BTAPI', () => {
             expect(requestAnimationFrame).toHaveBeenCalled();
         });
 
+        it('forwards statsOverlayRows from the demo into StatsOverlay.updateAndRender', async () => {
+            const customRows: StatsOverlayRow[] = [{ leftText: 'Position: 1, 2' }];
+            const demo: IBlitTechDemo = {
+                ...makeMockDemo(),
+                statsOverlayRows: vi.fn().mockReturnValue(customRows),
+            };
+            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const rafCallbacks: FrameRequestCallback[] = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error('Exceeded max rAF callback drain iterations before overlay render.');
+                }
+
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16);
+                }
+
+                if (overlaySpy.mock.calls.length > 0) {
+                    break;
+                }
+            }
+
+            expect(demo.statsOverlayRows).toHaveBeenCalled();
+            expect(overlaySpy).toHaveBeenCalled();
+            const lastCall = overlaySpy.mock.calls.at(-1);
+            const getCustomRows = lastCall?.[5] as (() => typeof customRows) | undefined;
+
+            expect(getCustomRows?.()).toBe(customRows);
+        });
+
         it('calls gamepad.endFrame during render-phase input flush', async () => {
             const rafCallbacks: FrameRequestCallback[] = [];
             vi.stubGlobal(
@@ -1052,113 +1101,6 @@ describe('BTAPI', () => {
             BTAPI.instance.effectRemove(effect);
 
             expect(removeSpy).toHaveBeenCalledWith(effect);
-        });
-    });
-
-    // #endregion
-
-    // #region Software ticker
-
-    describe('software ticker', () => {
-        it('renders ticker when software backend is active', async () => {
-            const rafCallbacks: FrameRequestCallback[] = [];
-            vi.stubGlobal(
-                'requestAnimationFrame',
-                vi.fn((cb: FrameRequestCallback) => {
-                    rafCallbacks.push(cb);
-                    return rafCallbacks.length;
-                }),
-            );
-            vi.stubGlobal(
-                'OffscreenCanvas',
-                class MockOffscreenCanvas {
-                    constructor(
-                        public width: number,
-                        public height: number,
-                    ) {}
-                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
-                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
-                    }
-                },
-            );
-            uninstallMockNavigatorGPU();
-
-            const demo: IBlitTechDemo = {
-                configure: () => ({
-                    displaySize: new Vector2i(320, 240),
-                    targetFPS: 60,
-                    renderer: 'software' as const,
-                }),
-                init: vi.fn().mockResolvedValue(true),
-                update: vi.fn(),
-                render: vi.fn(),
-            };
-
-            await BTAPI.instance.init(demo, makeMock2DCanvas());
-            BTAPI.instance.setPalette(new Palette(16));
-
-            const renderer = BTAPI.instance.getRenderer();
-            expect(renderer).not.toBeNull();
-
-            const drawRectFillSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFill');
-            const drawBitmapTextSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawBitmapText');
-
-            // Drain rAF queue (double-rAF bootstrap + first tick).
-            const maxIterations = 1000;
-            let iterations = 0;
-            while (rafCallbacks.length > 0) {
-                iterations++;
-                if (iterations > maxIterations) {
-                    throw new Error('rAF drain exceeded max iterations');
-                }
-                const cb = rafCallbacks.shift();
-                cb?.(16);
-                if (drawRectFillSpy.mock.calls.length > 0) break;
-            }
-
-            expect(drawRectFillSpy).toHaveBeenCalled();
-            expect(drawBitmapTextSpy).toHaveBeenCalled();
-
-            // Background rect should start at (0, 0) and span the full display width.
-            const firstRectCall = drawRectFillSpy.mock.calls[0];
-            expect(firstRectCall).toBeDefined();
-            if (firstRectCall) {
-                const [bgRect] = firstRectCall;
-                expect(bgRect.x).toBe(0);
-                expect(bgRect.y).toBe(0);
-                expect(bgRect.width).toBe(320);
-            }
-        });
-
-        it('does not render ticker when WebGPU backend is active', async () => {
-            const rafCallbacks: FrameRequestCallback[] = [];
-            vi.stubGlobal(
-                'requestAnimationFrame',
-                vi.fn((cb: FrameRequestCallback) => {
-                    rafCallbacks.push(cb);
-                    return rafCallbacks.length;
-                }),
-            );
-
-            // navigator.gpu is installed by beforeEach; WebGPU succeeds.
-            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
-            BTAPI.instance.setPalette(new Palette(16));
-
-            expect(BTAPI.instance.getActiveBackend()).toBe('webgpu');
-
-            const renderer = BTAPI.instance.getRenderer();
-            const drawRectFillSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFill');
-
-            // Drain a few rAF ticks.
-            let drained = 0;
-            while (rafCallbacks.length > 0 && drained < 10) {
-                drained++;
-                const cb = rafCallbacks.shift();
-                cb?.(16);
-            }
-
-            // The demo's render() is a vi.fn() no-op, so any drawRectFill would be from the ticker.
-            expect(drawRectFillSpy).not.toHaveBeenCalled();
         });
     });
 

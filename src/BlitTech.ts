@@ -24,6 +24,8 @@ import {
     type IBlitTechDemo,
     mergeHardwareSettings,
     type RendererBackend,
+    type StatsOverlayRow,
+    type StatsOverlayStyle,
 } from './core/IBlitTechDemo';
 import {
     createDefaultKeyboardRuntimeMaps,
@@ -1537,6 +1539,8 @@ export type {
     HardwareSettings,
     IBlitTechDemo,
     RendererBackend,
+    StatsOverlayRow,
+    StatsOverlayStyle,
     TextSize,
 };
 export type { IndexedSpriteLoadResult };

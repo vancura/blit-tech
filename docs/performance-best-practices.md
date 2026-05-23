@@ -273,7 +273,7 @@ Don't guess what's slow - **measure it**. Use:
 
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
-- FPS counter: `BT.targetFPS`
+- Configured update rate: `BT.targetFPS` (measured render FPS is shown by the engine stats overlay when enabled)
 
 ### 3. Allocating in Hot Paths
 

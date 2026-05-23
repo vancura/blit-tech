@@ -67,15 +67,17 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `canvasDisplaySize` means a 1:1 drawing buffer).
 
-| Field                  | Type                     | Default     | Description                                   |
-| ---------------------- | ------------------------ | ----------- | --------------------------------------------- |
-| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                     |
-| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects |
-| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size             |
-| `targetFPS`            | `number`                 | `60`        | Fixed-update rate                             |
-| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                 |
-| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
-| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync         |
+| Field                  | Type                     | Default     | Description                                         |
+| ---------------------- | ------------------------ | ----------- | --------------------------------------------------- |
+| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                           |
+| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects       |
+| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size                   |
+| `targetFPS`            | `number`                 | `60`        | Fixed-update rate                                   |
+| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                       |
+| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                      |
+| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync               |
+| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`              |
+| `statsOverlayStyle`    | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
 is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -87,6 +89,60 @@ adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall bac
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
 `activeBackend` is the backend that actually started (after fallback), not the `renderer` value from `configure()`.
+
+### Stats overlay
+
+When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
+top of all demo content. Layout is computed once at init from `displaySize` and the system font metrics (no per-frame
+size queries).
+
+- **Top bar (left):** short demo title derived from `document.title` (registry pages titled `Blit-Tech Demo NNN - Topic`
+  show as `Topic Demo`); **top bar (right):** active backend and logical resolution (for example `webgpu | 320x240`)
+- **Bottom bar (left):** measured FPS and configured target FPS; **bottom bar (right):** `[HIDE ~]` hint
+- **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom bar, **1 px** apart, each
+  with left text and optional right text (same 16 px bar style as the built-in rows)
+
+Demos may implement optional `statsOverlayRows()` on `IBlitTechDemo`. The engine calls it once per render frame after
+`render()` when the overlay is enabled and visible (not hidden with Backquote or the corner toggle). Return `undefined`
+or an empty array when no custom rows are needed. Reuse the same array and row objects when possible; update `leftText`
+/ `rightText` in place to avoid per-frame allocations.
+
+```ts
+/** @implements {IBlitTechDemo} */
+class Demo {
+  readonly #overlayRows = [{ leftText: 'Position: 0, 0' }, { leftText: 'Score: 0', rightText: 'ready' }];
+
+  statsOverlayRows() {
+    this.#overlayRows[0].leftText = `Position: ${this.pos.x}, ${this.pos.y}`;
+    this.#overlayRows[1].leftText = `Score: ${this.score}`;
+    return this.#overlayRows;
+  }
+}
+```
+
+Toggle visibility at runtime with **Backquote** (`~`) or a primary pointer press in the **bottom-right 48x48 px**
+corner. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay and all toggle input (for example
+release builds). On WebGPU, the stats overlay uses two late batches: {@link IRenderer.drawRectFillOnTop} for bar fills
+above demo sprites, then {@link IRenderer.drawBitmapTextOnTop} for labels above those bars.
+
+Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defaults `1` (bar) and `2` (text). You can
+override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
+`StatsOverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
+
+Demos should not duplicate FPS or page-title footer text; the overlay provides those. Reserve about **17 px** per custom
+overlay row above the bottom bar (16 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **15
+px** clear at each edge for the built-in overlay bars, or set `statsOverlayEnabled: false` for full-screen layouts (for
+example terminal-style demos).
+
+```ts
+configure() {
+  return {
+    displaySize: new Vector2i(320, 240),
+    statsOverlayEnabled: false, // release build or custom full-screen HUD
+    statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 }, // optional palette indices
+  };
+}
+```
 
 ---
 
