@@ -239,11 +239,9 @@ export class BTAPI {
 
                     // Stats overlay: screen-space HUD after demo content (top/bottom bars).
                     if (this.statsOverlay && this.systemFont) {
-                        this.statsOverlay.setActiveBackend(this.activeBackend);
                         this.statsOverlay.updateAndRender(
                             this.renderer,
                             this.systemFont,
-                            this.palette,
                             this.pointer,
                             this.keyboard,
                             this.loop?.getTicks() ?? 0,
@@ -326,17 +324,20 @@ export class BTAPI {
         }
 
         const lineHeight = this.systemFont.measureTextSize('A').height;
-        const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight > 0 ? lineHeight : 14);
+        const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
         const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
+
+        if (!this.activeBackend) {
+            throw new Error('[BT] Stats overlay requires an initialized renderer backend.');
+        }
 
         this.statsOverlay = new StatsOverlay(
             layout,
             resolveStatsDemoText(pageTitle),
             hw.targetFPS,
+            this.activeBackend,
             hw.statsOverlayStyle,
         );
-
-        this.statsOverlay.setActiveBackend(this.activeBackend);
     }
 
     /**
@@ -975,7 +976,6 @@ export class BTAPI {
                 }
 
                 this.activeBackend = 'webgpu';
-                this.statsOverlay?.setActiveBackend('webgpu');
                 console.log('[BT] Renderer initialized');
 
                 return true;
@@ -998,7 +998,6 @@ export class BTAPI {
         }
 
         this.activeBackend = 'software';
-        this.statsOverlay?.setActiveBackend('software');
         console.log('[BT] Renderer initialized');
 
         return true;

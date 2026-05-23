@@ -120,8 +120,7 @@ export interface HardwareSettings {
      * Palette indices for the built-in stats overlay bars (top and bottom) and as defaults
      * for custom {@link StatsOverlayRow} entries that omit per-row colors.
      *
-     * When omitted, the overlay prefers `hud_bg` / `hud_dim` after {@link Palette.applyHUD},
-     * otherwise palette indices `1` (bar) and `2` (text).
+     * When omitted, the overlay uses palette index `1` for bars and `2` for text.
      */
     statsOverlayStyle?: StatsOverlayStyle;
 }
@@ -153,13 +152,13 @@ export interface StatsOverlayRow {
 
     /**
      * Bar fill palette index for this row only. Falls back to
-     * {@link HardwareSettings.statsOverlayStyle} then HUD/defaults.
+     * {@link HardwareSettings.statsOverlayStyle} then overlay defaults.
      */
     barPaletteIndex?: number;
 
     /**
      * Text palette index for this row only (left and right labels). Falls back to
-     * {@link HardwareSettings.statsOverlayStyle} then HUD/defaults.
+     * {@link HardwareSettings.statsOverlayStyle} then overlay defaults.
      */
     textPaletteIndex?: number;
 }

@@ -865,7 +865,7 @@ describe('BTAPI', () => {
             expect(demo.statsOverlayRows).toHaveBeenCalled();
             expect(overlaySpy).toHaveBeenCalled();
             const lastCall = overlaySpy.mock.calls.at(-1);
-            const getCustomRows = lastCall?.[6] as (() => typeof customRows) | undefined;
+            const getCustomRows = lastCall?.[5] as (() => typeof customRows) | undefined;
 
             expect(getCustomRows?.()).toBe(customRows);
         });
