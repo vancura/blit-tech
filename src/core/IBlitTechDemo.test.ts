@@ -46,6 +46,12 @@ describe('defaultConfig', () => {
         expect(settings.outputUpscaleFilter).toBe('nearest');
     });
 
+    it("should default backend to 'webgpu'", () => {
+        const settings = defaultConfig();
+
+        expect(settings.backend).toBe('webgpu');
+    });
+
     it('should enable stats overlay by default', () => {
         const settings = defaultConfig();
 
@@ -70,6 +76,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.canvasDisplaySize?.x).toBe(640);
         expect(settings.targetFPS).toBe(60);
+        expect(settings.backend).toBe('webgpu');
     });
 
     it('merges targetFPS-only partials with full defaults', () => {
@@ -89,17 +96,18 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.canvasDisplaySize).toBeUndefined();
         expect(settings.targetFPS).toBe(60);
+        expect(settings.backend).toBe('webgpu');
     });
 
     it('applies only provided fields when displaySize is set', () => {
         const settings = mergeHardwareSettings({
             displaySize: new Vector2i(320, 240),
             canvasDisplaySize: new Vector2i(640, 480),
-            renderer: 'software',
+            backend: 'software',
         });
 
         expect(settings.canvasDisplaySize?.x).toBe(640);
-        expect(settings.renderer).toBe('software');
+        expect(settings.backend).toBe('software');
         expect(settings.targetFPS).toBe(60);
         expect(settings.statsOverlayEnabled).toBe(true);
     });

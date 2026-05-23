@@ -99,7 +99,7 @@ src/
 
 ### Palette-First Rendering
 
-Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
+Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
 
 - **WebGPU** (`'webgpu'`): indexed, palette-first hardware renderer.
   1. **Primitives pipeline** - batched geometry writing **palette indices** (pixels, lines, rects). Max 50k
@@ -112,8 +112,8 @@ Two backends selectable via `HardwareSettings.renderer` (default `'webgpu'`):
      effects run on that RGBA before present (see `docs/post-process-effects.md`).
 - **Software** (`'software'`): Canvas 2D fallback. Supports palette rendering, rects, Bresenham lines, indexed sprite
   blits, and bitmap text. Post-process/fullscreen effects throw a clear error directing users to the WebGPU backend.
-  Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.renderer: 'software'` or the
-  `?renderer=software` URL query parameter. Use `BT.activeBackend` to query which backend started
+  Activates automatically when WebGPU init fails; force explicitly via `HardwareSettings.backend: 'software'` or the
+  `?backend=software` URL query parameter. Use `BT.activeBackend` to query which backend started
   (`'webgpu' | 'software' | null`). The engine stats overlay shows the active backend on the top bar when enabled.
 
 ### Core Types
@@ -151,12 +151,12 @@ and async work. Do not add new zero-argument `BT.foo()` functions when a getter 
 
 ### Use getters (property access, no `()`)
 
-| Category                                                         | Members                                                       | Notes                                                                                                                 |
-| ---------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters.          |
-| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                                     |
-| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback), not `configure().renderer`. `palette` is a live reference. |
-| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                                      |
+| Category                                                         | Members                                                       | Notes                                                                                                                |
+| ---------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters.         |
+| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                                    |
+| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback), not `configure().backend`. `palette` is a live reference. |
+| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                                     |
 
 Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
 
@@ -173,8 +173,7 @@ Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
 
 - **Same name as `HardwareSettings`** when exposing configure values (`targetFPS`, not `fps` or `targetFps`).
 - **Descriptive runtime names** when there is no configure field (`activeBackend`, not `renderer`).
-- **Do not** expose `configure().renderer` on `BT` as `renderer` without documenting that it differs from
-  `activeBackend`.
+- **Do not** expose `configure().backend` on `BT` as a getter without documenting that it differs from `activeBackend`.
 
 Full tables: `docs/api-core.md`. Style guide: `docs/developer-experience-guide.md` (Naming conventions).
 

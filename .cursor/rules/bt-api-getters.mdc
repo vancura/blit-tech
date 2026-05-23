@@ -29,7 +29,7 @@ Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use prope
 ## Naming
 
 - Match `HardwareSettings` spelling: `targetFPS` (not `fps`, not `targetFps`)
-- `activeBackend` = backend that started; `configure().renderer` = requested backend only (not exposed as `BT.renderer`)
+- `activeBackend` = backend that started; `configure().backend` = requested backend only (not exposed on `BT`)
 
 ## New API checklist
 

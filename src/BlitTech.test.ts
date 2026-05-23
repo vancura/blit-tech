@@ -1392,7 +1392,7 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
             vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
             vi.spyOn(BTAPI.instance, 'effectAdd').mockImplementation(() => {
                 throw new Error(
-                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set renderer to 'webgpu' in configure().",
+                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().",
                 );
             });
 
@@ -1400,7 +1400,7 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
 
             const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
             expect(text).toContain("doesn't support fullscreen effects");
-            expect(text).toContain("set renderer to 'webgpu' in configure()");
+            expect(text).toContain("set backend to 'webgpu' in configure()");
         });
     });
 
@@ -1409,7 +1409,7 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
             vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
             vi.spyOn(BTAPI.instance, 'effectRemove').mockImplementation(() => {
                 throw new Error(
-                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set renderer to 'webgpu' in configure().",
+                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().",
                 );
             });
 
@@ -1425,7 +1425,7 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
             vi.spyOn(BTAPI.instance, 'getRenderer').mockReturnValue({} as never);
             vi.spyOn(BTAPI.instance, 'effectClear').mockImplementation(() => {
                 throw new Error(
-                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set renderer to 'webgpu' in configure().",
+                    "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().",
                 );
             });
 

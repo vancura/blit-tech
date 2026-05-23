@@ -401,7 +401,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: { x: 8193, y: 480 } as Vector2i,
                     targetFPS: 60,
-                    renderer: 'software',
+                    backend: 'software',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -465,7 +465,7 @@ describe('BTAPI', () => {
                 configure: vi.fn().mockReturnValue({
                     displaySize: new Vector2i(2048, 1024),
                     targetFPS: 60,
-                    renderer: 'webgpu',
+                    backend: 'webgpu',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -504,7 +504,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(2048, 1024),
                     targetFPS: 60,
-                    renderer: 'webgpu',
+                    backend: 'webgpu',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -546,7 +546,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(1024, 768),
                     targetFPS: 60,
-                    renderer: 'webgpu',
+                    backend: 'webgpu',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -596,7 +596,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(640, 480),
                     targetFPS: 60,
-                    renderer: 'software',
+                    backend: 'software',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -612,8 +612,8 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getRenderer()).not.toBeNull();
         });
 
-        it('URL override ?renderer=software wins over configure().renderer=webgpu', async () => {
-            vi.stubGlobal('location', { search: '?renderer=software' });
+        it('URL override ?backend=software wins over configure().backend=webgpu', async () => {
+            vi.stubGlobal('location', { search: '?backend=software' });
             vi.stubGlobal(
                 'OffscreenCanvas',
                 class MockOffscreenCanvas {
@@ -633,7 +633,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(640, 480),
                     targetFPS: 60,
-                    renderer: 'webgpu',
+                    backend: 'webgpu',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -645,19 +645,19 @@ describe('BTAPI', () => {
             const result = await BTAPI.instance.init(demo, canvas);
 
             expect(result).toBe(true);
-            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBe('software');
+            expect(BTAPI.instance.getHardwareSettings()?.backend).toBe('software');
             expect(BTAPI.instance.getDevice()).toBeNull();
         });
 
-        it('ignores unknown renderer query values and keeps configure renderer', async () => {
-            vi.stubGlobal('location', { search: '?renderer=banana' });
+        it('ignores unknown backend query values and keeps configure backend', async () => {
+            vi.stubGlobal('location', { search: '?backend=banana' });
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(640, 480),
                     targetFPS: 60,
-                    renderer: 'webgpu',
+                    backend: 'webgpu',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -666,7 +666,7 @@ describe('BTAPI', () => {
             const result = await BTAPI.instance.init(demo, makeMockCanvas());
 
             expect(result).toBe(true);
-            expect(BTAPI.instance.getHardwareSettings()?.renderer).toBe('webgpu');
+            expect(BTAPI.instance.getHardwareSettings()?.backend).toBe('webgpu');
             expect(BTAPI.instance.getDevice()).not.toBeNull();
         });
 
@@ -936,7 +936,7 @@ describe('BTAPI', () => {
         });
 
         it('captureFrame works in software mode after a rendered frame', async () => {
-            vi.stubGlobal('location', { search: '?renderer=software' });
+            vi.stubGlobal('location', { search: '?backend=software' });
             vi.stubGlobal(
                 'OffscreenCanvas',
                 class MockOffscreenCanvas {
@@ -956,7 +956,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     canvasDisplaySize: new Vector2i(640, 480),
                     targetFPS: 60,
-                    renderer: 'software',
+                    backend: 'software',
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -997,7 +997,7 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    // No renderer field - defaults to 'webgpu', should auto-fallback
+                    // No backend field - defaults to 'webgpu', should auto-fallback
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),

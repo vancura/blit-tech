@@ -30,7 +30,7 @@ test.describe('Sprite Rendering', () => {
     });
 
     test('should render matching indexed sprites with offsets in software mode', async ({ page }) => {
-        await page.goto('/sprites.html?renderer=software');
+        await page.goto('/sprites.html?backend=software');
 
         await page.waitForFunction(
             () => {

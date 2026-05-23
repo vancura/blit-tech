@@ -29,14 +29,14 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
   `getIndexedPixels()` defensive-copy semantics (Node + GPU mocks)
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
 - **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
-- **Bootstrap** - full bootstrap lifecycle, including `?renderer=software` WebGPU-skip path (happy-dom)
+- **Bootstrap** - full bootstrap lifecycle, including `?backend=software` WebGPU-skip path (happy-dom)
 - **WebGpuRenderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
 - **SoftwareRenderer** - frame lifecycle, palette enforcement, camera offsets, indexed sprite blits, bitmap text,
   `captureFrame()` semantics, and unsupported-effects assertions (Node + 2D canvas mocks)
 - **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
 - **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
-- **BTAPI** - singleton coordinator; includes software-mode init, `?renderer=software` URL override, `captureFrame()` in
+- **BTAPI** - singleton coordinator; includes software-mode init, `?backend=software` URL override, `captureFrame()` in
   software mode, and stats overlay render path (Node + GPU mocks + 2D canvas mocks)
 - **StatsOverlay** - layout helpers, demo label parsing, right-aligned text X, toggle hit-testing, `updateAndRender` bar
   layout (Node)
@@ -46,7 +46,7 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 
 Actual GPU rendering verified via screenshot comparison. Requires Chrome with WebGPU flags enabled.
 
-Each spec covers both the default WebGPU backend and the `?renderer=software` software backend, producing separate
+Each spec covers both the default WebGPU backend and the `?backend=software` software backend, producing separate
 baseline screenshots for each.
 
 - **Primitives** - pixel, line, and rectangle rendering

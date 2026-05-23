@@ -5,7 +5,7 @@
  * `true` (default). Layout is computed once at init from logical `displaySize` and
  * system font metrics; per-frame work samples render timing and draws two 16 px bars:
  *
- * - **Top:** demo title (left) and `renderer | WxH` (right)
+ * - **Top:** demo title (left) and `backend | WxH` (right)
  * - **Bottom:** `FPS: N | Target: T` (left) and `[HIDE ~]` hint (right)
  * - **Custom rows (optional):** demo-supplied bars stacked above the bottom bar, 1 px apart
  *
@@ -19,7 +19,7 @@
  */
 
 import type { BitmapFont } from '../assets/BitmapFont';
-import type { RendererBackend, StatsOverlayRow, StatsOverlayStyle } from '../core/IBlitTechDemo';
+import type { Backend, StatsOverlayRow, StatsOverlayStyle } from '../core/IBlitTechDemo';
 import type { KeyboardInput } from '../input/KeyboardInput';
 import type { PointerInput } from '../input/PointerInput';
 import { POINTER_SLOT_COUNT } from '../input/PointerInput';
@@ -99,13 +99,13 @@ export interface StatsOverlayLayout {
 // #region Helper Functions
 
 /**
- * Turns the browser page title into a short bottom-bar demo text.
+ * Turns the browser page title into a short top-left overlay label.
  *
  * @param pageTitle - Browser document title when available.
- * @returns Short demo text for the top-left bar (registry titles such as
+ * @returns Short label for the top-left bar (registry titles such as
  *   `Blit-Tech Demo 002 - Primitives` become `Primitives Demo`).
  */
-export function resolveStatsDemoText(pageTitle: string | undefined): string {
+export function resolveStatsTopLeftLabel(pageTitle: string | undefined): string {
     const raw = typeof pageTitle === 'string' ? pageTitle.trim() : '';
 
     if (raw.length === 0) {
@@ -258,9 +258,9 @@ class FpsSampler {
 export class StatsOverlay {
     readonly #layout: StatsOverlayLayout;
 
-    readonly #demoText: string;
+    readonly #topLeftLabel: string;
 
-    readonly #toggleHintText: string;
+    readonly #bottomRightLabel: string;
 
     readonly #targetFps: number;
 
@@ -272,19 +272,19 @@ export class StatsOverlay {
 
     #idxText = DEFAULT_IDX_TEXT;
 
-    readonly #rendererText: string;
+    readonly #topRightLabel: string;
 
     readonly #topBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
 
     readonly #bottomBarRect = new Rect2i(0, 0, 0, STATS_BAR_HEIGHT);
 
-    readonly #demoTopPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+    readonly #topLeftPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
 
     readonly #topRightPos = new Vector2i(0, 0);
 
-    readonly #fpsPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
+    readonly #bottomLeftPos = new Vector2i(STATS_EDGE_MARGIN_PX, 0);
 
-    readonly #toggleHintPos = new Vector2i(0, 0);
+    readonly #bottomRightPos = new Vector2i(0, 0);
 
     /** Reused bar rects for demo-supplied rows (index 0 = closest to bottom bar). */
     #customBarRects: Rect2i[] = [];
@@ -299,21 +299,21 @@ export class StatsOverlay {
      * Creates an overlay with fixed layout and text strings.
      *
      * @param layout - Cached display layout from {@link createStatsOverlayLayout}.
-     * @param demoText - Short title shown on the top-left.
+     * @param topLeftLabel - Short title shown on the top-left.
      * @param targetFps - Configured fixed-update rate for the target FPS line.
-     * @param activeRenderer - Renderer started by BTAPI (`webgpu` or `software`).
+     * @param activeBackend - Backend started by BTAPI (`webgpu` or `software`).
      * @param style - Optional palette indices from {@link HardwareSettings.statsOverlayStyle}.
      */
     constructor(
         layout: StatsOverlayLayout,
-        demoText: string,
+        topLeftLabel: string,
         targetFps: number,
-        activeRenderer: RendererBackend,
+        activeBackend: Backend,
         style?: StatsOverlayStyle,
     ) {
         this.#layout = layout;
-        this.#demoText = demoText;
-        this.#toggleHintText = '[HIDE ~]';
+        this.#topLeftLabel = topLeftLabel;
+        this.#bottomRightLabel = '[HIDE ~]';
         this.#targetFps = targetFps;
         this.#fps = new FpsSampler(this.#targetFps);
         this.#idxBg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
@@ -324,13 +324,13 @@ export class StatsOverlay {
         this.#topBarRect.width = displayWidth;
         this.#bottomBarRect.y = displayHeight - STATS_BAR_HEIGHT;
         this.#bottomBarRect.width = displayWidth;
-        this.#demoTopPos.y = topTextY;
+        this.#topLeftPos.y = topTextY;
         this.#topRightPos.y = topTextY;
-        this.#fpsPos.y = bottomTextY;
-        this.#toggleHintPos.y = bottomTextY;
-        this.#toggleHintPos.x = statsRightAlignedTextX(this.#toggleHintText, displayWidth);
-        this.#rendererText = `${activeRenderer} | ${displayWidth}x${displayHeight}`;
-        this.#topRightPos.x = statsRightAlignedTextX(this.#rendererText, displayWidth);
+        this.#bottomLeftPos.y = bottomTextY;
+        this.#bottomRightPos.y = bottomTextY;
+        this.#bottomRightPos.x = statsRightAlignedTextX(this.#bottomRightLabel, displayWidth);
+        this.#topRightLabel = `${activeBackend} | ${displayWidth}x${displayHeight}`;
+        this.#topRightPos.x = statsRightAlignedTextX(this.#topRightLabel, displayWidth);
     }
 
     /**
@@ -466,7 +466,7 @@ export class StatsOverlay {
     /**
      * Processes toggle input then draws the overlay.
      *
-     * @param renderer - Active renderer backend.
+     * @param renderer - Active {@link IRenderer} instance.
      * @param font - System bitmap font.
      * @param pointer - Pointer subsystem for corner toggle.
      * @param keyboard - Keyboard subsystem for Backquote toggle.
@@ -493,7 +493,7 @@ export class StatsOverlay {
 
         renderer.resetCamera();
 
-        const fpsText = `FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
+        const bottomLeftLabel = `FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
 
         renderer.drawRectFillOnTop(this.#topBarRect, this.#idxBg);
         renderer.drawRectFillOnTop(this.#bottomBarRect, this.#idxBg);
@@ -504,10 +504,10 @@ export class StatsOverlay {
 
         const textPaletteOffset = statsBitmapTextPaletteOffset(this.#idxText);
 
-        renderer.drawBitmapTextOnTop(font, this.#demoTopPos, this.#demoText, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, this.#topRightPos, this.#rendererText, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, this.#fpsPos, fpsText, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, this.#toggleHintPos, this.#toggleHintText, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#topLeftPos, this.#topLeftLabel, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#topRightPos, this.#topRightLabel, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#bottomLeftPos, bottomLeftLabel, textPaletteOffset);
+        renderer.drawBitmapTextOnTop(font, this.#bottomRightPos, this.#bottomRightLabel, textPaletteOffset);
 
         renderer.setCameraOffset(savedCamera);
     }

@@ -16,7 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
-import { createStatsOverlayLayout, resolveStatsDemoText, StatsOverlay } from '../render/StatsOverlay';
+import { createStatsOverlayLayout, resolveStatsTopLeftLabel, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
@@ -33,7 +33,7 @@ import { RenderDimensionLimitError, validateRenderDimensions } from '../utils/Re
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
-import type { HardwareSettings, IBlitTechDemo, RendererBackend } from './IBlitTechDemo';
+import type { Backend, HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 import { initWebGPU } from './WebGPUContext';
 
@@ -89,7 +89,7 @@ export class BTAPI {
     private renderer: IRenderer | null = null;
 
     /** Backend that was successfully initialized, or null before init. */
-    private activeBackend: RendererBackend | null = null;
+    private activeBackend: Backend | null = null;
 
     /**
      * Engine stats overlay; non-null when {@link HardwareSettings.statsOverlayEnabled}
@@ -291,7 +291,7 @@ export class BTAPI {
             return false;
         }
 
-        this.applyRendererQueryOverride();
+        this.applyBackendQueryOverride();
 
         const renderDimensionError = validateRenderDimensions(this.hwSettings);
 
@@ -334,7 +334,7 @@ export class BTAPI {
 
         this.statsOverlay = new StatsOverlay(
             layout,
-            resolveStatsDemoText(pageTitle),
+            resolveStatsTopLeftLabel(pageTitle),
             hw.targetFPS,
             this.activeBackend,
             hw.statsOverlayStyle,
@@ -453,11 +453,11 @@ export class BTAPI {
     }
 
     /**
-     * Returns the renderer backend that was actually initialized.
+     * Returns the rendering backend that was actually initialized.
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      */
-    public getActiveBackend(): RendererBackend | null {
+    public getActiveBackend(): Backend | null {
         return this.activeBackend;
     }
 
@@ -922,7 +922,7 @@ export class BTAPI {
     /**
      * Constructs and initializes the renderer for the active hardware settings.
      *
-     * Logs the selected backend name, creates the requested renderer backend,
+     * Logs the selected backend name, constructs the matching {@link IRenderer},
      * calls {@link IRenderer.init}, and reports success or failure.
      *
      * @param canvas - Render target canvas.
@@ -938,7 +938,7 @@ export class BTAPI {
             ...(hw.canvasDisplaySize !== undefined ? { canvasDisplaySize: hw.canvasDisplaySize } : {}),
         });
 
-        const requestedBackend = hw.renderer ?? 'webgpu';
+        const requestedBackend = hw.backend ?? 'webgpu';
 
         if (requestedBackend !== 'software') {
             // Try WebGPU. initWebGPU returns null when navigator.gpu is absent and
@@ -1005,33 +1005,33 @@ export class BTAPI {
     }
 
     /**
-     * Applies URL renderer override from `?renderer=...` when present.
+     * Applies URL backend override from `?backend=...` when present.
      *
      * Supported values:
      * - `software`
      *
      * Unknown values are ignored so accidental query typos do not break startup.
      */
-    private applyRendererQueryOverride(): void {
+    private applyBackendQueryOverride(): void {
         if (!this.hwSettings) {
             return;
         }
 
-        const override = BTAPI.getRendererQueryOverride();
+        const override = BTAPI.getBackendQueryOverride();
         if (!override) {
             return;
         }
 
-        this.hwSettings.renderer = override;
-        console.info(`[BT] URL override selected renderer backend: ${override}`);
+        this.hwSettings.backend = override;
+        console.info(`[BT] URL override selected backend: ${override}`);
     }
 
     /**
-     * Reads renderer override from the current URL query string.
+     * Reads backend override from the current URL query string.
      *
-     * @returns Supported renderer backend override, or null when absent/invalid.
+     * @returns Supported backend override, or null when absent/invalid.
      */
-    private static getRendererQueryOverride(): RendererBackend | null {
+    private static getBackendQueryOverride(): Backend | null {
         const search =
             typeof globalThis.location?.search === 'string'
                 ? globalThis.location.search
@@ -1044,12 +1044,12 @@ export class BTAPI {
         }
 
         try {
-            const renderer = new URLSearchParams(search).get('renderer');
-            if (renderer === 'software') {
+            const backend = new URLSearchParams(search).get('backend');
+            if (backend === 'software') {
                 return 'software';
             }
         } catch (error) {
-            console.warn('[BT] Failed to parse renderer query override:', error);
+            console.warn('[BT] Failed to parse backend query override:', error);
         }
 
         return null;

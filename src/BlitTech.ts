@@ -19,11 +19,11 @@ import type { IndexedSpriteLoadResult } from './assets/SpriteSheet';
 import { SpriteSheet } from './assets/SpriteSheet';
 import { BTAPI } from './core/BTAPI';
 import {
+    type Backend,
     defaultConfig,
     type HardwareSettings,
     type IBlitTechDemo,
     mergeHardwareSettings,
-    type RendererBackend,
     type StatsOverlayRow,
     type StatsOverlayStyle,
 } from './core/IBlitTechDemo';
@@ -508,7 +508,7 @@ export const BT = {
     },
 
     /**
-     * Renderer backend that is currently active.
+     * Rendering backend that is currently active.
      *
      * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      * Useful when adjusting demo behavior - for example, skipping post-process effects
@@ -516,7 +516,7 @@ export const BT = {
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      */
-    get activeBackend(): RendererBackend | null {
+    get activeBackend(): Backend | null {
         return BTAPI.instance.getActiveBackend();
     },
 
@@ -1532,13 +1532,13 @@ export {
     Vignette,
 };
 export type {
+    Backend,
     BootstrapOptions,
     EasingFunction,
     Effect,
     EffectTier,
     HardwareSettings,
     IBlitTechDemo,
-    RendererBackend,
     StatsOverlayRow,
     StatsOverlayStyle,
     TextSize,

@@ -73,7 +73,7 @@ example no `canvasDisplaySize` means a 1:1 drawing buffer).
 | `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects       |
 | `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size                   |
 | `targetFPS`            | `number`                 | `60`        | Fixed-update rate                                   |
-| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                       |
+| `backend`              | `'webgpu' \| 'software'` | `'webgpu'`  | Force rendering backend                             |
 | `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                      |
 | `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync               |
 | `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`              |
@@ -88,7 +88,7 @@ adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall bac
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
-`activeBackend` is the backend that actually started (after fallback), not the `renderer` value from `configure()`.
+`activeBackend` is the backend that actually started (after fallback), not the `backend` value from `configure()`.
 
 ### Stats overlay
 
