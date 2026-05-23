@@ -178,8 +178,10 @@ configure() {
 ### Stats overlay
 
 When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
-top of all demo content. Layout is computed once at init from `displaySize` and the system font metrics (no per-frame
-size queries).
+top of all demo content. Bar bands and text anchors are computed each frame by the internal layout planner in
+`src/render/stats-overlay/layoutPlan.ts` from `displaySize`, custom row count, and optional feature flags (timing chart
+and palette grid default off). Init still caches stable values such as the bottom-right toggle rect and text baselines
+from the system font metrics.
 
 - **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
   `Blit-Tech Demo NNN - Topic` show as `Topic Demo`); **top row 1 (right):** active backend and logical resolution (for
@@ -225,8 +227,10 @@ rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `
 
 Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom bar (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
-at the top (three built-in rows + gaps) and about **13 px** clear at the bottom for the built-in overlay bars, or set
-`statsOverlayEnabled: false` for full-screen layouts (for example terminal-style demos).
+at the top (three built-in text rows + gaps; add about **22 px** when the timing chart feature ships). Leave about **13
+px** clear at the bottom for the legacy hint bar today; the bottom band becomes **variable height** when the palette
+swatch grid ships (depends on display width and swatch size). Or set `statsOverlayEnabled: false` for full-screen
+layouts (for example terminal-style demos).
 
 ```ts
 configure() {

@@ -291,6 +291,7 @@ export class BTAPI {
                             this.loop?.getTicks() ?? 0,
                             () => this.demo?.statsOverlayRows?.(),
                             this.statsOverlayTiming,
+                            this.palette,
                         );
                     }
 
