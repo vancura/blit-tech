@@ -30,16 +30,16 @@ import type { IRenderer } from './IRenderer';
 // #region Constants
 
 /** Height of each stats bar strip in pixels. */
-const STATS_BAR_HEIGHT = 16;
+const STATS_BAR_HEIGHT = 13;
 
 /** Horizontal inset from screen edges for stats text. */
-const STATS_EDGE_MARGIN_PX = 5;
+const STATS_EDGE_MARGIN_PX = 3;
 
 /** Gap between the bottom text baseline and the display bottom edge. */
-const STATS_BOTTOM_TEXT_GAP_PX = 1;
+const STATS_BOTTOM_TEXT_GAP_PX = -1;
 
 /** Vertical offset for top-row text inside the top bar. */
-const STATS_TOP_TEXT_Y = 1;
+const STATS_TOP_TEXT_Y = 0;
 
 /** Gap between stacked stats bars (custom rows and bottom bar). */
 const STATS_ROW_GAP_PX = 1;
