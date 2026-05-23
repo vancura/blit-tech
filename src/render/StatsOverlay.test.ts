@@ -16,7 +16,7 @@ import type { IRenderer } from './IRenderer';
 import {
     createStatsOverlayLayout,
     isPointerInStatsToggleCorner,
-    resolveStatsDemoText,
+    resolveStatsTopLeftLabel,
     StatsOverlay,
     statsRightAlignedTextX,
 } from './StatsOverlay';
@@ -95,21 +95,21 @@ const mockFont = {} as BitmapFont;
 
 // #endregion
 
-// #region resolveStatsDemoLabel
+// #region resolveStatsTopLeftLabel
 
-describe('resolveStatsDemoLabel', () => {
+describe('resolveStatsTopLeftLabel', () => {
     it('formats registry-style page titles without a Blit-Tech prefix', () => {
-        expect(resolveStatsDemoText('Blit-Tech Demo 006 - Patterns')).toBe('Patterns Demo');
-        expect(resolveStatsDemoText('Blit-Tech Demo 002 - Primitives')).toBe('Primitives Demo');
+        expect(resolveStatsTopLeftLabel('Blit-Tech Demo 006 - Patterns')).toBe('Patterns Demo');
+        expect(resolveStatsTopLeftLabel('Blit-Tech Demo 002 - Primitives')).toBe('Primitives Demo');
     });
 
     it('falls back when title is empty', () => {
-        expect(resolveStatsDemoText('')).toBe('Demo');
-        expect(resolveStatsDemoText(undefined)).toBe('Demo');
+        expect(resolveStatsTopLeftLabel('')).toBe('Demo');
+        expect(resolveStatsTopLeftLabel(undefined)).toBe('Demo');
     });
 
     it('passes through non-registry titles unchanged', () => {
-        expect(resolveStatsDemoText('Custom Page')).toBe('Custom Page');
+        expect(resolveStatsTopLeftLabel('Custom Page')).toBe('Custom Page');
     });
 });
 
@@ -200,28 +200,29 @@ describe('StatsOverlay', () => {
         expect(overlay.visible).toBe(true);
     });
 
-    it('draws demo title top-left, backend top-right, FPS bottom-left, and hide hint bottom-right', () => {
+    it('draws top-left, top-right, bottom-left, and bottom-right labels', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
-        const overlay = new StatsOverlay(layout, 'Patterns Demo', 60, 'webgpu');
+        const topLeftLabel = 'Patterns Demo';
+        const overlay = new StatsOverlay(layout, topLeftLabel, 60, 'webgpu');
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
         const calls = getBitmapTextCalls(renderer);
-        const backendText = 'webgpu | 320x240';
-        const topRightX = statsRightAlignedTextX(backendText, 320);
-        const hideText = '[HIDE ~]';
-        const hideTextX = statsRightAlignedTextX(hideText, 320);
+        const topRightLabel = 'webgpu | 320x240';
+        const topRightX = statsRightAlignedTextX(topRightLabel, 320);
+        const bottomRightLabel = '[HIDE ~]';
+        const bottomRightX = statsRightAlignedTextX(bottomRightLabel, 320);
 
         expect(calls).toHaveLength(4);
         expect(calls[0]).toEqual({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, STATS_TOP_TEXT_Y),
-            text: 'Patterns Demo',
+            text: topLeftLabel,
             paletteOffset: 1,
         });
         expect(calls[1]).toEqual({
             pos: new Vector2i(topRightX, STATS_TOP_TEXT_Y),
-            text: backendText,
+            text: topRightLabel,
             paletteOffset: 1,
         });
         expect(calls[2]).toMatchObject({
@@ -230,21 +231,21 @@ describe('StatsOverlay', () => {
             paletteOffset: 1,
         });
         expect(calls[3]).toEqual({
-            pos: new Vector2i(hideTextX, layout.bottomTextY),
-            text: hideText,
+            pos: new Vector2i(bottomRightX, layout.bottomTextY),
+            text: bottomRightLabel,
             paletteOffset: 1,
         });
     });
 
-    it('uses constructor backend label on the top-right line', () => {
+    it('uses activeBackend for the top-right label', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const overlay = new StatsOverlay(layout, 'Demo', 60, 'software');
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
-        const backendCall = getBitmapTextCalls(renderer)[1];
-        expect(backendCall?.text).toBe('software | 320x240');
+        const topRightCall = getBitmapTextCalls(renderer)[1];
+        expect(topRightCall?.text).toBe('software | 320x240');
     });
 
     it('skips draw calls when hidden', () => {

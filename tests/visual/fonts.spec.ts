@@ -30,7 +30,7 @@ test.describe('Font Rendering', () => {
     });
 
     test('should render matching text output in software mode', async ({ page }) => {
-        await page.goto('/fonts.html?renderer=software');
+        await page.goto('/fonts.html?backend=software');
 
         await page.waitForFunction(
             () => {

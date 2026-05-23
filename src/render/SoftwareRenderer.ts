@@ -85,7 +85,7 @@ export class SoftwareRenderer implements IRenderer {
     // #region Constants
 
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
-        "The software renderer doesn't support fullscreen effects. To use post-process effects, set renderer to 'webgpu' in configure().";
+        "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().";
 
     // #endregion
 

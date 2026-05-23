@@ -35,7 +35,7 @@ test.describe('Primitive Rendering', () => {
     });
 
     test('should render matching primitive patterns in software mode', async ({ page }) => {
-        await page.goto('/primitives.html?renderer=software');
+        await page.goto('/primitives.html?backend=software');
 
         await page.waitForFunction(
             () => {

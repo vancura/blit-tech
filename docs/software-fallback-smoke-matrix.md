@@ -5,8 +5,8 @@ for auto-fallback and the engine stats overlay (backend shown on the top bar whe
 
 ## Scope
 
-- Backend under test: `software` (auto-fallback when WebGPU unavailable, `?renderer=software`, or
-  `configure().renderer = 'software'`)
+- Backend under test: `software` (auto-fallback when WebGPU unavailable, `?backend=software`, or
+  `configure().backend = 'software'`)
 - Resolution target: low-res scenes (for example `320x240`)
 - In scope: auto-fallback detection, stats overlay backend line, clear, clearRect, primitives, sprites, system text,
   bitmap text, camera offset, frame capture
@@ -16,7 +16,7 @@ for auto-fallback and the engine stats overlay (backend shown on the top bar whe
 
 - Browser: latest Chrome or Edge
 - URL override for software mode:
-  - `?renderer=software`
+  - `?backend=software`
 - Optional baseline comparison:
   - same page without override (WebGPU path)
 
@@ -24,7 +24,7 @@ for auto-fallback and the engine stats overlay (backend shown on the top bar whe
 
 | Scene                                   | What to verify                                   | Software expected result                                    | Notes                                     |
 | --------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------- | ----------------------------------------- |
-| Any page without `?renderer=software`   | Auto-fallback when WebGPU is absent              | Demo boots; `BT.activeBackend` = `'software'`               | No error page or hard stop                |
+| Any page without `?backend=software`    | Auto-fallback when WebGPU is absent              | Demo boots; `BT.activeBackend` = `'software'`               | No error page or hard stop                |
 | Any page with software active           | Stats overlay top bar shows `software`           | Top bar reads `software \| WxH` (toggle with `~` or corner) | Disable with `statsOverlayEnabled: false` |
 | `tests/visual/fixtures/primitives.html` | clear + clearRect + primitive rasterization      | Matches expected primitive layout and colors                | Check pixel edges are crisp               |
 | `tests/visual/fixtures/camera.html`     | camera offset applied to all draw calls          | Geometry is shifted consistently by camera offset           | No partial drift between primitives       |
@@ -36,7 +36,7 @@ for auto-fallback and the engine stats overlay (backend shown on the top bar whe
 ## Automated regression
 
 Visual parity for software mode is exercised by Playwright under `tests/visual/` (`primitives`, `camera`, `sprites`,
-`fonts`, `mixed` specs load fixtures with `?renderer=software`). Run `pnpm run test:visual` after renderer changes that
+`fonts`, `mixed` specs load fixtures with `?backend=software`). Run `pnpm run test:visual` after renderer changes that
 affect pixel output.
 
 ## Known exclusions (expected in MVP)

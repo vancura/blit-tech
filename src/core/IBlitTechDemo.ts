@@ -10,16 +10,15 @@ import { Vector2i } from '../utils/Vector2i';
 export type OutputUpscaleFilter = 'nearest' | 'linear';
 
 /**
- * Renderer backend selection for {@link HardwareSettings.renderer}.
+ * Rendering backend selection for {@link HardwareSettings.backend}.
  *
- * - `'webgpu'` - Hardware-accelerated WebGPU renderer (default). Supports all
- *   draw primitives, sprites, palette, camera, and fullscreen post-process
- *   effects.
+ * - `'webgpu'` - Hardware-accelerated WebGPU path (default). Supports all draw
+ *   primitives, sprites, palette, camera, and fullscreen post-process effects.
  * - `'software'` - Canvas 2D software fallback. Supports draw primitives,
  *   sprites, palette, and camera. Fullscreen shader effects are not available
  *   and will throw when added.
  */
-export type RendererBackend = 'webgpu' | 'software';
+export type Backend = 'webgpu' | 'software';
 
 /**
  * Engine-facing hardware configuration returned by `configure()` when a demo
@@ -99,13 +98,13 @@ export interface HardwareSettings {
     detectDroppedFrames?: boolean;
 
     /**
-     * Renderer backend to use. Defaults to `'webgpu'`.
+     * Rendering backend to use. Defaults to `'webgpu'`.
      *
      * Set to `'software'` to opt into the Canvas 2D fallback backend.
-     * You can also force software mode at runtime with `?renderer=software`
+     * You can also force software mode at runtime with `?backend=software`
      * in the page URL.
      */
-    renderer?: RendererBackend;
+    backend?: Backend;
 
     /**
      * When `true` (default), the engine draws a screen-space stats overlay after
@@ -176,7 +175,7 @@ export interface StatsOverlayRow {
 export interface IBlitTechDemo {
     /**
      * Optional hook to declare display size, optional output drawing-buffer size,
-     * upscale filter, target fixed-update rate, renderer backend, and stats overlay.
+     * upscale filter, target fixed-update rate, rendering backend, and stats overlay.
      *
      * When omitted, the engine uses {@link defaultConfig} (`320x240` at
      * `60` FPS).
@@ -193,7 +192,7 @@ export interface IBlitTechDemo {
     configure?(): Partial<HardwareSettings>;
 
     /**
-     * Called once after the selected renderer backend has been initialized.
+     * Called once after the selected rendering backend has been initialized.
      * Load assets and prepare a demo state here.
      *
      * @returns Promise that resolves to true if successful, false to abort.
@@ -314,8 +313,8 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
         picked.detectDroppedFrames = partial.detectDroppedFrames;
     }
 
-    if (partial.renderer !== undefined) {
-        picked.renderer = partial.renderer;
+    if (partial.backend !== undefined) {
+        picked.backend = partial.backend;
     }
 
     if (partial.statsOverlayEnabled !== undefined) {
@@ -387,10 +386,10 @@ function buildFullDefaultMergeOptionals(
         optionals.detectDroppedFrames = detectDroppedFrames;
     }
 
-    const renderer = picked.renderer ?? defaults.renderer;
+    const backend = picked.backend ?? defaults.backend;
 
-    if (renderer !== undefined) {
-        optionals.renderer = renderer;
+    if (backend !== undefined) {
+        optionals.backend = backend;
     }
 
     const statsOverlayStyle = picked.statsOverlayStyle ?? defaults.statsOverlayStyle;
@@ -435,7 +434,7 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
         ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
-        ...(picked.renderer !== undefined ? { renderer: picked.renderer } : {}),
+        ...(picked.backend !== undefined ? { backend: picked.backend } : {}),
         ...(picked.statsOverlayStyle !== undefined ? { statsOverlayStyle: { ...picked.statsOverlayStyle } } : {}),
     };
 }

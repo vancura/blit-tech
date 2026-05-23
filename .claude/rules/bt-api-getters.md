@@ -18,7 +18,7 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 | Per-frame input | `pointerScrollDelta`, `inputString`, `gamepadCount` |
 
 `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). `Vector2i` getters return a clone per read.
-`activeBackend` is what actually started after fallback, not `configure().renderer`.
+`activeBackend` is what actually started after fallback, not `configure().backend`.
 `palette` is a live reference - mutating slots affects rendering on the next frame.
 
 ## Naming when adding getters

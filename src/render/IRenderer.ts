@@ -11,7 +11,7 @@ import type { Effect } from './effects/Effect';
  * Any rendering backend (WebGPU, software Canvas 2D, headless test stub, etc.)
  * must satisfy this interface. {@link BTAPI} holds a reference to `IRenderer`
  * and never depends on the concrete implementation directly, allowing the engine
- * to swap backends at initialization time based on {@link HardwareSettings.renderer}.
+ * to swap backends at initialization time based on {@link HardwareSettings.backend}.
  *
  * Lifecycle:
  * 1. Call {@link init} once after construction.

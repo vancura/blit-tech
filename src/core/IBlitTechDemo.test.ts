@@ -95,11 +95,11 @@ describe('mergeHardwareSettings', () => {
         const settings = mergeHardwareSettings({
             displaySize: new Vector2i(320, 240),
             canvasDisplaySize: new Vector2i(640, 480),
-            renderer: 'software',
+            backend: 'software',
         });
 
         expect(settings.canvasDisplaySize?.x).toBe(640);
-        expect(settings.renderer).toBe('software');
+        expect(settings.backend).toBe('software');
         expect(settings.targetFPS).toBe(60);
         expect(settings.statsOverlayEnabled).toBe(true);
     });

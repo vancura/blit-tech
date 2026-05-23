@@ -30,7 +30,7 @@ test.describe('Mixed Rendering', () => {
     });
 
     test('should render matching primitives and sprites layering in software mode', async ({ page }) => {
-        await page.goto('/mixed.html?renderer=software');
+        await page.goto('/mixed.html?backend=software');
 
         await page.waitForFunction(
             () => {

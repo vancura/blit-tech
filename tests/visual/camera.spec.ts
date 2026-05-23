@@ -30,7 +30,7 @@ test.describe('Camera Rendering', () => {
     });
 
     test('should render matching camera offsets in software mode', async ({ page }) => {
-        await page.goto('/camera.html?renderer=software');
+        await page.goto('/camera.html?backend=software');
 
         await page.waitForFunction(
             () => {

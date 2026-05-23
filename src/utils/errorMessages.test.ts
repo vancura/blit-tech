@@ -85,8 +85,8 @@ describe('errorMessages', () => {
             expect(STATS_OVERLAY_NO_BACKEND.length).toBeGreaterThan(0);
         });
 
-        it('should mention renderer readiness', () => {
-            expect(STATS_OVERLAY_NO_BACKEND).toContain("renderer isn't ready");
+        it('should mention backend readiness', () => {
+            expect(STATS_OVERLAY_NO_BACKEND).toContain("backend isn't ready");
         });
     });
 
