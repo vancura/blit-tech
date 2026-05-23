@@ -81,7 +81,7 @@ export interface HardwareSettings {
     /**
      * Target fixed-update rate: how often {@link IBlitTechDemo.update} runs per second.
      *
-     * Not the measured render rate shown as `Present` on the stats overlay; `render()` follows
+     * Not the measured render rate shown as `Present FPS` on the stats overlay; `render()` follows
      * `requestAnimationFrame` and may differ (for example 60 Hz updates on a 120 Hz display).
      */
     targetFPS: number;
