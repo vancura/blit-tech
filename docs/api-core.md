@@ -67,16 +67,17 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `canvasDisplaySize` means a 1:1 drawing buffer).
 
-| Field                  | Type                     | Default     | Description                                   |
-| ---------------------- | ------------------------ | ----------- | --------------------------------------------- |
-| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                     |
-| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects |
-| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size             |
-| `targetFPS`            | `number`                 | `60`        | Fixed-update rate                             |
-| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                 |
-| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                |
-| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync         |
-| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`        |
+| Field                  | Type                     | Default     | Description                                         |
+| ---------------------- | ------------------------ | ----------- | --------------------------------------------------- |
+| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                           |
+| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects       |
+| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size                   |
+| `targetFPS`            | `number`                 | `60`        | Fixed-update rate                                   |
+| `renderer`             | `'webgpu' \| 'software'` | `'webgpu'`  | Force backend                                       |
+| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                      |
+| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync               |
+| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`              |
+| `statsOverlayStyle`    | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
 is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -97,7 +98,7 @@ size queries).
 
 - **Top bar (left):** short demo title derived from `document.title` (registry pages titled `Blit-Tech Demo NNN - Topic`
   show as `Topic Demo`); **top bar (right):** active backend and logical resolution (for example `webgpu | 320x240`)
-- **Bottom bar (left):** measured FPS and configured target FPS; **bottom bar (right):** same derived demo title
+- **Bottom bar (left):** measured FPS and configured target FPS; **bottom bar (right):** `[HIDE ~]` hint
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom bar, **1 px** apart, each
   with left text and optional right text (same 16 px bar style as the built-in rows)
 
