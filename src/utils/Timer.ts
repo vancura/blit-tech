@@ -1,7 +1,11 @@
 import { BTAPI } from '../core/BTAPI';
 
 /**
- * Fixed-tick interval helper for update loops.
+ * Fixed-tick interval helper for {@link IBlitTechDemo.update} loops.
+ *
+ * Counts engine ticks ({@link BT.ticks}), which advance once per fixed update at
+ * {@link HardwareSettings.targetFPS}, not once per {@link IBlitTechDemo.render} frame.
+ * Convert ticks to seconds with `intervalTicks / BT.targetFPS`.
  *
  * Tracks a "last fired" tick and reports when a configured interval has elapsed.
  * Useful for periodic events such as particle spawning, score ticks, or palette swaps.

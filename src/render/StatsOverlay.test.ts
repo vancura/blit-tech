@@ -3,7 +3,7 @@
  *
  * Layout contract (see {@link StatsOverlay} and docs/api-core.md Stats overlay):
  * - Top left: demo title; top right: `backend | WxH`
- * - Bottom left: `FPS: N | Target: T`; bottom right: `[HIDE ~]`
+ * - Bottom left: `Render FPS: N | Target: T`; bottom right: `[HIDE ~]`
  * - Custom rows: demo-supplied bars stacked above the bottom bar (1 px gaps)
  */
 
@@ -227,7 +227,7 @@ describe('StatsOverlay', () => {
         });
         expect(calls[2]).toMatchObject({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, layout.bottomTextY),
-            text: expect.stringMatching(/^FPS: \d+ \| Target: 60$/),
+            text: expect.stringMatching(/^Render FPS: \d+ \| Target: 60$/),
             paletteOffset: 1,
         });
         expect(calls[3]).toEqual({

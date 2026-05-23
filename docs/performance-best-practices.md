@@ -29,13 +29,15 @@ meaningful performance gains. Follow this approach:
 
 ### Frame Budget
 
-At 60 FPS, each frame must complete in **16.66ms** (1000ms / 60). This includes:
+Each **render frame** (one `requestAnimationFrame` callback) must finish before the next vsync. On a 60 Hz display that
+is about **16.66 ms** per frame (`1000 / 60`). That budget covers:
 
-- Fixed update logic (~2-4ms)
-- Rendering (~8-12ms)
-- Browser overhead (~2-4ms)
+- Zero or more fixed `update()` steps at `BT.targetFPS` (~2-4 ms total when one step runs)
+- One `render()` pass (~8-12 ms)
+- Browser overhead (~2-4 ms)
 
-If your frame time exceeds this budget, you'll drop frames and see stuttering.
+If work exceeds the display's render cadence, you drop frames and see stuttering. That is independent of `BT.targetFPS`:
+a 60 Hz simulation on a 120 Hz monitor still has a ~8.33 ms render budget per rAF callback.
 
 ---
 
@@ -209,11 +211,12 @@ for (let i = 0; i < 200; i++) {
 
 ### Fixed Timestep
 
-Blit-Tech uses a fixed 60 FPS timestep by default. This provides:
+Blit-Tech uses a fixed **simulation** timestep by default (`targetFPS: 60` → `update()` about 60 times per second).
+`render()` still runs at the browser's refresh rate. This provides:
 
 - **Deterministic behavior:** Same inputs always produce same results
-- **Predictable physics:** No need to multiply by delta time
-- **Simplified logic:** Frame-based counters and timers
+- **Predictable physics:** Use `BT.ticks` and `BT.deltaSeconds` instead of render-frame timing
+- **Simplified logic:** Tick-based counters and `Timer` intervals
 
 ### Using Ticks for Timing
 
@@ -273,7 +276,8 @@ Don't guess what's slow - **measure it**. Use:
 
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
-- Configured update rate: `BT.targetFPS` (measured render FPS is shown by the engine stats overlay when enabled)
+- Simulation rate: `BT.targetFPS` and `BT.ticks`
+- Render rate: stats overlay `Render FPS: N` when `statsOverlayEnabled` is true (measured rAF cadence, not `targetFPS`)
 
 ### 3. Allocating in Hot Paths
 
