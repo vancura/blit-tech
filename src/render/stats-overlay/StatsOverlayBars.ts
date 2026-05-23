@@ -21,20 +21,6 @@ export class StatsOverlayBars {
     readonly #customRightPos: Vector2i[] = [];
 
     /**
-     * Resolves bar and text palette indices for one custom row.
-     *
-     * @param row - Demo-supplied overlay row.
-     * @param style - Default overlay palette indices.
-     * @returns Bar fill index and system-font text index.
-     */
-    #resolveRowPaletteIndices(row: StatsOverlayRow, style: StatsOverlayBarStyle): StatsOverlayBarStyle {
-        return {
-            barIndex: row.barPaletteIndex ?? style.barIndex,
-            textIndex: row.textPaletteIndex ?? style.textIndex,
-        };
-    }
-
-    /**
      * Ensures the custom-row scratch pool has at least `count` entries.
      *
      * @param count - Number of demo rows to draw this frame.
@@ -129,7 +115,8 @@ export class StatsOverlayBars {
                 continue;
             }
 
-            const { barIndex, textIndex } = this.#resolveRowPaletteIndices(row, style);
+            const barIndex = row.barPaletteIndex ?? style.barIndex;
+            const textIndex = row.textPaletteIndex ?? style.textIndex;
             const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
             const barY = barRect.y;
 

@@ -20,6 +20,9 @@ export const PALETTE_SWATCH_COUNT = 256;
 /** Padding below the swatch grid inside the bottom band. */
 export const PALETTE_GRID_PADDING_PX = 0;
 
+/** Empty grid placeholder when the palette view is disabled. */
+export const DEFAULT_PALETTE_GRID: PaletteGridLayout = { cols: 0, rows: 0, swatchSize: 0, totalHeight: 0 };
+
 /** Divisors of 256 preferred for column count (widest first). */
 const PREFERRED_COLUMN_DIVISORS = [32, 16, 8, 4, 2, 1] as const;
 

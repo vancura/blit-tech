@@ -19,7 +19,7 @@ import {
     createStatsOverlayLayoutPlanScratch,
 } from './layoutPlan';
 import { StatsOverlayBars } from './StatsOverlayBars';
-import { computePaletteGrid, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
+import { computePaletteGrid, DEFAULT_PALETTE_GRID, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
 import { StatsOverlayTimingChart } from './StatsOverlayTimingChart';
 import { StatsOverlayToggle } from './StatsOverlayToggle';
 import { TimingSampler } from './TimingSampler';
@@ -53,6 +53,8 @@ export class StatsOverlay {
     readonly #paletteView: StatsOverlayPaletteView;
 
     readonly #layoutScratch = createStatsOverlayLayoutPlanScratch();
+
+    readonly #barStyle = { barIndex: DEFAULT_IDX_BG, textIndex: DEFAULT_IDX_TEXT };
 
     #idxBg = DEFAULT_IDX_BG;
 
@@ -162,45 +164,48 @@ export class StatsOverlay {
 
         renderer.resetCamera();
 
-        const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
-        const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
-        const topTimingLabel =
-            `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
-            `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
+        try {
+            const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
+            const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
+            const topTimingLabel =
+                `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
+                `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
 
-        const barStyle = { barIndex: this.#idxBg, textIndex: this.#idxText };
+            this.#barStyle.barIndex = this.#idxBg;
+            this.#barStyle.textIndex = this.#idxText;
 
-        this.#timingChart.draw(renderer, plan.timingChart, {
-            updateBarIndex: this.#idxBg,
-            renderBarIndex: this.#idxText,
-        });
+            this.#timingChart.draw(renderer, plan.timingChart, {
+                updateBarIndex: this.#idxBg,
+                renderBarIndex: this.#idxText,
+            });
 
-        const paletteGrid =
-            layoutConfig.paletteGrid ??
-            (layoutConfig.paletteViewEnabled
-                ? computePaletteGrid(layoutConfig.displayWidth)
-                : { cols: 0, rows: 0, swatchSize: 0, totalHeight: 0 });
+            const paletteGrid =
+                layoutConfig.paletteGrid ??
+                (layoutConfig.paletteViewEnabled
+                    ? computePaletteGrid(layoutConfig.displayWidth)
+                    : DEFAULT_PALETTE_GRID);
 
-        this.#paletteView.draw(renderer, plan.bottomArea, palette ?? null, paletteGrid);
+            this.#paletteView.draw(renderer, plan.bottomArea, palette ?? null, paletteGrid);
 
-        this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
+            this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
 
-        if (customRows !== undefined && customRows.length > 0) {
-            this.#bars.drawCustomRows(renderer, font, plan, customRows, barStyle);
+            if (customRows !== undefined && customRows.length > 0) {
+                this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
+            }
+
+            this.#bars.drawFixedLabels(
+                renderer,
+                font,
+                plan,
+                this.#barStyle,
+                this.#topLeftLabel,
+                this.#topRightLabel,
+                topMetricsLabel,
+                topTimingLabel,
+                STATS_BOTTOM_HINT_LABEL,
+            );
+        } finally {
+            renderer.setCameraOffset(savedCamera);
         }
-
-        this.#bars.drawFixedLabels(
-            renderer,
-            font,
-            plan,
-            barStyle,
-            this.#topLeftLabel,
-            this.#topRightLabel,
-            topMetricsLabel,
-            topTimingLabel,
-            STATS_BOTTOM_HINT_LABEL,
-        );
-
-        renderer.setCameraOffset(savedCamera);
     }
 }

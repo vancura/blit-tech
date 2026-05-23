@@ -10,6 +10,7 @@ export {
     createStatsOverlayLayout,
     isPointerInStatsToggleCorner,
     resolveStatsTopLeftLabel,
+    statsBitmapTextPaletteOffset,
     StatsOverlay,
     statsRightAlignedTextX,
 } from './stats-overlay/index';
