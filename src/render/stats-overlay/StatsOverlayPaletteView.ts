@@ -108,8 +108,15 @@ export class StatsOverlayPaletteView {
      * @param _bottomArea - Bottom band rect from layout plan.
      * @param _palette - Active demo palette.
      * @param _grid - Precomputed grid layout.
+     * @param _usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
      */
-    draw(_renderer: IRenderer, _bottomArea: Rect2i, _palette: Palette | null, _grid: PaletteGridLayout): void {
+    draw(
+        _renderer: IRenderer,
+        _bottomArea: Rect2i,
+        _palette: Palette | null,
+        _grid: PaletteGridLayout,
+        _usedPaletteIndices: readonly number[] = [],
+    ): void {
         if (!this.#enabled) {
             return;
         }

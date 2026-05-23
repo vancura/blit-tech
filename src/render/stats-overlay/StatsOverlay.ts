@@ -118,6 +118,7 @@ export class StatsOverlay {
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
      * @param palette - Active demo palette for optional palette grid (stub when disabled).
+     * @param usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
      */
     updateAndRender(
         renderer: IRenderer,
@@ -128,6 +129,7 @@ export class StatsOverlay {
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
         timing?: StatsOverlayTimingSnapshot,
         palette?: Palette | null,
+        usedPaletteIndices: readonly number[] = [],
     ): void {
         this.#fps.sample();
 
@@ -185,7 +187,7 @@ export class StatsOverlay {
                     ? computePaletteGrid(layoutConfig.displayWidth)
                     : DEFAULT_PALETTE_GRID);
 
-            this.#paletteView.draw(renderer, plan.bottomArea, palette ?? null, paletteGrid);
+            this.#paletteView.draw(renderer, plan.bottomArea, palette ?? null, paletteGrid, usedPaletteIndices);
 
             this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
 
