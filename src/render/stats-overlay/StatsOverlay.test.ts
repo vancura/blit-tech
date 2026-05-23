@@ -73,7 +73,7 @@ describe('StatsOverlay', () => {
         });
         expect(calls[2]).toMatchObject({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, STATS_BAR_HEIGHT + STATS_ROW_GAP_PX + STATS_TOP_TEXT_Y),
-            text: expect.stringMatching(/^Present FPS: \d+ \| Target FPS: 60 \| Draw Calls: \d+$/),
+            text: expect.stringMatching(/^Present: \d+ FPS \| Target: 60 FPS \| Draw Calls: \d+$/),
             paletteOffset: 1,
         });
         expect(calls[3]).toMatchObject({

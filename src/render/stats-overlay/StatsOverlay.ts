@@ -163,7 +163,7 @@ export class StatsOverlay {
         renderer.resetCamera();
 
         const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
-        const topMetricsLabel = `Present FPS: ${this.#fps.measuredFps} | Target FPS: ${this.#targetFps} | Draw Calls: ${this.#timing.drawCalls}`;
+        const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
         const topTimingLabel =
             `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
             `render(): ${this.#timing.renderMs.toFixed(1)}ms`;

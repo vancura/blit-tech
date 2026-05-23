@@ -186,7 +186,7 @@ from the system font metrics.
 - **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
   `Blit-Tech Demo NNN - Topic` show as `Topic Demo`); **top row 1 (right):** active backend and logical resolution (for
   example `webgpu | 320x240`)
-- **Top row 2 (left):** `Present FPS: N | Target FPS: T | Draw Calls: C`
+- **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
 - **Bottom row (right):** `[~]` hint
@@ -220,7 +220,7 @@ Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defa
 override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
 `StatsOverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
 
-The overlay label `Present FPS: N` is **not** the same as `BT.targetFPS`: present FPS reflects how often `render()` runs
+The overlay label `Present: N FPS` is **not** the same as `BT.targetFPS`: present FPS reflects how often `render()` runs
 (browser refresh rate), while `Target` is the fixed `update()` rate. `Frame`, `update()`, and `render()` timings are
 smoothed CPU wall-time samples from `performance.now()`. `Draw Calls` counts demo-issued draw API calls during the
 rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead.
@@ -251,7 +251,7 @@ Blit-Tech runs two independent cadences:
 | Concept             | Where                                                      | Meaning                                                        |
 | ------------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
 | **Simulation rate** | `targetFPS`, `BT.targetFPS`, `BT.deltaSeconds`, `BT.ticks` | Fixed `update()` step; game logic and `Timer` use ticks        |
-| **Render rate**     | Stats overlay `Present FPS: N`                             | Measured `requestAnimationFrame` cadence; `render()` runs here |
+| **Render rate**     | Stats overlay `Present: N FPS`                             | Measured `requestAnimationFrame` cadence; `render()` runs here |
 
 `render()` may run more or fewer times per second than `update()` (for example 120 Hz display with `targetFPS: 60`). Use
 tick-based timing for gameplay; use overlay present FPS only to spot GPU or draw-call bottlenecks.
