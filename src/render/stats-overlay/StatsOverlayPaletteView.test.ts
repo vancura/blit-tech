@@ -12,6 +12,7 @@ import { createStatsOverlayLayout } from './layoutHelpers';
 import {
     buildUsedPaletteLookup,
     computePaletteGrid,
+    computeUnusedSwatchMarkerRect,
     DEFAULT_PALETTE_SWATCH_SIZE,
     PALETTE_GRID_PADDING_PX,
     PALETTE_SWATCH_GAP_PX,
@@ -144,12 +145,13 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(usedSwatch).toBeDefined();
 
         const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const expectedMarker = computeUnusedSwatchMarkerRect(unusedPos.x, unusedPos.y, swatchSize);
         const unusedSwatchMarker = calls.find(
             (call) =>
-                call.rect.x === unusedPos.x + 2 &&
-                call.rect.y === unusedPos.y + 2 &&
-                call.rect.width === 3 &&
-                call.rect.height === 3 &&
+                call.rect.x === expectedMarker.x &&
+                call.rect.y === expectedMarker.y &&
+                call.rect.width === expectedMarker.width &&
+                call.rect.height === expectedMarker.height &&
                 call.index === DEFAULT_IDX_TEXT,
         );
         expect(unusedSwatchMarker).toBeDefined();

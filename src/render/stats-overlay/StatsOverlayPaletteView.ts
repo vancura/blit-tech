@@ -161,23 +161,40 @@ export function buildUsedPaletteLookup(usedIndices: readonly number[], paletteSi
     return lookup;
 }
 
+/** Preferred side length for the filled marker drawn inside unused swatches. */
+const UNUSED_SWATCH_MARKER_SIZE = 3;
+
 /**
- * Draws an empty unused swatch outline with a small corner-to-corner X.
+ * Computes the filled marker rect drawn inside an unused swatch.
+ *
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @returns Marker rect clamped and centered within the swatch bounds.
+ */
+export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: number): Rect2i {
+    const markerSize = Math.max(1, Math.min(UNUSED_SWATCH_MARKER_SIZE, swatchSize - 4));
+    const offset = Math.floor((swatchSize - markerSize) / 2);
+
+    return new Rect2i(x + offset, y + offset, markerSize, markerSize);
+}
+
+/**
+ * Draws a centered filled marker inside an unused swatch.
  *
  * @param renderer - Active renderer.
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
- * @param markIndex - Palette index for the outline and X mark.
+ * @param markIndex - Palette index for the marker fill.
  */
 function drawUnusedSwatch(renderer: IRenderer, x: number, y: number, swatchSize: number, markIndex: number): void {
-    const last = swatchSize - 1;
-
-    if (last <= 0) {
+    if (swatchSize <= 0) {
         return;
     }
 
-    renderer.drawRectFillOnTop(new Rect2i(x + 2, y + 2, 3, 3), markIndex);
+    const marker = computeUnusedSwatchMarkerRect(x, y, swatchSize);
+    renderer.drawRectFillOnTop(marker, markIndex);
 }
 
 /**
@@ -215,7 +232,7 @@ export class StatsOverlayPaletteView {
      * @param displayWidth - Logical display width for hint exclusion.
      * @param lineHeight - System font line height for hint exclusion.
      * @param usedIndices - Palette slots referenced by demo draw calls this frame.
-     * @param unusedMarkIndex - Palette index for unused swatch outlines and X marks.
+     * @param unusedMarkIndex - Palette index for unused swatch marker fills.
      */
     draw(
         renderer: IRenderer,

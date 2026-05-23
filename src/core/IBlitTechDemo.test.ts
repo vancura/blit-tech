@@ -91,6 +91,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.canvasDisplaySize?.x).toBe(640);
         expect(settings.targetFPS).toBe(30);
+        expect(settings.statsOverlayPaletteView).toBe(false);
     });
 
     it('keeps canvasDisplaySize unset when displaySize is provided without output sizing', () => {
@@ -116,6 +117,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.backend).toBe('software');
         expect(settings.targetFPS).toBe(60);
         expect(settings.statsOverlayEnabled).toBe(true);
+        expect(settings.statsOverlayPaletteView).toBe(false);
     });
 
     it('honors statsOverlayEnabled: false from configure()', () => {
