@@ -39,8 +39,9 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **BTAPI** - singleton coordinator; includes software-mode init, `?backend=software` URL override,
   `BT.requestedBackend` vs `BT.activeBackend` after WebGPU fallback, `captureFrame()` in software mode, and stats
   overlay render path (Node + GPU mocks + 2D canvas mocks)
-- **StatsOverlay** - layout helpers, demo label parsing, right-aligned text X, toggle hit-testing, `updateAndRender` bar
-  layout (Node)
+- **StatsOverlay** - colocated tests under `src/render/stats-overlay/*.test.ts`: label parsing, layout helpers,
+  `layoutPlan` golden Y positions for 320x240 (including custom rows and scaffold cases), toggle hit-testing, and
+  `updateAndRender` integration (Node)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
 
 ### Tier 3: Visual Regression (Playwright, Chromium)

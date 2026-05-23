@@ -1,178 +1,22 @@
 /**
- * Unit tests for {@link StatsOverlay} layout helpers, label parsing, and draw layout.
- *
- * Layout contract (see {@link StatsOverlay} and docs/api-core.md Stats overlay):
- * - Top row 1: demo title (left), `backend | WxH` (right)
- * - Top row 2: `Present FPS | Target FPS | Draw Calls`
- * - Top row 3: `Frame | update() | render()`
- * - Bottom row: `[~]` hint (right)
- * - Custom rows: demo-supplied bars stacked above the bottom bar (1 px gaps)
+ * Integration tests for {@link StatsOverlay} draw layout and toggle behavior.
  */
 
 import { describe, expect, it, vi } from 'vitest';
 
-import type { BitmapFont } from '../assets/BitmapFont';
-import type { Rect2i } from '../utils/Rect2i';
-import { Vector2i } from '../utils/Vector2i';
-import type { IRenderer } from './IRenderer';
+import { Vector2i } from '../../utils/Vector2i';
+import { STATS_BAR_HEIGHT, STATS_ROW_GAP_PX } from './constants';
+import { createStatsOverlayLayout, statsRightAlignedTextX } from './layoutHelpers';
+import { StatsOverlay } from './StatsOverlay';
 import {
-    createStatsOverlayLayout,
-    isPointerInStatsToggleCorner,
-    resolveStatsTopLeftLabel,
-    StatsOverlay,
-    statsRightAlignedTextX,
-} from './StatsOverlay';
-
-// #region Test Helpers
-
-const STATS_EDGE_MARGIN_PX = 3;
-const STATS_TOP_TEXT_Y = 0;
-const STATS_BAR_HEIGHT = 13;
-const STATS_ROW_GAP_PX = 1;
-const SYSTEM_CHAR_ADVANCE = 6;
-
-type BitmapTextCall = {
-    pos: Vector2i;
-    text: string;
-    paletteOffset: number;
-};
-
-/**
- * Minimal renderer stub for {@link StatsOverlay.updateAndRender}.
- *
- * @returns Renderer with spied camera, bar fills, and bitmap text draws.
- */
-function createMockRenderer(): IRenderer & {
-    drawBitmapText: ReturnType<typeof vi.fn>;
-    drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
-    drawRectFill: ReturnType<typeof vi.fn>;
-    drawRectFillOnTop: ReturnType<typeof vi.fn>;
-} {
-    const drawRectFillOnTop = vi.fn();
-    const drawBitmapTextOnTop = vi.fn();
-
-    return {
-        getCameraOffset: vi.fn(() => Vector2i.zero()),
-        resetCamera: vi.fn(),
-        setCameraOffset: vi.fn(),
-        drawRectFill: vi.fn(),
-        drawRectFillOnTop,
-        drawBitmapText: vi.fn(),
-        drawBitmapTextOnTop,
-    } as never;
-}
-
-/**
- * Collects {@link IRenderer.drawBitmapText} calls from a mock renderer.
- *
- * @param renderer - Mock from {@link createMockRenderer}.
- * @returns Parsed draw calls in invocation order.
- */
-function getBitmapTextCalls(renderer: ReturnType<typeof createMockRenderer>): BitmapTextCall[] {
-    return renderer.drawBitmapTextOnTop.mock.calls.map((call) => ({
-        pos: call[1] as Vector2i,
-        text: call[2] as string,
-        paletteOffset: call[3] as number,
-    }));
-}
-
-/**
- * Collects {@link IRenderer.drawRectFill} rects from a mock renderer.
- *
- * @param renderer - Mock from {@link createMockRenderer}.
- * @returns Filled rectangles in invocation order.
- */
-function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect2i[] {
-    return renderer.drawRectFillOnTop.mock.calls.map((call) => call[0] as Rect2i);
-}
-
-/** Y of custom row bar top stacked above the bottom `[~]` bar. */
-function customBarY(displayHeight: number, rowIndex: number): number {
-    const bottomBarY = displayHeight - STATS_BAR_HEIGHT;
-
-    return bottomBarY - (rowIndex + 1) * (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
-}
-
-const mockFont = {} as BitmapFont;
-
-// #endregion
-
-// #region resolveStatsTopLeftLabel
-
-describe('resolveStatsTopLeftLabel', () => {
-    it('formats registry-style page titles without a Blit-Tech prefix', () => {
-        expect(resolveStatsTopLeftLabel('Blit-Tech Demo 006 - Patterns')).toBe('Patterns Demo');
-        expect(resolveStatsTopLeftLabel('Blit-Tech Demo 002 - Primitives')).toBe('Primitives Demo');
-    });
-
-    it('falls back when title is empty', () => {
-        expect(resolveStatsTopLeftLabel('')).toBe('Demo');
-        expect(resolveStatsTopLeftLabel(undefined)).toBe('Demo');
-    });
-
-    it('passes through non-registry titles unchanged', () => {
-        expect(resolveStatsTopLeftLabel('Custom Page')).toBe('Custom Page');
-    });
-});
-
-// #endregion
-
-// #region createStatsOverlayLayout
-
-describe('createStatsOverlayLayout', () => {
-    it('places bottom text at the configured bottom gap offset', () => {
-        const layout = createStatsOverlayLayout(320, 240, 14);
-
-        expect(layout.displayWidth).toBe(320);
-        expect(layout.displayHeight).toBe(240);
-        expect(layout.bottomTextY).toBe(240 - 14 + 1);
-        expect(layout.topTextY).toBe(STATS_TOP_TEXT_Y);
-        expect(layout.toggleRect.x).toBe(320 - 48);
-        expect(layout.toggleRect.y).toBe(240 - 48);
-        expect(layout.toggleRect.width).toBe(48);
-        expect(layout.toggleRect.height).toBe(48);
-    });
-});
-
-// #endregion
-
-// #region statsRightAlignedTextX
-
-describe('statsRightAlignedTextX', () => {
-    it('places text flush right with edge margin (+1 px inset)', () => {
-        const label = 'webgpu | 320x240';
-        const width = label.length * SYSTEM_CHAR_ADVANCE;
-        expect(statsRightAlignedTextX(label, 320)).toBe(320 - width - STATS_EDGE_MARGIN_PX + 1);
-    });
-
-    it('never places text left of the edge margin', () => {
-        expect(statsRightAlignedTextX('a very long label that exceeds the display', 32)).toBe(STATS_EDGE_MARGIN_PX);
-    });
-});
-
-// #endregion
-
-// #region isPointerInStatsToggleCorner
-
-describe('isPointerInStatsToggleCorner', () => {
-    it('returns true inside the bottom-right 48x48 region', () => {
-        const layout = createStatsOverlayLayout(320, 240, 14);
-
-        expect(isPointerInStatsToggleCorner(new Vector2i(300, 220), layout.toggleRect)).toBe(true);
-        expect(isPointerInStatsToggleCorner(new Vector2i(272, 192), layout.toggleRect)).toBe(true);
-    });
-
-    it('returns false outside the toggle region', () => {
-        const layout = createStatsOverlayLayout(320, 240, 14);
-
-        expect(isPointerInStatsToggleCorner(new Vector2i(0, 0), layout.toggleRect)).toBe(false);
-        expect(isPointerInStatsToggleCorner(new Vector2i(271, 191), layout.toggleRect)).toBe(false);
-    });
-});
-
-// #endregion
-
-// #region StatsOverlay
+    createMockRenderer,
+    customRowBarY,
+    getBitmapTextCalls,
+    getRectFillCalls,
+    mockFont,
+    STATS_EDGE_MARGIN_PX,
+    STATS_TOP_TEXT_Y,
+} from './testFixtures';
 
 describe('StatsOverlay', () => {
     it('starts visible and toggles visibility', () => {
@@ -229,7 +73,7 @@ describe('StatsOverlay', () => {
         });
         expect(calls[2]).toMatchObject({
             pos: new Vector2i(STATS_EDGE_MARGIN_PX, STATS_BAR_HEIGHT + STATS_ROW_GAP_PX + STATS_TOP_TEXT_Y),
-            text: expect.stringMatching(/^Present FPS: \d+ \| Target FPS: 60 \| Draw Calls: \d+$/),
+            text: expect.stringMatching(/^Present: \d+ FPS \| Target: 60 FPS \| Draw Calls: \d+$/),
             paletteOffset: 1,
         });
         expect(calls[3]).toMatchObject({
@@ -354,8 +198,8 @@ describe('StatsOverlay', () => {
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => customRows);
 
         const fills = getRectFillCalls(renderer);
-        const row0BarY = customBarY(240, 0);
-        const row1BarY = customBarY(240, 1);
+        const row0BarY = customRowBarY(240, 0);
+        const row1BarY = customRowBarY(240, 1);
 
         expect(fills).toHaveLength(6);
         expect(fills[4]).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
@@ -406,5 +250,3 @@ describe('StatsOverlay', () => {
         expect(getCustomRows).not.toHaveBeenCalled();
     });
 });
-
-// #endregion

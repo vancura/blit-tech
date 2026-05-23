@@ -24,7 +24,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                                                                                                                       |
 | How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
 | What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
-| How does the stats overlay work?              | `src/render/StatsOverlay.ts`, `docs/api-core.md` (Stats overlay), `HardwareSettings.statsOverlayEnabled`                                                                                                |
+| How does the stats overlay work?              | `src/render/stats-overlay/` (orchestrator + `layoutPlan.ts`), `src/render/StatsOverlay.ts` barrel, `docs/api-core.md` (Stats overlay), `HardwareSettings.statsOverlayEnabled`                           |
 | What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
 | What are the render/asset dimension limits?   | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
 | Which preset has which exact color values?    | `docs/palette-presets.md`                                                                                                                                                                               |
@@ -55,7 +55,14 @@ src/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
     SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
-    StatsOverlay.ts        # Engine-managed stats HUD (FPS, backend, demo title; toggle via `~` or corner tap)
+    StatsOverlay.ts        # Barrel re-export for BTAPI (implementation under stats-overlay/)
+    stats-overlay/
+      StatsOverlay.ts      # Orchestrator: sample, toggle, layout plan, delegate draws
+      layoutPlan.ts        # Dynamic Y-band planner (chart + palette grid scaffold)
+      StatsOverlayTimingChart.ts  # Timing chart band (stub; default off)
+      StatsOverlayPaletteView.ts  # Palette swatch grid (stub; default off)
+      StatsOverlayBars.ts  # Fixed and custom row bars + labels
+      StatsOverlayToggle.ts # Backquote and corner toggle input
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain
