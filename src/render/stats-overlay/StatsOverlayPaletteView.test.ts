@@ -13,12 +13,30 @@ import {
     buildUsedPaletteLookup,
     computePaletteGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,
+    PALETTE_GRID_PADDING_PX,
     PALETTE_SWATCH_GAP_PX,
     paletteGridRowStackHeight,
     paletteGridRowWidth,
     pickPaletteGridColumnCount,
     StatsOverlayPaletteView,
 } from './StatsOverlayPaletteView';
+
+/** Returns the top-left pixel for one palette index in the bottom-band grid. */
+function swatchTopLeft(
+    index: number,
+    cols: number,
+    bottomAreaY: number,
+    swatchSize: number,
+    gap: number,
+): { x: number; y: number } {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+
+    return {
+        x: STATS_EDGE_MARGIN_PX + col * (swatchSize + gap),
+        y: bottomAreaY + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap),
+    };
+}
 
 describe('computePaletteGrid', () => {
     it('uses 32 columns and 8 rows at 320 px width for a 256-color palette', () => {
@@ -27,9 +45,9 @@ describe('computePaletteGrid', () => {
         expect(grid).toEqual({
             cols: 32,
             rows: 8,
-            swatchSize: 4,
+            swatchSize: DEFAULT_PALETTE_SWATCH_SIZE,
             gap: 1,
-            totalHeight: paletteGridRowStackHeight(8, 4, 1),
+            totalHeight: paletteGridRowStackHeight(8, DEFAULT_PALETTE_SWATCH_SIZE, 1) + PALETTE_GRID_PADDING_PX * 2,
         });
         expect(paletteGridRowWidth(grid.cols, grid.swatchSize, grid.gap)).toBeLessThanOrEqual(320 - 6);
     });
@@ -53,7 +71,7 @@ describe('computePaletteGrid', () => {
 
         expect(grid.cols).toBe(1);
         expect(grid.rows).toBe(256);
-        expect(grid.totalHeight).toBe(paletteGridRowStackHeight(256, 4, 1));
+        expect(grid.totalHeight).toBe(paletteGridRowStackHeight(256, 4, 1) + PALETTE_GRID_PADDING_PX * 2);
     });
 
     it('returns an empty grid when color count is zero', () => {
@@ -84,8 +102,9 @@ describe('StatsOverlayPaletteView.draw', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
         const usedIndices = [1, 2];
-        const grid = computePaletteGrid(320, 4, palette.size, 1);
-        const originY = 240 - grid.totalHeight;
+        const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
+        const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
+        const bottomAreaY = 240 - grid.totalHeight;
         const view = new StatsOverlayPaletteView(true);
         const drawRectFillOnTop = vi.fn();
         const renderer = {
@@ -94,7 +113,7 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         view.draw(
             renderer,
-            new Rect2i(0, originY, 320, grid.totalHeight),
+            new Rect2i(0, bottomAreaY, 320, grid.totalHeight),
             palette,
             grid,
             layout.bottomTextY,
@@ -111,23 +130,32 @@ describe('StatsOverlayPaletteView.draw', () => {
             index: call[1] as number,
         }));
 
-        const usedSwatch = calls.find((call) => call.rect.x === 9 && call.rect.y === originY + 1 && call.index === 1);
+        const usedPos = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const usedSwatch = calls.find(
+            (call) =>
+                call.rect.x === usedPos.x &&
+                call.rect.y === usedPos.y &&
+                call.rect.width === swatchSize &&
+                call.rect.height === swatchSize &&
+                call.index === 1,
+        );
         expect(usedSwatch).toBeDefined();
 
-        const unusedSwatchOutline = calls.find(
-            (call) => call.rect.x === 19 && call.rect.y === originY && call.index === DEFAULT_IDX_TEXT,
-        );
-        expect(unusedSwatchOutline).toBeDefined();
-
+        const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
         const unusedSwatchFill = calls.find(
-            (call) => call.rect.x === 19 && call.rect.y === originY + 1 && call.index === 3,
+            (call) =>
+                call.rect.x === unusedPos.x &&
+                call.rect.y === unusedPos.y &&
+                call.rect.width === swatchSize &&
+                call.index === 3,
         );
         expect(unusedSwatchFill).toBeUndefined();
 
         const unusedX = calls.find(
-            (call) => call.rect.x === 19 && call.rect.y === originY + 1 && call.index === DEFAULT_IDX_TEXT,
+            (call) => call.rect.x === unusedPos.x + 2 && call.rect.y === unusedPos.y + swatchSize - 3,
         );
         expect(unusedX).toBeDefined();
+        expect(unusedX?.index).toBe(DEFAULT_IDX_TEXT);
     });
 
     it('buildUsedPaletteLookup ignores slot 0 and out-of-range indices', () => {
@@ -136,12 +164,13 @@ describe('StatsOverlayPaletteView.draw', () => {
         );
     });
 
-    it('draws rounded swatches with gaps and skips the bottom-right hint region', () => {
+    it('draws swatches with gaps and skips the bottom-right hint region', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
         const usedIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-        const grid = computePaletteGrid(320, 4, palette.size, 1);
-        const originY = 240 - grid.totalHeight;
+        const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
+        const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
+        const bottomAreaY = 240 - grid.totalHeight;
         const view = new StatsOverlayPaletteView(true);
         const drawRectFillOnTop = vi.fn();
         const renderer = {
@@ -150,7 +179,7 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         view.draw(
             renderer,
-            new Rect2i(0, originY, 320, grid.totalHeight),
+            new Rect2i(0, bottomAreaY, 320, grid.totalHeight),
             palette,
             grid,
             layout.bottomTextY,
@@ -167,22 +196,23 @@ describe('StatsOverlayPaletteView.draw', () => {
             index: call[1] as number,
         }));
 
-        const swatch00 = calls.filter(
-            (call) => call.rect.x >= 3 && call.rect.x <= 6 && call.rect.y >= originY && call.rect.y <= originY + 3,
-        );
-        expect(swatch00.some((call) => call.rect.x === 3 && call.rect.y === originY)).toBe(false);
-        expect(swatch00.some((call) => call.rect.x === 6 && call.rect.y === originY)).toBe(false);
-        expect(swatch00.some((call) => call.rect.x === 3 && call.rect.y === originY + 3)).toBe(false);
-        expect(swatch00.some((call) => call.rect.x === 6 && call.rect.y === originY + 3)).toBe(false);
-        expect(swatch00.some((call) => call.rect.x === 4 && call.rect.y === originY + 1 && call.index === 1)).toBe(
+        const swatch0 = swatchTopLeft(0, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const swatch1 = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const gapX = swatch0.x + swatchSize;
+
+        expect(calls.some((call) => call.rect.x === swatch0.x && call.rect.y === swatch0.y && call.index === 0)).toBe(
             false,
         );
 
-        const gapPixel = calls.find((call) => call.rect.x === 7 && call.rect.y === originY);
+        const gapPixel = calls.find((call) => call.rect.x === gapX && call.rect.y === swatch0.y);
         expect(gapPixel).toBeUndefined();
 
         const nextSwatchPixel = calls.find(
-            (call) => call.rect.x === 9 && call.rect.y === originY + 1 && call.index === 1,
+            (call) =>
+                call.rect.x === swatch1.x &&
+                call.rect.y === swatch1.y &&
+                call.rect.width === swatchSize &&
+                call.index === 1,
         );
         expect(nextSwatchPixel).toBeDefined();
     });

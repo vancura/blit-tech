@@ -38,6 +38,7 @@ import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 import {
     collectUsedRenderPaletteIndices,
     markRenderPaletteIndexUsed,
+    RENDER_PALETTE_USAGE_CAPACITY,
     resetRenderPaletteUsage,
 } from './RenderPaletteUsage';
 import { initWebGPU } from './WebGPUContext';
@@ -131,7 +132,7 @@ export class BTAPI {
     private pendingDrawCalls = 0;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
-    private readonly framePaletteUsageMask = new Uint8Array(256);
+    private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
 
     /** Reusable sorted list of used palette indices for the stats overlay grid. */
     private readonly framePaletteUsageScratch: number[] = [];
@@ -418,7 +419,7 @@ export class BTAPI {
             hw.targetFPS,
             this.activeBackend,
             hw.statsOverlayStyle,
-            hw.statsOverlayPaletteView !== false,
+            hw.statsOverlayPaletteView === true,
             hw.statsOverlayPaletteColumns,
         );
     }

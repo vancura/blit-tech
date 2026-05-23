@@ -121,9 +121,10 @@ export interface HardwareSettings {
     statsOverlayEnabled?: boolean;
 
     /**
-     * When `true` (default), the engine draws a live palette swatch grid in the stats
-     * overlay bottom band showing the active indexed palette. Set to `false` to restore
-     * the legacy 13 px hint bar only.
+     * When `true`, the engine draws a live palette swatch grid in the stats overlay
+     * bottom band showing the active indexed palette. Defaults to `false` in
+     * {@link defaultConfig}; set to `true` to opt in. When `false`, the legacy 13 px
+     * hint bar is shown instead.
      */
     statsOverlayPaletteView?: boolean;
 
@@ -455,7 +456,7 @@ function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, default
         displaySize: cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
-        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? true,
+        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? false,
         ...buildFullDefaultMergeOptionals(picked, defaults),
     };
 }
@@ -473,7 +474,7 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         displaySize: picked.displaySize ?? cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
-        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? true,
+        statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? false,
         ...(picked.canvasDisplaySize !== undefined ? { canvasDisplaySize: picked.canvasDisplaySize } : {}),
         ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
         ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),

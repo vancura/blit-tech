@@ -114,7 +114,7 @@ example no `canvasDisplaySize` means a 1:1 drawing buffer).
 | `outputUpscaleFilter`        | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                                     |
 | `detectDroppedFrames`        | `boolean`                | `false`     | Log a console warning on missed vsync                              |
 | `statsOverlayEnabled`        | `boolean`                | `true`      | Engine stats HUD after each `render()`                             |
-| `statsOverlayPaletteView`    | `boolean`                | `true`      | Live palette swatch grid in the stats overlay bottom band          |
+| `statsOverlayPaletteView`    | `boolean`                | `false`     | Live palette swatch grid in the stats overlay bottom band (opt-in) |
 | `statsOverlayPaletteColumns` | `number`                 | _unset_     | Max palette swatches per grid row (default: widest fit)            |
 | `statsOverlayStyle`          | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay                |
 
@@ -182,7 +182,7 @@ configure() {
 When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
 top of all demo content. Bar bands and text anchors are computed each frame by the internal layout planner in
 `src/render/stats-overlay/layoutPlan.ts` from `displaySize`, custom row count, and optional feature flags (timing chart
-default off; palette grid on by default via `statsOverlayPaletteView`). Init still caches stable values such as the
+default off; palette grid opt-in via `statsOverlayPaletteView`). Init still caches stable values such as the
 bottom-right toggle rect and text baselines from the system font metrics.
 
 - **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
@@ -191,10 +191,10 @@ bottom-right toggle rect and text baselines from the system font metrics.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
-- **Bottom band:** live palette swatch grid (default) showing every active palette slot; slots referenced by demo draw
-  calls this frame are filled with their color, and unused slots render as empty rounded squares with a small X mark.
-  The `[~]` hint stays anchored bottom-right; set `statsOverlayPaletteView: false` to restore the legacy 13 px hint bar
-  only
+- **Bottom band:** legacy **13 px** hint bar with the `[~]` toggle label anchored bottom-right (default). Set
+  `statsOverlayPaletteView: true` to replace it with a live palette swatch grid showing every active palette slot; slots
+  referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares with a
+  small X mark
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
   with left text and optional right text (same 13 px bar style as the built-in rows)
 
@@ -232,9 +232,10 @@ rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `
 
 Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom band (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
-at the top (three built-in text rows + gaps; add about **22 px** when the timing chart feature ships). Leave about **39
-px** clear at the bottom on the default `320×240` layout with a 256-slot palette (32 columns × 8 rows of 4 px swatches
-with 1 px gaps). The bottom band height is:
+at the top (three built-in text rows + gaps; add about **22 px** when the timing chart feature ships). Leave about **13
+px** clear at the bottom by default (legacy hint bar). When `statsOverlayPaletteView: true`, reserve additional space
+for the palette grid—for example about **69 px** on the default `320×240` layout with a 256-slot palette (32 columns × 8
+rows of 7 px swatches with 1 px gaps). The bottom band height is:
 
 ```text
 rows = ceil(palette.size / cols)
@@ -243,16 +244,15 @@ cols = widest halving of palette.size that fits:
 bottomReserve = rows * swatchSize + max(0, rows - 1) * gap
 ```
 
-Default swatch size is **4 px** with **1 px** gaps; swatches use transparent corner pixels so the bar background shows
-through. Set `statsOverlayPaletteView: false` for the legacy **13 px** hint bar, or `statsOverlayEnabled: false` for
-full-screen layouts (for example terminal-style demos).
+Default swatch size is **7 px** with **1 px** gaps. Set `statsOverlayPaletteView: true` to enable the grid, or
+`statsOverlayEnabled: false` for full-screen layouts (for example terminal-style demos).
 
 ```ts
 configure() {
   return {
     displaySize: new Vector2i(320, 240),
     statsOverlayEnabled: false, // release build or custom full-screen HUD
-    statsOverlayPaletteView: false, // legacy 13 px hint bar without palette grid
+    statsOverlayPaletteView: true, // opt in to live palette swatch grid
     statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 }, // optional palette indices
   };
 }

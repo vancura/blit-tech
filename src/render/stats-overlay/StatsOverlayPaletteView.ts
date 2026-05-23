@@ -102,7 +102,7 @@ export function pickPaletteGridColumnCount(
  * Computes palette grid layout for the bottom band.
  *
  * @param displayWidth - Logical display width in pixels.
- * @param swatchSize - Side length of each swatch (default 4).
+ * @param swatchSize - Side length of each swatch (default {@link DEFAULT_PALETTE_SWATCH_SIZE}).
  * @param colorCount - Number of palette slots to show (default 256).
  * @param gap - Gap between swatches (default 1).
  * @param maxColumns - Optional cap from {@link HardwareSettings.statsOverlayPaletteColumns}.
