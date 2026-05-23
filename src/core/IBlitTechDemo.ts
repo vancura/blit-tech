@@ -266,6 +266,7 @@ export function defaultConfig(): HardwareSettings {
         maxCanvasDisplaySize: new Vector2i(DEFAULT_MAX_CANVAS_DISPLAY_SIZE.x, DEFAULT_MAX_CANVAS_DISPLAY_SIZE.y),
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
+        backend: 'webgpu',
         statsOverlayEnabled: true,
     };
 }

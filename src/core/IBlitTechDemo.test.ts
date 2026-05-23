@@ -46,6 +46,12 @@ describe('defaultConfig', () => {
         expect(settings.outputUpscaleFilter).toBe('nearest');
     });
 
+    it("should default backend to 'webgpu'", () => {
+        const settings = defaultConfig();
+
+        expect(settings.backend).toBe('webgpu');
+    });
+
     it('should enable stats overlay by default', () => {
         const settings = defaultConfig();
 
@@ -70,6 +76,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.canvasDisplaySize?.x).toBe(640);
         expect(settings.targetFPS).toBe(60);
+        expect(settings.backend).toBe('webgpu');
     });
 
     it('merges targetFPS-only partials with full defaults', () => {
