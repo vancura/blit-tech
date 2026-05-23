@@ -53,14 +53,14 @@ BT.paletteSet(palette);
 
 The six slots in order, by alias:
 
-| Alias        | Purpose                                                                                            |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| `hud_white`  | Foreground / label text                                                                            |
-| `hud_bg`     | Panel background                                                                                   |
-| `hud_label`  | Secondary label                                                                                    |
-| `hud_header` | Header / title text                                                                                |
-| `hud_dim`    | Dimmed / inactive text (default text color for the engine stats overlay when `applyHUD()` is used) |
-| `hud_code`   | Code / monospace text                                                                              |
+| Alias        | Purpose                 |
+| ------------ | ----------------------- |
+| `hud_white`  | Foreground / label text |
+| `hud_bg`     | Panel background        |
+| `hud_label`  | Secondary label         |
+| `hud_header` | Header / title text     |
+| `hud_dim`    | Dimmed / inactive text  |
+| `hud_code`   | Code / monospace text   |
 
 Override individual slots after `applyHUD()`:
 

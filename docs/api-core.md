@@ -125,11 +125,9 @@ corner. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay
 release builds). On WebGPU, the stats overlay uses two late batches: {@link IRenderer.drawRectFillOnTop} for bar fills
 above demo sprites, then {@link IRenderer.drawBitmapTextOnTop} for labels above those bars.
 
-Palette colors prefer HUD named slots (`hud_bg`, `hud_dim`) when `palette.applyHUD()` was used and `statsOverlayStyle`
-was not set; otherwise the overlay falls back to palette indices `1` (bar) and `2` (text). Override globally in
-`configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on `StatsOverlayRow`
-(`barPaletteIndex`, `textPaletteIndex`). Register those palette slots in `init()` before the overlay draws (same as any
-other `palette.set()` color).
+Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defaults `1` (bar) and `2` (text). You can
+override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
+`StatsOverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
 
 Demos should not duplicate FPS or page-title footer text; the overlay provides those. Reserve about **17 px** per custom
 overlay row above the bottom bar (16 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **15
