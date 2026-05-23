@@ -115,14 +115,18 @@ warning and starts the software renderer. Then `activeBackend === 'software'` wh
 **Runtime checks (post-process, capture, etc.):** use `activeBackend`, not `requestedBackend`:
 
 ```ts
-// Correct: skip effects when the running backend cannot host them
+// Correct: gate on the backend that actually started; BT.effectAdd takes one effect
 if (BT.activeBackend === 'webgpu') {
-  BT.effectAdd(crtPipBoy());
+  for (const fx of BT.preset.crtPipBoy()) {
+    BT.effectAdd(fx);
+  }
 }
 
 // Misleading after fallback: requestedBackend may still be 'webgpu'
 if (BT.requestedBackend === 'webgpu') {
-  BT.effectAdd(crtPipBoy()); // throws on software
+  for (const fx of BT.preset.crtPipBoy()) {
+    BT.effectAdd(fx); // throws once activeBackend is software
+  }
 }
 ```
 

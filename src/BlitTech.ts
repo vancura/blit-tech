@@ -530,7 +530,9 @@ export const BT = {
      *
      * ```ts
      * if (BT.activeBackend === 'webgpu') {
-     *   BT.effectAdd(crtStack);
+     *   for (const fx of BT.preset.crtPipBoy()) {
+     *     BT.effectAdd(fx);
+     *   }
      * }
      * ```
      *

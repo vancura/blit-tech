@@ -85,6 +85,51 @@ export function findAlignmentFailures(logText, expectedVersion) {
     return failures;
 }
 
+/** Opening forms for the rolled-up `BT` object type in `dist/blit-tech.d.ts`. */
+const BT_DECLARATION_OPENERS = [
+    /(?:export\s+)?declare\s+const\s+BT\s*:\s*\{/,
+    /(?:export\s+)?declare\s+namespace\s+BT\s*\{/,
+    /(?:export\s+)?declare\s+interface\s+BT\s*\{/,
+    /(?:export\s+)?type\s+BT\s*=\s*\{/,
+    /\binterface\s+BT\s*\{/,
+];
+
+/**
+ * Extracts the `{ ... }` body of the public `BT` declaration from rolled-up `.d.ts` text.
+ *
+ * @param {string} dtsText Contents of `dist/blit-tech.d.ts`.
+ * @returns {string | null} Balanced brace block for `BT`, or null when not found.
+ */
+export function extractBtDeclarationBlock(dtsText) {
+    for (const opener of BT_DECLARATION_OPENERS) {
+        const match = opener.exec(dtsText);
+        if (!match) {
+            continue;
+        }
+
+        const openBrace = dtsText.indexOf('{', match.index);
+        if (openBrace < 0) {
+            continue;
+        }
+
+        const body = dtsText.slice(openBrace);
+        let depth = 0;
+        for (let i = 0; i < body.length; i++) {
+            const char = body.charAt(i);
+            if (char === '{') {
+                depth++;
+            } else if (char === '}') {
+                depth--;
+                if (depth === 0) {
+                    return body.slice(0, i + 1);
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
 /**
  * Verifies rolled-up declarations export required `BT` facade members.
  *
@@ -93,11 +138,18 @@ export function findAlignmentFailures(logText, expectedVersion) {
  * @returns {string[]} Human-readable failure messages (empty when all members are found).
  */
 export function findMissingBtDeclarationMembers(dtsText, requiredMembers = REQUIRED_BT_DECLARATION_MEMBERS) {
+    const btBlock = extractBtDeclarationBlock(dtsText);
+    if (!btBlock) {
+        return requiredMembers.map(
+            (member) => `dist/blit-tech.d.ts is missing BT declaration block (cannot verify getter: ${member})`,
+        );
+    }
+
     const failures = [];
 
     for (const member of requiredMembers) {
         const pattern = new RegExp(`\\breadonly\\s+${member}\\s*:`, 'm');
-        if (!pattern.test(dtsText)) {
+        if (!pattern.test(btBlock)) {
             failures.push(`dist/blit-tech.d.ts is missing BT getter: ${member}`);
         }
     }

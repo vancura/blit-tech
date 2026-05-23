@@ -3,9 +3,11 @@ import { describe, it } from 'node:test';
 
 import {
     DRIFT_WARNING_PATTERNS,
+    extractBtDeclarationBlock,
     findAlignmentFailures,
     findDriftWarnings,
     findMissingBtDeclarationMembers,
+    REQUIRED_BT_DECLARATION_MEMBERS,
     validateDeclarationTooling,
 } from './check-declaration-tooling.mjs';
 
@@ -61,5 +63,20 @@ describe('check-declaration-tooling', () => {
             '}',
         ].join('\n');
         assert.deepEqual(findMissingBtDeclarationMembers(dts), []);
+    });
+
+    it('findMissingBtDeclarationMembers ignores similarly named members outside BT', () => {
+        const dts = [
+            'interface Other { readonly requestedBackend: string; readonly activeBackend: string; }',
+            'export declare const BT: { readonly ticks: number; };',
+        ].join('\n');
+        const failures = findMissingBtDeclarationMembers(dts);
+        assert.equal(failures.length, REQUIRED_BT_DECLARATION_MEMBERS.length);
+        assert.ok(failures.every((message) => message.includes('missing BT getter')));
+    });
+
+    it('extractBtDeclarationBlock reads export declare const BT object type', () => {
+        const dts = 'export declare const BT: { readonly ticks: number; };';
+        assert.equal(extractBtDeclarationBlock(dts), '{ readonly ticks: number; }');
     });
 });
