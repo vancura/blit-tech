@@ -5,6 +5,10 @@ Primitives, sprites, text, post-process effects, and frame capture.
 All draw calls require a palette to be active (`BT.paletteSet(palette)` before the first `BT.drawSprite`,
 `BT.drawRectFill`, etc.). All coordinates are integer pixels - use `Vector2i` and `Rect2i`, never floats.
 
+**Palette addressing:** primitives and `BT.systemPrint` use an absolute **`paletteIndex`**. Sprites and `BT.printFont`
+use an optional **`paletteOffset`** added to stored texel indices. See
+[Palette addressing](api-palette.md#palette-addressing).
+
 ---
 
 ## Primitives

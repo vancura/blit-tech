@@ -109,8 +109,9 @@ const sheet = SpriteSheet.fromIndexedPixels(width, height, indexedPixels);
 
 ## Palette Offset
 
-Pass a `paletteOffset` to `BT.drawSprite()` to shift the entire sprite's color range by N slots. Useful for team-color
-variations and damage flashes. Full semantics in [API: Rendering](api-rendering.md).
+Pass a **`paletteOffset`** (per-draw shift, not an absolute slot) to `BT.drawSprite()` and `BT.printFont()` to remap
+stored texel indices before palette lookup. Useful for team-color variations and damage flashes. Terminology and
+examples: [Palette addressing](api-palette.md#palette-addressing). Draw semantics: [API: Rendering](api-rendering.md).
 
 ```ts
 BT.drawSprite(sheet, srcRect, pos, 16); // render in "blue team" color range
