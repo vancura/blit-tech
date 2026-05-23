@@ -78,7 +78,12 @@ export interface HardwareSettings {
      */
     outputUpscaleFilter?: OutputUpscaleFilter;
 
-    /** Target fixed-update rate in frames per second. */
+    /**
+     * Target fixed-update rate: how often {@link IBlitTechDemo.update} runs per second.
+     *
+     * Not the measured render rate shown as `Render FPS` on the stats overlay; `render()` follows
+     * `requestAnimationFrame` and may differ (for example 60 Hz updates on a 120 Hz display).
+     */
     targetFPS: number;
 
     /**
@@ -217,7 +222,7 @@ export interface IBlitTechDemo {
      * Issue all draw calls for the current frame here.
      *
      * When {@link HardwareSettings.statsOverlayEnabled} is `true` (default), the engine
-     * draws a screen-space stats HUD after this method returns (FPS, backend, demo
+     * draws a screen-space stats HUD after this method returns (render FPS, target FPS, backend, demo
      * title). Optional {@link statsOverlayRows} adds stacked bars above the footer.
      * Demos do not need to duplicate FPS or page-title text. Reserve the bottom and top
      * ~15 px bands (plus ~17 px per custom overlay row) for overlay bars, or disable

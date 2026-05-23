@@ -1,12 +1,12 @@
 /**
- * Engine-managed stats overlay (FPS, target rate, demo text, backend).
+ * Engine-managed stats overlay (render FPS, target rate, demo text, backend).
  *
  * Instantiated by {@link BTAPI} when {@link HardwareSettings.statsOverlayEnabled} is
  * `true` (default). Layout is computed once at init from logical `displaySize` and
  * system font metrics; per-frame work samples render timing and draws two 16 px bars:
  *
  * - **Top:** demo title (left) and `backend | WxH` (right)
- * - **Bottom:** `FPS: N | Target: T` (left) and `[HIDE ~]` hint (right)
+ * - **Bottom:** `Render FPS: N | Target: T` (left) and `[HIDE ~]` hint (right)
  * - **Custom rows (optional):** demo-supplied bars stacked above the bottom bar, 1 px apart
  *
  * Drawn in screen space (camera reset) after demo `render()`, palette effects, and
@@ -493,7 +493,7 @@ export class StatsOverlay {
 
         renderer.resetCamera();
 
-        const bottomLeftLabel = `FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
+        const bottomLeftLabel = `Render FPS: ${this.#fps.measuredFps} | Target: ${this.#targetFps}`;
 
         renderer.drawRectFillOnTop(this.#topBarRect, this.#idxBg);
         renderer.drawRectFillOnTop(this.#bottomBarRect, this.#idxBg);
