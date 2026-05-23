@@ -61,6 +61,42 @@ BT.activeBackend; // 'webgpu' | 'software' | null - backend that actually starte
 `BT.init()` selects WebGPU or falls back to the Canvas 2D software renderer automatically. When not using `bootstrap()`,
 set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the canvas.
 
+### Resolution model
+
+Blit-Tech tracks several related pixel dimensions. The word **display** appears in several public names (`displaySize`,
+`canvasDisplaySize`, display-tier effects); use the vocabulary below when you mean a specific layer.
+
+| Term               | What it is                                                                                         | Configure field             | `BT` getter               |
+| ------------------ | -------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- |
+| **Logical**        | Game/simulation coordinate space; where `render()` draws palette-indexed pixels                    | `displaySize`               | `BT.displaySize`          |
+| **Drawing buffer** | GPU/canvas backing-store resolution; upscale target and display-tier post-process resolution       | `canvasDisplaySize`         | `BT.canvasDisplaySize`    |
+| _(derived)_        | Effective drawing-buffer size (`canvasDisplaySize` when set, otherwise logical 1:1)                | —                           | `BT.outputSize`           |
+| **CSS cap**        | Maximum on-screen canvas size in CSS pixels (layout scales to the viewport, not beyond this)       | `maxCanvasDisplaySize`      | _(no getter)_             |
+| **Effect tier**    | Post-process chain stage: **pixel tier** at logical resolution; **display tier** at drawing buffer | _(requires drawing buffer)_ | _(see post-process docs)_ |
+
+Typical WebGPU flow at default `320×240` logical with `640×480` drawing buffer:
+
+```text
+render() @ logical (320×240)
+  → pixel-tier effects @ logical
+  → palette resolve + upscale @ drawing buffer (640×480)  ← BT.outputSize
+  → display-tier effects @ drawing buffer
+  → swap chain → browser scales canvas (up to CSS cap 960×720)
+```
+
+**Which size for CRT?** CRT-style effects (scanlines, barrel distortion, RGB mask, bloom) are **display-tier**. They run
+at the **drawing buffer** — use **`BT.outputSize`**, not `BT.displaySize`. Set `canvasDisplaySize` larger than
+`displaySize` (for example `320×240` logical and `1280×960` buffer) so curvature and scanlines are not quantized onto
+the logical pixel grid. Display-tier registration throws when `canvasDisplaySize` is unset. Pixel-native effects
+(`PixelGlitch`, `PixelMosaic`) are **pixel-tier** and run at **`BT.displaySize`** (logical).
+
+**What is `BT.outputSize`?** The effective **drawing-buffer** width and height in pixels:
+`canvasDisplaySize ?? displaySize`. Palette resolve/upscale and the display-tier chain both operate at this size. When
+`canvasDisplaySize` is omitted, logical and drawing buffer match (1:1). Each read returns a clone. There is no
+`HardwareSettings.outputSize` field — only the runtime getter.
+
+See [Post-Process Effects](post-process-effects.md) for tier routing and presets.
+
 **`HardwareSettings`** (resolved after `configure()`; the hook may return a partial object):
 
 `configure()` may return only the fields you want to override. The engine merges them with `defaultConfig()` via
@@ -68,17 +104,17 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `canvasDisplaySize` means a 1:1 drawing buffer).
 
-| Field                  | Type                     | Default     | Description                                         |
-| ---------------------- | ------------------------ | ----------- | --------------------------------------------------- |
-| `displaySize`          | `Vector2i`               | `320×240`   | Logical render resolution                           |
-| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | CSS/output size; enables display-tier effects       |
-| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | Maximum on-screen canvas CSS size                   |
-| `targetFPS`            | `number`                 | `60`        | Fixed `update()` rate (simulation ticks per second) |
-| `backend`              | `'webgpu' \| 'software'` | `'webgpu'`  | Force rendering backend                             |
-| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                      |
-| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync               |
-| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`              |
-| `statsOverlayStyle`    | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay |
+| Field                  | Type                     | Default     | Description                                                        |
+| ---------------------- | ------------------------ | ----------- | ------------------------------------------------------------------ |
+| `displaySize`          | `Vector2i`               | `320×240`   | **Logical** render resolution                                      |
+| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set |
+| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | **CSS cap** — maximum on-screen canvas size                        |
+| `targetFPS`            | `number`                 | `60`        | Fixed `update()` rate (simulation ticks per second)                |
+| `backend`              | `'webgpu' \| 'software'` | `'webgpu'`  | Force rendering backend                                            |
+| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                                     |
+| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync                              |
+| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`                             |
+| `statsOverlayStyle`    | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay                |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
 is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -88,9 +124,9 @@ stays a generic init failure message. In WebGPU mode, the requested logical and 
 adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall back to the software renderer.
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
-names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
-`requestedBackend` mirrors resolved `HardwareSettings.backend` (including URL overrides). `activeBackend` is the backend
-that actually started and may differ after WebGPU fallback.
+names on `HardwareSettings`. `outputSize` is the derived drawing-buffer size — see
+[Resolution model](#resolution-model). `requestedBackend` mirrors resolved `HardwareSettings.backend` (including URL
+overrides). `activeBackend` is the backend that actually started and may differ after WebGPU fallback.
 
 ### Requested vs active backend
 
