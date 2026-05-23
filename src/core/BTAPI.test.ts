@@ -27,6 +27,7 @@ import {
 import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import { BT } from '../BlitTech';
 import type { Effect } from '../render/effects/Effect';
 import { StatsOverlay } from '../render/StatsOverlay';
 import { Rect2i } from '../utils/Rect2i';
@@ -646,6 +647,8 @@ describe('BTAPI', () => {
 
             expect(result).toBe(true);
             expect(BTAPI.instance.getHardwareSettings()?.backend).toBe('software');
+            expect(BTAPI.instance.getRequestedBackend()).toBe('software');
+            expect(BTAPI.instance.getActiveBackend()).toBe('software');
             expect(BTAPI.instance.getDevice()).toBeNull();
         });
 
@@ -667,6 +670,7 @@ describe('BTAPI', () => {
 
             expect(result).toBe(true);
             expect(BTAPI.instance.getHardwareSettings()?.backend).toBe('webgpu');
+            expect(BTAPI.instance.getRequestedBackend()).toBe('webgpu');
             expect(BTAPI.instance.getDevice()).not.toBeNull();
         });
 
@@ -1011,6 +1015,7 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getDevice()).toBeNull();
             expect(BTAPI.instance.getContext()).toBeNull();
             expect(BTAPI.instance.getRenderer()).not.toBeNull();
+            expect(BTAPI.instance.getRequestedBackend()).toBe('webgpu');
             expect(BTAPI.instance.getActiveBackend()).toBe('software');
         });
 
@@ -1018,11 +1023,79 @@ describe('BTAPI', () => {
             const result = await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
 
             expect(result).toBe(true);
+            expect(BTAPI.instance.getRequestedBackend()).toBe('webgpu');
             expect(BTAPI.instance.getActiveBackend()).toBe('webgpu');
         });
 
-        it('reports null active backend before init', () => {
+        it('reports null requested and active backends before init', () => {
+            expect(BTAPI.instance.getRequestedBackend()).toBeNull();
             expect(BTAPI.instance.getActiveBackend()).toBeNull();
+        });
+
+        it('exposes requested and active backends on BT after URL override', async () => {
+            vi.stubGlobal('location', { search: '?backend=software' });
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+            uninstallMockNavigatorGPU();
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    backend: 'webgpu',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const result = await BT.init(demo, makeMock2DCanvas());
+
+            expect(result).toBe(true);
+            expect(BT.requestedBackend).toBe('software');
+            expect(BT.activeBackend).toBe('software');
+        });
+
+        it('keeps BT.requestedBackend webgpu when BT.activeBackend is software after fallback', async () => {
+            uninstallMockNavigatorGPU();
+            vi.stubGlobal(
+                'OffscreenCanvas',
+                class MockOffscreenCanvas {
+                    constructor(
+                        public width: number,
+                        public height: number,
+                    ) {}
+                    getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                        return contextType === '2d' ? makeOffscreenCanvas2dContext() : null;
+                    }
+                },
+            );
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const result = await BT.init(demo, makeMock2DCanvas());
+
+            expect(result).toBe(true);
+            expect(BT.requestedBackend).toBe('webgpu');
+            expect(BT.activeBackend).toBe('software');
         });
     });
 

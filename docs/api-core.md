@@ -54,7 +54,8 @@ BT.displaySize; // Vector2i - configured logical resolution (clone per read)
 BT.canvasDisplaySize; // Vector2i | null - output buffer when set in configure()
 BT.outputSize; // Vector2i - effective drawing-buffer size (clone per read)
 BT.targetFPS; // number - fixed update() rate (simulation), not measured render FPS
-BT.activeBackend; // 'webgpu' | 'software' | null
+BT.requestedBackend; // 'webgpu' | 'software' | null - resolved request (see below)
+BT.activeBackend; // 'webgpu' | 'software' | null - backend that actually started
 ```
 
 `BT.init()` selects WebGPU or falls back to the Canvas 2D software renderer automatically. When not using `bootstrap()`,
@@ -88,7 +89,55 @@ adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall bac
 
 **`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
 names on `HardwareSettings`. `outputSize` is the effective drawing-buffer size (`canvasDisplaySize ?? displaySize`).
-`activeBackend` is the backend that actually started (after fallback), not the `backend` value from `configure()`.
+`requestedBackend` mirrors resolved `HardwareSettings.backend` (including URL overrides). `activeBackend` is the backend
+that actually started and may differ after WebGPU fallback.
+
+### Requested vs active backend
+
+Two getters disambiguate **what you asked for** from **what is running**:
+
+| Getter                | When set                                                                                         | Meaning                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `BT.requestedBackend` | After hardware settings load (`configure()` merge + URL override), before or after renderer init | Backend the engine will try / tried to start (`'webgpu'` default when omitted) |
+| `BT.activeBackend`    | After successful renderer init only                                                              | Backend that actually started (`null` before init or on init failure)          |
+
+**`configure().backend`** and **`BT.requestedBackend`** both describe the request, but only the getter reflects
+post-merge resolution:
+
+- `demo.configure()` may return a partial object; the engine merges it with `defaultConfig()`.
+- `?backend=software` mutates the resolved `HardwareSettings.backend` **before** `initRenderer()` runs (during
+  `loadHardwareSettings()`). A page opened as `/demos/023-crt-pipboy.html?backend=software` therefore reports
+  `BT.requestedBackend === 'software'` even when `configure()` asked for WebGPU.
+
+**Fallback:** When `requestedBackend` is `'webgpu'` (explicit or default) and WebGPU init fails, the engine logs a
+warning and starts the software renderer. Then `activeBackend === 'software'` while `requestedBackend` stays `'webgpu'`.
+
+**Runtime checks (post-process, capture, etc.):** use `activeBackend`, not `requestedBackend`:
+
+```ts
+// Correct: gate on the backend that actually started; BT.effectAdd takes one effect
+if (BT.activeBackend === 'webgpu') {
+  for (const fx of BT.preset.crtPipBoy()) {
+    BT.effectAdd(fx);
+  }
+}
+
+// Misleading after fallback: requestedBackend may still be 'webgpu'
+if (BT.requestedBackend === 'webgpu') {
+  for (const fx of BT.preset.crtPipBoy()) {
+    BT.effectAdd(fx); // throws once activeBackend is software
+  }
+}
+```
+
+Forcing software up front avoids the fallback path entirely:
+
+```ts
+configure() {
+  return { backend: 'software', /* ... */ };
+}
+// requestedBackend === activeBackend === 'software' after init
+```
 
 ### Stats overlay
 

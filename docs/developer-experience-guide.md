@@ -136,7 +136,9 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
   [CLAUDE.md](../CLAUDE.md) (**BT API: getters vs methods**).
 - **`BT` getter names** that surface `configure()` / `HardwareSettings` use the **same field names** (`displaySize`,
   `targetFPS`, `canvasDisplaySize`, …). Keep acronym spelling consistent (`targetFPS`, not `targetFps`). Runtime-only
-  reads use descriptive names (`activeBackend`, `ticks`, `deltaSeconds`).
+  reads use descriptive names (`activeBackend`, `requestedBackend`, `ticks`, `deltaSeconds`). Use `activeBackend` for
+  runtime capability checks; `requestedBackend` mirrors resolved `HardwareSettings.backend` (including
+  `?backend=software`).
 
 ---
 

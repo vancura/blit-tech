@@ -9,7 +9,7 @@
  * suppression behavior used by facade helpers.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 
 import type { BitmapFont, HardwareSettings } from './BlitTech';
 import { BT, Palette, Rect2i, SpriteSheet, Vector2i } from './BlitTech';
@@ -1434,6 +1434,41 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
             const text = document.getElementById(DEFAULT_CONTAINER_ID)?.textContent ?? '';
             expect(text).toContain("doesn't support fullscreen effects");
         });
+    });
+});
+
+// #endregion
+
+// #region BT.requestedBackend
+
+describe('BT.requestedBackend', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('is typed as Backend | null on the public facade', () => {
+        expectTypeOf(BT.requestedBackend).toEqualTypeOf<'webgpu' | 'software' | null>();
+    });
+
+    it('delegates to BTAPI.instance.getRequestedBackend', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'getRequestedBackend').mockReturnValue('software');
+
+        const result = BT.requestedBackend;
+
+        expect(spy).toHaveBeenCalled();
+        expect(result).toBe('software');
+    });
+
+    it('returns null before initialization', () => {
+        vi.spyOn(BTAPI.instance, 'getRequestedBackend').mockReturnValue(null);
+
+        expect(BT.requestedBackend).toBeNull();
+    });
+
+    it('returns webgpu when BTAPI reports webgpu requested', () => {
+        vi.spyOn(BTAPI.instance, 'getRequestedBackend').mockReturnValue('webgpu');
+
+        expect(BT.requestedBackend).toBe('webgpu');
     });
 });
 

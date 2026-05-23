@@ -3,8 +3,11 @@ import { describe, it } from 'node:test';
 
 import {
     DRIFT_WARNING_PATTERNS,
+    extractBtDeclarationBlock,
     findAlignmentFailures,
     findDriftWarnings,
+    findMissingBtDeclarationMembers,
+    REQUIRED_BT_DECLARATION_MEMBERS,
     validateDeclarationTooling,
 } from './check-declaration-tooling.mjs';
 
@@ -43,5 +46,37 @@ describe('check-declaration-tooling', () => {
         const log = 'Analysis will use the bundled TypeScript version 5.9.3';
         const failures = validateDeclarationTooling(log, { requireOutputFile: false });
         assert.deepEqual(failures, []);
+    });
+
+    it('findMissingBtDeclarationMembers fails when requestedBackend is absent', () => {
+        const dts = 'declare namespace BT { readonly activeBackend: Backend | null; }';
+        const failures = findMissingBtDeclarationMembers(dts);
+        assert.equal(failures.length, 1);
+        assert.match(failures[0], /requestedBackend/);
+    });
+
+    it('findMissingBtDeclarationMembers passes when required getters are present', () => {
+        const dts = [
+            'declare namespace BT {',
+            '  readonly requestedBackend: Backend | null;',
+            '  readonly activeBackend: Backend | null;',
+            '}',
+        ].join('\n');
+        assert.deepEqual(findMissingBtDeclarationMembers(dts), []);
+    });
+
+    it('findMissingBtDeclarationMembers ignores similarly named members outside BT', () => {
+        const dts = [
+            'interface Other { readonly requestedBackend: string; readonly activeBackend: string; }',
+            'export declare const BT: { readonly ticks: number; };',
+        ].join('\n');
+        const failures = findMissingBtDeclarationMembers(dts);
+        assert.equal(failures.length, REQUIRED_BT_DECLARATION_MEMBERS.length);
+        assert.ok(failures.every((message) => message.includes('missing BT getter')));
+    });
+
+    it('extractBtDeclarationBlock reads export declare const BT object type', () => {
+        const dts = 'export declare const BT: { readonly ticks: number; };';
+        assert.equal(extractBtDeclarationBlock(dts), '{ readonly ticks: number; }');
     });
 });

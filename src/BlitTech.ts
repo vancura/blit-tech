@@ -466,6 +466,19 @@ export const BT = {
     },
 
     /**
+     * Backend requested for initialization (`configure().backend` after merge).
+     *
+     * Includes `?backend=software` URL overrides applied before the renderer starts.
+     * Defaults to `'webgpu'` when `backend` is omitted. Does **not** change when WebGPU
+     * falls back to software; use {@link BT.activeBackend} for the backend that actually started.
+     *
+     * @returns `'webgpu'` or `'software'` once hardware settings are loaded; `null` before `BT.init()`.
+     */
+    get requestedBackend(): Backend | null {
+        return BTAPI.instance.getRequestedBackend();
+    },
+
+    /**
      * Fixed-step seconds per update tick.
      *
      * Equivalent to `1 / BT.targetFPS` when `BT.targetFPS` is finite and positive.
@@ -511,8 +524,17 @@ export const BT = {
      * Rendering backend that is currently active.
      *
      * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
-     * Useful when adjusting demo behavior - for example, skipping post-process effects
-     * that only work under WebGPU.
+     * May differ from {@link BT.requestedBackend} when WebGPU was requested but unavailable
+     * (automatic software fallback). Use this getter for runtime behavior - for example,
+     * skipping post-process effects that only work under WebGPU:
+     *
+     * ```ts
+     * if (BT.activeBackend === 'webgpu') {
+     *   for (const fx of BT.preset.crtPipBoy()) {
+     *     BT.effectAdd(fx);
+     *   }
+     * }
+     * ```
      *
      * @returns `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      */

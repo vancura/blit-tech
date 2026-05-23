@@ -36,8 +36,9 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
 - **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
-- **BTAPI** - singleton coordinator; includes software-mode init, `?backend=software` URL override, `captureFrame()` in
-  software mode, and stats overlay render path (Node + GPU mocks + 2D canvas mocks)
+- **BTAPI** - singleton coordinator; includes software-mode init, `?backend=software` URL override,
+  `BT.requestedBackend` vs `BT.activeBackend` after WebGPU fallback, `captureFrame()` in software mode, and stats
+  overlay render path (Node + GPU mocks + 2D canvas mocks)
 - **StatsOverlay** - layout helpers, demo label parsing, right-aligned text X, toggle hit-testing, `updateAndRender` bar
   layout (Node)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
@@ -66,8 +67,8 @@ documented in [Performance Testing](performance-testing.md).
 Public types are rolled up during `pnpm run build` via `vite-plugin-dts` and API Extractor. The workspace pins
 TypeScript to the same version API Extractor bundles (see `docs/developer-experience-guide.md`).
 
-- **`pnpm run test:declarations`** - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns and
-  alignment log parsing). Included in `pnpm run preflight`.
+- **`pnpm run test:declarations`** - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns,
+  required `BT` getters in rolled-up `.d.ts`, and alignment log parsing). Included in `pnpm run preflight`.
 - **CI** - after `pnpm run build`, `node scripts/check-declaration-tooling.mjs build.log` runs in both
   `.github/workflows/ci.yml` (build-library job) and `.github/workflows/pr-checks.yml` (bundle-size job) to fail on
   drift warnings and version mismatch.
