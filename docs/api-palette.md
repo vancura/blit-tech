@@ -33,14 +33,16 @@ BT.systemPrint(pos, 3, 'Score'); // glyphs use absolute slot 3
 ### Per-draw offset (`paletteOffset`)
 
 Indexed sprites and bitmap fonts store small indices in the texture (starting at `1`; stored `0` is transparent). At
-draw time the engine computes `effectiveIndex = storedIndex + paletteOffset` and looks up `palette[effectiveIndex]`.
+draw time the WebGPU sprite shader computes `combined = storedIndex + paletteOffset`, then `index = min(combined, 255u)`
+before palette lookup.
 
 ```ts
 BT.drawSprite(sheet, src, pos, 0); // stored 1 → palette[1], stored 2 → palette[2]
 BT.drawSprite(sheet, src, pos, 16); // stored 1 → palette[17], stored 2 → palette[18]
 ```
 
-Use offsets for team colors, tints, and variants without duplicating art. Out-of-range results render as opaque black.
+Use offsets for team colors, tints, and variants without duplicating art. When `combined` exceeds `255`, lookup uses
+palette slot `255` from the clamp, not an inherent error color.
 
 ### Active palette: `BT.paletteSet()` vs `BT.palette`
 
