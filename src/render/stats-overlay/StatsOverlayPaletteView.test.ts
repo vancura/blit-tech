@@ -144,10 +144,15 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(usedSwatch).toBeDefined();
 
         const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
-        const unusedSwatchOutline = calls.find(
-            (call) => call.rect.x === unusedPos.x && call.rect.y === unusedPos.y && call.index === DEFAULT_IDX_TEXT,
+        const unusedSwatchMarker = calls.find(
+            (call) =>
+                call.rect.x === unusedPos.x + 2 &&
+                call.rect.y === unusedPos.y + 2 &&
+                call.rect.width === 3 &&
+                call.rect.height === 3 &&
+                call.index === DEFAULT_IDX_TEXT,
         );
-        expect(unusedSwatchOutline).toBeDefined();
+        expect(unusedSwatchMarker).toBeDefined();
 
         const unusedSwatchFill = calls.find(
             (call) =>
@@ -157,12 +162,6 @@ describe('StatsOverlayPaletteView.draw', () => {
                 call.index === 3,
         );
         expect(unusedSwatchFill).toBeUndefined();
-
-        const unusedX = calls.find(
-            (call) => call.rect.x === unusedPos.x + 2 && call.rect.y === unusedPos.y + swatchSize - 3,
-        );
-        expect(unusedX).toBeDefined();
-        expect(unusedX?.index).toBe(DEFAULT_IDX_TEXT);
     });
 
     it('buildUsedPaletteLookup ignores slot 0 and out-of-range indices', () => {
