@@ -32,4 +32,27 @@ describe('RenderPaletteUsage', () => {
 
         expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
     });
+
+    it('ignores invalid and out-of-range indices', () => {
+        const mask = new Uint8Array(256);
+        const scratch: number[] = [];
+
+        markRenderPaletteIndexUsed(mask, -1);
+        markRenderPaletteIndexUsed(mask, 256);
+        markRenderPaletteIndexUsed(mask, 300);
+        markRenderPaletteIndexUsed(mask, 1.5);
+
+        expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+    });
+
+    it('collects only valid indices when mixed with invalid values', () => {
+        const mask = new Uint8Array(256);
+        const scratch: number[] = [];
+
+        markRenderPaletteIndexUsed(mask, -1);
+        markRenderPaletteIndexUsed(mask, 5);
+        markRenderPaletteIndexUsed(mask, 256);
+
+        expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([5]);
+    });
 });

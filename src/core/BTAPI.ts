@@ -38,6 +38,7 @@ import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 import {
     collectUsedRenderPaletteIndices,
     markRenderPaletteIndexUsed,
+    RENDER_PALETTE_USAGE_CAPACITY,
     resetRenderPaletteUsage,
 } from './RenderPaletteUsage';
 import { initWebGPU } from './WebGPUContext';
@@ -131,7 +132,10 @@ export class BTAPI {
     private pendingDrawCalls = 0;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
-    private readonly framePaletteUsageMask = new Uint8Array(256);
+    private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
+
+    /** Last palette index from {@link setClearColor}; reapplied after each frame reset. */
+    private activeClearPaletteIndex = 0;
 
     /** Reusable sorted list of used palette indices for the stats overlay grid. */
     private readonly framePaletteUsageScratch: number[] = [];
@@ -280,7 +284,7 @@ export class BTAPI {
                 let renderMs = 0;
 
                 if (this.renderer) {
-                    resetRenderPaletteUsage(this.framePaletteUsageMask);
+                    this.resetFramePaletteUsageForRender();
 
                     this.renderer.beginFrame();
 
@@ -633,6 +637,7 @@ export class BTAPI {
      */
     public setClearColor(paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
+        this.activeClearPaletteIndex = paletteIndex;
         this.trackPaletteIndexUsed(paletteIndex);
 
         this.renderer?.setClearColor(paletteIndex);
@@ -1298,6 +1303,20 @@ export class BTAPI {
      */
     private markDrawCall(): void {
         this.pendingDrawCalls++;
+    }
+
+    /**
+     * Clears per-frame palette usage and re-applies the active clear color index.
+     *
+     * The renderer still clears every frame from {@link setClearColor} even when
+     * the demo does not call `BT.clear()` again; the stats overlay should show that slot.
+     */
+    private resetFramePaletteUsageForRender(): void {
+        resetRenderPaletteUsage(this.framePaletteUsageMask);
+
+        if (this.activeClearPaletteIndex > 0) {
+            markRenderPaletteIndexUsed(this.framePaletteUsageMask, this.activeClearPaletteIndex);
+        }
     }
 
     /**

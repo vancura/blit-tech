@@ -519,7 +519,6 @@ export class SpriteSheet {
             const rowOffset = y * sheetWidth;
 
             for (let x = startX; x < endX; x++) {
-                 
                 const sheetIndex = pixels[rowOffset + x] ?? 0;
 
                 if (sheetIndex === 0) {
