@@ -100,6 +100,21 @@ describe('computePaletteGrid', () => {
     });
 });
 
+describe('computeUnusedSwatchMarkerRect', () => {
+    it('returns a centered 3x3 marker for a 7px swatch', () => {
+        expect(computeUnusedSwatchMarkerRect(10, 20, 7)).toEqual(new Rect2i(12, 22, 3, 3));
+    });
+
+    it('returns a zero-area rect for non-positive swatch sizes', () => {
+        expect(computeUnusedSwatchMarkerRect(10, 20, 0)).toEqual(new Rect2i(10, 20, 0, 0));
+        expect(computeUnusedSwatchMarkerRect(10, 20, -2)).toEqual(new Rect2i(10, 20, 0, 0));
+    });
+
+    it('clamps marker size for small swatches', () => {
+        expect(computeUnusedSwatchMarkerRect(0, 0, 4)).toEqual(new Rect2i(1, 1, 1, 1));
+    });
+});
+
 describe('StatsOverlayPaletteView.draw', () => {
     it('draws filled swatches for used indices and empty X marks for unused slots', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
@@ -145,13 +160,12 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(usedSwatch).toBeDefined();
 
         const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
-        const expectedMarker = computeUnusedSwatchMarkerRect(unusedPos.x, unusedPos.y, swatchSize);
         const unusedSwatchMarker = calls.find(
             (call) =>
-                call.rect.x === expectedMarker.x &&
-                call.rect.y === expectedMarker.y &&
-                call.rect.width === expectedMarker.width &&
-                call.rect.height === expectedMarker.height &&
+                call.rect.x === unusedPos.x + 2 &&
+                call.rect.y === unusedPos.y + 2 &&
+                call.rect.width === 3 &&
+                call.rect.height === 3 &&
                 call.index === DEFAULT_IDX_TEXT,
         );
         expect(unusedSwatchMarker).toBeDefined();

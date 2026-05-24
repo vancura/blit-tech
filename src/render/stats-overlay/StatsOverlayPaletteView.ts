@@ -170,9 +170,14 @@ const UNUSED_SWATCH_MARKER_SIZE = 3;
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
- * @returns Marker rect clamped and centered within the swatch bounds.
+ * @returns Marker rect clamped and centered within the swatch bounds, or a
+ * zero-area rect at `(x, y)` when `swatchSize` is not positive.
  */
 export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: number): Rect2i {
+    if (swatchSize <= 0) {
+        return new Rect2i(x, y, 0, 0);
+    }
+
     const markerSize = Math.max(1, Math.min(UNUSED_SWATCH_MARKER_SIZE, swatchSize - 4));
     const offset = Math.floor((swatchSize - markerSize) / 2);
 
@@ -194,6 +199,11 @@ function drawUnusedSwatch(renderer: IRenderer, x: number, y: number, swatchSize:
     }
 
     const marker = computeUnusedSwatchMarkerRect(x, y, swatchSize);
+
+    if (marker.width <= 0 || marker.height <= 0) {
+        return;
+    }
+
     renderer.drawRectFillOnTop(marker, markIndex);
 }
 
