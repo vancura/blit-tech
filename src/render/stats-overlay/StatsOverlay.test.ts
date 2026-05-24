@@ -316,7 +316,11 @@ describe('StatsOverlay', () => {
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, palette, usedMask);
 
         const fills = getRectFillCalls(renderer);
-        expect(fills[3]).toMatchObject({ y: 240 - grid.totalHeight, height: grid.totalHeight, width: 320 });
+        const bottomBarFill = fills.find(
+            (rect) => rect.y === 240 - grid.totalHeight && rect.height === grid.totalHeight && rect.width === 320,
+        );
+
+        expect(bottomBarFill).toBeDefined();
         expect(renderer.drawRectFillOnTop.mock.calls.length).toBeGreaterThan(4);
     });
 
@@ -352,5 +356,101 @@ describe('StatsOverlay', () => {
         const customRowFill = fills.find((rect) => rect.height === STATS_BAR_HEIGHT && rect.y === row0BarY);
 
         expect(customRowFill).toMatchObject({ y: row0BarY, width: 320, height: STATS_BAR_HEIGHT });
+    });
+
+    it('draws timing chart dots when statsOverlayTimingChart is enabled', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(
+            layout,
+            'Demo',
+            60,
+            'webgpu',
+            { barPaletteIndex: 8, textPaletteIndex: 9 },
+            STATS_OVERLAY_PALETTE_VIEW_OFF,
+            undefined,
+            true,
+            { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
+            36,
+        );
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 8,
+            updateMs: 200,
+            renderMs: 100,
+            updateSteps: 1,
+            drawCalls: 4,
+        });
+
+        const dotCalls = renderer.drawRectFillOnTop.mock.calls.filter(
+            (call) => (call[0] as { width: number }).width === 1 && (call[0] as { height: number }).height === 1,
+        );
+        const paletteIndices = dotCalls.map((call) => call[1] as number);
+
+        expect(paletteIndices).toContain(10);
+        expect(paletteIndices).toContain(11);
+    });
+
+    it('does not draw overlay while hidden but keeps timing chart samples for re-show', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(
+            layout,
+            'Demo',
+            60,
+            'webgpu',
+            undefined,
+            STATS_OVERLAY_PALETTE_VIEW_OFF,
+            undefined,
+            true,
+            { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
+        );
+        const renderer = createMockRenderer();
+
+        overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 8,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 4,
+        });
+
+        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
+
+        overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 2);
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 8,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 4,
+        });
+
+        expect(renderer.drawRectFillOnTop.mock.calls.some((call) => call[1] === 10)).toBe(true);
+    });
+
+    it('does not draw timing chart dots when statsOverlayTimingChart is disabled', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(
+            layout,
+            'Demo',
+            60,
+            'webgpu',
+            undefined,
+            STATS_OVERLAY_PALETTE_VIEW_OFF,
+            undefined,
+            false,
+        );
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 8,
+            updateMs: 200,
+            renderMs: 100,
+            updateSteps: 1,
+            drawCalls: 4,
+        });
+
+        expect(renderer.drawRectFillOnTop.mock.calls.some((call) => call[1] === 10)).toBe(false);
     });
 });

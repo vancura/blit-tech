@@ -7,11 +7,16 @@
 
 import type { BitmapFont } from '../../assets/BitmapFont';
 import type { Palette } from '../../assets/Palette';
-import type { Backend, StatsOverlayRow, StatsOverlayStyle } from '../../core/IBlitTechDemo';
+import type {
+    Backend,
+    StatsOverlayRow,
+    StatsOverlayStyle,
+    StatsOverlayTimingChartStyle,
+} from '../../core/IBlitTechDemo';
 import type { KeyboardInput } from '../../input/KeyboardInput';
 import type { PointerInput } from '../../input/PointerInput';
 import type { IRenderer } from '../IRenderer';
-import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT, STATS_BOTTOM_HINT_LABEL } from './constants';
+import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT, DEFAULT_TIMING_CHART_HEIGHT, STATS_BOTTOM_HINT_LABEL } from './constants';
 import { FpsSampler } from './FpsSampler';
 import {
     buildStatsOverlayLayoutPlan,
@@ -22,6 +27,8 @@ import { StatsOverlayBars } from './StatsOverlayBars';
 import { computePaletteGrid, DEFAULT_PALETTE_GRID, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
 import { StatsOverlayTimingChart } from './StatsOverlayTimingChart';
 import { StatsOverlayToggle } from './StatsOverlayToggle';
+import type { ResolvedStatsOverlayTimingChartStyle } from './timingChartStyle';
+import { resolveStatsOverlayTimingChartStyle } from './timingChartStyle';
 import { TimingSampler } from './TimingSampler';
 import type {
     StatsOverlayLayout,
@@ -58,6 +65,10 @@ export class StatsOverlay {
 
     readonly #timingChart: StatsOverlayTimingChart;
 
+    readonly #timingChartHeight: number;
+
+    readonly #timingChartStyle: ResolvedStatsOverlayTimingChartStyle;
+
     readonly #paletteView: StatsOverlayPaletteView;
 
     readonly #paletteColumns: number | undefined;
@@ -80,6 +91,9 @@ export class StatsOverlay {
      * @param style - Optional palette indices from {@link HardwareSettings.statsOverlayStyle}.
      * @param statsOverlayPaletteView - When true, draws the live palette swatch grid.
      * @param paletteColumns - Optional max swatches per row from {@link HardwareSettings.statsOverlayPaletteColumns}.
+     * @param statsOverlayTimingChart - When true, draws the update/render timing chart band.
+     * @param statsOverlayTimingChartStyle - Optional timing chart palette overrides.
+     * @param statsOverlayTimingChartHeight - Chart band height in pixels (default 22).
      */
     constructor(
         layout: StatsOverlayLayout,
@@ -89,6 +103,9 @@ export class StatsOverlay {
         style?: StatsOverlayStyle,
         statsOverlayPaletteView = false,
         paletteColumns?: number,
+        statsOverlayTimingChart = false,
+        statsOverlayTimingChartStyle?: StatsOverlayTimingChartStyle,
+        statsOverlayTimingChartHeight?: number,
     ) {
         this.#layout = layout;
         this.#topLeftLabel = topLeftLabel;
@@ -97,9 +114,15 @@ export class StatsOverlay {
         this.#idxBg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
         this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
-        this.#timingChart = new StatsOverlayTimingChart(false);
+        this.#timingChartStyle = resolveStatsOverlayTimingChartStyle(style, statsOverlayTimingChartStyle);
+        this.#timingChartHeight = statsOverlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
+        this.#timingChart = new StatsOverlayTimingChart(statsOverlayTimingChart);
         this.#paletteView = new StatsOverlayPaletteView(statsOverlayPaletteView);
         this.#paletteColumns = paletteColumns;
+
+        if (statsOverlayTimingChart) {
+            this.#timingChart.reset(layout.displayWidth);
+        }
     }
 
     /**
@@ -170,6 +193,8 @@ export class StatsOverlay {
                 customRowCount,
             ),
             statsOverlayPaletteView,
+            timingChartEnabled: this.#timingChart.enabled,
+            timingChartHeight: this.#timingChartHeight,
             ...(paletteGrid !== undefined ? { paletteGrid } : {}),
         };
     }
@@ -203,12 +228,9 @@ export class StatsOverlay {
         this.#barStyle.barIndex = this.#idxBg;
         this.#barStyle.textIndex = this.#idxText;
 
-        this.#timingChart.draw(renderer, plan.timingChart, {
-            updateBarIndex: this.#idxBg,
-            renderBarIndex: this.#idxText,
-        });
-
         this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
+
+        this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle);
 
         this.#paletteView.draw(
             renderer,
@@ -264,12 +286,15 @@ export class StatsOverlay {
         palette?: Palette | null,
         usedPaletteMask: Uint8Array = EMPTY_PALETTE_USAGE_MASK,
     ): void {
-        this.#fps.sample();
+        // Chart history keeps advancing while hidden so re-show reflects demo-only timing
+        // (overlay draw is skipped below; palette usage tracking is also off when hidden).
         this.#sampleTiming(timing);
 
         if (!this.#toggle.visible) {
             return;
         }
+
+        this.#fps.sample();
 
         const customRows = getCustomRows?.();
         const layoutConfig = this.#createLayoutConfig(customRows?.length ?? 0, palette);

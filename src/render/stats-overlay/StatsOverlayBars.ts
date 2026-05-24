@@ -33,7 +33,7 @@ export class StatsOverlayBars {
     }
 
     /**
-     * Draws built-in top/metrics/timing/bottom bar fills.
+     * Draws built-in top/chart/metrics/timing/bottom bar fills.
      *
      * @param renderer - Active renderer.
      * @param plan - Computed layout plan.
@@ -41,6 +41,11 @@ export class StatsOverlayBars {
      */
     drawFixedBars(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
         renderer.drawRectFillOnTop(plan.titleBar, barIndex);
+
+        if (plan.timingChart.height > 0) {
+            renderer.drawRectFillOnTop(plan.timingChart, barIndex);
+        }
+
         renderer.drawRectFillOnTop(plan.metricsBar, barIndex);
         renderer.drawRectFillOnTop(plan.timingTextBar, barIndex);
         renderer.drawRectFillOnTop(plan.bottomArea, barIndex);

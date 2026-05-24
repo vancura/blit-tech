@@ -1369,8 +1369,11 @@ describe('BTAPI', () => {
 
             const systemFont = BTAPI.instance.getSystemFont();
             expect(systemFont).not.toBeNull();
+            if (!systemFont) {
+                return;
+            }
 
-            vi.spyOn(systemFont!.getSpriteSheet(), 'markPaletteIndicesInRect').mockImplementation(glyphScanSpy);
+            vi.spyOn(systemFont.getSpriteSheet(), 'markPaletteIndicesInRect').mockImplementation(glyphScanSpy);
 
             const textPaletteIndex = 8;
 

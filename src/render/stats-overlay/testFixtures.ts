@@ -5,7 +5,7 @@
 import { vi } from 'vitest';
 
 import type { BitmapFont } from '../../assets/BitmapFont';
-import type { Rect2i } from '../../utils/Rect2i';
+import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import type { IRenderer } from '../IRenderer';
 import { STATS_BAR_HEIGHT } from './constants';
@@ -67,7 +67,15 @@ export function getBitmapTextCalls(renderer: ReturnType<typeof createMockRendere
  * @returns Filled rectangles in invocation order.
  */
 export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect2i[] {
-    return renderer.drawRectFillOnTop.mock.calls.map((call) => call[0] as Rect2i);
+    return renderer.drawRectFillOnTop.mock.calls.map(
+        (call) =>
+            new Rect2i(
+                (call[0] as Rect2i).x,
+                (call[0] as Rect2i).y,
+                (call[0] as Rect2i).width,
+                (call[0] as Rect2i).height,
+            ),
+    );
 }
 
 /**
