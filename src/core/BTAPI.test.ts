@@ -1411,6 +1411,63 @@ describe('BTAPI', () => {
 
             expect(markSpy).toHaveBeenCalledTimes(2);
         });
+
+        it('clears stale palette usage after overlay hide and re-show', async () => {
+            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const rafCallbacks: FrameRequestCallback[] = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(() => {
+                    BTAPI.instance.drawPixel(new Vector2i(0, 0), 9);
+                }),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const overlay = getStatsOverlay();
+            expect(overlay).not.toBeNull();
+
+            const drainOneFrame = (): void => {
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16);
+                }
+            };
+
+            drainOneFrame();
+            overlay?.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
+            expect(overlay?.tracksPaletteUsage).toBe(false);
+
+            drainOneFrame();
+
+            overlay?.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 2);
+            expect(overlay?.tracksPaletteUsage).toBe(true);
+
+            overlaySpy.mockClear();
+            drainOneFrame();
+
+            const usedMask = overlaySpy.mock.calls.at(-1)?.[8] as Uint8Array | undefined;
+            const scratch: number[] = [];
+
+            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, 16, scratch)).toEqual([9]);
+        });
     });
 
     // #endregion

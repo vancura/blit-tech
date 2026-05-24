@@ -277,9 +277,7 @@ export class BTAPI {
                 let renderMs = 0;
 
                 if (this.renderer) {
-                    if (this.shouldTrackFramePaletteUsage()) {
-                        resetRenderPaletteUsage(this.framePaletteUsageMask);
-                    }
+                    this.beginRenderFrame();
 
                     this.renderer.beginFrame();
 
@@ -1291,6 +1289,20 @@ export class BTAPI {
      */
     private markDrawCall(): void {
         this.pendingDrawCalls++;
+    }
+
+    /**
+     * Applies overlay toggle input and clears per-frame palette usage before demo render.
+     *
+     * Toggle runs here (not in {@link StatsOverlay.updateAndRender}) so visibility is current
+     * when deciding whether to track palette usage during `demo.render()`.
+     */
+    private beginRenderFrame(): void {
+        if (this.statsOverlay) {
+            this.statsOverlay.handleToggle(this.pointer, this.keyboard, this.loop?.getTicks() ?? 0);
+        }
+
+        resetRenderPaletteUsage(this.framePaletteUsageMask);
     }
 
     /**

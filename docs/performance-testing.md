@@ -55,10 +55,10 @@ Current benchmark files:
 
 These benchmarks guard perf follow-ups for the live palette swatch grid:
 
-| File                               | Cases                                                                         |
-| ---------------------------------- | ----------------------------------------------------------------------------- |
-| `SpriteSheet.bench.ts`             | `markPaletteIndicesInRect` on a typical 8x8 glyph rect vs a 64x64 sprite rect |
-| `StatsOverlayPaletteView.bench.ts` | `StatsOverlayPaletteView.draw()` for 16-slot vs 256-slot palettes             |
+| File                               | Cases                                                         |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `SpriteSheet.bench.ts`             | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
+| `StatsOverlayPaletteView.bench.ts` | Palette grid `draw()` for 16 vs 256 slots                     |
 
 They run in the same Vitest bench suite as the rest of the repo and are included in `benchmark-results.json` for CI. No
 separate registration step is required; the next successful `main` push refreshes the baseline artifact with these

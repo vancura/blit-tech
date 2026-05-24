@@ -240,7 +240,8 @@ export class StatsOverlay {
     }
 
     /**
-     * Processes toggle input then draws the overlay.
+     * Draws the overlay. Toggle input is handled earlier in the frame by BTAPI
+     * ({@link BTAPI.beginRenderFrame}) so palette usage tracking matches visibility.
      *
      * @param renderer - Active {@link IRenderer} instance.
      * @param font - System bitmap font.
@@ -265,7 +266,6 @@ export class StatsOverlay {
     ): void {
         this.#fps.sample();
         this.#sampleTiming(timing);
-        this.handleToggle(pointer, keyboard, currentTick);
 
         if (!this.#toggle.visible) {
             return;
