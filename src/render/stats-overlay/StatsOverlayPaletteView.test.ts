@@ -33,6 +33,22 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
     return mask;
 }
 
+/** Mock that snapshots each rect fill at call time (production reuses scratch rects). */
+function createRectFillMock(): {
+    drawRectFillOnTop: ReturnType<typeof vi.fn>;
+    calls: { rect: Rect2i; index: number }[];
+} {
+    const calls: { rect: Rect2i; index: number }[] = [];
+    const drawRectFillOnTop = vi.fn((rect: Rect2i, index: number) => {
+        calls.push({
+            rect: new Rect2i(rect.x, rect.y, rect.width, rect.height),
+            index,
+        });
+    });
+
+    return { drawRectFillOnTop, calls };
+}
+
 /** Returns the top-left pixel for one palette index in the bottom-band grid. */
 function swatchTopLeft(
     index: number,
@@ -135,7 +151,7 @@ describe('StatsOverlayPaletteView.draw', () => {
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const bottomAreaY = 240 - grid.totalHeight;
         const view = new StatsOverlayPaletteView(true);
-        const drawRectFillOnTop = vi.fn();
+        const { drawRectFillOnTop, calls } = createRectFillMock();
         const renderer = {
             drawRectFillOnTop,
         } as never;
@@ -153,11 +169,6 @@ describe('StatsOverlayPaletteView.draw', () => {
         );
 
         expect(drawRectFillOnTop).toHaveBeenCalled();
-
-        const calls = drawRectFillOnTop.mock.calls.map((call) => ({
-            rect: call[0] as Rect2i,
-            index: call[1] as number,
-        }));
 
         const usedPos = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);
         const usedSwatch = calls.find(
@@ -205,7 +216,7 @@ describe('StatsOverlayPaletteView.draw', () => {
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const bottomAreaY = 240 - grid.totalHeight;
         const view = new StatsOverlayPaletteView(true);
-        const drawRectFillOnTop = vi.fn();
+        const { drawRectFillOnTop, calls } = createRectFillMock();
         const renderer = {
             drawRectFillOnTop,
         } as never;
@@ -223,11 +234,6 @@ describe('StatsOverlayPaletteView.draw', () => {
         );
 
         expect(drawRectFillOnTop).toHaveBeenCalled();
-
-        const calls = drawRectFillOnTop.mock.calls.map((call) => ({
-            rect: call[0] as Rect2i,
-            index: call[1] as number,
-        }));
 
         const swatch0 = swatchTopLeft(0, grid.cols, bottomAreaY, swatchSize, grid.gap);
         const swatch1 = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);

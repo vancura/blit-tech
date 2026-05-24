@@ -127,6 +127,32 @@ export function computePaletteGrid(
 }
 
 /**
+ * Returns whether two axis-aligned rects overlap (zero allocation).
+ *
+ * @param ax - Left edge of rect A.
+ * @param ay - Top edge of rect A.
+ * @param aw - Width of rect A.
+ * @param ah - Height of rect A.
+ * @param bx - Left edge of rect B.
+ * @param by - Top edge of rect B.
+ * @param bw - Width of rect B.
+ * @param bh - Height of rect B.
+ * @returns `true` when the rects overlap.
+ */
+function rectsIntersect(
+    ax: number,
+    ay: number,
+    aw: number,
+    ah: number,
+    bx: number,
+    by: number,
+    bw: number,
+    bh: number,
+): boolean {
+    return !(bx >= ax + aw || bx + bw <= ax || by >= ay + ah || by + bh <= ay);
+}
+
+/**
  * Returns whether a swatch rect intersects an exclusion region.
  *
  * @param x - Swatch left edge in display pixels.
@@ -136,9 +162,7 @@ export function computePaletteGrid(
  * @returns `true` when any part of the swatch overlaps the exclusion rect.
  */
 function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
-    const swatchRect = new Rect2i(x, y, swatchSize, swatchSize);
-
-    return swatchRect.intersects(exclusion);
+    return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
 }
 
 /**
@@ -158,6 +182,32 @@ function buildHintExclusionRect(bottomTextY: number, displayWidth: number, lineH
 /** Preferred side length for the filled marker drawn inside unused swatches. */
 const UNUSED_SWATCH_MARKER_SIZE = 3;
 
+/** Reused draw scratch rects for the palette grid hot loop (one overlay draw at a time). */
+const paletteGridDrawScratch = {
+    swatch: new Rect2i(),
+    marker: new Rect2i(),
+};
+
+/**
+ * Writes the filled marker rect for an unused swatch into {@link target}.
+ *
+ * @param target - Reusable rect mutated in place.
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ */
+function writeUnusedSwatchMarkerRect(target: Rect2i, x: number, y: number, swatchSize: number): void {
+    if (swatchSize <= 0) {
+        target.set(x, y, 0, 0);
+        return;
+    }
+
+    const markerSize = Math.max(1, Math.min(UNUSED_SWATCH_MARKER_SIZE, swatchSize - 4));
+    const offset = Math.floor((swatchSize - markerSize) / 2);
+
+    target.set(x + offset, y + offset, markerSize, markerSize);
+}
+
 /**
  * Computes the filled marker rect drawn inside an unused swatch.
  *
@@ -168,37 +218,42 @@ const UNUSED_SWATCH_MARKER_SIZE = 3;
  * zero-area rect at `(x, y)` when `swatchSize` is not positive.
  */
 export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: number): Rect2i {
-    if (swatchSize <= 0) {
-        return new Rect2i(x, y, 0, 0);
-    }
+    const result = new Rect2i();
 
-    const markerSize = Math.max(1, Math.min(UNUSED_SWATCH_MARKER_SIZE, swatchSize - 4));
-    const offset = Math.floor((swatchSize - markerSize) / 2);
+    writeUnusedSwatchMarkerRect(result, x, y, swatchSize);
 
-    return new Rect2i(x + offset, y + offset, markerSize, markerSize);
+    return result;
 }
 
 /**
  * Draws a centered filled marker inside an unused swatch.
  *
  * @param renderer - Active renderer.
+ * @param markerScratch - Reusable marker rect mutated in place.
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
  * @param markIndex - Palette index for the marker fill.
  */
-function drawUnusedSwatch(renderer: IRenderer, x: number, y: number, swatchSize: number, markIndex: number): void {
+function drawUnusedSwatch(
+    renderer: IRenderer,
+    markerScratch: Rect2i,
+    x: number,
+    y: number,
+    swatchSize: number,
+    markIndex: number,
+): void {
     if (swatchSize <= 0) {
         return;
     }
 
-    const marker = computeUnusedSwatchMarkerRect(x, y, swatchSize);
+    writeUnusedSwatchMarkerRect(markerScratch, x, y, swatchSize);
 
-    if (marker.width <= 0 || marker.height <= 0) {
+    if (markerScratch.width <= 0 || markerScratch.height <= 0) {
         return;
     }
 
-    renderer.drawRectFillOnTop(marker, markIndex);
+    renderer.drawRectFillOnTop(markerScratch, markIndex);
 }
 
 /**
@@ -217,6 +272,8 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
  * Draws one palette swatch or its unused marker.
  *
  * @param renderer - Active renderer.
+ * @param swatchScratch - Reusable swatch rect mutated in place.
+ * @param markerScratch - Reusable marker rect mutated in place.
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
@@ -226,6 +283,8 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
  */
 function drawPaletteSwatch(
     renderer: IRenderer,
+    swatchScratch: Rect2i,
+    markerScratch: Rect2i,
     x: number,
     y: number,
     swatchSize: number,
@@ -234,9 +293,10 @@ function drawPaletteSwatch(
     unusedMarkIndex: number,
 ): void {
     if (isPaletteSlotUsed(usedMask, index)) {
-        renderer.drawRectFillOnTop(new Rect2i(x, y, swatchSize, swatchSize), index);
+        swatchScratch.set(x, y, swatchSize, swatchSize);
+        renderer.drawRectFillOnTop(swatchScratch, index);
     } else {
-        drawUnusedSwatch(renderer, x, y, swatchSize, unusedMarkIndex);
+        drawUnusedSwatch(renderer, markerScratch, x, y, swatchSize, unusedMarkIndex);
     }
 }
 
@@ -263,6 +323,8 @@ function drawPaletteSwatchGrid(
     const { cols, swatchSize, gap } = grid;
     const originX = bottomArea.x + STATS_EDGE_MARGIN_PX;
     const originY = bottomArea.y + PALETTE_GRID_PADDING_PX;
+    const swatchScratch = paletteGridDrawScratch.swatch;
+    const markerScratch = paletteGridDrawScratch.marker;
 
     for (let index = 0; index < colorCount; index++) {
         const col = index % cols;
@@ -276,7 +338,7 @@ function drawPaletteSwatchGrid(
             continue;
         }
 
-        drawPaletteSwatch(renderer, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+        drawPaletteSwatch(renderer, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
     }
 }
 
