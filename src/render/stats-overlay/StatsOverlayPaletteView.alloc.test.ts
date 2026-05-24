@@ -1,0 +1,128 @@
+/**
+ * Allocation regression tests for {@link StatsOverlayPaletteView} draw hot path (VV-543).
+ */
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { Palette } from '../../assets/Palette';
+import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
+import type * as Rect2iModule from '../../utils/Rect2i';
+import { Rect2i } from '../../utils/Rect2i';
+import { createStatsOverlayLayout } from './layoutHelpers';
+import { computePaletteGrid, DEFAULT_PALETTE_SWATCH_SIZE, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
+
+const { rect2iAllocStats } = vi.hoisted(() => ({ rect2iAllocStats: { count: 0 } }));
+
+vi.mock('../../utils/Rect2i', async (importOriginal) => {
+    const mod = await importOriginal<typeof Rect2iModule>();
+
+    class CountingRect2i extends mod.Rect2i {
+        constructor(...args: ConstructorParameters<typeof mod.Rect2i>) {
+            rect2iAllocStats.count++;
+            super(...args);
+        }
+    }
+
+    return { ...mod, Rect2i: CountingRect2i };
+});
+
+/** Builds a usage mask from palette slot indices for tests. */
+function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
+    const mask = new Uint8Array(size);
+
+    for (const index of indices) {
+        markRenderPaletteIndexUsed(mask, index);
+    }
+
+    return mask;
+}
+
+describe('StatsOverlayPaletteView allocation', () => {
+    beforeEach(() => {
+        rect2iAllocStats.count = 0;
+    });
+
+    it('does not construct Rect2i during repeated 16-slot palette grid draws', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const palette = Palette.cga();
+        const usedMask = buildUsageMask([1, 2, 3]);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
+        const bottomArea = new Rect2i(0, 240 - grid.totalHeight, 320, grid.totalHeight);
+        const view = new StatsOverlayPaletteView(true);
+        const renderer = { drawRectFillOnTop: vi.fn() } as never;
+
+        for (let i = 0; i < 8; i++) {
+            view.draw(
+                renderer,
+                bottomArea,
+                palette,
+                grid,
+                layout.bottomTextY,
+                layout.displayWidth,
+                layout.lineHeight,
+                usedMask,
+                2,
+            );
+        }
+
+        const afterWarmup = rect2iAllocStats.count;
+
+        for (let i = 0; i < 64; i++) {
+            view.draw(
+                renderer,
+                bottomArea,
+                palette,
+                grid,
+                layout.bottomTextY,
+                layout.displayWidth,
+                layout.lineHeight,
+                usedMask,
+                2,
+            );
+        }
+
+        expect(rect2iAllocStats.count).toBe(afterWarmup);
+    });
+
+    it('does not construct Rect2i during repeated 256-slot palette grid draws', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const palette = Palette.vga();
+        const usedMask = buildUsageMask([1, 2, 3, 4, 5]);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
+        const bottomArea = new Rect2i(0, 240 - grid.totalHeight, 320, grid.totalHeight);
+        const view = new StatsOverlayPaletteView(true);
+        const renderer = { drawRectFillOnTop: vi.fn() } as never;
+
+        for (let i = 0; i < 4; i++) {
+            view.draw(
+                renderer,
+                bottomArea,
+                palette,
+                grid,
+                layout.bottomTextY,
+                layout.displayWidth,
+                layout.lineHeight,
+                usedMask,
+                2,
+            );
+        }
+
+        const afterWarmup = rect2iAllocStats.count;
+
+        for (let i = 0; i < 32; i++) {
+            view.draw(
+                renderer,
+                bottomArea,
+                palette,
+                grid,
+                layout.bottomTextY,
+                layout.displayWidth,
+                layout.lineHeight,
+                usedMask,
+                2,
+            );
+        }
+
+        expect(rect2iAllocStats.count).toBe(afterWarmup);
+    });
+});

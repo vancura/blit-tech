@@ -24,6 +24,8 @@ Examples:
 - rect intersection
 - glyph lookup and text measurement
 - render-pipeline helper methods that do not require a browser
+- stats overlay palette grid draw (`StatsOverlayPaletteView.bench.ts`)
+- sprite or glyph palette usage marking (`SpriteSheet.bench.ts`)
 
 Commands:
 
@@ -47,7 +49,22 @@ CPU benchmark regression checks run in CI with the `perf` label.
 - PRs labeled `perf` run `pnpm run bench:json`
 - CI compares against the latest successful `main` baseline artifact
 - CI posts or updates a PR comment with the comparison table
-- CI fails if any benchmark regresses by more than 10%
+- CI fails if any benchmark regresses by more than **25%** (see `ci.yml` `--threshold 25`)
+
+New `*.bench.ts` files are picked up automatically on the next `main` baseline upload. No allowlist
+change is required. After adding benchmarks for stats overlay work (VV-543), label the PR `perf` if you
+want regression feedback before merge.
+
+### Stats overlay palette grid benchmarks (VV-543)
+
+| Benchmark file | What it measures |
+| --- | --- |
+| `src/assets/SpriteSheet.bench.ts` | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
+| `src/render/stats-overlay/StatsOverlayPaletteView.bench.ts` | Full palette grid `draw()` for 16 vs 256 slots |
+
+Use these when changing palette usage gating, swatch draw scratch reuse, or unique-index marking in
+`SpriteSheet`. Compare locally with `pnpm run bench`; use `pnpm run bench:json` before opening a `perf`
+labeled PR.
 
 ## References
 

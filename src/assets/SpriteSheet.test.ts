@@ -17,6 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
+import { collectUsedRenderPaletteIndices, resetRenderPaletteUsage } from '../core/RenderPaletteUsage';
 import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_ASSET_PIXELS } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
@@ -701,6 +702,73 @@ describe('SpriteSheet', () => {
             expect(() => sheet.getIndexedPixels()).toThrow(
                 "This sprite sheet hasn't been converted to palette indices yet. Call sheet.indexize(palette) first.",
             );
+        });
+    });
+
+    // #endregion
+
+    // #region Palette usage marking
+
+    describe('markPaletteIndicesInRect', () => {
+        it('marks resolved palette slots for unique non-zero sheet indices in the rect', () => {
+            const pixels = new Uint8Array([
+                0,
+                1,
+                1,
+                0, //
+                2,
+                2,
+                2,
+                2, //
+                0,
+                3,
+                3,
+                0, //
+                1,
+                0,
+                0,
+                3, //
+            ]) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(4, 4, pixels);
+            const mask = new Uint8Array(16);
+            const scratch: number[] = [];
+
+            sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 4, 4), 0, mask);
+
+            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([1, 2, 3]);
+        });
+
+        it('applies palette offset when marking resolved slots', () => {
+            const pixels = new Uint8Array([1, 2, 0, 0]) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(2, 2, pixels);
+            const mask = new Uint8Array(16);
+            const scratch: number[] = [];
+
+            sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 4, mask);
+
+            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([5, 6]);
+        });
+
+        it('ignores transparent sheet pixels and leaves the mask unchanged when none are used', () => {
+            const pixels = new Uint8Array([0, 0, 0, 0]) as Uint8Array<ArrayBuffer>;
+            const sheet = SpriteSheet.fromIndexedPixels(2, 2, pixels);
+            const mask = new Uint8Array(16);
+            const scratch: number[] = [];
+
+            sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 0, mask);
+
+            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+        });
+
+        it('is a no-op when the sheet is not indexized', () => {
+            const sheet = new SpriteSheet(mockImage);
+            const mask = new Uint8Array(16);
+            const scratch: number[] = [];
+
+            resetRenderPaletteUsage(mask);
+            sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 16, 16), 0, mask);
+
+            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
         });
     });
 

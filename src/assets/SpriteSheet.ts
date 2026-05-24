@@ -7,6 +7,9 @@ import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
 
+/** Reused per-call bitmask of sheet indices seen while scanning a source rect (VV-543). */
+const markPaletteIndicesInRectScratch = new Uint8Array(256);
+
 /**
  * Result object returned by {@link SpriteSheet.loadIndexed}.
  */
@@ -498,7 +501,8 @@ export class SpriteSheet {
      * Marks palette indices referenced by non-zero pixels in a source rectangle.
      *
      * Used by the engine to build the stats overlay palette grid from demo draw
-     * calls. Does not allocate; writes into the supplied usage mask.
+     * calls. Does not allocate; writes into the supplied usage mask. Each unique
+     * sheet index in the rect is resolved once (VV-543).
      *
      * @param srcRect - Region to scan in sheet coordinates.
      * @param paletteOffset - Palette offset applied at draw time.
@@ -515,6 +519,9 @@ export class SpriteSheet {
         const startY = Math.max(0, srcRect.y);
         const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
         const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
+        const seenSheetIndices = markPaletteIndicesInRectScratch;
+
+        seenSheetIndices.fill(0);
 
         for (let y = startY; y < endY; y++) {
             const rowOffset = y * sheetWidth;
@@ -526,9 +533,15 @@ export class SpriteSheet {
                     continue;
                 }
 
-                const resolved = sheetIndex + paletteOffset;
+                // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
+                if (seenSheetIndices[sheetIndex] === 1) {
+                    continue;
+                }
 
-                markRenderPaletteIndexUsed(usedMask, resolved);
+                // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
+                seenSheetIndices[sheetIndex] = 1;
+
+                markRenderPaletteIndexUsed(usedMask, sheetIndex + paletteOffset);
             }
         }
     }

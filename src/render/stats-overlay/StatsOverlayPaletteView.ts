@@ -165,18 +165,47 @@ function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusio
     return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
 }
 
+/** Cached hint exclusion rect; recomputed only when layout inputs change (VV-543). */
+const hintExclusionCache = {
+    bottomTextY: Number.NaN,
+    displayWidth: Number.NaN,
+    lineHeight: Number.NaN,
+    rect: new Rect2i(),
+};
+
 /**
- * Builds the screen-space rect reserved for the bottom-right `[~]` hint label.
+ * Returns the screen-space rect reserved for the bottom-right `[~]` hint label.
+ *
+ * Reuses {@link hintExclusionCache.rect} when `bottomTextY`, `displayWidth`, and
+ * `lineHeight` match the previous call.
  *
  * @param bottomTextY - Baseline Y for the hint text.
  * @param displayWidth - Logical display width.
  * @param lineHeight - System font line height.
  * @returns Exclusion rect for swatch placement.
  */
-function buildHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
+function resolveHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
+    if (
+        hintExclusionCache.bottomTextY === bottomTextY &&
+        hintExclusionCache.displayWidth === displayWidth &&
+        hintExclusionCache.lineHeight === lineHeight
+    ) {
+        return hintExclusionCache.rect;
+    }
+
     const hintLeft = statsRightAlignedTextX(STATS_BOTTOM_HINT_LABEL, displayWidth);
 
-    return new Rect2i(hintLeft, bottomTextY, Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft), lineHeight);
+    hintExclusionCache.bottomTextY = bottomTextY;
+    hintExclusionCache.displayWidth = displayWidth;
+    hintExclusionCache.lineHeight = lineHeight;
+    hintExclusionCache.rect.set(
+        hintLeft,
+        bottomTextY,
+        Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft),
+        lineHeight,
+    );
+
+    return hintExclusionCache.rect;
 }
 
 /** Preferred side length for the filled marker drawn inside unused swatches. */
@@ -394,7 +423,7 @@ export class StatsOverlayPaletteView {
             return;
         }
 
-        const hintExclusion = buildHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+        const hintExclusion = resolveHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
         drawPaletteSwatchGrid(renderer, bottomArea, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
