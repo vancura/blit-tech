@@ -245,9 +245,9 @@ export class StatsOverlay {
      *
      * @param renderer - Active {@link IRenderer} instance.
      * @param font - System bitmap font.
-     * @param pointer - Pointer subsystem for corner toggle.
-     * @param keyboard - Keyboard subsystem for Backquote toggle.
-     * @param currentTick - Current fixed-update tick for keyboard edge detection.
+     * @param _pointer - Reserved; toggle input is handled in BTAPI before render.
+     * @param _keyboard - Reserved; toggle input is handled in BTAPI before render.
+     * @param _currentTick - Reserved; toggle input is handled in BTAPI before render.
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
      * @param palette - Active demo palette for optional palette grid.
@@ -256,9 +256,9 @@ export class StatsOverlay {
     updateAndRender(
         renderer: IRenderer,
         font: BitmapFont,
-        pointer: PointerInput | null,
-        keyboard: KeyboardInput | null,
-        currentTick: number,
+        _pointer: PointerInput | null,
+        _keyboard: KeyboardInput | null,
+        _currentTick: number,
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
         timing?: StatsOverlayTimingSnapshot,
         palette?: Palette | null,
