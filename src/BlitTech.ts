@@ -414,10 +414,10 @@ export const BT = {
      *
      * @returns Configured logical size, or `Vector2i.zero()` before initialization.
      */
-    get logicalSize(): Vector2i {
+    get displaySize(): Vector2i {
         const settings = BTAPI.instance.getHardwareSettings();
 
-        return settings ? settings.logicalSize.clone() : Vector2i.zero();
+        return settings ? settings.displaySize.clone() : Vector2i.zero();
     },
 
     /**
@@ -436,7 +436,7 @@ export const BT = {
     },
 
     /**
-     * Effective drawing-buffer size in pixels (`drawingBufferSize ?? logicalSize`).
+     * Effective drawing-buffer size in pixels (`drawingBufferSize ?? displaySize`).
      *
      * Each read returns a clone.
      *
@@ -449,7 +449,7 @@ export const BT = {
             return Vector2i.zero();
         }
 
-        return (settings.drawingBufferSize ?? settings.logicalSize).clone();
+        return (settings.drawingBufferSize ?? settings.displaySize).clone();
     },
 
     /**
@@ -901,15 +901,15 @@ export const BT = {
      * Clamps a camera origin so the viewport stays within world bounds.
      *
      * Uses integer clamping per axis: `[0, worldSize - viewSize]`.
-     * If `viewSize` is omitted, the active {@link BT.logicalSize} is used.
+     * If `viewSize` is omitted, the active {@link BT.displaySize} is used.
      *
      * @param camera - Desired camera origin in world coordinates.
      * @param worldSize - Full world size in pixels.
-     * @param viewSize - Viewport size in pixels (defaults to display size).
+     * @param viewSize - Viewport size in pixels (defaults to {@link BT.displaySize}).
      * @returns Clamped camera origin.
      */
     cameraClamp: (camera: Vector2i, worldSize: Vector2i, viewSize?: Vector2i): Vector2i => {
-        return clampCameraToWorld(camera, worldSize, viewSize ?? BT.logicalSize);
+        return clampCameraToWorld(camera, worldSize, viewSize ?? BT.displaySize);
     },
 
     /**

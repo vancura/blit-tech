@@ -4,16 +4,16 @@ Canonical reference: [CLAUDE.md](../../CLAUDE.md) (**BT API: getters vs methods*
 
 Quick rules when changing `src/BlitTech.ts` or demos:
 
-- **Getter:** zero-arg read-only snapshot (`BT.logicalSize`, `BT.targetFPS`, `BT.ticks`, `BT.activeBackend`)
+- **Getter:** zero-arg read-only snapshot (`BT.displaySize`, `BT.targetFPS`, `BT.ticks`, `BT.activeBackend`)
 - **Method:** mutation, parameters, or async (`BT.cameraSet`, `BT.pointerPos(0)`, `await BT.captureFrame()`)
-- **Never** reintroduce `BT.logicalSize()` / `BT.getActiveBackend()`-style call syntax for these reads
+- **Never** reintroduce `BT.displaySize()` / `BT.getActiveBackend()`-style call syntax for these reads
 
 ## Getter list
 
 | Category | Members |
 | - | - |
-| Configure-time (mirror `HardwareSettings` names) | `logicalSize`, `drawingBufferSize`, `targetFPS` |
-| Derived | `outputSize` (`drawingBufferSize ?? logicalSize`; no `HardwareSettings` field) |
+| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS` |
+| Derived | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field) |
 | Configure-time (backend) | `requestedBackend` (mirrors `HardwareSettings.backend`) |
 | Loop timing | `deltaSeconds`, `timeSeconds`, `ticks` |
 | Runtime state | `activeBackend`, `camera`, `palette` |

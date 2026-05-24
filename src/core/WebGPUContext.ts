@@ -14,7 +14,7 @@ export interface WebGPUContextResult {
     /** Configured WebGPU canvas context. */
     context: GPUCanvasContext;
 
-    /** WebGPU drawing-buffer size in pixels (`configuredDrawingBufferSize ?? logicalSize`). */
+    /** WebGPU drawing-buffer size in pixels (`configuredDrawingBufferSize ?? displaySize`). */
     drawingBufferSize: Vector2i;
 }
 
@@ -32,10 +32,10 @@ export interface WebGPUContextResult {
  * GPU-internal sizes it must apply CSS itself after init.
  *
  * When `configuredDrawingBufferSize` is omitted, the drawing buffer matches the logical
- * `logicalSize` (no upscaling, no display-tier effects).
+ * `displaySize` (no upscaling, no display-tier effects).
  *
  * @param canvas - HTML canvas element to configure for WebGPU rendering.
- * @param logicalSize - Internal logical rendering resolution in pixels.
+ * @param displaySize - Internal logical rendering resolution in pixels.
  * @param configuredDrawingBufferSize - Optional output drawing-buffer size from `configure()`.
  * @returns Initialized device, context, and drawing-buffer size, or null when WebGPU
  *          is absent or the canvas context could not be obtained.
@@ -44,7 +44,7 @@ export interface WebGPUContextResult {
  */
 export async function initWebGPU(
     canvas: HTMLCanvasElement,
-    logicalSize: Vector2i,
+    displaySize: Vector2i,
     configuredDrawingBufferSize?: Vector2i,
 ): Promise<WebGPUContextResult | null> {
     if (!navigator.gpu) {
@@ -70,9 +70,9 @@ export async function initWebGPU(
     }
 
     // Drawing buffer = configured size when provided, else logical size.
-    const drawingBufferSize = configuredDrawingBufferSize ?? logicalSize;
+    const drawingBufferSize = configuredDrawingBufferSize ?? displaySize;
     const adapterLimit = adapter.limits?.maxTextureDimension2D;
-    const adapterLogicalError = validateWebGPUTextureDimension('logicalSize', logicalSize, adapterLimit);
+    const adapterLogicalError = validateWebGPUTextureDimension('displaySize', displaySize, adapterLimit);
     const adapterOutputError =
         configuredDrawingBufferSize === undefined
             ? null
@@ -97,7 +97,7 @@ export async function initWebGPU(
     }
 
     const deviceLimit = device.limits?.maxTextureDimension2D;
-    const deviceLogicalError = validateWebGPUTextureDimension('logicalSize', logicalSize, deviceLimit);
+    const deviceLogicalError = validateWebGPUTextureDimension('displaySize', displaySize, deviceLimit);
     const deviceOutputError =
         configuredDrawingBufferSize === undefined
             ? null
@@ -120,7 +120,7 @@ export async function initWebGPU(
     if (configuredDrawingBufferSize) {
         console.log(
             `[BT] Canvas drawing buffer: ${drawingBufferSize.x}x${drawingBufferSize.y} ` +
-                `(logical render: ${logicalSize.x}x${logicalSize.y})`,
+                `(logical render: ${displaySize.x}x${displaySize.y})`,
         );
     }
 

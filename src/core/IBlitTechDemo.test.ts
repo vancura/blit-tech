@@ -9,6 +9,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { validateRenderDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 
@@ -16,8 +17,8 @@ describe('defaultConfig', () => {
     it('should return 320x240 display size', () => {
         const settings = defaultConfig();
 
-        expect(settings.logicalSize.x).toBe(320);
-        expect(settings.logicalSize.y).toBe(240);
+        expect(settings.displaySize.x).toBe(320);
+        expect(settings.displaySize.y).toBe(240);
     });
 
     it('should return the 60 FPS target', () => {
@@ -75,7 +76,7 @@ describe('defaultConfig', () => {
         const b = defaultConfig();
 
         expect(a).not.toBe(b);
-        expect(a.logicalSize).not.toBe(b.logicalSize);
+        expect(a.displaySize).not.toBe(b.displaySize);
         expect(a.drawingBufferSize).not.toBe(b.drawingBufferSize);
         expect(a.maxCanvasSize).not.toBe(b.maxCanvasSize);
     });
@@ -85,7 +86,7 @@ describe('mergeHardwareSettings', () => {
     it('returns defaultConfig when partial is undefined', () => {
         const settings = mergeHardwareSettings();
 
-        expect(settings.logicalSize.x).toBe(320);
+        expect(settings.displaySize.x).toBe(320);
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.targetFPS).toBe(60);
         expect(settings.backend).toBe('webgpu');
@@ -94,27 +95,27 @@ describe('mergeHardwareSettings', () => {
     it('merges targetFPS-only partials with full defaults', () => {
         const settings = mergeHardwareSettings({ targetFPS: 30 });
 
-        expect(settings.logicalSize.x).toBe(320);
+        expect(settings.displaySize.x).toBe(320);
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.targetFPS).toBe(30);
         expect(settings.statsOverlayPaletteView).toBe(false);
     });
 
-    it('keeps drawingBufferSize unset when logicalSize is provided without output sizing', () => {
+    it('keeps drawingBufferSize unset when displaySize is provided without output sizing', () => {
         const settings = mergeHardwareSettings({
-            logicalSize: defaultConfig().logicalSize,
+            displaySize: defaultConfig().displaySize,
             targetFPS: 60,
         });
 
-        expect(settings.logicalSize.x).toBe(320);
+        expect(settings.displaySize.x).toBe(320);
         expect(settings.drawingBufferSize).toBeUndefined();
         expect(settings.targetFPS).toBe(60);
         expect(settings.backend).toBe('webgpu');
     });
 
-    it('applies only provided fields when logicalSize is set', () => {
+    it('applies only provided fields when displaySize is set', () => {
         const settings = mergeHardwareSettings({
-            logicalSize: new Vector2i(320, 240),
+            displaySize: new Vector2i(320, 240),
             drawingBufferSize: new Vector2i(640, 480),
             backend: 'software',
         });
@@ -164,5 +165,24 @@ describe('mergeHardwareSettings', () => {
         });
 
         expect(settings.statsOverlayTimingChartHeight).toBe(36);
+    });
+
+    it('preserves null displaySize for validation instead of substituting defaults', () => {
+        const settings = mergeHardwareSettings({
+            displaySize: null as unknown as Vector2i,
+        });
+
+        expect(settings.displaySize).toBeNull();
+        expect(validateRenderDimensions(settings)).not.toBeNull();
+    });
+
+    it('does not clone null optional vectors in the explicit display profile path', () => {
+        const settings = mergeHardwareSettings({
+            displaySize: new Vector2i(320, 240),
+            drawingBufferSize: null as unknown as Vector2i,
+        });
+
+        expect(settings.drawingBufferSize).toBeNull();
+        expect(validateRenderDimensions(settings)).not.toBeNull();
     });
 });

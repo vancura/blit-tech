@@ -22,19 +22,19 @@ function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimens
     switch (field) {
         case 'drawingBufferSize':
             return {
-                logicalSize: new Vector2i(320, 240),
+                displaySize: new Vector2i(320, 240),
                 drawingBufferSize: size,
                 maxCanvasSize: new Vector2i(960, 720),
             };
         case 'maxCanvasSize':
             return {
-                logicalSize: new Vector2i(320, 240),
+                displaySize: new Vector2i(320, 240),
                 drawingBufferSize: new Vector2i(640, 480),
                 maxCanvasSize: size,
             };
-        case 'logicalSize':
+        case 'displaySize':
             return {
-                logicalSize: size,
+                displaySize: size,
                 drawingBufferSize: new Vector2i(640, 480),
                 maxCanvasSize: new Vector2i(960, 720),
             };
@@ -45,7 +45,7 @@ function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimens
 
 describe('RenderLimits', () => {
     describe('validateRenderDimensions', () => {
-        const fields: RenderDimensionField[] = ['logicalSize', 'drawingBufferSize', 'maxCanvasSize'];
+        const fields: RenderDimensionField[] = ['displaySize', 'drawingBufferSize', 'maxCanvasSize'];
         const cases: Array<{ name: string; size: Vector2i }> = [
             { name: 'zero', size: rawSize(0, 240) },
             { name: 'negative', size: rawSize(-1, 240) },
@@ -70,7 +70,7 @@ describe('RenderLimits', () => {
         it('accepts the default render dimensions', () => {
             expect(
                 validateRenderDimensions({
-                    logicalSize: new Vector2i(320, 240),
+                    displaySize: new Vector2i(320, 240),
                     drawingBufferSize: new Vector2i(640, 480),
                     maxCanvasSize: new Vector2i(960, 720),
                 }),
@@ -80,14 +80,14 @@ describe('RenderLimits', () => {
         it('accepts omitted optional canvas dimensions', () => {
             expect(
                 validateRenderDimensions({
-                    logicalSize: new Vector2i(320, 240),
+                    displaySize: new Vector2i(320, 240),
                 }),
             ).toBeNull();
         });
 
         it('rejects total area separately from per-axis limits', () => {
             const error = validateRenderDimensions({
-                logicalSize: rawSize(4096, 4097),
+                displaySize: rawSize(4096, 4097),
             });
 
             expect(error).toContain(MAX_RENDER_PIXELS.toLocaleString('en-US'));
@@ -95,17 +95,17 @@ describe('RenderLimits', () => {
 
         it('rejects 8192x8192 when per-axis limits pass but total area exceeds cap', () => {
             const error = validateRenderDimensions({
-                logicalSize: rawSize(MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION),
+                displaySize: rawSize(MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION),
             });
 
-            expect(error).toContain('logicalSize');
+            expect(error).toContain('displaySize');
             expect(error).toContain(MAX_RENDER_PIXELS.toLocaleString('en-US'));
         });
 
         it('accepts dimensions at the per-axis maximum with area within cap', () => {
             expect(
                 validateRenderDimensions({
-                    logicalSize: rawSize(MAX_RENDER_DIMENSION, 2048),
+                    displaySize: rawSize(MAX_RENDER_DIMENSION, 2048),
                 }),
             ).toBeNull();
         });
@@ -113,7 +113,7 @@ describe('RenderLimits', () => {
         it('accepts dimensions at the total pixel area maximum', () => {
             expect(
                 validateRenderDimensions({
-                    logicalSize: rawSize(4096, 4096),
+                    displaySize: rawSize(4096, 4096),
                 }),
             ).toBeNull();
         });
@@ -121,7 +121,7 @@ describe('RenderLimits', () => {
         it('accepts dimensions at the per-axis maximum on a single axis', () => {
             expect(
                 validateRenderDimensions({
-                    logicalSize: rawSize(MAX_RENDER_DIMENSION, 1),
+                    displaySize: rawSize(MAX_RENDER_DIMENSION, 1),
                 }),
             ).toBeNull();
         });
@@ -129,7 +129,7 @@ describe('RenderLimits', () => {
 
     describe('validateRenderDimension', () => {
         it('returns null for a valid size at engine limits', () => {
-            expect(validateRenderDimension('logicalSize', new Vector2i(4096, 4096))).toBeNull();
+            expect(validateRenderDimension('displaySize', new Vector2i(4096, 4096))).toBeNull();
         });
 
         it('returns a field-specific message for invalid sizes', () => {
@@ -157,26 +157,26 @@ describe('RenderLimits', () => {
         });
 
         it('rejects when height alone exceeds the WebGPU texture limit', () => {
-            const error = validateWebGPUTextureDimension('logicalSize', new Vector2i(512, 2048), 1024);
+            const error = validateWebGPUTextureDimension('displaySize', new Vector2i(512, 2048), 1024);
 
-            expect(error).toContain('logicalSize');
+            expect(error).toContain('displaySize');
             expect(error).toContain('graphics card');
         });
 
         it('accepts dimensions exactly at the WebGPU texture limit', () => {
-            expect(validateWebGPUTextureDimension('logicalSize', new Vector2i(1024, 1024), 1024)).toBeNull();
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(1024, 1024), 1024)).toBeNull();
         });
 
         it('ignores missing WebGPU texture limits', () => {
-            expect(validateWebGPUTextureDimension('logicalSize', new Vector2i(2048, 1024), undefined)).toBeNull();
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), undefined)).toBeNull();
         });
 
         it('ignores non-finite WebGPU texture limits', () => {
-            expect(validateWebGPUTextureDimension('logicalSize', new Vector2i(2048, 1024), Number.NaN)).toBeNull();
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), Number.NaN)).toBeNull();
         });
 
         it('ignores non-positive WebGPU texture limits', () => {
-            expect(validateWebGPUTextureDimension('logicalSize', new Vector2i(2048, 1024), 0)).toBeNull();
+            expect(validateWebGPUTextureDimension('displaySize', new Vector2i(2048, 1024), 0)).toBeNull();
         });
     });
 });

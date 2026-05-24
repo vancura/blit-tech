@@ -50,7 +50,7 @@ displayError('Init Failed', 'WebGPU unavailable.', 'my-container');
 
 ```ts
 const ok = await BT.init(demo, canvas); // low-level init; prefer bootstrap()
-BT.logicalSize; // Vector2i - configured logical resolution (clone per read)
+BT.displaySize; // Vector2i - configured logical resolution (clone per read)
 BT.drawingBufferSize; // Vector2i | null - output buffer when set in configure()
 BT.outputSize; // Vector2i - effective drawing-buffer size (clone per read)
 BT.targetFPS; // number - fixed update() rate (simulation), not measured present FPS
@@ -63,12 +63,12 @@ set `canvas.tabIndex = 0` and call `canvas.focus()` so keyboard events reach the
 
 ### Resolution model
 
-Blit-Tech tracks several related pixel dimensions. Public configure/getter names (`logicalSize`, `drawingBufferSize`,
+Blit-Tech tracks several related pixel dimensions. Public configure/getter names (`displaySize`, `drawingBufferSize`,
 `maxCanvasSize`) map to the layers below; **display-tier** is a separate post-process term.
 
 | Term               | What it is                                                                                         | Configure field             | `BT` getter               |
 | ------------------ | -------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- |
-| **Logical**        | Game/simulation coordinate space; where `render()` draws palette-indexed pixels                    | `logicalSize`               | `BT.logicalSize`          |
+| **Logical**        | Game/simulation coordinate space; where `render()` draws palette-indexed pixels                    | `displaySize`               | `BT.displaySize`          |
 | **Drawing buffer** | GPU/canvas backing-store resolution; upscale target and display-tier post-process resolution       | `drawingBufferSize`         | `BT.drawingBufferSize`    |
 | _(derived)_        | Effective drawing-buffer size (`drawingBufferSize` when set, otherwise logical 1:1)                | —                           | `BT.outputSize`           |
 | **CSS cap**        | Maximum on-screen canvas size in CSS pixels (layout scales to the viewport, not beyond this)       | `maxCanvasSize`             | _(no getter)_             |
@@ -85,13 +85,13 @@ render() @ logical (320×240)
 ```
 
 **Which size for CRT?** CRT-style effects (scanlines, barrel distortion, RGB mask, bloom) are **display-tier**. They run
-at the **drawing buffer** — use **`BT.outputSize`**, not `BT.logicalSize`. Set `drawingBufferSize` larger than
-`logicalSize` (for example `320×240` logical and `1280×960` buffer) so curvature and scanlines are not quantized onto
+at the **drawing buffer** — use **`BT.outputSize`**, not `BT.displaySize`. Set `drawingBufferSize` larger than
+`displaySize` (for example `320×240` logical and `1280×960` buffer) so curvature and scanlines are not quantized onto
 the logical pixel grid. Display-tier registration throws when `drawingBufferSize` is unset. Pixel-native effects
-(`PixelGlitch`, `PixelMosaic`) are **pixel-tier** and run at **`BT.logicalSize`** (logical).
+(`PixelGlitch`, `PixelMosaic`) are **pixel-tier** and run at **`BT.displaySize`** (logical).
 
 **What is `BT.outputSize`?** The effective **drawing-buffer** width and height in pixels:
-`drawingBufferSize ?? logicalSize`. Palette resolve/upscale and the display-tier chain both operate at this size. When
+`drawingBufferSize ?? displaySize`. Palette resolve/upscale and the display-tier chain both operate at this size. When
 `drawingBufferSize` is omitted, logical and drawing buffer match (1:1). Each read returns a clone. There is no
 `HardwareSettings.outputSize` field — only the runtime getter.
 
@@ -100,13 +100,13 @@ See [Post-Process Effects](post-process-effects.md) for tier routing and presets
 **`HardwareSettings`** (resolved after `configure()`; the hook may return a partial object):
 
 `configure()` may return only the fields you want to override. The engine merges them with `defaultConfig()` via
-`mergeHardwareSettings()` (also exported). Omit `logicalSize` to inherit the full default resolution and `640×480`
-output buffer. Include `logicalSize` when you want a custom logical size; optional fields you omit then stay unset (for
+`mergeHardwareSettings()` (also exported). Omit `displaySize` to inherit the full default resolution and `640×480`
+output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `drawingBufferSize` means a 1:1 drawing buffer).
 
 | Field                           | Type                           | Default     | Description                                                          |
 | ------------------------------- | ------------------------------ | ----------- | -------------------------------------------------------------------- |
-| `logicalSize`                   | `Vector2i`                     | `320×240`   | **Logical** render resolution                                        |
+| `displaySize`                   | `Vector2i`                     | `320×240`   | **Logical** render resolution                                        |
 | `drawingBufferSize`             | `Vector2i`                     | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set   |
 | `maxCanvasSize`                 | `Vector2i`                     | `960×720`   | **CSS cap** — maximum on-screen canvas size                          |
 | `targetFPS`                     | `number`                       | `60`        | Fixed `update()` rate (simulation ticks per second)                  |
@@ -121,7 +121,7 @@ example no `drawingBufferSize` means a 1:1 drawing buffer).
 | `statsOverlayTimingChartHeight` | `number`                       | `22`        | Timing chart band height in pixels when the chart is enabled         |
 | `statsOverlayTimingChartStyle`  | `StatsOverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text) |
 
-`logicalSize`, `drawingBufferSize`, and `maxCanvasSize` must be positive whole-number pixel dimensions. Each size is
+`displaySize`, `drawingBufferSize`, and `maxCanvasSize` must be positive whole-number pixel dimensions. Each size is
 capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
 before the engine applies canvas layout, sets canvas backing dimensions, or allocates renderer buffers. `BT.init()`
 returns `false` and logs a specific `[BT]` message to the browser console (press F12); the on-canvas bootstrap error
@@ -132,9 +132,9 @@ adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall bac
 
 | Kind        | `BT` getter                                       | `HardwareSettings` field |
 | ----------- | ------------------------------------------------- | ------------------------ |
-| **Mirror**  | `logicalSize`, `drawingBufferSize`, `targetFPS`   | same names               |
+| **Mirror**  | `displaySize`, `drawingBufferSize`, `targetFPS`   | same names               |
 | **Mirror**  | `requestedBackend`                                | `backend`                |
-| **Derived** | `outputSize` (`drawingBufferSize ?? logicalSize`) | _(none)_                 |
+| **Derived** | `outputSize` (`drawingBufferSize ?? displaySize`) | _(none)_                 |
 
 `activeBackend` is runtime state (what actually started; may differ from `requestedBackend` after WebGPU fallback). See
 [Resolution model](#resolution-model) for drawing-buffer vocabulary.
@@ -190,7 +190,7 @@ configure() {
 
 When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
 top of all demo content. Bar bands and text anchors are computed each frame by the internal layout planner in
-`src/render/stats-overlay/layoutPlan.ts` from `logicalSize`, custom row count, and optional feature flags (timing chart
+`src/render/stats-overlay/layoutPlan.ts` from `displaySize`, custom row count, and optional feature flags (timing chart
 default off; palette grid opt-in via `statsOverlayPaletteView`). Init still caches stable values such as the
 bottom-right toggle rect and text baselines from the system font metrics.
 
@@ -276,7 +276,7 @@ terminal-style demos).
 // Overlay off (release build or custom full-screen HUD).
 configure() {
   return {
-    logicalSize: new Vector2i(320, 240),
+    displaySize: new Vector2i(320, 240),
     statsOverlayEnabled: false,
   };
 }
@@ -284,7 +284,7 @@ configure() {
 // Overlay on with palette grid and timing chart.
 configure() {
   return {
-    logicalSize: new Vector2i(320, 240),
+    displaySize: new Vector2i(320, 240),
     statsOverlayEnabled: true,
     statsOverlayPaletteView: true,
     statsOverlayTimingChart: true,
@@ -355,7 +355,7 @@ BT.cameraReset(); // set back to (0, 0)
 
 // Clamp a camera origin so the viewport stays within a world:
 const clamped = BT.cameraClamp(desired, worldSize);
-// Optional third argument overrides the viewport size (default: BT.logicalSize):
+// Optional third argument overrides the viewport size (default: BT.displaySize):
 const clamped = BT.cameraClamp(desired, worldSize, new Vector2i(160, 120));
 ```
 

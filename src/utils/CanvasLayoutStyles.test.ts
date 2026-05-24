@@ -19,7 +19,7 @@ describe('applyCanvasLayoutStyles', () => {
         document.body.appendChild(container);
 
         applyCanvasLayoutStyles(canvas, {
-            logicalSize: new Vector2i(320, 240),
+            displaySize: new Vector2i(320, 240),
             drawingBufferSize: new Vector2i(640, 480),
             maxCanvasSize: new Vector2i(960, 720),
         });
@@ -32,7 +32,7 @@ describe('applyCanvasLayoutStyles', () => {
         expect(canvas.style.getPropertyValue('max-height')).toBe('720px');
     });
 
-    it('uses logicalSize for aspect when drawingBufferSize is omitted', () => {
+    it('uses displaySize for aspect when drawingBufferSize is omitted', () => {
         const container = document.createElement('div');
         const canvas = document.createElement('canvas');
 
@@ -40,7 +40,7 @@ describe('applyCanvasLayoutStyles', () => {
         container.appendChild(canvas);
 
         applyCanvasLayoutStyles(canvas, {
-            logicalSize: new Vector2i(400, 300),
+            displaySize: new Vector2i(400, 300),
             maxCanvasSize: new Vector2i(800, 600),
         });
 
@@ -57,13 +57,13 @@ describe('applyCanvasLayoutStyles', () => {
         container.appendChild(canvas);
 
         applyCanvasLayoutStyles(canvas, {
-            logicalSize: new Vector2i(320, 240),
+            displaySize: new Vector2i(320, 240),
             drawingBufferSize: new Vector2i(640, 480),
             maxCanvasSize: new Vector2i(960, 720),
         });
 
         applyCanvasLayoutStyles(canvas, {
-            logicalSize: new Vector2i(320, 240),
+            displaySize: new Vector2i(320, 240),
             maxCanvasSize: new Vector2i(960, 720),
         });
 

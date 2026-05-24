@@ -228,7 +228,7 @@ export class BTAPI {
         const updateInterval = 1000 / hwSettings.targetFPS;
 
         console.log('[BT] Hardware settings:', {
-            logicalSize: `${hwSettings.logicalSize.x}x${hwSettings.logicalSize.y}`,
+            displaySize: `${hwSettings.displaySize.x}x${hwSettings.displaySize.y}`,
             targetFPS: hwSettings.targetFPS,
         });
 
@@ -394,7 +394,7 @@ export class BTAPI {
         }
 
         const lineHeight = this.systemFont.measureTextSize('A').height;
-        const layout = createStatsOverlayLayout(hw.logicalSize.x, hw.logicalSize.y, lineHeight);
+        const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
         const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
 
         if (!this.activeBackend) {
@@ -429,7 +429,7 @@ export class BTAPI {
 
         this.pointer?.detach();
         this.pointer = new PointerInput();
-        this.pointer.attach(canvas, hw.logicalSize);
+        this.pointer.attach(canvas, hw.displaySize);
 
         this.keyboard?.detach();
         this.keyboard = new KeyboardInput();
@@ -1061,7 +1061,7 @@ export class BTAPI {
      */
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
         applyCanvasLayoutStyles(canvas, {
-            logicalSize: hw.logicalSize,
+            displaySize: hw.displaySize,
             maxCanvasSize: hw.maxCanvasSize ?? new Vector2i(DEFAULT_MAX_CANVAS_SIZE.x, DEFAULT_MAX_CANVAS_SIZE.y),
             ...(hw.drawingBufferSize !== undefined ? { drawingBufferSize: hw.drawingBufferSize } : {}),
         });
@@ -1075,7 +1075,7 @@ export class BTAPI {
             let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
 
             try {
-                webGPUResult = await initWebGPU(canvas, hw.logicalSize, hw.drawingBufferSize);
+                webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.drawingBufferSize);
             } catch (error) {
                 if (error instanceof RenderDimensionLimitError) {
                     return false;
@@ -1093,7 +1093,7 @@ export class BTAPI {
                 this.renderer = new WebGpuRenderer(
                     webGPUResult.device,
                     webGPUResult.context,
-                    hw.logicalSize,
+                    hw.displaySize,
 
                     // Only forward an explicit outputSize when drawingBufferSize was
                     // provided; that is the signal that unlocks the display tier.
@@ -1122,7 +1122,7 @@ export class BTAPI {
 
         console.log('[BT] Initializing renderer (backend: software)');
 
-        this.renderer = new SoftwareRenderer(canvas, hw.logicalSize, hw.drawingBufferSize);
+        this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.drawingBufferSize);
 
         if (!(await this.renderer.init())) {
             console.error('[BT] Failed to initialize renderer');

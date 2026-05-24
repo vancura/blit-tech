@@ -13,7 +13,7 @@ export const DEFAULT_MAX_CANVAS_SIZE = { x: 960, y: 720 } as const;
 /** Inputs for {@link applyCanvasLayoutStyles}. */
 export interface CanvasLayoutStyleOptions {
     /** Logical render resolution (used for aspect ratio when `drawingBufferSize` is omitted). */
-    logicalSize: Vector2i;
+    displaySize: Vector2i;
     /** Optional output / drawing-buffer size (drives aspect ratio when set). */
     drawingBufferSize?: Vector2i;
     /** Maximum on-screen canvas size in CSS pixels (letterboxing still applies below this). */
@@ -50,7 +50,7 @@ function resolveLayoutRoot(canvas: HTMLCanvasElement): HTMLElement {
  * @param options - Logical, buffer, and CSS cap sizes from {@link HardwareSettings}.
  */
 export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: CanvasLayoutStyleOptions): void {
-    const aspectSource = options.drawingBufferSize ?? options.logicalSize;
+    const aspectSource = options.drawingBufferSize ?? options.displaySize;
     const layoutRoot = resolveLayoutRoot(canvas);
 
     layoutRoot.style.setProperty('--canvas-aspect-w', String(aspectSource.x));

@@ -27,7 +27,7 @@ import { BT, Vector2i, BarrelDistortion, Scanlines, RGBMask, Bloom, PixelGlitch 
 class Demo {
   configure() {
     return {
-      logicalSize: new Vector2i(320, 240), // logical pixel-art resolution
+      displaySize: new Vector2i(320, 240), // logical pixel-art resolution
       drawingBufferSize: new Vector2i(1280, 960), // output drawing-buffer size
       outputUpscaleFilter: 'nearest', // 'nearest' | 'linear'
       targetFPS: 60,
@@ -115,7 +115,7 @@ import type { Effect, EffectTier, Vector2i } from 'blit-tech';
 export class MyEffect implements Effect {
   public readonly tier: EffectTier = 'display'; // or 'pixel'
 
-  init(device: GPUDevice, format: GPUTextureFormat, logicalSize: Vector2i): void {
+  init(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i): void {
     // Create pipeline, uniform buffer, sampler.
   }
 
@@ -144,7 +144,7 @@ vs RGBA paths - see [Writing a custom effect](#writing-a-custom-effect) below.
 
 ```ts
 interface HardwareSettings {
-  logicalSize: Vector2i;
+  displaySize: Vector2i;
   drawingBufferSize?: Vector2i; // drives drawing buffer + CSS, enables display tier
   outputUpscaleFilter?: 'nearest' | 'linear'; // default 'nearest'
   targetFPS: number;
@@ -153,13 +153,13 @@ interface HardwareSettings {
 }
 ```
 
-When `drawingBufferSize` is omitted from a `configure()` return value that **includes** `logicalSize`, the WebGPU
-drawing buffer matches `logicalSize`. Palette resolve still runs (logical indices to RGBA at that size). The display
+When `drawingBufferSize` is omitted from a `configure()` return value that **includes** `displaySize`, the WebGPU
+drawing buffer matches `displaySize`. Palette resolve still runs (logical indices to RGBA at that size). The display
 tier remains unavailable (adding a display effect throws) because no explicit output buffer was configured.
 
-If the demo **does not** implement `configure()`, or returns a partial object **without** `logicalSize` (for example
+If the demo **does not** implement `configure()`, or returns a partial object **without** `displaySize` (for example
 only `{ targetFPS: 30 }`), the engine merges with `defaultConfig()`, which **does** set `drawingBufferSize` (`640x480`
-for `320x240` logical), so the display tier remains available unless you set a custom `logicalSize` and omit output
+for `320x240` logical), so the display tier remains available unless you set a custom `displaySize` and omit output
 sizing.
 
 ---

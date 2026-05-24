@@ -26,7 +26,7 @@ export const RENDER_DIMENSION_LIMITS = {
 // #region Types
 
 /** Hardware settings fields that carry render or canvas dimensions. */
-export type RenderDimensionField = 'logicalSize' | 'drawingBufferSize' | 'maxCanvasSize';
+export type RenderDimensionField = 'displaySize' | 'drawingBufferSize' | 'maxCanvasSize';
 
 /** Error type for render-dimension failures that must abort instead of falling back to another backend. */
 export class RenderDimensionLimitError extends Error {
@@ -44,7 +44,7 @@ export class RenderDimensionLimitError extends Error {
 /** Minimal settings shape needed for render-dimension validation. */
 export interface RenderDimensionSettings {
     /** Logical render resolution in pixels. */
-    logicalSize: Vector2i;
+    displaySize: Vector2i;
     /** Optional output drawing-buffer size in pixels. */
     drawingBufferSize?: Vector2i;
     /** Optional maximum on-screen canvas CSS size in pixels. */
@@ -61,9 +61,13 @@ export interface RenderDimensionSettings {
  * @param size - Size value to format.
  * @returns Size formatted as `WIDTHxHEIGHT`.
  */
-function formatSize(size: Vector2i | undefined): string {
+function formatSize(size: Vector2i | undefined | null): string {
     if (size === undefined) {
         return 'missing';
+    }
+
+    if (size === null) {
+        return 'null';
     }
 
     return `${size.x}x${size.y}`;
@@ -76,7 +80,7 @@ function formatSize(size: Vector2i | undefined): string {
  * @param size - Size value to validate.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateRenderDimension(field: RenderDimensionField, size: Vector2i | undefined): string | null {
+export function validateRenderDimension(field: RenderDimensionField, size: Vector2i | undefined | null): string | null {
     const x = size?.x;
     const y = size?.y;
 
@@ -116,7 +120,7 @@ export function validateRenderDimension(field: RenderDimensionField, size: Vecto
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
 export function validateRenderDimensions(settings: RenderDimensionSettings): string | null {
-    const logicalError = validateRenderDimension('logicalSize', settings.logicalSize);
+    const logicalError = validateRenderDimension('displaySize', settings.displaySize);
     if (logicalError) {
         return logicalError;
     }

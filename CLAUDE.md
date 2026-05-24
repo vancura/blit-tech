@@ -115,7 +115,7 @@ Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
      vertices/frame.
   2. **Sprites pipeline** - batched **palette-indexed** textured quads (sprites, bitmap text). Max 50k vertices (~8333
      quads). Nearest-neighbor sampling. Auto-batched by texture.
-  3. **Framebuffer & post-process** - the logical composite is an **`r8uint`** attachment at `logicalSize` (one palette
+  3. **Framebuffer & post-process** - the logical composite is an **`r8uint`** attachment at `displaySize` (one palette
      slot per pixel). **Pixel-tier** effects (`PostProcessChain`, `FullscreenPixelEffect`) run on that index buffer.
      **`PaletteResolveUpscalePass`** LUT-resolves indices to RGBA and upscales to `drawingBufferSize`. **Display-tier**
      effects run on that RGBA before present (see `docs/post-process-effects.md`).
@@ -162,14 +162,14 @@ and async work. Do not add new zero-argument `BT.foo()` functions when a getter 
 
 | Category                                                         | Members                                             | Notes                                                                                                       |
 | ---------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Configure-time** (mirror {@link HardwareSettings} field names) | `logicalSize`, `drawingBufferSize`, `targetFPS`     | Clone per read for `Vector2i` getters.                                                                      |
-| **Derived**                                                      | `outputSize`                                        | Effective drawing buffer (`drawingBufferSize ?? logicalSize`). No `HardwareSettings` field; clone per read. |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `drawingBufferSize`, `targetFPS`     | Clone per read for `Vector2i` getters.                                                                      |
+| **Derived**                                                      | `outputSize`                                        | Effective drawing buffer (`drawingBufferSize ?? displaySize`). No `HardwareSettings` field; clone per read. |
 | **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`              | `targetFPS` is configured rate, not measured FPS.                                                           |
 | **Configure-time (backend)**                                     | `requestedBackend`                                  | Mirrors resolved `HardwareSettings.backend` after merge and `?backend=software`; defaults to `'webgpu'`.    |
 | **Runtime state**                                                | `activeBackend`, `camera`, `palette`                | `activeBackend` is what actually started (after fallback). `palette` is a live reference.                   |
 | **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount` | Read once per frame when needed.                                                                            |
 
-Examples: `BT.logicalSize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
+Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
 
 ### Use methods (call with `()`)
 
@@ -184,7 +184,7 @@ Examples: `BT.logicalSize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
 
 - **Same name as `HardwareSettings`** when exposing configure values (`targetFPS`, not `fps` or `targetFps`).
 - **Derived getters** when the value is computed from configure fields (`outputSize` from
-  `drawingBufferSize ?? logicalSize`); do not add a matching `HardwareSettings` field.
+  `drawingBufferSize ?? displaySize`); do not add a matching `HardwareSettings` field.
 - **Descriptive runtime names** when there is no configure field (`activeBackend`, not `renderer`).
 - **`requestedBackend` vs `activeBackend`:** use `requestedBackend` for the resolved init request; use `activeBackend`
   for runtime gates (post-process, capture). They differ when WebGPU was requested but fell back to software.

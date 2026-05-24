@@ -53,10 +53,10 @@ export interface Effect {
      * @param format - Color attachment format for this chain (`r8uint` for the pixel
      *   tier, swap-chain format for the display tier) so ping-pong textures match the
      *   effect pipelines.
-     * @param logicalSize - Source render target resolution in pixels. Effects use
+     * @param displaySize - Source render target resolution in pixels. Effects use
      *   this for resolution-aware uniforms (e.g. CRT mask scale, bloom texel size).
      */
-    init(device: GPUDevice, format: GPUTextureFormat, logicalSize: Vector2i): void;
+    init(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i): void;
 
     /**
      * Writes per-frame uniform data to the GPU.

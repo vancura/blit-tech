@@ -11,16 +11,16 @@ When editing `src/BlitTech.ts`, demos, or API docs:
 
 Zero-argument **read-only** values on `BT`:
 
-- **Configure-time** (use same names as `HardwareSettings`): `logicalSize`, `drawingBufferSize`, `targetFPS`
-- **Derived:** `outputSize` (`drawingBufferSize ?? logicalSize`; no `HardwareSettings` field)
+- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `drawingBufferSize`, `targetFPS`
+- **Derived:** `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field)
 - **Configure-time (backend):** `requestedBackend` mirrors resolved `HardwareSettings.backend` (includes `?backend=software`)
 - **Loop:** `deltaSeconds`, `timeSeconds`, `ticks`
 - **Runtime:** `activeBackend`, `camera`, `palette`
 - **Per-frame input:** `pointerScrollDelta`, `inputString`, `gamepadCount`
 
-Good: `BT.logicalSize.y`, `BT.targetFPS`, `BT.ticks % 180`
+Good: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 180`
 
-Bad: `BT.logicalSize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use property forms)
+Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use property forms)
 
 ## Keep as methods
 

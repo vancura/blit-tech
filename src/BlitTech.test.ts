@@ -19,8 +19,8 @@ import { DEFAULT_CONTAINER_ID } from './utils/BootstrapHelpers';
 
 // #region Helpers
 
-const mockHardwareSettings = (logicalSize = new Vector2i(320, 240), targetFPS = 60): HardwareSettings => ({
-    logicalSize,
+const mockHardwareSettings = (displaySize = new Vector2i(320, 240), targetFPS = 60): HardwareSettings => ({
+    displaySize,
     targetFPS,
 });
 
@@ -97,9 +97,9 @@ describe('BT.init', () => {
 
 // #endregion
 
-// #region BT.logicalSize
+// #region BT.displaySize
 
-describe('BT.logicalSize', () => {
+describe('BT.displaySize', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -107,16 +107,16 @@ describe('BT.logicalSize', () => {
     it('returns zero vector when hardware settings are not available', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
 
-        const size = BT.logicalSize;
+        const size = BT.displaySize;
 
         expect(size.x).toBe(0);
         expect(size.y).toBe(0);
     });
 
-    it('returns a clone of logicalSize from hardware settings', () => {
+    it('returns a clone of displaySize from hardware settings', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(640, 480)));
 
-        const size = BT.logicalSize;
+        const size = BT.displaySize;
 
         expect(size.x).toBe(640);
         expect(size.y).toBe(480);
@@ -188,7 +188,7 @@ describe('BT.outputSize', () => {
         expect(size.y).toBe(0);
     });
 
-    it('matches logicalSize when drawingBufferSize is omitted', () => {
+    it('matches displaySize when drawingBufferSize is omitted', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(320, 240)));
 
         const size = BT.outputSize;
@@ -594,7 +594,7 @@ describe('BT.cameraClamp', () => {
         expect(clamped.equalsXY(320, 240)).toBe(true);
     });
 
-    it('uses BT.logicalSize when viewSize is omitted', () => {
+    it('uses BT.displaySize when viewSize is omitted', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(
             mockHardwareSettings(new Vector2i(200, 150), 60),
         );

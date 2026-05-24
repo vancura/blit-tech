@@ -35,16 +35,16 @@ export interface HardwareSettings {
      * the GPU); compare both the numeric caps above and
      * `GPUAdapter.limits.maxTextureDimension2D` when choosing dimensions.
      */
-    logicalSize: Vector2i;
+    displaySize: Vector2i;
 
     /**
      * Output drawing-buffer size in pixels. When set, this drives both the
      * WebGPU drawing buffer and the canvas CSS size, and enables the
      * `'display'` tier of the post-process effect chain (CRT scanlines, barrel
-     * distortion, etc.). Leave undefined to render at logical `logicalSize`
+     * distortion, etc.). Leave undefined to render at logical `displaySize`
      * with no display-tier effects.
      *
-     * Display-tier effects need this to be larger than `logicalSize` to express
+     * Display-tier effects need this to be larger than `displaySize` to express
      * curvature/scanlines/etc. cleanly without floor-quantizing onto the
      * logical pixel grid.
      *
@@ -130,7 +130,7 @@ export interface HardwareSettings {
 
     /**
      * Maximum palette swatches per row in the stats overlay grid. When unset, the engine
-     * picks the widest column count that fits {@link HardwareSettings.logicalSize}.
+     * picks the widest column count that fits {@link HardwareSettings.displaySize}.
      */
     statsOverlayPaletteColumns?: number;
 
@@ -243,8 +243,8 @@ export interface IBlitTechDemo {
      *
      * When present, you may return only the fields you want to change; the
      * engine merges them with {@link defaultConfig} via
-     * {@link mergeHardwareSettings}. Omit `logicalSize` to inherit the full
-     * default resolution and output buffer. Include `logicalSize` when you
+     * {@link mergeHardwareSettings}. Omit `displaySize` to inherit the full
+     * default resolution and output buffer. Include `displaySize` when you
      * want a custom logical size; optional fields you omit then stay unset
      * (for example no `drawingBufferSize` means a 1:1 drawing buffer).
      *
@@ -324,7 +324,7 @@ export interface IBlitTechDemo {
  */
 export function defaultConfig(): HardwareSettings {
     return {
-        logicalSize: new Vector2i(320, 240),
+        displaySize: new Vector2i(320, 240),
         drawingBufferSize: new Vector2i(640, 480),
         maxCanvasSize: new Vector2i(DEFAULT_MAX_CANVAS_SIZE.x, DEFAULT_MAX_CANVAS_SIZE.y),
         targetFPS: 60,
@@ -347,6 +347,43 @@ function cloneVector2i(size: Vector2i): Vector2i {
 }
 
 /**
+ * Picks a configure-time vector: omit when undefined, pass null through for
+ * validation, clone valid {@link Vector2i} values.
+ *
+ * @param value - Field from demo `configure()`.
+ * @returns `undefined` when omitted, `null` when explicitly null, otherwise a clone.
+ */
+function pickConfigureVector(value: Vector2i | undefined | null): Vector2i | null | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+
+    if (value === null) {
+        return null;
+    }
+
+    return cloneVector2i(value);
+}
+
+/**
+ * Resolves required `displaySize` for the explicit-profile merge path.
+ *
+ * Uses defaults only when the field was omitted (`undefined`), not when
+ * `configure()` passed `null` (validation should reject that).
+ *
+ * @param picked - Value from {@link pickDefinedHardwareSettings}.
+ * @param fallback - Baseline display size from {@link defaultConfig}.
+ * @returns Resolved display size (may be invalid at runtime when `null`).
+ */
+function resolveExplicitDisplaySize(picked: Vector2i | null | undefined, fallback: Vector2i): Vector2i {
+    if (picked !== undefined) {
+        return picked as Vector2i;
+    }
+
+    return cloneVector2i(fallback);
+}
+
+/**
  * Copies only defined fields from a partial configure() return value.
  *
  * @param partial - Values returned by the demo's `configure()` hook.
@@ -355,16 +392,19 @@ function cloneVector2i(size: Vector2i): Vector2i {
 function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partial<HardwareSettings> {
     const picked: Partial<HardwareSettings> = {};
 
-    if (partial.logicalSize !== undefined) {
-        picked.logicalSize = cloneVector2i(partial.logicalSize);
+    const pickedDisplaySize = pickConfigureVector(partial.displaySize);
+    if (pickedDisplaySize !== undefined) {
+        picked.displaySize = pickedDisplaySize as Vector2i;
     }
 
-    if (partial.drawingBufferSize !== undefined) {
-        picked.drawingBufferSize = cloneVector2i(partial.drawingBufferSize);
+    const pickedDrawingBufferSize = pickConfigureVector(partial.drawingBufferSize);
+    if (pickedDrawingBufferSize !== undefined) {
+        picked.drawingBufferSize = pickedDrawingBufferSize as Vector2i;
     }
 
-    if (partial.maxCanvasSize !== undefined) {
-        picked.maxCanvasSize = cloneVector2i(partial.maxCanvasSize);
+    const pickedMaxCanvasSize = pickConfigureVector(partial.maxCanvasSize);
+    if (pickedMaxCanvasSize !== undefined) {
+        picked.maxCanvasSize = pickedMaxCanvasSize as Vector2i;
     }
 
     if (partial.targetFPS !== undefined) {
@@ -422,11 +462,11 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
  * @returns Cloned vector or `undefined` when neither side provides a size.
  */
 function resolveMergedOptionalVector(
-    picked: Vector2i | undefined,
+    picked: Vector2i | null | undefined,
     fallback: Vector2i | undefined,
 ): Vector2i | undefined {
     if (picked !== undefined) {
-        return picked;
+        return picked === null ? (null as unknown as Vector2i) : picked;
     }
 
     return fallback !== undefined ? cloneVector2i(fallback) : undefined;
@@ -551,12 +591,12 @@ function buildFullDefaultMergeOptionals(
 }
 
 /**
- * Optional fields explicitly set in `configure()` when the demo provided `logicalSize`.
+ * Optional fields explicitly set in `configure()` when the demo provided `displaySize`.
  *
  * @param picked - Defined fields with vectors cloned.
  * @returns Partial settings to spread into the resolved profile.
  */
-function buildExplicitLogicalOptionals(picked: Partial<HardwareSettings>): Partial<HardwareSettings> {
+function buildExplicitDisplayOptionals(picked: Partial<HardwareSettings>): Partial<HardwareSettings> {
     const optionals: Partial<HardwareSettings> = {};
     assignIfDefined(optionals, 'drawingBufferSize', picked.drawingBufferSize);
     assignIfDefined(optionals, 'maxCanvasSize', picked.maxCanvasSize);
@@ -576,7 +616,7 @@ function buildExplicitLogicalOptionals(picked: Partial<HardwareSettings>): Parti
 
 /**
  * Merges partial settings with {@link defaultConfig} when the demo did not set
- * `logicalSize` (for example only `{ targetFPS: 30 }`).
+ * `displaySize` (for example only `{ targetFPS: 30 }`).
  *
  * @param picked - Defined fields from `configure()`.
  * @param defaults - Baseline hardware settings.
@@ -584,7 +624,7 @@ function buildExplicitLogicalOptionals(picked: Partial<HardwareSettings>): Parti
  */
 function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
     return {
-        logicalSize: cloneVector2i(defaults.logicalSize),
+        displaySize: cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
         statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? false,
@@ -593,30 +633,30 @@ function mergePartialWithFullDefaults(picked: Partial<HardwareSettings>, default
 }
 
 /**
- * Applies only fields present in `configure()` when the demo set `logicalSize`.
+ * Applies only fields present in `configure()` when the demo set `displaySize`.
  *
  * @param picked - Defined fields with vectors cloned.
  * @param defaults - Baseline hardware settings for required fallbacks.
  * @returns Resolved settings; omitted optionals such as `drawingBufferSize` stay unset.
  * `backend` always inherits from {@link defaultConfig} when omitted from `configure()`.
  */
-function mergeExplicitLogicalProfile(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
+function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults: HardwareSettings): HardwareSettings {
     return {
-        logicalSize: picked.logicalSize ?? cloneVector2i(defaults.logicalSize),
+        displaySize: resolveExplicitDisplaySize(picked.displaySize, defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
         statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? false,
         backend: picked.backend ?? defaults.backend ?? 'webgpu',
-        ...buildExplicitLogicalOptionals(picked),
+        ...buildExplicitDisplayOptionals(picked),
     };
 }
 
 /**
  * Resolves demo `configure()` output into complete {@link HardwareSettings}.
  *
- * When `logicalSize` is omitted from `partial`, unset fields inherit from
+ * When `displaySize` is omitted from `partial`, unset fields inherit from
  * {@link defaultConfig} (including `drawingBufferSize` and `statsOverlayEnabled`).
- * When `logicalSize` is provided, only fields present in `partial` are applied;
+ * When `displaySize` is provided, only fields present in `partial` are applied;
  * omitted optionals such as `drawingBufferSize` remain unset so the drawing buffer
  * can match logical resolution. `statsOverlayEnabled` defaults to `true` when omitted.
  *
@@ -632,11 +672,11 @@ export function mergeHardwareSettings(partial?: Partial<HardwareSettings>): Hard
 
     const picked = pickDefinedHardwareSettings(partial);
 
-    if (partial.logicalSize === undefined) {
+    if (partial.displaySize === undefined) {
         return mergePartialWithFullDefaults(picked, defaults);
     }
 
-    return mergeExplicitLogicalProfile(picked, defaults);
+    return mergeExplicitDisplayProfile(picked, defaults);
 }
 
 // #endregion

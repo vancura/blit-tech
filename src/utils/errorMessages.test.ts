@@ -92,9 +92,9 @@ describe('errorMessages', () => {
 
     describe('renderDimensionInvalidError', () => {
         it('includes the field name and invalid size', () => {
-            const message = renderDimensionInvalidError('logicalSize', '0x240');
+            const message = renderDimensionInvalidError('displaySize', '0x240');
 
-            expect(message).toContain('logicalSize');
+            expect(message).toContain('displaySize');
             expect(message).toContain('0x240');
         });
 
@@ -113,15 +113,15 @@ describe('errorMessages', () => {
         });
 
         it('directs the author to use a smaller configure() size', () => {
-            expect(renderDimensionTooLargeError('logicalSize', '9000x240', 8192, 8192)).toContain('configure()');
+            expect(renderDimensionTooLargeError('displaySize', '9000x240', 8192, 8192)).toContain('configure()');
         });
     });
 
     describe('renderDimensionAreaTooLargeError', () => {
         it('includes the field name, size, and formatted pixel cap', () => {
-            const message = renderDimensionAreaTooLargeError('logicalSize', '4096x4097', 16_777_216);
+            const message = renderDimensionAreaTooLargeError('displaySize', '4096x4097', 16_777_216);
 
-            expect(message).toContain('logicalSize');
+            expect(message).toContain('displaySize');
             expect(message).toContain('4096x4097');
             expect(message).toContain('16,777,216');
         });
