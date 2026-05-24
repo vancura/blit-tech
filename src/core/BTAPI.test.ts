@@ -1349,6 +1349,68 @@ describe('BTAPI', () => {
                 ),
             ).toBe(false);
         });
+
+        it('drawSystemText marks only the text palette index and does not scan glyph rects', async () => {
+            const glyphScanSpy = vi.fn();
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            const systemFont = BTAPI.instance.getSystemFont();
+            expect(systemFont).not.toBeNull();
+
+            vi.spyOn(systemFont!.getSpriteSheet(), 'markPaletteIndicesInRect').mockImplementation(glyphScanSpy);
+
+            const textPaletteIndex = 8;
+
+            BTAPI.instance.drawSystemText(new Vector2i(0, 0), textPaletteIndex, 'hello');
+
+            expect(glyphScanSpy).not.toHaveBeenCalled();
+
+            const usageMask = (BTAPI.instance as unknown as { framePaletteUsageMask: Uint8Array })
+                .framePaletteUsageMask;
+            const scratch: number[] = [];
+
+            expect(collectUsedRenderPaletteIndices(usageMask, 16, scratch)).toEqual([textPaletteIndex]);
+        });
+
+        it('drawBitmapText scans glyph rects when palette tracking is enabled', async () => {
+            const markSpy = vi.fn();
+            const mockSheet = makeIndexizedSpriteSheet(markSpy);
+            const mockFont = {
+                getSpriteSheet: () => mockSheet,
+                getGlyph: (char: string) => ({ rect: new Rect2i(0, 0, 8, 8), char }),
+            } as unknown as BitmapFont;
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'ab');
+
+            expect(markSpy).toHaveBeenCalledTimes(2);
+        });
     });
 
     // #endregion
