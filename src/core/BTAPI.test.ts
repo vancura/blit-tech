@@ -29,11 +29,19 @@ import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { BT } from '../BlitTech';
 import type { Effect } from '../render/effects/Effect';
+import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from '../render/stats-overlay/constants';
+import {
+    computePaletteGrid,
+    DEFAULT_PALETTE_SWATCH_SIZE,
+    PALETTE_GRID_PADDING_PX,
+    PALETTE_SWATCH_GAP_PX,
+} from '../render/stats-overlay/StatsOverlayPaletteView';
 import { StatsOverlay } from '../render/StatsOverlay';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
 import type { IBlitTechDemo, StatsOverlayRow } from './IBlitTechDemo';
+import { collectUsedRenderPaletteIndices } from './RenderPaletteUsage';
 
 // #region Helpers
 
@@ -1219,6 +1227,127 @@ describe('BTAPI', () => {
             BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
 
             expect(markSpy).not.toHaveBeenCalled();
+        });
+
+        it('wires demo render palette usage through the game loop into overlay grid swatches', async () => {
+            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const rafCallbacks: FrameRequestCallback[] = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+                    return rafCallbacks.length;
+                }),
+            );
+
+            const palette = Palette.cga();
+            const usedSlots = [1, 2] as const;
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(() => {
+                    BTAPI.instance.drawPixel(new Vector2i(4, 4), usedSlots[0]);
+                    BTAPI.instance.drawPixel(new Vector2i(5, 5), usedSlots[1]);
+                }),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(palette);
+
+            const renderer = BTAPI.instance.getRenderer();
+            expect(renderer).not.toBeNull();
+
+            const swatchFills: { index: number; rect: Rect2i }[] = [];
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFillOnTop').mockImplementation(
+                (rect, index) => {
+                    swatchFills.push({ index, rect: new Rect2i(rect.x, rect.y, rect.width, rect.height) });
+                },
+            );
+
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (rafCallbacks.length > 0) {
+                iterations++;
+                if (iterations > maxIterations) {
+                    throw new Error('Exceeded max rAF callback drain iterations before overlay render.');
+                }
+
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16);
+                }
+
+                if (overlaySpy.mock.calls.length > 0) {
+                    break;
+                }
+            }
+
+            expect(demo.render).toHaveBeenCalled();
+            expect(overlaySpy).toHaveBeenCalled();
+
+            const lastCall = overlaySpy.mock.calls.at(-1);
+            const usedMask = lastCall?.[8] as Uint8Array | undefined;
+            const maskScratch: number[] = [];
+
+            expect(usedMask).toBeDefined();
+            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, palette.size, maskScratch)).toEqual([1, 2]);
+
+            const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, PALETTE_SWATCH_GAP_PX);
+            const bottomAreaY = 240 - grid.totalHeight;
+            const { cols, swatchSize, gap } = grid;
+
+            for (const slot of usedSlots) {
+                const col = slot % cols;
+                const row = Math.floor(slot / cols);
+                const x = STATS_EDGE_MARGIN_PX + col * (swatchSize + gap);
+                const y = bottomAreaY + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap);
+
+                expect(
+                    swatchFills.some(
+                        (fill) =>
+                            fill.index === slot &&
+                            fill.rect.x === x &&
+                            fill.rect.y === y &&
+                            fill.rect.width === swatchSize &&
+                            fill.rect.height === swatchSize,
+                    ),
+                ).toBe(true);
+            }
+
+            const unusedSlot = 3;
+            const unusedCol = unusedSlot % cols;
+            const unusedRow = Math.floor(unusedSlot / cols);
+            const unusedX = STATS_EDGE_MARGIN_PX + unusedCol * (swatchSize + gap);
+            const unusedY = bottomAreaY + PALETTE_GRID_PADDING_PX + unusedRow * (swatchSize + gap);
+
+            expect(
+                swatchFills.some(
+                    (fill) =>
+                        fill.index === DEFAULT_IDX_TEXT &&
+                        fill.rect.x === unusedX + 2 &&
+                        fill.rect.y === unusedY + 2 &&
+                        fill.rect.width === 3 &&
+                        fill.rect.height === 3,
+                ),
+            ).toBe(true);
+            expect(
+                swatchFills.some(
+                    (fill) =>
+                        fill.index === unusedSlot &&
+                        fill.rect.x === unusedX &&
+                        fill.rect.y === unusedY &&
+                        fill.rect.width === swatchSize,
+                ),
+            ).toBe(false);
         });
     });
 
