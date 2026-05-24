@@ -128,10 +128,16 @@ returns `false` and logs a specific `[BT]` message to the browser console (press
 stays a generic init failure message. In WebGPU mode, the requested logical and output sizes must also fit the active
 adapter/device `maxTextureDimension2D` limit. GPU limit failures do not fall back to the software renderer.
 
-**`BT` getters vs `configure()` fields:** `displaySize`, `canvasDisplaySize`, and `targetFPS` on `BT` mirror the same
-names on `HardwareSettings`. `outputSize` is the derived drawing-buffer size — see
-[Resolution model](#resolution-model). `requestedBackend` mirrors resolved `HardwareSettings.backend` (including URL
-overrides). `activeBackend` is the backend that actually started and may differ after WebGPU fallback.
+**`BT` getters vs `configure()` fields:**
+
+| Kind        | `BT` getter                                       | `HardwareSettings` field |
+| ----------- | ------------------------------------------------- | ------------------------ |
+| **Mirror**  | `displaySize`, `canvasDisplaySize`, `targetFPS`   | same names               |
+| **Mirror**  | `requestedBackend`                                | `backend`                |
+| **Derived** | `outputSize` (`canvasDisplaySize ?? displaySize`) | _(none)_                 |
+
+`activeBackend` is runtime state (what actually started; may differ from `requestedBackend` after WebGPU fallback). See
+[Resolution model](#resolution-model) for drawing-buffer vocabulary.
 
 ### Requested vs active backend
 
