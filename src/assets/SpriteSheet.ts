@@ -1,3 +1,4 @@
+import { markRenderPaletteIndexUsed } from '../core/RenderPaletteUsage';
 import { assertAssetDimensions, assertImageElementWithinLimits, assertIndexedPixelInput } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { spriteColorNotInPaletteError } from '../utils/errorMessages';
@@ -491,6 +492,45 @@ export class SpriteSheet {
         }
 
         return this.indexedPixels.slice() as Uint8Array<ArrayBuffer>;
+    }
+
+    /**
+     * Marks palette indices referenced by non-zero pixels in a source rectangle.
+     *
+     * Used by the engine to build the stats overlay palette grid from demo draw
+     * calls. Does not allocate; writes into the supplied usage mask.
+     *
+     * @param srcRect - Region to scan in sheet coordinates.
+     * @param paletteOffset - Palette offset applied at draw time.
+     * @param usedMask - Mutable usage mask indexed by resolved palette slot.
+     */
+    markPaletteIndicesInRect(srcRect: Rect2i, paletteOffset: number, usedMask: Uint8Array): void {
+        if (this.indexedPixels === null) {
+            return;
+        }
+
+        const sheetWidth = this.size.x;
+        const pixels = this.indexedPixels;
+        const startX = Math.max(0, srcRect.x);
+        const startY = Math.max(0, srcRect.y);
+        const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
+        const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
+
+        for (let y = startY; y < endY; y++) {
+            const rowOffset = y * sheetWidth;
+
+            for (let x = startX; x < endX; x++) {
+                const sheetIndex = pixels[rowOffset + x] ?? 0;
+
+                if (sheetIndex === 0) {
+                    continue;
+                }
+
+                const resolved = sheetIndex + paletteOffset;
+
+                markRenderPaletteIndexUsed(usedMask, resolved);
+            }
+        }
     }
 
     // #endregion

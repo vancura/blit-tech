@@ -104,17 +104,19 @@ See [Post-Process Effects](post-process-effects.md) for tier routing and presets
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `canvasDisplaySize` means a 1:1 drawing buffer).
 
-| Field                  | Type                     | Default     | Description                                                        |
-| ---------------------- | ------------------------ | ----------- | ------------------------------------------------------------------ |
-| `displaySize`          | `Vector2i`               | `320×240`   | **Logical** render resolution                                      |
-| `canvasDisplaySize`    | `Vector2i`               | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set |
-| `maxCanvasDisplaySize` | `Vector2i`               | `960×720`   | **CSS cap** — maximum on-screen canvas size                        |
-| `targetFPS`            | `number`                 | `60`        | Fixed `update()` rate (simulation ticks per second)                |
-| `backend`              | `'webgpu' \| 'software'` | `'webgpu'`  | Force rendering backend                                            |
-| `outputUpscaleFilter`  | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                                     |
-| `detectDroppedFrames`  | `boolean`                | `false`     | Log a console warning on missed vsync                              |
-| `statsOverlayEnabled`  | `boolean`                | `true`      | Engine stats HUD after each `render()`                             |
-| `statsOverlayStyle`    | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay                |
+| Field                        | Type                     | Default     | Description                                                        |
+| ---------------------------- | ------------------------ | ----------- | ------------------------------------------------------------------ |
+| `displaySize`                | `Vector2i`               | `320×240`   | **Logical** render resolution                                      |
+| `canvasDisplaySize`          | `Vector2i`               | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set |
+| `maxCanvasDisplaySize`       | `Vector2i`               | `960×720`   | **CSS cap** — maximum on-screen canvas size                        |
+| `targetFPS`                  | `number`                 | `60`        | Fixed `update()` rate (simulation ticks per second)                |
+| `backend`                    | `'webgpu' \| 'software'` | `'webgpu'`  | Force rendering backend                                            |
+| `outputUpscaleFilter`        | `'nearest' \| 'linear'`  | `'nearest'` | Upscale filter                                                     |
+| `detectDroppedFrames`        | `boolean`                | `false`     | Log a console warning on missed vsync                              |
+| `statsOverlayEnabled`        | `boolean`                | `true`      | Engine stats HUD after each `render()`                             |
+| `statsOverlayPaletteView`    | `boolean`                | `false`     | Live palette swatch grid in the stats overlay bottom band (opt-in) |
+| `statsOverlayPaletteColumns` | `number`                 | _unset_     | Max palette swatches per grid row (default: widest fit)            |
+| `statsOverlayStyle`          | `StatsOverlayStyle`      | _unset_     | Optional bar/text palette indices for stats overlay                |
 
 `displaySize`, `canvasDisplaySize`, and `maxCanvasDisplaySize` must be positive whole-number pixel dimensions. Each size
 is capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -180,8 +182,8 @@ configure() {
 When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
 top of all demo content. Bar bands and text anchors are computed each frame by the internal layout planner in
 `src/render/stats-overlay/layoutPlan.ts` from `displaySize`, custom row count, and optional feature flags (timing chart
-and palette grid default off). Init still caches stable values such as the bottom-right toggle rect and text baselines
-from the system font metrics.
+default off; palette grid opt-in via `statsOverlayPaletteView`). Init still caches stable values such as the
+bottom-right toggle rect and text baselines from the system font metrics.
 
 - **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
   `Blit-Tech Demo NNN - Topic` show as `Topic Demo`); **top row 1 (right):** active backend and logical resolution (for
@@ -189,8 +191,11 @@ from the system font metrics.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
-- **Bottom row (right):** `[~]` hint
-- **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom bar, **1 px** apart, each
+- **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-right. Set
+  `statsOverlayPaletteView: true` to replace it with a live palette swatch grid showing every active palette slot; slots
+  referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares with a
+  small centered marker
+- **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
   with left text and optional right text (same 13 px bar style as the built-in rows)
 
 Demos may implement optional `statsOverlayRows()` on `IBlitTechDemo`. The engine calls it once per render frame after
@@ -226,17 +231,29 @@ smoothed CPU wall-time samples from `performance.now()`. `Draw Calls` counts dem
 rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead.
 
 Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
-above the bottom bar (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
-at the top (three built-in text rows + gaps; add about **22 px** when the timing chart feature ships). Leave about **13
-px** clear at the bottom for the legacy hint bar today; the bottom band becomes **variable height** when the palette
-swatch grid ships (depends on display width and swatch size). Or set `statsOverlayEnabled: false` for full-screen
-layouts (for example terminal-style demos).
+above the bottom band (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
+at the top (three built-in text rows + gaps; add about **22 px** when `statsOverlayTimingChart` is enabled per VV-539).
+Leave about **13 px** clear at the bottom by default (hint bar). When `statsOverlayPaletteView: true`, reserve
+additional space for the palette grid—for example about **69 px** on the default `320×240` layout with a 256-slot
+palette (32 columns × 8 rows of 7 px swatches with 1 px gaps). Column count is chosen by halving from `palette.size`
+until the row fits `displayWidth - 2 * edgeMargin`. The bottom band height is:
+
+```text
+cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
+rows = ceil(palette.size / cols)
+bottomReserve = rows * swatchSize + max(0, rows - 1) * gap + 2 * paletteGridPadding
+```
+
+Default swatch size is **7 px** with **1 px** gaps and **3 px** padding above and below the grid. Set
+`statsOverlayPaletteView: true` to enable the grid, or `statsOverlayEnabled: false` for full-screen layouts (for example
+terminal-style demos).
 
 ```ts
 configure() {
   return {
     displaySize: new Vector2i(320, 240),
     statsOverlayEnabled: false, // release build or custom full-screen HUD
+    statsOverlayPaletteView: true, // opt in to live palette swatch grid
     statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 }, // optional palette indices
   };
 }

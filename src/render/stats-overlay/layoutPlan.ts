@@ -2,8 +2,8 @@
  * Dynamic Y-band planner for the stats overlay.
  *
  * Computes bar rects and text anchors each frame from display size, custom row count,
- * and optional timing-chart / palette-grid feature flags (default off for parity with
- * the legacy fixed layout).
+ * and optional timing-chart / palette-grid feature flags (timing chart default off per
+ * VV-539; palette grid opt-in via {@link HardwareSettings.statsOverlayPaletteView}).
  */
 
 import { Rect2i } from '../../utils/Rect2i';
@@ -63,7 +63,7 @@ export function createStatsOverlayLayoutPlanScratch(): StatsOverlayLayoutPlanScr
  * @returns Bottom area height in pixels.
  */
 function resolveBottomAreaHeight(config: StatsOverlayLayoutConfig): number {
-    if (config.paletteViewEnabled && config.paletteGrid !== undefined) {
+    if (config.statsOverlayPaletteView && config.paletteGrid !== undefined) {
         return config.paletteGrid.totalHeight;
     }
 
@@ -208,6 +208,6 @@ export function createDefaultLayoutConfig(
         customRowCount,
         timingChartEnabled: false,
         timingChartHeight: DEFAULT_TIMING_CHART_HEIGHT,
-        paletteViewEnabled: false,
+        statsOverlayPaletteView: false,
     };
 }

@@ -56,6 +56,9 @@ export interface PaletteGridLayout {
     /** Side length of each swatch in pixels. */
     readonly swatchSize: number;
 
+    /** Gap between swatches horizontally and vertically. */
+    readonly gap: number;
+
     /** Total bottom band height including padding. */
     readonly totalHeight: number;
 }
@@ -68,7 +71,8 @@ export interface StatsOverlayLayoutConfig {
     readonly customRowCount: number;
     readonly timingChartEnabled: boolean;
     readonly timingChartHeight: number;
-    readonly paletteViewEnabled: boolean;
+    /** Mirrors {@link HardwareSettings.statsOverlayPaletteView}. */
+    readonly statsOverlayPaletteView: boolean;
     readonly paletteGrid?: PaletteGridLayout;
 }
 

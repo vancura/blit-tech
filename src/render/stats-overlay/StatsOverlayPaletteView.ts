@@ -1,84 +1,349 @@
 /**
- * Live palette swatch grid for the stats overlay bottom band (VV-540 scaffold).
+ * Live palette swatch grid for the stats overlay bottom band (VV-540).
  *
- * {@link computePaletteGrid} is implemented for layout planning; draw is a no-op
- * until the palette view feature lands.
+ * {@link computePaletteGrid} picks adaptive column counts from the active palette
+ * size; {@link StatsOverlayPaletteView.draw} renders indexed swatches with gaps and
+ * transparent corner pixels.
  */
 
 import type { Palette } from '../../assets/Palette';
-import type { Rect2i } from '../../utils/Rect2i';
+import { Rect2i } from '../../utils/Rect2i';
 import type { IRenderer } from '../IRenderer';
-import { STATS_EDGE_MARGIN_PX } from './constants';
+import { STATS_BOTTOM_HINT_LABEL, STATS_EDGE_MARGIN_PX } from './constants';
+import { statsRightAlignedTextX } from './layoutHelpers';
 import type { PaletteGridLayout } from './types';
 
 /** Default swatch size in pixels. */
-export const DEFAULT_PALETTE_SWATCH_SIZE = 4;
+export const DEFAULT_PALETTE_SWATCH_SIZE = 7;
 
-/** Total palette slots shown in the grid. */
-export const PALETTE_SWATCH_COUNT = 256;
+/** Horizontal and vertical gap between swatches in pixels. */
+export const PALETTE_SWATCH_GAP_PX = 1;
 
 /** Padding below the swatch grid inside the bottom band. */
-export const PALETTE_GRID_PADDING_PX = 0;
+export const PALETTE_GRID_PADDING_PX = 3;
 
 /** Empty grid placeholder when the palette view is disabled. */
-export const DEFAULT_PALETTE_GRID: PaletteGridLayout = { cols: 0, rows: 0, swatchSize: 0, totalHeight: 0 };
-
-/** Divisors of 256 preferred for column count (widest first). */
-const PREFERRED_COLUMN_DIVISORS = [32, 16, 8, 4, 2, 1] as const;
+export const DEFAULT_PALETTE_GRID: PaletteGridLayout = {
+    cols: 0,
+    rows: 0,
+    swatchSize: 0,
+    gap: 0,
+    totalHeight: 0,
+};
 
 /**
- * Picks the widest column count that fits the display width.
+ * Computes the horizontal span of one grid row.
+ *
+ * @param cols - Column count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Row width in pixels.
+ */
+export function paletteGridRowWidth(cols: number, swatchSize: number, gap: number): number {
+    if (cols <= 0) {
+        return 0;
+    }
+
+    return cols * swatchSize + (cols - 1) * gap;
+}
+
+/**
+ * Computes the vertical span of the full grid.
+ *
+ * @param rows - Row count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Grid height in pixels.
+ */
+export function paletteGridRowStackHeight(rows: number, swatchSize: number, gap: number): number {
+    if (rows <= 0) {
+        return 0;
+    }
+
+    return rows * swatchSize + (rows - 1) * gap;
+}
+
+/**
+ * Picks the widest column count that fits the display while halving from the palette size.
  *
  * @param displayWidth - Logical display width in pixels.
  * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @param colorCount - Active palette slot count.
+ * @param maxColumns - Optional cap from {@link HardwareSettings.statsOverlayPaletteColumns}.
  * @returns Column count (at least 1).
  */
-function pickColumnCount(displayWidth: number, swatchSize: number): number {
+export function pickPaletteGridColumnCount(
+    displayWidth: number,
+    swatchSize: number,
+    gap: number,
+    colorCount: number,
+    maxColumns?: number,
+): number {
     const availableWidth = displayWidth - STATS_EDGE_MARGIN_PX * 2;
-    const maxCols = Math.max(1, Math.floor(availableWidth / swatchSize));
+    let candidate = Math.max(1, colorCount);
 
-    for (const divisor of PREFERRED_COLUMN_DIVISORS) {
-        if (fitsColumnDivisor(divisor, maxCols)) {
-            return divisor;
+    if (maxColumns !== undefined && maxColumns > 0) {
+        candidate = Math.min(candidate, maxColumns);
+    }
+
+    while (candidate > 1) {
+        if (paletteGridRowWidth(candidate, swatchSize, gap) <= availableWidth) {
+            return candidate;
         }
+
+        candidate = Math.floor(candidate / 2);
     }
 
     return 1;
 }
 
 /**
- * Returns whether a column divisor fits the display and divides 256 evenly.
- *
- * @param divisor - Candidate column count.
- * @param maxCols - Maximum columns that fit horizontally.
- * @returns Whether divisor fits and divides 256 evenly.
- */
-function fitsColumnDivisor(divisor: number, maxCols: number): boolean {
-    return divisor <= maxCols && PALETTE_SWATCH_COUNT % divisor === 0;
-}
-
-/**
  * Computes palette grid layout for the bottom band.
  *
  * @param displayWidth - Logical display width in pixels.
- * @param swatchSize - Side length of each swatch (default 4).
+ * @param swatchSize - Side length of each swatch (default {@link DEFAULT_PALETTE_SWATCH_SIZE}).
  * @param colorCount - Number of palette slots to show (default 256).
+ * @param gap - Gap between swatches (default 1).
+ * @param maxColumns - Optional cap from {@link HardwareSettings.statsOverlayPaletteColumns}.
  * @returns Grid dimensions and total bottom band height.
  */
 export function computePaletteGrid(
     displayWidth: number,
     swatchSize = DEFAULT_PALETTE_SWATCH_SIZE,
-    colorCount = PALETTE_SWATCH_COUNT,
+    colorCount = 256,
+    gap = PALETTE_SWATCH_GAP_PX,
+    maxColumns?: number,
 ): PaletteGridLayout {
-    const cols = pickColumnCount(displayWidth, swatchSize);
-    const rows = Math.ceil(colorCount / cols);
-    const totalHeight = rows * swatchSize + PALETTE_GRID_PADDING_PX;
+    if (colorCount <= 0) {
+        return { cols: 0, rows: 0, swatchSize, gap, totalHeight: 0 };
+    }
 
-    return { cols, rows, swatchSize, totalHeight };
+    const cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, colorCount, maxColumns);
+    const rows = Math.ceil(colorCount / cols);
+    const totalHeight = paletteGridRowStackHeight(rows, swatchSize, gap) + PALETTE_GRID_PADDING_PX * 2;
+
+    return { cols, rows, swatchSize, gap, totalHeight };
 }
 
 /**
- * Live palette swatch renderer (stub until VV-540).
+ * Returns whether two axis-aligned rects overlap (zero allocation).
+ *
+ * @param ax - Left edge of rect A.
+ * @param ay - Top edge of rect A.
+ * @param aw - Width of rect A.
+ * @param ah - Height of rect A.
+ * @param bx - Left edge of rect B.
+ * @param by - Top edge of rect B.
+ * @param bw - Width of rect B.
+ * @param bh - Height of rect B.
+ * @returns `true` when the rects overlap.
+ */
+function rectsIntersect(
+    ax: number,
+    ay: number,
+    aw: number,
+    ah: number,
+    bx: number,
+    by: number,
+    bw: number,
+    bh: number,
+): boolean {
+    return !(bx >= ax + aw || bx + bw <= ax || by >= ay + ah || by + bh <= ay);
+}
+
+/**
+ * Returns whether a swatch rect intersects an exclusion region.
+ *
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @param exclusion - Region to avoid (for example the `[~]` hint).
+ * @returns `true` when any part of the swatch overlaps the exclusion rect.
+ */
+function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
+    return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
+}
+
+/**
+ * Builds the screen-space rect reserved for the bottom-right `[~]` hint label.
+ *
+ * @param bottomTextY - Baseline Y for the hint text.
+ * @param displayWidth - Logical display width.
+ * @param lineHeight - System font line height.
+ * @returns Exclusion rect for swatch placement.
+ */
+function buildHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
+    const hintLeft = statsRightAlignedTextX(STATS_BOTTOM_HINT_LABEL, displayWidth);
+
+    return new Rect2i(hintLeft, bottomTextY, Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft), lineHeight);
+}
+
+/** Preferred side length for the filled marker drawn inside unused swatches. */
+const UNUSED_SWATCH_MARKER_SIZE = 3;
+
+/** Reused draw scratch rects for the palette grid hot loop (one overlay draw at a time). */
+const paletteGridDrawScratch = {
+    swatch: new Rect2i(),
+    marker: new Rect2i(),
+};
+
+/**
+ * Writes the filled marker rect for an unused swatch into {@link target}.
+ *
+ * @param target - Reusable rect mutated in place.
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ */
+function writeUnusedSwatchMarkerRect(target: Rect2i, x: number, y: number, swatchSize: number): void {
+    if (swatchSize <= 0) {
+        target.set(x, y, 0, 0);
+        return;
+    }
+
+    const markerSize = Math.max(1, Math.min(UNUSED_SWATCH_MARKER_SIZE, swatchSize - 4));
+    const offset = Math.floor((swatchSize - markerSize) / 2);
+
+    target.set(x + offset, y + offset, markerSize, markerSize);
+}
+
+/**
+ * Computes the filled marker rect drawn inside an unused swatch.
+ *
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @returns Marker rect clamped and centered within the swatch bounds, or a
+ * zero-area rect at `(x, y)` when `swatchSize` is not positive.
+ */
+export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: number): Rect2i {
+    const result = new Rect2i();
+
+    writeUnusedSwatchMarkerRect(result, x, y, swatchSize);
+
+    return result;
+}
+
+/**
+ * Draws a centered filled marker inside an unused swatch.
+ *
+ * @param renderer - Active renderer.
+ * @param markerScratch - Reusable marker rect mutated in place.
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @param markIndex - Palette index for the marker fill.
+ */
+function drawUnusedSwatch(
+    renderer: IRenderer,
+    markerScratch: Rect2i,
+    x: number,
+    y: number,
+    swatchSize: number,
+    markIndex: number,
+): void {
+    if (swatchSize <= 0) {
+        return;
+    }
+
+    writeUnusedSwatchMarkerRect(markerScratch, x, y, swatchSize);
+
+    if (markerScratch.width <= 0 || markerScratch.height <= 0) {
+        return;
+    }
+
+    renderer.drawRectFillOnTop(markerScratch, markIndex);
+}
+
+/**
+ * Returns whether a palette slot was referenced by demo draw calls this frame.
+ *
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param index - Palette slot to query.
+ * @returns `true` when the slot is marked used.
+ */
+function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
+    // eslint-disable-next-line security/detect-object-injection -- index bounds checked below
+    return index > 0 && index < usedMask.length && usedMask[index] === 1;
+}
+
+/**
+ * Draws one palette swatch or its unused marker.
+ *
+ * @param renderer - Active renderer.
+ * @param swatchScratch - Reusable swatch rect mutated in place.
+ * @param markerScratch - Reusable marker rect mutated in place.
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @param index - Palette slot index for this swatch.
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param unusedMarkIndex - Palette index for unused swatch marker fills.
+ */
+function drawPaletteSwatch(
+    renderer: IRenderer,
+    swatchScratch: Rect2i,
+    markerScratch: Rect2i,
+    x: number,
+    y: number,
+    swatchSize: number,
+    index: number,
+    usedMask: Uint8Array,
+    unusedMarkIndex: number,
+): void {
+    if (isPaletteSlotUsed(usedMask, index)) {
+        swatchScratch.set(x, y, swatchSize, swatchSize);
+        renderer.drawRectFillOnTop(swatchScratch, index);
+    } else {
+        drawUnusedSwatch(renderer, markerScratch, x, y, swatchSize, unusedMarkIndex);
+    }
+}
+
+/**
+ * Draws the full palette swatch grid inside the bottom band.
+ *
+ * @param renderer - Active renderer.
+ * @param bottomArea - Bottom band rect from layout plan.
+ * @param colorCount - Active palette slot count.
+ * @param grid - Precomputed grid layout.
+ * @param hintExclusion - Region to skip for the `[~]` hint label.
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param unusedMarkIndex - Palette index for unused swatch marker fills.
+ */
+function drawPaletteSwatchGrid(
+    renderer: IRenderer,
+    bottomArea: Rect2i,
+    colorCount: number,
+    grid: PaletteGridLayout,
+    hintExclusion: Rect2i,
+    usedMask: Uint8Array,
+    unusedMarkIndex: number,
+): void {
+    const { cols, swatchSize, gap } = grid;
+    const originX = bottomArea.x + STATS_EDGE_MARGIN_PX;
+    const originY = bottomArea.y + PALETTE_GRID_PADDING_PX;
+    const swatchScratch = paletteGridDrawScratch.swatch;
+    const markerScratch = paletteGridDrawScratch.marker;
+
+    for (let index = 0; index < colorCount; index++) {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const x = originX + col * (swatchSize + gap);
+        const y = originY + row * (swatchSize + gap);
+
+        // Reserve only the `[~]` text band; do not clip against the 48x48 toggle hit rect
+        // (it overlaps many grid rows and would truncate every row below it).
+        if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
+            continue;
+        }
+
+        drawPaletteSwatch(renderer, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+    }
+}
+
+/**
+ * Live palette swatch renderer for the stats overlay bottom band.
  */
 export class StatsOverlayPaletteView {
     readonly #enabled: boolean;
@@ -86,7 +351,7 @@ export class StatsOverlayPaletteView {
     /**
      * Creates a palette view with the given feature flag.
      *
-     * @param enabled - When false, draw is a no-op.
+     * @param enabled - When false, draw is a no-op (default matches public opt-in API).
      */
     constructor(enabled = false) {
         this.#enabled = enabled;
@@ -102,16 +367,35 @@ export class StatsOverlayPaletteView {
     }
 
     /**
-     * Draws palette swatches in the bottom band (no-op when disabled).
+     * Draws palette swatches in the bottom band.
      *
-     * @param _renderer - Active renderer.
-     * @param _bottomArea - Bottom band rect from layout plan.
-     * @param _palette - Active demo palette.
-     * @param _grid - Precomputed grid layout.
+     * @param renderer - Active renderer.
+     * @param bottomArea - Bottom band rect from layout plan.
+     * @param palette - Active demo palette.
+     * @param grid - Precomputed grid layout.
+     * @param bottomTextY - Baseline Y for the bottom-right `[~]` hint.
+     * @param displayWidth - Logical display width for hint exclusion.
+     * @param lineHeight - System font line height for hint exclusion.
+     * @param usedMask - Per-frame usage mask populated during demo render.
+     * @param unusedMarkIndex - Palette index for unused swatch marker fills.
      */
-    draw(_renderer: IRenderer, _bottomArea: Rect2i, _palette: Palette | null, _grid: PaletteGridLayout): void {
-        if (!this.#enabled) {
+    draw(
+        renderer: IRenderer,
+        bottomArea: Rect2i,
+        palette: Palette | null,
+        grid: PaletteGridLayout,
+        bottomTextY: number,
+        displayWidth: number,
+        lineHeight: number,
+        usedMask: Uint8Array,
+        unusedMarkIndex: number,
+    ): void {
+        if (!this.#enabled || palette === null || grid.cols <= 0) {
             return;
         }
+
+        const hintExclusion = buildHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+
+        drawPaletteSwatchGrid(renderer, bottomArea, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
 }
