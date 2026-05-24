@@ -187,7 +187,7 @@ Supply-chain posture tightened across CI.
 
 ## Tests
 
-- Render dimension limit tests expanded to cover `NaN` in `maxCanvasDisplaySize`, adapter limit rejection, and device limit rejection without software fallback. (#169)
+- Render dimension limit tests expanded to cover `NaN` in `maxCanvasSize`, adapter limit rejection, and device limit rejection without software fallback. (#169)
 
 **Full Changelog**: https://github.com/vancura/blit-tech/compare/1.0.4...1.0.5
 ```

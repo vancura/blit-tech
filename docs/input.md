@@ -4,7 +4,7 @@ Blit-Tech provides DOM-backed input: **pointer** (mouse, touch, pen), **keyboard
 virtual face buttons), **gamepad** (up to four players via `navigator.getGamepads()`), and **text accumulation** for UI
 entry (`BT.inputString`).
 
-All pointer coordinates are returned in logical display space (the `displaySize` from `configure()` or
+All pointer coordinates are returned in logical display space (the `logicalSize` from `configure()` or
 `defaultConfig()`), independent of the canvas's CSS or backing-buffer size.
 
 ## Pointer Slot Model
@@ -251,11 +251,11 @@ means:
 Client coordinates from DOM events are converted to display space using the canvas bounding rect:
 
 ```text
-display_x = floor((clientX - rect.left) / rect.width  * displaySize.x)
-display_y = floor((clientY - rect.top)  / rect.height * displaySize.y)
+display_x = floor((clientX - rect.left) / rect.width  * logicalSize.x)
+display_y = floor((clientY - rect.top)  / rect.height * logicalSize.y)
 ```
 
-Coordinates are clamped to `[0, displaySize - 1]` on each axis. The conversion is skipped when the canvas has zero size
+Coordinates are clamped to `[0, logicalSize - 1]` on each axis. The conversion is skipped when the canvas has zero size
 (no layout yet) to avoid NaN coordinates.
 
 ## Implementation Notes

@@ -26,7 +26,7 @@ export const RENDER_DIMENSION_LIMITS = {
 // #region Types
 
 /** Hardware settings fields that carry render or canvas dimensions. */
-export type RenderDimensionField = 'displaySize' | 'canvasDisplaySize' | 'maxCanvasDisplaySize';
+export type RenderDimensionField = 'logicalSize' | 'drawingBufferSize' | 'maxCanvasSize';
 
 /** Error type for render-dimension failures that must abort instead of falling back to another backend. */
 export class RenderDimensionLimitError extends Error {
@@ -44,11 +44,11 @@ export class RenderDimensionLimitError extends Error {
 /** Minimal settings shape needed for render-dimension validation. */
 export interface RenderDimensionSettings {
     /** Logical render resolution in pixels. */
-    displaySize: Vector2i;
+    logicalSize: Vector2i;
     /** Optional output drawing-buffer size in pixels. */
-    canvasDisplaySize?: Vector2i;
+    drawingBufferSize?: Vector2i;
     /** Optional maximum on-screen canvas CSS size in pixels. */
-    maxCanvasDisplaySize?: Vector2i;
+    maxCanvasSize?: Vector2i;
 }
 
 // #endregion
@@ -116,22 +116,22 @@ export function validateRenderDimension(field: RenderDimensionField, size: Vecto
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
 export function validateRenderDimensions(settings: RenderDimensionSettings): string | null {
-    const displayError = validateRenderDimension('displaySize', settings.displaySize);
-    if (displayError) {
-        return displayError;
+    const logicalError = validateRenderDimension('logicalSize', settings.logicalSize);
+    if (logicalError) {
+        return logicalError;
     }
 
-    if (settings.canvasDisplaySize !== undefined) {
-        const canvasDisplayError = validateRenderDimension('canvasDisplaySize', settings.canvasDisplaySize);
-        if (canvasDisplayError) {
-            return canvasDisplayError;
+    if (settings.drawingBufferSize !== undefined) {
+        const maxCanvasError = validateRenderDimension('drawingBufferSize', settings.drawingBufferSize);
+        if (maxCanvasError) {
+            return maxCanvasError;
         }
     }
 
-    if (settings.maxCanvasDisplaySize !== undefined) {
-        const maxCanvasDisplayError = validateRenderDimension('maxCanvasDisplaySize', settings.maxCanvasDisplaySize);
-        if (maxCanvasDisplayError) {
-            return maxCanvasDisplayError;
+    if (settings.maxCanvasSize !== undefined) {
+        const maxCanvasError = validateRenderDimension('maxCanvasSize', settings.maxCanvasSize);
+        if (maxCanvasError) {
+            return maxCanvasError;
         }
     }
 

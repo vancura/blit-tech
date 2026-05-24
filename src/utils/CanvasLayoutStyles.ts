@@ -4,7 +4,7 @@ import type { Vector2i } from './Vector2i';
 // #region Constants
 
 /** Default cap for on-screen canvas CSS size (demos layout uses these as max bounds). */
-export const DEFAULT_MAX_CANVAS_DISPLAY_SIZE = { x: 960, y: 720 } as const;
+export const DEFAULT_MAX_CANVAS_SIZE = { x: 960, y: 720 } as const;
 
 // #endregion
 
@@ -12,12 +12,12 @@ export const DEFAULT_MAX_CANVAS_DISPLAY_SIZE = { x: 960, y: 720 } as const;
 
 /** Inputs for {@link applyCanvasLayoutStyles}. */
 export interface CanvasLayoutStyleOptions {
-    /** Logical render resolution (used for aspect ratio when `canvasDisplaySize` is omitted). */
-    displaySize: Vector2i;
+    /** Logical render resolution (used for aspect ratio when `drawingBufferSize` is omitted). */
+    logicalSize: Vector2i;
     /** Optional output / drawing-buffer size (drives aspect ratio when set). */
-    canvasDisplaySize?: Vector2i;
+    drawingBufferSize?: Vector2i;
     /** Maximum on-screen canvas size in CSS pixels (letterboxing still applies below this). */
-    maxCanvasDisplaySize: Vector2i;
+    maxCanvasSize: Vector2i;
 }
 
 // #endregion
@@ -43,20 +43,20 @@ function resolveLayoutRoot(canvas: HTMLCanvasElement): HTMLElement {
 /**
  * Publishes CSS custom properties used by demo page layout to size the canvas.
  *
- * The demos `layout.html` reads `--canvas-display-w/h` for aspect ratio and
+ * The demos `layout.html` reads `--canvas-aspect-w/h` for aspect ratio and
  * `--canvas-max-w/h` for the largest allowed display size.
  *
  * @param canvas - Target canvas element.
- * @param options - Display and max sizes from {@link HardwareSettings}.
+ * @param options - Logical, buffer, and CSS cap sizes from {@link HardwareSettings}.
  */
 export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: CanvasLayoutStyleOptions): void {
-    const aspectSource = options.canvasDisplaySize ?? options.displaySize;
+    const aspectSource = options.drawingBufferSize ?? options.logicalSize;
     const layoutRoot = resolveLayoutRoot(canvas);
 
-    layoutRoot.style.setProperty('--canvas-display-w', String(aspectSource.x));
-    layoutRoot.style.setProperty('--canvas-display-h', String(aspectSource.y));
-    const maxW = `${options.maxCanvasDisplaySize.x}px`;
-    const maxH = `${options.maxCanvasDisplaySize.y}px`;
+    layoutRoot.style.setProperty('--canvas-aspect-w', String(aspectSource.x));
+    layoutRoot.style.setProperty('--canvas-aspect-h', String(aspectSource.y));
+    const maxW = `${options.maxCanvasSize.x}px`;
+    const maxH = `${options.maxCanvasSize.y}px`;
 
     layoutRoot.style.setProperty('--canvas-max-w', maxW);
     layoutRoot.style.setProperty('--canvas-max-h', maxH);

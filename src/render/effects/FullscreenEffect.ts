@@ -73,10 +73,10 @@ export abstract class FullscreenEffect implements Effect {
      *
      * @param device - WebGPU device used for resource creation.
      * @param format - Color attachment format (matches the chain swap chain).
-     * @param _displaySize - Source render target resolution. Most effects ignore
+     * @param _logicalSize - Source render target resolution. Most effects ignore
      *   this and use the per-frame `sourceSize` from {@link updateUniforms}.
      */
-    init(device: GPUDevice, format: GPUTextureFormat, _displaySize: Vector2i): void {
+    init(device: GPUDevice, format: GPUTextureFormat, _logicalSize: Vector2i): void {
         if (this.uniformBytes <= 0 || this.uniformBytes % 16 !== 0) {
             throw new Error(
                 `FullscreenEffect: uniformBytes must be a positive multiple of 16 (got ${this.uniformBytes}).`,

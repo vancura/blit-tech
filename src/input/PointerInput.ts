@@ -10,7 +10,7 @@
  * `WheelEvent` listeners on the rendering canvas.
  *
  * Coordinate output is in the engine's logical display space (the
- * `displaySize` configured by the demo via `HardwareSettings`), independent
+ * `logicalSize` configured by the demo via `HardwareSettings`), independent
  * of the canvas's CSS or backing-buffer pixel size. This matches the rest of
  * the rendering API where everything works in display coordinates.
  */

@@ -29,7 +29,7 @@ export type UpscaleFilter = 'nearest' | 'linear';
  *
  * Insertion point: between the pixel chain and the display chain in the
  * renderer's per-frame command sequence. When neither chain has effects but
- * `canvasDisplaySize` is set, the renderer can also use this pass on its own
+ * `drawingBufferSize` is set, the renderer can also use this pass on its own
  * to upscale the scene into the swap chain.
  *
  * The pass owns its render pipeline, sampler, and a per-source-view bind-group

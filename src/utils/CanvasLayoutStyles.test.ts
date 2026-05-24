@@ -19,20 +19,20 @@ describe('applyCanvasLayoutStyles', () => {
         document.body.appendChild(container);
 
         applyCanvasLayoutStyles(canvas, {
-            displaySize: new Vector2i(320, 240),
-            canvasDisplaySize: new Vector2i(640, 480),
-            maxCanvasDisplaySize: new Vector2i(960, 720),
+            logicalSize: new Vector2i(320, 240),
+            drawingBufferSize: new Vector2i(640, 480),
+            maxCanvasSize: new Vector2i(960, 720),
         });
 
-        expect(container.style.getPropertyValue('--canvas-display-w')).toBe('640');
-        expect(container.style.getPropertyValue('--canvas-display-h')).toBe('480');
+        expect(container.style.getPropertyValue('--canvas-aspect-w')).toBe('640');
+        expect(container.style.getPropertyValue('--canvas-aspect-h')).toBe('480');
         expect(container.style.getPropertyValue('--canvas-max-w')).toBe('960px');
         expect(container.style.getPropertyValue('--canvas-max-h')).toBe('720px');
         expect(canvas.style.getPropertyValue('max-width')).toBe('960px');
         expect(canvas.style.getPropertyValue('max-height')).toBe('720px');
     });
 
-    it('uses displaySize for aspect when canvasDisplaySize is omitted', () => {
+    it('uses logicalSize for aspect when drawingBufferSize is omitted', () => {
         const container = document.createElement('div');
         const canvas = document.createElement('canvas');
 
@@ -40,16 +40,16 @@ describe('applyCanvasLayoutStyles', () => {
         container.appendChild(canvas);
 
         applyCanvasLayoutStyles(canvas, {
-            displaySize: new Vector2i(400, 300),
-            maxCanvasDisplaySize: new Vector2i(800, 600),
+            logicalSize: new Vector2i(400, 300),
+            maxCanvasSize: new Vector2i(800, 600),
         });
 
-        expect(container.style.getPropertyValue('--canvas-display-w')).toBe('400');
-        expect(container.style.getPropertyValue('--canvas-display-h')).toBe('300');
+        expect(container.style.getPropertyValue('--canvas-aspect-w')).toBe('400');
+        expect(container.style.getPropertyValue('--canvas-aspect-h')).toBe('300');
         expect(canvas.style.width).toBe('');
     });
 
-    it('clears inline width/height when canvasDisplaySize is removed on second call', () => {
+    it('clears inline width/height when drawingBufferSize is removed on second call', () => {
         const container = document.createElement('div');
         const canvas = document.createElement('canvas');
 
@@ -57,18 +57,18 @@ describe('applyCanvasLayoutStyles', () => {
         container.appendChild(canvas);
 
         applyCanvasLayoutStyles(canvas, {
-            displaySize: new Vector2i(320, 240),
-            canvasDisplaySize: new Vector2i(640, 480),
-            maxCanvasDisplaySize: new Vector2i(960, 720),
+            logicalSize: new Vector2i(320, 240),
+            drawingBufferSize: new Vector2i(640, 480),
+            maxCanvasSize: new Vector2i(960, 720),
         });
 
         applyCanvasLayoutStyles(canvas, {
-            displaySize: new Vector2i(320, 240),
-            maxCanvasDisplaySize: new Vector2i(960, 720),
+            logicalSize: new Vector2i(320, 240),
+            maxCanvasSize: new Vector2i(960, 720),
         });
 
-        expect(container.style.getPropertyValue('--canvas-display-w')).toBe('320');
-        expect(container.style.getPropertyValue('--canvas-display-h')).toBe('240');
+        expect(container.style.getPropertyValue('--canvas-aspect-w')).toBe('320');
+        expect(container.style.getPropertyValue('--canvas-aspect-h')).toBe('240');
         expect(canvas.style.width).toBe('');
         expect(canvas.style.height).toBe('');
     });

@@ -38,7 +38,7 @@
         const mode = (window.location.hash || '#baseline').replace('#', '');
 
         // Modes that need a display-tier output buffer - anything testing a
-        // display effect or the upscale pass needs canvasDisplaySize set.
+        // display effect or the upscale pass needs drawingBufferSize set.
         const NEEDS_DISPLAY = new Set([
             'barrel',
             'scanlines',
@@ -69,11 +69,11 @@
         class PostProcessTest {
             configure() {
                 const cfg = {
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                 };
                 if (NEEDS_DISPLAY.has(mode)) {
-                    cfg.canvasDisplaySize = new Vector2i(1280, 960);
+                    cfg.drawingBufferSize = new Vector2i(1280, 960);
                     cfg.outputUpscaleFilter = mode === 'upscale-linear' ? 'linear' : 'nearest';
                 }
                 return cfg;

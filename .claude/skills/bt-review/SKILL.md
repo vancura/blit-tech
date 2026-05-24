@@ -31,7 +31,7 @@ Review current changes against project rules and quality standards.
    - Type imports use `import type` syntax
    - Proper error handling (guard clauses, null checks)
    - Consistent naming conventions
-   - **BT API shape:** read-only zero-arg snapshots use getters (`BT.displaySize`, `BT.targetFPS`), not `BT.foo()`.
+   - **BT API shape:** read-only zero-arg snapshots use getters (`BT.logicalSize`, `BT.targetFPS`), not `BT.foo()`.
      Actions and parameterized queries stay methods. New configure mirrors use `HardwareSettings` field names
      (`targetFPS`, not `fps`). Derived getters (e.g. `outputSize`) have no matching field. See `CLAUDE.md` (**BT API:
      getters vs methods**).

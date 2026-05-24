@@ -55,8 +55,8 @@ function resetSingleton(): void {
 function makeMockDemo(targetFPS = 60, initResult = true): IBlitTechDemo {
     return {
         configure: vi.fn().mockReturnValue({
-            displaySize: new Vector2i(320, 240),
-            canvasDisplaySize: new Vector2i(640, 480),
+            logicalSize: new Vector2i(320, 240),
+            drawingBufferSize: new Vector2i(640, 480),
             targetFPS,
         }),
         init: vi.fn().mockResolvedValue(initResult),
@@ -383,7 +383,7 @@ describe('BTAPI', () => {
         it('rejects invalid displaySize before layout or renderer setup', async () => {
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: { x: 0, y: 240 } as Vector2i,
+                    logicalSize: { x: 0, y: 240 } as Vector2i,
                     targetFPS: 60,
                 }),
                 init: vi.fn().mockResolvedValue(true),
@@ -404,11 +404,11 @@ describe('BTAPI', () => {
             expect(demo.init).not.toHaveBeenCalled();
         });
 
-        it('rejects invalid software canvasDisplaySize before software renderer allocation', async () => {
+        it('rejects invalid software drawingBufferSize before software renderer allocation', async () => {
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: { x: 8193, y: 480 } as Vector2i,
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: { x: 8193, y: 480 } as Vector2i,
                     targetFPS: 60,
                     backend: 'software',
                 }),
@@ -428,11 +428,11 @@ describe('BTAPI', () => {
             expect(getContext).not.toHaveBeenCalled();
         });
 
-        it('rejects invalid maxCanvasDisplaySize before layout or renderer setup', async () => {
+        it('rejects invalid maxCanvasSize before layout or renderer setup', async () => {
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: new Vector2i(320, 240),
-                    maxCanvasDisplaySize: { x: Number.NaN, y: 720 } as Vector2i,
+                    logicalSize: new Vector2i(320, 240),
+                    maxCanvasSize: { x: Number.NaN, y: 720 } as Vector2i,
                     targetFPS: 60,
                 }),
                 init: vi.fn().mockResolvedValue(true),
@@ -472,7 +472,7 @@ describe('BTAPI', () => {
             });
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: new Vector2i(2048, 1024),
+                    logicalSize: new Vector2i(2048, 1024),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -491,7 +491,7 @@ describe('BTAPI', () => {
             expect(demo.init).not.toHaveBeenCalled();
         });
 
-        it('rejects WebGPU canvasDisplaySize above adapter texture limits before canvas allocation', async () => {
+        it('rejects WebGPU drawingBufferSize above adapter texture limits before canvas allocation', async () => {
             const requestDevice = vi.fn(async () => createMockGPUDevice());
             Object.defineProperty(globalThis, 'navigator', {
                 value: {
@@ -510,8 +510,8 @@ describe('BTAPI', () => {
             });
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(2048, 1024),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(2048, 1024),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -552,8 +552,8 @@ describe('BTAPI', () => {
             });
             const demo: IBlitTechDemo = {
                 configure: vi.fn().mockReturnValue({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(1024, 768),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(1024, 768),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -602,8 +602,8 @@ describe('BTAPI', () => {
             );
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(640, 480),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
                     targetFPS: 60,
                     backend: 'software',
                 }),
@@ -639,8 +639,8 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(640, 480),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -665,8 +665,8 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(640, 480),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -763,8 +763,8 @@ describe('BTAPI', () => {
             const hw = BTAPI.instance.getHardwareSettings();
 
             expect(hw).not.toBeNull();
-            expect(hw?.displaySize.x).toBe(320);
-            expect(hw?.canvasDisplaySize?.x).toBe(640);
+            expect(hw?.logicalSize.x).toBe(320);
+            expect(hw?.drawingBufferSize?.x).toBe(640);
             expect(hw?.targetFPS).toBe(30);
         });
 
@@ -782,10 +782,10 @@ describe('BTAPI', () => {
             const hw = BTAPI.instance.getHardwareSettings();
 
             expect(hw).not.toBeNull();
-            expect(hw?.displaySize.x).toBe(320);
-            expect(hw?.displaySize.y).toBe(240);
-            expect(hw?.canvasDisplaySize?.x).toBe(640);
-            expect(hw?.canvasDisplaySize?.y).toBe(480);
+            expect(hw?.logicalSize.x).toBe(320);
+            expect(hw?.logicalSize.y).toBe(240);
+            expect(hw?.drawingBufferSize?.x).toBe(640);
+            expect(hw?.drawingBufferSize?.y).toBe(480);
             expect(hw?.outputUpscaleFilter).toBe('nearest');
             expect(hw?.targetFPS).toBe(60);
         });
@@ -974,8 +974,8 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(640, 480),
+                    logicalSize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
                     targetFPS: 60,
                     backend: 'software',
                 }),
@@ -1016,7 +1016,7 @@ describe('BTAPI', () => {
             );
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     // No backend field - defaults to 'webgpu', should auto-fallback
                 }),
@@ -1067,7 +1067,7 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     backend: 'webgpu',
                 }),
@@ -1100,7 +1100,7 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                 }),
                 init: vi.fn().mockResolvedValue(true),
@@ -1147,7 +1147,7 @@ describe('BTAPI', () => {
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: false,
                 }),
@@ -1175,7 +1175,7 @@ describe('BTAPI', () => {
             } as unknown as BitmapFont;
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),
@@ -1199,7 +1199,7 @@ describe('BTAPI', () => {
             const mockSheet = makeIndexizedSpriteSheet(markSpy);
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),
@@ -1245,7 +1245,7 @@ describe('BTAPI', () => {
             const usedSlots = [1, 2] as const;
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),
@@ -1354,7 +1354,7 @@ describe('BTAPI', () => {
             const glyphScanSpy = vi.fn();
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),
@@ -1397,7 +1397,7 @@ describe('BTAPI', () => {
             } as unknown as BitmapFont;
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),
@@ -1458,7 +1458,7 @@ describe('BTAPI', () => {
 
             const demo: IBlitTechDemo = {
                 configure: () => ({
-                    displaySize: new Vector2i(320, 240),
+                    logicalSize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
                 }),

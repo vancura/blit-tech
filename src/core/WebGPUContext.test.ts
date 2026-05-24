@@ -148,7 +148,7 @@ describe('initWebGPU', () => {
         expect(canvas.height).toBe(0);
     });
 
-    it('throws RenderDimensionLimitError when canvasDisplaySize exceeds device texture limit', async () => {
+    it('throws RenderDimensionLimitError when drawingBufferSize exceeds device texture limit', async () => {
         const requestDevice = vi.fn(async () => ({
             ...createMockGPUDevice(),
             limits: { maxTextureDimension2D: 512 } as GPUSupportedLimits,
@@ -171,9 +171,9 @@ describe('initWebGPU', () => {
 
         const canvas = createMockCanvas();
         const displaySize = new Vector2i(320, 240);
-        const canvasDisplaySize = new Vector2i(1024, 768);
+        const drawingBufferSize = new Vector2i(1024, 768);
 
-        await expect(initWebGPU(canvas, displaySize, canvasDisplaySize)).rejects.toBeInstanceOf(
+        await expect(initWebGPU(canvas, displaySize, drawingBufferSize)).rejects.toBeInstanceOf(
             RenderDimensionLimitError,
         );
         expect(canvas.width).toBe(0);
@@ -234,13 +234,13 @@ describe('initWebGPU', () => {
         expect(canvas.height).toBe(240);
     });
 
-    it('should set drawing-buffer size from canvasDisplaySize when provided', async () => {
+    it('should set drawing-buffer size from drawingBufferSize when provided', async () => {
         installMockNavigatorGPU();
 
         const canvas = createMockCanvas();
-        const canvasDisplaySize = new Vector2i(640, 480);
+        const drawingBufferSize = new Vector2i(640, 480);
 
-        await initWebGPU(canvas, displaySize, canvasDisplaySize);
+        await initWebGPU(canvas, displaySize, drawingBufferSize);
 
         expect(canvas.width).toBe(640);
         expect(canvas.height).toBe(480);

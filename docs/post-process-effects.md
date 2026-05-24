@@ -27,8 +27,8 @@ import { BT, Vector2i, BarrelDistortion, Scanlines, RGBMask, Bloom, PixelGlitch 
 class Demo {
   configure() {
     return {
-      displaySize: new Vector2i(320, 240), // logical pixel-art resolution
-      canvasDisplaySize: new Vector2i(1280, 960), // output drawing-buffer size
+      logicalSize: new Vector2i(320, 240), // logical pixel-art resolution
+      drawingBufferSize: new Vector2i(1280, 960), // output drawing-buffer size
       outputUpscaleFilter: 'nearest', // 'nearest' | 'linear'
       targetFPS: 60,
     };
@@ -81,7 +81,7 @@ Invariants:
 - Only the display chain has effects: scene → logical composite → resolve → display chain → swap chain.
 - The last **display-tier** effect writes to the swap chain when display effects are active; otherwise palette resolve
   writes directly to the swap chain.
-- Adding a `tier='display'` effect when `canvasDisplaySize` is unset throws with a clear message - display effects need
+- Adding a `tier='display'` effect when `drawingBufferSize` is unset throws with a clear message - display effects need
   an output buffer larger than the logical framebuffer to operate.
 
 ---
@@ -92,7 +92,7 @@ Invariants:
 
 Appends an effect to the chain matching its declared `tier`. Effects can be added at any time; the first add allocates
 the chain's offscreen render targets, the second add allocates a second target for ping-pong. Throws if the engine has
-not been initialized, if a `tier='display'` effect is added without `canvasDisplaySize`, or if the active backend is
+not been initialized, if a `tier='display'` effect is added without `drawingBufferSize`, or if the active backend is
 `'software'` (Canvas 2D does not support post-process effects). At runtime, gate registration with
 `BT.activeBackend === 'webgpu'` (not `BT.requestedBackend` - WebGPU may have been requested but fallen back). See
 [api-core.md](api-core.md#requested-vs-active-backend).
@@ -115,7 +115,7 @@ import type { Effect, EffectTier, Vector2i } from 'blit-tech';
 export class MyEffect implements Effect {
   public readonly tier: EffectTier = 'display'; // or 'pixel'
 
-  init(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i): void {
+  init(device: GPUDevice, format: GPUTextureFormat, logicalSize: Vector2i): void {
     // Create pipeline, uniform buffer, sampler.
   }
 
@@ -144,8 +144,8 @@ vs RGBA paths - see [Writing a custom effect](#writing-a-custom-effect) below.
 
 ```ts
 interface HardwareSettings {
-  displaySize: Vector2i;
-  canvasDisplaySize?: Vector2i; // drives drawing buffer + CSS, enables display tier
+  logicalSize: Vector2i;
+  drawingBufferSize?: Vector2i; // drives drawing buffer + CSS, enables display tier
   outputUpscaleFilter?: 'nearest' | 'linear'; // default 'nearest'
   targetFPS: number;
   detectDroppedFrames?: boolean;
@@ -153,13 +153,13 @@ interface HardwareSettings {
 }
 ```
 
-When `canvasDisplaySize` is omitted from a `configure()` return value that **includes** `displaySize`, the WebGPU
-drawing buffer matches `displaySize`. Palette resolve still runs (logical indices to RGBA at that size). The display
+When `drawingBufferSize` is omitted from a `configure()` return value that **includes** `logicalSize`, the WebGPU
+drawing buffer matches `logicalSize`. Palette resolve still runs (logical indices to RGBA at that size). The display
 tier remains unavailable (adding a display effect throws) because no explicit output buffer was configured.
 
-If the demo **does not** implement `configure()`, or returns a partial object **without** `displaySize` (for example
-only `{ targetFPS: 30 }`), the engine merges with `defaultConfig()`, which **does** set `canvasDisplaySize` (`640x480`
-for `320x240` logical), so the display tier remains available unless you set a custom `displaySize` and omit output
+If the demo **does not** implement `configure()`, or returns a partial object **without** `logicalSize` (for example
+only `{ targetFPS: 30 }`), the engine merges with `defaultConfig()`, which **does** set `drawingBufferSize` (`640x480`
+for `320x240` logical), so the display tier remains available unless you set a custom `logicalSize` and omit output
 sizing.
 
 ---
@@ -382,7 +382,7 @@ pixel + display:  scene -> texA -> [px...] -> sceneTex -> paletteResolve -> texA
 - Each chain (`pixel` and `display`) lazily allocates its own ping-pong textures `texA` and `texB` only when it has
   effects (pixel targets stay `r8uint`; display targets match the swap-chain RGBA format).
 - `PaletteResolveUpscalePass` runs **every frame** on WebGPU: it resolves indices through the active palette and
-  magnifies to `canvasDisplaySize` using `outputUpscaleFilter` (`'nearest'` or `'linear'`), even when no display-tier
+  magnifies to `drawingBufferSize` using `outputUpscaleFilter` (`'nearest'` or `'linear'`), even when no display-tier
   effects are registered.
 - Frame capture (`BT.captureFrame()`) reads the swap-chain texture, so screenshots reflect the post-processed output.
 

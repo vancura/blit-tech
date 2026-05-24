@@ -73,7 +73,7 @@ export class WebGpuRenderer implements IRenderer {
 
     /**
      * True when the caller explicitly provided an `outputSize` (i.e. set
-     * `canvasDisplaySize` in `configure()`), enabling display-tier effects
+     * `drawingBufferSize` in `configure()`), enabling display-tier effects
      * regardless of whether the output resolution differs from the logical one.
      */
     private readonly displayTierEnabled: boolean;
@@ -529,12 +529,12 @@ export class WebGpuRenderer implements IRenderer {
      *
      * - `tier='pixel'` -> pixel chain (logical resolution).
      * - `tier='display'` -> display chain (output resolution); requires
-     *   `canvasDisplaySize` to be set in `configure()`.
+     *   `drawingBufferSize` to be set in `configure()`.
      *
      * @param effect - Effect instance to append.
      * @throws If the renderer has not been initialized.
      * @throws If a `'display'` effect is added while the output drawing buffer
-     *   matches the logical display size (no canvasDisplaySize was set).
+     *   matches the logical display size (no drawingBufferSize was set).
      */
     addEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {
@@ -543,7 +543,7 @@ export class WebGpuRenderer implements IRenderer {
 
         if (effect.tier === 'display' && !this.displayTierEnabled) {
             throw new Error(
-                'WebGpuRenderer.addEffect: display-tier effects require canvasDisplaySize to be set in configure().',
+                'WebGpuRenderer.addEffect: display-tier effects require drawingBufferSize to be set in configure().',
             );
         }
 
