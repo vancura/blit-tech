@@ -135,10 +135,10 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
   parameterized queries, and async work are methods (`BT.cameraSet`, `BT.pointerPos(0)`). Full rules:
   [CLAUDE.md](../CLAUDE.md) (**BT API: getters vs methods**).
 - **`BT` getter names** that surface `configure()` / `HardwareSettings` use the **same field names** (`displaySize`,
-  `targetFPS`, `canvasDisplaySize`, …). Keep acronym spelling consistent (`targetFPS`, not `targetFps`). Runtime-only
-  reads use descriptive names (`activeBackend`, `requestedBackend`, `ticks`, `deltaSeconds`). Use `activeBackend` for
-  runtime capability checks; `requestedBackend` mirrors resolved `HardwareSettings.backend` (including
-  `?backend=software`).
+  `targetFPS`, `canvasDisplaySize`, …). `BT.outputSize` is **derived** (`canvasDisplaySize ?? displaySize`), not a
+  configure field. Keep acronym spelling consistent (`targetFPS`, not `targetFps`). Runtime-only reads use descriptive
+  names (`activeBackend`, `requestedBackend`, `ticks`, `deltaSeconds`). Use `activeBackend` for runtime capability
+  checks; `requestedBackend` mirrors resolved `HardwareSettings.backend` (including `?backend=software`).
 
 ---
 

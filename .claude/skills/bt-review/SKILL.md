@@ -33,7 +33,8 @@ Review current changes against project rules and quality standards.
    - Consistent naming conventions
    - **BT API shape:** read-only zero-arg snapshots use getters (`BT.displaySize`, `BT.targetFPS`), not `BT.foo()`.
      Actions and parameterized queries stay methods. New configure mirrors use `HardwareSettings` field names
-     (`targetFPS`, not `fps`). See `CLAUDE.md` (**BT API: getters vs methods**).
+     (`targetFPS`, not `fps`). Derived getters (e.g. `outputSize`) have no matching field. See `CLAUDE.md` (**BT API:
+     getters vs methods**).
 
 4. **Summarize findings**
    - List critical issues that must be fixed

@@ -160,13 +160,14 @@ and async work. Do not add new zero-argument `BT.foo()` functions when a getter 
 
 ### Use getters (property access, no `()`)
 
-| Category                                                         | Members                                                       | Notes                                                                                                        |
-| ---------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize` | `outputSize` = effective buffer (`canvasDisplaySize ?? displaySize`). Clone per read for `Vector2i` getters. |
-| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`                        | `targetFPS` is configured rate, not measured FPS.                                                            |
-| **Configure-time (backend)**                                     | `requestedBackend`                                            | Resolved `HardwareSettings.backend` after merge and `?backend=software`; defaults to `'webgpu'`.             |
-| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                          | `activeBackend` is what actually started (after fallback). `palette` is a live reference.                    |
-| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount`           | Read once per frame when needed.                                                                             |
+| Category                                                         | Members                                             | Notes                                                                                                       |
+| ---------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `canvasDisplaySize`, `targetFPS`     | Clone per read for `Vector2i` getters.                                                                      |
+| **Derived**                                                      | `outputSize`                                        | Effective drawing buffer (`canvasDisplaySize ?? displaySize`). No `HardwareSettings` field; clone per read. |
+| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`              | `targetFPS` is configured rate, not measured FPS.                                                           |
+| **Configure-time (backend)**                                     | `requestedBackend`                                  | Mirrors resolved `HardwareSettings.backend` after merge and `?backend=software`; defaults to `'webgpu'`.    |
+| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                | `activeBackend` is what actually started (after fallback). `palette` is a live reference.                   |
+| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount` | Read once per frame when needed.                                                                            |
 
 Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
 
@@ -182,6 +183,8 @@ Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
 ### Naming when adding getters
 
 - **Same name as `HardwareSettings`** when exposing configure values (`targetFPS`, not `fps` or `targetFps`).
+- **Derived getters** when the value is computed from configure fields (`outputSize` from
+  `canvasDisplaySize ?? displaySize`); do not add a matching `HardwareSettings` field.
 - **Descriptive runtime names** when there is no configure field (`activeBackend`, not `renderer`).
 - **`requestedBackend` vs `activeBackend`:** use `requestedBackend` for the resolved init request; use `activeBackend`
   for runtime gates (post-process, capture). They differ when WebGPU was requested but fell back to software.

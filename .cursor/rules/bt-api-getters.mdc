@@ -11,7 +11,8 @@ When editing `src/BlitTech.ts`, demos, or API docs:
 
 Zero-argument **read-only** values on `BT`:
 
-- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `canvasDisplaySize`, `targetFPS`, `outputSize`
+- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `canvasDisplaySize`, `targetFPS`
+- **Derived:** `outputSize` (`canvasDisplaySize ?? displaySize`; no `HardwareSettings` field)
 - **Configure-time (backend):** `requestedBackend` mirrors resolved `HardwareSettings.backend` (includes `?backend=software`)
 - **Loop:** `deltaSeconds`, `timeSeconds`, `ticks`
 - **Runtime:** `activeBackend`, `camera`, `palette`
@@ -37,7 +38,7 @@ Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use prope
 
 1. Zero args + read-only snapshot → **getter** on `BT`
 2. Takes args or mutates → **method**
-3. Mirrors configure? → **same field name** as `HardwareSettings`
+3. Mirrors configure? → **same field name** as `HardwareSettings` (exception: derived getters like `outputSize` have no field)
 4. Update `docs/api-*.md`, `CLAUDE.md`, demos if public
 
 See `CLAUDE.md` section **BT API: getters vs methods** and `docs/api-core.md`.
