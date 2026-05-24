@@ -185,4 +185,14 @@ describe('mergeHardwareSettings', () => {
         expect(settings.drawingBufferSize).toEqual(new Vector2i(0, 0));
         expect(validateRenderDimensions(settings)).not.toBeNull();
     });
+
+    it('surfaces null maxCanvasSize via dimension validation in the explicit profile path', () => {
+        const settings = mergeHardwareSettings({
+            displaySize: new Vector2i(320, 240),
+            maxCanvasSize: null as unknown as Vector2i,
+        });
+
+        expect(settings.maxCanvasSize).toEqual(new Vector2i(0, 0));
+        expect(validateRenderDimensions(settings)).not.toBeNull();
+    });
 });
