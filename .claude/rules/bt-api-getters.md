@@ -12,8 +12,8 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 
 | Category | Members |
 | - | - |
-| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `canvasDisplaySize`, `targetFPS` |
-| Derived | `outputSize` (`canvasDisplaySize ?? displaySize`; no `HardwareSettings` field) |
+| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS` |
+| Derived | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field) |
 | Configure-time (backend) | `requestedBackend` (mirrors `HardwareSettings.backend`) |
 | Loop timing | `deltaSeconds`, `timeSeconds`, `ticks` |
 | Runtime state | `activeBackend`, `camera`, `palette` |

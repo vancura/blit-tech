@@ -18,7 +18,7 @@ import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
 import { createStatsOverlayLayout, resolveStatsTopLeftLabel, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
-import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_DISPLAY_SIZE } from '../utils/CanvasLayoutStyles';
+import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
 import * as errorMessages from '../utils/errorMessages';
@@ -1062,10 +1062,8 @@ export class BTAPI {
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
         applyCanvasLayoutStyles(canvas, {
             displaySize: hw.displaySize,
-            maxCanvasDisplaySize:
-                hw.maxCanvasDisplaySize ??
-                new Vector2i(DEFAULT_MAX_CANVAS_DISPLAY_SIZE.x, DEFAULT_MAX_CANVAS_DISPLAY_SIZE.y),
-            ...(hw.canvasDisplaySize !== undefined ? { canvasDisplaySize: hw.canvasDisplaySize } : {}),
+            maxCanvasSize: hw.maxCanvasSize ?? new Vector2i(DEFAULT_MAX_CANVAS_SIZE.x, DEFAULT_MAX_CANVAS_SIZE.y),
+            ...(hw.drawingBufferSize !== undefined ? { drawingBufferSize: hw.drawingBufferSize } : {}),
         });
 
         const requestedBackend = hw.backend ?? 'webgpu';
@@ -1077,7 +1075,7 @@ export class BTAPI {
             let webGPUResult: Awaited<ReturnType<typeof initWebGPU>> = null;
 
             try {
-                webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.canvasDisplaySize);
+                webGPUResult = await initWebGPU(canvas, hw.displaySize, hw.drawingBufferSize);
             } catch (error) {
                 if (error instanceof RenderDimensionLimitError) {
                     return false;
@@ -1097,9 +1095,9 @@ export class BTAPI {
                     webGPUResult.context,
                     hw.displaySize,
 
-                    // Only forward an explicit outputSize when canvasDisplaySize was
+                    // Only forward an explicit outputSize when drawingBufferSize was
                     // provided; that is the signal that unlocks the display tier.
-                    hw.canvasDisplaySize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+                    hw.drawingBufferSize !== undefined ? webGPUResult.drawingBufferSize : undefined,
                     hw.outputUpscaleFilter ?? 'nearest',
                 );
 
@@ -1124,7 +1122,7 @@ export class BTAPI {
 
         console.log('[BT] Initializing renderer (backend: software)');
 
-        this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.canvasDisplaySize);
+        this.renderer = new SoftwareRenderer(canvas, hw.displaySize, hw.drawingBufferSize);
 
         if (!(await this.renderer.init())) {
             console.error('[BT] Failed to initialize renderer');

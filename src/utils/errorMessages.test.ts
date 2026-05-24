@@ -99,15 +99,15 @@ describe('errorMessages', () => {
         });
 
         it('directs the author to update configure()', () => {
-            expect(renderDimensionInvalidError('canvasDisplaySize', '320.5x240')).toContain('configure()');
+            expect(renderDimensionInvalidError('drawingBufferSize', '320.5x240')).toContain('configure()');
         });
     });
 
     describe('renderDimensionTooLargeError', () => {
         it('includes the field name, size, and axis limits', () => {
-            const message = renderDimensionTooLargeError('maxCanvasDisplaySize', '9000x720', 8192, 8192);
+            const message = renderDimensionTooLargeError('maxCanvasSize', '9000x720', 8192, 8192);
 
-            expect(message).toContain('maxCanvasDisplaySize');
+            expect(message).toContain('maxCanvasSize');
             expect(message).toContain('9000x720');
             expect(message).toContain('8192x8192');
         });
@@ -129,9 +129,9 @@ describe('errorMessages', () => {
 
     describe('renderDimensionGpuLimitError', () => {
         it('includes the field name, size, and graphics-card limit', () => {
-            const message = renderDimensionGpuLimitError('canvasDisplaySize', '2048x1024', 1024);
+            const message = renderDimensionGpuLimitError('drawingBufferSize', '2048x1024', 1024);
 
-            expect(message).toContain('canvasDisplaySize');
+            expect(message).toContain('drawingBufferSize');
             expect(message).toContain('2048x1024');
             expect(message).toContain('graphics card');
             expect(message).toContain('1024');

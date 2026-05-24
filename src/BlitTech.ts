@@ -407,12 +407,12 @@ export const BT = {
     // #region Hardware Information
 
     /**
-     * Active internal display resolution in pixels.
+     * Active logical render resolution in pixels.
      *
-     * This is the logical render size configured by the demo, not the canvas
-     * element's CSS size. Each read returns a clone.
+     * This is the game/simulation coordinate space configured by the demo, not
+     * the canvas element's CSS size. Each read returns a clone.
      *
-     * @returns Configured display size, or `Vector2i.zero()` before initialization.
+     * @returns Configured logical size, or `Vector2i.zero()` before initialization.
      */
     get displaySize(): Vector2i {
         const settings = BTAPI.instance.getHardwareSettings();
@@ -423,20 +423,20 @@ export const BT = {
     /**
      * Configured output drawing-buffer size in pixels, when set in `configure()`.
      *
-     * `null` when `canvasDisplaySize` was omitted (logical resolution only; no
+     * `null` when `drawingBufferSize` was omitted (logical resolution only; no
      * display-tier post-process). Each read returns a clone when non-null.
      *
-     * @returns Configured output buffer size, or `null` when not set.
+     * @returns Configured drawing-buffer size, or `null` when not set.
      */
-    get canvasDisplaySize(): Vector2i | null {
+    get drawingBufferSize(): Vector2i | null {
         const settings = BTAPI.instance.getHardwareSettings();
-        const size = settings?.canvasDisplaySize;
+        const size = settings?.drawingBufferSize;
 
         return size ? size.clone() : null;
     },
 
     /**
-     * Effective drawing-buffer size in pixels (`canvasDisplaySize ?? displaySize`).
+     * Effective drawing-buffer size in pixels (`drawingBufferSize ?? displaySize`).
      *
      * Each read returns a clone.
      *
@@ -449,7 +449,7 @@ export const BT = {
             return Vector2i.zero();
         }
 
-        return (settings.canvasDisplaySize ?? settings.displaySize).clone();
+        return (settings.drawingBufferSize ?? settings.displaySize).clone();
     },
 
     /**
@@ -708,7 +708,7 @@ export const BT = {
      *
      * - `tier='pixel'` -> pixel chain (logical resolution).
      * - `tier='display'` -> display chain (output resolution); requires
-     *   `canvasDisplaySize` in effective hardware settings (`configure()` or
+     *   `drawingBufferSize` in effective hardware settings (`configure()` or
      *   `defaultConfig()`).
      *
      * Effects run in registration order within each tier. The pixel chain runs
@@ -718,7 +718,7 @@ export const BT = {
      *
      * @param effect - Effect instance to append.
      * @throws If the engine has not been initialized.
-     * @throws If a `'display'` effect is added without `canvasDisplaySize`.
+     * @throws If a `'display'` effect is added without `drawingBufferSize`.
      */
     effectAdd: (effect: Effect): void => {
         executeDrawCall('effectAdd', () => {
@@ -905,7 +905,7 @@ export const BT = {
      *
      * @param camera - Desired camera origin in world coordinates.
      * @param worldSize - Full world size in pixels.
-     * @param viewSize - Viewport size in pixels (defaults to display size).
+     * @param viewSize - Viewport size in pixels (defaults to {@link BT.displaySize}).
      * @returns Clamped camera origin.
      */
     cameraClamp: (camera: Vector2i, worldSize: Vector2i, viewSize?: Vector2i): Vector2i => {

@@ -20,23 +20,23 @@ function rawSize(x: number, y: number): Vector2i {
 
 function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimensionSettings {
     switch (field) {
-        case 'canvasDisplaySize':
+        case 'drawingBufferSize':
             return {
                 displaySize: new Vector2i(320, 240),
-                canvasDisplaySize: size,
-                maxCanvasDisplaySize: new Vector2i(960, 720),
+                drawingBufferSize: size,
+                maxCanvasSize: new Vector2i(960, 720),
             };
-        case 'maxCanvasDisplaySize':
+        case 'maxCanvasSize':
             return {
                 displaySize: new Vector2i(320, 240),
-                canvasDisplaySize: new Vector2i(640, 480),
-                maxCanvasDisplaySize: size,
+                drawingBufferSize: new Vector2i(640, 480),
+                maxCanvasSize: size,
             };
         case 'displaySize':
             return {
                 displaySize: size,
-                canvasDisplaySize: new Vector2i(640, 480),
-                maxCanvasDisplaySize: new Vector2i(960, 720),
+                drawingBufferSize: new Vector2i(640, 480),
+                maxCanvasSize: new Vector2i(960, 720),
             };
     }
 }
@@ -45,7 +45,7 @@ function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimens
 
 describe('RenderLimits', () => {
     describe('validateRenderDimensions', () => {
-        const fields: RenderDimensionField[] = ['displaySize', 'canvasDisplaySize', 'maxCanvasDisplaySize'];
+        const fields: RenderDimensionField[] = ['displaySize', 'drawingBufferSize', 'maxCanvasSize'];
         const cases: Array<{ name: string; size: Vector2i }> = [
             { name: 'zero', size: rawSize(0, 240) },
             { name: 'negative', size: rawSize(-1, 240) },
@@ -71,8 +71,8 @@ describe('RenderLimits', () => {
             expect(
                 validateRenderDimensions({
                     displaySize: new Vector2i(320, 240),
-                    canvasDisplaySize: new Vector2i(640, 480),
-                    maxCanvasDisplaySize: new Vector2i(960, 720),
+                    drawingBufferSize: new Vector2i(640, 480),
+                    maxCanvasSize: new Vector2i(960, 720),
                 }),
             ).toBeNull();
         });
@@ -133,9 +133,9 @@ describe('RenderLimits', () => {
         });
 
         it('returns a field-specific message for invalid sizes', () => {
-            const error = validateRenderDimension('canvasDisplaySize', rawSize(0, 480));
+            const error = validateRenderDimension('drawingBufferSize', rawSize(0, 480));
 
-            expect(error).toContain('canvasDisplaySize');
+            expect(error).toContain('drawingBufferSize');
         });
     });
 
@@ -151,7 +151,7 @@ describe('RenderLimits', () => {
 
     describe('validateWebGPUTextureDimension', () => {
         it('rejects dimensions above the provided WebGPU texture limit', () => {
-            const error = validateWebGPUTextureDimension('canvasDisplaySize', new Vector2i(2048, 1024), 1024);
+            const error = validateWebGPUTextureDimension('drawingBufferSize', new Vector2i(2048, 1024), 1024);
 
             expect(error).toContain('graphics card');
         });

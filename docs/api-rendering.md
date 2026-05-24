@@ -115,9 +115,9 @@ Two-tier fullscreen pipeline running between scene render and swap-chain present
 1. **Pixel tier** - operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
    palette-native (chunky glitch, mosaic).
 2. **Palette resolve + upscale** - `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT
-   and upscales to `canvasDisplaySize`.
+   and upscales to `drawingBufferSize`.
 3. **Display tier** - operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
-   `canvasDisplaySize` in hardware settings.
+   `drawingBufferSize` in hardware settings.
 
 Both chains add zero cost when empty. Post-process is unsupported by the Canvas 2D software backend - calling
 `effectAdd` in software mode throws a clear error.

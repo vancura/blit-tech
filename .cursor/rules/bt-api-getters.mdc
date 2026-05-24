@@ -11,8 +11,8 @@ When editing `src/BlitTech.ts`, demos, or API docs:
 
 Zero-argument **read-only** values on `BT`:
 
-- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `canvasDisplaySize`, `targetFPS`
-- **Derived:** `outputSize` (`canvasDisplaySize ?? displaySize`; no `HardwareSettings` field)
+- **Configure-time** (use same names as `HardwareSettings`): `displaySize`, `drawingBufferSize`, `targetFPS`
+- **Derived:** `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field)
 - **Configure-time (backend):** `requestedBackend` mirrors resolved `HardwareSettings.backend` (includes `?backend=software`)
 - **Loop:** `deltaSeconds`, `timeSeconds`, `ticks`
 - **Runtime:** `activeBackend`, `camera`, `palette`

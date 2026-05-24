@@ -125,9 +125,9 @@ describe('BT.displaySize', () => {
 
 // #endregion
 
-// #region BT.canvasDisplaySize / BT.outputSize
+// #region BT.drawingBufferSize / BT.outputSize
 
-describe('BT.canvasDisplaySize', () => {
+describe('BT.drawingBufferSize', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
     });
@@ -135,22 +135,22 @@ describe('BT.canvasDisplaySize', () => {
     it('returns null when hardware settings are not available', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(null);
 
-        expect(BT.canvasDisplaySize).toBeNull();
+        expect(BT.drawingBufferSize).toBeNull();
     });
 
-    it('returns null when canvasDisplaySize was not configured', () => {
+    it('returns null when drawingBufferSize was not configured', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings());
 
-        expect(BT.canvasDisplaySize).toBeNull();
+        expect(BT.drawingBufferSize).toBeNull();
     });
 
-    it('returns a clone when canvasDisplaySize is configured', () => {
+    it('returns a clone when drawingBufferSize is configured', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
             ...mockHardwareSettings(),
-            canvasDisplaySize: new Vector2i(640, 480),
+            drawingBufferSize: new Vector2i(640, 480),
         });
 
-        const size = BT.canvasDisplaySize;
+        const size = BT.drawingBufferSize;
 
         expect(size?.x).toBe(640);
         expect(size?.y).toBe(480);
@@ -159,10 +159,10 @@ describe('BT.canvasDisplaySize', () => {
     it('returns an independent clone per read', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
             ...mockHardwareSettings(),
-            canvasDisplaySize: new Vector2i(640, 480),
+            drawingBufferSize: new Vector2i(640, 480),
         });
 
-        const first = BT.canvasDisplaySize;
+        const first = BT.drawingBufferSize;
         expect(first).toBeDefined();
         if (!first) {
             return;
@@ -170,7 +170,7 @@ describe('BT.canvasDisplaySize', () => {
 
         first.x = 999;
 
-        expect(BT.canvasDisplaySize?.x).toBe(640);
+        expect(BT.drawingBufferSize?.x).toBe(640);
     });
 });
 
@@ -188,7 +188,7 @@ describe('BT.outputSize', () => {
         expect(size.y).toBe(0);
     });
 
-    it('matches displaySize when canvasDisplaySize is omitted', () => {
+    it('matches displaySize when drawingBufferSize is omitted', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue(mockHardwareSettings(new Vector2i(320, 240)));
 
         const size = BT.outputSize;
@@ -197,10 +197,10 @@ describe('BT.outputSize', () => {
         expect(size.y).toBe(240);
     });
 
-    it('returns canvasDisplaySize when configured', () => {
+    it('returns drawingBufferSize when configured', () => {
         vi.spyOn(BTAPI.instance, 'getHardwareSettings').mockReturnValue({
             ...mockHardwareSettings(new Vector2i(320, 240)),
-            canvasDisplaySize: new Vector2i(640, 480),
+            drawingBufferSize: new Vector2i(640, 480),
         });
 
         const size = BT.outputSize;

@@ -26,7 +26,7 @@ export const RENDER_DIMENSION_LIMITS = {
 // #region Types
 
 /** Hardware settings fields that carry render or canvas dimensions. */
-export type RenderDimensionField = 'displaySize' | 'canvasDisplaySize' | 'maxCanvasDisplaySize';
+export type RenderDimensionField = 'displaySize' | 'drawingBufferSize' | 'maxCanvasSize';
 
 /** Error type for render-dimension failures that must abort instead of falling back to another backend. */
 export class RenderDimensionLimitError extends Error {
@@ -46,9 +46,9 @@ export interface RenderDimensionSettings {
     /** Logical render resolution in pixels. */
     displaySize: Vector2i;
     /** Optional output drawing-buffer size in pixels. */
-    canvasDisplaySize?: Vector2i;
+    drawingBufferSize?: Vector2i;
     /** Optional maximum on-screen canvas CSS size in pixels. */
-    maxCanvasDisplaySize?: Vector2i;
+    maxCanvasSize?: Vector2i;
 }
 
 // #endregion
@@ -61,9 +61,13 @@ export interface RenderDimensionSettings {
  * @param size - Size value to format.
  * @returns Size formatted as `WIDTHxHEIGHT`.
  */
-function formatSize(size: Vector2i | undefined): string {
+function formatSize(size: Vector2i | undefined | null): string {
     if (size === undefined) {
         return 'missing';
+    }
+
+    if (size === null) {
+        return 'null';
     }
 
     return `${size.x}x${size.y}`;
@@ -76,7 +80,7 @@ function formatSize(size: Vector2i | undefined): string {
  * @param size - Size value to validate.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateRenderDimension(field: RenderDimensionField, size: Vector2i | undefined): string | null {
+export function validateRenderDimension(field: RenderDimensionField, size: Vector2i | undefined | null): string | null {
     const x = size?.x;
     const y = size?.y;
 
@@ -116,22 +120,22 @@ export function validateRenderDimension(field: RenderDimensionField, size: Vecto
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
 export function validateRenderDimensions(settings: RenderDimensionSettings): string | null {
-    const displayError = validateRenderDimension('displaySize', settings.displaySize);
-    if (displayError) {
-        return displayError;
+    const logicalError = validateRenderDimension('displaySize', settings.displaySize);
+    if (logicalError) {
+        return logicalError;
     }
 
-    if (settings.canvasDisplaySize !== undefined) {
-        const canvasDisplayError = validateRenderDimension('canvasDisplaySize', settings.canvasDisplaySize);
-        if (canvasDisplayError) {
-            return canvasDisplayError;
+    if (settings.drawingBufferSize !== undefined) {
+        const maxCanvasError = validateRenderDimension('drawingBufferSize', settings.drawingBufferSize);
+        if (maxCanvasError) {
+            return maxCanvasError;
         }
     }
 
-    if (settings.maxCanvasDisplaySize !== undefined) {
-        const maxCanvasDisplayError = validateRenderDimension('maxCanvasDisplaySize', settings.maxCanvasDisplaySize);
-        if (maxCanvasDisplayError) {
-            return maxCanvasDisplayError;
+    if (settings.maxCanvasSize !== undefined) {
+        const maxCanvasError = validateRenderDimension('maxCanvasSize', settings.maxCanvasSize);
+        if (maxCanvasError) {
+            return maxCanvasError;
         }
     }
 
