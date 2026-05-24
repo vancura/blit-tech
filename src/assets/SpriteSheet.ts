@@ -1,3 +1,4 @@
+import { markRenderPaletteIndexUsed } from '../core/RenderPaletteUsage';
 import { assertAssetDimensions, assertImageElementWithinLimits, assertIndexedPixelInput } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { spriteColorNotInPaletteError } from '../utils/errorMessages';
@@ -527,10 +528,7 @@ export class SpriteSheet {
 
                 const resolved = sheetIndex + paletteOffset;
 
-                if (resolved > 0 && resolved < usedMask.length) {
-                    // eslint-disable-next-line security/detect-object-injection -- resolved bounds checked above
-                    usedMask[resolved] = 1;
-                }
+                markRenderPaletteIndexUsed(usedMask, resolved);
             }
         }
     }

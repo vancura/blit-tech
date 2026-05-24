@@ -36,7 +36,6 @@ import { GameLoop } from './GameLoop';
 import type { Backend, HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
 import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
 import {
-    collectUsedRenderPaletteIndices,
     markRenderPaletteIndexUsed,
     RENDER_PALETTE_USAGE_CAPACITY,
     resetRenderPaletteUsage,
@@ -133,9 +132,6 @@ export class BTAPI {
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
     private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
-
-    /** Reusable sorted list of used palette indices for the stats overlay grid. */
-    private readonly framePaletteUsageScratch: number[] = [];
 
     /** Reused timing snapshot passed into the stats overlay each frame. */
     private readonly statsOverlayTiming: {
@@ -298,14 +294,6 @@ export class BTAPI {
                         this.paletteEffects.update(this.palette);
                     }
 
-                    const usedPaletteIndices = this.palette
-                        ? collectUsedRenderPaletteIndices(
-                              this.framePaletteUsageMask,
-                              this.palette.size,
-                              this.framePaletteUsageScratch,
-                          )
-                        : this.framePaletteUsageScratch;
-
                     // Stats overlay: screen-space HUD after demo content (top/bottom bars).
                     if (this.statsOverlay && this.systemFont) {
                         this.statsOverlay.updateAndRender(
@@ -317,7 +305,7 @@ export class BTAPI {
                             () => this.demo?.statsOverlayRows?.(),
                             this.statsOverlayTiming,
                             this.palette,
-                            usedPaletteIndices,
+                            this.framePaletteUsageMask,
                         );
                     }
 

@@ -1,8 +1,8 @@
 /**
  * Screen-space stats HUD orchestrator.
  *
- * Delegates layout planning, bar drawing, toggle input, and feature stubs
- * (timing chart, palette grid) to submodules under `stats-overlay/`.
+ * Delegates layout planning, bar drawing, toggle input, timing chart (VV-539),
+ * and palette grid (VV-540) to submodules under `stats-overlay/`.
  */
 
 import type { BitmapFont } from '../../assets/BitmapFont';
@@ -29,6 +29,9 @@ import type {
     StatsOverlayLayoutPlan,
     StatsOverlayTimingSnapshot,
 } from './types';
+
+/** Empty usage mask for overlay draws when palette tracking is inactive. */
+const EMPTY_PALETTE_USAGE_MASK = new Uint8Array(0);
 
 /**
  * Screen-space stats HUD rendered after demo content each frame.
@@ -75,7 +78,7 @@ export class StatsOverlay {
      * @param targetFps - Configured fixed-update rate for the target FPS line.
      * @param activeBackend - Backend started by BTAPI (`webgpu` or `software`).
      * @param style - Optional palette indices from {@link HardwareSettings.statsOverlayStyle}.
-     * @param paletteViewEnabled - When true (default), draws the live palette swatch grid.
+     * @param statsOverlayPaletteView - When true, draws the live palette swatch grid.
      * @param paletteColumns - Optional max swatches per row from {@link HardwareSettings.statsOverlayPaletteColumns}.
      */
     constructor(
@@ -84,7 +87,7 @@ export class StatsOverlay {
         targetFps: number,
         activeBackend: Backend,
         style?: StatsOverlayStyle,
-        paletteViewEnabled = true,
+        statsOverlayPaletteView = false,
         paletteColumns?: number,
     ) {
         this.#layout = layout;
@@ -95,7 +98,7 @@ export class StatsOverlay {
         this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
         this.#timingChart = new StatsOverlayTimingChart(false);
-        this.#paletteView = new StatsOverlayPaletteView(paletteViewEnabled);
+        this.#paletteView = new StatsOverlayPaletteView(statsOverlayPaletteView);
         this.#paletteColumns = paletteColumns;
     }
 
@@ -141,9 +144,9 @@ export class StatsOverlay {
      * @returns Layout config for {@link buildStatsOverlayLayoutPlan}.
      */
     #createLayoutConfig(customRowCount: number, palette: Palette | null | undefined): StatsOverlayLayoutConfig {
-        const paletteViewEnabled = this.#paletteView.enabled;
+        const statsOverlayPaletteView = this.#paletteView.enabled;
         const colorCount = palette?.size ?? 256;
-        const paletteGrid = paletteViewEnabled
+        const paletteGrid = statsOverlayPaletteView
             ? computePaletteGrid(this.#layout.displayWidth, undefined, colorCount, undefined, this.#paletteColumns)
             : undefined;
 
@@ -154,7 +157,7 @@ export class StatsOverlay {
                 this.#layout.lineHeight,
                 customRowCount,
             ),
-            paletteViewEnabled,
+            statsOverlayPaletteView,
             ...(paletteGrid !== undefined ? { paletteGrid } : {}),
         };
     }
@@ -168,7 +171,7 @@ export class StatsOverlay {
      * @param layoutConfig - Layout config used to build the plan.
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
-     * @param usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
+     * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
      */
     #renderVisible(
         renderer: IRenderer,
@@ -177,7 +180,7 @@ export class StatsOverlay {
         layoutConfig: StatsOverlayLayoutConfig,
         customRows: readonly StatsOverlayRow[] | undefined,
         palette: Palette | null | undefined,
-        usedPaletteIndices: readonly number[],
+        usedPaletteMask: Uint8Array,
     ): void {
         const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
         const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
@@ -203,7 +206,7 @@ export class StatsOverlay {
             this.#layout.bottomTextY,
             this.#layout.displayWidth,
             this.#layout.lineHeight,
-            usedPaletteIndices,
+            usedPaletteMask,
             this.#idxText,
         );
 
@@ -234,8 +237,8 @@ export class StatsOverlay {
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
-     * @param palette - Active demo palette for optional palette grid (stub when disabled).
-     * @param usedPaletteIndices - Palette slots referenced by demo draw calls this frame.
+     * @param palette - Active demo palette for optional palette grid.
+     * @param usedPaletteMask - Per-frame palette usage mask populated during demo render.
      */
     updateAndRender(
         renderer: IRenderer,
@@ -246,7 +249,7 @@ export class StatsOverlay {
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
         timing?: StatsOverlayTimingSnapshot,
         palette?: Palette | null,
-        usedPaletteIndices: readonly number[] = [],
+        usedPaletteMask: Uint8Array = EMPTY_PALETTE_USAGE_MASK,
     ): void {
         this.#fps.sample();
         this.#sampleTiming(timing);
@@ -272,7 +275,7 @@ export class StatsOverlay {
         renderer.resetCamera();
 
         try {
-            this.#renderVisible(renderer, font, plan, layoutConfig, customRows, palette, usedPaletteIndices);
+            this.#renderVisible(renderer, font, plan, layoutConfig, customRows, palette, usedPaletteMask);
         } finally {
             renderer.setCameraOffset(savedCamera);
         }

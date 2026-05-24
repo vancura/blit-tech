@@ -71,7 +71,8 @@ export interface StatsOverlayLayoutConfig {
     readonly customRowCount: number;
     readonly timingChartEnabled: boolean;
     readonly timingChartHeight: number;
-    readonly paletteViewEnabled: boolean;
+    /** Mirrors {@link HardwareSettings.statsOverlayPaletteView}. */
+    readonly statsOverlayPaletteView: boolean;
     readonly paletteGrid?: PaletteGridLayout;
 }
 

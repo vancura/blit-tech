@@ -142,23 +142,17 @@ function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusio
 }
 
 /**
- * Builds a lookup table of palette indices used this frame.
+ * Builds the screen-space rect reserved for the bottom-right `[~]` hint label.
  *
- * @param usedIndices - Sorted palette slots referenced by demo draw calls.
- * @param paletteSize - Active palette size upper bound.
- * @returns Usage mask indexed by palette slot.
+ * @param bottomTextY - Baseline Y for the hint text.
+ * @param displayWidth - Logical display width.
+ * @param lineHeight - System font line height.
+ * @returns Exclusion rect for swatch placement.
  */
-export function buildUsedPaletteLookup(usedIndices: readonly number[], paletteSize: number): Uint8Array {
-    const lookup = new Uint8Array(paletteSize);
+function buildHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
+    const hintLeft = statsRightAlignedTextX(STATS_BOTTOM_HINT_LABEL, displayWidth);
 
-    for (const index of usedIndices) {
-        if (index > 0 && index < paletteSize) {
-            // eslint-disable-next-line security/detect-object-injection -- index bounds checked above
-            lookup[index] = 1;
-        }
-    }
-
-    return lookup;
+    return new Rect2i(hintLeft, bottomTextY, Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft), lineHeight);
 }
 
 /** Preferred side length for the filled marker drawn inside unused swatches. */
@@ -208,6 +202,85 @@ function drawUnusedSwatch(renderer: IRenderer, x: number, y: number, swatchSize:
 }
 
 /**
+ * Returns whether a palette slot was referenced by demo draw calls this frame.
+ *
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param index - Palette slot to query.
+ * @returns `true` when the slot is marked used.
+ */
+function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
+    // eslint-disable-next-line security/detect-object-injection -- index bounds checked below
+    return index > 0 && index < usedMask.length && usedMask[index] === 1;
+}
+
+/**
+ * Draws one palette swatch or its unused marker.
+ *
+ * @param renderer - Active renderer.
+ * @param x - Swatch left edge in display pixels.
+ * @param y - Swatch top edge in display pixels.
+ * @param swatchSize - Side length of the swatch.
+ * @param index - Palette slot index for this swatch.
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param unusedMarkIndex - Palette index for unused swatch marker fills.
+ */
+function drawPaletteSwatch(
+    renderer: IRenderer,
+    x: number,
+    y: number,
+    swatchSize: number,
+    index: number,
+    usedMask: Uint8Array,
+    unusedMarkIndex: number,
+): void {
+    if (isPaletteSlotUsed(usedMask, index)) {
+        renderer.drawRectFillOnTop(new Rect2i(x, y, swatchSize, swatchSize), index);
+    } else {
+        drawUnusedSwatch(renderer, x, y, swatchSize, unusedMarkIndex);
+    }
+}
+
+/**
+ * Draws the full palette swatch grid inside the bottom band.
+ *
+ * @param renderer - Active renderer.
+ * @param bottomArea - Bottom band rect from layout plan.
+ * @param colorCount - Active palette slot count.
+ * @param grid - Precomputed grid layout.
+ * @param hintExclusion - Region to skip for the `[~]` hint label.
+ * @param usedMask - Per-frame usage mask from BTAPI.
+ * @param unusedMarkIndex - Palette index for unused swatch marker fills.
+ */
+function drawPaletteSwatchGrid(
+    renderer: IRenderer,
+    bottomArea: Rect2i,
+    colorCount: number,
+    grid: PaletteGridLayout,
+    hintExclusion: Rect2i,
+    usedMask: Uint8Array,
+    unusedMarkIndex: number,
+): void {
+    const { cols, swatchSize, gap } = grid;
+    const originX = bottomArea.x + STATS_EDGE_MARGIN_PX;
+    const originY = bottomArea.y + PALETTE_GRID_PADDING_PX;
+
+    for (let index = 0; index < colorCount; index++) {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const x = originX + col * (swatchSize + gap);
+        const y = originY + row * (swatchSize + gap);
+
+        // Reserve only the `[~]` text band; do not clip against the 48x48 toggle hit rect
+        // (it overlaps many grid rows and would truncate every row below it).
+        if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
+            continue;
+        }
+
+        drawPaletteSwatch(renderer, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+    }
+}
+
+/**
  * Live palette swatch renderer for the stats overlay bottom band.
  */
 export class StatsOverlayPaletteView {
@@ -216,9 +289,9 @@ export class StatsOverlayPaletteView {
     /**
      * Creates a palette view with the given feature flag.
      *
-     * @param enabled - When false, draw is a no-op.
+     * @param enabled - When false, draw is a no-op (default matches public opt-in API).
      */
-    constructor(enabled = true) {
+    constructor(enabled = false) {
         this.#enabled = enabled;
     }
 
@@ -241,7 +314,7 @@ export class StatsOverlayPaletteView {
      * @param bottomTextY - Baseline Y for the bottom-right `[~]` hint.
      * @param displayWidth - Logical display width for hint exclusion.
      * @param lineHeight - System font line height for hint exclusion.
-     * @param usedIndices - Palette slots referenced by demo draw calls this frame.
+     * @param usedMask - Per-frame usage mask populated during demo render.
      * @param unusedMarkIndex - Palette index for unused swatch marker fills.
      */
     draw(
@@ -252,44 +325,15 @@ export class StatsOverlayPaletteView {
         bottomTextY: number,
         displayWidth: number,
         lineHeight: number,
-        usedIndices: readonly number[],
+        usedMask: Uint8Array,
         unusedMarkIndex: number,
     ): void {
         if (!this.#enabled || palette === null || grid.cols <= 0) {
             return;
         }
 
-        const { cols, swatchSize, gap } = grid;
-        const originX = bottomArea.x + STATS_EDGE_MARGIN_PX;
-        const originY = bottomArea.y + PALETTE_GRID_PADDING_PX;
-        const hintLeft = statsRightAlignedTextX(STATS_BOTTOM_HINT_LABEL, displayWidth);
-        const hintExclusion = new Rect2i(
-            hintLeft,
-            bottomTextY,
-            Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft),
-            lineHeight,
-        );
-        const colorCount = palette.size;
-        const usedLookup = buildUsedPaletteLookup(usedIndices, colorCount);
+        const hintExclusion = buildHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
-        for (let index = 0; index < colorCount; index++) {
-            const col = index % cols;
-            const row = Math.floor(index / cols);
-            const x = originX + col * (swatchSize + gap);
-            const y = originY + row * (swatchSize + gap);
-
-            // Reserve only the `[~]` text band; do not clip against the 48x48 toggle hit rect
-            // (it overlaps many grid rows and would truncate every row below it).
-            if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
-                continue;
-            }
-
-            // eslint-disable-next-line security/detect-object-injection -- index bounded by palette.size
-            if (usedLookup[index] === 1) {
-                renderer.drawRectFillOnTop(new Rect2i(x, y, swatchSize, swatchSize), index);
-            } else {
-                drawUnusedSwatch(renderer, x, y, swatchSize, unusedMarkIndex);
-            }
-        }
+        drawPaletteSwatchGrid(renderer, bottomArea, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
 }

@@ -83,7 +83,7 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const paletteGrid = computePaletteGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
-            paletteViewEnabled: true,
+            statsOverlayPaletteView: true,
             paletteGrid,
         };
 
@@ -109,7 +109,7 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const paletteGrid = computePaletteGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 1),
-            paletteViewEnabled: true,
+            statsOverlayPaletteView: true,
             paletteGrid,
         };
 

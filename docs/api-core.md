@@ -191,10 +191,10 @@ bottom-right toggle rect and text baselines from the system font metrics.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
-- **Bottom band:** legacy **13 px** hint bar with the `[~]` toggle label anchored bottom-right (default). Set
+- **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-right. Set
   `statsOverlayPaletteView: true` to replace it with a live palette swatch grid showing every active palette slot; slots
   referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares with a
-  small X mark
+  small centered marker
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
   with left text and optional right text (same 13 px bar style as the built-in rows)
 
@@ -232,20 +232,21 @@ rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`, `
 
 Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom band (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
-at the top (three built-in text rows + gaps; add about **22 px** when the timing chart feature ships). Leave about **13
-px** clear at the bottom by default (legacy hint bar). When `statsOverlayPaletteView: true`, reserve additional space
-for the palette grid—for example about **69 px** on the default `320×240` layout with a 256-slot palette (32 columns × 8
-rows of 7 px swatches with 1 px gaps). The bottom band height is:
+at the top (three built-in text rows + gaps; add about **22 px** when `statsOverlayTimingChart` is enabled per VV-539).
+Leave about **13 px** clear at the bottom by default (hint bar). When `statsOverlayPaletteView: true`, reserve
+additional space for the palette grid—for example about **69 px** on the default `320×240` layout with a 256-slot
+palette (32 columns × 8 rows of 7 px swatches with 1 px gaps). Column count is chosen by halving from `palette.size`
+until the row fits `displayWidth - 2 * edgeMargin`. The bottom band height is:
 
 ```text
+cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
 rows = ceil(palette.size / cols)
-cols = widest halving of palette.size that fits:
-       floor((displayWidth - 2 * 3) / (swatchSize + gap)) >= candidate
-bottomReserve = rows * swatchSize + max(0, rows - 1) * gap
+bottomReserve = rows * swatchSize + max(0, rows - 1) * gap + 2 * paletteGridPadding
 ```
 
-Default swatch size is **7 px** with **1 px** gaps. Set `statsOverlayPaletteView: true` to enable the grid, or
-`statsOverlayEnabled: false` for full-screen layouts (for example terminal-style demos).
+Default swatch size is **7 px** with **1 px** gaps and **3 px** padding above and below the grid. Set
+`statsOverlayPaletteView: true` to enable the grid, or `statsOverlayEnabled: false` for full-screen layouts (for example
+terminal-style demos).
 
 ```ts
 configure() {

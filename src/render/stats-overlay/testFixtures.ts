@@ -75,7 +75,7 @@ export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>
  *
  * @param displayHeight - Logical display height.
  * @param rowIndex - Custom row index.
- * @param bottomAreaHeight - Bottom band height (defaults to legacy 13 px bar).
+ * @param bottomAreaHeight - Bottom band height (defaults to 13 px hint bar).
  * @returns Bar top Y.
  */
 export function customRowBarY(displayHeight: number, rowIndex: number, bottomAreaHeight = STATS_BAR_HEIGHT): number {

@@ -19,23 +19,24 @@ and sprites resolve through a shared indexed palette.
 
 Before writing new code, reviewing existing code, or preflighting, check here first:
 
-| Question                                      | Where to look                                                                                                                                                                                           |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| What does `BT.X` do (getter vs method)?       | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                                                                                                                       |
-| How does a subsystem work internally?         | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
-| What does a demo implement?                   | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
-| How does the stats overlay work?              | `src/render/stats-overlay/` (orchestrator + `layoutPlan.ts`), `src/render/StatsOverlay.ts` barrel, `docs/api-core.md` (Stats overlay), `HardwareSettings.statsOverlayEnabled`                           |
-| What palette/sprite setup pattern is correct? | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
-| What are the render/asset dimension limits?   | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
-| Which preset has which exact color values?    | `docs/palette-presets.md`                                                                                                                                                                               |
-| How do post-process effects work?             | `docs/post-process-effects.md`                                                                                                                                                                          |
-| What does the CI do on this file?             | `.github/workflows/ci.yml`                                                                                                                                                                              |
-| Dependency security policy / CI audit gate?   | `docs/security/dependency-policy.md`, `docs/security/audit-exceptions.md`                                                                                                                               |
-| What is the benchmark threshold?              | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                                                                                                                                |
-| What error message style should I use?        | `docs/voice.md`, then `src/utils/errorMessages.ts`                                                                                                                                                      |
-| Is this API exported publicly?                | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                        |
-| What test mock do I need for GPU code?        | `src/__test__/webgpu-mock.ts`                                                                                                                                                                           |
-| Declaration tooling / TS version alignment?   | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                        |
+| Question                                                   | Where to look                                                                                                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What does `BT.X` do (getter vs method)?                    | `src/BlitTech.ts` JSDoc, `docs/api-core.md`, **BT API: getters vs methods** below                                                                                                                       |
+| How does a subsystem work internally?                      | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
+| What does a demo implement?                                | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
+| How does palette usage tracking work for the overlay grid? | `src/core/RenderPaletteUsage.ts`, `src/render/stats-overlay/StatsOverlayPaletteView.ts`                                                                                                                 |
+| How does the stats overlay work?                           | `src/render/stats-overlay/` (orchestrator + `layoutPlan.ts`), `src/render/StatsOverlay.ts` barrel, `docs/api-core.md` (Stats overlay), `HardwareSettings.statsOverlayEnabled`                           |
+| What palette/sprite setup pattern is correct?              | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
+| What are the render/asset dimension limits?                | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
+| Which preset has which exact color values?                 | `docs/palette-presets.md`                                                                                                                                                                               |
+| How do post-process effects work?                          | `docs/post-process-effects.md`                                                                                                                                                                          |
+| What does the CI do on this file?                          | `.github/workflows/ci.yml`                                                                                                                                                                              |
+| Dependency security policy / CI audit gate?                | `docs/security/dependency-policy.md`, `docs/security/audit-exceptions.md`                                                                                                                               |
+| What is the benchmark threshold?                           | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                                                                                                                                |
+| What error message style should I use?                     | `docs/voice.md`, then `src/utils/errorMessages.ts`                                                                                                                                                      |
+| Is this API exported publicly?                             | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                        |
+| What test mock do I need for GPU code?                     | `src/__test__/webgpu-mock.ts`                                                                                                                                                                           |
+| Declaration tooling / TS version alignment?                | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                        |
 
 ## Architecture
 
@@ -51,6 +52,7 @@ src/
     IBlitTechDemo.ts       # Demo interface + HardwareSettings
     GameLoop.ts            # Fixed-timestep game loop
     WebGPUContext.ts       # WebGPU adapter/device/context setup
+    RenderPaletteUsage.ts  # Per-frame palette index usage mask for stats overlay grid
   render/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
     WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
@@ -58,8 +60,8 @@ src/
     StatsOverlay.ts        # Barrel re-export for BTAPI (implementation under stats-overlay/)
     stats-overlay/
       StatsOverlay.ts      # Orchestrator: sample, toggle, layout plan, delegate draws
-      layoutPlan.ts        # Dynamic Y-band planner (chart + palette grid scaffold)
-      StatsOverlayTimingChart.ts  # Timing chart band (stub; default off)
+      layoutPlan.ts        # Dynamic Y-band planner (timing chart VV-539 + palette grid)
+      StatsOverlayTimingChart.ts  # Timing chart band (VV-539 scaffold; default off)
       StatsOverlayPaletteView.ts  # Palette swatch grid (opt-in via statsOverlayPaletteView)
       StatsOverlayBars.ts  # Fixed and custom row bars + labels
       StatsOverlayToggle.ts # Backquote and corner toggle input

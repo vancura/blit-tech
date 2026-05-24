@@ -5,12 +5,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
+import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from './constants';
 import { createStatsOverlayLayout } from './layoutHelpers';
 import {
-    buildUsedPaletteLookup,
     computePaletteGrid,
     computeUnusedSwatchMarkerRect,
     DEFAULT_PALETTE_SWATCH_SIZE,
@@ -21,6 +21,17 @@ import {
     pickPaletteGridColumnCount,
     StatsOverlayPaletteView,
 } from './StatsOverlayPaletteView';
+
+/** Builds a usage mask from palette slot indices for tests. */
+function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
+    const mask = new Uint8Array(size);
+
+    for (const index of indices) {
+        markRenderPaletteIndexUsed(mask, index);
+    }
+
+    return mask;
+}
 
 /** Returns the top-left pixel for one palette index in the bottom-band grid. */
 function swatchTopLeft(
@@ -119,7 +130,7 @@ describe('StatsOverlayPaletteView.draw', () => {
     it('draws filled swatches for used indices and empty X marks for unused slots', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
-        const usedIndices = [1, 2];
+        const usedMask = buildUsageMask([1, 2]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const bottomAreaY = 240 - grid.totalHeight;
@@ -137,7 +148,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             layout.bottomTextY,
             layout.displayWidth,
             layout.lineHeight,
-            usedIndices,
+            usedMask,
             DEFAULT_IDX_TEXT,
         );
 
@@ -180,16 +191,16 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(unusedSwatchFill).toBeUndefined();
     });
 
-    it('buildUsedPaletteLookup ignores slot 0 and out-of-range indices', () => {
-        expect(buildUsedPaletteLookup([0, 1, 99], 16)).toEqual(
-            new Uint8Array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        );
+    it('usage mask ignores slot 0 and out-of-range indices', () => {
+        const mask = buildUsageMask([0, 1, 99], 16);
+
+        expect(mask).toEqual(new Uint8Array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
     });
 
     it('draws swatches with gaps and skips the bottom-right hint region', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
-        const usedIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const bottomAreaY = 240 - grid.totalHeight;
@@ -207,7 +218,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             layout.bottomTextY,
             layout.displayWidth,
             layout.lineHeight,
-            usedIndices,
+            usedMask,
             DEFAULT_IDX_TEXT,
         );
 
@@ -262,7 +273,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             layout.bottomTextY,
             layout.displayWidth,
             layout.lineHeight,
-            [index],
+            buildUsageMask([index]),
             DEFAULT_IDX_TEXT,
         );
 
@@ -286,7 +297,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             227,
             320,
             14,
-            [1, 2, 3],
+            buildUsageMask([1, 2, 3]),
             DEFAULT_IDX_TEXT,
         );
 
