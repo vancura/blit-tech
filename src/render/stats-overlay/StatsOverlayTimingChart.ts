@@ -27,6 +27,8 @@ export class StatsOverlayTimingChart {
 
     #renderMsBuffer = new Float32Array(0);
 
+    readonly #dotScratch = new Rect2i(0, 0, 1, 1);
+
     /**
      * Creates a timing chart with the given feature flag.
      *
@@ -155,6 +157,7 @@ export class StatsOverlayTimingChart {
 
         const y = Math.max(chartRect.y, baselineY - offset + 1);
 
-        renderer.drawRectFillOnTop(new Rect2i(x, y, 1, 1), paletteIndex);
+        this.#dotScratch.set(x, y, 1, 1);
+        renderer.drawRectFillOnTop(this.#dotScratch, paletteIndex);
     }
 }

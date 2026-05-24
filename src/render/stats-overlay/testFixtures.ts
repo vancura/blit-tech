@@ -28,9 +28,13 @@ export function createMockRenderer(): IRenderer & {
     drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
     drawPixel: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
-    drawRectFillOnTop: ReturnType<typeof vi.fn>;
+    drawRectFillOnTop: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
 } {
-    const drawRectFillOnTop = vi.fn();
+    const rectSnapshots: Rect2i[] = [];
+    const drawRectFillOnTop = vi.fn((rect: Rect2i) => {
+        rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
+    }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
+    drawRectFillOnTop.rectSnapshots = rectSnapshots;
     const drawBitmapTextOnTop = vi.fn();
     const drawPixel = vi.fn();
 
@@ -67,15 +71,7 @@ export function getBitmapTextCalls(renderer: ReturnType<typeof createMockRendere
  * @returns Filled rectangles in invocation order.
  */
 export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect2i[] {
-    return renderer.drawRectFillOnTop.mock.calls.map(
-        (call) =>
-            new Rect2i(
-                (call[0] as Rect2i).x,
-                (call[0] as Rect2i).y,
-                (call[0] as Rect2i).width,
-                (call[0] as Rect2i).height,
-            ),
-    );
+    return [...renderer.drawRectFillOnTop.rectSnapshots];
 }
 
 /**

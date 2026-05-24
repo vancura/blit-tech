@@ -4,8 +4,25 @@ import {
     TIMING_CHART_DEFAULT_ERROR_IDX,
     TIMING_CHART_DEFAULT_EVENT_IDX,
     TIMING_CHART_DEFAULT_WARNING_IDX,
+    TIMING_CHART_FULL_SCALE_MS,
 } from './constants';
-import { resolveStatsOverlayTimingChartStyle } from './timingChartStyle';
+import { computeTimingChartBarHeight, resolveStatsOverlayTimingChartStyle } from './timingChartStyle';
+
+describe('computeTimingChartBarHeight', () => {
+    const chartHeight = 22;
+
+    it('returns 0 for non-positive samples and invalid scale inputs', () => {
+        expect(computeTimingChartBarHeight(-5, chartHeight, TIMING_CHART_FULL_SCALE_MS)).toBe(0);
+        expect(computeTimingChartBarHeight(0, chartHeight, TIMING_CHART_FULL_SCALE_MS)).toBe(0);
+        expect(computeTimingChartBarHeight(5, 0, TIMING_CHART_FULL_SCALE_MS)).toBe(0);
+        expect(computeTimingChartBarHeight(5, chartHeight, 0)).toBe(0);
+    });
+
+    it('draws at least 1 px for sub-millisecond samples and clamps at band height', () => {
+        expect(computeTimingChartBarHeight(0.1, chartHeight, TIMING_CHART_FULL_SCALE_MS)).toBe(1);
+        expect(computeTimingChartBarHeight(999, chartHeight, TIMING_CHART_FULL_SCALE_MS)).toBe(chartHeight);
+    });
+});
 
 describe('resolveStatsOverlayTimingChartStyle', () => {
     it('defaults update/render bars to overlay style indices', () => {

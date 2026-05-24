@@ -332,6 +332,7 @@ export function defaultConfig(): HardwareSettings {
         backend: 'webgpu',
         statsOverlayEnabled: true,
         statsOverlayPaletteView: false,
+        statsOverlayTimingChart: false,
     };
 }
 

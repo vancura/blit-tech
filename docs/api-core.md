@@ -267,14 +267,23 @@ Default swatch size is **7 px** with **1 px** gaps and **3 px** padding above an
 terminal-style demos).
 
 ```ts
+// Overlay off (release build or custom full-screen HUD).
 configure() {
   return {
     displaySize: new Vector2i(320, 240),
-    statsOverlayEnabled: false, // release build or custom full-screen HUD
-    statsOverlayPaletteView: true, // opt in to live palette swatch grid
-    statsOverlayTimingChart: true, // opt in to update/render timing chart band
+    statsOverlayEnabled: false,
+  };
+}
+
+// Overlay on with palette grid and timing chart.
+configure() {
+  return {
+    displaySize: new Vector2i(320, 240),
+    statsOverlayEnabled: true,
+    statsOverlayPaletteView: true,
+    statsOverlayTimingChart: true,
     statsOverlayTimingChartHeight: 32, // optional; default 22
-    statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 }, // optional palette indices
+    statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
     statsOverlayTimingChartStyle: {
       updateBarPaletteIndex: 2, // defaults to barPaletteIndex when omitted
       renderBarPaletteIndex: 3, // defaults to textPaletteIndex when omitted

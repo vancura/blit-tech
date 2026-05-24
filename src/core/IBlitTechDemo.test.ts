@@ -67,7 +67,7 @@ describe('defaultConfig', () => {
     it('should disable stats overlay timing chart by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayTimingChart).toBeUndefined();
+        expect(settings.statsOverlayTimingChart).toBe(false);
     });
 
     it('should return a fresh object on each call', () => {
