@@ -28,13 +28,13 @@ const layout16 = createStatsOverlayLayout(320, 240, 14);
 const grid16 = computePaletteGrid(320, undefined, 16);
 const palette16 = new Palette(16);
 const usedMask16 = new Uint8Array(256);
-const bottomArea16 = new Rect2i(0, 200, 320, 40);
+const paletteBand16 = new Rect2i(0, 200, 320, 40);
 
 const layout256 = createStatsOverlayLayout(320, 240, 14);
 const grid256 = computePaletteGrid(320, undefined, 256);
 const palette256 = new Palette(256);
 const usedMask256 = new Uint8Array(256);
-const bottomArea256 = new Rect2i(0, 120, 320, 120);
+const paletteBand256 = new Rect2i(0, 120, 320, 120);
 
 const paletteView = new StatsOverlayPaletteView(true);
 
@@ -53,7 +53,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             resetRenderPaletteUsage(usedMask16);
             paletteView.draw(
                 noopRenderer as never,
-                bottomArea16,
+                paletteBand16,
                 palette16,
                 grid16,
                 layout16.bottomTextY,
@@ -72,7 +72,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             resetRenderPaletteUsage(usedMask256);
             paletteView.draw(
                 noopRenderer as never,
-                bottomArea256,
+                paletteBand256,
                 palette256,
                 grid256,
                 layout256.bottomTextY,

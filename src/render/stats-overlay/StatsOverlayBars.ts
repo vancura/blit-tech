@@ -33,13 +33,13 @@ export class StatsOverlayBars {
     }
 
     /**
-     * Draws built-in top/chart/metrics/timing/bottom bar fills.
+     * Draws title, timing chart, metrics, and timing text bar fills.
      *
      * @param renderer - Active renderer.
      * @param plan - Computed layout plan.
      * @param barIndex - Palette index for bar fills.
      */
-    drawFixedBars(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+    drawTopBars(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
         renderer.drawRectFillOnTop(plan.titleBar, barIndex);
 
         if (plan.timingChart.height > 0) {
@@ -48,11 +48,55 @@ export class StatsOverlayBars {
 
         renderer.drawRectFillOnTop(plan.metricsBar, barIndex);
         renderer.drawRectFillOnTop(plan.timingTextBar, barIndex);
-        renderer.drawRectFillOnTop(plan.bottomArea, barIndex);
     }
 
     /**
-     * Draws built-in overlay text labels.
+     * Draws the palette band background fill when the overlay body is visible.
+     *
+     * @param renderer - Active renderer.
+     * @param plan - Computed layout plan.
+     * @param barIndex - Palette index for bar fills.
+     */
+    drawPaletteBandFill(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+        if (plan.paletteBand.height > 0) {
+            renderer.drawRectFillOnTop(plan.paletteBand, barIndex);
+        }
+    }
+
+    /**
+     * Draws the bottom hint bar background fill.
+     *
+     * @param renderer - Active renderer.
+     * @param plan - Computed layout plan.
+     * @param barIndex - Palette index for bar fills.
+     */
+    drawHintBarFill(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+        renderer.drawRectFillOnTop(plan.hintBar, barIndex);
+    }
+
+    /**
+     * Draws the bottom-left `[~]` toggle hint label.
+     *
+     * @param renderer - Active renderer.
+     * @param font - System bitmap font.
+     * @param plan - Computed layout plan.
+     * @param textIndex - Palette index for the hint label.
+     * @param hintLabel - Toggle hint text (typically `[~]`).
+     */
+    drawHintLabel(
+        renderer: IRenderer,
+        font: BitmapFont,
+        plan: StatsOverlayLayoutPlan,
+        textIndex: number,
+        hintLabel: string,
+    ): void {
+        const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
+
+        renderer.drawBitmapTextOnTop(font, plan.hintLabelPos, hintLabel, textPaletteOffset);
+    }
+
+    /**
+     * Draws built-in top overlay text labels (excluding the footer hint).
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.
@@ -62,9 +106,8 @@ export class StatsOverlayBars {
      * @param topRightLabel - Backend and resolution (right).
      * @param topMetricsLabel - Present FPS / target / draw calls line.
      * @param topTimingLabel - Frame / update / render ms line.
-     * @param bottomRightLabel - Bottom hint text.
      */
-    drawFixedLabels(
+    drawTopLabels(
         renderer: IRenderer,
         font: BitmapFont,
         plan: StatsOverlayLayoutPlan,
@@ -73,7 +116,6 @@ export class StatsOverlayBars {
         topRightLabel: string,
         topMetricsLabel: string,
         topTimingLabel: string,
-        bottomRightLabel: string,
     ): void {
         const textPaletteOffset = statsBitmapTextPaletteOffset(style.textIndex);
 
@@ -81,7 +123,6 @@ export class StatsOverlayBars {
         renderer.drawBitmapTextOnTop(font, plan.topRightPos, topRightLabel, textPaletteOffset);
         renderer.drawBitmapTextOnTop(font, plan.topMetricsPos, topMetricsLabel, textPaletteOffset);
         renderer.drawBitmapTextOnTop(font, plan.topTimingPos, topTimingLabel, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, plan.bottomRightPos, bottomRightLabel, textPaletteOffset);
     }
 
     /**

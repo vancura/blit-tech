@@ -6,27 +6,40 @@ import { POINTER_PRIMARY_BUTTON, STATS_TOGGLE_KEY_CODE } from './constants';
 import { isPointerInStatsToggleCorner } from './layoutHelpers';
 
 /**
- * Handles stats overlay visibility toggle input (Backquote and corner pointer).
+ * Handles stats overlay body visibility toggle input (Backquote and corner pointer).
  */
 export class StatsOverlayToggle {
-    #visible = true;
+    #bodyVisible: boolean;
+
+    readonly #toggleEnabled: boolean;
 
     /**
-     * Whether the overlay is currently drawn (runtime toggle).
+     * Creates toggle state from configure-time visibility and input flags.
      *
-     * @returns `true` while bars are rendered.
+     * @param visibleAtStart - Initial overlay body visibility from configure.
+     * @param toggleEnabled - When false, toggle input is ignored.
      */
-    get visible(): boolean {
-        return this.#visible;
+    constructor(visibleAtStart = false, toggleEnabled = true) {
+        this.#bodyVisible = visibleAtStart;
+        this.#toggleEnabled = toggleEnabled;
     }
 
     /**
-     * Handles toggle input (Backquote and bottom-right corner press).
+     * Whether the overlay body is currently drawn (runtime toggle).
+     *
+     * @returns `true` while metrics bars and palette grid are rendered.
+     */
+    get bodyVisible(): boolean {
+        return this.#bodyVisible;
+    }
+
+    /**
+     * Handles toggle input (Backquote and bottom-left corner press).
      *
      * @param pointer - Pointer subsystem, or `null` when unavailable.
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
-     * @param toggleRect - Bottom-right toggle hit region.
+     * @param toggleRect - Bottom-left toggle hit region.
      */
     handleToggle(
         pointer: PointerInput | null,
@@ -34,8 +47,13 @@ export class StatsOverlayToggle {
         currentTick: number,
         toggleRect: Rect2i,
     ): void {
+        if (!this.#toggleEnabled) {
+            return;
+        }
+
         if (keyboard?.isKeyPressed(STATS_TOGGLE_KEY_CODE, undefined, currentTick)) {
-            this.#visible = !this.#visible;
+            this.#bodyVisible = !this.#bodyVisible;
+
             return;
         }
 
@@ -51,7 +69,8 @@ export class StatsOverlayToggle {
             const pos = pointer.getPos(slot);
 
             if (isPointerInStatsToggleCorner(pos, toggleRect)) {
-                this.#visible = !this.#visible;
+                this.#bodyVisible = !this.#bodyVisible;
+
                 return;
             }
         }

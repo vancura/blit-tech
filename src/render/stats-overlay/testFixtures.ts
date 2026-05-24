@@ -75,17 +75,17 @@ export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>
 }
 
 /**
- * Y of custom row bar top stacked above the bottom band.
+ * Y of custom row bar top stacked above the footer.
  *
  * @param displayHeight - Logical display height.
  * @param rowIndex - Custom row index.
- * @param bottomAreaHeight - Bottom band height (defaults to 13 px hint bar).
+ * @param footerHeight - Reserved footer height from {@link resolveStatsOverlayFooterHeight}.
  * @returns Bar top Y.
  */
-export function customRowBarY(displayHeight: number, rowIndex: number, bottomAreaHeight = STATS_BAR_HEIGHT): number {
-    const bottomAreaY = displayHeight - bottomAreaHeight;
+export function customRowBarY(displayHeight: number, rowIndex: number, footerHeight = STATS_BAR_HEIGHT): number {
+    const footerStackTopY = displayHeight - footerHeight;
 
-    return customBarY(displayHeight, bottomAreaY, rowIndex);
+    return customBarY(footerStackTopY, rowIndex);
 }
 
 export const mockFont = {} as BitmapFont;

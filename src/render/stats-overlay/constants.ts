@@ -13,7 +13,7 @@ export const STATS_TOP_TEXT_Y = 0;
 /** Gap between stacked stats bars (custom rows and bottom bar). */
 export const STATS_ROW_GAP_PX = 1;
 
-/** Side length of the bottom-right corner region that toggles overlay visibility. */
+/** Side length of the bottom-left corner region that toggles overlay body visibility. */
 export const STATS_TOGGLE_CORNER_SIZE = 48;
 
 /** `KeyboardEvent.code` for the tilde / backquote toggle key. */
@@ -52,5 +52,5 @@ export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 /** Default event/tag palette index for timing chart semantic overlays. */
 export const TIMING_CHART_DEFAULT_EVENT_IDX = 5;
 
-/** Bottom-right hint label when palette grid is disabled. */
+/** Bottom-left hint label when palette grid is disabled. */
 export const STATS_BOTTOM_HINT_LABEL = '[~]';

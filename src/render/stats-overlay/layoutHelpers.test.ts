@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { Vector2i } from '../../utils/Vector2i';
 import { STATS_EDGE_MARGIN_PX, STATS_TOP_TEXT_Y, SYSTEM_CHAR_ADVANCE } from './constants';
-import { createStatsOverlayLayout, isPointerInStatsToggleCorner, statsRightAlignedTextX } from './layoutHelpers';
+import {
+    createStatsOverlayLayout,
+    isPointerInStatsToggleCorner,
+    statsRightAlignedTextX,
+    statsToggleHintTextX,
+} from './layoutHelpers';
 
 describe('createStatsOverlayLayout', () => {
     it('places bottom text at the configured bottom gap offset', () => {
@@ -12,7 +17,7 @@ describe('createStatsOverlayLayout', () => {
         expect(layout.displayHeight).toBe(240);
         expect(layout.bottomTextY).toBe(240 - 14 + 1);
         expect(layout.topTextY).toBe(STATS_TOP_TEXT_Y);
-        expect(layout.toggleRect.x).toBe(320 - 48);
+        expect(layout.toggleRect.x).toBe(0);
         expect(layout.toggleRect.y).toBe(240 - 48);
         expect(layout.toggleRect.width).toBe(48);
         expect(layout.toggleRect.height).toBe(48);
@@ -31,18 +36,24 @@ describe('statsRightAlignedTextX', () => {
     });
 });
 
+describe('statsToggleHintTextX', () => {
+    it('anchors the toggle hint at the left edge margin', () => {
+        expect(statsToggleHintTextX()).toBe(STATS_EDGE_MARGIN_PX);
+    });
+});
+
 describe('isPointerInStatsToggleCorner', () => {
-    it('returns true inside the bottom-right 48x48 region', () => {
+    it('returns true inside the bottom-left 48x48 region', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
 
-        expect(isPointerInStatsToggleCorner(new Vector2i(300, 220), layout.toggleRect)).toBe(true);
-        expect(isPointerInStatsToggleCorner(new Vector2i(272, 192), layout.toggleRect)).toBe(true);
+        expect(isPointerInStatsToggleCorner(new Vector2i(20, 220), layout.toggleRect)).toBe(true);
+        expect(isPointerInStatsToggleCorner(new Vector2i(0, 192), layout.toggleRect)).toBe(true);
     });
 
     it('returns false outside the toggle region', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
 
-        expect(isPointerInStatsToggleCorner(new Vector2i(0, 0), layout.toggleRect)).toBe(false);
-        expect(isPointerInStatsToggleCorner(new Vector2i(271, 191), layout.toggleRect)).toBe(false);
+        expect(isPointerInStatsToggleCorner(new Vector2i(300, 220), layout.toggleRect)).toBe(false);
+        expect(isPointerInStatsToggleCorner(new Vector2i(48, 191), layout.toggleRect)).toBe(false);
     });
 });

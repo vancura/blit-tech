@@ -12,13 +12,13 @@ export interface StatsOverlayLayout {
     /** System font line height in pixels. */
     readonly lineHeight: number;
 
-    /** Y baseline for bottom-bar text. */
+    /** Y baseline for the bottom hint label. */
     readonly bottomTextY: number;
 
     /** Y baseline for top-bar text. */
     readonly topTextY: number;
 
-    /** Bottom-right 48x48 px region that toggles overlay visibility on primary press. */
+    /** Bottom-left 48x48 px region that toggles overlay body visibility on primary press. */
     readonly toggleRect: Rect2i;
 }
 
@@ -45,7 +45,7 @@ export interface StatsOverlayTimingSnapshot {
     readonly drawCalls: number;
 }
 
-/** Computed palette swatch grid dimensions for the bottom band. */
+/** Computed palette swatch grid dimensions for the palette band. */
 export interface PaletteGridLayout {
     /** Number of columns in the grid. */
     readonly cols: number;
@@ -59,35 +59,58 @@ export interface PaletteGridLayout {
     /** Gap between swatches horizontally and vertically. */
     readonly gap: number;
 
-    /** Total bottom band height including padding. */
+    /** Total palette band height including padding. */
     readonly totalHeight: number;
 }
 
 /** Feature flags and dimensions consumed by the layout planner. */
 export interface StatsOverlayLayoutConfig {
     readonly displayWidth: number;
+
     readonly displayHeight: number;
+
     readonly lineHeight: number;
+
     readonly customRowCount: number;
+
     readonly timingChartEnabled: boolean;
+
     readonly timingChartHeight: number;
+
     /** Mirrors {@link HardwareSettings.statsOverlayPaletteView}. */
     readonly statsOverlayPaletteView: boolean;
+
     readonly paletteGrid?: PaletteGridLayout;
 }
 
 /** Computed screen-space bands and text anchors for one frame. */
 export interface StatsOverlayLayoutPlan {
     readonly titleBar: Rect2i;
+
     readonly timingChart: Rect2i;
+
     readonly metricsBar: Rect2i;
+
     readonly timingTextBar: Rect2i;
+
     readonly customBars: readonly Rect2i[];
-    readonly bottomArea: Rect2i;
+
+    /** Palette swatch grid band when {@link HardwareSettings.statsOverlayPaletteView} is enabled; height 0 otherwise. */
+    readonly paletteBand: Rect2i;
+
+    /** Bottom `[~]` hint bar (13 px); always at the display bottom edge. */
+    readonly hintBar: Rect2i;
+
     readonly toggleRect: Rect2i;
+
     readonly topLeftPos: Vector2i;
+
     readonly topRightPos: Vector2i;
+
     readonly topMetricsPos: Vector2i;
+
     readonly topTimingPos: Vector2i;
-    readonly bottomRightPos: Vector2i;
+
+    /** Bottom-left `[~]` toggle hint label anchor. */
+    readonly hintLabelPos: Vector2i;
 }

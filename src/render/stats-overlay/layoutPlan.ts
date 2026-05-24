@@ -15,7 +15,7 @@ import {
     STATS_ROW_GAP_PX,
     STATS_TOP_TEXT_Y,
 } from './constants';
-import { statsRightAlignedTextX } from './layoutHelpers';
+import { statsRightAlignedTextX, statsToggleHintTextX } from './layoutHelpers';
 import type { StatsOverlayLayoutConfig, StatsOverlayLayoutPlan } from './types';
 
 /** Mutable scratch object reused by {@link buildStatsOverlayLayoutPlan}. */
@@ -25,13 +25,35 @@ export interface StatsOverlayLayoutPlanScratch {
     metricsBar: Rect2i;
     timingTextBar: Rect2i;
     customBars: Rect2i[];
-    bottomArea: Rect2i;
+    paletteBand: Rect2i;
+    hintBar: Rect2i;
     toggleRect: Rect2i;
     topLeftPos: Vector2i;
     topRightPos: Vector2i;
     topMetricsPos: Vector2i;
     topTimingPos: Vector2i;
-    bottomRightPos: Vector2i;
+    hintLabelPos: Vector2i;
+}
+
+/**
+ * Top Y of the bottom hint bar (13 px strip at the display bottom edge).
+ *
+ * @param displayHeight - Logical display height in pixels.
+ * @returns Hint bar top Y.
+ */
+export function hintBarY(displayHeight: number): number {
+    return displayHeight - STATS_BAR_HEIGHT;
+}
+
+/**
+ * Top Y of the palette swatch grid band stacked above the hint bar row gap.
+ *
+ * @param displayHeight - Logical display height in pixels.
+ * @param paletteGridHeight - Total palette grid height from {@link computePaletteGrid}.
+ * @returns Palette band top Y.
+ */
+export function paletteBandY(displayHeight: number, paletteGridHeight: number): number {
+    return hintBarY(displayHeight) - STATS_ROW_GAP_PX - paletteGridHeight;
 }
 
 /**
@@ -46,25 +68,57 @@ export function createStatsOverlayLayoutPlanScratch(): StatsOverlayLayoutPlanScr
         metricsBar: new Rect2i(0, 0, 0, STATS_BAR_HEIGHT),
         timingTextBar: new Rect2i(0, 0, 0, STATS_BAR_HEIGHT),
         customBars: [],
-        bottomArea: new Rect2i(0, 0, 0, STATS_BAR_HEIGHT),
+        paletteBand: new Rect2i(0, 0, 0, 0),
+        hintBar: new Rect2i(0, 0, 0, STATS_BAR_HEIGHT),
         toggleRect: new Rect2i(0, 0, 0, 0),
         topLeftPos: new Vector2i(STATS_EDGE_MARGIN_PX, 0),
         topRightPos: new Vector2i(0, 0),
         topMetricsPos: new Vector2i(STATS_EDGE_MARGIN_PX, 0),
         topTimingPos: new Vector2i(STATS_EDGE_MARGIN_PX, 0),
-        bottomRightPos: new Vector2i(0, 0),
+        hintLabelPos: new Vector2i(0, 0),
     };
 }
 
 /**
- * Computes bottom band height from palette grid config or legacy 13 px bar.
+ * Resolves footer rects: optional palette band above a row gap, then the hint bar at the display bottom.
  *
  * @param config - Layout configuration.
- * @returns Bottom area height in pixels.
+ * @param displayHeight - Logical display height in pixels.
+ * @returns Palette band height, footer stack anchor Y, and hint bar top Y.
  */
-function resolveBottomAreaHeight(config: StatsOverlayLayoutConfig): number {
+function resolveFooterLayout(
+    config: StatsOverlayLayoutConfig,
+    displayHeight: number,
+): { paletteBandHeight: number; footerStackTopY: number; hintBarTopY: number } {
+    const hintBarTopY = hintBarY(displayHeight);
+    const paletteEnabled = config.statsOverlayPaletteView && config.paletteGrid !== undefined;
+
+    if (paletteEnabled) {
+        const paletteBandHeight = config.paletteGrid.totalHeight;
+
+        return {
+            paletteBandHeight,
+            footerStackTopY: paletteBandY(displayHeight, paletteBandHeight),
+            hintBarTopY,
+        };
+    }
+
+    return {
+        paletteBandHeight: 0,
+        footerStackTopY: hintBarTopY,
+        hintBarTopY,
+    };
+}
+
+/**
+ * Total reserved footer height (palette grid + row gap + hint bar, or hint bar alone).
+ *
+ * @param config - Layout configuration.
+ * @returns Footer band height in pixels.
+ */
+export function resolveStatsOverlayFooterHeight(config: StatsOverlayLayoutConfig): number {
     if (config.statsOverlayPaletteView && config.paletteGrid !== undefined) {
-        return config.paletteGrid.totalHeight;
+        return config.paletteGrid.totalHeight + STATS_ROW_GAP_PX + STATS_BAR_HEIGHT;
     }
 
     return STATS_BAR_HEIGHT;
@@ -88,27 +142,30 @@ function ensureCustomBarPool(scratch: StatsOverlayLayoutPlanScratch, count: numb
  *
  * @param config - Feature flags and display dimensions.
  * @param scratch - Reusable scratch object mutated in place.
- * @param bottomRightLabel - Text for bottom-right hint (for X alignment).
  * @param topRightLabel - Text for top-right backend/resolution label.
- * @param bottomTextY - Baseline Y for bottom-right text from init layout.
- * @param toggleRect - Bottom-right toggle hit region from init layout.
+ * @param hintLabelBaselineY - Baseline Y for the hint label from init layout.
+ * @param toggleRect - Bottom-left toggle hit region from init layout.
  * @returns The same scratch object as {@link StatsOverlayLayoutPlan}.
  */
 export function buildStatsOverlayLayoutPlan(
     config: StatsOverlayLayoutConfig,
     scratch: StatsOverlayLayoutPlanScratch,
-    bottomRightLabel: string,
     topRightLabel: string,
-    bottomTextY: number,
+    hintLabelBaselineY: number,
     toggleRect: Rect2i,
 ): StatsOverlayLayoutPlan {
     const { displayWidth, displayHeight } = config;
-    const bottomHeight = resolveBottomAreaHeight(config);
+    const { paletteBandHeight, footerStackTopY, hintBarTopY } = resolveFooterLayout(config, displayHeight);
 
-    scratch.bottomArea.x = 0;
-    scratch.bottomArea.y = displayHeight - bottomHeight;
-    scratch.bottomArea.width = displayWidth;
-    scratch.bottomArea.height = bottomHeight;
+    scratch.hintBar.x = 0;
+    scratch.hintBar.y = hintBarTopY;
+    scratch.hintBar.width = displayWidth;
+    scratch.hintBar.height = STATS_BAR_HEIGHT;
+
+    scratch.paletteBand.x = 0;
+    scratch.paletteBand.y = footerStackTopY;
+    scratch.paletteBand.width = displayWidth;
+    scratch.paletteBand.height = paletteBandHeight;
 
     ensureCustomBarPool(scratch, config.customRowCount, displayWidth);
 
@@ -120,7 +177,7 @@ export function buildStatsOverlayLayoutPlan(
             continue;
         }
 
-        const barY = scratch.bottomArea.y - (rowIndex + 1) * (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
+        const barY = footerStackTopY - (rowIndex + 1) * (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX);
 
         bar.x = 0;
         bar.y = barY;
@@ -180,8 +237,8 @@ export function buildStatsOverlayLayoutPlan(
     scratch.topTimingPos.x = STATS_EDGE_MARGIN_PX;
     scratch.topTimingPos.y = scratch.timingTextBar.y + STATS_TOP_TEXT_Y;
 
-    scratch.bottomRightPos.x = statsRightAlignedTextX(bottomRightLabel, displayWidth);
-    scratch.bottomRightPos.y = bottomTextY;
+    scratch.hintLabelPos.x = statsToggleHintTextX();
+    scratch.hintLabelPos.y = hintLabelBaselineY;
 
     return scratch;
 }

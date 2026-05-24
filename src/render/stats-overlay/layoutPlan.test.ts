@@ -6,6 +6,9 @@ import {
     buildStatsOverlayLayoutPlan,
     createDefaultLayoutConfig,
     createStatsOverlayLayoutPlanScratch,
+    hintBarY,
+    paletteBandY,
+    resolveStatsOverlayFooterHeight,
 } from './layoutPlan';
 import { computePaletteGrid } from './StatsOverlayPaletteView';
 
@@ -18,7 +21,6 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const plan = buildStatsOverlayLayoutPlan(
             config,
             scratch,
-            '[~]',
             'webgpu | 320x240',
             layout.bottomTextY,
             layout.toggleRect,
@@ -27,7 +29,8 @@ describe('buildStatsOverlayLayoutPlan', () => {
         expect(plan.titleBar).toMatchObject({ x: 0, y: 0, width: 320, height: STATS_BAR_HEIGHT });
         expect(plan.metricsBar).toMatchObject({ x: 0, y: 14, width: 320, height: STATS_BAR_HEIGHT });
         expect(plan.timingTextBar).toMatchObject({ x: 0, y: 28, width: 320, height: STATS_BAR_HEIGHT });
-        expect(plan.bottomArea).toMatchObject({ x: 0, y: 227, width: 320, height: STATS_BAR_HEIGHT });
+        expect(plan.paletteBand).toMatchObject({ x: 0, y: hintBarY(240), width: 320, height: 0 });
+        expect(plan.hintBar).toMatchObject({ x: 0, y: hintBarY(240), width: 320, height: STATS_BAR_HEIGHT });
         expect(plan.timingChart.height).toBe(0);
     });
 
@@ -39,7 +42,6 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const plan = buildStatsOverlayLayoutPlan(
             config,
             scratch,
-            '[~]',
             'webgpu | 320x240',
             layout.bottomTextY,
             layout.toggleRect,
@@ -67,7 +69,6 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const plan = buildStatsOverlayLayoutPlan(
             config,
             scratch,
-            '[~]',
             'webgpu | 320x240',
             layout.bottomTextY,
             layout.toggleRect,
@@ -90,15 +91,19 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const plan = buildStatsOverlayLayoutPlan(
             config,
             scratch,
-            '[~]',
             'webgpu | 320x240',
             layout.bottomTextY,
             layout.toggleRect,
         );
 
-        expect(plan.bottomArea).toMatchObject({
-            y: 240 - paletteGrid.totalHeight,
+        expect(plan.paletteBand).toMatchObject({
+            y: paletteBandY(240, paletteGrid.totalHeight),
             height: paletteGrid.totalHeight,
+            width: 320,
+        });
+        expect(plan.hintBar).toMatchObject({
+            y: hintBarY(240),
+            height: STATS_BAR_HEIGHT,
             width: 320,
         });
     });
@@ -116,16 +121,30 @@ describe('buildStatsOverlayLayoutPlan', () => {
         const plan = buildStatsOverlayLayoutPlan(
             config,
             scratch,
-            '[~]',
             'webgpu | 320x240',
             layout.bottomTextY,
             layout.toggleRect,
         );
 
         expect(plan.customBars[0]).toMatchObject({
-            y: plan.bottomArea.y - (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX),
+            y: plan.paletteBand.y - (STATS_BAR_HEIGHT + STATS_ROW_GAP_PX),
             width: 320,
             height: STATS_BAR_HEIGHT,
         });
+    });
+
+    it('resolveStatsOverlayFooterHeight reserves hint bar or palette plus gap plus hint', () => {
+        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
+        const hintOnlyConfig = createDefaultLayoutConfig(320, 240, 14, 0);
+        const paletteConfig = {
+            ...hintOnlyConfig,
+            statsOverlayPaletteView: true,
+            paletteGrid,
+        };
+
+        expect(resolveStatsOverlayFooterHeight(hintOnlyConfig)).toBe(STATS_BAR_HEIGHT);
+        expect(resolveStatsOverlayFooterHeight(paletteConfig)).toBe(
+            paletteGrid.totalHeight + STATS_ROW_GAP_PX + STATS_BAR_HEIGHT,
+        );
     });
 });

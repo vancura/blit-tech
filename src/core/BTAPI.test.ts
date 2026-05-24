@@ -30,6 +30,7 @@ import type { SpriteSheet } from '../assets/SpriteSheet';
 import { BT } from '../BlitTech';
 import type { Effect } from '../render/effects/Effect';
 import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from '../render/stats-overlay/constants';
+import { paletteBandY } from '../render/stats-overlay/layoutPlan';
 import {
     computePaletteGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,
@@ -838,6 +839,12 @@ describe('BTAPI', () => {
             const customRows: StatsOverlayRow[] = [{ leftText: 'Position: 1, 2' }];
             const demo: IBlitTechDemo = {
                 ...makeMockDemo(),
+                configure: vi.fn().mockReturnValue({
+                    displaySize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    statsOverlayVisibleAtStart: true,
+                }),
                 statsOverlayRows: vi.fn().mockReturnValue(customRows),
             };
             const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
@@ -1166,7 +1173,7 @@ describe('BTAPI', () => {
             expect(markSpy).not.toHaveBeenCalled();
         });
 
-        it('scans sprite and bitmap-text palette usage when statsOverlayPaletteView is true and overlay is visible', async () => {
+        it('scans sprite and bitmap-text palette usage when statsOverlayPaletteView is true and overlay body is visible', async () => {
             const markSpy = vi.fn();
             const mockSheet = makeIndexizedSpriteSheet(markSpy);
             const mockFont = {
@@ -1178,6 +1185,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
+                    statsOverlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1194,7 +1202,7 @@ describe('BTAPI', () => {
             expect(markSpy).toHaveBeenCalledTimes(2);
         });
 
-        it('skips palette scans when the palette grid is enabled but the overlay is hidden', async () => {
+        it('skips palette scans when the palette grid is enabled but the overlay body is hidden', async () => {
             const markSpy = vi.fn();
             const mockSheet = makeIndexizedSpriteSheet(markSpy);
             const demo: IBlitTechDemo = {
@@ -1214,14 +1222,36 @@ describe('BTAPI', () => {
 
             const overlay = getStatsOverlay();
             expect(overlay).not.toBeNull();
+            expect(overlay?.bodyVisible).toBe(false);
+            expect(overlay?.tracksPaletteUsage).toBe(false);
 
-            overlay?.handleToggle(
-                null,
-                {
-                    isKeyPressed: (key: string) => key === 'Backquote',
-                } as never,
-                1,
-            );
+            BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+
+            expect(markSpy).not.toHaveBeenCalled();
+        });
+
+        it('skips palette scans when the overlay body is hidden even if the toggle hint is visible', async () => {
+            const markSpy = vi.fn();
+            const mockSheet = makeIndexizedSpriteSheet(markSpy);
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                    statsOverlayToggleHintVisible: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            const overlay = getStatsOverlay();
+            expect(overlay).not.toBeNull();
+            expect(overlay?.bodyVisible).toBe(false);
             expect(overlay?.tracksPaletteUsage).toBe(false);
 
             BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
@@ -1242,12 +1272,13 @@ describe('BTAPI', () => {
             );
 
             const palette = Palette.cga();
-            const usedSlots = [1, 2] as const;
+            const usedSlots = [5, 6] as const;
             const demo: IBlitTechDemo = {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
+                    statsOverlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1299,17 +1330,17 @@ describe('BTAPI', () => {
             const maskScratch: number[] = [];
 
             expect(usedMask).toBeDefined();
-            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, palette.size, maskScratch)).toEqual([1, 2]);
+            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, palette.size, maskScratch)).toEqual([5, 6]);
 
             const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, PALETTE_SWATCH_GAP_PX);
-            const bottomAreaY = 240 - grid.totalHeight;
+            const paletteBandTop = paletteBandY(240, grid.totalHeight);
             const { cols, swatchSize, gap } = grid;
 
             for (const slot of usedSlots) {
                 const col = slot % cols;
                 const row = Math.floor(slot / cols);
                 const x = STATS_EDGE_MARGIN_PX + col * (swatchSize + gap);
-                const y = bottomAreaY + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap);
+                const y = paletteBandTop + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap);
 
                 expect(
                     swatchFills.some(
@@ -1327,7 +1358,7 @@ describe('BTAPI', () => {
             const unusedCol = unusedSlot % cols;
             const unusedRow = Math.floor(unusedSlot / cols);
             const unusedX = STATS_EDGE_MARGIN_PX + unusedCol * (swatchSize + gap);
-            const unusedY = bottomAreaY + PALETTE_GRID_PADDING_PX + unusedRow * (swatchSize + gap);
+            const unusedY = paletteBandTop + PALETTE_GRID_PADDING_PX + unusedRow * (swatchSize + gap);
 
             expect(
                 swatchFills.some(
@@ -1357,6 +1388,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
+                    statsOverlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1400,6 +1432,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
+                    statsOverlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1461,6 +1494,7 @@ describe('BTAPI', () => {
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
                     statsOverlayPaletteView: true,
+                    statsOverlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1472,6 +1506,7 @@ describe('BTAPI', () => {
 
             const overlay = getStatsOverlay();
             expect(overlay).not.toBeNull();
+            expect(overlay?.bodyVisible).toBe(true);
 
             drainRafUntilRenderCount(1);
 
