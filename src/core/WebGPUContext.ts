@@ -25,18 +25,20 @@ export interface WebGPUContextResult {
 /**
  * Initializes the WebGPU adapter, device, and canvas context for a canvas.
  *
- * The WebGPU drawing buffer is sized to `configuredDrawingBufferSize` when provided so
- * the engine can run display-tier post-processing (CRT scanlines, barrel
- * distortion, etc.) at output resolution. The CSS size of the canvas matches
- * the drawing-buffer size - when the demo wants different on-screen and
- * GPU-internal sizes it must apply CSS itself after init.
+ * Sets only the canvas backing store (`canvas.width` / `canvas.height`) to
+ * `configuredDrawingBufferSize` when provided, otherwise to `displaySize`. This
+ * routine does not change the canvas on-screen CSS size; {@link applyCanvasLayoutStyles}
+ * publishes layout custom properties from `displaySize`, optional `drawingBufferSize`,
+ * and `maxCanvasSize` before init, and demo page CSS scales the canvas within that cap.
  *
- * When `configuredDrawingBufferSize` is omitted, the drawing buffer matches the logical
+ * When `configuredDrawingBufferSize` is omitted, the drawing buffer matches
  * `displaySize` (no upscaling, no display-tier effects).
  *
  * @param canvas - HTML canvas element to configure for WebGPU rendering.
- * @param displaySize - Internal logical rendering resolution in pixels.
- * @param configuredDrawingBufferSize - Optional output drawing-buffer size from `configure()`.
+ * @param displaySize - Internal render resolution in pixels (`HardwareSettings.displaySize`).
+ * @param configuredDrawingBufferSize - Optional drawing-buffer size from `configure()`
+ *        (`HardwareSettings.drawingBufferSize`); when set, may exceed `displaySize` for
+ *        display-tier post-processing (CRT scanlines, barrel distortion, etc.).
  * @returns Initialized device, context, and drawing-buffer size, or null when WebGPU
  *          is absent or the canvas context could not be obtained.
  * @throws Error with a user-friendly message when the adapter or device cannot be
@@ -115,8 +117,7 @@ export async function initWebGPU(
     canvas.width = drawingBufferSize.x;
     canvas.height = drawingBufferSize.y;
 
-    // Only touch CSS when an explicit drawing buffer was configured. Demos
-    // that omit it can style the canvas via HTML/CSS without us overriding.
+    // Log when an explicit drawing buffer was configured (on-screen sizing is handled by applyCanvasLayoutStyles).
     if (configuredDrawingBufferSize) {
         console.log(
             `[BT] Canvas drawing buffer: ${drawingBufferSize.x}x${drawingBufferSize.y} ` +

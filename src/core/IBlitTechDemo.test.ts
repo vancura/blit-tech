@@ -167,22 +167,22 @@ describe('mergeHardwareSettings', () => {
         expect(settings.statsOverlayTimingChartHeight).toBe(36);
     });
 
-    it('preserves null displaySize for validation instead of substituting defaults', () => {
+    it('surfaces null displaySize via dimension validation instead of returning null', () => {
         const settings = mergeHardwareSettings({
             displaySize: null as unknown as Vector2i,
         });
 
-        expect(settings.displaySize).toBeNull();
+        expect(settings.displaySize).toEqual(new Vector2i(0, 0));
         expect(validateRenderDimensions(settings)).not.toBeNull();
     });
 
-    it('does not clone null optional vectors in the explicit display profile path', () => {
+    it('surfaces null optional vectors via dimension validation in the explicit profile path', () => {
         const settings = mergeHardwareSettings({
             displaySize: new Vector2i(320, 240),
             drawingBufferSize: null as unknown as Vector2i,
         });
 
-        expect(settings.drawingBufferSize).toBeNull();
+        expect(settings.drawingBufferSize).toEqual(new Vector2i(0, 0));
         expect(validateRenderDimensions(settings)).not.toBeNull();
     });
 });
