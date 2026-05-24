@@ -195,8 +195,8 @@ bottom-right toggle rect and text baselines from the system font metrics.
   `statsOverlayPaletteView: true` to replace it with a live palette swatch grid showing every active palette slot; slots
   referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares with a
   small centered marker. Palette usage tracking (sprite and bitmap-text pixel scans) runs only when the stats overlay is
-  enabled, `statsOverlayPaletteView` is true, and the overlay is visible (Backquote or the corner toggle has not hidden
-  it). Default demos do not pay that scanning cost.
+  enabled and `statsOverlayPaletteView` is true. The overlay must also be visible — not hidden with Backquote or the
+  corner toggle. Default demos do not pay that scanning cost.
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
   with left text and optional right text (same 13 px bar style as the built-in rows)
 

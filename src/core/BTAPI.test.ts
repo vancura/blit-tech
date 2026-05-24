@@ -1424,6 +1424,35 @@ describe('BTAPI', () => {
                 }),
             );
 
+            const render = vi.fn(() => {
+                const renderCall = render.mock.calls.length;
+
+                if (renderCall === 1) {
+                    BTAPI.instance.drawPixel(new Vector2i(0, 0), 9);
+                    return;
+                }
+
+                if (renderCall >= 3) {
+                    BTAPI.instance.drawPixel(new Vector2i(0, 0), 7);
+                }
+            });
+
+            const drainRafUntilRenderCount = (target: number): void => {
+                let guard = 0;
+
+                while (render.mock.calls.length < target) {
+                    if (guard++ > 1000 || rafCallbacks.length === 0) {
+                        throw new Error(`Timed out waiting for render call ${target}`);
+                    }
+
+                    const cb = rafCallbacks.shift();
+
+                    if (cb) {
+                        cb(16);
+                    }
+                }
+            };
+
             const demo: IBlitTechDemo = {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
@@ -1432,9 +1461,7 @@ describe('BTAPI', () => {
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
-                render: vi.fn(() => {
-                    BTAPI.instance.drawPixel(new Vector2i(0, 0), 9);
-                }),
+                render,
             };
 
             await BTAPI.instance.init(demo, makeMockCanvas());
@@ -1443,30 +1470,23 @@ describe('BTAPI', () => {
             const overlay = getStatsOverlay();
             expect(overlay).not.toBeNull();
 
-            const drainOneFrame = (): void => {
-                const cb = rafCallbacks.shift();
+            drainRafUntilRenderCount(1);
 
-                if (cb) {
-                    cb(16);
-                }
-            };
-
-            drainOneFrame();
             overlay?.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
             expect(overlay?.tracksPaletteUsage).toBe(false);
 
-            drainOneFrame();
+            drainRafUntilRenderCount(2);
 
             overlay?.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 2);
             expect(overlay?.tracksPaletteUsage).toBe(true);
 
             overlaySpy.mockClear();
-            drainOneFrame();
+            drainRafUntilRenderCount(3);
 
             const usedMask = overlaySpy.mock.calls.at(-1)?.[8] as Uint8Array | undefined;
             const scratch: number[] = [];
 
-            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, 16, scratch)).toEqual([9]);
+            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, 16, scratch)).toEqual([7]);
         });
     });
 
