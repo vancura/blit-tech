@@ -64,7 +64,7 @@ src/
       StatsOverlayTimingChart.ts  # Scrolling update/render timing chart band (opt-in via statsOverlayTimingChart)
       StatsOverlayPaletteView.ts  # Palette swatch grid (opt-in via statsOverlayPaletteView)
       StatsOverlayBars.ts  # Fixed and custom row bars + labels
-      StatsOverlayToggle.ts # Backquote and corner toggle input
+      StatsOverlayToggle.ts # Backquote and bottom-left corner toggle input
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)
     PostProcessChain.ts    # Tier-aware fullscreen effect chain

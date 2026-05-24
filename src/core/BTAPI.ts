@@ -412,6 +412,9 @@ export class BTAPI {
             hw.statsOverlayTimingChart === true,
             hw.statsOverlayTimingChartStyle,
             hw.statsOverlayTimingChartHeight,
+            hw.statsOverlayVisibleAtStart === true,
+            hw.statsOverlayToggleHintVisible !== false,
+            hw.statsOverlayToggleEnabled !== false,
         );
     }
 

@@ -10,12 +10,16 @@ export {
     isPointerInStatsToggleCorner,
     statsBitmapTextPaletteOffset,
     statsRightAlignedTextX,
+    statsToggleHintTextX,
 } from './layoutHelpers';
 export type { StatsOverlayLayoutPlanScratch } from './layoutPlan';
 export {
     buildStatsOverlayLayoutPlan,
     createDefaultLayoutConfig,
     createStatsOverlayLayoutPlanScratch,
+    hintBarY,
+    paletteBandY,
+    resolveStatsOverlayFooterHeight,
 } from './layoutPlan';
 export { StatsOverlay } from './StatsOverlay';
 export { StatsOverlayBars } from './StatsOverlayBars';

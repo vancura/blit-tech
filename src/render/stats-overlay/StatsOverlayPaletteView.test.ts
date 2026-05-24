@@ -7,9 +7,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { Palette } from '../../assets/Palette';
 import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
 import { Rect2i } from '../../utils/Rect2i';
-import { Vector2i } from '../../utils/Vector2i';
-import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from './constants';
+import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX, STATS_ROW_GAP_PX } from './constants';
 import { createStatsOverlayLayout } from './layoutHelpers';
+import { hintBarY, paletteBandY } from './layoutPlan';
 import {
     computePaletteGrid,
     computeUnusedSwatchMarkerRect,
@@ -53,7 +53,7 @@ function createRectFillMock(): {
 function swatchTopLeft(
     index: number,
     cols: number,
-    bottomAreaY: number,
+    paletteBandTopY: number,
     swatchSize: number,
     gap: number,
 ): { x: number; y: number } {
@@ -62,7 +62,7 @@ function swatchTopLeft(
 
     return {
         x: STATS_EDGE_MARGIN_PX + col * (swatchSize + gap),
-        y: bottomAreaY + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap),
+        y: paletteBandTopY + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap),
     };
 }
 
@@ -146,10 +146,10 @@ describe('StatsOverlayPaletteView.draw', () => {
     it('draws filled swatches for used indices and empty X marks for unused slots', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
-        const usedMask = buildUsageMask([1, 2]);
+        const usedMask = buildUsageMask([5]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
-        const bottomAreaY = 240 - grid.totalHeight;
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
         const { drawRectFillOnTop, calls } = createRectFillMock();
         const renderer = {
@@ -158,7 +158,7 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         view.draw(
             renderer,
-            new Rect2i(0, bottomAreaY, 320, grid.totalHeight),
+            new Rect2i(0, paletteBandTop, 320, grid.totalHeight),
             palette,
             grid,
             layout.bottomTextY,
@@ -170,18 +170,18 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         expect(drawRectFillOnTop).toHaveBeenCalled();
 
-        const usedPos = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const usedPos = swatchTopLeft(5, grid.cols, paletteBandTop, swatchSize, grid.gap);
         const usedSwatch = calls.find(
             (call) =>
                 call.rect.x === usedPos.x &&
                 call.rect.y === usedPos.y &&
                 call.rect.width === swatchSize &&
                 call.rect.height === swatchSize &&
-                call.index === 1,
+                call.index === 5,
         );
         expect(usedSwatch).toBeDefined();
 
-        const unusedPos = swatchTopLeft(3, grid.cols, bottomAreaY, swatchSize, grid.gap);
+        const unusedPos = swatchTopLeft(6, grid.cols, paletteBandTop, swatchSize, grid.gap);
         const unusedSwatchMarker = calls.find(
             (call) =>
                 call.rect.x === unusedPos.x + 2 &&
@@ -197,7 +197,7 @@ describe('StatsOverlayPaletteView.draw', () => {
                 call.rect.x === unusedPos.x &&
                 call.rect.y === unusedPos.y &&
                 call.rect.width === swatchSize &&
-                call.index === 3,
+                call.index === 6,
         );
         expect(unusedSwatchFill).toBeUndefined();
     });
@@ -208,13 +208,13 @@ describe('StatsOverlayPaletteView.draw', () => {
         expect(mask).toEqual(new Uint8Array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
     });
 
-    it('draws swatches with gaps and skips the bottom-right hint region', () => {
+    it('draws swatches with gaps between cells', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
-        const bottomAreaY = 240 - grid.totalHeight;
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
         const { drawRectFillOnTop, calls } = createRectFillMock();
         const renderer = {
@@ -223,7 +223,7 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         view.draw(
             renderer,
-            new Rect2i(0, bottomAreaY, 320, grid.totalHeight),
+            new Rect2i(0, paletteBandTop, 320, grid.totalHeight),
             palette,
             grid,
             layout.bottomTextY,
@@ -235,59 +235,50 @@ describe('StatsOverlayPaletteView.draw', () => {
 
         expect(drawRectFillOnTop).toHaveBeenCalled();
 
-        const swatch0 = swatchTopLeft(0, grid.cols, bottomAreaY, swatchSize, grid.gap);
-        const swatch1 = swatchTopLeft(1, grid.cols, bottomAreaY, swatchSize, grid.gap);
-        const gapX = swatch0.x + swatchSize;
+        const swatch1 = swatchTopLeft(1, grid.cols, paletteBandTop, swatchSize, grid.gap);
+        const swatch3 = swatchTopLeft(3, grid.cols, paletteBandTop, swatchSize, grid.gap);
+        const gapX = swatch1.x + swatchSize;
 
-        expect(calls.some((call) => call.rect.x === swatch0.x && call.rect.y === swatch0.y && call.index === 0)).toBe(
-            false,
+        expect(calls.some((call) => call.rect.x === swatch1.x && call.rect.y === swatch1.y && call.index === 1)).toBe(
+            true,
         );
-
-        const gapPixel = calls.find((call) => call.rect.x === gapX && call.rect.y === swatch0.y);
-        expect(gapPixel).toBeUndefined();
-
-        const nextSwatchPixel = calls.find(
-            (call) =>
-                call.rect.x === swatch1.x &&
-                call.rect.y === swatch1.y &&
-                call.rect.width === swatchSize &&
-                call.index === 1,
-        );
-        expect(nextSwatchPixel).toBeDefined();
+        expect(calls.find((call) => call.rect.x === gapX && call.rect.y === swatch1.y)).toBeUndefined();
+        expect(
+            calls.find(
+                (call) =>
+                    call.rect.x === swatch3.x &&
+                    call.rect.y === swatch3.y &&
+                    call.rect.width === swatchSize &&
+                    call.index === 3,
+            ),
+        ).toBeDefined();
     });
 
-    it('draws full column width on rows inside the toggle hit region', () => {
+    it('keeps palette swatches above the dedicated hint bar', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const palette = new Palette(256);
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, 36);
-        const bottomAreaY = 240 - grid.totalHeight;
-        const swatchOriginY = bottomAreaY + 3;
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const swatchOriginY = paletteBandTop + PALETTE_GRID_PADDING_PX;
         const view = new StatsOverlayPaletteView(true);
         const drawRectFillOnTop = vi.fn();
         const renderer = { drawRectFillOnTop } as never;
-        const row = 5;
-        const col = 35;
-        const index = row * grid.cols + col;
-        const expectedX = 3 + col * (grid.swatchSize + grid.gap);
-        const expectedY = swatchOriginY + row * (grid.swatchSize + grid.gap);
 
         view.draw(
             renderer,
-            new Rect2i(0, bottomAreaY, 320, grid.totalHeight),
+            new Rect2i(0, paletteBandTop, 320, grid.totalHeight),
             palette,
             grid,
             layout.bottomTextY,
             layout.displayWidth,
             layout.lineHeight,
-            buildUsageMask([index]),
+            buildUsageMask([0]),
             DEFAULT_IDX_TEXT,
         );
 
-        const lastColSwatch = drawRectFillOnTop.mock.calls.find(
-            (call) => (call[0] as Rect2i).x === expectedX && (call[0] as Rect2i).y === expectedY,
-        );
-        expect(lastColSwatch).toBeDefined();
-        expect(layout.toggleRect.contains(new Vector2i(expectedX, expectedY))).toBe(true);
+        const bottomRowY = swatchOriginY + (grid.rows - 1) * (grid.swatchSize + grid.gap);
+
+        expect(bottomRowY + grid.swatchSize).toBeLessThanOrEqual(hintBarY(240) - STATS_ROW_GAP_PX);
     });
 
     it('is a no-op when disabled', () => {

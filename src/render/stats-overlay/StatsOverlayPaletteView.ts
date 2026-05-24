@@ -10,7 +10,7 @@ import type { Palette } from '../../assets/Palette';
 import { Rect2i } from '../../utils/Rect2i';
 import type { IRenderer } from '../IRenderer';
 import { STATS_BOTTOM_HINT_LABEL, STATS_EDGE_MARGIN_PX } from './constants';
-import { statsRightAlignedTextX } from './layoutHelpers';
+import { statsToggleHintTextWidth, statsToggleHintTextX } from './layoutHelpers';
 import type { PaletteGridLayout } from './types';
 
 /** Default swatch size in pixels. */
@@ -174,7 +174,7 @@ const hintExclusionCache = {
 };
 
 /**
- * Returns the screen-space rect reserved for the bottom-right `[~]` hint label.
+ * Returns the screen-space rect reserved for the bottom-left `[~]` hint label.
  *
  * Reuses {@link hintExclusionCache.rect} when `bottomTextY`, `displayWidth`, and
  * `lineHeight` match the previous call.
@@ -193,17 +193,13 @@ function resolveHintExclusionRect(bottomTextY: number, displayWidth: number, lin
         return hintExclusionCache.rect;
     }
 
-    const hintLeft = statsRightAlignedTextX(STATS_BOTTOM_HINT_LABEL, displayWidth);
+    const hintLeft = statsToggleHintTextX();
 
     hintExclusionCache.bottomTextY = bottomTextY;
     hintExclusionCache.displayWidth = displayWidth;
     hintExclusionCache.lineHeight = lineHeight;
-    hintExclusionCache.rect.set(
-        hintLeft,
-        bottomTextY,
-        Math.max(0, displayWidth - STATS_EDGE_MARGIN_PX - hintLeft),
-        lineHeight,
-    );
+
+    hintExclusionCache.rect.set(hintLeft, bottomTextY, statsToggleHintTextWidth(STATS_BOTTOM_HINT_LABEL), lineHeight);
 
     return hintExclusionCache.rect;
 }
@@ -333,7 +329,7 @@ function drawPaletteSwatch(
  * Draws the full palette swatch grid inside the bottom band.
  *
  * @param renderer - Active renderer.
- * @param bottomArea - Bottom band rect from layout plan.
+ * @param paletteBand - Palette band rect from layout plan.
  * @param colorCount - Active palette slot count.
  * @param grid - Precomputed grid layout.
  * @param hintExclusion - Region to skip for the `[~]` hint label.
@@ -342,7 +338,7 @@ function drawPaletteSwatch(
  */
 function drawPaletteSwatchGrid(
     renderer: IRenderer,
-    bottomArea: Rect2i,
+    paletteBand: Rect2i,
     colorCount: number,
     grid: PaletteGridLayout,
     hintExclusion: Rect2i,
@@ -350,8 +346,8 @@ function drawPaletteSwatchGrid(
     unusedMarkIndex: number,
 ): void {
     const { cols, swatchSize, gap } = grid;
-    const originX = bottomArea.x + STATS_EDGE_MARGIN_PX;
-    const originY = bottomArea.y + PALETTE_GRID_PADDING_PX;
+    const originX = paletteBand.x + STATS_EDGE_MARGIN_PX;
+    const originY = paletteBand.y + PALETTE_GRID_PADDING_PX;
     const swatchScratch = paletteGridDrawScratch.swatch;
     const markerScratch = paletteGridDrawScratch.marker;
 
@@ -399,10 +395,10 @@ export class StatsOverlayPaletteView {
      * Draws palette swatches in the bottom band.
      *
      * @param renderer - Active renderer.
-     * @param bottomArea - Bottom band rect from layout plan.
+     * @param paletteBand - Palette band rect from layout plan.
      * @param palette - Active demo palette.
      * @param grid - Precomputed grid layout.
-     * @param bottomTextY - Baseline Y for the bottom-right `[~]` hint.
+     * @param bottomTextY - Baseline Y for the bottom-left `[~]` hint.
      * @param displayWidth - Logical display width for hint exclusion.
      * @param lineHeight - System font line height for hint exclusion.
      * @param usedMask - Per-frame usage mask populated during demo render.
@@ -410,7 +406,7 @@ export class StatsOverlayPaletteView {
      */
     draw(
         renderer: IRenderer,
-        bottomArea: Rect2i,
+        paletteBand: Rect2i,
         palette: Palette | null,
         grid: PaletteGridLayout,
         bottomTextY: number,
@@ -425,6 +421,6 @@ export class StatsOverlayPaletteView {
 
         const hintExclusion = resolveHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
-        drawPaletteSwatchGrid(renderer, bottomArea, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
+        drawPaletteSwatchGrid(renderer, paletteBand, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
 }

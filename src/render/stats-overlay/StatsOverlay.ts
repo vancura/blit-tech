@@ -59,7 +59,9 @@ export class StatsOverlay {
 
     readonly #timing: TimingSampler = new TimingSampler();
 
-    readonly #toggle: StatsOverlayToggle = new StatsOverlayToggle();
+    readonly #toggle: StatsOverlayToggle;
+
+    readonly #toggleHintVisible: boolean;
 
     readonly #bars: StatsOverlayBars = new StatsOverlayBars();
 
@@ -94,6 +96,9 @@ export class StatsOverlay {
      * @param statsOverlayTimingChart - When true, draws the update/render timing chart band.
      * @param statsOverlayTimingChartStyle - Optional timing chart palette overrides.
      * @param statsOverlayTimingChartHeight - Chart band height in pixels (default 22).
+     * @param statsOverlayVisibleAtStart - Initial overlay body visibility (default false).
+     * @param statsOverlayToggleHintVisible - Draw toggle hint while body hidden (default true).
+     * @param statsOverlayToggleEnabled - Enable Backquote and corner toggle input (default true).
      */
     constructor(
         layout: StatsOverlayLayout,
@@ -106,6 +111,9 @@ export class StatsOverlay {
         statsOverlayTimingChart = false,
         statsOverlayTimingChartStyle?: StatsOverlayTimingChartStyle,
         statsOverlayTimingChartHeight?: number,
+        statsOverlayVisibleAtStart = false,
+        statsOverlayToggleHintVisible = true,
+        statsOverlayToggleEnabled = true,
     ) {
         this.#layout = layout;
         this.#topLeftLabel = topLeftLabel;
@@ -119,6 +127,8 @@ export class StatsOverlay {
         this.#timingChart = new StatsOverlayTimingChart(statsOverlayTimingChart);
         this.#paletteView = new StatsOverlayPaletteView(statsOverlayPaletteView);
         this.#paletteColumns = paletteColumns;
+        this.#toggle = new StatsOverlayToggle(statsOverlayVisibleAtStart, statsOverlayToggleEnabled);
+        this.#toggleHintVisible = statsOverlayToggleHintVisible;
 
         if (statsOverlayTimingChart) {
             this.#timingChart.reset(layout.displayWidth);
@@ -126,28 +136,28 @@ export class StatsOverlay {
     }
 
     /**
-     * Whether the overlay is currently drawn (runtime toggle).
+     * Whether the overlay body is currently drawn (runtime toggle).
      *
-     * @returns `true` while top and bottom bars are rendered.
+     * @returns `true` while metrics bars and palette grid are rendered.
      */
-    get visible(): boolean {
-        return this.#toggle.visible;
+    get bodyVisible(): boolean {
+        return this.#toggle.bodyVisible;
     }
 
     /**
      * Whether demo draw calls should populate the per-frame palette usage mask.
      *
-     * True when the palette swatch grid is configured and the overlay is visible.
+     * True when the palette swatch grid is configured and the overlay body is visible.
      * BTAPI gates per-frame palette usage tracking on this flag.
      *
      * @returns `true` when sprite/text palette usage scanning is needed.
      */
     get tracksPaletteUsage(): boolean {
-        return this.#paletteView.enabled && this.#toggle.visible;
+        return this.#paletteView.enabled && this.#toggle.bodyVisible;
     }
 
     /**
-     * Handles toggle input (Backquote and bottom-right corner press).
+     * Handles toggle input (Backquote and bottom-left corner press).
      *
      * @param pointer - Pointer subsystem, or `null` when unavailable.
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
@@ -200,65 +210,116 @@ export class StatsOverlay {
     }
 
     /**
-     * Draws overlay bars, palette grid, and labels for one visible frame.
+     * Builds the per-frame layout plan shared by body and hint-only draws.
+     *
+     * @param customRowCount - Demo custom row count for this frame.
+     * @param palette - Active demo palette, if any.
+     * @returns Layout config and computed plan.
+     */
+    #buildFramePlan(
+        customRowCount: number,
+        palette: Palette | null | undefined,
+    ): { layoutConfig: StatsOverlayLayoutConfig; plan: StatsOverlayLayoutPlan } {
+        const layoutConfig = this.#createLayoutConfig(customRowCount, palette);
+        const plan = buildStatsOverlayLayoutPlan(
+            layoutConfig,
+            this.#layoutScratch,
+            this.#topRightLabel,
+            this.#layout.bottomTextY,
+            this.#layout.toggleRect,
+        );
+
+        return { layoutConfig, plan };
+    }
+
+    /**
+     * Resets camera for screen-space overlay drawing.
+     *
+     * @param renderer - Active renderer.
+     * @param draw - Callback that issues overlay draws.
+     */
+    #withOverlayCamera(renderer: IRenderer, draw: () => void): void {
+        const savedCamera = renderer.getCameraOffset();
+
+        renderer.resetCamera();
+
+        try {
+            draw();
+        } finally {
+            renderer.setCameraOffset(savedCamera);
+        }
+    }
+
+    /**
+     * Draws overlay content for one frame.
+     *
+     * Body panels draw only when {@link bodyVisible} is true. The footer hint bar
+     * and `[~]` label always draw when this method runs.
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan for this frame.
      * @param layoutConfig - Layout config used to build the plan.
+     * @param bodyVisible - Whether metrics bars and palette grid should draw.
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
      * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
      */
-    #renderVisible(
+    #drawFrame(
         renderer: IRenderer,
         font: BitmapFont,
         plan: StatsOverlayLayoutPlan,
         layoutConfig: StatsOverlayLayoutConfig,
+        bodyVisible: boolean,
         customRows: readonly StatsOverlayRow[] | undefined,
         palette: Palette | null | undefined,
         usedPaletteMask: Uint8Array,
     ): void {
-        const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
-        const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
-        const topTimingLabel =
-            `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
-            `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
-
         this.#barStyle.barIndex = this.#idxBg;
         this.#barStyle.textIndex = this.#idxText;
 
-        this.#bars.drawFixedBars(renderer, plan, this.#idxBg);
+        if (bodyVisible) {
+            const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
+            const topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
+            const topTimingLabel =
+                `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
+                `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
 
-        this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle);
+            this.#bars.drawTopBars(renderer, plan, this.#idxBg);
+            this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle);
 
-        this.#paletteView.draw(
-            renderer,
-            plan.bottomArea,
-            palette ?? null,
-            layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID,
-            this.#layout.bottomTextY,
-            this.#layout.displayWidth,
-            this.#layout.lineHeight,
-            usedPaletteMask,
-            this.#idxText,
-        );
+            if (customRows !== undefined && customRows.length > 0) {
+                this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
+            }
 
-        if (customRows !== undefined && customRows.length > 0) {
-            this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
+            this.#bars.drawTopLabels(
+                renderer,
+                font,
+                plan,
+                this.#barStyle,
+                this.#topLeftLabel,
+                this.#topRightLabel,
+                topMetricsLabel,
+                topTimingLabel,
+            );
+
+            this.#bars.drawPaletteBandFill(renderer, plan, this.#idxBg);
+
+            this.#paletteView.draw(
+                renderer,
+                plan.paletteBand,
+                palette ?? null,
+                layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID,
+                this.#layout.bottomTextY,
+                this.#layout.displayWidth,
+                this.#layout.lineHeight,
+                usedPaletteMask,
+                this.#idxText,
+            );
         }
 
-        this.#bars.drawFixedLabels(
-            renderer,
-            font,
-            plan,
-            this.#barStyle,
-            this.#topLeftLabel,
-            this.#topRightLabel,
-            topMetricsLabel,
-            topTimingLabel,
-            STATS_BOTTOM_HINT_LABEL,
-        );
+        this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
+        this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, STATS_BOTTOM_HINT_LABEL);
     }
 
     /**
@@ -270,7 +331,7 @@ export class StatsOverlay {
      * @param _pointer - Reserved; toggle input is handled in BTAPI before render.
      * @param _keyboard - Reserved; toggle input is handled in BTAPI before render.
      * @param _currentTick - Reserved; toggle input is handled in BTAPI before render.
-     * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay is hidden.
+     * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay body is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
      * @param palette - Active demo palette for optional palette grid.
      * @param usedPaletteMask - Per-frame palette usage mask populated during demo render.
@@ -286,35 +347,24 @@ export class StatsOverlay {
         palette?: Palette | null,
         usedPaletteMask: Uint8Array = EMPTY_PALETTE_USAGE_MASK,
     ): void {
-        // Chart history keeps advancing while hidden so re-show reflects demo-only timing
-        // (overlay draw is skipped below; palette usage tracking is also off when hidden).
+        // Chart history keeps advancing while hidden so re-show reflects demo-only timing.
         this.#sampleTiming(timing);
 
-        if (!this.#toggle.visible) {
+        const bodyVisible = this.#toggle.bodyVisible;
+
+        if (!bodyVisible && !this.#toggleHintVisible) {
             return;
         }
 
-        this.#fps.sample();
-
-        const customRows = getCustomRows?.();
-        const layoutConfig = this.#createLayoutConfig(customRows?.length ?? 0, palette);
-        const plan = buildStatsOverlayLayoutPlan(
-            layoutConfig,
-            this.#layoutScratch,
-            STATS_BOTTOM_HINT_LABEL,
-            this.#topRightLabel,
-            this.#layout.bottomTextY,
-            this.#layout.toggleRect,
-        );
-
-        const savedCamera = renderer.getCameraOffset();
-
-        renderer.resetCamera();
-
-        try {
-            this.#renderVisible(renderer, font, plan, layoutConfig, customRows, palette, usedPaletteMask);
-        } finally {
-            renderer.setCameraOffset(savedCamera);
+        if (bodyVisible) {
+            this.#fps.sample();
         }
+
+        const customRows = bodyVisible ? getCustomRows?.() : undefined;
+        const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
+
+        this.#withOverlayCamera(renderer, () => {
+            this.#drawFrame(renderer, font, plan, layoutConfig, bodyVisible, customRows, palette, usedPaletteMask);
+        });
     }
 }

@@ -9,6 +9,7 @@ import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
 import type * as Rect2iModule from '../../utils/Rect2i';
 import { Rect2i } from '../../utils/Rect2i';
 import { createStatsOverlayLayout } from './layoutHelpers';
+import { paletteBandY } from './layoutPlan';
 import { computePaletteGrid, DEFAULT_PALETTE_SWATCH_SIZE, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
 
 const { rect2iAllocStats } = vi.hoisted(() => ({ rect2iAllocStats: { count: 0 } }));
@@ -47,14 +48,14 @@ describe('StatsOverlayPaletteView allocation', () => {
         const palette = Palette.cga();
         const usedMask = buildUsageMask([1, 2, 3]);
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
-        const bottomArea = new Rect2i(0, 240 - grid.totalHeight, 320, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
         const renderer = { drawRectFillOnTop: vi.fn() } as never;
 
         for (let i = 0; i < 8; i++) {
             view.draw(
                 renderer,
-                bottomArea,
+                paletteBand,
                 palette,
                 grid,
                 layout.bottomTextY,
@@ -70,7 +71,7 @@ describe('StatsOverlayPaletteView allocation', () => {
         for (let i = 0; i < 64; i++) {
             view.draw(
                 renderer,
-                bottomArea,
+                paletteBand,
                 palette,
                 grid,
                 layout.bottomTextY,
@@ -89,14 +90,14 @@ describe('StatsOverlayPaletteView allocation', () => {
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5]);
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
-        const bottomArea = new Rect2i(0, 240 - grid.totalHeight, 320, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
         const renderer = { drawRectFillOnTop: vi.fn() } as never;
 
         for (let i = 0; i < 4; i++) {
             view.draw(
                 renderer,
-                bottomArea,
+                paletteBand,
                 palette,
                 grid,
                 layout.bottomTextY,
@@ -112,7 +113,7 @@ describe('StatsOverlayPaletteView allocation', () => {
         for (let i = 0; i < 32; i++) {
             view.draw(
                 renderer,
-                bottomArea,
+                paletteBand,
                 palette,
                 grid,
                 layout.bottomTextY,

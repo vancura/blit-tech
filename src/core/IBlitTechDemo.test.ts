@@ -65,6 +65,24 @@ describe('defaultConfig', () => {
         expect(settings.statsOverlayPaletteView).toBe(false);
     });
 
+    it('should hide stats overlay body by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayVisibleAtStart).toBe(false);
+    });
+
+    it('should show stats overlay toggle hint by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayToggleHintVisible).toBe(true);
+    });
+
+    it('should enable stats overlay toggle input by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayToggleEnabled).toBe(true);
+    });
+
     it('should disable stats overlay timing chart by default', () => {
         const settings = defaultConfig();
 
@@ -140,6 +158,18 @@ describe('mergeHardwareSettings', () => {
 
         expect(settings.statsOverlayStyle?.barPaletteIndex).toBe(2);
         expect(settings.statsOverlayStyle?.textPaletteIndex).toBe(3);
+    });
+
+    it('merges stats overlay visibility and toggle flags from configure()', () => {
+        const settings = mergeHardwareSettings({
+            statsOverlayVisibleAtStart: true,
+            statsOverlayToggleHintVisible: false,
+            statsOverlayToggleEnabled: false,
+        });
+
+        expect(settings.statsOverlayVisibleAtStart).toBe(true);
+        expect(settings.statsOverlayToggleHintVisible).toBe(false);
+        expect(settings.statsOverlayToggleEnabled).toBe(false);
     });
 
     it('merges statsOverlayTimingChart flags from configure()', () => {
