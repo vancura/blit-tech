@@ -328,9 +328,7 @@ export function btfontGlyphNegativePositionError(charLabel: string): string {
  * @returns User-facing error string.
  */
 export function btfontGlyphNegativeSizeError(charLabel: string): string {
-    return (
-        `The '${charLabel}' glyph has a negative width or height. ` + 'Use 0 or greater for w and h in the .btfont file'
-    );
+    return `The '${charLabel}' glyph has a negative width or height. Use 0 or greater for w and h in the .btfont file`;
 }
 
 /**
@@ -340,7 +338,7 @@ export function btfontGlyphNegativeSizeError(charLabel: string): string {
  * @returns User-facing error string.
  */
 export function btfontGlyphNegativeAdvanceError(charLabel: string): string {
-    return `The '${charLabel}' glyph has a negative advance width. ` + 'Use 0 or greater for adv in the .btfont file';
+    return `The '${charLabel}' glyph has a negative advance width. Use 0 or greater for adv in the .btfont file`;
 }
 
 /**

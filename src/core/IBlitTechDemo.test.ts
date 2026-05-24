@@ -64,6 +64,12 @@ describe('defaultConfig', () => {
         expect(settings.statsOverlayPaletteView).toBe(false);
     });
 
+    it('should disable stats overlay timing chart by default', () => {
+        const settings = defaultConfig();
+
+        expect(settings.statsOverlayTimingChart).toBe(false);
+    });
+
     it('should return a fresh object on each call', () => {
         const a = defaultConfig();
         const b = defaultConfig();
@@ -133,5 +139,30 @@ describe('mergeHardwareSettings', () => {
 
         expect(settings.statsOverlayStyle?.barPaletteIndex).toBe(2);
         expect(settings.statsOverlayStyle?.textPaletteIndex).toBe(3);
+    });
+
+    it('merges statsOverlayTimingChart flags from configure()', () => {
+        const settings = mergeHardwareSettings({
+            statsOverlayTimingChart: true,
+            statsOverlayTimingChartStyle: {
+                updateBarPaletteIndex: 20,
+                renderBarPaletteIndex: 21,
+                warningPaletteIndex: 22,
+            },
+        });
+
+        expect(settings.statsOverlayTimingChart).toBe(true);
+        expect(settings.statsOverlayTimingChartStyle?.updateBarPaletteIndex).toBe(20);
+        expect(settings.statsOverlayTimingChartStyle?.renderBarPaletteIndex).toBe(21);
+        expect(settings.statsOverlayTimingChartStyle?.warningPaletteIndex).toBe(22);
+    });
+
+    it('merges statsOverlayTimingChartHeight from configure()', () => {
+        const settings = mergeHardwareSettings({
+            statsOverlayTimingChart: true,
+            statsOverlayTimingChartHeight: 36,
+        });
+
+        expect(settings.statsOverlayTimingChartHeight).toBe(36);
     });
 });

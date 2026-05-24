@@ -61,7 +61,7 @@ src/
     stats-overlay/
       StatsOverlay.ts      # Orchestrator: sample, toggle, layout plan, delegate draws
       layoutPlan.ts        # Dynamic Y-band planner (timing chart VV-539 + palette grid)
-      StatsOverlayTimingChart.ts  # Timing chart band (VV-539 scaffold; default off)
+      StatsOverlayTimingChart.ts  # Scrolling update/render timing chart band (opt-in via statsOverlayTimingChart)
       StatsOverlayPaletteView.ts  # Palette swatch grid (opt-in via statsOverlayPaletteView)
       StatsOverlayBars.ts  # Fixed and custom row bars + labels
       StatsOverlayToggle.ts # Backquote and corner toggle input

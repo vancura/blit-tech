@@ -141,6 +141,27 @@ export interface HardwareSettings {
      * When omitted, the overlay uses palette index `1` for bars and `2` for text.
      */
     statsOverlayStyle?: StatsOverlayStyle;
+
+    /**
+     * When `true`, the engine draws a scrolling update/render timing chart band between the
+     * title row and the Present FPS row. Defaults to `false` in {@link defaultConfig}.
+     *
+     * Chart bars use raw per-frame CPU samples from BTAPI (not EMA-smoothed text row values).
+     */
+    statsOverlayTimingChart?: boolean;
+
+    /**
+     * Height in pixels of the timing chart band when {@link statsOverlayTimingChart} is `true`.
+     * Defaults to 22 pixels when omitted.
+     */
+    statsOverlayTimingChartHeight?: number;
+
+    /**
+     * Optional palette indices for the timing chart band. Update/render bar colors default to
+     * {@link StatsOverlayStyle} bar/text indices; warning/error/event slots provision semantic
+     * tints for follow-up chart overlays (VV-545).
+     */
+    statsOverlayTimingChartStyle?: StatsOverlayTimingChartStyle;
 }
 
 /**
@@ -152,6 +173,26 @@ export interface StatsOverlayStyle {
 
     /** Palette index for overlay text (built-in labels and custom rows unless overridden). */
     textPaletteIndex?: number;
+}
+
+/**
+ * Palette indices for the stats overlay timing chart band.
+ */
+export interface StatsOverlayTimingChartStyle {
+    /** Update bar color; defaults to {@link StatsOverlayStyle.barPaletteIndex} or overlay bar index. */
+    updateBarPaletteIndex?: number;
+
+    /** Render bar color; defaults to {@link StatsOverlayStyle.textPaletteIndex} or overlay text index. */
+    renderBarPaletteIndex?: number;
+
+    /** Warning tint for future severity overlays (VV-545). */
+    warningPaletteIndex?: number;
+
+    /** Error tint for future severity overlays (VV-545). */
+    errorPaletteIndex?: number;
+
+    /** Event/tag tint for future chart markers (VV-541). */
+    eventPaletteIndex?: number;
 }
 
 /**
@@ -291,6 +332,7 @@ export function defaultConfig(): HardwareSettings {
         backend: 'webgpu',
         statsOverlayEnabled: true,
         statsOverlayPaletteView: false,
+        statsOverlayTimingChart: false,
     };
 }
 
@@ -357,6 +399,18 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
         picked.statsOverlayStyle = { ...partial.statsOverlayStyle };
     }
 
+    if (partial.statsOverlayTimingChart !== undefined) {
+        picked.statsOverlayTimingChart = partial.statsOverlayTimingChart;
+    }
+
+    if (partial.statsOverlayTimingChartHeight !== undefined) {
+        picked.statsOverlayTimingChartHeight = partial.statsOverlayTimingChartHeight;
+    }
+
+    if (partial.statsOverlayTimingChartStyle !== undefined) {
+        picked.statsOverlayTimingChartStyle = { ...partial.statsOverlayTimingChartStyle };
+    }
+
     return picked;
 }
 
@@ -379,6 +433,107 @@ function resolveMergedOptionalVector(
 }
 
 /**
+ * Sets `target[key]` when `value` is defined.
+ *
+ * @param target - Partial settings object being built.
+ * @param key - Hardware settings field to assign.
+ * @param value - Resolved value, or `undefined` to skip.
+ */
+function assignIfDefined<K extends keyof HardwareSettings>(
+    target: Partial<HardwareSettings>,
+    key: K,
+    value: HardwareSettings[K] | undefined,
+): void {
+    if (value !== undefined) {
+        // eslint-disable-next-line security/detect-object-injection -- key is keyof HardwareSettings
+        target[key] = value;
+    }
+}
+
+/**
+ * Shallow-clones an object-shaped optional before assignment.
+ *
+ * @param value - Optional record from configure or defaults.
+ * @returns Cloned record, or `undefined` when input is omitted.
+ */
+function shallowCloneOptional<T extends object>(value: T | undefined): T | undefined {
+    return value === undefined ? undefined : { ...value };
+}
+
+/**
+ * Merged optional vectors for the full-default configure path.
+ *
+ * @param optionals - Partial settings object being built.
+ * @param picked - Defined fields from `configure()`.
+ * @param defaults - Baseline hardware settings.
+ */
+function assignFullDefaultMergeVectors(
+    optionals: Partial<HardwareSettings>,
+    picked: Partial<HardwareSettings>,
+    defaults: HardwareSettings,
+): void {
+    assignIfDefined(
+        optionals,
+        'canvasDisplaySize',
+        resolveMergedOptionalVector(picked.canvasDisplaySize, defaults.canvasDisplaySize),
+    );
+
+    assignIfDefined(
+        optionals,
+        'maxCanvasDisplaySize',
+        resolveMergedOptionalVector(picked.maxCanvasDisplaySize, defaults.maxCanvasDisplaySize),
+    );
+}
+
+/**
+ * Merged optional scalars and overlay records for the full-default configure path.
+ *
+ * @param optionals - Partial settings object being built.
+ * @param picked - Defined fields from `configure()`.
+ * @param defaults - Baseline hardware settings.
+ */
+function assignFullDefaultMergeScalars(
+    optionals: Partial<HardwareSettings>,
+    picked: Partial<HardwareSettings>,
+    defaults: HardwareSettings,
+): void {
+    assignIfDefined(optionals, 'outputUpscaleFilter', picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter);
+    assignIfDefined(optionals, 'detectDroppedFrames', picked.detectDroppedFrames ?? defaults.detectDroppedFrames);
+    assignIfDefined(optionals, 'backend', picked.backend ?? defaults.backend);
+
+    assignIfDefined(
+        optionals,
+        'statsOverlayStyle',
+        shallowCloneOptional(picked.statsOverlayStyle ?? defaults.statsOverlayStyle),
+    );
+
+    assignIfDefined(
+        optionals,
+        'statsOverlayPaletteView',
+        picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView,
+    );
+    assignIfDefined(optionals, 'statsOverlayPaletteColumns', picked.statsOverlayPaletteColumns);
+
+    assignIfDefined(
+        optionals,
+        'statsOverlayTimingChart',
+        picked.statsOverlayTimingChart ?? defaults.statsOverlayTimingChart,
+    );
+
+    assignIfDefined(
+        optionals,
+        'statsOverlayTimingChartHeight',
+        picked.statsOverlayTimingChartHeight ?? defaults.statsOverlayTimingChartHeight,
+    );
+
+    assignIfDefined(
+        optionals,
+        'statsOverlayTimingChartStyle',
+        shallowCloneOptional(picked.statsOverlayTimingChartStyle ?? defaults.statsOverlayTimingChartStyle),
+    );
+}
+
+/**
  * Collects optional hardware fields for the full-default merge path.
  *
  * @param picked - Defined fields from `configure()`.
@@ -390,56 +545,32 @@ function buildFullDefaultMergeOptionals(
     defaults: HardwareSettings,
 ): Partial<HardwareSettings> {
     const optionals: Partial<HardwareSettings> = {};
+    assignFullDefaultMergeVectors(optionals, picked, defaults);
+    assignFullDefaultMergeScalars(optionals, picked, defaults);
+    return optionals;
+}
 
-    const canvasDisplaySize = resolveMergedOptionalVector(picked.canvasDisplaySize, defaults.canvasDisplaySize);
-
-    if (canvasDisplaySize !== undefined) {
-        optionals.canvasDisplaySize = canvasDisplaySize;
-    }
-
-    const maxCanvasDisplaySize = resolveMergedOptionalVector(
-        picked.maxCanvasDisplaySize,
-        defaults.maxCanvasDisplaySize,
+/**
+ * Optional fields explicitly set in `configure()` when the demo provided `displaySize`.
+ *
+ * @param picked - Defined fields with vectors cloned.
+ * @returns Partial settings to spread into the resolved profile.
+ */
+function buildExplicitDisplayOptionals(picked: Partial<HardwareSettings>): Partial<HardwareSettings> {
+    const optionals: Partial<HardwareSettings> = {};
+    assignIfDefined(optionals, 'canvasDisplaySize', picked.canvasDisplaySize);
+    assignIfDefined(optionals, 'maxCanvasDisplaySize', picked.maxCanvasDisplaySize);
+    assignIfDefined(optionals, 'outputUpscaleFilter', picked.outputUpscaleFilter);
+    assignIfDefined(optionals, 'detectDroppedFrames', picked.detectDroppedFrames);
+    assignIfDefined(optionals, 'statsOverlayStyle', shallowCloneOptional(picked.statsOverlayStyle));
+    assignIfDefined(optionals, 'statsOverlayPaletteColumns', picked.statsOverlayPaletteColumns);
+    assignIfDefined(optionals, 'statsOverlayTimingChart', picked.statsOverlayTimingChart);
+    assignIfDefined(optionals, 'statsOverlayTimingChartHeight', picked.statsOverlayTimingChartHeight);
+    assignIfDefined(
+        optionals,
+        'statsOverlayTimingChartStyle',
+        shallowCloneOptional(picked.statsOverlayTimingChartStyle),
     );
-
-    if (maxCanvasDisplaySize !== undefined) {
-        optionals.maxCanvasDisplaySize = maxCanvasDisplaySize;
-    }
-
-    const outputUpscaleFilter = picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter;
-
-    if (outputUpscaleFilter !== undefined) {
-        optionals.outputUpscaleFilter = outputUpscaleFilter;
-    }
-
-    const detectDroppedFrames = picked.detectDroppedFrames ?? defaults.detectDroppedFrames;
-
-    if (detectDroppedFrames !== undefined) {
-        optionals.detectDroppedFrames = detectDroppedFrames;
-    }
-
-    const backend = picked.backend ?? defaults.backend;
-
-    if (backend !== undefined) {
-        optionals.backend = backend;
-    }
-
-    const statsOverlayStyle = picked.statsOverlayStyle ?? defaults.statsOverlayStyle;
-
-    if (statsOverlayStyle !== undefined) {
-        optionals.statsOverlayStyle = { ...statsOverlayStyle };
-    }
-
-    const statsOverlayPaletteView = picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView;
-
-    if (statsOverlayPaletteView !== undefined) {
-        optionals.statsOverlayPaletteView = statsOverlayPaletteView;
-    }
-
-    if (picked.statsOverlayPaletteColumns !== undefined) {
-        optionals.statsOverlayPaletteColumns = picked.statsOverlayPaletteColumns;
-    }
-
     return optionals;
 }
 
@@ -475,15 +606,8 @@ function mergeExplicitDisplayProfile(picked: Partial<HardwareSettings>, defaults
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
         statsOverlayEnabled: picked.statsOverlayEnabled ?? defaults.statsOverlayEnabled ?? true,
         statsOverlayPaletteView: picked.statsOverlayPaletteView ?? defaults.statsOverlayPaletteView ?? false,
-        ...(picked.canvasDisplaySize !== undefined ? { canvasDisplaySize: picked.canvasDisplaySize } : {}),
-        ...(picked.maxCanvasDisplaySize !== undefined ? { maxCanvasDisplaySize: picked.maxCanvasDisplaySize } : {}),
-        ...(picked.outputUpscaleFilter !== undefined ? { outputUpscaleFilter: picked.outputUpscaleFilter } : {}),
-        ...(picked.detectDroppedFrames !== undefined ? { detectDroppedFrames: picked.detectDroppedFrames } : {}),
         backend: picked.backend ?? defaults.backend ?? 'webgpu',
-        ...(picked.statsOverlayStyle !== undefined ? { statsOverlayStyle: { ...picked.statsOverlayStyle } } : {}),
-        ...(picked.statsOverlayPaletteColumns !== undefined
-            ? { statsOverlayPaletteColumns: picked.statsOverlayPaletteColumns }
-            : {}),
+        ...buildExplicitDisplayOptionals(picked),
     };
 }
 

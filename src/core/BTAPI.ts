@@ -409,6 +409,9 @@ export class BTAPI {
             hw.statsOverlayStyle,
             hw.statsOverlayPaletteView === true,
             hw.statsOverlayPaletteColumns,
+            hw.statsOverlayTimingChart === true,
+            hw.statsOverlayTimingChartStyle,
+            hw.statsOverlayTimingChartHeight,
         );
     }
 

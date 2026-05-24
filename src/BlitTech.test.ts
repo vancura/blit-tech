@@ -163,7 +163,12 @@ describe('BT.canvasDisplaySize', () => {
         });
 
         const first = BT.canvasDisplaySize;
-        first!.x = 999;
+        expect(first).toBeDefined();
+        if (!first) {
+            return;
+        }
+
+        first.x = 999;
 
         expect(BT.canvasDisplaySize?.x).toBe(640);
     });
