@@ -36,6 +36,30 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
 }
 
 describe('StatsOverlay', () => {
+    it('tracksPaletteUsage is false when palette grid is disabled', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Test Demo', 60, 'webgpu', undefined, STATS_OVERLAY_PALETTE_VIEW_OFF);
+
+        expect(overlay.tracksPaletteUsage).toBe(false);
+    });
+
+    it('tracksPaletteUsage follows palette grid opt-in and visibility toggle', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = new StatsOverlay(layout, 'Test Demo', 60, 'webgpu', undefined, true);
+
+        expect(overlay.tracksPaletteUsage).toBe(true);
+
+        overlay.handleToggle(
+            null,
+            {
+                isKeyPressed: (key: string) => key === 'Backquote',
+            } as never,
+            1,
+        );
+
+        expect(overlay.tracksPaletteUsage).toBe(false);
+    });
+
     it('starts visible and toggles visibility', () => {
         const layout = createStatsOverlayLayout(320, 240, 14);
         const overlay = new StatsOverlay(layout, 'Test Demo', 60, 'webgpu', undefined, STATS_OVERLAY_PALETTE_VIEW_OFF);

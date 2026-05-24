@@ -112,6 +112,18 @@ export class StatsOverlay {
     }
 
     /**
+     * Whether demo draw calls should populate the per-frame palette usage mask.
+     *
+     * True when the palette swatch grid is configured and the overlay is visible.
+     * BTAPI gates per-frame palette usage tracking on this flag.
+     *
+     * @returns `true` when sprite/text palette usage scanning is needed.
+     */
+    get tracksPaletteUsage(): boolean {
+        return this.#paletteView.enabled && this.#toggle.visible;
+    }
+
+    /**
      * Handles toggle input (Backquote and bottom-right corner press).
      *
      * @param pointer - Pointer subsystem, or `null` when unavailable.

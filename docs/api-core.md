@@ -194,7 +194,9 @@ bottom-right toggle rect and text baselines from the system font metrics.
 - **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-right. Set
   `statsOverlayPaletteView: true` to replace it with a live palette swatch grid showing every active palette slot; slots
   referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares with a
-  small centered marker
+  small centered marker. Palette usage tracking (including sprite and bitmap-text pixel scans) runs only while the
+  overlay is enabled, the palette grid is opted in, and the overlay is visible (not hidden with Backquote or the corner
+  toggle); default demos do not pay that cost
 - **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
   with left text and optional right text (same 13 px bar style as the built-in rows)
 

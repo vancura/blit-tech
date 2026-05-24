@@ -277,7 +277,9 @@ export class BTAPI {
                 let renderMs = 0;
 
                 if (this.renderer) {
-                    resetRenderPaletteUsage(this.framePaletteUsageMask);
+                    if (this.shouldTrackFramePaletteUsage()) {
+                        resetRenderPaletteUsage(this.framePaletteUsageMask);
+                    }
 
                     this.renderer.beginFrame();
 
@@ -762,7 +764,7 @@ export class BTAPI {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(spriteSheet);
 
-        if (this.renderer) {
+        if (this.renderer && this.shouldTrackFramePaletteUsage()) {
             spriteSheet.markPaletteIndicesInRect(srcRect, paletteOffset, this.framePaletteUsageMask);
         }
 
@@ -1292,14 +1294,25 @@ export class BTAPI {
     }
 
     /**
+     * Whether demo draw calls should populate {@link framePaletteUsageMask} this frame.
+     *
+     * @returns `true` when the stats overlay palette grid is active and visible.
+     */
+    private shouldTrackFramePaletteUsage(): boolean {
+        return this.statsOverlay?.tracksPaletteUsage ?? false;
+    }
+
+    /**
      * Marks a palette index as used for the current frame.
      *
      * @param index - Palette index to track.
      */
     private trackPaletteIndexUsed(index: number): void {
-        if (this.renderer) {
-            markRenderPaletteIndexUsed(this.framePaletteUsageMask, index);
+        if (!this.shouldTrackFramePaletteUsage() || !this.renderer) {
+            return;
         }
+
+        markRenderPaletteIndexUsed(this.framePaletteUsageMask, index);
     }
 
     /**
@@ -1310,6 +1323,10 @@ export class BTAPI {
      * @param paletteOffset - Palette offset applied at draw time.
      */
     private markBitmapTextPaletteUsage(font: BitmapFont, text: string, paletteOffset: number): void {
+        if (!this.shouldTrackFramePaletteUsage()) {
+            return;
+        }
+
         const sheet = font.getSpriteSheet();
 
         for (const char of text) {

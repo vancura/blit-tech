@@ -1110,6 +1110,120 @@ describe('BTAPI', () => {
 
     // #endregion
 
+    // #region Palette usage tracking (VV-543)
+
+    describe('palette usage tracking', () => {
+        function getStatsOverlay(): StatsOverlay | null {
+            return (BTAPI.instance as unknown as { statsOverlay: StatsOverlay | null }).statsOverlay;
+        }
+
+        function makeIndexizedSpriteSheet(markSpy: ReturnType<typeof vi.fn>): SpriteSheet {
+            return {
+                isIndexized: () => true,
+                markPaletteIndicesInRect: markSpy,
+            } as unknown as SpriteSheet;
+        }
+
+        function stubRendererDrawCalls(): void {
+            const renderer = BTAPI.instance.getRenderer();
+
+            expect(renderer).not.toBeNull();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawSprite').mockImplementation(() => {});
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawBitmapText').mockImplementation(() => {});
+        }
+
+        it('skips sprite and bitmap-text palette scans when statsOverlayPaletteView is false', async () => {
+            const markSpy = vi.fn();
+            const mockSheet = makeIndexizedSpriteSheet(markSpy);
+            const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: false,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+            BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'ab');
+
+            expect(markSpy).not.toHaveBeenCalled();
+        });
+
+        it('scans sprite and bitmap-text palette usage when statsOverlayPaletteView is true and overlay is visible', async () => {
+            const markSpy = vi.fn();
+            const mockSheet = makeIndexizedSpriteSheet(markSpy);
+            const mockFont = {
+                getSpriteSheet: () => mockSheet,
+                getGlyph: () => ({ rect: new Rect2i(0, 0, 8, 8) }),
+            } as unknown as BitmapFont;
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+            BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'a');
+
+            expect(markSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('skips palette scans when the palette grid is enabled but the overlay is hidden', async () => {
+            const markSpy = vi.fn();
+            const mockSheet = makeIndexizedSpriteSheet(markSpy);
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    statsOverlayPaletteView: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+            stubRendererDrawCalls();
+
+            const overlay = getStatsOverlay();
+            expect(overlay).not.toBeNull();
+
+            overlay?.handleToggle(
+                null,
+                {
+                    isKeyPressed: (key: string) => key === 'Backquote',
+                } as never,
+                1,
+            );
+            expect(overlay?.tracksPaletteUsage).toBe(false);
+
+            BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+
+            expect(markSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    // #endregion
+
     // #region assertPaletteIndex
 
     describe('assertPaletteIndex', () => {
