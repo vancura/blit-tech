@@ -37,6 +37,7 @@ export function createMockRenderer(): IRenderer & {
     drawRectFillOnTop.rectSnapshots = rectSnapshots;
     const drawBitmapTextOnTop = vi.fn();
     const drawPixel = vi.fn();
+    const drawRect = vi.fn();
 
     return {
         getCameraOffset: vi.fn(() => Vector2i.zero()),
@@ -44,6 +45,7 @@ export function createMockRenderer(): IRenderer & {
         setCameraOffset: vi.fn(),
         drawRectFill: vi.fn(),
         drawRectFillOnTop,
+        drawRect,
         drawBitmapText: vi.fn(),
         drawBitmapTextOnTop,
         drawPixel,

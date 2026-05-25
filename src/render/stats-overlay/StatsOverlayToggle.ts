@@ -40,12 +40,14 @@ export class StatsOverlayToggle {
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      * @param toggleRect - Bottom-left toggle hit region.
+     * @param pointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
      */
     handleToggle(
         pointer: PointerInput | null,
         keyboard: KeyboardInput | null,
         currentTick: number,
         toggleRect: Rect2i,
+        pointerPressConsumed = false,
     ): void {
         if (!this.#toggleEnabled) {
             return;
@@ -57,7 +59,7 @@ export class StatsOverlayToggle {
             return;
         }
 
-        if (!pointer) {
+        if (!pointer || pointerPressConsumed) {
             return;
         }
 

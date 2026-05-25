@@ -1296,14 +1296,20 @@ export class BTAPI {
     }
 
     /**
-     * Applies overlay toggle input and clears per-frame palette usage before demo render.
+     * Applies overlay input (palette swatch copy, then body toggle) and clears per-frame palette usage.
      *
-     * Toggle runs here (not in {@link StatsOverlay.updateAndRender}) so visibility is current
+     * Input runs here (not in {@link StatsOverlay.updateAndRender}) so visibility is current
      * when deciding whether to track palette usage during `demo.render()`.
      */
     private beginRenderFrame(): void {
         if (this.statsOverlay) {
-            this.statsOverlay.handleToggle(this.pointer, this.keyboard, this.loop?.getTicks() ?? 0);
+            this.statsOverlay.handleFrameInput(
+                this.pointer,
+                this.keyboard,
+                this.loop?.getTicks() ?? 0,
+                () => this.demo?.statsOverlayRows?.(),
+                this.palette,
+            );
         }
 
         resetRenderPaletteUsage(this.framePaletteUsageMask);

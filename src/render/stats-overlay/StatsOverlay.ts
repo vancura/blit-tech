@@ -24,6 +24,7 @@ import {
     createStatsOverlayLayoutPlanScratch,
 } from './layoutPlan';
 import { StatsOverlayBars } from './StatsOverlayBars';
+import { StatsOverlayPaletteInteraction } from './StatsOverlayPaletteInteraction';
 import { computePaletteGrid, DEFAULT_PALETTE_GRID, StatsOverlayPaletteView } from './StatsOverlayPaletteView';
 import { StatsOverlayTimingChart } from './StatsOverlayTimingChart';
 import { StatsOverlayToggle } from './StatsOverlayToggle';
@@ -72,6 +73,8 @@ export class StatsOverlay {
     readonly #timingChartStyle: ResolvedStatsOverlayTimingChartStyle;
 
     readonly #paletteView: StatsOverlayPaletteView;
+
+    readonly #paletteInteraction: StatsOverlayPaletteInteraction;
 
     readonly #paletteColumns: number | undefined;
 
@@ -126,6 +129,7 @@ export class StatsOverlay {
         this.#timingChartHeight = statsOverlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
         this.#timingChart = new StatsOverlayTimingChart(statsOverlayTimingChart);
         this.#paletteView = new StatsOverlayPaletteView(statsOverlayPaletteView);
+        this.#paletteInteraction = new StatsOverlayPaletteInteraction(targetFps);
         this.#paletteColumns = paletteColumns;
         this.#toggle = new StatsOverlayToggle(statsOverlayVisibleAtStart, statsOverlayToggleEnabled);
         this.#toggleHintVisible = statsOverlayToggleHintVisible;
@@ -157,6 +161,47 @@ export class StatsOverlay {
     }
 
     /**
+     * Handles overlay frame input: palette swatch copy first, then body toggle.
+     *
+     * @param pointer - Pointer subsystem, or `null` when unavailable.
+     * @param keyboard - Keyboard subsystem, or `null` when unavailable.
+     * @param currentTick - Current fixed-update tick for keyboard edge detection.
+     * @param getCustomRows - Optional supplier for demo rows (layout plan for palette hits).
+     * @param palette - Active demo palette for slot count, if any.
+     */
+    handleFrameInput(
+        pointer: PointerInput | null,
+        keyboard: KeyboardInput | null,
+        currentTick: number,
+        getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
+        palette?: Palette | null,
+    ): void {
+        let pointerPressConsumed = false;
+
+        if (this.#paletteView.enabled && this.#toggle.bodyVisible) {
+            const customRows = getCustomRows?.();
+            const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
+            const grid = layoutConfig.paletteGrid;
+            const colorCount = palette?.size ?? 256;
+
+            if (grid !== undefined && plan.paletteBand.height > 0) {
+                pointerPressConsumed = this.#paletteInteraction.handlePress(
+                    pointer,
+                    currentTick,
+                    plan,
+                    grid,
+                    colorCount,
+                    this.#layout.bottomTextY,
+                    this.#layout.displayWidth,
+                    this.#layout.lineHeight,
+                );
+            }
+        }
+
+        this.#toggle.handleToggle(pointer, keyboard, currentTick, this.#layout.toggleRect, pointerPressConsumed);
+    }
+
+    /**
      * Handles toggle input (Backquote and bottom-left corner press).
      *
      * @param pointer - Pointer subsystem, or `null` when unavailable.
@@ -164,7 +209,7 @@ export class StatsOverlay {
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      */
     handleToggle(pointer: PointerInput | null, keyboard: KeyboardInput | null, currentTick: number): void {
-        this.#toggle.handleToggle(pointer, keyboard, currentTick, this.#layout.toggleRect);
+        this.handleFrameInput(pointer, keyboard, currentTick);
     }
 
     /**
@@ -264,6 +309,8 @@ export class StatsOverlay {
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
      * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
+     * @param pointer
+     * @param currentTick
      */
     #drawFrame(
         renderer: IRenderer,
@@ -274,6 +321,8 @@ export class StatsOverlay {
         customRows: readonly StatsOverlayRow[] | undefined,
         palette: Palette | null | undefined,
         usedPaletteMask: Uint8Array,
+        pointer: PointerInput | null,
+        currentTick: number,
     ): void {
         this.#barStyle.barIndex = this.#idxBg;
         this.#barStyle.textIndex = this.#idxText;
@@ -292,6 +341,47 @@ export class StatsOverlay {
                 this.#bars.drawCustomRows(renderer, font, plan, customRows, this.#barStyle);
             }
 
+            this.#bars.drawPaletteBandFill(renderer, plan, this.#idxBg);
+
+            const paletteGrid = layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID;
+
+            this.#paletteView.draw(
+                renderer,
+                plan.paletteBand,
+                palette ?? null,
+                paletteGrid,
+                this.#layout.bottomTextY,
+                this.#layout.displayWidth,
+                this.#layout.lineHeight,
+                usedPaletteMask,
+                this.#idxText,
+            );
+
+            const colorCount = palette?.size ?? 256;
+
+            this.#paletteInteraction.tickCopyStatus(currentTick);
+
+            this.#paletteInteraction.updateHover(
+                pointer,
+                plan,
+                paletteGrid,
+                colorCount,
+                this.#layout.bottomTextY,
+                this.#layout.displayWidth,
+                this.#layout.lineHeight,
+            );
+
+            this.#paletteInteraction.drawTooltip(
+                renderer,
+                font,
+                plan,
+                paletteGrid,
+                this.#layout.displayWidth,
+                this.#layout.displayHeight,
+                this.#idxBg,
+                this.#idxText,
+            );
+
             this.#bars.drawTopLabels(
                 renderer,
                 font,
@@ -302,23 +392,10 @@ export class StatsOverlay {
                 topMetricsLabel,
                 topTimingLabel,
             );
-
-            this.#bars.drawPaletteBandFill(renderer, plan, this.#idxBg);
-
-            this.#paletteView.draw(
-                renderer,
-                plan.paletteBand,
-                palette ?? null,
-                layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID,
-                this.#layout.bottomTextY,
-                this.#layout.displayWidth,
-                this.#layout.lineHeight,
-                usedPaletteMask,
-                this.#idxText,
-            );
         }
 
         this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
+
         this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, STATS_BOTTOM_HINT_LABEL);
     }
 
@@ -328,9 +405,9 @@ export class StatsOverlay {
      *
      * @param renderer - Active {@link IRenderer} instance.
      * @param font - System bitmap font.
-     * @param _pointer - Reserved; toggle input is handled in BTAPI before render.
+     * @param pointer - Pointer subsystem for palette swatch hover tooltips.
      * @param _keyboard - Reserved; toggle input is handled in BTAPI before render.
-     * @param _currentTick - Reserved; toggle input is handled in BTAPI before render.
+     * @param currentTick - Current fixed-update tick for copy-status expiry.
      * @param getCustomRows - Optional supplier for demo rows; not invoked while the overlay body is hidden.
      * @param timing - Optional timing snapshot from the previous rendered frame.
      * @param palette - Active demo palette for optional palette grid.
@@ -339,9 +416,9 @@ export class StatsOverlay {
     updateAndRender(
         renderer: IRenderer,
         font: BitmapFont,
-        _pointer: PointerInput | null,
+        pointer: PointerInput | null,
         _keyboard: KeyboardInput | null,
-        _currentTick: number,
+        currentTick: number,
         getCustomRows?: () => readonly StatsOverlayRow[] | undefined,
         timing?: StatsOverlayTimingSnapshot,
         palette?: Palette | null,
@@ -364,7 +441,18 @@ export class StatsOverlay {
         const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
 
         this.#withOverlayCamera(renderer, () => {
-            this.#drawFrame(renderer, font, plan, layoutConfig, bodyVisible, customRows, palette, usedPaletteMask);
+            this.#drawFrame(
+                renderer,
+                font,
+                plan,
+                layoutConfig,
+                bodyVisible,
+                customRows,
+                palette,
+                usedPaletteMask,
+                pointer,
+                currentTick,
+            );
         });
     }
 }
