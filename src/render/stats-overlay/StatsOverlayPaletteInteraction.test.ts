@@ -455,4 +455,132 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
             expect.any(Number),
         );
     });
+
+    it('starts copy-status expiry from clipboard completion tick', async () => {
+        let resolveWrite!: () => void;
+
+        vi.mocked(navigator.clipboard.writeText).mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveWrite = resolve;
+                }),
+        );
+
+        const interaction = new StatsOverlayPaletteInteraction(60);
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
+        const swatch = new Rect2i();
+
+        writePaletteSwatchTopLeft(swatch, 9, plan.paletteBand, grid);
+
+        interaction.handlePress(
+            {
+                isButtonPressed: () => true,
+                getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+            } as never,
+            10,
+            plan,
+            grid,
+            256,
+            layout.bottomTextY,
+            layout.displayWidth,
+            layout.lineHeight,
+        );
+
+        for (let tick = 11; tick <= 25; tick++) {
+            interaction.tickCopyStatus(tick);
+        }
+
+        resolveWrite();
+        await vi.waitFor(async () => {
+            await Promise.resolve();
+
+            const probe = {
+                drawRectFillForeground: vi.fn(),
+                drawBitmapTextForeground: vi.fn(),
+            };
+
+            interaction.drawTooltip(
+                probe as never,
+                mockFont,
+                plan,
+                grid,
+                layout.displayWidth,
+                layout.displayHeight,
+                DEFAULT_IDX_BG,
+                DEFAULT_IDX_TEXT,
+            );
+
+            expect(probe.drawBitmapTextForeground).toHaveBeenCalledWith(
+                mockFont,
+                expect.any(Vector2i),
+                'Copied 9',
+                expect.any(Number),
+            );
+        });
+
+        const completionExpiryTick = 25 + Math.ceil(PALETTE_COPY_STATUS_SECONDS * 60);
+        const pressExpiryTick = 10 + Math.ceil(PALETTE_COPY_STATUS_SECONDS * 60);
+
+        const renderer = {
+            drawRectFillForeground: vi.fn(),
+            drawRectFillOnTop: vi.fn(),
+            drawRect: vi.fn(),
+            drawBitmapTextForeground: vi.fn(),
+            drawBitmapTextOnTop: vi.fn(),
+            drawPixel: vi.fn(),
+        };
+
+        interaction.tickCopyStatus(pressExpiryTick);
+        interaction.drawTooltip(
+            renderer as never,
+            mockFont,
+            plan,
+            grid,
+            layout.displayWidth,
+            layout.displayHeight,
+            DEFAULT_IDX_BG,
+            DEFAULT_IDX_TEXT,
+        );
+
+        expect(renderer.drawBitmapTextForeground).toHaveBeenCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            'Copied 9',
+            expect.any(Number),
+        );
+
+        interaction.tickCopyStatus(completionExpiryTick);
+        interaction.updateHover(
+            {
+                isValid: () => true,
+                getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+            } as never,
+            plan,
+            grid,
+            256,
+            layout.bottomTextY,
+            layout.displayWidth,
+            layout.lineHeight,
+        );
+        interaction.drawTooltip(
+            renderer as never,
+            mockFont,
+            plan,
+            grid,
+            layout.displayWidth,
+            layout.displayHeight,
+            DEFAULT_IDX_BG,
+            DEFAULT_IDX_TEXT,
+        );
+
+        expect(renderer.drawBitmapTextForeground).toHaveBeenLastCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            '9',
+            expect.any(Number),
+        );
+    });
 });

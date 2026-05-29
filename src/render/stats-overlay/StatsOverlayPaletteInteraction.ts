@@ -350,6 +350,9 @@ export class StatsOverlayPaletteInteraction {
 
     #scrollbarTrackWidth = PALETTE_SCROLLBAR_TRACK_WIDTH_PX;
 
+    /** Latest fixed-update tick observed from {@link tickCopyStatus} or {@link handlePress}. */
+    #lastKnownTick = 0;
+
     /**
      * Creates palette interaction state.
      *
@@ -365,6 +368,8 @@ export class StatsOverlayPaletteInteraction {
      * @param currentTick - Current fixed-update tick.
      */
     tickCopyStatus(currentTick: number): void {
+        this.#lastKnownTick = currentTick;
+
         if (this.#copyStatusExpiryTick >= 0 && currentTick >= this.#copyStatusExpiryTick) {
             this.#copyStatus = 'idle';
             this.#copyStatusIndex = -1;
@@ -463,6 +468,8 @@ export class StatsOverlayPaletteInteraction {
             return false;
         }
 
+        this.#lastKnownTick = currentTick;
+
         const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
@@ -490,9 +497,9 @@ export class StatsOverlayPaletteInteraction {
             void (async () => {
                 try {
                     await writePaletteIndexToClipboard(index);
-                    this.#setCopyStatus('copied', index, currentTick);
+                    this.#setCopyStatus('copied', index, this.#lastKnownTick);
                 } catch {
-                    this.#setCopyStatus('failed', index, currentTick);
+                    this.#setCopyStatus('failed', index, this.#lastKnownTick);
                 }
             })();
 
@@ -548,12 +555,12 @@ export class StatsOverlayPaletteInteraction {
      *
      * @param status - New copy status.
      * @param index - Palette index that was copied.
-     * @param currentTick - Tick when copy was requested.
+     * @param completionTick - Fixed-update tick when the clipboard write finished.
      */
-    #setCopyStatus(status: Exclude<PaletteCopyStatus, 'idle'>, index: number, currentTick: number): void {
+    #setCopyStatus(status: Exclude<PaletteCopyStatus, 'idle'>, index: number, completionTick: number): void {
         this.#copyStatus = status;
         this.#copyStatusIndex = index;
-        this.#copyStatusExpiryTick = currentTick + Math.ceil(PALETTE_COPY_STATUS_SECONDS * this.#targetFps);
+        this.#copyStatusExpiryTick = completionTick + Math.ceil(PALETTE_COPY_STATUS_SECONDS * this.#targetFps);
         this.#tooltipLabelKey = '';
     }
 
