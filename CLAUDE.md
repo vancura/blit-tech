@@ -60,9 +60,11 @@ src/
     StatsOverlay.ts        # Barrel re-export for BTAPI (implementation under stats-overlay/)
     stats-overlay/
       StatsOverlay.ts      # Orchestrator: sample, toggle, layout plan, delegate draws
+      StatsOverlayDrawTarget.ts # Internal draw port (drawBarFill / drawLabel); not on IRenderer or BT
       layoutPlan.ts        # Dynamic Y-band planner (timing chart VV-539 + palette grid)
       StatsOverlayTimingChart.ts  # Scrolling update/render timing chart band (opt-in via statsOverlayTimingChart)
       StatsOverlayPaletteView.ts  # Palette swatch grid (opt-in via statsOverlayPaletteView)
+      StatsOverlayPaletteInteraction.ts # Swatch hover tooltips and clipboard copy
       StatsOverlayBars.ts  # Fixed and custom row bars + labels
       StatsOverlayToggle.ts # Backquote and bottom-left corner toggle input
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)

@@ -31,6 +31,7 @@ import { BT } from '../BlitTech';
 import type { Effect } from '../render/effects/Effect';
 import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from '../render/stats-overlay/constants';
 import { paletteBandY } from '../render/stats-overlay/layoutPlan';
+import type { StatsOverlayDrawTarget } from '../render/stats-overlay/StatsOverlayDrawTarget';
 import {
     computePaletteGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,
@@ -1296,11 +1297,12 @@ describe('BTAPI', () => {
 
             const swatchFills: { index: number; rect: Rect2i }[] = [];
 
-            vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawRectFillOnTop').mockImplementation(
-                (rect, index) => {
-                    swatchFills.push({ index, rect: new Rect2i(rect.x, rect.y, rect.width, rect.height) });
-                },
-            );
+            vi.spyOn(
+                renderer as NonNullable<typeof renderer> & StatsOverlayDrawTarget,
+                'drawBarFill',
+            ).mockImplementation((rect: Rect2i, index: number) => {
+                swatchFills.push({ index, rect: new Rect2i(rect.x, rect.y, rect.width, rect.height) });
+            });
 
             const maxIterations = 1000;
             let iterations = 0;

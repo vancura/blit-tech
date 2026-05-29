@@ -41,8 +41,6 @@ type WebGpuRendererPipelineAccess = {
     overlayPrimitives: PrimitivePipeline;
     sprites: SpritePipeline;
     overlaySprites: SpritePipeline;
-    foregroundOverlayPrimitives: PrimitivePipeline;
-    foregroundOverlaySprites: SpritePipeline;
 };
 
 /**
@@ -442,7 +440,7 @@ describe('with initialized renderer', () => {
         renderer.endFrame();
     });
 
-    it('drawRectFillOnTop routes fills to overlayPrimitives, not primitives', () => {
+    it('drawBarFill routes fills to overlayPrimitives, not primitives', () => {
         const pipelines = getRendererPipelines(renderer);
         const sceneFill = vi.spyOn(pipelines.primitives, 'drawRectFill');
         const overlayFill = vi.spyOn(pipelines.overlayPrimitives, 'drawRectFill');
@@ -450,7 +448,7 @@ describe('with initialized renderer', () => {
 
         renderer.beginFrame();
         renderer.drawRectFill(rect, 2);
-        renderer.drawRectFillOnTop(rect, 5);
+        renderer.drawBarFill(rect, 5);
         renderer.endFrame();
 
         expect(sceneFill).toHaveBeenCalledOnce();
@@ -459,7 +457,7 @@ describe('with initialized renderer', () => {
         expect(overlayFill).toHaveBeenCalledWith(rect, 5);
     });
 
-    it('drawBitmapTextOnTop routes text to overlaySprites, not sprites', () => {
+    it('drawLabel routes text to overlaySprites, not sprites', () => {
         const pipelines = getRendererPipelines(renderer);
         const sceneText = vi.spyOn(pipelines.sprites, 'drawBitmapText');
         const overlayText = vi.spyOn(pipelines.overlaySprites, 'drawBitmapText');
@@ -470,7 +468,7 @@ describe('with initialized renderer', () => {
 
         renderer.beginFrame();
         renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
-        renderer.drawBitmapTextOnTop(mockFont, new Vector2i(4, 4), '');
+        renderer.drawLabel(mockFont, new Vector2i(4, 4), '');
         renderer.endFrame();
 
         expect(sceneText).toHaveBeenCalledOnce();
@@ -479,43 +477,7 @@ describe('with initialized renderer', () => {
         expect(overlayText).toHaveBeenCalledWith(mockFont, new Vector2i(4, 4), '', 0);
     });
 
-    it('drawRectFillForeground routes fills to foregroundOverlayPrimitives', () => {
-        const pipelines = getRendererPipelines(renderer);
-        const overlayFill = vi.spyOn(pipelines.overlayPrimitives, 'drawRectFill');
-        const foregroundFill = vi.spyOn(pipelines.foregroundOverlayPrimitives, 'drawRectFill');
-        const overlayRect = new Rect2i(1, 2, 8, 8);
-        const foregroundRect = new Rect2i(3, 4, 6, 6);
-
-        renderer.beginFrame();
-        renderer.drawRectFillOnTop(overlayRect, 3);
-        renderer.drawRectFillForeground(foregroundRect, 5);
-        renderer.endFrame();
-
-        expect(overlayFill).toHaveBeenCalledWith(overlayRect, 3);
-        expect(foregroundFill).toHaveBeenCalledOnce();
-        expect(foregroundFill).toHaveBeenCalledWith(foregroundRect, 5);
-    });
-
-    it('drawBitmapTextForeground routes text to foregroundOverlaySprites', () => {
-        const pipelines = getRendererPipelines(renderer);
-        const overlayText = vi.spyOn(pipelines.overlaySprites, 'drawBitmapText');
-        const foregroundText = vi.spyOn(pipelines.foregroundOverlaySprites, 'drawBitmapText');
-        const mockFont = {
-            getSpriteSheet: () => ({}),
-            getGlyphByCode: () => null,
-        } as unknown as BitmapFont;
-
-        renderer.beginFrame();
-        renderer.drawBitmapTextOnTop(mockFont, new Vector2i(4, 4), '');
-        renderer.drawBitmapTextForeground(mockFont, new Vector2i(8, 8), '');
-        renderer.endFrame();
-
-        expect(overlayText).toHaveBeenCalledWith(mockFont, new Vector2i(4, 4), '', 0);
-        expect(foregroundText).toHaveBeenCalledOnce();
-        expect(foregroundText).toHaveBeenCalledWith(mockFont, new Vector2i(8, 8), '', 0);
-    });
-
-    it('encodes scene pass as primitives, sprites, overlay batches, then foreground overlay batches', () => {
+    it('encodes scene pass as primitives, sprites, then overlay batches', () => {
         const pipelines = getRendererPipelines(renderer);
         const encodeOrder: string[] = [];
 
@@ -531,12 +493,6 @@ describe('with initialized renderer', () => {
         vi.spyOn(pipelines.overlaySprites, 'encodePass').mockImplementation(() => {
             encodeOrder.push('overlaySprites');
         });
-        vi.spyOn(pipelines.foregroundOverlayPrimitives, 'encodePass').mockImplementation(() => {
-            encodeOrder.push('foregroundOverlayPrimitives');
-        });
-        vi.spyOn(pipelines.foregroundOverlaySprites, 'encodePass').mockImplementation(() => {
-            encodeOrder.push('foregroundOverlaySprites');
-        });
 
         const mockFont = {
             getSpriteSheet: () => ({}),
@@ -546,35 +502,22 @@ describe('with initialized renderer', () => {
         renderer.beginFrame();
         renderer.drawRectFill(new Rect2i(0, 0, 4, 4), 2);
         renderer.drawBitmapText(mockFont, new Vector2i(0, 0), '');
-        renderer.drawRectFillOnTop(new Rect2i(0, 220, 320, 16), 1);
-        renderer.drawBitmapTextOnTop(mockFont, new Vector2i(5, 225), 'HUD');
-        renderer.drawRectFillForeground(new Rect2i(10, 10, 6, 6), 4);
-        renderer.drawBitmapTextForeground(mockFont, new Vector2i(12, 12), '');
+        renderer.drawBarFill(new Rect2i(0, 220, 320, 16), 1);
+        renderer.drawLabel(mockFont, new Vector2i(5, 225), 'HUD');
         renderer.endFrame();
 
-        expect(encodeOrder).toEqual([
-            'primitives',
-            'sprites',
-            'overlayPrimitives',
-            'overlaySprites',
-            'foregroundOverlayPrimitives',
-            'foregroundOverlaySprites',
-        ]);
+        expect(encodeOrder).toEqual(['primitives', 'sprites', 'overlayPrimitives', 'overlaySprites']);
     });
 
     it('resets overlay batches on beginFrame', () => {
         const pipelines = getRendererPipelines(renderer);
         const overlayPrimitiveReset = vi.spyOn(pipelines.overlayPrimitives, 'reset');
         const overlaySpriteReset = vi.spyOn(pipelines.overlaySprites, 'reset');
-        const foregroundPrimitiveReset = vi.spyOn(pipelines.foregroundOverlayPrimitives, 'reset');
-        const foregroundSpriteReset = vi.spyOn(pipelines.foregroundOverlaySprites, 'reset');
 
         renderer.beginFrame();
 
         expect(overlayPrimitiveReset).toHaveBeenCalledOnce();
         expect(overlaySpriteReset).toHaveBeenCalledOnce();
-        expect(foregroundPrimitiveReset).toHaveBeenCalledOnce();
-        expect(foregroundSpriteReset).toHaveBeenCalledOnce();
 
         renderer.endFrame();
     });

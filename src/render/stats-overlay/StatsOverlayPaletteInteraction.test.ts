@@ -10,7 +10,8 @@ import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT } from './constants';
 import { createStatsOverlayLayout } from './layoutHelpers';
 import { paletteBandY } from './layoutPlan';
 import {
-    drawPaletteTooltip,
+    drawPaletteTooltipChrome,
+    drawPaletteTooltipLabel,
     hitTestPaletteSwatch,
     layoutPaletteTooltip,
     PALETTE_COPY_STATUS_SECONDS,
@@ -203,29 +204,43 @@ describe('layoutPaletteTooltip', () => {
     });
 });
 
-describe('drawPaletteTooltip', () => {
-    it('draws via foreground overlay APIs so tooltips stay above custom stats rows', () => {
+describe('drawPaletteTooltipChrome', () => {
+    it('draws tooltip body and border via drawBarFill', () => {
         const layoutScratch = {
             body: new Rect2i(),
             swatch: new Rect2i(40, 180, 7, 7),
             textPos: new Vector2i(),
         };
         const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
-        const renderer = {
-            drawRectFillForeground: vi.fn(),
-            drawRectFillOnTop: vi.fn(),
-            drawRect: vi.fn(),
-            drawBitmapTextForeground: vi.fn(),
-            drawBitmapTextOnTop: vi.fn(),
+        const target = {
+            drawBarFill: vi.fn(),
+            drawLabel: vi.fn(),
         };
 
-        drawPaletteTooltip(renderer as never, mockFont, layout, '42', DEFAULT_IDX_BG, DEFAULT_IDX_TEXT);
+        drawPaletteTooltipChrome(target, layout, DEFAULT_IDX_BG, DEFAULT_IDX_TEXT);
 
-        expect(renderer.drawRectFillForeground).toHaveBeenCalled();
-        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
-        expect(renderer.drawRect).not.toHaveBeenCalled();
-        expect(renderer.drawBitmapTextForeground).toHaveBeenCalled();
-        expect(renderer.drawBitmapTextOnTop).not.toHaveBeenCalled();
+        expect(target.drawBarFill).toHaveBeenCalled();
+        expect(target.drawLabel).not.toHaveBeenCalled();
+    });
+});
+
+describe('drawPaletteTooltipLabel', () => {
+    it('draws tooltip text via drawLabel', () => {
+        const layoutScratch = {
+            body: new Rect2i(),
+            swatch: new Rect2i(40, 180, 7, 7),
+            textPos: new Vector2i(),
+        };
+        const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
+        const target = {
+            drawBarFill: vi.fn(),
+            drawLabel: vi.fn(),
+        };
+
+        drawPaletteTooltipLabel(target, mockFont, layout, '42', DEFAULT_IDX_TEXT);
+
+        expect(target.drawLabel).toHaveBeenCalled();
+        expect(target.drawBarFill).not.toHaveBeenCalled();
     });
 });
 
@@ -277,54 +292,41 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
         await vi.waitFor(async () => {
             await Promise.resolve();
             const probe = {
-                drawRectFillForeground: vi.fn(),
-                drawRectFillOnTop: vi.fn(),
-                drawRect: vi.fn(),
-                drawBitmapTextForeground: vi.fn(),
-                drawBitmapTextOnTop: vi.fn(),
+                drawBarFill: vi.fn(),
+                drawLabel: vi.fn(),
                 drawPixel: vi.fn(),
             };
 
-            interaction.drawTooltip(
+            interaction.drawTooltipLabel(
                 probe as never,
                 mockFont,
                 plan,
                 grid,
                 layout.displayWidth,
                 layout.displayHeight,
-                DEFAULT_IDX_BG,
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(probe.drawBitmapTextForeground).toHaveBeenCalled();
+            expect(probe.drawLabel).toHaveBeenCalled();
         });
 
         const renderer = {
-            drawRectFillForeground: vi.fn(),
-            drawRectFillOnTop: vi.fn(),
-            drawRect: vi.fn(),
-            drawBitmapTextForeground: vi.fn(),
-            drawBitmapTextOnTop: vi.fn(),
+            drawBarFill: vi.fn(),
+            drawLabel: vi.fn(),
             drawPixel: vi.fn(),
         };
 
-        interaction.drawTooltip(
+        interaction.drawTooltipLabel(
             renderer as never,
             mockFont,
             plan,
             grid,
             layout.displayWidth,
             layout.displayHeight,
-            DEFAULT_IDX_BG,
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawBitmapTextForeground).toHaveBeenCalledWith(
-            mockFont,
-            expect.any(Vector2i),
-            'Copied 7',
-            expect.any(Number),
-        );
+        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), 'Copied 7', expect.any(Number));
     });
 
     it('shows Copy failed when clipboard write is denied', async () => {
@@ -355,26 +357,22 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
 
         await vi.waitFor(() => {
             const renderer = {
-                drawRectFillForeground: vi.fn(),
-                drawRectFillOnTop: vi.fn(),
-                drawRect: vi.fn(),
-                drawBitmapTextForeground: vi.fn(),
-                drawBitmapTextOnTop: vi.fn(),
+                drawBarFill: vi.fn(),
+                drawLabel: vi.fn(),
                 drawPixel: vi.fn(),
             };
 
-            interaction.drawTooltip(
+            interaction.drawTooltipLabel(
                 renderer as never,
                 mockFont,
                 plan,
                 grid,
                 layout.displayWidth,
                 layout.displayHeight,
-                DEFAULT_IDX_BG,
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(renderer.drawBitmapTextForeground).toHaveBeenCalledWith(
+            expect(renderer.drawLabel).toHaveBeenCalledWith(
                 mockFont,
                 expect.any(Vector2i),
                 'Copy failed',
@@ -416,11 +414,8 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
         interaction.tickCopyStatus(expiryTick);
 
         const renderer = {
-            drawRectFillForeground: vi.fn(),
-            drawRectFillOnTop: vi.fn(),
-            drawRect: vi.fn(),
-            drawBitmapTextForeground: vi.fn(),
-            drawBitmapTextOnTop: vi.fn(),
+            drawBarFill: vi.fn(),
+            drawLabel: vi.fn(),
             drawPixel: vi.fn(),
         };
 
@@ -437,23 +432,17 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
             layout.lineHeight,
         );
 
-        interaction.drawTooltip(
+        interaction.drawTooltipLabel(
             renderer as never,
             mockFont,
             plan,
             grid,
             layout.displayWidth,
             layout.displayHeight,
-            DEFAULT_IDX_BG,
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawBitmapTextForeground).toHaveBeenCalledWith(
-            mockFont,
-            expect.any(Vector2i),
-            '9',
-            expect.any(Number),
-        );
+        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), '9', expect.any(Number));
     });
 
     it('starts copy-status expiry from clipboard completion tick', async () => {
@@ -498,22 +487,21 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
             await Promise.resolve();
 
             const probe = {
-                drawRectFillForeground: vi.fn(),
-                drawBitmapTextForeground: vi.fn(),
+                drawBarFill: vi.fn(),
+                drawLabel: vi.fn(),
             };
 
-            interaction.drawTooltip(
+            interaction.drawTooltipLabel(
                 probe as never,
                 mockFont,
                 plan,
                 grid,
                 layout.displayWidth,
                 layout.displayHeight,
-                DEFAULT_IDX_BG,
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(probe.drawBitmapTextForeground).toHaveBeenCalledWith(
+            expect(probe.drawLabel).toHaveBeenCalledWith(
                 mockFont,
                 expect.any(Vector2i),
                 'Copied 9',
@@ -525,32 +513,23 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
         const pressExpiryTick = 10 + Math.ceil(PALETTE_COPY_STATUS_SECONDS * 60);
 
         const renderer = {
-            drawRectFillForeground: vi.fn(),
-            drawRectFillOnTop: vi.fn(),
-            drawRect: vi.fn(),
-            drawBitmapTextForeground: vi.fn(),
-            drawBitmapTextOnTop: vi.fn(),
+            drawBarFill: vi.fn(),
+            drawLabel: vi.fn(),
             drawPixel: vi.fn(),
         };
 
         interaction.tickCopyStatus(pressExpiryTick);
-        interaction.drawTooltip(
+        interaction.drawTooltipLabel(
             renderer as never,
             mockFont,
             plan,
             grid,
             layout.displayWidth,
             layout.displayHeight,
-            DEFAULT_IDX_BG,
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawBitmapTextForeground).toHaveBeenCalledWith(
-            mockFont,
-            expect.any(Vector2i),
-            'Copied 9',
-            expect.any(Number),
-        );
+        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), 'Copied 9', expect.any(Number));
 
         interaction.tickCopyStatus(completionExpiryTick);
         interaction.updateHover(
@@ -565,22 +544,16 @@ describe('StatsOverlayPaletteInteraction clipboard', () => {
             layout.displayWidth,
             layout.lineHeight,
         );
-        interaction.drawTooltip(
+        interaction.drawTooltipLabel(
             renderer as never,
             mockFont,
             plan,
             grid,
             layout.displayWidth,
             layout.displayHeight,
-            DEFAULT_IDX_BG,
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawBitmapTextForeground).toHaveBeenLastCalledWith(
-            mockFont,
-            expect.any(Vector2i),
-            '9',
-            expect.any(Number),
-        );
+        expect(renderer.drawLabel).toHaveBeenLastCalledWith(mockFont, expect.any(Vector2i), '9', expect.any(Number));
     });
 });

@@ -30,7 +30,7 @@ describe('StatsOverlayTimingChart', () => {
             eventBarIndex: 5,
         });
 
-        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
+        expect(renderer.drawBarFill).not.toHaveBeenCalled();
     });
 
     it('wraps ring buffer and keeps newest samples on the right', () => {
@@ -85,7 +85,7 @@ describe('StatsOverlayTimingChart', () => {
         chart.draw(renderer, new Rect2i(0, 14, 4, 32), style);
 
         expect(
-            renderer.drawRectFillOnTop.mock.calls.some(
+            renderer.drawBarFill.mock.calls.some(
                 (call) =>
                     (call[0] as { width: number; height: number }).width === 1 &&
                     (call[0] as { height: number }).height === 1 &&
@@ -109,7 +109,7 @@ describe('StatsOverlayTimingChart', () => {
         });
 
         const dots = getRectFillCalls(renderer).filter((rect) => rect.width === 1 && rect.height === 1);
-        const paletteIndices = renderer.drawRectFillOnTop.mock.calls
+        const paletteIndices = renderer.drawBarFill.mock.calls
             .filter(
                 (call) => (call[0] as { width: number }).width === 1 && (call[0] as { height: number }).height === 1,
             )

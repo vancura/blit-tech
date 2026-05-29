@@ -35,18 +35,18 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
 
 /** Mock that snapshots each rect fill at call time (production reuses scratch rects). */
 function createRectFillMock(): {
-    drawRectFillOnTop: ReturnType<typeof vi.fn>;
+    drawBarFill: ReturnType<typeof vi.fn>;
     calls: { rect: Rect2i; index: number }[];
 } {
     const calls: { rect: Rect2i; index: number }[] = [];
-    const drawRectFillOnTop = vi.fn((rect: Rect2i, index: number) => {
+    const drawBarFill = vi.fn((rect: Rect2i, index: number) => {
         calls.push({
             rect: new Rect2i(rect.x, rect.y, rect.width, rect.height),
             index,
         });
     });
 
-    return { drawRectFillOnTop, calls };
+    return { drawBarFill, calls };
 }
 
 /** Returns the top-left pixel for one palette index in the bottom-band grid. */
@@ -151,9 +151,9 @@ describe('StatsOverlayPaletteView.draw', () => {
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
-        const { drawRectFillOnTop, calls } = createRectFillMock();
+        const { drawBarFill, calls } = createRectFillMock();
         const renderer = {
-            drawRectFillOnTop,
+            drawBarFill,
         } as never;
 
         view.draw(
@@ -168,7 +168,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(drawRectFillOnTop).toHaveBeenCalled();
+        expect(drawBarFill).toHaveBeenCalled();
 
         const usedPos = swatchTopLeft(5, grid.cols, paletteBandTop, swatchSize, grid.gap);
         const usedSwatch = calls.find(
@@ -216,9 +216,9 @@ describe('StatsOverlayPaletteView.draw', () => {
         const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
-        const { drawRectFillOnTop, calls } = createRectFillMock();
+        const { drawBarFill, calls } = createRectFillMock();
         const renderer = {
-            drawRectFillOnTop,
+            drawBarFill,
         } as never;
 
         view.draw(
@@ -233,7 +233,7 @@ describe('StatsOverlayPaletteView.draw', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(drawRectFillOnTop).toHaveBeenCalled();
+        expect(drawBarFill).toHaveBeenCalled();
 
         const swatch1 = swatchTopLeft(1, grid.cols, paletteBandTop, swatchSize, grid.gap);
         const swatch3 = swatchTopLeft(3, grid.cols, paletteBandTop, swatchSize, grid.gap);
@@ -261,8 +261,8 @@ describe('StatsOverlayPaletteView.draw', () => {
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const swatchOriginY = paletteBandTop + PALETTE_GRID_PADDING_PX;
         const view = new StatsOverlayPaletteView(true);
-        const drawRectFillOnTop = vi.fn();
-        const renderer = { drawRectFillOnTop } as never;
+        const drawBarFill = vi.fn();
+        const renderer = { drawBarFill } as never;
 
         view.draw(
             renderer,
@@ -283,8 +283,8 @@ describe('StatsOverlayPaletteView.draw', () => {
 
     it('is a no-op when disabled', () => {
         const view = new StatsOverlayPaletteView(false);
-        const drawRectFillOnTop = vi.fn();
-        const renderer = { drawRectFillOnTop } as never;
+        const drawBarFill = vi.fn();
+        const renderer = { drawBarFill } as never;
 
         view.draw(
             renderer,
@@ -298,6 +298,6 @@ describe('StatsOverlayPaletteView.draw', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(drawRectFillOnTop).not.toHaveBeenCalled();
+        expect(drawBarFill).not.toHaveBeenCalled();
     });
 });

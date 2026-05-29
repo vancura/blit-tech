@@ -50,7 +50,7 @@ describe('StatsOverlayPaletteView allocation', () => {
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
         const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
-        const renderer = { drawRectFillOnTop: vi.fn() } as never;
+        const renderer = { drawBarFill: vi.fn() } as never;
 
         for (let i = 0; i < 8; i++) {
             view.draw(
@@ -92,7 +92,7 @@ describe('StatsOverlayPaletteView allocation', () => {
         const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
         const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new StatsOverlayPaletteView(true);
-        const renderer = { drawRectFillOnTop: vi.fn() } as never;
+        const renderer = { drawBarFill: vi.fn() } as never;
 
         for (let i = 0; i < 4; i++) {
             view.draw(

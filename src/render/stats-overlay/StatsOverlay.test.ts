@@ -231,8 +231,8 @@ describe('StatsOverlay', () => {
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
-        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
-        expect(renderer.drawBitmapTextOnTop).not.toHaveBeenCalled();
+        expect(renderer.drawBarFill).not.toHaveBeenCalled();
+        expect(renderer.drawLabel).not.toHaveBeenCalled();
     });
 
     it('draws hint-only path while body is hidden and toggle hint is visible', () => {
@@ -292,7 +292,7 @@ describe('StatsOverlay', () => {
         const calls = getBitmapTextCalls(renderer);
 
         expect(calls.every((call) => call.paletteOffset === 1)).toBe(true);
-        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(expect.anything(), 1);
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(expect.anything(), 1);
     });
 
     it('uses statsOverlayStyle palette indices when provided', () => {
@@ -304,7 +304,7 @@ describe('StatsOverlay', () => {
         const renderer = createMockRenderer();
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
-        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(expect.anything(), 8);
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(expect.anything(), 8);
 
         const calls = getBitmapTextCalls(renderer);
 
@@ -324,7 +324,7 @@ describe('StatsOverlay', () => {
 
         const fills = getRectFillCalls(renderer);
 
-        expect(renderer.drawRectFillOnTop).toHaveBeenCalledWith(fills[3], 5);
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(fills[3], 5);
 
         const calls = getBitmapTextCalls(renderer);
 
@@ -414,7 +414,7 @@ describe('StatsOverlay', () => {
         expect(
             fills.some((rect) => rect.y === hintBarY(240) && rect.height === STATS_BAR_HEIGHT && rect.width === 320),
         ).toBe(true);
-        expect(renderer.drawRectFillOnTop.mock.calls.length).toBeGreaterThan(4);
+        expect(renderer.drawBarFill.mock.calls.length).toBeGreaterThan(4);
     });
 
     it('preserves default hint bar height when palette view is disabled', () => {
@@ -427,7 +427,7 @@ describe('StatsOverlay', () => {
 
         const fills = getRectFillCalls(renderer);
         expect(fills[3]).toMatchObject({ y: hintBarY(240), height: STATS_BAR_HEIGHT, width: 320 });
-        const swatchCalls = renderer.drawRectFillOnTop.mock.calls.filter(
+        const swatchCalls = renderer.drawBarFill.mock.calls.filter(
             (call) => (call[0] as { width: number }).width === 1,
         );
         expect(swatchCalls).toHaveLength(0);
@@ -470,7 +470,7 @@ describe('StatsOverlay', () => {
             drawCalls: 4,
         });
 
-        const dotCalls = renderer.drawRectFillOnTop.mock.calls.filter(
+        const dotCalls = renderer.drawBarFill.mock.calls.filter(
             (call) => (call[0] as { width: number }).width === 1 && (call[0] as { height: number }).height === 1,
         );
         const paletteIndices = dotCalls.map((call) => call[1] as number);
@@ -498,7 +498,7 @@ describe('StatsOverlay', () => {
             drawCalls: 4,
         });
 
-        expect(renderer.drawRectFillOnTop).not.toHaveBeenCalled();
+        expect(renderer.drawBarFill).not.toHaveBeenCalled();
 
         overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 2);
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
@@ -509,7 +509,7 @@ describe('StatsOverlay', () => {
             drawCalls: 4,
         });
 
-        expect(renderer.drawRectFillOnTop.mock.calls.some((call) => call[1] === 10)).toBe(true);
+        expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(true);
     });
 
     it('does not draw timing chart dots when statsOverlayTimingChart is disabled', () => {
@@ -525,7 +525,7 @@ describe('StatsOverlay', () => {
             drawCalls: 4,
         });
 
-        expect(renderer.drawRectFillOnTop.mock.calls.some((call) => call[1] === 10)).toBe(false);
+        expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(false);
     });
 
     it('ignores toggle input when statsOverlayToggleEnabled is false', () => {

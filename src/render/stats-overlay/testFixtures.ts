@@ -7,11 +7,11 @@ import { vi } from 'vitest';
 import type { BitmapFont } from '../../assets/BitmapFont';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
-import type { IRenderer } from '../IRenderer';
 import { STATS_BAR_HEIGHT } from './constants';
 import { customBarY } from './layoutHelpers';
+import type { StatsOverlayRenderer } from './StatsOverlayDrawTarget';
 
-/** Parsed {@link IRenderer.drawBitmapTextOnTop} call from a mock renderer. */
+/** Parsed {@link StatsOverlayDrawTarget.drawLabel} call from a mock renderer. */
 export type BitmapTextCall = {
     pos: Vector2i;
     text: string;
@@ -23,21 +23,19 @@ export type BitmapTextCall = {
  *
  * @returns Renderer with spied camera, bar fills, and bitmap text draws.
  */
-export function createMockRenderer(): IRenderer & {
+export function createMockRenderer(): StatsOverlayRenderer & {
     drawBitmapText: ReturnType<typeof vi.fn>;
-    drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
-    drawBitmapTextForeground: ReturnType<typeof vi.fn>;
+    drawLabel: ReturnType<typeof vi.fn>;
     drawPixel: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
-    drawRectFillOnTop: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
-    drawRectFillForeground: ReturnType<typeof vi.fn>;
+    drawBarFill: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
 } {
     const rectSnapshots: Rect2i[] = [];
-    const drawRectFillOnTop = vi.fn((rect: Rect2i) => {
+    const drawBarFill = vi.fn((rect: Rect2i) => {
         rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
     }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
-    drawRectFillOnTop.rectSnapshots = rectSnapshots;
-    const drawBitmapTextOnTop = vi.fn();
+    drawBarFill.rectSnapshots = rectSnapshots;
+    const drawLabel = vi.fn();
     const drawPixel = vi.fn();
     const drawRect = vi.fn();
 
@@ -46,38 +44,36 @@ export function createMockRenderer(): IRenderer & {
         resetCamera: vi.fn(),
         setCameraOffset: vi.fn(),
         drawRectFill: vi.fn(),
-        drawRectFillOnTop,
-        drawRectFillForeground: vi.fn(),
+        drawBarFill,
         drawRect,
         drawBitmapText: vi.fn(),
-        drawBitmapTextOnTop,
-        drawBitmapTextForeground: vi.fn(),
+        drawLabel,
         drawPixel,
     } as never;
 }
 
 /**
- * Collects {@link IRenderer.drawBitmapTextOnTop} calls from a mock renderer.
+ * Collects {@link StatsOverlayDrawTarget.drawLabel} calls from a mock renderer.
  *
  * @param renderer - Mock from {@link createMockRenderer}.
  * @returns Parsed draw calls in invocation order.
  */
 export function getBitmapTextCalls(renderer: ReturnType<typeof createMockRenderer>): BitmapTextCall[] {
-    return renderer.drawBitmapTextOnTop.mock.calls.map((call) => ({
+    return renderer.drawLabel.mock.calls.map((call) => ({
         pos: call[1] as Vector2i,
         text: call[2] as string,
-        paletteOffset: call[3] as number,
+        paletteOffset: (call[3] as number | undefined) ?? 0,
     }));
 }
 
 /**
- * Collects {@link IRenderer.drawRectFillOnTop} rects from a mock renderer.
+ * Collects {@link StatsOverlayDrawTarget.drawBarFill} rects from a mock renderer.
  *
  * @param renderer - Mock from {@link createMockRenderer}.
  * @returns Filled rectangles in invocation order.
  */
 export function getRectFillCalls(renderer: ReturnType<typeof createMockRenderer>): Rect2i[] {
-    return [...renderer.drawRectFillOnTop.rectSnapshots];
+    return [...renderer.drawBarFill.rectSnapshots];
 }
 
 /**
