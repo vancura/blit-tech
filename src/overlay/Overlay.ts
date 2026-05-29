@@ -36,6 +36,8 @@ const EMPTY_PALETTE_USAGE_MASK = new Uint8Array(0);
  * {@link HardwareSettings.overlayEnabled} and {@link BT.activeBackend} instead.
  */
 export class Overlay {
+    // #region Fields
+
     readonly #layout: OverlayLayout;
 
     readonly #topLeftLabel: string;
@@ -73,6 +75,10 @@ export class Overlay {
     #idxBg = DEFAULT_IDX_BG;
 
     #idxText = DEFAULT_IDX_TEXT;
+
+    // #endregion
+
+    // #region Constructor
 
     /**
      * Creates an overlay with fixed layout and text strings.
@@ -126,6 +132,10 @@ export class Overlay {
             this.#timingChart.reset(layout.displayWidth);
         }
     }
+
+    // #endregion
+
+    // #region Public API
 
     /**
      * Whether the overlay body is currently drawn (runtime toggle).
@@ -256,6 +266,10 @@ export class Overlay {
             );
         });
     }
+
+    // #endregion
+
+    // #region Private helpers
 
     /**
      * Records timing samples when a snapshot is provided.
@@ -462,4 +476,6 @@ export class Overlay {
 
         this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, OVERLAY_BOTTOM_HINT_LABEL);
     }
+
+    // #endregion
 }

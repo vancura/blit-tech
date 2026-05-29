@@ -6,6 +6,8 @@
  * transparent corner pixels.
  */
 
+// #region Imports and constants
+
 import type { Palette } from '../../assets/Palette';
 import { Rect2i } from '../../utils/Rect2i';
 import { OVERLAY_BOTTOM_HINT_LABEL } from '../constants';
@@ -31,6 +33,10 @@ export const DEFAULT_PALETTE_GRID: PaletteGridLayout = {
     gap: 0,
     totalHeight: 0,
 };
+
+// #endregion
+
+// #region Grid math
 
 /**
  * Computes the horizontal span of one grid row.
@@ -127,6 +133,10 @@ export function computePaletteGrid(
     return { cols, rows, swatchSize, gap, totalHeight };
 }
 
+// #endregion
+
+// #region Rect helpers
+
 /**
  * Returns whether two axis-aligned rects overlap (zero allocation).
  *
@@ -217,6 +227,10 @@ export function resolvePaletteHintExclusionRect(bottomTextY: number, displayWidt
 
     return hintExclusionCache.rect;
 }
+
+// #endregion
+
+// #region Marker and draw helpers
 
 /** Preferred side length for the filled marker drawn inside unused swatches. */
 const UNUSED_SWATCH_MARKER_SIZE = 3;
@@ -405,6 +419,10 @@ function drawPaletteSwatchGrid(
     }
 }
 
+// #endregion
+
+// #region PaletteView
+
 /**
  * Live palette swatch renderer for the overlay bottom band.
  */
@@ -462,3 +480,5 @@ export class PaletteView {
         drawPaletteSwatchGrid(target, paletteBand, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
 }
+
+// #endregion

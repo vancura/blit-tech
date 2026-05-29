@@ -2,6 +2,8 @@
  * Integration tests for {@link Overlay} draw layout and toggle behavior.
  */
 
+// #region Imports
+
 import { describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../assets/Palette';
@@ -22,6 +24,10 @@ import {
     OVERLAY_EDGE_MARGIN_PX,
     OVERLAY_TOP_TEXT_Y,
 } from './testFixtures';
+
+// #endregion
+
+// #region Helpers
 
 /** Default overlay tests use the 13 px hint bar (palette grid opt-in off). */
 const OVERLAY_PALETTE_VIEW_OFF = false;
@@ -72,6 +78,10 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
 
     return mask;
 }
+
+// #endregion
+
+// #region Tests
 
 describe('Overlay', () => {
     it('tracksPaletteUsage is false when palette grid is disabled', () => {
@@ -565,3 +575,5 @@ describe('Overlay', () => {
         expect(renderer.setCameraOffset).toHaveBeenCalledWith(saved);
     });
 });
+
+// #endregion

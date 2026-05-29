@@ -1,3 +1,5 @@
+// #region Imports
+
 import { describe, expect, it } from 'vitest';
 
 import { computePaletteGrid } from '../palette/PaletteView';
@@ -11,6 +13,10 @@ import {
     paletteBandY,
     resolveOverlayFooterHeight,
 } from './layoutPlan';
+
+// #endregion
+
+// #region Tests
 
 describe('buildOverlayLayoutPlan', () => {
     it('matches legacy fixed layout for 320x240 with no custom rows', () => {
@@ -118,3 +124,5 @@ describe('buildOverlayLayoutPlan', () => {
         );
     });
 });
+
+// #endregion

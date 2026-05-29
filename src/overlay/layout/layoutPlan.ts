@@ -13,6 +13,8 @@ import { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY
 import { overlayRightAlignedTextX, overlayToggleHintTextX } from './layoutHelpers';
 import type { OverlayLayoutConfig, OverlayLayoutPlan } from './types';
 
+// #region Scratch type
+
 /** Mutable scratch object reused by {@link buildOverlayLayoutPlan}. */
 export interface OverlayLayoutPlanScratch {
     titleBar: Rect2i;
@@ -74,6 +76,10 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
     };
 }
 
+// #endregion
+
+// #region Geometry helpers
+
 /**
  * Resolves footer rects: optional palette band above a row gap, then the hint bar at the display bottom.
  *
@@ -131,6 +137,10 @@ function ensureCustomBarPool(scratch: OverlayLayoutPlanScratch, count: number, d
         scratch.customBars.push(new Rect2i(0, 0, displayWidth, OVERLAY_BAR_HEIGHT));
     }
 }
+
+// #endregion
+
+// #region Layout planner
 
 /**
  * Builds or updates a layout plan from configuration (top-down stack).
@@ -238,6 +248,10 @@ export function buildOverlayLayoutPlan(
     return scratch;
 }
 
+// #endregion
+
+// #region Config factory
+
 /**
  * Default layout config with chart and palette features disabled.
  *
@@ -263,3 +277,5 @@ export function createDefaultLayoutConfig(
         overlayPaletteView: false,
     };
 }
+
+// #endregion
