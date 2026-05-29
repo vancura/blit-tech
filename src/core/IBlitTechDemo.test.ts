@@ -53,40 +53,40 @@ describe('defaultConfig', () => {
         expect(settings.backend).toBe('webgpu');
     });
 
-    it('should enable stats overlay by default', () => {
+    it('should enable overlay by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayEnabled).toBe(true);
+        expect(settings.overlayEnabled).toBe(true);
     });
 
-    it('should disable stats overlay palette view by default', () => {
+    it('should disable overlay palette view by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayPaletteView).toBe(false);
+        expect(settings.overlayPaletteView).toBe(false);
     });
 
-    it('should hide stats overlay body by default', () => {
+    it('should hide overlay body by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayVisibleAtStart).toBe(false);
+        expect(settings.overlayVisibleAtStart).toBe(false);
     });
 
-    it('should show stats overlay toggle hint by default', () => {
+    it('should show overlay toggle hint by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayToggleHintVisible).toBe(true);
+        expect(settings.overlayToggleHintVisible).toBe(true);
     });
 
-    it('should enable stats overlay toggle input by default', () => {
+    it('should enable overlay toggle input by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayToggleEnabled).toBe(true);
+        expect(settings.overlayToggleEnabled).toBe(true);
     });
 
-    it('should disable stats overlay timing chart by default', () => {
+    it('should disable overlay timing chart by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.statsOverlayTimingChart).toBe(false);
+        expect(settings.overlayTimingChart).toBe(false);
     });
 
     it('should return a fresh object on each call', () => {
@@ -116,7 +116,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.targetFPS).toBe(30);
-        expect(settings.statsOverlayPaletteView).toBe(false);
+        expect(settings.overlayPaletteView).toBe(false);
     });
 
     it('keeps drawingBufferSize unset when displaySize is provided without output sizing', () => {
@@ -141,60 +141,60 @@ describe('mergeHardwareSettings', () => {
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.backend).toBe('software');
         expect(settings.targetFPS).toBe(60);
-        expect(settings.statsOverlayEnabled).toBe(true);
-        expect(settings.statsOverlayPaletteView).toBe(false);
+        expect(settings.overlayEnabled).toBe(true);
+        expect(settings.overlayPaletteView).toBe(false);
     });
 
-    it('honors statsOverlayEnabled: false from configure()', () => {
-        const settings = mergeHardwareSettings({ statsOverlayEnabled: false });
+    it('honors overlayEnabled: false from configure()', () => {
+        const settings = mergeHardwareSettings({ overlayEnabled: false });
 
-        expect(settings.statsOverlayEnabled).toBe(false);
+        expect(settings.overlayEnabled).toBe(false);
     });
 
-    it('merges statsOverlayStyle from configure()', () => {
+    it('merges overlayStyle from configure()', () => {
         const settings = mergeHardwareSettings({
-            statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
+            overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
         });
 
-        expect(settings.statsOverlayStyle?.barPaletteIndex).toBe(2);
-        expect(settings.statsOverlayStyle?.textPaletteIndex).toBe(3);
+        expect(settings.overlayStyle?.barPaletteIndex).toBe(2);
+        expect(settings.overlayStyle?.textPaletteIndex).toBe(3);
     });
 
-    it('merges stats overlay visibility and toggle flags from configure()', () => {
+    it('merges overlay visibility and toggle flags from configure()', () => {
         const settings = mergeHardwareSettings({
-            statsOverlayVisibleAtStart: true,
-            statsOverlayToggleHintVisible: false,
-            statsOverlayToggleEnabled: false,
+            overlayVisibleAtStart: true,
+            overlayToggleHintVisible: false,
+            overlayToggleEnabled: false,
         });
 
-        expect(settings.statsOverlayVisibleAtStart).toBe(true);
-        expect(settings.statsOverlayToggleHintVisible).toBe(false);
-        expect(settings.statsOverlayToggleEnabled).toBe(false);
+        expect(settings.overlayVisibleAtStart).toBe(true);
+        expect(settings.overlayToggleHintVisible).toBe(false);
+        expect(settings.overlayToggleEnabled).toBe(false);
     });
 
-    it('merges statsOverlayTimingChart flags from configure()', () => {
+    it('merges overlayTimingChart flags from configure()', () => {
         const settings = mergeHardwareSettings({
-            statsOverlayTimingChart: true,
-            statsOverlayTimingChartStyle: {
+            overlayTimingChart: true,
+            overlayTimingChartStyle: {
                 updateBarPaletteIndex: 20,
                 renderBarPaletteIndex: 21,
                 warningPaletteIndex: 22,
             },
         });
 
-        expect(settings.statsOverlayTimingChart).toBe(true);
-        expect(settings.statsOverlayTimingChartStyle?.updateBarPaletteIndex).toBe(20);
-        expect(settings.statsOverlayTimingChartStyle?.renderBarPaletteIndex).toBe(21);
-        expect(settings.statsOverlayTimingChartStyle?.warningPaletteIndex).toBe(22);
+        expect(settings.overlayTimingChart).toBe(true);
+        expect(settings.overlayTimingChartStyle?.updateBarPaletteIndex).toBe(20);
+        expect(settings.overlayTimingChartStyle?.renderBarPaletteIndex).toBe(21);
+        expect(settings.overlayTimingChartStyle?.warningPaletteIndex).toBe(22);
     });
 
-    it('merges statsOverlayTimingChartHeight from configure()', () => {
+    it('merges overlayTimingChartHeight from configure()', () => {
         const settings = mergeHardwareSettings({
-            statsOverlayTimingChart: true,
-            statsOverlayTimingChartHeight: 36,
+            overlayTimingChart: true,
+            overlayTimingChartHeight: 36,
         });
 
-        expect(settings.statsOverlayTimingChartHeight).toBe(36);
+        expect(settings.overlayTimingChartHeight).toBe(36);
     });
 
     it('surfaces null displaySize via dimension validation instead of returning null', () => {

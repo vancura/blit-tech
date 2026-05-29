@@ -13,11 +13,11 @@ import { createSystemFont } from '../assets/SystemFont';
 import { GamepadInput } from '../input/GamepadInput';
 import { KeyboardInput } from '../input/KeyboardInput';
 import { PointerInput } from '../input/PointerInput';
+import { createOverlayLayout, Overlay, resolveOverlayTopLeftLabel } from '../overlay';
+import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
-import type { StatsOverlayDrawTarget } from '../render/stats-overlay/StatsOverlayDrawTarget';
-import { createStatsOverlayLayout, resolveStatsTopLeftLabel, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
@@ -92,16 +92,16 @@ export class BTAPI {
     private canvas: HTMLCanvasElement | null = null;
 
     /** Renderer subsystem for all drawing operations. */
-    private renderer: (IRenderer & StatsOverlayDrawTarget) | null = null;
+    private renderer: (IRenderer & OverlayDrawTarget) | null = null;
 
     /** Backend that was successfully initialized, or null before init. */
     private activeBackend: Backend | null = null;
 
     /**
-     * Engine stats overlay; non-null when {@link HardwareSettings.statsOverlayEnabled}
+     * Engine overlay; non-null when {@link HardwareSettings.overlayEnabled}
      * is not `false`. Layout is fixed at init; drawn after demo `render()` each frame.
      */
-    private statsOverlay: StatsOverlay | null = null;
+    private overlay: Overlay | null = null;
 
     /** Active engine palette used by palette-first rendering. */
     private palette: Palette | null = null;
@@ -134,8 +134,8 @@ export class BTAPI {
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
     private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
 
-    /** Reused timing snapshot passed into the stats overlay each frame. */
-    private readonly statsOverlayTiming: {
+    /** Reused timing snapshot passed into the overlay each frame. */
+    private readonly overlayTiming: {
         frameMs: number;
         updateMs: number;
         renderMs: number;
@@ -200,7 +200,7 @@ export class BTAPI {
      * The initialization sequence is:
      * - read hardware settings from the demo (`configure()` or defaults)
      * - initialize WebGPU (or software fallback) and create the renderer
-     * - create the built-in system font and optional {@link StatsOverlay}
+     * - create the built-in system font and optional {@link Overlay}
      * - run the demo's async `init()`
      * - start the fixed-timestep game loop
      *
@@ -239,7 +239,7 @@ export class BTAPI {
 
         // Create the built-in system font (synchronous, no GPU needed yet).
         this.systemFont = createSystemFont();
-        this.setupStatsOverlay();
+        this.setupOverlay();
         this.attachInputSubsystems(canvas);
 
         // TODO: Initialize audio.
@@ -259,11 +259,11 @@ export class BTAPI {
         this.pendingUpdateMs = 0;
         this.pendingUpdateSteps = 0;
         this.pendingDrawCalls = 0;
-        this.statsOverlayTiming.frameMs = 0;
-        this.statsOverlayTiming.updateMs = 0;
-        this.statsOverlayTiming.renderMs = 0;
-        this.statsOverlayTiming.updateSteps = 0;
-        this.statsOverlayTiming.drawCalls = 0;
+        this.overlayTiming.frameMs = 0;
+        this.overlayTiming.updateMs = 0;
+        this.overlayTiming.renderMs = 0;
+        this.overlayTiming.updateSteps = 0;
+        this.overlayTiming.drawCalls = 0;
 
         this.loop = new GameLoop(
             updateInterval,
@@ -295,16 +295,16 @@ export class BTAPI {
                         this.paletteEffects.update(this.palette);
                     }
 
-                    // Stats overlay: screen-space HUD after demo content (top/bottom bars).
-                    if (this.statsOverlay && this.systemFont) {
-                        this.statsOverlay.updateAndRender(
+                    // Overlay: screen-space HUD after demo content (top/bottom bars).
+                    if (this.overlay && this.systemFont) {
+                        this.overlay.updateAndRender(
                             this.renderer,
                             this.systemFont,
                             this.pointer,
                             this.keyboard,
                             this.loop?.getTicks() ?? 0,
-                            () => this.demo?.statsOverlayRows?.(),
-                            this.statsOverlayTiming,
+                            () => this.demo?.overlayRows?.(),
+                            this.overlayTiming,
                             this.palette,
                             this.framePaletteUsageMask,
                         );
@@ -324,11 +324,11 @@ export class BTAPI {
                 this.keyboard?.endFrame(tick);
                 this.gamepad?.endFrame(tick);
 
-                this.statsOverlayTiming.frameMs = Math.max(0, performance.now() - frameStartMs);
-                this.statsOverlayTiming.updateMs = this.pendingUpdateMs;
-                this.statsOverlayTiming.renderMs = renderMs;
-                this.statsOverlayTiming.updateSteps = this.pendingUpdateSteps;
-                this.statsOverlayTiming.drawCalls = this.pendingDrawCalls;
+                this.overlayTiming.frameMs = Math.max(0, performance.now() - frameStartMs);
+                this.overlayTiming.updateMs = this.pendingUpdateMs;
+                this.overlayTiming.renderMs = renderMs;
+                this.overlayTiming.updateSteps = this.pendingUpdateSteps;
+                this.overlayTiming.drawCalls = this.pendingDrawCalls;
 
                 this.pendingUpdateMs = 0;
                 this.pendingUpdateSteps = 0;
@@ -383,39 +383,39 @@ export class BTAPI {
     }
 
     /**
-     * Creates the engine stats overlay when enabled in hardware settings.
+     * Creates the engine overlay when enabled in hardware settings.
      */
-    private setupStatsOverlay(): void {
-        this.statsOverlay = null;
+    private setupOverlay(): void {
+        this.overlay = null;
 
         const hw = this.hwSettings;
 
-        if (!hw || hw.statsOverlayEnabled === false || !this.systemFont) {
+        if (!hw || hw.overlayEnabled === false || !this.systemFont) {
             return;
         }
 
         const lineHeight = this.systemFont.measureTextSize('A').height;
-        const layout = createStatsOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
+        const layout = createOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
         const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
 
         if (!this.activeBackend) {
-            throw new Error(errorMessages.STATS_OVERLAY_NO_BACKEND);
+            throw new Error(errorMessages.OVERLAY_NO_BACKEND);
         }
 
-        this.statsOverlay = new StatsOverlay(
+        this.overlay = new Overlay(
             layout,
-            resolveStatsTopLeftLabel(pageTitle),
+            resolveOverlayTopLeftLabel(pageTitle),
             hw.targetFPS,
             this.activeBackend,
-            hw.statsOverlayStyle,
-            hw.statsOverlayPaletteView === true,
-            hw.statsOverlayPaletteColumns,
-            hw.statsOverlayTimingChart === true,
-            hw.statsOverlayTimingChartStyle,
-            hw.statsOverlayTimingChartHeight,
-            hw.statsOverlayVisibleAtStart === true,
-            hw.statsOverlayToggleHintVisible !== false,
-            hw.statsOverlayToggleEnabled !== false,
+            hw.overlayStyle,
+            hw.overlayPaletteView === true,
+            hw.overlayPaletteColumns,
+            hw.overlayTimingChart === true,
+            hw.overlayTimingChartStyle,
+            hw.overlayTimingChartHeight,
+            hw.overlayVisibleAtStart === true,
+            hw.overlayToggleHintVisible !== false,
+            hw.overlayToggleEnabled !== false,
         );
     }
 
@@ -1299,16 +1299,16 @@ export class BTAPI {
     /**
      * Applies overlay input (palette swatch copy, then body toggle) and clears per-frame palette usage.
      *
-     * Input runs here (not in {@link StatsOverlay.updateAndRender}) so visibility is current
+     * Input runs here (not in {@link Overlay.updateAndRender}) so visibility is current
      * when deciding whether to track palette usage during `demo.render()`.
      */
     private beginRenderFrame(): void {
-        if (this.statsOverlay) {
-            this.statsOverlay.handleFrameInput(
+        if (this.overlay) {
+            this.overlay.handleFrameInput(
                 this.pointer,
                 this.keyboard,
                 this.loop?.getTicks() ?? 0,
-                () => this.demo?.statsOverlayRows?.(),
+                () => this.demo?.overlayRows?.(),
                 this.palette,
             );
         }
@@ -1319,10 +1319,10 @@ export class BTAPI {
     /**
      * Whether demo draw calls should populate {@link framePaletteUsageMask} this frame.
      *
-     * @returns `true` when the stats overlay palette grid is active and visible.
+     * @returns `true` when the overlay palette grid is active and visible.
      */
     private shouldTrackFramePaletteUsage(): boolean {
-        return this.statsOverlay?.tracksPaletteUsage ?? false;
+        return this.overlay?.tracksPaletteUsage ?? false;
     }
 
     /**

@@ -49,16 +49,16 @@ Current benchmark files:
 - `src/assets/PaletteEffect.bench.ts`
 - `src/assets/SpriteSheet.bench.ts`
 - `src/assets/SystemFont.bench.ts`
-- `src/render/stats-overlay/StatsOverlayPaletteView.bench.ts`
+- `src/overlay/PaletteView.bench.ts`
 
-### Stats overlay palette grid (VV-543)
+### Overlay palette grid (VV-543)
 
 These benchmarks guard perf follow-ups for the live palette swatch grid:
 
-| File                               | Cases                                                         |
-| ---------------------------------- | ------------------------------------------------------------- |
-| `SpriteSheet.bench.ts`             | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
-| `StatsOverlayPaletteView.bench.ts` | Palette grid `draw()` for 16 vs 256 slots                     |
+| File                   | Cases                                                         |
+| ---------------------- | ------------------------------------------------------------- |
+| `SpriteSheet.bench.ts` | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
+| `PaletteView.bench.ts` | Palette grid `draw()` for 16 vs 256 slots                     |
 
 They run in the same Vitest bench suite as the rest of the repo and are included in `benchmark-results.json` for CI. No
 separate registration step is required; the next successful `main` push refreshes the baseline artifact with these
@@ -228,8 +228,8 @@ If you add a new sprite operation, follow this order:
 4. **Run `pnpm run bench:json`** if you want to inspect the machine-readable output used by CI.
 5. **Open a PR** and add the `perf` label for CPU benchmark comparison.
 
-For stats overlay palette usage or grid draw changes, include steps 2-5 so `SpriteSheet.bench.ts` and
-`StatsOverlayPaletteView.bench.ts` are compared against `main`.
+For overlay palette usage or grid draw changes, include steps 2-5 so `SpriteSheet.bench.ts` and `PaletteView.bench.ts`
+are compared against `main`.
 
 ### Best Default
 

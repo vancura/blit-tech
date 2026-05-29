@@ -28,21 +28,22 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { BT } from '../BlitTech';
-import type { Effect } from '../render/effects/Effect';
-import { DEFAULT_IDX_TEXT, STATS_EDGE_MARGIN_PX } from '../render/stats-overlay/constants';
-import { paletteBandY } from '../render/stats-overlay/layoutPlan';
-import type { StatsOverlayDrawTarget } from '../render/stats-overlay/StatsOverlayDrawTarget';
+import { Overlay } from '../overlay';
+import { DEFAULT_IDX_TEXT } from '../overlay/constants';
+import { OVERLAY_EDGE_MARGIN_PX } from '../overlay/layout/constants';
+import { paletteBandY } from '../overlay/layout/layoutPlan';
+import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import {
     computePaletteGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,
     PALETTE_GRID_PADDING_PX,
     PALETTE_SWATCH_GAP_PX,
-} from '../render/stats-overlay/StatsOverlayPaletteView';
-import { StatsOverlay } from '../render/StatsOverlay';
+} from '../overlay/palette/PaletteView';
+import type { Effect } from '../render/effects/Effect';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
-import type { IBlitTechDemo, StatsOverlayRow } from './IBlitTechDemo';
+import type { IBlitTechDemo, OverlayRow } from './IBlitTechDemo';
 import { collectUsedRenderPaletteIndices } from './RenderPaletteUsage';
 
 // #region Helpers
@@ -836,19 +837,19 @@ describe('BTAPI', () => {
             expect(requestAnimationFrame).toHaveBeenCalled();
         });
 
-        it('forwards statsOverlayRows from the demo into StatsOverlay.updateAndRender', async () => {
-            const customRows: StatsOverlayRow[] = [{ leftText: 'Position: 1, 2' }];
+        it('forwards overlayRows from the demo into Overlay.updateAndRender', async () => {
+            const customRows: OverlayRow[] = [{ leftText: 'Position: 1, 2' }];
             const demo: IBlitTechDemo = {
                 ...makeMockDemo(),
                 configure: vi.fn().mockReturnValue({
                     displaySize: new Vector2i(320, 240),
                     drawingBufferSize: new Vector2i(640, 480),
                     targetFPS: 60,
-                    statsOverlayVisibleAtStart: true,
+                    overlayVisibleAtStart: true,
                 }),
-                statsOverlayRows: vi.fn().mockReturnValue(customRows),
+                overlayRows: vi.fn().mockReturnValue(customRows),
             };
-            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const overlaySpy = vi.spyOn(Overlay.prototype, 'updateAndRender');
             const rafCallbacks: FrameRequestCallback[] = [];
 
             vi.stubGlobal(
@@ -882,7 +883,7 @@ describe('BTAPI', () => {
                 }
             }
 
-            expect(demo.statsOverlayRows).toHaveBeenCalled();
+            expect(demo.overlayRows).toHaveBeenCalled();
             expect(overlaySpy).toHaveBeenCalled();
             const lastCall = overlaySpy.mock.calls.at(-1);
             const getCustomRows = lastCall?.[5] as (() => typeof customRows) | undefined;
@@ -1129,8 +1130,8 @@ describe('BTAPI', () => {
     // #region Palette usage tracking (VV-543)
 
     describe('palette usage tracking', () => {
-        function getStatsOverlay(): StatsOverlay | null {
-            return (BTAPI.instance as unknown as { statsOverlay: StatsOverlay | null }).statsOverlay;
+        function getOverlay(): Overlay | null {
+            return (BTAPI.instance as unknown as { overlay: Overlay | null }).overlay;
         }
 
         function makeIndexizedSpriteSheet(markSpy: ReturnType<typeof vi.fn>): SpriteSheet {
@@ -1149,7 +1150,7 @@ describe('BTAPI', () => {
             vi.spyOn(renderer as NonNullable<typeof renderer>, 'drawBitmapText').mockImplementation(() => {});
         }
 
-        it('skips sprite and bitmap-text palette scans when statsOverlayPaletteView is false', async () => {
+        it('skips sprite and bitmap-text palette scans when overlayPaletteView is false', async () => {
             const markSpy = vi.fn();
             const mockSheet = makeIndexizedSpriteSheet(markSpy);
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
@@ -1157,7 +1158,7 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: false,
+                    overlayPaletteView: false,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1174,7 +1175,7 @@ describe('BTAPI', () => {
             expect(markSpy).not.toHaveBeenCalled();
         });
 
-        it('scans sprite and bitmap-text palette usage when statsOverlayPaletteView is true and overlay body is visible', async () => {
+        it('scans sprite and bitmap-text palette usage when overlayPaletteView is true and overlay body is visible', async () => {
             const markSpy = vi.fn();
             const mockSheet = makeIndexizedSpriteSheet(markSpy);
             const mockFont = {
@@ -1185,8 +1186,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayVisibleAtStart: true,
+                    overlayPaletteView: true,
+                    overlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1210,7 +1211,7 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
+                    overlayPaletteView: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1221,7 +1222,7 @@ describe('BTAPI', () => {
             BTAPI.instance.setPalette(new Palette(16));
             stubRendererDrawCalls();
 
-            const overlay = getStatsOverlay();
+            const overlay = getOverlay();
             expect(overlay).not.toBeNull();
             expect(overlay?.bodyVisible).toBe(false);
             expect(overlay?.tracksPaletteUsage).toBe(false);
@@ -1238,8 +1239,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayToggleHintVisible: true,
+                    overlayPaletteView: true,
+                    overlayToggleHintVisible: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1250,7 +1251,7 @@ describe('BTAPI', () => {
             BTAPI.instance.setPalette(new Palette(16));
             stubRendererDrawCalls();
 
-            const overlay = getStatsOverlay();
+            const overlay = getOverlay();
             expect(overlay).not.toBeNull();
             expect(overlay?.bodyVisible).toBe(false);
             expect(overlay?.tracksPaletteUsage).toBe(false);
@@ -1261,7 +1262,7 @@ describe('BTAPI', () => {
         });
 
         it('wires demo render palette usage through the game loop into overlay grid swatches', async () => {
-            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const overlaySpy = vi.spyOn(Overlay.prototype, 'updateAndRender');
             const rafCallbacks: FrameRequestCallback[] = [];
 
             vi.stubGlobal(
@@ -1278,8 +1279,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayVisibleAtStart: true,
+                    overlayPaletteView: true,
+                    overlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1297,12 +1298,11 @@ describe('BTAPI', () => {
 
             const swatchFills: { index: number; rect: Rect2i }[] = [];
 
-            vi.spyOn(
-                renderer as NonNullable<typeof renderer> & StatsOverlayDrawTarget,
-                'drawBarFill',
-            ).mockImplementation((rect: Rect2i, index: number) => {
-                swatchFills.push({ index, rect: new Rect2i(rect.x, rect.y, rect.width, rect.height) });
-            });
+            vi.spyOn(renderer as NonNullable<typeof renderer> & OverlayDrawTarget, 'drawBarFill').mockImplementation(
+                (rect: Rect2i, index: number) => {
+                    swatchFills.push({ index, rect: new Rect2i(rect.x, rect.y, rect.width, rect.height) });
+                },
+            );
 
             const maxIterations = 1000;
             let iterations = 0;
@@ -1341,7 +1341,7 @@ describe('BTAPI', () => {
             for (const slot of usedSlots) {
                 const col = slot % cols;
                 const row = Math.floor(slot / cols);
-                const x = STATS_EDGE_MARGIN_PX + col * (swatchSize + gap);
+                const x = OVERLAY_EDGE_MARGIN_PX + col * (swatchSize + gap);
                 const y = paletteBandTop + PALETTE_GRID_PADDING_PX + row * (swatchSize + gap);
 
                 expect(
@@ -1359,7 +1359,7 @@ describe('BTAPI', () => {
             const unusedSlot = 3;
             const unusedCol = unusedSlot % cols;
             const unusedRow = Math.floor(unusedSlot / cols);
-            const unusedX = STATS_EDGE_MARGIN_PX + unusedCol * (swatchSize + gap);
+            const unusedX = OVERLAY_EDGE_MARGIN_PX + unusedCol * (swatchSize + gap);
             const unusedY = paletteBandTop + PALETTE_GRID_PADDING_PX + unusedRow * (swatchSize + gap);
 
             expect(
@@ -1389,8 +1389,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayVisibleAtStart: true,
+                    overlayPaletteView: true,
+                    overlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1433,8 +1433,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayVisibleAtStart: true,
+                    overlayPaletteView: true,
+                    overlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1451,7 +1451,7 @@ describe('BTAPI', () => {
         });
 
         it('clears stale palette usage after overlay hide and re-show', async () => {
-            const overlaySpy = vi.spyOn(StatsOverlay.prototype, 'updateAndRender');
+            const overlaySpy = vi.spyOn(Overlay.prototype, 'updateAndRender');
             const rafCallbacks: FrameRequestCallback[] = [];
 
             vi.stubGlobal(
@@ -1495,8 +1495,8 @@ describe('BTAPI', () => {
                 configure: () => ({
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    statsOverlayPaletteView: true,
-                    statsOverlayVisibleAtStart: true,
+                    overlayPaletteView: true,
+                    overlayVisibleAtStart: true,
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -1506,7 +1506,7 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(demo, makeMockCanvas());
             BTAPI.instance.setPalette(new Palette(16));
 
-            const overlay = getStatsOverlay();
+            const overlay = getOverlay();
             expect(overlay).not.toBeNull();
             expect(overlay?.bodyVisible).toBe(true);
 

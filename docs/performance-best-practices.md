@@ -277,7 +277,7 @@ Don't guess what's slow - **measure it**. Use:
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
 - Simulation rate: `BT.targetFPS` and `BT.ticks`
-- Render rate: stats overlay `Present: N FPS` when `statsOverlayEnabled` is true (measured rAF cadence, not `targetFPS`)
+- Render rate: overlay `Present: N FPS` when `overlayEnabled` is true (measured rAF cadence, not `targetFPS`)
 
 ### 3. Allocating in Hot Paths
 
