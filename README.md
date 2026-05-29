@@ -38,8 +38,8 @@ complex frameworks, just sprites, primitives, and fonts.
 - **Gamepad input**: up to four players via standard Gamepad API, stick dead zone, face buttons
 - **Fixed timestep**: deterministic update loop with tick counter, `Timer`, and timing helpers
 - **Frame capture**: `BT.captureFrame()` and `BT.downloadFrame()` for PNG export
-- **Overlay**: engine-drawn FPS, backend, resolution, and demo title (toggle with `~` or bottom-right corner; disable
-  via `overlayEnabled: false` in `configure()`)
+- **Overlay**: engine-drawn FPS, backend, resolution, and demo title (toggle with `~` or bottom-left corner; disable via
+  `overlayEnabled: false` in `configure()`)
 
 ## Why Blit-Tech?
 
@@ -183,7 +183,7 @@ WebGPU support varies by browser:
 When WebGPU is unavailable the engine falls back to the Canvas 2D software renderer automatically. By default the engine
 draws a overlay after each frame: measured FPS, configured target FPS, the active backend name (via `BT.activeBackend`),
 logical resolution, and a short demo title derived from `document.title`. Toggle the overlay with `~` (Backquote) or a
-primary press in the bottom-right corner; disable it with `overlayEnabled: false` in `configure()`. Use
+primary press in the bottom-left corner; disable it with `overlayEnabled: false` in `configure()`. Use
 `BT.activeBackend` to read which backend is running (`'webgpu'`, `'software'`, or `null` before init).
 
 ## Contributors

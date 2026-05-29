@@ -49,7 +49,7 @@ Current benchmark files:
 - `src/assets/PaletteEffect.bench.ts`
 - `src/assets/SpriteSheet.bench.ts`
 - `src/assets/SystemFont.bench.ts`
-- `src/overlay/PaletteView.bench.ts`
+- `src/overlay/palette/PaletteView.bench.ts`
 
 ### Overlay palette grid (VV-543)
 

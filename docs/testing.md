@@ -38,7 +38,7 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
 - **BTAPI** - singleton coordinator; includes software-mode init, `?backend=software` URL override,
   `BT.requestedBackend` vs `BT.activeBackend` after WebGPU fallback, `captureFrame()` in software mode, and overlay
-  overlay render path (Node + GPU mocks + 2D canvas mocks)
+  render path (Node + GPU mocks + 2D canvas mocks)
 - **Overlay** - colocated tests under `src/overlay/*.test.ts`: label parsing, layout helpers, `layoutPlan` golden Y
   positions for 320x240 (including custom rows, palette grid variable bottom band, and timing chart scaffold cases),
   `PaletteView.computePaletteGrid` width/size matrix, toggle hit-testing, and `updateAndRender` integration (Node)

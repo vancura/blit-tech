@@ -195,9 +195,9 @@ When `overlayEnabled` is `true` (default), the engine draws a screen-space HUD a
 of all demo content. The **overlay body** (title, metrics, timing chart, palette grid, custom rows) starts **hidden**
 unless `overlayVisibleAtStart: true`. While the body is hidden, the engine may still draw the **toggle hint** (13 px
 `[~]` bar) when `overlayToggleHintVisible` is `true` (default). Bar bands and text anchors for the full body are
-computed each frame by the internal layout planner in `src/overlay/layoutPlan.ts` from `displaySize`, custom row count,
-and optional feature flags (timing chart default off; palette grid opt-in via `overlayPaletteView`). Init still caches
-stable values such as the bottom-left toggle rect and text baselines from the system font metrics.
+computed each frame by the internal layout planner in `src/overlay/layout/layoutPlan.ts` from `displaySize`, custom row
+count, and optional feature flags (timing chart default off; palette grid opt-in via `overlayPaletteView`). Init still
+caches stable values such as the bottom-left toggle rect and text baselines from the system font metrics.
 
 **Migration note:** Upgrading demos now starts with the overlay body hidden. Teaching demos that relied on
 always-visible metrics should opt back in with `overlayVisibleAtStart: true` in `configure()` until authors choose
