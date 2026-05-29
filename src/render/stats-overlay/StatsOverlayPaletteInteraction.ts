@@ -25,6 +25,9 @@ export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 0;
 /** Duration for transient copy status tooltips in seconds. */
 export const PALETTE_COPY_STATUS_SECONDS = 0.75;
 
+/** Gap between the tooltip body bottom edge and the swatch top edge. */
+const TOOLTIP_GAP_ABOVE_SWATCH_PX = 1;
+
 /** Clipboard copy feedback state for palette swatch presses. */
 type PaletteCopyStatus = 'idle' | 'copied' | 'failed';
 
@@ -229,12 +232,12 @@ export function layoutPaletteTooltip(
     displayHeight: number,
 ): PaletteTooltipLayout {
     const textWidth = label.length * SYSTEM_CHAR_ADVANCE;
-    const bodyWidth = textWidth + 5;
+    const bodyWidth = textWidth + 7;
+    const bodyHeight = 13;
     const swatchCenterX = swatchRect.x + Math.floor(swatchRect.width / 2);
-    const swatchTopY = swatchRect.y - 14;
 
     let bodyX = swatchCenterX - Math.floor(bodyWidth / 2);
-    let bodyY = swatchTopY;
+    let bodyY = swatchRect.y - bodyHeight - TOOLTIP_GAP_ABOVE_SWATCH_PX;
 
     if (bodyX < 0) {
         bodyX = 0;
@@ -248,25 +251,25 @@ export function layoutPaletteTooltip(
         bodyY = 0;
     }
 
-    if (bodyY > displayHeight) {
-        bodyY = Math.max(0, displayHeight);
+    if (bodyY + bodyHeight > displayHeight) {
+        bodyY = Math.max(0, displayHeight - bodyHeight);
     }
 
-    target.body.set(bodyX, bodyY, bodyWidth, 13);
-    target.textPos.set(bodyX + 3, bodyY);
+    target.body.set(bodyX, bodyY, bodyWidth, bodyHeight);
+    target.textPos.set(bodyX + 4, bodyY);
 
     return target;
 }
 
 /**
- * Draws a docked palette swatch tooltip (filled body, outline stroke, label text).
+ * Draws a docked palette swatch tooltip (filled body, 1px border, label text).
  *
  * @param renderer - Active renderer.
  * @param font - System bitmap font.
  * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
  * @param label - Tooltip label text.
  * @param barIndex - Palette index for tooltip body fill (stats overlay background).
- * @param textIndex - Palette index for outline stroke and label text.
+ * @param textIndex - Palette index for the border and label text.
  */
 export function drawPaletteTooltip(
     renderer: IRenderer,
@@ -281,6 +284,20 @@ export function drawPaletteTooltip(
     }
 
     renderer.drawRectFillForeground(layout.body, barIndex);
+
+    const edge = tooltipScratch.outlineEdge;
+    const x0 = layout.body.x;
+    const y0 = layout.body.y;
+    const x1 = layout.body.x + layout.body.width - 1;
+    const y1 = layout.body.y + layout.body.height - 1;
+
+    renderer.drawRectFillForeground(edge.set(x0, y0, x1 - x0 + 1, 1), textIndex);
+    renderer.drawRectFillForeground(edge.set(x0, y1, x1 - x0 + 1, 1), textIndex);
+
+    if (y1 - y0 > 1) {
+        renderer.drawRectFillForeground(edge.set(x0, y0 + 1, 1, y1 - y0 - 1), textIndex);
+        renderer.drawRectFillForeground(edge.set(x1, y0 + 1, 1, y1 - y0 - 1), textIndex);
+    }
 
     const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
 
@@ -340,24 +357,6 @@ export class StatsOverlayPaletteInteraction {
      */
     constructor(targetFps: number) {
         this.#targetFps = targetFps;
-    }
-
-    /**
-     * First visible palette grid row for hit testing (VV-550 scroll).
-     *
-     * @param offset - Row offset applied to pointer-to-index mapping.
-     */
-    setScrollRowOffset(offset: number): void {
-        this.#scrollRowOffset = Math.max(0, Math.floor(offset));
-    }
-
-    /**
-     * Right-edge track width excluded from swatch hits (VV-550 scrollbar).
-     *
-     * @param width - Track width in pixels.
-     */
-    setScrollbarTrackWidth(width: number): void {
-        this.#scrollbarTrackWidth = Math.max(0, Math.floor(width));
     }
 
     /**

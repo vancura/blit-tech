@@ -192,6 +192,15 @@ describe('layoutPaletteTooltip', () => {
 
         expect(layoutScratch.body.y + layoutScratch.body.height).toBe(swatch.y - 1);
     });
+
+    it('keeps tooltip body fully inside the display on the bottom edge', () => {
+        const swatch = new Rect2i(0, 235, 7, 7);
+
+        layoutPaletteTooltip(layoutScratch, swatch, '12', 320, 240);
+
+        expect(layoutScratch.body.y + layoutScratch.body.height).toBeLessThanOrEqual(240);
+        expect(layoutScratch.body.y).toBeGreaterThanOrEqual(0);
+    });
 });
 
 describe('drawPaletteTooltip', () => {
