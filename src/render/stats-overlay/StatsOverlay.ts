@@ -371,17 +371,6 @@ export class StatsOverlay {
                 this.#layout.lineHeight,
             );
 
-            this.#paletteInteraction.drawTooltip(
-                renderer,
-                font,
-                plan,
-                paletteGrid,
-                this.#layout.displayWidth,
-                this.#layout.displayHeight,
-                this.#idxBg,
-                this.#idxText,
-            );
-
             this.#bars.drawTopLabels(
                 renderer,
                 font,
@@ -397,6 +386,21 @@ export class StatsOverlay {
         this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
 
         this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, STATS_BOTTOM_HINT_LABEL);
+
+        if (bodyVisible) {
+            const paletteGrid = layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID;
+
+            this.#paletteInteraction.drawTooltip(
+                renderer,
+                font,
+                plan,
+                paletteGrid,
+                this.#layout.displayWidth,
+                this.#layout.displayHeight,
+                this.#idxText,
+                this.#idxBg,
+            );
+        }
     }
 
     /**

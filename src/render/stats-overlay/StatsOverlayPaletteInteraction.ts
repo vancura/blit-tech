@@ -17,23 +17,13 @@ import {
 } from './StatsOverlayPaletteView';
 import type { PaletteGridLayout, StatsOverlayLayoutPlan } from './types';
 
+// #region Constants and types
+
 /** Reserved width on the right edge of the palette band excluded from swatch hits (VV-550 scrollbar). */
 export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 0;
 
 /** Duration for transient copy status tooltips in seconds. */
 export const PALETTE_COPY_STATUS_SECONDS = 0.75;
-
-/** Horizontal padding inside the tooltip label body. */
-const TOOLTIP_PADDING_X_PX = 2;
-
-/** Vertical padding inside the tooltip label body. */
-const TOOLTIP_PADDING_Y_PX = 1;
-
-/** Height of the downward caret below the tooltip body. */
-const TOOLTIP_CARET_HEIGHT_PX = 3;
-
-/** Half-width of the caret in pixels (forms a `\/` shape under the body). */
-const TOOLTIP_CARET_HALF_WIDTH_PX = 2;
 
 /** Clipboard copy feedback state for palette swatch presses. */
 type PaletteCopyStatus = 'idle' | 'copied' | 'failed';
@@ -42,11 +32,13 @@ type PaletteCopyStatus = 'idle' | 'copied' | 'failed';
 const tooltipScratch = {
     body: new Rect2i(),
     swatch: new Rect2i(),
-    caretLeft: new Vector2i(),
-    caretTip: new Vector2i(),
-    caretRight: new Vector2i(),
+    outlineEdge: new Rect2i(),
     textPos: new Vector2i(),
 };
+
+// #endregion
+
+// #region Helpers
 
 /**
  * Returns whether a palette slot at the given swatch origin overlaps the hint exclusion rect.
@@ -206,6 +198,10 @@ export function hitTestPaletteSwatch(
     return index;
 }
 
+// #endregion
+
+// #region Tooltip
+
 /** Layout output for a docked palette swatch tooltip. */
 export interface PaletteTooltipLayout {
     /** Tooltip label body in display coordinates. */
@@ -213,13 +209,6 @@ export interface PaletteTooltipLayout {
 
     /** Bitmap text draw position (top-left of glyphs). */
     readonly textPos: Vector2i;
-
-    /** Caret left, tip, and right points forming `\/` under the body. */
-    readonly caretLeft: Vector2i;
-
-    readonly caretTip: Vector2i;
-
-    readonly caretRight: Vector2i;
 }
 
 /**
@@ -240,14 +229,12 @@ export function layoutPaletteTooltip(
     displayHeight: number,
 ): PaletteTooltipLayout {
     const textWidth = label.length * SYSTEM_CHAR_ADVANCE;
-    const bodyWidth = textWidth + TOOLTIP_PADDING_X_PX * 2;
-    const bodyHeight = SYSTEM_CHAR_ADVANCE + TOOLTIP_PADDING_Y_PX * 2;
+    const bodyWidth = textWidth + 5;
     const swatchCenterX = swatchRect.x + Math.floor(swatchRect.width / 2);
-    const swatchTopY = swatchRect.y;
+    const swatchTopY = swatchRect.y - 14;
 
     let bodyX = swatchCenterX - Math.floor(bodyWidth / 2);
-    let bodyBottom = swatchTopY - TOOLTIP_CARET_HEIGHT_PX - 1;
-    let bodyY = bodyBottom - bodyHeight;
+    let bodyY = swatchTopY;
 
     if (bodyX < 0) {
         bodyX = 0;
@@ -259,50 +246,27 @@ export function layoutPaletteTooltip(
 
     if (bodyY < 0) {
         bodyY = 0;
-        bodyBottom = bodyY + bodyHeight;
     }
 
-    if (bodyBottom + TOOLTIP_CARET_HEIGHT_PX > displayHeight) {
-        bodyBottom = displayHeight - TOOLTIP_CARET_HEIGHT_PX - 1;
-        bodyY = bodyBottom - bodyHeight;
-
-        if (bodyY < 0) {
-            bodyY = 0;
-        }
+    if (bodyY > displayHeight) {
+        bodyY = Math.max(0, displayHeight);
     }
 
-    target.body.set(bodyX, bodyY, bodyWidth, bodyHeight);
-    target.textPos.set(bodyX + TOOLTIP_PADDING_X_PX, bodyY + TOOLTIP_PADDING_Y_PX);
-
-    let caretTipX = swatchCenterX;
-
-    if (caretTipX < bodyX + TOOLTIP_CARET_HALF_WIDTH_PX) {
-        caretTipX = bodyX + TOOLTIP_CARET_HALF_WIDTH_PX;
-    }
-
-    if (caretTipX > bodyX + bodyWidth - TOOLTIP_CARET_HALF_WIDTH_PX - 1) {
-        caretTipX = bodyX + bodyWidth - TOOLTIP_CARET_HALF_WIDTH_PX - 1;
-    }
-
-    const caretBaseY = bodyBottom;
-    const caretTipY = Math.min(displayHeight - 1, swatchTopY);
-
-    target.caretLeft.set(caretTipX - TOOLTIP_CARET_HALF_WIDTH_PX, caretBaseY);
-    target.caretTip.set(caretTipX, caretTipY);
-    target.caretRight.set(caretTipX + TOOLTIP_CARET_HALF_WIDTH_PX, caretBaseY);
+    target.body.set(bodyX, bodyY, bodyWidth, 13);
+    target.textPos.set(bodyX + 3, bodyY);
 
     return target;
 }
 
 /**
- * Draws a docked palette swatch tooltip (body, outline, text, caret).
+ * Draws a docked palette swatch tooltip (filled body, outline stroke, label text).
  *
  * @param renderer - Active renderer.
  * @param font - System bitmap font.
  * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
  * @param label - Tooltip label text.
- * @param barIndex - Palette index for tooltip body fill.
- * @param textIndex - Palette index for outline, text, and caret.
+ * @param barIndex - Palette index for tooltip body fill (stats overlay background).
+ * @param textIndex - Palette index for outline stroke and label text.
  */
 export function drawPaletteTooltip(
     renderer: IRenderer,
@@ -316,34 +280,16 @@ export function drawPaletteTooltip(
         return;
     }
 
-    renderer.drawRectFillOnTop(layout.body, barIndex);
-    renderer.drawRect(layout.body, textIndex);
+    renderer.drawRectFillForeground(layout.body, barIndex);
 
     const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
 
-    renderer.drawBitmapTextOnTop(font, layout.textPos, label, textPaletteOffset);
-
-    const caretBaseY = layout.caretLeft.y;
-    const caretTipY = layout.caretTip.y;
-
-    if (caretTipY <= caretBaseY) {
-        renderer.drawPixel(layout.caretTip, textIndex);
-
-        return;
-    }
-
-    for (let y = caretBaseY; y <= caretTipY; y++) {
-        const t = (y - caretBaseY) / (caretTipY - caretBaseY);
-        const leftX = Math.round(layout.caretLeft.x + (layout.caretTip.x - layout.caretLeft.x) * t);
-        const rightX = Math.round(layout.caretRight.x + (layout.caretTip.x - layout.caretRight.x) * t);
-
-        renderer.drawPixel(new Vector2i(leftX, y), textIndex);
-
-        if (rightX !== leftX) {
-            renderer.drawPixel(new Vector2i(rightX, y), textIndex);
-        }
-    }
+    renderer.drawBitmapTextForeground(font, layout.textPos, label, textPaletteOffset);
 }
+
+// #endregion
+
+// #region Clipboard
 
 /**
  * Writes palette index text to the clipboard when the API is available.
@@ -360,6 +306,10 @@ export async function writePaletteIndexToClipboard(index: number): Promise<void>
 
     await clipboard.writeText(String(index));
 }
+
+// #endregion
+
+// #region Interaction
 
 /**
  * Handles palette swatch hover, copy-on-press, and tooltip rendering for the stats overlay.
@@ -636,3 +586,5 @@ export class StatsOverlayPaletteInteraction {
         return this.#tooltipLabel;
     }
 }
+
+// #endregion

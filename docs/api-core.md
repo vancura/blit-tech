@@ -250,9 +250,10 @@ Toggle overlay **body** visibility at runtime with **Backquote** (`~`) or a prim
 48x48 px** corner when `statsOverlayToggleEnabled` is `true` (default). Set `statsOverlayToggleHintVisible: false` to
 hide the hint bar while the body stays hidden. Set `statsOverlayToggleEnabled: false` to lock body visibility at
 `statsOverlayVisibleAtStart`. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay subsystem and all
-toggle input (for example release builds). On WebGPU, the stats overlay uses two late batches: {@link
-IRenderer.drawRectFillOnTop} for bar fills above demo sprites, then {@link IRenderer.drawBitmapTextOnTop} for labels
-above those bars.
+toggle input (for example release builds). On WebGPU, the stats overlay uses late draw batches: {@link
+IRenderer.drawRectFillOnTop} for bar fills above demo sprites, {@link IRenderer.drawBitmapTextOnTop} for labels above
+those bars, then {@link IRenderer.drawRectFillForeground} and {@link IRenderer.drawBitmapTextForeground} for palette
+swatch tooltips above custom rows.
 
 Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defaults `1` (bar) and `2` (text). You can
 override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on

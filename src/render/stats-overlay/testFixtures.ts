@@ -26,9 +26,11 @@ export type BitmapTextCall = {
 export function createMockRenderer(): IRenderer & {
     drawBitmapText: ReturnType<typeof vi.fn>;
     drawBitmapTextOnTop: ReturnType<typeof vi.fn>;
+    drawBitmapTextForeground: ReturnType<typeof vi.fn>;
     drawPixel: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
     drawRectFillOnTop: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
+    drawRectFillForeground: ReturnType<typeof vi.fn>;
 } {
     const rectSnapshots: Rect2i[] = [];
     const drawRectFillOnTop = vi.fn((rect: Rect2i) => {
@@ -45,9 +47,11 @@ export function createMockRenderer(): IRenderer & {
         setCameraOffset: vi.fn(),
         drawRectFill: vi.fn(),
         drawRectFillOnTop,
+        drawRectFillForeground: vi.fn(),
         drawRect,
         drawBitmapText: vi.fn(),
         drawBitmapTextOnTop,
+        drawBitmapTextForeground: vi.fn(),
         drawPixel,
     } as never;
 }

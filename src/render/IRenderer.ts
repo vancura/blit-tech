@@ -94,6 +94,18 @@ export interface IRenderer {
     drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void;
 
     /**
+     * Draws a filled rectangle above overlay sprites for this frame.
+     *
+     * On WebGPU, batched after {@link drawBitmapTextOnTop} so HUD popovers (for example
+     * palette swatch tooltips) appear on top of custom stats rows and labels. Software
+     * backends may implement this as {@link drawRectFill} when call order is preserved.
+     *
+     * @param rect - Rectangle bounds in display coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawRectFillForeground(rect: Rect2i, paletteIndex: number): void;
+
+    /**
      * Draws a single pixel.
      *
      * @param pos - Pixel position.
@@ -163,6 +175,20 @@ export interface IRenderer {
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
+
+    /**
+     * Draws bitmap text above overlay sprites and foreground overlay fills for this frame.
+     *
+     * On WebGPU, batched after {@link drawRectFillForeground} so popover labels (for example
+     * palette swatch tooltips) appear on top of custom stats rows. Software backends may
+     * implement this as {@link drawBitmapText} when call order is preserved.
+     *
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawBitmapTextForeground(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
 
     // #endregion
 
