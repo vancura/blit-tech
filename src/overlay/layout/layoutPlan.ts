@@ -33,27 +33,6 @@ export interface OverlayLayoutPlanScratch {
 }
 
 /**
- * Top Y of the bottom hint bar (13 px strip at the display bottom edge).
- *
- * @param displayHeight - Logical display height in pixels.
- * @returns Hint bar top Y.
- */
-export function hintBarY(displayHeight: number): number {
-    return displayHeight - OVERLAY_BAR_HEIGHT;
-}
-
-/**
- * Top Y of the palette swatch grid band stacked above the hint bar row gap.
- *
- * @param displayHeight - Logical display height in pixels.
- * @param paletteGridHeight - Total palette grid height from {@link computePaletteGrid}.
- * @returns Palette band top Y.
- */
-export function paletteBandY(displayHeight: number, paletteGridHeight: number): number {
-    return hintBarY(displayHeight) - OVERLAY_ROW_GAP_PX - paletteGridHeight;
-}
-
-/**
  * Creates a reusable scratch object for layout planning.
  *
  * @returns Empty scratch plan with pre-allocated rects and positions.
@@ -79,6 +58,27 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
 // #endregion
 
 // #region Geometry helpers
+
+/**
+ * Top Y of the bottom hint bar (13 px strip at the display bottom edge).
+ *
+ * @param displayHeight - Logical display height in pixels.
+ * @returns Hint bar top Y.
+ */
+export function hintBarY(displayHeight: number): number {
+    return displayHeight - OVERLAY_BAR_HEIGHT;
+}
+
+/**
+ * Top Y of the palette swatch grid band stacked above the hint bar row gap.
+ *
+ * @param displayHeight - Logical display height in pixels.
+ * @param paletteGridHeight - Total palette grid height from {@link computePaletteGrid}.
+ * @returns Palette band top Y.
+ */
+export function paletteBandY(displayHeight: number, paletteGridHeight: number): number {
+    return hintBarY(displayHeight) - OVERLAY_ROW_GAP_PX - paletteGridHeight;
+}
 
 /**
  * Resolves footer rects: optional palette band above a row gap, then the hint bar at the display bottom.
