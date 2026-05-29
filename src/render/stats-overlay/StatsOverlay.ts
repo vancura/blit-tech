@@ -366,8 +366,8 @@ export class StatsOverlay {
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
      * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
-     * @param pointer
-     * @param currentTick
+     * @param pointer - Pointer subsystem for palette swatch hover, or `null` when unavailable.
+     * @param currentTick - Current fixed-update tick for copy-status expiry.
      */
     #drawFrame(
         renderer: StatsOverlayRenderer,

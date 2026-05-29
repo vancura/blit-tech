@@ -62,7 +62,7 @@ export function getBitmapTextCalls(renderer: ReturnType<typeof createMockRendere
     return renderer.drawLabel.mock.calls.map((call) => ({
         pos: call[1] as Vector2i,
         text: call[2] as string,
-        paletteOffset: call[3] as number,
+        paletteOffset: (call[3] as number | undefined) ?? 0,
     }));
 }
 
