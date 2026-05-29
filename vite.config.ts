@@ -38,7 +38,7 @@ export default defineConfig(() => {
             sourcemap: isWatch,
             emptyOutDir: !isWatch,
             watch: isWatch ? {} : null,
-            rollupOptions: {
+            rolldownOptions: {
                 treeshake: {
                     moduleSideEffects: false,
                     propertyReadSideEffects: false,
