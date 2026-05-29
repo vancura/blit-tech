@@ -184,7 +184,15 @@ const hintExclusionCache = {
  * @param lineHeight - System font line height.
  * @returns Exclusion rect for swatch placement.
  */
-function resolveHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
+/**
+ * Returns the screen-space rect reserved for the bottom-left `[~]` hint label.
+ *
+ * @param bottomTextY - Baseline Y for the hint text.
+ * @param displayWidth - Logical display width.
+ * @param lineHeight - System font line height.
+ * @returns Exclusion rect for swatch placement and hit testing.
+ */
+export function resolvePaletteHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
     if (
         hintExclusionCache.bottomTextY === bottomTextY &&
         hintExclusionCache.displayWidth === displayWidth &&
@@ -326,6 +334,33 @@ function drawPaletteSwatch(
 }
 
 /**
+ * Writes the top-left corner of a palette swatch into {@link target}.
+ *
+ * @param target - Reusable rect mutated in place.
+ * @param index - Palette slot index.
+ * @param paletteBand - Palette band rect from layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row (default `0`).
+ */
+export function writePaletteSwatchTopLeft(
+    target: Rect2i,
+    index: number,
+    paletteBand: Rect2i,
+    grid: PaletteGridLayout,
+    scrollRowOffset = 0,
+): void {
+    const { cols, swatchSize, gap } = grid;
+    const col = index % cols;
+    const row = Math.floor(index / cols) - scrollRowOffset;
+    const originX = paletteBand.x + STATS_EDGE_MARGIN_PX;
+    const originY = paletteBand.y + PALETTE_GRID_PADDING_PX;
+    const x = originX + col * (swatchSize + gap);
+    const y = originY + row * (swatchSize + gap);
+
+    target.set(x, y, swatchSize, swatchSize);
+}
+
+/**
  * Draws the full palette swatch grid inside the bottom band.
  *
  * @param renderer - Active renderer.
@@ -345,17 +380,14 @@ function drawPaletteSwatchGrid(
     usedMask: Uint8Array,
     unusedMarkIndex: number,
 ): void {
-    const { cols, swatchSize, gap } = grid;
-    const originX = paletteBand.x + STATS_EDGE_MARGIN_PX;
-    const originY = paletteBand.y + PALETTE_GRID_PADDING_PX;
+    const { swatchSize } = grid;
     const swatchScratch = paletteGridDrawScratch.swatch;
     const markerScratch = paletteGridDrawScratch.marker;
 
     for (let index = 0; index < colorCount; index++) {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const x = originX + col * (swatchSize + gap);
-        const y = originY + row * (swatchSize + gap);
+        writePaletteSwatchTopLeft(swatchScratch, index, paletteBand, grid);
+        const x = swatchScratch.x;
+        const y = swatchScratch.y;
 
         // Reserve only the `[~]` text band; do not clip against the 48x48 toggle hit rect
         // (it overlaps many grid rows and would truncate every row below it).
@@ -419,7 +451,7 @@ export class StatsOverlayPaletteView {
             return;
         }
 
-        const hintExclusion = resolveHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+        const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
         drawPaletteSwatchGrid(renderer, paletteBand, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }

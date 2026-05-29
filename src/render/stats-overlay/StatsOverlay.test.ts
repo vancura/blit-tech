@@ -6,12 +6,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
 import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
+import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { STATS_BAR_HEIGHT, STATS_ROW_GAP_PX } from './constants';
 import { createStatsOverlayLayout, statsRightAlignedTextX, statsToggleHintTextX } from './layoutHelpers';
 import { hintBarY, paletteBandY } from './layoutPlan';
 import { StatsOverlay } from './StatsOverlay';
-import { computePaletteGrid } from './StatsOverlayPaletteView';
+import { computePaletteGrid, writePaletteSwatchTopLeft } from './StatsOverlayPaletteView';
 import {
     createMockRenderer,
     customRowBarY,
@@ -95,6 +96,29 @@ describe('StatsOverlay', () => {
         );
 
         expect(overlay.tracksPaletteUsage).toBe(false);
+    });
+
+    it('swatch press in the toggle corner does not toggle overlay body (VV-549)', () => {
+        const layout = createStatsOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Test Demo', { paletteView: true, visibleAtStart: true });
+        const grid = computePaletteGrid(320);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
+        const swatch = new Rect2i();
+        const index = grid.cols * (grid.rows - 1);
+
+        writePaletteSwatchTopLeft(swatch, index, paletteBand, grid);
+
+        overlay.handleFrameInput(
+            {
+                isButtonPressed: () => true,
+                getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+            } as never,
+            null,
+            1,
+        );
+
+        expect(overlay.bodyVisible).toBe(true);
     });
 
     it('starts hidden by default and toggles body visibility', () => {
