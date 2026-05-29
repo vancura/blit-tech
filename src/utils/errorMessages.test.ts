@@ -18,6 +18,7 @@ import {
     CANVAS_NOT_FOUND_MESSAGE,
     INIT_FAILED_MESSAGE,
     noActivePaletteError,
+    OVERLAY_NO_BACKEND,
     paletteIndexNegativeError,
     paletteIndexOutOfRangeError,
     renderDimensionAreaTooLargeError,
@@ -26,7 +27,6 @@ import {
     renderDimensionTooLargeError,
     spriteColorNotInPaletteError,
     spriteNotIndexizedError,
-    STATS_OVERLAY_NO_BACKEND,
     WEBGPU_ADAPTER_MESSAGE,
     WEBGPU_DEVICE_MESSAGE,
 } from './errorMessages';
@@ -79,14 +79,14 @@ describe('errorMessages', () => {
         });
     });
 
-    describe('STATS_OVERLAY_NO_BACKEND', () => {
+    describe('OVERLAY_NO_BACKEND', () => {
         it('should be a non-empty string', () => {
-            expect(typeof STATS_OVERLAY_NO_BACKEND).toBe('string');
-            expect(STATS_OVERLAY_NO_BACKEND.length).toBeGreaterThan(0);
+            expect(typeof OVERLAY_NO_BACKEND).toBe('string');
+            expect(OVERLAY_NO_BACKEND.length).toBeGreaterThan(0);
         });
 
         it('should mention backend readiness', () => {
-            expect(STATS_OVERLAY_NO_BACKEND).toContain("backend isn't ready");
+            expect(OVERLAY_NO_BACKEND).toContain("backend isn't ready");
         });
     });
 

@@ -104,25 +104,25 @@ See [Post-Process Effects](post-process-effects.md) for tier routing and presets
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `drawingBufferSize` means a 1:1 drawing buffer).
 
-| Field                           | Type                           | Default     | Description                                                          |
-| ------------------------------- | ------------------------------ | ----------- | -------------------------------------------------------------------- |
-| `displaySize`                   | `Vector2i`                     | `320×240`   | **Logical** render resolution                                        |
-| `drawingBufferSize`             | `Vector2i`                     | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set   |
-| `maxCanvasSize`                 | `Vector2i`                     | `960×720`   | **CSS cap** — maximum on-screen canvas size                          |
-| `targetFPS`                     | `number`                       | `60`        | Fixed `update()` rate (simulation ticks per second)                  |
-| `backend`                       | `'webgpu' \| 'software'`       | `'webgpu'`  | Force rendering backend                                              |
-| `outputUpscaleFilter`           | `'nearest' \| 'linear'`        | `'nearest'` | Upscale filter                                                       |
-| `detectDroppedFrames`           | `boolean`                      | `false`     | Log a console warning on missed vsync                                |
-| `statsOverlayEnabled`           | `boolean`                      | `true`      | Engine stats HUD after each `render()`                               |
-| `statsOverlayVisibleAtStart`    | `boolean`                      | `false`     | Show overlay body (metrics/palette/custom rows) on first frame       |
-| `statsOverlayToggleHintVisible` | `boolean`                      | `true`      | Draw `[~]` hint bar while overlay body is hidden                     |
-| `statsOverlayToggleEnabled`     | `boolean`                      | `true`      | Enable Backquote and bottom-left corner toggle input                 |
-| `statsOverlayPaletteView`       | `boolean`                      | `false`     | Live palette swatch grid in the stats overlay bottom band (opt-in)   |
-| `statsOverlayPaletteColumns`    | `number`                       | _unset_     | Max palette swatches per grid row (default: widest fit)              |
-| `statsOverlayStyle`             | `StatsOverlayStyle`            | _unset_     | Optional bar/text palette indices for stats overlay                  |
-| `statsOverlayTimingChart`       | `boolean`                      | `false`     | Scrolling update/render timing chart between title and metrics rows  |
-| `statsOverlayTimingChartHeight` | `number`                       | `22`        | Timing chart band height in pixels when the chart is enabled         |
-| `statsOverlayTimingChartStyle`  | `StatsOverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text) |
+| Field                      | Type                      | Default     | Description                                                          |
+| -------------------------- | ------------------------- | ----------- | -------------------------------------------------------------------- |
+| `displaySize`              | `Vector2i`                | `320×240`   | **Logical** render resolution                                        |
+| `drawingBufferSize`        | `Vector2i`                | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set   |
+| `maxCanvasSize`            | `Vector2i`                | `960×720`   | **CSS cap** — maximum on-screen canvas size                          |
+| `targetFPS`                | `number`                  | `60`        | Fixed `update()` rate (simulation ticks per second)                  |
+| `backend`                  | `'webgpu' \| 'software'`  | `'webgpu'`  | Force rendering backend                                              |
+| `outputUpscaleFilter`      | `'nearest' \| 'linear'`   | `'nearest'` | Upscale filter                                                       |
+| `detectDroppedFrames`      | `boolean`                 | `false`     | Log a console warning on missed vsync                                |
+| `overlayEnabled`           | `boolean`                 | `true`      | Engine overlay HUD after each `render()`                             |
+| `overlayVisibleAtStart`    | `boolean`                 | `false`     | Show overlay body (metrics/palette/custom rows) on first frame       |
+| `overlayToggleHintVisible` | `boolean`                 | `true`      | Draw `[~]` hint bar while overlay body is hidden                     |
+| `overlayToggleEnabled`     | `boolean`                 | `true`      | Enable Backquote and bottom-left corner toggle input                 |
+| `overlayPaletteView`       | `boolean`                 | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)         |
+| `overlayPaletteColumns`    | `number`                  | _unset_     | Max palette swatches per grid row (default: widest fit)              |
+| `overlayStyle`             | `OverlayStyle`            | _unset_     | Optional bar/text palette indices for overlay                        |
+| `overlayTimingChart`       | `boolean`                 | `false`     | Scrolling update/render timing chart between title and metrics rows  |
+| `overlayTimingChartHeight` | `number`                  | `22`        | Timing chart band height in pixels when the chart is enabled         |
+| `overlayTimingChartStyle`  | `OverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text) |
 
 `displaySize`, `drawingBufferSize`, and `maxCanvasSize` must be positive whole-number pixel dimensions. Each size is
 capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -189,46 +189,45 @@ configure() {
 // requestedBackend === activeBackend === 'software' after init
 ```
 
-### Stats overlay
+### Overlay
 
-When `statsOverlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on
-top of all demo content. The **overlay body** (title, metrics, timing chart, palette grid, custom rows) starts
-**hidden** unless `statsOverlayVisibleAtStart: true`. While the body is hidden, the engine may still draw the **toggle
-hint** (13 px `[~]` bar) when `statsOverlayToggleHintVisible` is `true` (default). Bar bands and text anchors for the
-full body are computed each frame by the internal layout planner in `src/render/stats-overlay/layoutPlan.ts` from
-`displaySize`, custom row count, and optional feature flags (timing chart default off; palette grid opt-in via
-`statsOverlayPaletteView`). Init still caches stable values such as the bottom-left toggle rect and text baselines from
-the system font metrics.
+When `overlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on top
+of all demo content. The **overlay body** (title, metrics, timing chart, palette grid, custom rows) starts **hidden**
+unless `overlayVisibleAtStart: true`. While the body is hidden, the engine may still draw the **toggle hint** (13 px
+`[~]` bar) when `overlayToggleHintVisible` is `true` (default). Bar bands and text anchors for the full body are
+computed each frame by the internal layout planner in `src/overlay/layout/layoutPlan.ts` from `displaySize`, custom row
+count, and optional feature flags (timing chart default off; palette grid opt-in via `overlayPaletteView`). Init still
+caches stable values such as the bottom-left toggle rect and text baselines from the system font metrics.
 
 **Migration note:** Upgrading demos now starts with the overlay body hidden. Teaching demos that relied on
-always-visible metrics should opt back in with `statsOverlayVisibleAtStart: true` in `configure()` until authors choose
+always-visible metrics should opt back in with `overlayVisibleAtStart: true` in `configure()` until authors choose
 otherwise.
 
 - **Top row 1 (left):** short demo title derived from `document.title` (registry pages titled
   `Blit-Tech Demo NNN - Topic` show as `Topic Demo`); **top row 1 (right):** active backend and logical resolution (for
   example `webgpu | 320x240`)
-- **Timing chart (optional):** when `statsOverlayTimingChart: true`, a scrolling band of **one-pixel dots** shows raw
+- **Timing chart (optional):** when `overlayTimingChart: true`, a scrolling band of **one-pixel dots** shows raw
   per-frame `update()` vs `render()` CPU time (one column per present frame, not per fixed `update()` tick). Band height
-  defaults to **22 px**; override with `statsOverlayTimingChartHeight`. Dot height scales linearly so about **16 ms**
-  fills the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). The band
-  background uses `statsOverlayStyle.barPaletteIndex`; dot colors default to `statsOverlayStyle.barPaletteIndex` /
-  `textPaletteIndex`; override with `statsOverlayTimingChartStyle`. Additional warning/error/event palette slots are
-  reserved for future chart overlays.
+  defaults to **22 px**; override with `overlayTimingChartHeight`. Dot height scales linearly so about **16 ms** fills
+  the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). The band
+  background uses `overlayStyle.barPaletteIndex`; dot colors default to `overlayStyle.barPaletteIndex` /
+  `textPaletteIndex`; override with `overlayTimingChartStyle`. Additional warning/error/event palette slots are reserved
+  for future chart overlays.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
 - **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-left (over the toggle hit
-  region). Set `statsOverlayPaletteView: true` to stack a live palette swatch grid **above** a **1 px** gap and that
-  hint bar; slots referenced by demo draw calls this frame are filled with their color, and unused slots render as empty
+  region). Set `overlayPaletteView: true` to stack a live palette swatch grid **above** a **1 px** gap and that hint
+  bar; slots referenced by demo draw calls this frame are filled with their color, and unused slots render as empty
   squares with a small centered marker. The timing chart and palette grid bands use the same
-  `statsOverlayStyle.barPaletteIndex` fill as the other overlay rows (bars draw first; chart dots and swatches render on
-  top). Palette usage tracking (sprite and bitmap-text pixel scans) runs only when the stats overlay is enabled,
-  `statsOverlayPaletteView` is true, **and** the overlay body is visible (not hidden with Backquote or the corner
-  toggle). Default demos do not pay that scanning cost while the overlay is hidden.
-- **Custom rows (optional):** extra bars from `statsOverlayRows()` stacked above the bottom band, **1 px** apart, each
-  with left text and optional right text (same 13 px bar style as the built-in rows)
+  `overlayStyle.barPaletteIndex` fill as the other overlay rows (bars draw first; chart dots and swatches render on
+  top). Palette usage tracking (sprite and bitmap-text pixel scans) runs only when the overlay is enabled,
+  `overlayPaletteView` is true, **and** the overlay body is visible (not hidden with Backquote or the corner toggle).
+  Default demos do not pay that scanning cost while the overlay is hidden.
+- **Custom rows (optional):** extra bars from `overlayRows()` stacked above the bottom band, **1 px** apart, each with
+  left text and optional right text (same 13 px bar style as the built-in rows)
 
-Demos may implement optional `statsOverlayRows()` on `IBlitTechDemo`. The engine calls it once per render frame after
+Demos may implement optional `overlayRows()` on `IBlitTechDemo`. The engine calls it once per render frame after
 `render()` when the overlay is enabled and the **body** is visible (not hidden with Backquote or the corner toggle).
 Return `undefined` or an empty array when no custom rows are needed. Reuse the same array and row objects when possible;
 update `leftText` / `rightText` in place to avoid per-frame allocations.
@@ -238,7 +237,7 @@ update `leftText` / `rightText` in place to avoid per-frame allocations.
 class Demo {
   readonly #overlayRows = [{ leftText: 'Position: 0, 0' }, { leftText: 'Score: 0', rightText: 'ready' }];
 
-  statsOverlayRows() {
+  overlayRows() {
     this.#overlayRows[0].leftText = `Position: ${this.pos.x}, ${this.pos.y}`;
     this.#overlayRows[1].leftText = `Score: ${this.score}`;
     return this.#overlayRows;
@@ -247,35 +246,34 @@ class Demo {
 ```
 
 Toggle overlay **body** visibility at runtime with **Backquote** (`~`) or a primary pointer press in the **bottom-left
-48x48 px** corner when `statsOverlayToggleEnabled` is `true` (default). Set `statsOverlayToggleHintVisible: false` to
-hide the hint bar while the body stays hidden. Set `statsOverlayToggleEnabled: false` to lock body visibility at
-`statsOverlayVisibleAtStart`. Set `statsOverlayEnabled: false` in `configure()` to disable the overlay subsystem and all
-toggle input (for example release builds). On WebGPU, the engine draws the stats HUD after your `render()` call,
-composited above demo sprites via internal overlay draw batches (not available on `BT`).
+48x48 px** corner when `overlayToggleEnabled` is `true` (default). Set `overlayToggleHintVisible: false` to hide the
+hint bar while the body stays hidden. Set `overlayToggleEnabled: false` to lock body visibility at
+`overlayVisibleAtStart`. Set `overlayEnabled: false` in `configure()` to disable the overlay subsystem and all toggle
+input (for example release builds). On WebGPU, the engine draws the overlay HUD after your `render()` call, composited
+above demo sprites via internal overlay draw batches (not available on `BT`).
 
-Overlay colors follow one path: use `statsOverlayStyle` when set, otherwise defaults `1` (bar) and `2` (text). You can
-override globally in `configure()` with `statsOverlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
-`StatsOverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
+Overlay colors follow one path: use `overlayStyle` when set, otherwise defaults `1` (bar) and `2` (text). You can
+override globally in `configure()` with `overlayStyle: { barPaletteIndex, textPaletteIndex }`, or per custom row on
+`OverlayRow` (`barPaletteIndex`, `textPaletteIndex`).
 
 The overlay label `Present: N FPS` is **not** the same as `BT.targetFPS`: present FPS reflects how often `render()` runs
 (browser refresh rate), while `Target` is the fixed `update()` rate. Present FPS is sampled only while the overlay body
 is visible. `Frame`, `update()`, and `render()` timings are smoothed CPU wall-time samples from `performance.now()`
 shown in the text row; the optional timing chart uses **raw** per-frame `updateMs` / `renderMs` from the prior frame.
-Those demo-only timings **exclude** stats overlay draw (overlay runs after `render()` is timed); `Frame` includes the
-full present frame including overlay and GPU present. When the overlay body is hidden, chart history still records demo
+Those demo-only timings **exclude** overlay draw (overlay runs after `render()` is timed); `Frame` includes the full
+present frame including overlay and GPU present. When the overlay body is hidden, chart history still records demo
 `update()` / `render()` samples, the toggle hint may still draw, and palette usage tracking is off. `Draw Calls` counts
 demo-issued draw API calls during the rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`,
 `BT.deltaSeconds`, or `Timer` instead.
 
-Demos should not duplicate engine stats text; the overlay provides it. Reserve about **14 px** per custom overlay row
+Demos should not duplicate engine overlay text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom band (13 px bar + 1 px gap). When drawing custom top or bottom HUD panels, leave about **42 px** clear
-at the top (three built-in text rows + gaps; add `statsOverlayTimingChartHeight` or **22 px** when
-`statsOverlayTimingChart: true`). Leave about **13 px** clear at the bottom by default (hint bar). When
-`statsOverlayPaletteView: true`, reserve additional space for the palette grid, the **1 px** row gap, and the **13 px**
-hint bar—for example about **83 px** on the default `320×240` layout with a 256-slot palette (32 columns × 8 rows of 7
-px swatches with 1 px gaps, plus the gap and hint bar). Column count is chosen by halving from `palette.size` until the
-row fits `displayWidth - 2 * edgeMargin`. The footer band height matches `resolveStatsOverlayFooterHeight()` in
-`layoutPlan.ts`:
+at the top (three built-in text rows + gaps; add `overlayTimingChartHeight` or **22 px** when
+`overlayTimingChart: true`). Leave about **13 px** clear at the bottom by default (hint bar). When
+`overlayPaletteView: true`, reserve additional space for the palette grid, the **1 px** row gap, and the **13 px** hint
+bar—for example about **83 px** on the default `320×240` layout with a 256-slot palette (32 columns × 8 rows of 7 px
+swatches with 1 px gaps, plus the gap and hint bar). Column count is chosen by halving from `palette.size` until the row
+fits `displayWidth - 2 * edgeMargin`. The footer band height matches `resolveOverlayFooterHeight()` in `layoutPlan.ts`:
 
 ```text
 cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
@@ -285,7 +283,7 @@ bottomReserve = paletteGridHeight + 1 + 13
 ```
 
 Default swatch size is **7 px** with **1 px** gaps and **3 px** padding above and below the grid. Set
-`statsOverlayPaletteView: true` to enable the grid, or `statsOverlayEnabled: false` for full-screen layouts (for example
+`overlayPaletteView: true` to enable the grid, or `overlayEnabled: false` for full-screen layouts (for example
 terminal-style demos).
 
 ```ts
@@ -293,7 +291,7 @@ terminal-style demos).
 configure() {
   return {
     displaySize: new Vector2i(320, 240),
-    statsOverlayEnabled: false,
+    overlayEnabled: false,
   };
 }
 
@@ -301,12 +299,12 @@ configure() {
 configure() {
   return {
     displaySize: new Vector2i(320, 240),
-    statsOverlayEnabled: true,
-    statsOverlayPaletteView: true,
-    statsOverlayTimingChart: true,
-    statsOverlayTimingChartHeight: 32, // optional; default 22
-    statsOverlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
-    statsOverlayTimingChartStyle: {
+    overlayEnabled: true,
+    overlayPaletteView: true,
+    overlayTimingChart: true,
+    overlayTimingChartHeight: 32, // optional; default 22
+    overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
+    overlayTimingChartStyle: {
       updateBarPaletteIndex: 2, // defaults to barPaletteIndex when omitted
       renderBarPaletteIndex: 3, // defaults to textPaletteIndex when omitted
     },
@@ -323,7 +321,7 @@ Blit-Tech runs two independent cadences:
 | Concept             | Where                                                      | Meaning                                                        |
 | ------------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
 | **Simulation rate** | `targetFPS`, `BT.targetFPS`, `BT.deltaSeconds`, `BT.ticks` | Fixed `update()` step; game logic and `Timer` use ticks        |
-| **Render rate**     | Stats overlay `Present: N FPS`                             | Measured `requestAnimationFrame` cadence; `render()` runs here |
+| **Render rate**     | Overlay `Present: N FPS`                                   | Measured `requestAnimationFrame` cadence; `render()` runs here |
 
 `render()` may run more or fewer times per second than `update()` (for example 120 Hz display with `targetFPS: 60`). Use
 tick-based timing for gameplay; use overlay present FPS only to spot GPU or draw-call bottlenecks.

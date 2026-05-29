@@ -1,6 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import { clipSpriteSourceRect } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { noActivePaletteError } from '../utils/errorMessages';
@@ -8,7 +9,6 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import type { IRenderer } from './IRenderer';
-import type { StatsOverlayDrawTarget } from './stats-overlay/StatsOverlayDrawTarget';
 
 // #region Type Definitions
 
@@ -82,7 +82,7 @@ type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
  * logical-resolution RGBA buffer every frame, then presenting that buffer to the
  * target canvas with optional nearest-neighbor upscaling.
  */
-export class SoftwareRenderer implements IRenderer, StatsOverlayDrawTarget {
+export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     // #region Constants
 
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
@@ -258,7 +258,7 @@ export class SoftwareRenderer implements IRenderer, StatsOverlayDrawTarget {
     }
 
     /**
-     * Queues a stats overlay bar fill (same FIFO queue as {@link drawRectFill}).
+     * Queues a overlay bar fill (same FIFO queue as {@link drawRectFill}).
      *
      * @param rect - Rectangle to fill in logical pixels.
      * @param paletteIndex - Palette entry index for the fill color.
@@ -371,7 +371,7 @@ export class SoftwareRenderer implements IRenderer, StatsOverlayDrawTarget {
     }
 
     /**
-     * Queues a stats overlay label (same FIFO queue as {@link drawBitmapText}).
+     * Queues a overlay label (same FIFO queue as {@link drawBitmapText}).
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text origin in logical pixels.

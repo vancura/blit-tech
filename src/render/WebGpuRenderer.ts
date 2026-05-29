@@ -1,6 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import { noActivePaletteError } from '../utils/errorMessages';
 import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
@@ -11,7 +12,6 @@ import { PaletteResolveUpscalePass } from './PaletteResolveUpscalePass';
 import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
-import type { StatsOverlayDrawTarget } from './stats-overlay/StatsOverlayDrawTarget';
 import type { UpscaleFilter } from './UpscalePass';
 
 // #region Configuration
@@ -54,7 +54,7 @@ const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
  * exists only after palette resolve/upscale, so display-tier effects remain
  * unchanged while the obsolete logical RGBA path is removed.
  */
-export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
+export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     // #region State
 
     /** WebGPU device for GPU operations. */
@@ -116,7 +116,7 @@ export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     private readonly primitives: PrimitivePipeline;
 
     /**
-     * Primitives encoded after the sprite pass (stats overlay bars, etc.).
+     * Primitives encoded after the sprite pass (overlay bars, etc.).
      */
     private readonly overlayPrimitives: PrimitivePipeline;
 
@@ -124,7 +124,7 @@ export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     private readonly sprites: SpritePipeline;
 
     /**
-     * Sprites encoded after overlay bar primitives (stats overlay labels, etc.).
+     * Sprites encoded after overlay bar primitives (overlay labels, etc.).
      */
     private readonly overlaySprites: SpritePipeline;
 
@@ -375,7 +375,7 @@ export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     }
 
     /**
-     * Draws a filled rectangle in the stats overlay primitive batch (above demo sprites).
+     * Draws a filled rectangle in the overlay primitive batch (above demo sprites).
      *
      * @param rect - Rectangle bounds in pixel coordinates.
      * @param paletteIndex - Palette color index.
@@ -456,7 +456,7 @@ export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     }
 
     /**
-     * Draws bitmap text in the stats overlay sprite batch (above overlay bar fills).
+     * Draws bitmap text in the overlay sprite batch (above overlay bar fills).
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text position (top-left corner).
@@ -649,8 +649,8 @@ export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     /**
      * Encodes the scene render pass into the supplied target view.
      *
-     * Draw order: `primitives`, `sprites`, `overlayPrimitives` (stats bars via
-     * {@link drawBarFill}), then `overlaySprites` (stats labels via {@link drawLabel}).
+     * Draw order: `primitives`, `sprites`, `overlayPrimitives` (overlay bars via
+     * {@link drawBarFill}), then `overlaySprites` (overlay labels via {@link drawLabel}).
      *
      * @param encoder - Active command encoder.
      * @param sceneView - Logical scene attachment view to render into.

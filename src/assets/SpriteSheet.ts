@@ -500,7 +500,7 @@ export class SpriteSheet {
     /**
      * Marks palette indices referenced by non-zero pixels in a source rectangle.
      *
-     * Used by the engine to build the stats overlay palette grid from demo draw
+     * Used by the engine to build the overlay palette grid from demo draw
      * calls. Does not allocate; writes into the supplied usage mask. Each unique
      * sheet index in the rect is resolved once (VV-543).
      *

@@ -24,9 +24,9 @@ import {
     type HardwareSettings,
     type IBlitTechDemo,
     mergeHardwareSettings,
-    type StatsOverlayRow,
-    type StatsOverlayStyle,
-    type StatsOverlayTimingChartStyle,
+    type OverlayRow,
+    type OverlayStyle,
+    type OverlayTimingChartStyle,
 } from './core/IBlitTechDemo';
 import {
     createDefaultKeyboardRuntimeMaps,
@@ -1562,9 +1562,9 @@ export type {
     EffectTier,
     HardwareSettings,
     IBlitTechDemo,
-    StatsOverlayRow,
-    StatsOverlayStyle,
-    StatsOverlayTimingChartStyle,
+    OverlayRow,
+    OverlayStyle,
+    OverlayTimingChartStyle,
     TextSize,
 };
 export type { IndexedSpriteLoadResult };
