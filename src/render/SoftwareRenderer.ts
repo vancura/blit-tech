@@ -8,6 +8,7 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import type { IRenderer } from './IRenderer';
+import type { StatsOverlayDrawTarget } from './stats-overlay/StatsOverlayDrawTarget';
 
 // #region Type Definitions
 
@@ -81,7 +82,7 @@ type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
  * logical-resolution RGBA buffer every frame, then presenting that buffer to the
  * target canvas with optional nearest-neighbor upscaling.
  */
-export class SoftwareRenderer implements IRenderer {
+export class SoftwareRenderer implements IRenderer, StatsOverlayDrawTarget {
     // #region Constants
 
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
@@ -139,16 +140,20 @@ export class SoftwareRenderer implements IRenderer {
         this.canvas.height = this.outputSize.y;
 
         this.outputCtx = this.canvas.getContext('2d') as Canvas2D | null;
+
         if (!this.outputCtx) {
             return false;
         }
+
         this.outputCtx.imageSmoothingEnabled = false;
 
         this.logicalCanvas = this.createLogicalCanvas();
         this.logicalCtx = this.logicalCanvas.getContext('2d') as Canvas2D | null;
+
         if (!this.logicalCtx) {
             return false;
         }
+
         this.logicalCtx.imageSmoothingEnabled = false;
 
         if ('createImageData' in this.logicalCtx) {
@@ -171,6 +176,7 @@ export class SoftwareRenderer implements IRenderer {
      */
     setPalette(palette: Palette): void {
         this.palette = palette;
+
         if (this.clearPaletteIndex >= this.palette.size) {
             this.clearPaletteIndex = 0;
         }
@@ -197,6 +203,7 @@ export class SoftwareRenderer implements IRenderer {
         if (!this.palette) {
             throw new Error(noActivePaletteError());
         }
+
         this.commands.length = 0;
     }
 
@@ -215,6 +222,7 @@ export class SoftwareRenderer implements IRenderer {
      */
     endFrame(): void {
         const clearColor = this.resolveClearColor();
+
         this.fillFrame(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 
         for (const command of this.commands) {
@@ -250,22 +258,12 @@ export class SoftwareRenderer implements IRenderer {
     }
 
     /**
-     * Queues a filled rectangle after prior commands (same FIFO queue as {@link drawRectFill}).
+     * Queues a stats overlay bar fill (same FIFO queue as {@link drawRectFill}).
      *
      * @param rect - Rectangle to fill in logical pixels.
      * @param paletteIndex - Palette entry index for the fill color.
      */
-    drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void {
-        this.drawRectFill(rect, paletteIndex);
-    }
-
-    /**
-     * Queues a filled rectangle after prior draw commands (same FIFO queue as {@link drawRectFill}).
-     *
-     * @param rect - Rectangle to fill in logical pixels.
-     * @param paletteIndex - Palette entry index for the fill color.
-     */
-    drawRectFillForeground(rect: Rect2i, paletteIndex: number): void {
+    drawBarFill(rect: Rect2i, paletteIndex: number): void {
         this.drawRectFill(rect, paletteIndex);
     }
 
@@ -373,26 +371,14 @@ export class SoftwareRenderer implements IRenderer {
     }
 
     /**
-     * Queues bitmap text after prior commands (same FIFO queue as {@link drawBitmapText}).
+     * Queues a stats overlay label (same FIFO queue as {@link drawBitmapText}).
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text origin in logical pixels.
      * @param text - String to render.
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
-    drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
-        this.drawBitmapText(font, pos, text, paletteOffset);
-    }
-
-    /**
-     * Queues bitmap text after prior draw commands (same FIFO queue as {@link drawBitmapText}).
-     *
-     * @param font - Bitmap font to render.
-     * @param pos - Top-left position of the text in logical coordinates.
-     * @param text - String to render.
-     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
-     */
-    drawBitmapTextForeground(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+    drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.drawBitmapText(font, pos, text, paletteOffset);
     }
 
@@ -489,8 +475,10 @@ export class SoftwareRenderer implements IRenderer {
         }
 
         const canvas = document.createElement('canvas');
+
         canvas.width = this.displaySize.x;
         canvas.height = this.displaySize.y;
+
         return canvas;
     }
 
@@ -530,6 +518,7 @@ export class SoftwareRenderer implements IRenderer {
                     command.cameraY,
                 );
                 return;
+
             case 'rect':
                 this.rasterRect(
                     command.x0,
@@ -541,6 +530,7 @@ export class SoftwareRenderer implements IRenderer {
                     command.cameraY,
                 );
                 return;
+
             case 'line':
                 this.rasterLine(
                     command.x0,
@@ -552,9 +542,11 @@ export class SoftwareRenderer implements IRenderer {
                     command.cameraY,
                 );
                 return;
+
             case 'sprite':
                 this.rasterSprite(command);
                 return;
+
             case 'bitmapText':
                 this.rasterBitmapText(command);
                 return;
@@ -582,6 +574,7 @@ export class SoftwareRenderer implements IRenderer {
         cameraY: number,
     ): void {
         const color = this.resolvePrimitiveColor(paletteIndex);
+
         if (!color || width <= 0 || height <= 0) {
             return;
         }
@@ -624,6 +617,7 @@ export class SoftwareRenderer implements IRenderer {
 
         const x1 = x + width - 1;
         const y1 = y + height - 1;
+
         this.rasterLine(x, y, x1, y, paletteIndex, cameraX, cameraY);
         this.rasterLine(x, y1, x1, y1, paletteIndex, cameraX, cameraY);
         this.rasterLine(x, y + 1, x, y1 - 1, paletteIndex, cameraX, cameraY);
@@ -667,14 +661,18 @@ export class SoftwareRenderer implements IRenderer {
 
         while (true) {
             this.writePixel(cx, cy, color.r, color.g, color.b, 255);
+
             if (cx === tx && cy === ty) {
                 break;
             }
+
             const e2 = err * 2;
+
             if (e2 > -dy) {
                 err -= dy;
                 cx += sx;
             }
+
             if (e2 < dx) {
                 err += dx;
                 cy += sy;
@@ -717,6 +715,7 @@ export class SoftwareRenderer implements IRenderer {
                 const color = this.resolveSpriteColor(finalIndex);
                 const destX = destPos.x + destOffsetX + x - command.cameraX;
                 const destY = destPos.y + destOffsetY + y - command.cameraY;
+
                 this.writePixel(destX, destY, color.r, color.g, color.b, 255);
             }
         }
@@ -729,11 +728,14 @@ export class SoftwareRenderer implements IRenderer {
      */
     private rasterBitmapText(command: BitmapTextCommand): void {
         let cursorX = command.pos.x;
+
         for (const char of command.text) {
             const glyph = command.font.getGlyph(char);
+
             if (!glyph) {
                 continue;
             }
+
             this.rasterSprite({
                 kind: 'sprite',
                 spriteSheet: command.font.getSpriteSheet(),
@@ -743,6 +745,7 @@ export class SoftwareRenderer implements IRenderer {
                 cameraX: command.cameraX,
                 cameraY: command.cameraY,
             });
+
             cursorX += glyph.advance;
         }
     }
@@ -761,7 +764,9 @@ export class SoftwareRenderer implements IRenderer {
         if (x < 0 || y < 0 || x >= this.displaySize.x || y >= this.displaySize.y) {
             return;
         }
+
         const index = (y * this.displaySize.x + x) * 4;
+
         // eslint-disable-next-line security/detect-object-injection
         this.framePixels[index] = r;
         this.framePixels[index + 1] = g;
@@ -780,7 +785,9 @@ export class SoftwareRenderer implements IRenderer {
         if (!this.palette || paletteIndex >= this.palette.size) {
             return null;
         }
+
         const color = this.palette.get(paletteIndex);
+
         return color.a === 0 ? null : color;
     }
 
@@ -795,6 +802,7 @@ export class SoftwareRenderer implements IRenderer {
         if (!this.palette || paletteIndex >= this.palette.size) {
             return Color32.black;
         }
+
         return this.palette.get(paletteIndex);
     }
 
@@ -808,6 +816,7 @@ export class SoftwareRenderer implements IRenderer {
         if (!this.palette) {
             return Color32.black;
         }
+
         try {
             return this.palette.get(this.clearPaletteIndex);
         } catch {
@@ -838,17 +847,21 @@ export class SoftwareRenderer implements IRenderer {
         if (!this.pendingCapture) {
             return;
         }
+
         if (typeof this.canvas.toBlob !== 'function') {
             this.pendingCapture.reject(
                 new Error(
                     "Can't save this frame - your browser doesn't support canvas image export. Try Chrome or Edge.",
                 ),
             );
+
             this.pendingCapture = null;
+
             return;
         }
 
         const request = this.pendingCapture;
+
         this.pendingCapture = null;
         this.canvas.toBlob((blob) => {
             if (!blob) {

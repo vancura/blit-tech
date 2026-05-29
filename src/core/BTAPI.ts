@@ -16,6 +16,7 @@ import { PointerInput } from '../input/PointerInput';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
+import type { StatsOverlayDrawTarget } from '../render/stats-overlay/StatsOverlayDrawTarget';
 import { createStatsOverlayLayout, resolveStatsTopLeftLabel, StatsOverlay } from '../render/StatsOverlay';
 import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
@@ -91,7 +92,7 @@ export class BTAPI {
     private canvas: HTMLCanvasElement | null = null;
 
     /** Renderer subsystem for all drawing operations. */
-    private renderer: IRenderer | null = null;
+    private renderer: (IRenderer & StatsOverlayDrawTarget) | null = null;
 
     /** Backend that was successfully initialized, or null before init. */
     private activeBackend: Backend | null = null;

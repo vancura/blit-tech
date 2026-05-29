@@ -11,6 +11,7 @@ import { PaletteResolveUpscalePass } from './PaletteResolveUpscalePass';
 import { PostProcessChain } from './PostProcessChain';
 import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
+import type { StatsOverlayDrawTarget } from './stats-overlay/StatsOverlayDrawTarget';
 import type { UpscaleFilter } from './UpscalePass';
 
 // #region Configuration
@@ -53,7 +54,7 @@ const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
  * exists only after palette resolve/upscale, so display-tier effects remain
  * unchanged while the obsolete logical RGBA path is removed.
  */
-export class WebGpuRenderer implements IRenderer {
+export class WebGpuRenderer implements IRenderer, StatsOverlayDrawTarget {
     // #region State
 
     /** WebGPU device for GPU operations. */
@@ -127,16 +128,6 @@ export class WebGpuRenderer implements IRenderer {
      */
     private readonly overlaySprites: SpritePipeline;
 
-    /**
-     * Primitives encoded after overlay sprites (palette tooltip fills above custom rows).
-     */
-    private readonly foregroundOverlayPrimitives: PrimitivePipeline;
-
-    /**
-     * Sprites encoded after foreground overlay primitives (palette tooltip labels).
-     */
-    private readonly foregroundOverlaySprites: SpritePipeline;
-
     /** Pixel-tier post-process chain (logical resolution). */
     private pixelChain: PostProcessChain | null = null;
 
@@ -148,6 +139,8 @@ export class WebGpuRenderer implements IRenderer {
 
     /** Logical-resolution scene framebuffer; allocated lazily. */
     private sceneTex: GPUTexture | null = null;
+
+    /** Stable view of the scene framebuffer. */
     private sceneTexView: GPUTextureView | null = null;
 
     /** Cached swap-chain format used by lazy texture creation. */
@@ -193,8 +186,6 @@ export class WebGpuRenderer implements IRenderer {
         this.overlayPrimitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
         this.overlaySprites = new SpritePipeline();
-        this.foregroundOverlayPrimitives = new PrimitivePipeline();
-        this.foregroundOverlaySprites = new SpritePipeline();
     }
 
     // #endregion
@@ -242,18 +233,6 @@ export class WebGpuRenderer implements IRenderer {
             await this.overlayPrimitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
             await this.sprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
             await this.overlaySprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
-            await this.foregroundOverlayPrimitives.init(
-                this.device,
-                this.displaySize,
-                this.paletteBuffer,
-                LOGICAL_TARGET_FORMAT,
-            );
-            await this.foregroundOverlaySprites.init(
-                this.device,
-                this.displaySize,
-                this.paletteBuffer,
-                LOGICAL_TARGET_FORMAT,
-            );
 
             this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
 
@@ -337,8 +316,6 @@ export class WebGpuRenderer implements IRenderer {
         this.overlayPrimitives.reset();
         this.sprites.reset();
         this.overlaySprites.reset();
-        this.foregroundOverlayPrimitives.reset();
-        this.foregroundOverlaySprites.reset();
     }
 
     /**
@@ -398,23 +375,13 @@ export class WebGpuRenderer implements IRenderer {
     }
 
     /**
-     * Draws a filled rectangle in the post-sprite primitive batch.
+     * Draws a filled rectangle in the stats overlay primitive batch (above demo sprites).
      *
      * @param rect - Rectangle bounds in pixel coordinates.
      * @param paletteIndex - Palette color index.
      */
-    drawRectFillOnTop(rect: Rect2i, paletteIndex: number): void {
+    drawBarFill(rect: Rect2i, paletteIndex: number): void {
         this.overlayPrimitives.drawRectFill(rect, paletteIndex);
-    }
-
-    /**
-     * Draws a filled rectangle in the post-overlay-sprite primitive batch.
-     *
-     * @param rect - Rectangle bounds in pixel coordinates.
-     * @param paletteIndex - Palette color index.
-     */
-    drawRectFillForeground(rect: Rect2i, paletteIndex: number): void {
-        this.foregroundOverlayPrimitives.drawRectFill(rect, paletteIndex);
     }
 
     /**
@@ -489,27 +456,15 @@ export class WebGpuRenderer implements IRenderer {
     }
 
     /**
-     * Draws bitmap text in the post-overlay-bar sprite batch.
+     * Draws bitmap text in the stats overlay sprite batch (above overlay bar fills).
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
-    drawBitmapTextOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+    drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.overlaySprites.drawBitmapText(font, pos, text, paletteOffset);
-    }
-
-    /**
-     * Draws bitmap text in the post-foreground-overlay primitive batch.
-     *
-     * @param font - Bitmap font with character glyphs.
-     * @param pos - Text position (top-left corner).
-     * @param text - String to render.
-     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
-     */
-    drawBitmapTextForeground(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
-        this.foregroundOverlaySprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
     // #endregion
@@ -535,8 +490,7 @@ export class WebGpuRenderer implements IRenderer {
      * Sets the camera offset for scrolling.
      *
      * The offset is propagated to all scene pipelines: `primitives`,
-     * `overlayPrimitives`, `sprites`, `overlaySprites`, `foregroundOverlayPrimitives`, and
-     * `foregroundOverlaySprites`.
+     * `overlayPrimitives`, `sprites`, and `overlaySprites`.
      *
      * @param offset - Camera position in pixels.
      */
@@ -546,8 +500,6 @@ export class WebGpuRenderer implements IRenderer {
         this.overlayPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
         this.overlaySprites.setCameraOffset(this.cameraOffset);
-        this.foregroundOverlayPrimitives.setCameraOffset(this.cameraOffset);
-        this.foregroundOverlaySprites.setCameraOffset(this.cameraOffset);
     }
 
     /**
@@ -568,8 +520,6 @@ export class WebGpuRenderer implements IRenderer {
         this.overlayPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
         this.overlaySprites.setCameraOffset(this.cameraOffset);
-        this.foregroundOverlayPrimitives.setCameraOffset(this.cameraOffset);
-        this.foregroundOverlaySprites.setCameraOffset(this.cameraOffset);
     }
 
     // #endregion
@@ -601,6 +551,7 @@ export class WebGpuRenderer implements IRenderer {
         }
 
         const chain = effect.tier === 'pixel' ? this.pixelChain : this.displayChain;
+
         chain.add(effect);
     }
 
@@ -659,23 +610,23 @@ export class WebGpuRenderer implements IRenderer {
             swapTexture = this.context.getCurrentTexture();
         } catch (error) {
             console.error('[WebGpuRenderer] Failed to get current texture:', error);
+
             this.primitives.reset();
             this.overlayPrimitives.reset();
             this.sprites.reset();
             this.overlaySprites.reset();
-            this.foregroundOverlayPrimitives.reset();
-            this.foregroundOverlaySprites.reset();
+
             return null;
         }
 
         if (swapTexture.width === 0 || swapTexture.height === 0) {
             console.warn('[WebGpuRenderer] Texture has zero dimensions, skipping frame');
+
             this.primitives.reset();
             this.overlayPrimitives.reset();
             this.sprites.reset();
             this.overlaySprites.reset();
-            this.foregroundOverlayPrimitives.reset();
-            this.foregroundOverlaySprites.reset();
+
             return null;
         }
 
@@ -698,10 +649,8 @@ export class WebGpuRenderer implements IRenderer {
     /**
      * Encodes the scene render pass into the supplied target view.
      *
-     * Draw order: `primitives`, `sprites`, `overlayPrimitives` (HUD bars via
-     * {@link drawRectFillOnTop}), `overlaySprites` (labels via {@link drawBitmapTextOnTop}),
-     * `foregroundOverlayPrimitives` (popover fills via {@link drawRectFillForeground}), then
-     * `foregroundOverlaySprites` (popover labels via {@link drawBitmapTextForeground}).
+     * Draw order: `primitives`, `sprites`, `overlayPrimitives` (stats bars via
+     * {@link drawBarFill}), then `overlaySprites` (stats labels via {@link drawLabel}).
      *
      * @param encoder - Active command encoder.
      * @param sceneView - Logical scene attachment view to render into.
@@ -729,8 +678,7 @@ export class WebGpuRenderer implements IRenderer {
         this.sprites.encodePass(renderPass);
         this.overlayPrimitives.encodePass(renderPass);
         this.overlaySprites.encodePass(renderPass);
-        this.foregroundOverlayPrimitives.encodePass(renderPass);
-        this.foregroundOverlaySprites.encodePass(renderPass);
+
         renderPass.end();
     }
 
@@ -760,6 +708,7 @@ export class WebGpuRenderer implements IRenderer {
         if (this.resolvePass) {
             const resolveSrc = this.requireSceneTexView();
             const resolveDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
+
             this.resolvePass.encode(encoder, resolveSrc, resolveDest, this.displaySize);
         }
 
@@ -795,8 +744,6 @@ export class WebGpuRenderer implements IRenderer {
         this.overlayPrimitives.reset();
         this.sprites.reset();
         this.overlaySprites.reset();
-        this.foregroundOverlayPrimitives.reset();
-        this.foregroundOverlaySprites.reset();
     }
 
     // #endregion
@@ -842,6 +789,7 @@ export class WebGpuRenderer implements IRenderer {
                 format: LOGICAL_TARGET_FORMAT,
                 usage: SCENE_TARGET_USAGE,
             });
+
             this.sceneTexView = this.sceneTex.createView();
         }
 
@@ -856,9 +804,11 @@ export class WebGpuRenderer implements IRenderer {
      */
     private requireDisplayChainInput(): GPUTextureView {
         const chain = this.displayChain;
+
         if (!chain?.isActive()) {
             throw new Error('WebGpuRenderer.requireDisplayChainInput: display chain inactive.');
         }
+
         return chain.getInputView();
     }
 

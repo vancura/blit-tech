@@ -39,7 +39,7 @@ const paletteBand256 = new Rect2i(0, 120, 320, 120);
 const paletteView = new StatsOverlayPaletteView(true);
 
 const noopRenderer = {
-    drawRectFillOnTop: () => {},
+    drawBarFill: () => {},
     getCameraOffset: () => new Vector2i(0, 0),
     resetCamera: () => {},
 };

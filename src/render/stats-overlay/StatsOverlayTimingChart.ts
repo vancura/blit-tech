@@ -3,8 +3,8 @@
  */
 
 import { Rect2i } from '../../utils/Rect2i';
-import type { IRenderer } from '../IRenderer';
 import { TIMING_CHART_FULL_SCALE_MS } from './constants';
+import type { StatsOverlayDrawTarget } from './StatsOverlayDrawTarget';
 import { computeTimingChartBarHeight, type ResolvedStatsOverlayTimingChartStyle } from './timingChartStyle';
 import type { StatsOverlayTimingSnapshot } from './types';
 
@@ -95,14 +95,14 @@ export class StatsOverlayTimingChart {
     /**
      * Draws one-pixel timing dots for each populated ring-buffer column.
      *
-     * Uses {@link IRenderer.drawRectFillOnTop} with 1x1 rects so update and render samples stay
+     * Uses {@link StatsOverlayDrawTarget.drawBarFill} with 1x1 rects so update and render samples stay
      * visible without alpha blending (palette-indexed engine).
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param chartRect - Screen-space chart band from layout plan.
      * @param style - Resolved chart palette indices.
      */
-    draw(renderer: IRenderer, chartRect: Rect2i, style: StatsOverlayTimingChartDrawStyle): void {
+    draw(target: StatsOverlayDrawTarget, chartRect: Rect2i, style: StatsOverlayTimingChartDrawStyle): void {
         if (!this.#enabled || chartRect.width <= 0 || chartRect.height <= 0) {
             return;
         }
@@ -126,15 +126,15 @@ export class StatsOverlayTimingChart {
             /* eslint-enable security/detect-object-injection */
             const x = chartRect.x + column;
 
-            this.#drawDot(renderer, x, baselineY, renderMs, chartRect, style.renderBarIndex);
-            this.#drawDot(renderer, x, baselineY, updateMs, chartRect, style.updateBarIndex);
+            this.#drawDot(target, x, baselineY, renderMs, chartRect, style.renderBarIndex);
+            this.#drawDot(target, x, baselineY, updateMs, chartRect, style.updateBarIndex);
         }
     }
 
     /**
      * Draws one timing sample as a single pixel above the chart baseline.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param x - Column X in screen space.
      * @param baselineY - Bottom row of the chart band.
      * @param ms - Timing sample in milliseconds.
@@ -142,7 +142,7 @@ export class StatsOverlayTimingChart {
      * @param paletteIndex - Palette index for the dot.
      */
     #drawDot(
-        renderer: IRenderer,
+        target: StatsOverlayDrawTarget,
         x: number,
         baselineY: number,
         ms: number,
@@ -158,6 +158,6 @@ export class StatsOverlayTimingChart {
         const y = Math.max(chartRect.y, baselineY - offset + 1);
 
         this.#dotScratch.set(x, y, 1, 1);
-        renderer.drawRectFillOnTop(this.#dotScratch, paletteIndex);
+        target.drawBarFill(this.#dotScratch, paletteIndex);
     }
 }

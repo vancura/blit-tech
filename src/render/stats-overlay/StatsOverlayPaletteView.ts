@@ -8,9 +8,9 @@
 
 import type { Palette } from '../../assets/Palette';
 import { Rect2i } from '../../utils/Rect2i';
-import type { IRenderer } from '../IRenderer';
 import { STATS_BOTTOM_HINT_LABEL, STATS_EDGE_MARGIN_PX } from './constants';
 import { statsToggleHintTextWidth, statsToggleHintTextX } from './layoutHelpers';
+import type { StatsOverlayDrawTarget } from './StatsOverlayDrawTarget';
 import type { PaletteGridLayout } from './types';
 
 /** Default swatch size in pixels. */
@@ -261,7 +261,7 @@ export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: 
 /**
  * Draws a centered filled marker inside an unused swatch.
  *
- * @param renderer - Active renderer.
+ * @param target - Stats overlay draw target.
  * @param markerScratch - Reusable marker rect mutated in place.
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
@@ -269,7 +269,7 @@ export function computeUnusedSwatchMarkerRect(x: number, y: number, swatchSize: 
  * @param markIndex - Palette index for the marker fill.
  */
 function drawUnusedSwatch(
-    renderer: IRenderer,
+    target: StatsOverlayDrawTarget,
     markerScratch: Rect2i,
     x: number,
     y: number,
@@ -286,7 +286,7 @@ function drawUnusedSwatch(
         return;
     }
 
-    renderer.drawRectFillOnTop(markerScratch, markIndex);
+    target.drawBarFill(markerScratch, markIndex);
 }
 
 /**
@@ -304,7 +304,7 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
 /**
  * Draws one palette swatch or its unused marker.
  *
- * @param renderer - Active renderer.
+ * @param target - Stats overlay draw target.
  * @param swatchScratch - Reusable swatch rect mutated in place.
  * @param markerScratch - Reusable marker rect mutated in place.
  * @param x - Swatch left edge in display pixels.
@@ -315,7 +315,7 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  */
 function drawPaletteSwatch(
-    renderer: IRenderer,
+    target: StatsOverlayDrawTarget,
     swatchScratch: Rect2i,
     markerScratch: Rect2i,
     x: number,
@@ -327,9 +327,9 @@ function drawPaletteSwatch(
 ): void {
     if (isPaletteSlotUsed(usedMask, index)) {
         swatchScratch.set(x, y, swatchSize, swatchSize);
-        renderer.drawRectFillOnTop(swatchScratch, index);
+        target.drawBarFill(swatchScratch, index);
     } else {
-        drawUnusedSwatch(renderer, markerScratch, x, y, swatchSize, unusedMarkIndex);
+        drawUnusedSwatch(target, markerScratch, x, y, swatchSize, unusedMarkIndex);
     }
 }
 
@@ -363,7 +363,7 @@ export function writePaletteSwatchTopLeft(
 /**
  * Draws the full palette swatch grid inside the bottom band.
  *
- * @param renderer - Active renderer.
+ * @param target - Stats overlay draw target.
  * @param paletteBand - Palette band rect from layout plan.
  * @param colorCount - Active palette slot count.
  * @param grid - Precomputed grid layout.
@@ -372,7 +372,7 @@ export function writePaletteSwatchTopLeft(
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  */
 function drawPaletteSwatchGrid(
-    renderer: IRenderer,
+    target: StatsOverlayDrawTarget,
     paletteBand: Rect2i,
     colorCount: number,
     grid: PaletteGridLayout,
@@ -395,7 +395,7 @@ function drawPaletteSwatchGrid(
             continue;
         }
 
-        drawPaletteSwatch(renderer, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+        drawPaletteSwatch(target, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
     }
 }
 
@@ -426,7 +426,7 @@ export class StatsOverlayPaletteView {
     /**
      * Draws palette swatches in the bottom band.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param paletteBand - Palette band rect from layout plan.
      * @param palette - Active demo palette.
      * @param grid - Precomputed grid layout.
@@ -437,7 +437,7 @@ export class StatsOverlayPaletteView {
      * @param unusedMarkIndex - Palette index for unused swatch marker fills.
      */
     draw(
-        renderer: IRenderer,
+        target: StatsOverlayDrawTarget,
         paletteBand: Rect2i,
         palette: Palette | null,
         grid: PaletteGridLayout,
@@ -453,6 +453,6 @@ export class StatsOverlayPaletteView {
 
         const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
 
-        drawPaletteSwatchGrid(renderer, paletteBand, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
+        drawPaletteSwatchGrid(target, paletteBand, palette.size, grid, hintExclusion, usedMask, unusedMarkIndex);
     }
 }

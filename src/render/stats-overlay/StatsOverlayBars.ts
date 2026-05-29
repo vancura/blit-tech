@@ -1,9 +1,9 @@
 import type { BitmapFont } from '../../assets/BitmapFont';
 import type { StatsOverlayRow } from '../../core/IBlitTechDemo';
 import { Vector2i } from '../../utils/Vector2i';
-import type { IRenderer } from '../IRenderer';
 import { STATS_EDGE_MARGIN_PX, STATS_TOP_TEXT_Y } from './constants';
 import { statsBitmapTextPaletteOffset, statsRightAlignedTextX } from './layoutHelpers';
+import type { StatsOverlayDrawTarget } from './StatsOverlayDrawTarget';
 import type { StatsOverlayLayoutPlan } from './types';
 
 /** Default bar and text palette indices for overlay drawing. */
@@ -35,56 +35,56 @@ export class StatsOverlayBars {
     /**
      * Draws title, timing chart, metrics, and timing text bar fills.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param plan - Computed layout plan.
      * @param barIndex - Palette index for bar fills.
      */
-    drawTopBars(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
-        renderer.drawRectFillOnTop(plan.titleBar, barIndex);
+    drawTopBars(target: StatsOverlayDrawTarget, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+        target.drawBarFill(plan.titleBar, barIndex);
 
         if (plan.timingChart.height > 0) {
-            renderer.drawRectFillOnTop(plan.timingChart, barIndex);
+            target.drawBarFill(plan.timingChart, barIndex);
         }
 
-        renderer.drawRectFillOnTop(plan.metricsBar, barIndex);
-        renderer.drawRectFillOnTop(plan.timingTextBar, barIndex);
+        target.drawBarFill(plan.metricsBar, barIndex);
+        target.drawBarFill(plan.timingTextBar, barIndex);
     }
 
     /**
      * Draws the palette band background fill when the overlay body is visible.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param plan - Computed layout plan.
      * @param barIndex - Palette index for bar fills.
      */
-    drawPaletteBandFill(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+    drawPaletteBandFill(target: StatsOverlayDrawTarget, plan: StatsOverlayLayoutPlan, barIndex: number): void {
         if (plan.paletteBand.height > 0) {
-            renderer.drawRectFillOnTop(plan.paletteBand, barIndex);
+            target.drawBarFill(plan.paletteBand, barIndex);
         }
     }
 
     /**
      * Draws the bottom hint bar background fill.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param plan - Computed layout plan.
      * @param barIndex - Palette index for bar fills.
      */
-    drawHintBarFill(renderer: IRenderer, plan: StatsOverlayLayoutPlan, barIndex: number): void {
-        renderer.drawRectFillOnTop(plan.hintBar, barIndex);
+    drawHintBarFill(target: StatsOverlayDrawTarget, plan: StatsOverlayLayoutPlan, barIndex: number): void {
+        target.drawBarFill(plan.hintBar, barIndex);
     }
 
     /**
      * Draws the bottom-left `[~]` toggle hint label.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan.
      * @param textIndex - Palette index for the hint label.
      * @param hintLabel - Toggle hint text (typically `[~]`).
      */
     drawHintLabel(
-        renderer: IRenderer,
+        target: StatsOverlayDrawTarget,
         font: BitmapFont,
         plan: StatsOverlayLayoutPlan,
         textIndex: number,
@@ -92,13 +92,13 @@ export class StatsOverlayBars {
     ): void {
         const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
 
-        renderer.drawBitmapTextOnTop(font, plan.hintLabelPos, hintLabel, textPaletteOffset);
+        target.drawLabel(font, plan.hintLabelPos, hintLabel, textPaletteOffset);
     }
 
     /**
      * Draws built-in top overlay text labels (excluding the footer hint).
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan.
      * @param style - Default overlay palette indices.
@@ -108,7 +108,7 @@ export class StatsOverlayBars {
      * @param topTimingLabel - Frame / update / render ms line.
      */
     drawTopLabels(
-        renderer: IRenderer,
+        target: StatsOverlayDrawTarget,
         font: BitmapFont,
         plan: StatsOverlayLayoutPlan,
         style: StatsOverlayBarStyle,
@@ -119,23 +119,55 @@ export class StatsOverlayBars {
     ): void {
         const textPaletteOffset = statsBitmapTextPaletteOffset(style.textIndex);
 
-        renderer.drawBitmapTextOnTop(font, plan.topLeftPos, topLeftLabel, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, plan.topRightPos, topRightLabel, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, plan.topMetricsPos, topMetricsLabel, textPaletteOffset);
-        renderer.drawBitmapTextOnTop(font, plan.topTimingPos, topTimingLabel, textPaletteOffset);
+        target.drawLabel(font, plan.topLeftPos, topLeftLabel, textPaletteOffset);
+        target.drawLabel(font, plan.topRightPos, topRightLabel, textPaletteOffset);
+        target.drawLabel(font, plan.topMetricsPos, topMetricsLabel, textPaletteOffset);
+        target.drawLabel(font, plan.topTimingPos, topTimingLabel, textPaletteOffset);
     }
 
     /**
-     * Draws demo-supplied custom rows from the layout plan.
+     * Draws demo-supplied custom row bar fills from the layout plan.
      *
-     * @param renderer - Active renderer.
+     * @param target - Stats overlay draw target.
+     * @param plan - Computed layout plan with custom bar rects.
+     * @param rows - Custom overlay rows.
+     * @param style - Default overlay palette indices.
+     */
+    drawCustomRowFills(
+        target: StatsOverlayDrawTarget,
+        plan: StatsOverlayLayoutPlan,
+        rows: readonly StatsOverlayRow[],
+        style: StatsOverlayBarStyle,
+    ): void {
+        const rowCount = rows.length;
+
+        /* eslint-disable security/detect-object-injection -- rowIndex bounded by rows.length */
+        for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            const row = rows[rowIndex];
+            const barRect = plan.customBars[rowIndex];
+
+            if (row === undefined || barRect === undefined) {
+                continue;
+            }
+
+            const barIndex = row.barPaletteIndex ?? style.barIndex;
+
+            target.drawBarFill(barRect, barIndex);
+        }
+        /* eslint-enable security/detect-object-injection */
+    }
+
+    /**
+     * Draws demo-supplied custom row labels from the layout plan.
+     *
+     * @param target - Stats overlay draw target.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan with custom bar rects.
      * @param rows - Custom overlay rows.
      * @param style - Default overlay palette indices.
      */
-    drawCustomRows(
-        renderer: IRenderer,
+    drawCustomRowLabels(
+        target: StatsOverlayDrawTarget,
         font: BitmapFont,
         plan: StatsOverlayLayoutPlan,
         rows: readonly StatsOverlayRow[],
@@ -161,22 +193,20 @@ export class StatsOverlayBars {
                 continue;
             }
 
-            const barIndex = row.barPaletteIndex ?? style.barIndex;
             const textIndex = row.textPaletteIndex ?? style.textIndex;
             const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
             const barY = barRect.y;
 
             leftPos.y = barY + STATS_TOP_TEXT_Y;
 
-            renderer.drawRectFillOnTop(barRect, barIndex);
-            renderer.drawBitmapTextOnTop(font, leftPos, row.leftText, textPaletteOffset);
+            target.drawLabel(font, leftPos, row.leftText, textPaletteOffset);
 
             const rightText = row.rightText;
 
             if (rightText !== undefined && rightText.length > 0) {
                 rightPos.y = barY + STATS_TOP_TEXT_Y;
                 rightPos.x = statsRightAlignedTextX(rightText, displayWidth);
-                renderer.drawBitmapTextOnTop(font, rightPos, rightText, textPaletteOffset);
+                target.drawLabel(font, rightPos, rightText, textPaletteOffset);
             }
         }
         /* eslint-enable security/detect-object-injection */

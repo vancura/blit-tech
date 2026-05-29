@@ -7,9 +7,9 @@ import type { PointerInput } from '../../input/PointerInput';
 import { POINTER_SLOT_COUNT } from '../../input/PointerInput';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
-import type { IRenderer } from '../IRenderer';
 import { POINTER_PRIMARY_BUTTON, STATS_EDGE_MARGIN_PX, SYSTEM_CHAR_ADVANCE } from './constants';
 import { statsBitmapTextPaletteOffset } from './layoutHelpers';
+import type { StatsOverlayDrawTarget } from './StatsOverlayDrawTarget';
 import {
     PALETTE_GRID_PADDING_PX,
     resolvePaletteHintExclusionRect,
@@ -262,28 +262,20 @@ export function layoutPaletteTooltip(
 }
 
 /**
- * Draws a docked palette swatch tooltip (filled body, 1px border, label text).
+ * Draws a docked palette swatch tooltip body and 1px border.
  *
- * @param renderer - Active renderer.
- * @param font - System bitmap font.
+ * @param target - Stats overlay draw target.
  * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
- * @param label - Tooltip label text.
  * @param barIndex - Palette index for tooltip body fill (stats overlay background).
- * @param textIndex - Palette index for the border and label text.
+ * @param textIndex - Palette index for the border stroke.
  */
-export function drawPaletteTooltip(
-    renderer: IRenderer,
-    font: BitmapFont,
+export function drawPaletteTooltipChrome(
+    target: StatsOverlayDrawTarget,
     layout: PaletteTooltipLayout,
-    label: string,
     barIndex: number,
     textIndex: number,
 ): void {
-    if (label.length === 0) {
-        return;
-    }
-
-    renderer.drawRectFillForeground(layout.body, barIndex);
+    target.drawBarFill(layout.body, barIndex);
 
     const edge = tooltipScratch.outlineEdge;
     const x0 = layout.body.x;
@@ -291,17 +283,38 @@ export function drawPaletteTooltip(
     const x1 = layout.body.x + layout.body.width - 1;
     const y1 = layout.body.y + layout.body.height - 1;
 
-    renderer.drawRectFillForeground(edge.set(x0, y0, x1 - x0 + 1, 1), textIndex);
-    renderer.drawRectFillForeground(edge.set(x0, y1, x1 - x0 + 1, 1), textIndex);
+    target.drawBarFill(edge.set(x0, y0, x1 - x0 + 1, 1), textIndex);
+    target.drawBarFill(edge.set(x0, y1, x1 - x0 + 1, 1), textIndex);
 
     if (y1 - y0 > 1) {
-        renderer.drawRectFillForeground(edge.set(x0, y0 + 1, 1, y1 - y0 - 1), textIndex);
-        renderer.drawRectFillForeground(edge.set(x1, y0 + 1, 1, y1 - y0 - 1), textIndex);
+        target.drawBarFill(edge.set(x0, y0 + 1, 1, y1 - y0 - 1), textIndex);
+        target.drawBarFill(edge.set(x1, y0 + 1, 1, y1 - y0 - 1), textIndex);
+    }
+}
+
+/**
+ * Draws a docked palette swatch tooltip label.
+ *
+ * @param target - Stats overlay draw target.
+ * @param font - System bitmap font.
+ * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
+ * @param label - Tooltip label text.
+ * @param textIndex - Palette index for label text.
+ */
+export function drawPaletteTooltipLabel(
+    target: StatsOverlayDrawTarget,
+    font: BitmapFont,
+    layout: PaletteTooltipLayout,
+    label: string,
+    textIndex: number,
+): void {
+    if (label.length === 0) {
+        return;
     }
 
     const textPaletteOffset = statsBitmapTextPaletteOffset(textIndex);
 
-    renderer.drawBitmapTextForeground(font, layout.textPos, label, textPaletteOffset);
+    target.drawLabel(font, layout.textPos, label, textPaletteOffset);
 }
 
 // #endregion
@@ -510,20 +523,52 @@ export class StatsOverlayPaletteInteraction {
     }
 
     /**
-     * Draws the hover or copy-status tooltip when applicable.
+     * Lays out the active hover or copy-status tooltip, or returns `null` when none applies.
      *
-     * @param renderer - Active renderer.
-     * @param font - System bitmap font.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @param displayWidth - Logical display width.
+     * @param displayHeight - Logical display height.
+     * @returns Tooltip layout and label, or `null`.
+     */
+    #layoutActiveTooltip(
+        plan: StatsOverlayLayoutPlan,
+        grid: PaletteGridLayout,
+        displayWidth: number,
+        displayHeight: number,
+    ): { layout: PaletteTooltipLayout; label: string } | null {
+        const label = this.#resolveTooltipLabel();
+
+        if (label.length === 0) {
+            return null;
+        }
+
+        const index = this.#copyStatus !== 'idle' ? this.#copyStatusIndex : this.#hoveredIndex;
+
+        if (index === null || index < 0) {
+            return null;
+        }
+
+        writePaletteSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
+
+        const layout = layoutPaletteTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
+
+        return { layout, label };
+    }
+
+    /**
+     * Draws tooltip body and border during the overlay fill phase.
+     *
+     * @param target - Stats overlay draw target.
      * @param plan - Layout plan for this frame.
      * @param grid - Palette grid layout.
      * @param displayWidth - Logical display width.
      * @param displayHeight - Logical display height.
      * @param barIndex - Tooltip body fill palette index.
-     * @param textIndex - Tooltip stroke/text palette index.
+     * @param textIndex - Tooltip border palette index.
      */
-    drawTooltip(
-        renderer: IRenderer,
-        font: BitmapFont,
+    drawTooltipChrome(
+        target: StatsOverlayDrawTarget,
         plan: StatsOverlayLayoutPlan,
         grid: PaletteGridLayout,
         displayWidth: number,
@@ -531,23 +576,42 @@ export class StatsOverlayPaletteInteraction {
         barIndex: number,
         textIndex: number,
     ): void {
-        const label = this.#resolveTooltipLabel();
+        const active = this.#layoutActiveTooltip(plan, grid, displayWidth, displayHeight);
 
-        if (label.length === 0) {
+        if (active === null) {
             return;
         }
 
-        const index = this.#copyStatus !== 'idle' ? this.#copyStatusIndex : this.#hoveredIndex;
+        drawPaletteTooltipChrome(target, active.layout, barIndex, textIndex);
+    }
 
-        if (index === null || index < 0) {
+    /**
+     * Draws tooltip label text during the overlay label phase.
+     *
+     * @param target - Stats overlay draw target.
+     * @param font - System bitmap font.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @param displayWidth - Logical display width.
+     * @param displayHeight - Logical display height.
+     * @param textIndex - Tooltip label palette index.
+     */
+    drawTooltipLabel(
+        target: StatsOverlayDrawTarget,
+        font: BitmapFont,
+        plan: StatsOverlayLayoutPlan,
+        grid: PaletteGridLayout,
+        displayWidth: number,
+        displayHeight: number,
+        textIndex: number,
+    ): void {
+        const active = this.#layoutActiveTooltip(plan, grid, displayWidth, displayHeight);
+
+        if (active === null) {
             return;
         }
 
-        writePaletteSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
-
-        const layout = layoutPaletteTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
-
-        drawPaletteTooltip(renderer, font, layout, label, barIndex, textIndex);
+        drawPaletteTooltipLabel(target, font, active.layout, active.label, textIndex);
     }
 
     /**
