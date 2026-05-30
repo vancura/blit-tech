@@ -141,12 +141,14 @@ export class BTAPI {
         renderMs: number;
         updateSteps: number;
         drawCalls: number;
+        droppedFrames: number;
     } = {
         frameMs: 0,
         updateMs: 0,
         renderMs: 0,
         updateSteps: 0,
         drawCalls: 0,
+        droppedFrames: 0,
     };
 
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
@@ -253,8 +255,11 @@ export class BTAPI {
 
         // Start the loop. The GameLoop's double-RAF delay ensures the canvas is
         // fully ready before the first tick.
-        const onFrameDrop: FrameDropCallback | undefined =
-            hwSettings.detectDroppedFrames === true ? (event) => this.handleFrameDrop(event) : undefined;
+        const needsFrameDropCallback =
+            hwSettings.detectDroppedFrames === true || hwSettings.overlayTimingChart === true;
+        const onFrameDrop: FrameDropCallback | undefined = needsFrameDropCallback
+            ? (event) => this.handleFrameDrop(event, hwSettings.detectDroppedFrames === true)
+            : undefined;
 
         this.pendingUpdateMs = 0;
         this.pendingUpdateSteps = 0;
@@ -264,6 +269,7 @@ export class BTAPI {
         this.overlayTiming.renderMs = 0;
         this.overlayTiming.updateSteps = 0;
         this.overlayTiming.drawCalls = 0;
+        this.overlayTiming.droppedFrames = 0;
 
         this.loop = new GameLoop(
             updateInterval,
@@ -329,6 +335,7 @@ export class BTAPI {
                 this.overlayTiming.renderMs = renderMs;
                 this.overlayTiming.updateSteps = this.pendingUpdateSteps;
                 this.overlayTiming.drawCalls = this.pendingDrawCalls;
+                this.overlayTiming.droppedFrames = 0;
 
                 this.pendingUpdateMs = 0;
                 this.pendingUpdateSteps = 0;
@@ -1247,20 +1254,24 @@ export class BTAPI {
     // #region Private Helpers
 
     /**
-     * Logs a dropped-frame event from the {@link GameLoop} as a console warning.
+     * Records dropped-frame severity for the timing chart and optionally logs a warning.
      *
-     * One line per event. The {@link GameLoop} auto-calibrates its baseline
-     * to the actual rAF cadence, so sustained slowness re-baselines instead
-     * of generating sustained log spam, leaving only genuine missed-vsync
-     * events to be reported here.
+     * When {@link logToConsole} is true, emits one line per event. The {@link GameLoop}
+     * auto-calibrates its baseline to the actual rAF cadence, so sustained slowness
+     * re-baselines instead of generating sustained log spam.
      *
-     * @param event - Dropped-frame event.
+     * @param event - Dropped-frame event from {@link GameLoop}.
+     * @param logToConsole - When true, emits a one-line console warning.
      */
-    private handleFrameDrop(event: FrameDropEvent): void {
-        console.warn(
-            `[BT] Dropped ${event.droppedFrames} frame(s) ` +
-                `(frame time ${event.deltaTime.toFixed(1)}ms, expected ${event.expectedInterval.toFixed(1)}ms)`,
-        );
+    private handleFrameDrop(event: FrameDropEvent, logToConsole: boolean): void {
+        this.overlayTiming.droppedFrames = event.droppedFrames;
+
+        if (logToConsole) {
+            console.warn(
+                `[BT] Dropped ${event.droppedFrames} frame(s) ` +
+                    `(frame time ${event.deltaTime.toFixed(1)}ms, expected ${event.expectedInterval.toFixed(1)}ms)`,
+            );
+        }
     }
 
     /**
