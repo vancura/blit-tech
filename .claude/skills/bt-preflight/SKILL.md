@@ -26,6 +26,7 @@ Run comprehensive quality checks before committing or pushing code.
      - `typecheck` - Validate TypeScript types
      - `spellcheck` - Check spelling in code and docs
      - `knip` - Find unused exports and dependencies
+     - `docs:links` - Verify Markdown links (README, docs/, skills)
      - `test:unit` - Run all unit tests
 
 2. **Report results**
@@ -37,4 +38,5 @@ Run comprehensive quality checks before committing or pushing code.
    - For lint errors: Suggest `pnpm run lint:fix`
    - For type errors: Review the specific TypeScript issues
    - For spelling: Add words to `cspell.json` or fix typos
+   - For dead links: Fix URLs or run `pnpm run docs:links` to see failures
    - For unused exports: Remove unused code or add to knip ignore

@@ -91,6 +91,9 @@ jobs:
       - name: Spell check
         run: pnpm run spellcheck
 
+      - name: Check documentation links
+        run: pnpm run docs:links
+
   build-library:
     name: Build Library
     runs-on: ubuntu-latest
