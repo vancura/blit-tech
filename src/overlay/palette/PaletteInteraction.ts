@@ -14,12 +14,25 @@ import { overlayBitmapTextPaletteOffset } from '../layout/layoutHelpers';
 import type { OverlayLayoutPlan } from '../layout/types';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
 import type { PaletteGridLayout } from '../types';
-import { PALETTE_GRID_PADDING_PX, resolvePaletteHintExclusionRect, writePaletteSwatchTopLeft } from './PaletteView';
+import {
+    computePaletteScrollbarThumbHeight,
+    PALETTE_GRID_PADDING_PX,
+    PALETTE_SCROLLBAR_EDGE_PADDING_PX,
+    resolvePaletteHintExclusionRect,
+    writePaletteScrollbarRects,
+    writePaletteSwatchTopLeft,
+} from './PaletteView';
 
 // #region Constants and types
 
 /** Reserved width on the right edge of the palette band excluded from swatch hits (VV-550 scrollbar). */
-export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 0;
+export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 4;
+
+/** Minimum wheel delta in pixels before advancing one palette row. */
+const PALETTE_SCROLL_WHEEL_ROW_PX = 8;
+
+/** Minimum pointer drag delta in pixels before advancing one palette row. */
+const PALETTE_SCROLL_DRAG_ROW_PX = 4;
 
 /** Duration for transient copy status tooltips in seconds. */
 export const PALETTE_COPY_STATUS_SECONDS = 0.75;
@@ -175,7 +188,10 @@ export function hitTestPaletteSwatch(
         return null;
     }
 
-    const bandRight = Math.min(paletteBand.x + paletteBand.width, displayWidth) - scrollbarTrackWidth;
+    const bandRight =
+        Math.min(paletteBand.x + paletteBand.width, displayWidth) -
+        scrollbarTrackWidth -
+        PALETTE_SCROLLBAR_EDGE_PADDING_PX;
 
     if (isPointerOutsidePaletteBand(pointerX, pointerY, paletteBand, bandRight)) {
         return null;
@@ -198,6 +214,125 @@ export function hitTestPaletteSwatch(
     }
 
     return index;
+}
+
+/**
+ * Returns the maximum scroll row offset for a palette grid viewport.
+ *
+ * @param grid - Precomputed grid layout.
+ * @returns Last valid `scrollRowOffset` (0 when all rows are visible).
+ */
+export function maxScrollRowOffset(grid: PaletteGridLayout): number {
+    return Math.max(0, grid.rows - grid.visibleRows);
+}
+
+/**
+ * Clamps a scroll row offset into the valid range for a palette grid viewport.
+ *
+ * @param offset - Requested first visible row.
+ * @param grid - Precomputed grid layout.
+ * @returns Clamped offset in `[0, maxScrollRowOffset]`.
+ */
+export function clampScrollRowOffset(offset: number, grid: PaletteGridLayout): number {
+    const maxOffset = maxScrollRowOffset(grid);
+
+    if (offset <= 0) {
+        return 0;
+    }
+
+    if (offset >= maxOffset) {
+        return maxOffset;
+    }
+
+    return offset;
+}
+
+/**
+ * Returns whether a pointer lies inside the palette footer scroll region.
+ *
+ * @param pointerX - Pointer X in display coordinates.
+ * @param pointerY - Pointer Y in display coordinates.
+ * @param paletteBand - Palette band rect from the layout plan.
+ * @returns `true` when wheel or drag scrolling may apply.
+ */
+function isPointerInPaletteScrollRegion(pointerX: number, pointerY: number, paletteBand: Rect2i): boolean {
+    return (
+        pointerX >= paletteBand.x &&
+        pointerX < paletteBand.x + paletteBand.width &&
+        pointerY >= paletteBand.y &&
+        pointerY < paletteBand.y + paletteBand.height
+    );
+}
+
+/**
+ * Returns whether a pointer lies inside the palette scrollbar track.
+ *
+ * @param pointerX - Pointer X in display coordinates.
+ * @param pointerY - Pointer Y in display coordinates.
+ * @param paletteBand - Palette band rect from the layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row.
+ * @param trackWidth - Scrollbar track width in pixels.
+ * @returns `true` when the pointer is over the track rect.
+ */
+export function isPointerInPaletteScrollbarTrack(
+    pointerX: number,
+    pointerY: number,
+    paletteBand: Rect2i,
+    grid: PaletteGridLayout,
+    scrollRowOffset: number,
+    trackWidth: number,
+): boolean {
+    const trackScratch = tooltipScratch.swatch;
+    const thumbScratch = tooltipScratch.outlineEdge;
+
+    if (!writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
+        return false;
+    }
+
+    return (
+        pointerX >= trackScratch.x &&
+        pointerX < trackScratch.x + trackScratch.width &&
+        pointerY >= trackScratch.y &&
+        pointerY < trackScratch.y + trackScratch.height
+    );
+}
+
+/**
+ * Maps a pointer Y position within the scrollbar track to a scroll row offset.
+ *
+ * @param pointerY - Pointer Y in display coordinates.
+ * @param paletteBand - Palette band rect from the layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param trackWidth - Scrollbar track width in pixels.
+ * @returns Clamped scroll row offset.
+ */
+export function resolveScrollRowOffsetFromTrackPointerY(
+    pointerY: number,
+    paletteBand: Rect2i,
+    grid: PaletteGridLayout,
+    trackWidth: number,
+): number {
+    const maxOffset = maxScrollRowOffset(grid);
+
+    if (maxOffset <= 0) {
+        return 0;
+    }
+
+    const trackScratch = tooltipScratch.swatch;
+    const thumbScratch = tooltipScratch.outlineEdge;
+
+    writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, 0, trackWidth);
+
+    const trackTop = trackScratch.y;
+    const trackHeight = trackScratch.height;
+    const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+    const scrollRange = Math.max(1, trackHeight - thumbHeight);
+    const localY = pointerY - trackTop - Math.floor(thumbHeight / 2);
+    const ratio = localY / scrollRange;
+    const offset = Math.round(ratio * maxOffset);
+
+    return clampScrollRowOffset(offset, grid);
 }
 
 // #endregion
@@ -362,6 +497,12 @@ export class PaletteInteraction {
 
     #scrollbarTrackWidth = PALETTE_SCROLLBAR_TRACK_WIDTH_PX;
 
+    #scrollDragSlot: number | null = null;
+
+    #scrollDragStartY = 0;
+
+    #scrollDragStartOffset = 0;
+
     /** Latest fixed-update tick observed from {@link tickCopyStatus} or {@link handlePress}. */
     #lastKnownTick = 0;
 
@@ -372,6 +513,226 @@ export class PaletteInteraction {
      */
     constructor(targetFps: number) {
         this.#targetFps = targetFps;
+    }
+
+    /**
+     * Current first visible palette grid row.
+     *
+     * @returns Scroll row offset in `[0, maxScrollRowOffset]`.
+     */
+    get scrollRowOffset(): number {
+        return this.#scrollRowOffset;
+    }
+
+    /**
+     * Scrollbar track width reserved on the right edge of the palette band.
+     *
+     * @returns Track width in pixels.
+     */
+    get scrollbarTrackWidth(): number {
+        return this.#scrollbarTrackWidth;
+    }
+
+    /**
+     * Clamps scroll offset when grid dimensions change between frames.
+     *
+     * @param grid - Precomputed grid layout for this frame.
+     */
+    syncScrollBounds(grid: PaletteGridLayout): void {
+        this.#scrollRowOffset = clampScrollRowOffset(this.#scrollRowOffset, grid);
+    }
+
+    /**
+     * Handles wheel and primary-drag scrolling for the palette footer region.
+     *
+     * Wheel delta is consumed only while the pointer is over the palette band so
+     * demo code reading {@link BT.pointerScrollDelta} elsewhere is unaffected.
+     *
+     * @param pointer - Pointer subsystem, or `null` when unavailable.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @param swatchPressConsumed - When true, drag scrolling is skipped this frame.
+     * @returns `true` when a scrollbar-track press should block the toggle corner.
+     */
+    handleScroll(
+        pointer: PointerInput | null,
+        plan: OverlayLayoutPlan,
+        grid: PaletteGridLayout,
+        swatchPressConsumed: boolean,
+    ): boolean {
+        if (plan.paletteBand.height <= 0 || grid.cols <= 0 || maxScrollRowOffset(grid) <= 0 || !pointer) {
+            this.#scrollDragSlot = null;
+
+            return false;
+        }
+
+        this.syncScrollBounds(grid);
+
+        let togglePressConsumed = false;
+
+        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
+            if (!pointer.isValid(slot)) {
+                if (this.#scrollDragSlot === slot) {
+                    this.#scrollDragSlot = null;
+                }
+
+                continue;
+            }
+
+            const pos = pointer.getPos(slot);
+
+            if (pointer.isButtonPressed(POINTER_PRIMARY_BUTTON, slot)) {
+                if (
+                    isPointerInPaletteScrollbarTrack(
+                        pos.x,
+                        pos.y,
+                        plan.paletteBand,
+                        grid,
+                        this.#scrollRowOffset,
+                        this.#scrollbarTrackWidth,
+                    )
+                ) {
+                    this.#scrollDragSlot = slot;
+                    this.#scrollDragStartY = pos.y;
+                    this.#scrollDragStartOffset = this.#scrollRowOffset;
+                    togglePressConsumed = true;
+                }
+            }
+        }
+
+        if (!swatchPressConsumed) {
+            togglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || togglePressConsumed;
+        } else {
+            this.#scrollDragSlot = null;
+        }
+
+        togglePressConsumed = this.#applyScrollWheel(pointer, plan, grid) || togglePressConsumed;
+
+        return togglePressConsumed;
+    }
+
+    /**
+     * Applies wheel scrolling when the pointer is over the palette footer region.
+     *
+     * @param pointer - Pointer subsystem.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @returns `true` when wheel delta was consumed.
+     */
+    #applyScrollWheel(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
+        const scrollDelta = pointer.getScrollDelta();
+
+        if (scrollDelta === 0) {
+            return false;
+        }
+
+        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
+            if (!pointer.isValid(slot)) {
+                continue;
+            }
+
+            const pos = pointer.getPos(slot);
+
+            if (!isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand)) {
+                continue;
+            }
+
+            const rowStep = Math.max(1, Math.trunc(Math.abs(scrollDelta) / PALETTE_SCROLL_WHEEL_ROW_PX));
+            const nextOffset = this.#scrollRowOffset + (scrollDelta > 0 ? rowStep : -rowStep);
+
+            this.#scrollRowOffset = clampScrollRowOffset(nextOffset, grid);
+            pointer.consumeScrollDelta();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Applies primary-button drag scrolling over the palette grid or scrollbar track.
+     *
+     * @param pointer - Pointer subsystem.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @returns `true` when drag scrolling consumed a toggle-corner press.
+     */
+    #applyScrollDrag(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
+        let togglePressConsumed = false;
+
+        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
+            if (!pointer.isButtonDown(POINTER_PRIMARY_BUTTON, slot) || !pointer.isValid(slot)) {
+                if (this.#scrollDragSlot === slot) {
+                    this.#scrollDragSlot = null;
+                }
+
+                continue;
+            }
+
+            const pos = pointer.getPos(slot);
+            const inScrollRegion = isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand);
+
+            if (!inScrollRegion && this.#scrollDragSlot !== slot) {
+                continue;
+            }
+
+            if (
+                isPointerInPaletteScrollbarTrack(
+                    pos.x,
+                    pos.y,
+                    plan.paletteBand,
+                    grid,
+                    this.#scrollRowOffset,
+                    this.#scrollbarTrackWidth,
+                )
+            ) {
+                togglePressConsumed = true;
+            }
+
+            if (this.#scrollDragSlot === slot) {
+                if (
+                    isPointerInPaletteScrollbarTrack(
+                        pos.x,
+                        pos.y,
+                        plan.paletteBand,
+                        grid,
+                        this.#scrollRowOffset,
+                        this.#scrollbarTrackWidth,
+                    )
+                ) {
+                    this.#scrollRowOffset = resolveScrollRowOffsetFromTrackPointerY(
+                        pos.y,
+                        plan.paletteBand,
+                        grid,
+                        this.#scrollbarTrackWidth,
+                    );
+                } else {
+                    const deltaY = pos.y - this.#scrollDragStartY;
+                    const rowStep = Math.trunc(deltaY / PALETTE_SCROLL_DRAG_ROW_PX);
+
+                    this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
+                }
+
+                continue;
+            }
+
+            if (!inScrollRegion) {
+                continue;
+            }
+
+            this.#scrollDragSlot = slot;
+            this.#scrollDragStartY = pos.y;
+            this.#scrollDragStartOffset = this.#scrollRowOffset;
+
+            const deltaY = pos.y - this.#scrollDragStartY;
+            const rowStep = Math.trunc(deltaY / PALETTE_SCROLL_DRAG_ROW_PX);
+
+            if (rowStep !== 0) {
+                this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
+            }
+        }
+
+        return togglePressConsumed;
     }
 
     /**

@@ -12,19 +12,28 @@ import { paletteBandY } from '../layout/layoutPlan';
 import type { OverlayLayoutPlan } from '../layout/types';
 import { mockFont } from '../testFixtures';
 import {
+    clampScrollRowOffset,
     drawPaletteTooltipChrome,
     drawPaletteTooltipLabel,
     hitTestPaletteSwatch,
+    isPointerInPaletteScrollbarTrack,
     layoutPaletteTooltip,
+    maxScrollRowOffset,
     PALETTE_COPY_STATUS_SECONDS,
+    PALETTE_SCROLLBAR_TRACK_WIDTH_PX,
     PaletteInteraction,
+    resolveScrollRowOffsetFromTrackPointerY,
     writePaletteIndexToClipboard,
 } from './PaletteInteraction';
 import {
     computePaletteGrid,
+    computePaletteScrollbarThumbHeight,
     DEFAULT_PALETTE_SWATCH_SIZE,
+    PALETTE_SCROLLBAR_EDGE_PADDING_PX,
+    PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX,
     PALETTE_SWATCH_GAP_PX,
     resolvePaletteHintExclusionRect,
+    writePaletteScrollbarRects,
     writePaletteSwatchTopLeft,
 } from './PaletteView';
 
@@ -98,7 +107,7 @@ describe('hitTestPaletteSwatch', () => {
     });
 
     it('excludes the right scrollbar track from hits', () => {
-        const trackWidth = 8;
+        const trackWidth = PALETTE_SCROLLBAR_TRACK_WIDTH_PX;
         const swatch = new Rect2i();
 
         writePaletteSwatchTopLeft(swatch, 31, paletteBand, grid);
@@ -157,6 +166,165 @@ describe('hitTestPaletteSwatch', () => {
             ),
         ).toBe(index);
         expect(layout.toggleRect.contains(new Vector2i(swatch.x + 1, swatch.y + 1))).toBe(true);
+    });
+});
+
+describe('palette scroll helpers', () => {
+    const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+
+    it('computes maxScrollRowOffset from total and visible rows', () => {
+        expect(maxScrollRowOffset(grid)).toBe(grid.rows - grid.visibleRows);
+    });
+
+    it('clamps scroll row offset into valid bounds', () => {
+        expect(clampScrollRowOffset(-4, grid)).toBe(0);
+        expect(clampScrollRowOffset(999, grid)).toBe(maxScrollRowOffset(grid));
+        expect(clampScrollRowOffset(2, grid)).toBe(2);
+    });
+
+    it('sizes thumb proportionally to visible rows with a 4 px minimum', () => {
+        const paletteBand = new Rect2i(0, 200, 320, grid.totalHeight);
+        const trackHeight = paletteBand.height - PALETTE_SCROLLBAR_EDGE_PADDING_PX * 2;
+        const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+
+        expect(thumbHeight).toBeGreaterThanOrEqual(PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX);
+        expect(thumbHeight).toBe(Math.floor((grid.visibleRows / grid.rows) * trackHeight));
+    });
+
+    it('positions scrollbar thumb by scroll ratio', () => {
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
+        const track = new Rect2i();
+        const thumb = new Rect2i();
+        const scrollRowOffset = 3;
+        const pad = PALETTE_SCROLLBAR_EDGE_PADDING_PX;
+
+        writePaletteScrollbarRects(track, thumb, paletteBand, grid, scrollRowOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+
+        expect(track).toMatchObject({
+            x: paletteBand.x + paletteBand.width - PALETTE_SCROLLBAR_TRACK_WIDTH_PX - pad,
+            y: paletteBand.y + pad,
+            width: PALETTE_SCROLLBAR_TRACK_WIDTH_PX,
+            height: paletteBand.height - pad * 2,
+        });
+        expect(thumb.width).toBe(PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        expect(thumb.height).toBeGreaterThanOrEqual(PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX);
+        expect(thumb.y).toBeGreaterThanOrEqual(track.y);
+        expect(thumb.y + thumb.height).toBeLessThanOrEqual(track.y + track.height);
+
+        const maxOffset = maxScrollRowOffset(grid);
+        const topThumb = new Rect2i();
+        const bottomThumb = new Rect2i();
+
+        writePaletteScrollbarRects(track, topThumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writePaletteScrollbarRects(track, bottomThumb, paletteBand, grid, maxOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+
+        expect(topThumb.y).toBe(track.y);
+        expect(bottomThumb.y + bottomThumb.height).toBe(track.y + track.height);
+    });
+
+    it('maps track pointer Y to scroll row offset', () => {
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
+        const track = new Rect2i();
+        const thumb = new Rect2i();
+
+        writePaletteScrollbarRects(track, thumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+
+        expect(
+            resolveScrollRowOffsetFromTrackPointerY(track.y, paletteBand, grid, PALETTE_SCROLLBAR_TRACK_WIDTH_PX),
+        ).toBe(0);
+        expect(
+            resolveScrollRowOffsetFromTrackPointerY(
+                track.y + track.height,
+                paletteBand,
+                grid,
+                PALETTE_SCROLLBAR_TRACK_WIDTH_PX,
+            ),
+        ).toBe(maxScrollRowOffset(grid));
+    });
+});
+
+describe('PaletteInteraction scroll', () => {
+    it('advances scroll offset from wheel delta over the palette band and consumes scroll', () => {
+        const interaction = new PaletteInteraction(60);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
+        const swatch = new Rect2i();
+
+        writePaletteSwatchTopLeft(swatch, 0, plan.paletteBand, grid);
+
+        const pointer = {
+            isValid: () => true,
+            getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+            getScrollDelta: () => 16,
+            consumeScrollDelta: vi.fn(),
+            isButtonPressed: () => false,
+            isButtonDown: () => false,
+        };
+
+        interaction.handleScroll(pointer as never, plan, grid, false);
+
+        expect(interaction.scrollRowOffset).toBe(2);
+        expect(pointer.consumeScrollDelta).toHaveBeenCalled();
+    });
+
+    it('does not consume wheel delta when pointer is outside the palette band', () => {
+        const interaction = new PaletteInteraction(60);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
+        const pointer = {
+            isValid: () => true,
+            getPos: () => new Vector2i(0, 0),
+            getScrollDelta: () => 16,
+            consumeScrollDelta: vi.fn(),
+            isButtonPressed: () => false,
+            isButtonDown: () => false,
+        };
+
+        interaction.handleScroll(pointer as never, plan, grid, false);
+
+        expect(interaction.scrollRowOffset).toBe(0);
+        expect(pointer.consumeScrollDelta).not.toHaveBeenCalled();
+    });
+
+    it('blocks toggle when primary press starts on the scrollbar track', () => {
+        const interaction = new PaletteInteraction(60);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
+        const track = new Rect2i();
+        const thumb = new Rect2i();
+
+        writePaletteScrollbarRects(track, thumb, plan.paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+
+        const consumed = interaction.handleScroll(
+            {
+                isValid: () => true,
+                getPos: () => new Vector2i(track.x + 1, track.y + 2),
+                getScrollDelta: () => 0,
+                consumeScrollDelta: vi.fn(),
+                isButtonPressed: () => true,
+                isButtonDown: () => true,
+            } as never,
+            plan,
+            grid,
+            false,
+        );
+
+        expect(consumed).toBe(true);
+        expect(
+            isPointerInPaletteScrollbarTrack(
+                track.x + 1,
+                track.y + 2,
+                plan.paletteBand,
+                grid,
+                interaction.scrollRowOffset,
+                PALETTE_SCROLLBAR_TRACK_WIDTH_PX,
+            ),
+        ).toBe(true);
     });
 });
 

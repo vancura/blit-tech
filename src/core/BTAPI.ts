@@ -410,6 +410,7 @@ export class BTAPI {
             hw.overlayStyle,
             hw.overlayPaletteView === true,
             hw.overlayPaletteColumns,
+            hw.overlayPaletteRowsVisible,
             hw.overlayTimingChart === true,
             hw.overlayTimingChartStyle,
             hw.overlayTimingChartHeight,

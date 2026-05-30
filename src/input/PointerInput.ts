@@ -354,6 +354,16 @@ export class PointerInput {
     }
 
     /**
+     * Clears accumulated wheel delta for the current frame.
+     *
+     * Used when the overlay consumes scroll input over the palette footer so
+     * demo code reading {@link BT.pointerScrollDelta} does not see the same delta.
+     */
+    public consumeScrollDelta(): void {
+        this.scrollDeltaY = 0;
+    }
+
+    /**
      * Reports whether the given pointer button is held in slot `slot`.
      *
      * For slot 0 (mouse): `BTN_POINTER_A` is left, `B` is right, `C` is middle,

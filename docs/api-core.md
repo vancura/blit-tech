@@ -104,25 +104,26 @@ See [Post-Process Effects](post-process-effects.md) for tier routing and presets
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `drawingBufferSize` means a 1:1 drawing buffer).
 
-| Field                      | Type                      | Default     | Description                                                          |
-| -------------------------- | ------------------------- | ----------- | -------------------------------------------------------------------- |
-| `displaySize`              | `Vector2i`                | `320×240`   | **Logical** render resolution                                        |
-| `drawingBufferSize`        | `Vector2i`                | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set   |
-| `maxCanvasSize`            | `Vector2i`                | `960×720`   | **CSS cap** — maximum on-screen canvas size                          |
-| `targetFPS`                | `number`                  | `60`        | Fixed `update()` rate (simulation ticks per second)                  |
-| `backend`                  | `'webgpu' \| 'software'`  | `'webgpu'`  | Force rendering backend                                              |
-| `outputUpscaleFilter`      | `'nearest' \| 'linear'`   | `'nearest'` | Upscale filter                                                       |
-| `detectDroppedFrames`      | `boolean`                 | `false`     | Log a console warning on missed vsync                                |
-| `overlayEnabled`           | `boolean`                 | `true`      | Engine overlay HUD after each `render()`                             |
-| `overlayVisibleAtStart`    | `boolean`                 | `false`     | Show overlay body (metrics/palette/custom rows) on first frame       |
-| `overlayToggleHintVisible` | `boolean`                 | `true`      | Draw `[~]` hint bar while overlay body is hidden                     |
-| `overlayToggleEnabled`     | `boolean`                 | `true`      | Enable Backquote and bottom-left corner toggle input                 |
-| `overlayPaletteView`       | `boolean`                 | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)         |
-| `overlayPaletteColumns`    | `number`                  | _unset_     | Max palette swatches per grid row (default: widest fit)              |
-| `overlayStyle`             | `OverlayStyle`            | _unset_     | Optional bar/text/gap palette indices for overlay                    |
-| `overlayTimingChart`       | `boolean`                 | `false`     | Scrolling update/render timing chart between title and metrics rows  |
-| `overlayTimingChartHeight` | `number`                  | `22`        | Timing chart band height in pixels when the chart is enabled         |
-| `overlayTimingChartStyle`  | `OverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text) |
+| Field                       | Type                      | Default     | Description                                                           |
+| --------------------------- | ------------------------- | ----------- | --------------------------------------------------------------------- |
+| `displaySize`               | `Vector2i`                | `320×240`   | **Logical** render resolution                                         |
+| `drawingBufferSize`         | `Vector2i`                | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set    |
+| `maxCanvasSize`             | `Vector2i`                | `960×720`   | **CSS cap** — maximum on-screen canvas size                           |
+| `targetFPS`                 | `number`                  | `60`        | Fixed `update()` rate (simulation ticks per second)                   |
+| `backend`                   | `'webgpu' \| 'software'`  | `'webgpu'`  | Force rendering backend                                               |
+| `outputUpscaleFilter`       | `'nearest' \| 'linear'`   | `'nearest'` | Upscale filter                                                        |
+| `detectDroppedFrames`       | `boolean`                 | `false`     | Log a console warning on missed vsync                                 |
+| `overlayEnabled`            | `boolean`                 | `true`      | Engine overlay HUD after each `render()`                              |
+| `overlayVisibleAtStart`     | `boolean`                 | `false`     | Show overlay body (metrics/palette/custom rows) on first frame        |
+| `overlayToggleHintVisible`  | `boolean`                 | `true`      | Draw `[~]` hint bar while overlay body is hidden                      |
+| `overlayToggleEnabled`      | `boolean`                 | `true`      | Enable Backquote and bottom-left corner toggle input                  |
+| `overlayPaletteView`        | `boolean`                 | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)          |
+| `overlayPaletteColumns`     | `number`                  | _unset_     | Max palette swatches per grid row (default: widest fit)               |
+| `overlayPaletteRowsVisible` | `number`                  | _unset_     | Max visible palette grid rows (default: all rows; band height capped) |
+| `overlayStyle`              | `OverlayStyle`            | _unset_     | Optional bar/text/gap palette indices for overlay                     |
+| `overlayTimingChart`        | `boolean`                 | `false`     | Scrolling update/render timing chart between title and metrics rows   |
+| `overlayTimingChartHeight`  | `number`                  | `22`        | Timing chart band height in pixels when the chart is enabled          |
+| `overlayTimingChartStyle`   | `OverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text)  |
 
 `displaySize`, `drawingBufferSize`, and `maxCanvasSize` must be positive whole-number pixel dimensions. Each size is
 capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -219,7 +220,10 @@ otherwise.
 - **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-left (over the toggle hit
   region). Set `overlayPaletteView: true` to stack a live palette swatch grid **above** a **1 px** filled gap and that
   hint bar; slots referenced by demo draw calls this frame are filled with their color, and unused slots render as empty
-  squares with a small centered marker. The timing chart and palette grid bands use the same
+  squares with a small centered marker. When `overlayPaletteRowsVisible` is set, only that many rows are shown in a
+  scrollable viewport with a right-side scrollbar thumb (proportional to visible vs total rows, minimum 4 px, inset 1 px
+  from the band top, right, and bottom); wheel input over the palette band scrolls rows and does not reach
+  `BT.pointerScrollDelta` outside that region. The timing chart and palette grid bands use the same
   `overlayStyle.barPaletteIndex` fill as the other overlay rows (bars draw first; chart dots and swatches render on
   top). **1 px row gaps** between stacked overlay bands and **cluster separators** (below the top metrics cluster and
   above the bottom footer cluster) are filled with `overlayStyle.gapPaletteIndex`, defaulting to
@@ -282,9 +286,14 @@ height matches `resolveOverlayFooterHeight()` in `layoutPlan.ts`:
 ```text
 cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
 rows = ceil(palette.size / cols)
-paletteGridHeight = rows * swatchSize + max(0, rows - 1) * gap + 2 * paletteGridPadding
+visibleRows = overlayPaletteRowsVisible ?? rows   // clamped to [1, rows] when set
+paletteGridHeight = visibleRows * swatchSize + max(0, visibleRows - 1) * gap + 2 * paletteGridPadding
 bottomReserve = paletteGridHeight + 1 + 13
 ```
+
+When `overlayPaletteRowsVisible` is unset, `visibleRows` equals `rows` (full palette). Wheel scrolling applies only
+while the pointer is over the palette footer band (grid or scrollbar); demos reading `BT.pointerScrollDelta` elsewhere
+are unaffected.
 
 Default swatch size is **7 px** with **1 px** gaps and **3 px** padding above and below the grid. Set
 `overlayPaletteView: true` to enable the grid, or `overlayEnabled: false` for full-screen layouts (for example
@@ -305,6 +314,7 @@ configure() {
     displaySize: new Vector2i(320, 240),
     overlayEnabled: true,
     overlayPaletteView: true,
+    overlayPaletteRowsVisible: 3,
     overlayTimingChart: true,
     overlayTimingChartHeight: 32, // optional; default 22
     overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3, gapPaletteIndex: 2 },

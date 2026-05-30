@@ -109,10 +109,34 @@ describe('computePaletteGrid', () => {
         expect(computePaletteGrid(320, 4, 0, 1)).toEqual({
             cols: 0,
             rows: 0,
+            visibleRows: 0,
             swatchSize: 4,
             gap: 1,
             totalHeight: 0,
         });
+    });
+
+    it('caps visible rows and band height when overlayPaletteRowsVisible is set', () => {
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+
+        expect(grid.rows).toBe(8);
+        expect(grid.visibleRows).toBe(3);
+        expect(grid.totalHeight).toBe(
+            paletteGridRowStackHeight(3, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
+        );
+    });
+
+    it('clamps overlayPaletteRowsVisible below 1 up to one visible row', () => {
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 0);
+
+        expect(grid.visibleRows).toBe(1);
+    });
+
+    it('clamps overlayPaletteRowsVisible above total rows down to total rows', () => {
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, undefined, 99);
+
+        expect(grid.rows).toBe(1);
+        expect(grid.visibleRows).toBe(1);
     });
 
     it('matches pickPaletteGridColumnCount helper cases', () => {
@@ -300,5 +324,36 @@ describe('PaletteView.draw', () => {
         );
 
         expect(drawBarFill).not.toHaveBeenCalled();
+    });
+
+    it('draws only the visible row window when scroll offset is non-zero', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const palette = new Palette(256);
+        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, undefined, 3);
+        const scrollRowOffset = 2;
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const view = new PaletteView(true);
+        const { drawBarFill, calls } = createRectFillMock();
+        const renderer = { drawBarFill } as never;
+        const usedMask = buildUsageMask([grid.cols * scrollRowOffset]);
+
+        view.draw(
+            renderer,
+            new Rect2i(0, paletteBandTop, 320, grid.totalHeight),
+            palette,
+            grid,
+            layout.bottomTextY,
+            layout.displayWidth,
+            layout.lineHeight,
+            usedMask,
+            DEFAULT_IDX_TEXT,
+            scrollRowOffset,
+        );
+
+        const visibleIndex = grid.cols * scrollRowOffset;
+        const hiddenIndex = visibleIndex - grid.cols;
+
+        expect(calls.some((call) => call.index === visibleIndex)).toBe(true);
+        expect(calls.some((call) => call.index === hiddenIndex)).toBe(false);
     });
 });

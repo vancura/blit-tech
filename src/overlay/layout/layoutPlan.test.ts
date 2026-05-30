@@ -122,17 +122,27 @@ describe('buildOverlayLayoutPlan', () => {
 
     it('resolveOverlayFooterHeight reserves hint bar or palette plus gap plus hint', () => {
         const paletteGrid = computePaletteGrid(320, 4, 256, 1);
+        const cappedGrid = computePaletteGrid(320, 4, 256, 1, undefined, 3);
         const hintOnlyConfig = createDefaultLayoutConfig(320, 240, 14, 0);
         const paletteConfig = {
             ...hintOnlyConfig,
             overlayPaletteView: true,
             paletteGrid,
         };
+        const cappedPaletteConfig = {
+            ...hintOnlyConfig,
+            overlayPaletteView: true,
+            paletteGrid: cappedGrid,
+        };
 
         expect(resolveOverlayFooterHeight(hintOnlyConfig)).toBe(OVERLAY_BAR_HEIGHT);
         expect(resolveOverlayFooterHeight(paletteConfig)).toBe(
             paletteGrid.totalHeight + OVERLAY_ROW_GAP_PX + OVERLAY_BAR_HEIGHT,
         );
+        expect(resolveOverlayFooterHeight(cappedPaletteConfig)).toBe(
+            cappedGrid.totalHeight + OVERLAY_ROW_GAP_PX + OVERLAY_BAR_HEIGHT,
+        );
+        expect(cappedGrid.totalHeight).toBeLessThan(paletteGrid.totalHeight);
     });
 });
 
