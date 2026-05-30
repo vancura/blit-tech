@@ -1,6 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
+import type { OverlayRendererDiagnostics } from '../overlay/types';
 import type { Rect2i } from '../utils/Rect2i';
 import type { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
@@ -68,6 +69,16 @@ export interface IRenderer {
      * Ends the current frame and presents the result to the display.
      */
     endFrame(): void;
+
+    /**
+     * Returns aggregated per-frame renderer diagnostic counters for overlay internals.
+     *
+     * Call after demo and overlay draws complete and before {@link endFrame} resets
+     * per-frame batch state.
+     *
+     * @returns Diagnostic counters for the current frame.
+     */
+    getFrameDiagnostics(): OverlayRendererDiagnostics;
 
     // #endregion
 

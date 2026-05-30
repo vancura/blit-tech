@@ -192,6 +192,21 @@ export interface HardwareSettings {
      * chart tints (VV-545) and future tag markers (VV-541).
      */
     overlayTimingChartStyle?: OverlayTimingChartStyle;
+
+    /**
+     * Renderer diagnostic visualization on the timing chart when {@link overlayTimingChart} is enabled.
+     *
+     * - `'minimal'`: bottom-column marker and warning tint when GPU batch overflow occurred (default when chart enabled)
+     * - `'rich'`: minimal plus vertex-pressure dots in the lower third of the chart band
+     * - `false`: no diagnostic visualization on the chart
+     */
+    overlayTimingChartDiagnostics?: false | 'minimal' | 'rich';
+
+    /**
+     * When `true`, adds a 13 px row below the Frame/update/render timing text showing primitive/sprite
+     * overflow counts and submitted vertex totals. Defaults to `false`.
+     */
+    overlayRendererDiagnosticsBar?: boolean;
 }
 
 /**
@@ -231,11 +246,13 @@ export interface OverlayTimingChartStyle {
     /** Palette index for timing chart tag and tick text (VV-541). */
     tagPaletteIndex?: number;
 
-    /**
-     * Faint horizontal grid lines behind chart dots (VV-7). Defaults to
+    /** Faint horizontal grid lines behind chart dots (VV-7). Defaults to
      * {@link OverlayStyle.gapPaletteIndex} or {@link OverlayStyle.barPaletteIndex} when omitted.
      */
     gridPaletteIndex?: number;
+
+    /** Overflow marker tint for {@link overlayTimingChartDiagnostics} minimal/rich modes. Defaults to {@link warningPaletteIndex}. */
+    overflowPaletteIndex?: number;
 }
 
 /**
@@ -491,6 +508,8 @@ function pickDefinedOverlaySettings(picked: Partial<HardwareSettings>, partial: 
     pickIfDefinedPartial(picked, partial, 'overlayPaletteRowsVisible');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChart');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChartHeight');
+    pickIfDefinedPartial(picked, partial, 'overlayTimingChartDiagnostics');
+    pickIfDefinedPartial(picked, partial, 'overlayRendererDiagnosticsBar');
 
     if (partial.overlayStyle !== undefined) {
         picked.overlayStyle = { ...partial.overlayStyle };
@@ -660,6 +679,10 @@ function assignFullDefaultMergeScalars(
         'overlayTimingChartStyle',
         shallowCloneOptional(picked.overlayTimingChartStyle ?? defaults.overlayTimingChartStyle),
     );
+
+    assignIfDefined(optionals, 'overlayTimingChartDiagnostics', picked.overlayTimingChartDiagnostics);
+
+    assignIfDefined(optionals, 'overlayRendererDiagnosticsBar', picked.overlayRendererDiagnosticsBar);
 }
 
 /**
@@ -711,6 +734,8 @@ function buildExplicitDisplayOptionals(
     assignIfDefined(optionals, 'overlayTimingChart', picked.overlayTimingChart);
     assignIfDefined(optionals, 'overlayTimingChartHeight', picked.overlayTimingChartHeight);
     assignIfDefined(optionals, 'overlayTimingChartStyle', shallowCloneOptional(picked.overlayTimingChartStyle));
+    assignIfDefined(optionals, 'overlayTimingChartDiagnostics', picked.overlayTimingChartDiagnostics);
+    assignIfDefined(optionals, 'overlayRendererDiagnosticsBar', picked.overlayRendererDiagnosticsBar);
     return optionals;
 }
 
@@ -793,6 +818,35 @@ export function mergeHardwareSettings(partial?: Partial<HardwareSettings>): Hard
     }
 
     return mergeExplicitDisplayProfile(partial, picked, defaults);
+}
+
+/** Resolved timing-chart renderer diagnostic visualization mode. */
+export type OverlayTimingChartDiagnosticsMode = false | 'minimal' | 'rich';
+
+/**
+ * Resolves {@link HardwareSettings.overlayTimingChartDiagnostics} for runtime overlay/chart code.
+ *
+ * Defaults to `'minimal'` when the timing chart is enabled and the field is omitted; `false` otherwise.
+ *
+ * @param settings - Resolved hardware settings.
+ * @returns Chart diagnostic visualization mode.
+ */
+export function resolveOverlayTimingChartDiagnostics(settings: HardwareSettings): OverlayTimingChartDiagnosticsMode {
+    if (settings.overlayTimingChartDiagnostics !== undefined) {
+        return settings.overlayTimingChartDiagnostics;
+    }
+
+    return settings.overlayTimingChart === true ? 'minimal' : false;
+}
+
+/**
+ * Whether BTAPI should collect WebGPU renderer diagnostic counters this frame.
+ *
+ * @param settings - Resolved hardware settings.
+ * @returns `true` when chart diagnostics or the renderer diagnostics bar needs data.
+ */
+export function needsOverlayRendererDiagnostics(settings: HardwareSettings): boolean {
+    return resolveOverlayTimingChartDiagnostics(settings) !== false || settings.overlayRendererDiagnosticsBar === true;
 }
 
 // #endregion

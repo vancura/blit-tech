@@ -35,7 +35,12 @@ import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 import type { Backend, HardwareSettings, IBlitTechDemo } from './IBlitTechDemo';
-import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
+import {
+    defaultConfig,
+    mergeHardwareSettings,
+    needsOverlayRendererDiagnostics,
+    resolveOverlayTimingChartDiagnostics,
+} from './IBlitTechDemo';
 import {
     markRenderPaletteIndexUsed,
     RENDER_PALETTE_USAGE_CAPACITY,
@@ -172,8 +177,8 @@ export class BTAPI {
         spriteSubmittedVertices: 0,
     };
 
-    /** When true, {@link captureRendererDiagnostics} reads WebGPU pipeline counters each frame. */
-    private overlayTimingChartEnabled = false;
+    /** When true, {@link captureRendererDiagnostics} reads renderer pipeline counters each frame. */
+    private collectRendererDiagnosticsEnabled = false;
 
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
@@ -285,7 +290,7 @@ export class BTAPI {
             ? (event) => this.handleFrameDrop(event, hwSettings.detectDroppedFrames === true)
             : undefined;
 
-        this.overlayTimingChartEnabled = hwSettings.overlayTimingChart === true;
+        this.collectRendererDiagnosticsEnabled = needsOverlayRendererDiagnostics(hwSettings);
 
         this.pendingUpdateMs = 0;
         this.pendingUpdateSteps = 0;
@@ -460,6 +465,8 @@ export class BTAPI {
             hw.overlayTimingChart === true,
             hw.overlayTimingChartStyle,
             hw.overlayTimingChartHeight,
+            resolveOverlayTimingChartDiagnostics(hw),
+            hw.overlayRendererDiagnosticsBar === true,
             hw.overlayVisibleAtStart === true,
             hw.overlayToggleHintVisible !== false,
             hw.overlayToggleEnabled !== false,
@@ -1369,23 +1376,17 @@ export class BTAPI {
     }
 
     /**
-     * Reads WebGPU pipeline diagnostic counters when the timing chart is enabled.
+     * Reads renderer pipeline diagnostic counters when overlay diagnostics collection is enabled.
      *
      * Must run after demo and overlay draws and before {@link IRenderer.endFrame}
      * resets pipeline batch state.
      */
     private captureRendererDiagnostics(): void {
-        if (!this.overlayTimingChartEnabled) {
+        if (!this.collectRendererDiagnosticsEnabled || !this.renderer) {
             return;
         }
 
-        const renderer = this.renderer;
-
-        if (!(renderer instanceof WebGpuRenderer)) {
-            return;
-        }
-
-        const diagnostics = renderer.getFrameDiagnostics();
+        const diagnostics = this.renderer.getFrameDiagnostics();
 
         this.pendingRendererDiagnostics.primitiveOverflowCount = diagnostics.primitiveOverflowCount;
         this.pendingRendererDiagnostics.spriteOverflowCount = diagnostics.spriteOverflowCount;

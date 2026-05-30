@@ -21,6 +21,7 @@ export interface OverlayLayoutPlanScratch {
     timingChart: Rect2i;
     metricsBar: Rect2i;
     timingTextBar: Rect2i;
+    rendererDiagnosticsBar: Rect2i;
     customBars: Rect2i[];
     paletteBand: Rect2i;
     hintBar: Rect2i;
@@ -29,6 +30,7 @@ export interface OverlayLayoutPlanScratch {
     topRightPos: Vector2i;
     topMetricsPos: Vector2i;
     topTimingPos: Vector2i;
+    rendererDiagnosticsPos: Vector2i;
     rowGapRects: Rect2i[];
     topClusterSeparator: Rect2i;
     bottomClusterSeparator: Rect2i;
@@ -45,6 +47,7 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
         timingChart: new Rect2i(0, 0, 0, 0),
         metricsBar: new Rect2i(0, 0, 0, OVERLAY_BAR_HEIGHT),
         timingTextBar: new Rect2i(0, 0, 0, OVERLAY_BAR_HEIGHT),
+        rendererDiagnosticsBar: new Rect2i(0, 0, 0, 0),
         customBars: [],
         paletteBand: new Rect2i(0, 0, 0, 0),
         hintBar: new Rect2i(0, 0, 0, OVERLAY_BAR_HEIGHT),
@@ -53,6 +56,7 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
         topRightPos: new Vector2i(0, 0),
         topMetricsPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
         topTimingPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
+        rendererDiagnosticsPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
         rowGapRects: [],
         topClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
         bottomClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
@@ -216,6 +220,11 @@ function populateGapLayout(scratch: OverlayLayoutPlanScratch, config: OverlayLay
 
     gapIndex = writeRowGapBelow(scratch, scratch.metricsBar, displayWidth, gapIndex);
 
+    if (scratch.rendererDiagnosticsBar.height > 0) {
+        gapIndex = writeRowGapBelow(scratch, scratch.timingTextBar, displayWidth, gapIndex);
+        gapIndex = writeRowGapBelow(scratch, scratch.rendererDiagnosticsBar, displayWidth, gapIndex);
+    }
+
     /* eslint-disable security/detect-object-injection -- rowIndex bounded by customRowCount */
     for (let rowIndex = 0; rowIndex < config.customRowCount; rowIndex++) {
         const bar = scratch.customBars[rowIndex];
@@ -232,8 +241,11 @@ function populateGapLayout(scratch: OverlayLayoutPlanScratch, config: OverlayLay
 
     scratch.rowGapRects.length = gapIndex;
 
+    const topClusterAnchorBar =
+        scratch.rendererDiagnosticsBar.height > 0 ? scratch.rendererDiagnosticsBar : scratch.timingTextBar;
+
     scratch.topClusterSeparator.x = 0;
-    scratch.topClusterSeparator.y = scratch.timingTextBar.y + scratch.timingTextBar.height;
+    scratch.topClusterSeparator.y = topClusterAnchorBar.y + topClusterAnchorBar.height;
     scratch.topClusterSeparator.width = displayWidth;
     scratch.topClusterSeparator.height = OVERLAY_ROW_GAP_PX;
 
@@ -330,6 +342,24 @@ export function buildOverlayLayoutPlan(
     scratch.timingTextBar.width = displayWidth;
     scratch.timingTextBar.height = OVERLAY_BAR_HEIGHT;
 
+    if (config.rendererDiagnosticsBarEnabled) {
+        const diagnosticsY = y + OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX;
+
+        scratch.rendererDiagnosticsBar.x = 0;
+        scratch.rendererDiagnosticsBar.y = diagnosticsY;
+        scratch.rendererDiagnosticsBar.width = displayWidth;
+        scratch.rendererDiagnosticsBar.height = OVERLAY_BAR_HEIGHT;
+        scratch.rendererDiagnosticsPos.x = OVERLAY_EDGE_MARGIN_PX;
+        scratch.rendererDiagnosticsPos.y = diagnosticsY + OVERLAY_TOP_TEXT_Y;
+    } else {
+        scratch.rendererDiagnosticsBar.x = 0;
+        scratch.rendererDiagnosticsBar.y = y;
+        scratch.rendererDiagnosticsBar.width = displayWidth;
+        scratch.rendererDiagnosticsBar.height = 0;
+        scratch.rendererDiagnosticsPos.x = OVERLAY_EDGE_MARGIN_PX;
+        scratch.rendererDiagnosticsPos.y = y + OVERLAY_TOP_TEXT_Y;
+    }
+
     scratch.toggleRect.x = toggleRect.x;
     scratch.toggleRect.y = toggleRect.y;
     scratch.toggleRect.width = toggleRect.width;
@@ -378,6 +408,7 @@ export function createDefaultLayoutConfig(
         customRowCount,
         timingChartEnabled: false,
         timingChartHeight: DEFAULT_TIMING_CHART_HEIGHT,
+        rendererDiagnosticsBarEnabled: false,
         overlayPaletteView: false,
     };
 }

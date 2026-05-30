@@ -47,6 +47,8 @@ interface OverlayTestOptions {
         tagPaletteIndex?: number;
     };
     overlayTimingChartHeight?: number;
+    overlayTimingChartDiagnostics?: false | 'minimal' | 'rich';
+    overlayRendererDiagnosticsBar?: boolean;
     visibleAtStart?: boolean;
     toggleHintVisible?: boolean;
     toggleEnabled?: boolean;
@@ -71,6 +73,8 @@ function createOverlay(
         options.overlayTimingChart ?? false,
         options.overlayTimingChartStyle,
         options.overlayTimingChartHeight,
+        options.overlayTimingChartDiagnostics ?? false,
+        options.overlayRendererDiagnosticsBar ?? false,
         options.visibleAtStart ?? false,
         options.toggleHintVisible ?? true,
         options.toggleEnabled ?? true,

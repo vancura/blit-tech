@@ -17,6 +17,7 @@ export interface TimingChartDrawStyle {
     readonly errorBarIndex: number;
     readonly tagBarIndex: number;
     readonly gridBarIndex: number;
+    readonly overflowBarIndex: number;
 }
 
 const pickPaletteIndex = (preferred: number | undefined, fallback: number): number => preferred ?? fallback;
@@ -51,6 +52,10 @@ export function resolveTimingChartStyle(
         errorBarIndex: pickPaletteIndex(chartStyle?.errorPaletteIndex, TIMING_CHART_DEFAULT_ERROR_IDX),
         tagBarIndex: pickPaletteIndex(chartStyle?.tagPaletteIndex, TIMING_CHART_DEFAULT_TAG_IDX),
         gridBarIndex: pickPaletteIndex(chartStyle?.gridPaletteIndex, gapIndex),
+        overflowBarIndex: pickPaletteIndex(
+            chartStyle?.overflowPaletteIndex,
+            pickPaletteIndex(chartStyle?.warningPaletteIndex, TIMING_CHART_DEFAULT_WARNING_IDX),
+        ),
     };
 }
 
@@ -73,6 +78,24 @@ export function computeTimingChartBarHeight(ms: number, chartHeight: number, ful
     const scaled = Math.floor((ms * chartHeight) / fullScaleMs);
 
     return Math.min(chartHeight, Math.max(1, scaled));
+}
+
+/**
+ * Maps submitted vertex count to a vertical offset within a pressure sub-band (rich diagnostics mode).
+ *
+ * @param vertices - Submitted vertices for one pipeline this frame.
+ * @param regionHeight - Height of the pressure sub-band in pixels.
+ * @param maxVertices - Pipeline capacity (typically 50k).
+ * @returns Clamped offset in pixels (0 when vertices is zero).
+ */
+export function computeTimingChartPressureHeight(vertices: number, regionHeight: number, maxVertices: number): number {
+    if (regionHeight <= 0 || vertices <= 0 || maxVertices <= 0) {
+        return 0;
+    }
+
+    const scaled = Math.floor((vertices * regionHeight) / maxVertices);
+
+    return Math.min(regionHeight, Math.max(1, scaled));
 }
 
 /**

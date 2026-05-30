@@ -20,6 +20,7 @@ const defaultStyle = {
     errorBarIndex: 4,
     tagBarIndex: 5,
     gridBarIndex: 6,
+    overflowBarIndex: 7,
 };
 
 /**
@@ -622,6 +623,68 @@ describe('TimingChart', () => {
 
         expect(labels).not.toContain('Old');
         expect(labels).toContain('Fresh');
+    });
+
+    it('draws overflow baseline marker when minimal diagnostics reports overflow', () => {
+        const chart = new TimingChart(true, 60, 'minimal');
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(0, 14, 4, 22);
+        const baselineY = chartRect.y + chartRect.height - 1;
+
+        chart.reset(4);
+        chart.sample({
+            frameMs: 1,
+            updateMs: 1,
+            renderMs: 1,
+            updateSteps: 1,
+            drawCalls: 1,
+            droppedFrames: 0,
+            primitiveOverflowCount: 2,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 100,
+            spriteSubmittedVertices: 0,
+        });
+        drawChart(chart, renderer, chartRect, 0);
+
+        const overflowCalls = renderer.drawBarFill.mock.calls.filter(
+            (call) => (call[1] as number) === defaultStyle.overflowBarIndex && (call[0] as Rect2i).y === baselineY,
+        );
+
+        expect(overflowCalls.length).toBeGreaterThan(0);
+    });
+
+    it('draws vertex pressure dots in rich diagnostics mode', () => {
+        const chart = new TimingChart(true, 60, 'rich');
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(0, 14, 8, 22);
+        const baselineY = chartRect.y + chartRect.height - 1;
+
+        chart.reset(8);
+        chart.sample({
+            frameMs: 1,
+            updateMs: 0,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 1,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 25000,
+            spriteSubmittedVertices: 25000,
+        });
+        drawChart(chart, renderer, chartRect, 0);
+
+        const pressureDots = renderer.drawBarFill.mock.calls.filter((call) => {
+            const paletteIndex = call[1] as number;
+            const y = (call[0] as Rect2i).y;
+
+            return (
+                (paletteIndex === defaultStyle.updateBarIndex || paletteIndex === defaultStyle.renderBarIndex) &&
+                y < baselineY
+            );
+        });
+
+        expect(pressureDots.length).toBeGreaterThanOrEqual(2);
     });
 });
 

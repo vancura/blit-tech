@@ -1,8 +1,8 @@
 /**
  * Per-frame WebGPU pipeline diagnostic counters for overlay timing/chart internals.
  *
- * Populated by {@link BTAPI} when the timing chart is enabled (`overlayTimingChart`).
- * All fields are zero when diagnostics collection is disabled.
+ * Populated by {@link BTAPI} when overlay renderer diagnostics collection is enabled.
+ * Overflow counts are WebGPU-only; software reports zero overflow with comparable vertex totals.
  */
 export interface OverlayRendererDiagnostics {
     /** Primitive pipeline overflow events this frame (dropped pixels or vertices). */

@@ -3,16 +3,22 @@
  */
 
 import type { BitmapFont } from '../../assets/BitmapFont';
+import type { OverlayTimingChartDiagnosticsMode } from '../../core/IBlitTechDemo';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
 import type { OverlayTimingSnapshot } from '../types';
-import { TIMING_CHART_FULL_SCALE_MS } from './constants';
+import {
+    TIMING_CHART_FULL_SCALE_MS,
+    TIMING_CHART_MAX_PIPELINE_VERTICES,
+    TIMING_CHART_PRESSURE_REGION_RATIO,
+} from './constants';
 import { classifyTimingChartSeverity, TIMING_CHART_SEVERITY_ERROR, TIMING_CHART_SEVERITY_WARNING } from './severity';
 import {
     computeTimingChartBarHeight,
     computeTimingChartDotY,
     computeTimingChartGridLineY,
+    computeTimingChartPressureHeight,
     shouldDrawTimingChartGridLineY,
     timingChartBaselineY,
     type TimingChartDrawStyle,
@@ -40,6 +46,8 @@ export class TimingChart {
 
     readonly #targetFps: number;
 
+    readonly #diagnosticsMode: OverlayTimingChartDiagnosticsMode;
+
     #bufferWidth = 0;
 
     #writeIndex = 0;
@@ -51,6 +59,12 @@ export class TimingChart {
     #renderMsBuffer = new Float32Array(0);
 
     #severityBuffer = new Uint8Array(0);
+
+    #overflowBuffer = new Uint8Array(0);
+
+    #primitiveVertexBuffer = new Uint32Array(0);
+
+    #spriteVertexBuffer = new Uint32Array(0);
 
     readonly #dotScratch = new Rect2i(0, 0, 1, 1);
 
@@ -75,10 +89,12 @@ export class TimingChart {
      *
      * @param enabled - When false, sample/draw are no-ops.
      * @param targetFps - Configured fixed-step rate for frame-budget classification.
+     * @param diagnosticsMode - Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
      */
-    constructor(enabled = false, targetFps = 60) {
+    constructor(enabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
         this.#enabled = enabled;
         this.#targetFps = targetFps;
+        this.#diagnosticsMode = enabled ? diagnosticsMode : false;
     }
 
     /**
@@ -140,6 +156,9 @@ export class TimingChart {
         this.#updateMsBuffer = new Float32Array(width);
         this.#renderMsBuffer = new Float32Array(width);
         this.#severityBuffer = new Uint8Array(width);
+        this.#overflowBuffer = new Uint8Array(width);
+        this.#primitiveVertexBuffer = new Uint32Array(width);
+        this.#spriteVertexBuffer = new Uint32Array(width);
         this.#chartStartTick = currentTick;
         this.#tags.length = 0;
 
@@ -166,6 +185,15 @@ export class TimingChart {
             this.#targetFps,
             timing.droppedFrames,
         );
+
+        if (this.#diagnosticsMode !== false) {
+            this.#overflowBuffer[index] = timing.primitiveOverflowCount + timing.spriteOverflowCount > 0 ? 1 : 0;
+
+            if (this.#diagnosticsMode === 'rich') {
+                this.#primitiveVertexBuffer[index] = Math.max(0, Math.floor(timing.primitiveSubmittedVertices));
+                this.#spriteVertexBuffer[index] = Math.max(0, Math.floor(timing.spriteSubmittedVertices));
+            }
+        }
         /* eslint-enable security/detect-object-injection */
 
         this.#writeIndex = (this.#writeIndex + 1) % this.#bufferWidth;
@@ -230,7 +258,12 @@ export class TimingChart {
             /* eslint-disable security/detect-object-injection -- bufferIndex derived from bounded ring cursor */
             const updateMs = this.#updateMsBuffer[bufferIndex] as number;
             const renderMs = this.#renderMsBuffer[bufferIndex] as number;
-            const severity = this.#severityBuffer[bufferIndex] as number;
+            let severity = this.#severityBuffer[bufferIndex] as number;
+            const overflow = this.#diagnosticsMode !== false && (this.#overflowBuffer[bufferIndex] as number) > 0;
+
+            if (overflow && severity < TIMING_CHART_SEVERITY_WARNING) {
+                severity = TIMING_CHART_SEVERITY_WARNING;
+            }
             /* eslint-enable security/detect-object-injection */
 
             const x = chartRect.x + column;
@@ -255,12 +288,26 @@ export class TimingChart {
                 if (renderOffset <= 0 && updateOffset <= 0) {
                     this.#drawBaselineMarker(target, x, baselineY, tintIndex);
                 }
-
-                continue;
+            } else {
+                this.#drawDot(target, x, renderMs, chartRect, style.renderBarIndex);
+                this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
             }
 
-            this.#drawDot(target, x, renderMs, chartRect, style.renderBarIndex);
-            this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
+            if (overflow) {
+                this.#drawBaselineMarker(target, x, baselineY, style.overflowBarIndex);
+            }
+
+            if (this.#diagnosticsMode === 'rich') {
+                /* eslint-disable security/detect-object-injection -- bufferIndex derived from bounded ring cursor */
+                const primitiveVertices = this.#primitiveVertexBuffer[bufferIndex] as number;
+                const spriteVertices = this.#spriteVertexBuffer[bufferIndex] as number;
+                /* eslint-enable security/detect-object-injection */
+
+                const regionHeight = Math.max(1, Math.floor(chartRect.height * TIMING_CHART_PRESSURE_REGION_RATIO));
+
+                this.#drawPressureDot(target, x, primitiveVertices, chartRect, regionHeight, style.updateBarIndex);
+                this.#drawPressureDot(target, x, spriteVertices, chartRect, regionHeight, style.renderBarIndex);
+            }
         }
     }
 
@@ -428,6 +475,37 @@ export class TimingChart {
         if (y === null) {
             return;
         }
+
+        this.#dotScratch.set(x, y, 1, 1);
+
+        target.drawBarFill(this.#dotScratch, paletteIndex);
+    }
+
+    /**
+     * Draws a vertex-pressure sample in the lower third of the chart band (rich diagnostics mode).
+     *
+     * @param target - Overlay draw target.
+     * @param x - Column X in screen space.
+     * @param vertices - Submitted vertex count for the pipeline.
+     * @param chartRect - Chart band bounds for clamping.
+     * @param regionHeight - Height of the pressure sub-band in pixels.
+     * @param paletteIndex - Palette index for the dot.
+     */
+    #drawPressureDot(
+        target: OverlayDrawTarget,
+        x: number,
+        vertices: number,
+        chartRect: Rect2i,
+        regionHeight: number,
+        paletteIndex: number,
+    ): void {
+        const offset = computeTimingChartPressureHeight(vertices, regionHeight, TIMING_CHART_MAX_PIPELINE_VERTICES);
+
+        if (offset <= 0) {
+            return;
+        }
+
+        const y = chartRect.y + chartRect.height - offset;
 
         this.#dotScratch.set(x, y, 1, 1);
 

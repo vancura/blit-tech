@@ -13,6 +13,12 @@ export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 /** Default palette index for timing chart tag and tick text. */
 export const TIMING_CHART_DEFAULT_TAG_IDX = 5;
 
+/** WebGPU primitive/sprite pipeline vertex cap used for rich-mode pressure scaling. */
+export const TIMING_CHART_MAX_PIPELINE_VERTICES = 50000;
+
+/** Lower third of the chart band used for vertex-pressure dots in rich diagnostics mode. */
+export const TIMING_CHART_PRESSURE_REGION_RATIO = 1 / 3;
+
 /**
  * Fixed interior grid markers in milliseconds (VV-7). Excludes 1 ms (band bottom edge).
  * Frame budget is added at draw time from targetFPS.

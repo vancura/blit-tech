@@ -7,7 +7,13 @@
 
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
-import type { Backend, OverlayRow, OverlayStyle, OverlayTimingChartStyle } from '../core/IBlitTechDemo';
+import type {
+    Backend,
+    OverlayRow,
+    OverlayStyle,
+    OverlayTimingChartDiagnosticsMode,
+    OverlayTimingChartStyle,
+} from '../core/IBlitTechDemo';
 import type { KeyboardInput } from '../input/KeyboardInput';
 import type { PointerInput } from '../input/PointerInput';
 import { OverlayBars } from './bars/Bars';
@@ -29,6 +35,43 @@ import type { OverlayTimingSnapshot } from './types';
 
 /** Empty usage mask for overlay draws when palette tracking is inactive. */
 const EMPTY_PALETTE_USAGE_MASK = new Uint8Array(0);
+
+/**
+ * Resolves overlay bar/text/gap palette indices from optional {@link OverlayStyle}.
+ *
+ * @param style - Optional configure-time overlay style.
+ * @returns Resolved palette indices for overlay chrome.
+ */
+function resolveOverlayStyleIndices(style?: OverlayStyle): { bg: number; gap: number; text: number } {
+    const bg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
+    const text = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
+
+    return { bg, text, gap: style?.gapPaletteIndex ?? bg };
+}
+
+/**
+ * Creates a timing chart instance and resets its ring buffer when enabled.
+ *
+ * @param layout - Cached display layout.
+ * @param enabled - Whether the timing chart band is active.
+ * @param targetFps - Configured fixed-update rate.
+ * @param diagnosticsMode - Renderer diagnostic visualization mode.
+ * @returns Configured {@link TimingChart} for the overlay.
+ */
+function createOverlayTimingChart(
+    layout: OverlayLayout,
+    enabled: boolean,
+    targetFps: number,
+    diagnosticsMode: OverlayTimingChartDiagnosticsMode,
+): TimingChart {
+    const chart = new TimingChart(enabled, targetFps, enabled ? diagnosticsMode : false);
+
+    if (enabled) {
+        chart.reset(layout.displayWidth, 0);
+    }
+
+    return chart;
+}
 
 /**
  * Screen-space overlay HUD rendered after demo content each frame.
@@ -60,6 +103,8 @@ export class Overlay {
     readonly #timingChart: TimingChart;
 
     readonly #timingChartHeight: number;
+
+    readonly #rendererDiagnosticsBarEnabled: boolean;
 
     readonly #timingChartStyle: TimingChartDrawStyle;
 
@@ -99,6 +144,8 @@ export class Overlay {
      * @param overlayTimingChart - When true, draws the update/render timing chart band.
      * @param overlayTimingChartStyle - Optional timing chart palette overrides.
      * @param overlayTimingChartHeight - Chart band height in pixels (default 22).
+     * @param overlayTimingChartDiagnostics - Chart renderer diagnostic mode (`minimal`, `rich`, or `false`).
+     * @param overlayRendererDiagnosticsBar - When true, draws the GPU diagnostics text row.
      * @param overlayVisibleAtStart - Initial overlay body visibility (default false).
      * @param overlayToggleHintVisible - Draw toggle hint while body hidden (default true).
      * @param overlayToggleEnabled - Enable Backquote and corner toggle input (default true).
@@ -115,6 +162,8 @@ export class Overlay {
         overlayTimingChart = false,
         overlayTimingChartStyle?: OverlayTimingChartStyle,
         overlayTimingChartHeight?: number,
+        overlayTimingChartDiagnostics: OverlayTimingChartDiagnosticsMode = false,
+        overlayRendererDiagnosticsBar = false,
         overlayVisibleAtStart = false,
         overlayToggleHintVisible = true,
         overlayToggleEnabled = true,
@@ -123,23 +172,26 @@ export class Overlay {
         this.#topLeftLabel = topLeftLabel;
         this.#targetFps = targetFps;
         this.#fps = new FpsSampler(this.#targetFps);
-        this.#idxBg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
-        this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
-        this.#idxGap = style?.gapPaletteIndex ?? this.#idxBg;
+        const indices = resolveOverlayStyleIndices(style);
+        this.#idxBg = indices.bg;
+        this.#idxText = indices.text;
+        this.#idxGap = indices.gap;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
         this.#timingChartStyle = resolveTimingChartStyle(style, overlayTimingChartStyle);
         this.#timingChartHeight = overlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
-        this.#timingChart = new TimingChart(overlayTimingChart, targetFps);
+        this.#timingChart = createOverlayTimingChart(
+            layout,
+            overlayTimingChart,
+            targetFps,
+            overlayTimingChartDiagnostics,
+        );
+        this.#rendererDiagnosticsBarEnabled = overlayRendererDiagnosticsBar;
         this.#paletteView = new PaletteView(overlayPaletteView);
         this.#paletteInteraction = new PaletteInteraction(targetFps);
         this.#paletteColumns = paletteColumns;
         this.#paletteRowsVisible = overlayPaletteRowsVisible;
         this.#toggle = new Toggle(overlayVisibleAtStart, overlayToggleEnabled);
         this.#toggleHintVisible = overlayToggleHintVisible;
-
-        if (overlayTimingChart) {
-            this.#timingChart.reset(layout.displayWidth, 0);
-        }
     }
 
     // #endregion
@@ -346,6 +398,7 @@ export class Overlay {
             overlayPaletteView,
             timingChartEnabled: this.#timingChart.enabled,
             timingChartHeight: this.#timingChartHeight,
+            rendererDiagnosticsBarEnabled: this.#rendererDiagnosticsBarEnabled,
             ...(paletteGrid !== undefined ? { paletteGrid } : {}),
         };
     }
@@ -424,6 +477,7 @@ export class Overlay {
 
         let topMetricsLabel = '';
         let topTimingLabel = '';
+        let rendererDiagnosticsLabel = '';
         const paletteGrid = layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID;
 
         if (bodyVisible) {
@@ -434,6 +488,10 @@ export class Overlay {
             topTimingLabel =
                 `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
                 `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
+
+            if (this.#rendererDiagnosticsBarEnabled) {
+                rendererDiagnosticsLabel = this.#timing.formatRendererDiagnosticsLabel();
+            }
 
             this.#bars.drawTopBars(renderer, plan, this.#idxBg);
             this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle, font, currentTick);
@@ -493,6 +551,7 @@ export class Overlay {
                 this.#topRightLabel,
                 topMetricsLabel,
                 topTimingLabel,
+                rendererDiagnosticsLabel,
             );
         }
 

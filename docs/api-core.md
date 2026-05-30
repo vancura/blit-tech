@@ -104,26 +104,28 @@ See [Post-Process Effects](post-process-effects.md) for tier routing and presets
 output buffer. Include `displaySize` when you want a custom logical size; optional fields you omit then stay unset (for
 example no `drawingBufferSize` means a 1:1 drawing buffer).
 
-| Field                       | Type                      | Default     | Description                                                           |
-| --------------------------- | ------------------------- | ----------- | --------------------------------------------------------------------- |
-| `displaySize`               | `Vector2i`                | `320×240`   | **Logical** render resolution                                         |
-| `drawingBufferSize`         | `Vector2i`                | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set    |
-| `maxCanvasSize`             | `Vector2i`                | `960×720`   | **CSS cap** — maximum on-screen canvas size                           |
-| `targetFPS`                 | `number`                  | `60`        | Fixed `update()` rate (simulation ticks per second)                   |
-| `backend`                   | `'webgpu' \| 'software'`  | `'webgpu'`  | Force rendering backend                                               |
-| `outputUpscaleFilter`       | `'nearest' \| 'linear'`   | `'nearest'` | Upscale filter                                                        |
-| `detectDroppedFrames`       | `boolean`                 | `false`     | Log a console warning on missed vsync                                 |
-| `overlayEnabled`            | `boolean`                 | `true`      | Engine overlay HUD after each `render()`                              |
-| `overlayVisibleAtStart`     | `boolean`                 | `false`     | Show overlay body (metrics/palette/custom rows) on first frame        |
-| `overlayToggleHintVisible`  | `boolean`                 | `true`      | Draw toggle hint icon while overlay body is hidden                    |
-| `overlayToggleEnabled`      | `boolean`                 | `true`      | Enable Backquote and bottom-left corner toggle input                  |
-| `overlayPaletteView`        | `boolean`                 | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)          |
-| `overlayPaletteColumns`     | `number`                  | _unset_     | Max palette swatches per grid row (default: widest fit)               |
-| `overlayPaletteRowsVisible` | `number`                  | _unset_     | Max visible palette grid rows (default: all rows; band height capped) |
-| `overlayStyle`              | `OverlayStyle`            | _unset_     | Optional bar/text/gap palette indices for overlay                     |
-| `overlayTimingChart`        | `boolean`                 | `false`     | Scrolling update/render timing chart between title and metrics rows   |
-| `overlayTimingChartHeight`  | `number`                  | `22`        | Timing chart band height in pixels when the chart is enabled          |
-| `overlayTimingChartStyle`   | `OverlayTimingChartStyle` | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text)  |
+| Field                           | Type                           | Default     | Description                                                                                        |
+| ------------------------------- | ------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| `displaySize`                   | `Vector2i`                     | `320×240`   | **Logical** render resolution                                                                      |
+| `drawingBufferSize`             | `Vector2i`                     | `640×480`   | **Drawing buffer** size; enables **display-tier** effects when set                                 |
+| `maxCanvasSize`                 | `Vector2i`                     | `960×720`   | **CSS cap** — maximum on-screen canvas size                                                        |
+| `targetFPS`                     | `number`                       | `60`        | Fixed `update()` rate (simulation ticks per second)                                                |
+| `backend`                       | `'webgpu' \| 'software'`       | `'webgpu'`  | Force rendering backend                                                                            |
+| `outputUpscaleFilter`           | `'nearest' \| 'linear'`        | `'nearest'` | Upscale filter                                                                                     |
+| `detectDroppedFrames`           | `boolean`                      | `false`     | Log a console warning on missed vsync                                                              |
+| `overlayEnabled`                | `boolean`                      | `true`      | Engine overlay HUD after each `render()`                                                           |
+| `overlayVisibleAtStart`         | `boolean`                      | `false`     | Show overlay body (metrics/palette/custom rows) on first frame                                     |
+| `overlayToggleHintVisible`      | `boolean`                      | `true`      | Draw toggle hint icon while overlay body is hidden                                                 |
+| `overlayToggleEnabled`          | `boolean`                      | `true`      | Enable Backquote and bottom-left corner toggle input                                               |
+| `overlayPaletteView`            | `boolean`                      | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)                                       |
+| `overlayPaletteColumns`         | `number`                       | _unset_     | Max palette swatches per grid row (default: widest fit)                                            |
+| `overlayPaletteRowsVisible`     | `number`                       | _unset_     | Max visible palette grid rows (default: all rows; band height capped)                              |
+| `overlayStyle`                  | `OverlayStyle`                 | _unset_     | Optional bar/text/gap palette indices for overlay                                                  |
+| `overlayTimingChart`            | `boolean`                      | `false`     | Scrolling update/render timing chart between title and metrics rows                                |
+| `overlayTimingChartHeight`      | `number`                       | `22`        | Timing chart band height in pixels when the chart is enabled                                       |
+| `overlayTimingChartStyle`       | `OverlayTimingChartStyle`      | _unset_     | Optional timing chart palette indices (defaults to overlay bar/text)                               |
+| `overlayTimingChartDiagnostics` | `false \| 'minimal' \| 'rich'` | _unset_     | Renderer diagnostic visualization on the timing chart (`'minimal'` when chart enabled and omitted) |
+| `overlayRendererDiagnosticsBar` | `boolean`                      | `false`     | Optional GPU diagnostics text row below frame timing metrics                                       |
 
 `displaySize`, `drawingBufferSize`, and `maxCanvasSize` must be positive whole-number pixel dimensions. Each size is
 capped at `8192×8192` per axis and `16,777,216` total pixels (`4096×4096`). Invalid sizes make initialization fail
@@ -234,7 +236,15 @@ otherwise.
   once full, in lockstep with the dots. Tags are removed when they scroll one full chart width past the left edge (text
   keeps drawing at negative x until the display clips it); pruning runs on each timing sample while the chart is
   enabled. Chart width resets (for example on resize) clear tags and add an automatic `"Start"` marker. Tint tags with
-  `overlayTimingChartStyle.tagPaletteIndex` (default **5**).
+  `overlayTimingChartStyle.tagPaletteIndex` (default **5**). **Renderer diagnostics (optional):** when the chart is
+  enabled, `overlayTimingChartDiagnostics` defaults to **`'minimal'`** (set `false` to disable chart markers).
+  **Minimal** mode bumps semantic severity when either pipeline overflowed that frame and draws a baseline overflow
+  marker (palette index from `overlayTimingChartStyle.overflowPaletteIndex`, defaulting to the warning index).
+  **`'rich'`** adds per-column vertex-pressure dots in the lower third of the band (primitive vs sprite submitted counts
+  scaled to the 50k vertex cap). Set **`overlayRendererDiagnosticsBar: true`** for a dedicated text row
+  (`Prim Nv ov: X | Spr Nv ov: X`) below the frame timing line; collection runs when either the chart diagnostics mode
+  is not `false` or the diagnostics bar is enabled. Overflow counts apply on WebGPU; the software backend reports
+  `ov: 0` with GPU-equivalent vertex totals for primitive and sprite work.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
@@ -297,12 +307,13 @@ counts demo-issued draw API calls during the rendered frame. Do not use present 
 Demos should not duplicate engine overlay text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom band (13 px bar + 1 px filled gap). When drawing custom top or bottom HUD panels, leave about **43 px**
 clear at the top (three built-in text rows + filled gaps + separator below the top cluster; add
-`overlayTimingChartHeight` or **22 px** when `overlayTimingChart: true`). Leave about **14 px** clear at the bottom by
-default (1 px separator + 13 px hint bar). When `overlayPaletteView: true`, reserve additional space for the palette
-grid, the **1 px** filled row gap, and the **13 px** hint bar—for example about **83 px** on the default `320×240`
-layout with a 256-slot palette (32 columns × 8 rows of 7 px swatches with 1 px gaps, plus the gap and hint bar). Column
-count is chosen by halving from `palette.size` until the row fits `displayWidth - 2 * edgeMargin`. The footer band
-height matches `resolveOverlayFooterHeight()` in `layoutPlan.ts`:
+`overlayTimingChartHeight` or **22 px** when `overlayTimingChart: true`; add **14 px** when
+`overlayRendererDiagnosticsBar: true`). Leave about **14 px** clear at the bottom by default (1 px separator + 13 px
+hint bar). When `overlayPaletteView: true`, reserve additional space for the palette grid, the **1 px** filled row gap,
+and the **13 px** hint bar—for example about **83 px** on the default `320×240` layout with a 256-slot palette (32
+columns × 8 rows of 7 px swatches with 1 px gaps, plus the gap and hint bar). Column count is chosen by halving from
+`palette.size` until the row fits `displayWidth - 2 * edgeMargin`. The footer band height matches
+`resolveOverlayFooterHeight()` in `layoutPlan.ts`:
 
 ```text
 cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
@@ -338,6 +349,8 @@ configure() {
     overlayPaletteRowsVisible: 3,
     overlayTimingChart: true,
     overlayTimingChartHeight: 32, // optional; default 22
+    overlayTimingChartDiagnostics: 'rich', // optional; default 'minimal' when chart enabled
+    overlayRendererDiagnosticsBar: true, // optional; default false
     overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3, gapPaletteIndex: 2 },
     overlayTimingChartStyle: {
       updateBarPaletteIndex: 2, // defaults to barPaletteIndex when omitted
@@ -346,6 +359,7 @@ configure() {
       warningPaletteIndex: 3, // soft over-budget / single drop; default 3
       errorPaletteIndex: 4, // hard over-budget / 2+ drops; default 4
       tagPaletteIndex: 5, // tag and tick text; default 5
+      overflowPaletteIndex: 3, // overflow baseline marker; defaults to warningPaletteIndex
     },
   };
 }

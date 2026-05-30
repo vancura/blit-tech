@@ -34,6 +34,9 @@ export interface OverlayLayoutConfig {
 
     readonly timingChartHeight: number;
 
+    /** Mirrors {@link HardwareSettings.overlayRendererDiagnosticsBar}. */
+    readonly rendererDiagnosticsBarEnabled: boolean;
+
     /** Mirrors {@link HardwareSettings.overlayPaletteView}. */
     readonly overlayPaletteView: boolean;
 
@@ -50,9 +53,8 @@ export interface OverlayLayoutPlan {
 
     readonly timingTextBar: Rect2i;
 
-    readonly customBars: readonly Rect2i[];
+    readonly rendererDiagnosticsBar: Rect2i;
 
-    /** Palette swatch grid band when {@link HardwareSettings.overlayPaletteView} is enabled; height 0 otherwise. */
     readonly paletteBand: Rect2i;
 
     /** Bottom hint bar (13 px); always at the display bottom edge. */
@@ -67,6 +69,10 @@ export interface OverlayLayoutPlan {
     readonly topMetricsPos: Vector2i;
 
     readonly topTimingPos: Vector2i;
+
+    readonly rendererDiagnosticsPos: Vector2i;
+
+    readonly customBars: readonly Rect2i[];
 
     /** 1 px row gaps between stacked overlay bands (top stack, custom rows, palette/hint). */
     readonly rowGapRects: readonly Rect2i[];
