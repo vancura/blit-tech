@@ -12,3 +12,9 @@ export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 
 /** Default event/tag palette index for timing chart semantic overlays. */
 export const TIMING_CHART_DEFAULT_EVENT_IDX = 5;
+
+/**
+ * Fixed interior grid markers in milliseconds (VV-7). Excludes 1 ms (band bottom edge).
+ * Frame budget is added at draw time from targetFPS.
+ */
+export const TIMING_CHART_GRID_MARKER_MS: readonly number[] = [5, 10, 33.33];
