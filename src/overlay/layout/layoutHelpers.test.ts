@@ -7,16 +7,15 @@ import {
     createOverlayLayout,
     isPointerInOverlayToggleCorner,
     overlayRightAlignedTextX,
-    overlayToggleHintTextX,
+    overlayToggleHintIconX,
 } from './layoutHelpers';
 
 describe('createOverlayLayout', () => {
-    it('places bottom text at the configured bottom gap offset', () => {
+    it('sets display dimensions, topTextY and toggleRect properties', () => {
         const layout = createOverlayLayout(320, 240, 14);
 
         expect(layout.displayWidth).toBe(320);
         expect(layout.displayHeight).toBe(240);
-        expect(layout.bottomTextY).toBe(240 - 14 + 1);
         expect(layout.topTextY).toBe(OVERLAY_TOP_TEXT_Y);
         expect(layout.toggleRect.x).toBe(0);
         expect(layout.toggleRect.y).toBe(240 - 48);
@@ -37,9 +36,9 @@ describe('overlayRightAlignedTextX', () => {
     });
 });
 
-describe('overlayToggleHintTextX', () => {
+describe('overlayToggleHintIconX', () => {
     it('anchors the toggle hint at the left edge margin', () => {
-        expect(overlayToggleHintTextX()).toBe(OVERLAY_EDGE_MARGIN_PX);
+        expect(overlayToggleHintIconX()).toBe(OVERLAY_EDGE_MARGIN_PX);
     });
 });
 

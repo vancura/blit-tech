@@ -115,7 +115,7 @@ example no `drawingBufferSize` means a 1:1 drawing buffer).
 | `detectDroppedFrames`       | `boolean`                 | `false`     | Log a console warning on missed vsync                                 |
 | `overlayEnabled`            | `boolean`                 | `true`      | Engine overlay HUD after each `render()`                              |
 | `overlayVisibleAtStart`     | `boolean`                 | `false`     | Show overlay body (metrics/palette/custom rows) on first frame        |
-| `overlayToggleHintVisible`  | `boolean`                 | `true`      | Draw `[~]` hint bar while overlay body is hidden                      |
+| `overlayToggleHintVisible`  | `boolean`                 | `true`      | Draw toggle hint icon while overlay body is hidden                    |
 | `overlayToggleEnabled`      | `boolean`                 | `true`      | Enable Backquote and bottom-left corner toggle input                  |
 | `overlayPaletteView`        | `boolean`                 | `false`     | Live palette swatch grid in the overlay bottom band (opt-in)          |
 | `overlayPaletteColumns`     | `number`                  | _unset_     | Max palette swatches per grid row (default: widest fit)               |
@@ -194,11 +194,12 @@ configure() {
 
 When `overlayEnabled` is `true` (default), the engine draws a screen-space HUD after each demo `render()` call, on top
 of all demo content. The **overlay body** (title, metrics, timing chart, palette grid, custom rows) starts **hidden**
-unless `overlayVisibleAtStart: true`. While the body is hidden, the engine may still draw the **toggle hint** (13 px
-`[~]` bar) when `overlayToggleHintVisible` is `true` (default). Bar bands and text anchors for the full body are
-computed each frame by the internal layout planner in `src/overlay/layout/layoutPlan.ts` from `displaySize`, custom row
-count, and optional feature flags (timing chart default off; palette grid opt-in via `overlayPaletteView`). Init still
-caches stable values such as the bottom-left toggle rect and text baselines from the system font metrics.
+unless `overlayVisibleAtStart: true`. While the body is hidden, the engine may still draw the **toggle hint icon** when
+`overlayToggleHintVisible` is `true` (default), without the footer hint bar background. Bar bands and text anchors for
+the full body are computed each frame by the internal layout planner in `src/overlay/layout/layoutPlan.ts` from
+`displaySize`, custom row count, and optional feature flags (timing chart default off; palette grid opt-in via
+`overlayPaletteView`). Init still caches stable values such as the bottom-left toggle rect and text baselines from the
+system font metrics.
 
 **Migration note:** Upgrading demos now starts with the overlay body hidden. Teaching demos that relied on
 always-visible metrics should opt back in with `overlayVisibleAtStart: true` in `configure()` until authors choose
@@ -223,12 +224,12 @@ otherwise.
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
-- **Bottom band:** default **13 px** hint bar with the `[~]` toggle label anchored bottom-left (over the toggle hit
-  region). Set `overlayPaletteView: true` to stack a live palette swatch grid **above** a **1 px** filled gap and that
-  hint bar; slots referenced by demo draw calls this frame are filled with their color, and unused slots render as empty
-  squares with a small centered marker. When `overlayPaletteRowsVisible` is set, only that many rows are shown in a
-  scrollable viewport with a right-side scrollbar thumb (proportional to visible vs total rows, minimum 4 px, inset 1 px
-  from the band top, right, and bottom); wheel input over the palette band scrolls rows and does not reach
+- **Bottom band:** default **13 px** hint bar with a bottom-left **bitmap toggle icon** (over the toggle hit region).
+  Set `overlayPaletteView: true` to stack a live palette swatch grid **above** a **1 px** filled gap and that hint bar;
+  slots referenced by demo draw calls this frame are filled with their color, and unused slots render as empty squares
+  with a small centered marker. When `overlayPaletteRowsVisible` is set, only that many rows are shown in a scrollable
+  viewport with a right-side scrollbar thumb (proportional to visible vs total rows, minimum 4 px, inset 1 px from the
+  band top, right, and bottom); wheel input over the palette band scrolls rows and does not reach
   `BT.pointerScrollDelta` outside that region. The timing chart and palette grid bands use the same
   `overlayStyle.barPaletteIndex` fill as the other overlay rows (bars draw first; chart dots and swatches render on
   top). **1 px row gaps** between stacked overlay bands and **cluster separators** (below the top metrics cluster and
@@ -259,7 +260,7 @@ class Demo {
 
 Toggle overlay **body** visibility at runtime with **Backquote** (`~`) or a primary pointer press in the **bottom-left
 48x48 px** corner when `overlayToggleEnabled` is `true` (default). Set `overlayToggleHintVisible: false` to hide the
-hint bar while the body stays hidden. Set `overlayToggleEnabled: false` to lock body visibility at
+hint icon while the body stays hidden. Set `overlayToggleEnabled: false` to lock body visibility at
 `overlayVisibleAtStart`. Set `overlayEnabled: false` in `configure()` to disable the overlay subsystem and all toggle
 input (for example release builds). On WebGPU, the engine draws the overlay HUD after your `render()` call, composited
 above demo sprites via internal overlay draw batches (not available on `BT`).
@@ -275,9 +276,9 @@ is visible. `Frame`, `update()`, and `render()` timings are smoothed CPU wall-ti
 shown in the text row; the optional timing chart uses **raw** per-frame `updateMs` / `renderMs` from the prior frame.
 Those demo-only timings **exclude** overlay draw (overlay runs after `render()` is timed); `Frame` includes the full
 present frame including overlay and GPU present. When the overlay body is hidden, chart history still records demo
-`update()` / `render()` samples, the toggle hint may still draw, and palette usage tracking is off. `Draw Calls` counts
-demo-issued draw API calls during the rendered frame. Do not use present FPS for simulation timing—use `BT.ticks`,
-`BT.deltaSeconds`, or `Timer` instead.
+`update()` / `render()` samples, the toggle hint icon may still draw, and palette usage tracking is off. `Draw Calls`
+counts demo-issued draw API calls during the rendered frame. Do not use present FPS for simulation timing—use
+`BT.ticks`, `BT.deltaSeconds`, or `Timer` instead.
 
 Demos should not duplicate engine overlay text; the overlay provides it. Reserve about **14 px** per custom overlay row
 above the bottom band (13 px bar + 1 px filled gap). When drawing custom top or bottom HUD panels, leave about **43 px**

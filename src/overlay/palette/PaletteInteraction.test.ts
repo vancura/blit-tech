@@ -8,7 +8,7 @@ import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT } from '../constants';
 import { createOverlayLayout } from '../layout/layoutHelpers';
-import { paletteBandY } from '../layout/layoutPlan';
+import { hintBarY, paletteBandY } from '../layout/layoutPlan';
 import type { OverlayLayoutPlan } from '../layout/types';
 import { mockFont } from '../testFixtures';
 import {
@@ -46,7 +46,7 @@ function paletteOnlyPlan(paletteBand: Rect2i): OverlayLayoutPlan {
 function goldenHintExclusion(): Rect2i {
     const layout = createOverlayLayout(320, 240, 14);
 
-    return resolvePaletteHintExclusionRect(layout.bottomTextY, layout.displayWidth, layout.lineHeight);
+    return resolvePaletteHintExclusionRect(hintBarY(layout.displayHeight), layout.displayWidth);
 }
 
 describe('hitTestPaletteSwatch', () => {
@@ -456,9 +456,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
 
         expect(consumed).toBe(true);
@@ -529,9 +528,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
 
         await vi.waitFor(() => {
@@ -579,9 +577,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
 
         await vi.waitFor(async () => {
@@ -606,9 +603,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
 
         interaction.drawTooltipLabel(
@@ -652,9 +648,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
 
         for (let tick = 11; tick <= 25; tick++) {
@@ -724,9 +719,8 @@ describe('PaletteInteraction clipboard', () => {
             plan,
             grid,
             256,
-            layout.bottomTextY,
+            hintBarY(layout.displayHeight),
             layout.displayWidth,
-            layout.lineHeight,
         );
         interaction.drawTooltipLabel(
             renderer as never,

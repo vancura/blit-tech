@@ -10,10 +10,11 @@
 
 import type { Palette } from '../../assets/Palette';
 import { Rect2i } from '../../utils/Rect2i';
-import { OVERLAY_BOTTOM_HINT_LABEL } from '../constants';
 import { OVERLAY_EDGE_MARGIN_PX } from '../layout/constants';
-import { overlayToggleHintTextWidth, overlayToggleHintTextX } from '../layout/layoutHelpers';
+import { overlayToggleHintIconX } from '../layout/layoutHelpers';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
+import { overlayToggleHintIconY } from '../OverlayToggleIcon';
+import { OVERLAY_TOGGLE_ICON_HEIGHT, OVERLAY_TOGGLE_ICON_WIDTH } from '../toggleIconData';
 import type { PaletteGridLayout } from '../types';
 
 /** Default swatch size in pixels. */
@@ -200,7 +201,7 @@ function rectsIntersect(
  * @param x - Swatch left edge in display pixels.
  * @param y - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
- * @param exclusion - Region to avoid (for example the `[~]` hint).
+ * @param exclusion - Region to avoid (for example the toggle hint icon).
  * @returns `true` when any part of the swatch overlaps the exclusion rect.
  */
 function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
@@ -209,51 +210,33 @@ function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusio
 
 /** Cached hint exclusion rect; recomputed only when layout inputs change (VV-543). */
 const hintExclusionCache = {
-    bottomTextY: Number.NaN,
+    hintBarTopY: Number.NaN,
     displayWidth: Number.NaN,
-    lineHeight: Number.NaN,
     rect: new Rect2i(),
 };
 
 /**
- * Returns the screen-space rect reserved for the bottom-left `[~]` hint label.
+ * Returns the screen-space rect reserved for the bottom-left toggle hint icon.
  *
- * Reuses {@link hintExclusionCache.rect} when `bottomTextY`, `displayWidth`, and
- * `lineHeight` match the previous call.
+ * Reuses {@link hintExclusionCache.rect} when `hintBarTopY` and `displayWidth` match the previous call.
  *
- * @param bottomTextY - Baseline Y for the hint text.
- * @param displayWidth - Logical display width.
- * @param lineHeight - System font line height.
- * @returns Exclusion rect for swatch placement.
- */
-/**
- * Returns the screen-space rect reserved for the bottom-left `[~]` hint label.
- *
- * @param bottomTextY - Baseline Y for the hint text.
- * @param displayWidth - Logical display width.
- * @param lineHeight - System font line height.
+ * @param hintBarTopY - Top Y of the bottom hint bar from the layout plan.
+ * @param displayWidth - Logical display width (cache key only; icon X is margin-based).
  * @returns Exclusion rect for swatch placement and hit testing.
  */
-export function resolvePaletteHintExclusionRect(bottomTextY: number, displayWidth: number, lineHeight: number): Rect2i {
-    if (
-        hintExclusionCache.bottomTextY === bottomTextY &&
-        hintExclusionCache.displayWidth === displayWidth &&
-        hintExclusionCache.lineHeight === lineHeight
-    ) {
+export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidth: number): Rect2i {
+    if (hintExclusionCache.hintBarTopY === hintBarTopY && hintExclusionCache.displayWidth === displayWidth) {
         return hintExclusionCache.rect;
     }
 
-    const hintLeft = overlayToggleHintTextX();
-
-    hintExclusionCache.bottomTextY = bottomTextY;
+    hintExclusionCache.hintBarTopY = hintBarTopY;
     hintExclusionCache.displayWidth = displayWidth;
-    hintExclusionCache.lineHeight = lineHeight;
 
     hintExclusionCache.rect.set(
-        hintLeft,
-        bottomTextY,
-        overlayToggleHintTextWidth(OVERLAY_BOTTOM_HINT_LABEL),
-        lineHeight,
+        overlayToggleHintIconX(),
+        overlayToggleHintIconY(hintBarTopY),
+        OVERLAY_TOGGLE_ICON_WIDTH,
+        OVERLAY_TOGGLE_ICON_HEIGHT,
     );
 
     return hintExclusionCache.rect;
@@ -418,7 +401,7 @@ export function writePaletteSwatchTopLeft(
  * @param paletteBand - Palette band rect from layout plan.
  * @param colorCount - Active palette slot count.
  * @param grid - Precomputed grid layout.
- * @param hintExclusion - Region to skip for the `[~]` hint label.
+ * @param hintExclusion - Region to skip for the toggle hint icon.
  * @param usedMask - Per-frame usage mask from BTAPI.
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  * @param scrollRowOffset - First visible grid row (default `0`).
@@ -444,7 +427,7 @@ function drawPaletteSwatchGrid(
         const x = swatchScratch.x;
         const y = swatchScratch.y;
 
-        // Reserve only the `[~]` text band; do not clip against the 48x48 toggle hit rect
+        // Reserve only the toggle hint icon band; do not clip against the 48x48 toggle hit rect
         // (it overlaps many grid rows and would truncate every row below it).
         if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
             continue;
@@ -590,9 +573,8 @@ export class PaletteView {
      * @param paletteBand - Palette band rect from layout plan.
      * @param palette - Active demo palette.
      * @param grid - Precomputed grid layout.
-     * @param bottomTextY - Baseline Y for the bottom-left `[~]` hint.
-     * @param displayWidth - Logical display width for hint exclusion.
-     * @param lineHeight - System font line height for hint exclusion.
+     * @param hintBarTopY - Top Y of the bottom hint bar for icon exclusion.
+     * @param displayWidth - Logical display width for hint exclusion cache key.
      * @param usedMask - Per-frame usage mask populated during demo render.
      * @param unusedMarkIndex - Palette index for unused swatch marker fills.
      * @param scrollRowOffset - First visible grid row (default `0`).
@@ -604,9 +586,8 @@ export class PaletteView {
         paletteBand: Rect2i,
         palette: Palette | null,
         grid: PaletteGridLayout,
-        bottomTextY: number,
+        hintBarTopY: number,
         displayWidth: number,
-        lineHeight: number,
         usedMask: Uint8Array,
         unusedMarkIndex: number,
         scrollRowOffset = 0,
@@ -617,7 +598,7 @@ export class PaletteView {
             return;
         }
 
-        const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
 
         drawPaletteSwatchGrid(
             target,

@@ -11,11 +11,12 @@ import type { Backend, OverlayRow, OverlayStyle, OverlayTimingChartStyle } from 
 import type { KeyboardInput } from '../input/KeyboardInput';
 import type { PointerInput } from '../input/PointerInput';
 import { OverlayBars } from './bars/Bars';
-import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT, OVERLAY_BOTTOM_HINT_LABEL } from './constants';
+import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT } from './constants';
 import { Toggle } from './input/Toggle';
 import { buildOverlayLayoutPlan, createDefaultLayoutConfig, createOverlayLayoutPlanScratch } from './layout/layoutPlan';
 import type { OverlayLayout, OverlayLayoutConfig, OverlayLayoutPlan } from './layout/types';
 import type { OverlayRenderer } from './OverlayDrawTarget';
+import { drawOverlayToggleIcon } from './OverlayToggleIcon';
 import { PaletteInteraction } from './palette/PaletteInteraction';
 import { computePaletteGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
 import { FpsSampler } from './sampling/FpsSampler';
@@ -199,9 +200,8 @@ export class Overlay {
                     plan,
                     grid,
                     colorCount,
-                    this.#layout.bottomTextY,
+                    plan.hintBar.y,
                     this.#layout.displayWidth,
-                    this.#layout.lineHeight,
                 );
 
                 pointerPressConsumed =
@@ -350,7 +350,6 @@ export class Overlay {
             layoutConfig,
             this.#layoutScratch,
             this.#topRightLabel,
-            this.#layout.bottomTextY,
             this.#layout.toggleRect,
         );
 
@@ -378,8 +377,8 @@ export class Overlay {
     /**
      * Draws overlay content for one frame.
      *
-     * Body panels draw only when {@link bodyVisible} is true. The footer hint bar
-     * and `[~]` label always draw when this method runs.
+     * Body panels and the footer hint bar draw only when {@link bodyVisible} is true.
+     * The toggle hint icon always draws when this method runs (symbol only while hidden).
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.
@@ -434,9 +433,8 @@ export class Overlay {
                 plan.paletteBand,
                 palette ?? null,
                 paletteGrid,
-                this.#layout.bottomTextY,
+                plan.hintBar.y,
                 this.#layout.displayWidth,
-                this.#layout.lineHeight,
                 usedPaletteMask,
                 this.#idxText,
                 this.#paletteInteraction.scrollRowOffset,
@@ -453,20 +451,17 @@ export class Overlay {
                 plan,
                 paletteGrid,
                 colorCount,
-                this.#layout.bottomTextY,
+                plan.hintBar.y,
                 this.#layout.displayWidth,
-                this.#layout.lineHeight,
             );
 
             this.#bars.drawRowGaps(renderer, plan, this.#idxGap);
             this.#bars.drawClusterSeparators(renderer, plan, this.#idxGap, true, true);
         }
 
-        if (!bodyVisible) {
-            this.#bars.drawHintClusterSeparator(renderer, plan.hintBar, this.#idxGap);
+        if (bodyVisible) {
+            this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
         }
-
-        this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
 
         if (bodyVisible) {
             if (customRows !== undefined && customRows.length > 0) {
@@ -485,7 +480,7 @@ export class Overlay {
             );
         }
 
-        this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, OVERLAY_BOTTOM_HINT_LABEL);
+        drawOverlayToggleIcon(renderer, plan.hintBar.y, this.#idxText, bodyVisible);
 
         if (bodyVisible) {
             this.#paletteInteraction.drawTooltipChrome(

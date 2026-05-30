@@ -149,27 +149,6 @@ export class OverlayBars {
     }
 
     /**
-     * Draws the bottom-left `[~]` toggle hint label.
-     *
-     * @param target - Overlay draw target.
-     * @param font - System bitmap font.
-     * @param plan - Computed layout plan.
-     * @param textIndex - Palette index for the hint label.
-     * @param hintLabel - Toggle hint text (typically `[~]`).
-     */
-    drawHintLabel(
-        target: OverlayDrawTarget,
-        font: BitmapFont,
-        plan: OverlayLayoutPlan,
-        textIndex: number,
-        hintLabel: string,
-    ): void {
-        const textPaletteOffset = overlayBitmapTextPaletteOffset(textIndex);
-
-        target.drawLabel(font, plan.hintLabelPos, hintLabel, textPaletteOffset);
-    }
-
-    /**
      * Draws built-in top overlay text labels (excluding the footer hint).
      *
      * @param target - Overlay draw target.

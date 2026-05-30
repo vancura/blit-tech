@@ -10,7 +10,7 @@ import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { DEFAULT_TIMING_CHART_HEIGHT } from '../timing-chart/constants';
 import { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY_TOP_TEXT_Y } from './constants';
-import { overlayRightAlignedTextX, overlayToggleHintTextX } from './layoutHelpers';
+import { overlayRightAlignedTextX } from './layoutHelpers';
 import type { OverlayLayoutConfig, OverlayLayoutPlan } from './types';
 
 // #region Scratch type
@@ -29,7 +29,6 @@ export interface OverlayLayoutPlanScratch {
     topRightPos: Vector2i;
     topMetricsPos: Vector2i;
     topTimingPos: Vector2i;
-    hintLabelPos: Vector2i;
     rowGapRects: Rect2i[];
     topClusterSeparator: Rect2i;
     bottomClusterSeparator: Rect2i;
@@ -54,7 +53,6 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
         topRightPos: new Vector2i(0, 0),
         topMetricsPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
         topTimingPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
-        hintLabelPos: new Vector2i(0, 0),
         rowGapRects: [],
         topClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
         bottomClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
@@ -257,7 +255,6 @@ function populateGapLayout(scratch: OverlayLayoutPlanScratch, config: OverlayLay
  * @param config - Feature flags and display dimensions.
  * @param scratch - Reusable scratch object mutated in place.
  * @param topRightLabel - Text for top-right backend/resolution label.
- * @param hintLabelBaselineY - Baseline Y for the hint label from init layout.
  * @param toggleRect - Bottom-left toggle hit region from init layout.
  * @returns The same scratch object as {@link OverlayLayoutPlan}.
  */
@@ -265,7 +262,6 @@ export function buildOverlayLayoutPlan(
     config: OverlayLayoutConfig,
     scratch: OverlayLayoutPlanScratch,
     topRightLabel: string,
-    hintLabelBaselineY: number,
     toggleRect: Rect2i,
 ): OverlayLayoutPlan {
     const { displayWidth, displayHeight } = config;
@@ -350,9 +346,6 @@ export function buildOverlayLayoutPlan(
 
     scratch.topTimingPos.x = OVERLAY_EDGE_MARGIN_PX;
     scratch.topTimingPos.y = scratch.timingTextBar.y + OVERLAY_TOP_TEXT_Y;
-
-    scratch.hintLabelPos.x = overlayToggleHintTextX();
-    scratch.hintLabelPos.y = hintLabelBaselineY;
 
     populateGapLayout(scratch, config, displayWidth);
 
