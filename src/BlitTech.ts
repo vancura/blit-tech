@@ -372,12 +372,12 @@ export const BT = {
     BTN_POINTER_ANY: (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15),
 
     /**
-     * Default `KeyboardEvent.code` values for player 1 face buttons (VV-435).
+     * Default `KeyboardEvent.code` values for player 1 face buttons.
      */
     DEFAULT_KEYBOARD_PLAYER1,
 
     /**
-     * Default `KeyboardEvent.code` values for player 2 face buttons (VV-435).
+     * Default `KeyboardEvent.code` values for player 2 face buttons.
      */
     DEFAULT_KEYBOARD_PLAYER2,
 
@@ -1241,7 +1241,7 @@ export const BT = {
     },
 
     /**
-     * Restores built-in default keyboard maps for players `0` and `1` (VV-435).
+     * Restores built-in default keyboard maps for players `0` and `1`.
      *
      * Same tables as `BT.DEFAULT_KEYBOARD_PLAYER1` and `BT.DEFAULT_KEYBOARD_PLAYER2`.
      */

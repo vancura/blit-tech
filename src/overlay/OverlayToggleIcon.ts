@@ -1,5 +1,5 @@
 /**
- * Draw helper for the inline overlay toggle hint bitmap icon (VV-548).
+ * Draw helper for the inline overlay toggle hint bitmap icon.
  */
 
 import { Rect2i } from '../utils/Rect2i';

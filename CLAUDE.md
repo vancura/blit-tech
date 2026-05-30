@@ -56,11 +56,13 @@ src/
   overlay/
     Overlay.ts             # Orchestrator: sample, toggle, layout plan, delegate draws
     OverlayDrawTarget.ts   # Internal draw port (drawBarFill / drawLabel); not on IRenderer or BT
+    OverlayToggleIcon.ts   # Bottom-left bitmap toggle hint icon draw + anchor/exclusion helpers
+    toggleIconData.ts      # Inline row-major mask data for the toggle hint icon
     index.ts               # Barrel exports for BTAPI and unit tests
     layout/                # layoutPlan, layoutHelpers, layout types/constants
     bars/                  # OverlayBars (Bars.ts)
     timing-chart/          # TimingChart, style, constants
-    palette/               # PaletteView, PaletteInteraction
+    palette/               # PaletteView, PaletteInteraction (swatch hover tooltip, clipboard copy, scroll)
     sampling/              # FpsSampler, TimingSampler
     input/                 # Toggle
   render/
@@ -153,7 +155,8 @@ Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
 - Face buttons: players `0` and `1` are keyboard OR gamepad; players `2` and `3` are gamepad-only
 - Input previous-state rollover is end-of-frame aligned (same snapshot model across pointer/keyboard/gamepad)
 - Default gamepad stick dead zone is `0.75`
-- Triggers are axis-only for now (`AXIS_TRIGGER_L` / `AXIS_TRIGGER_R`); trigger button constants are tracked in `VV-481`
+- Triggers are axis-only for now (`AXIS_TRIGGER_L` / `AXIS_TRIGGER_R`); dedicated trigger button constants are not
+  implemented yet
 
 ## BT API: getters vs methods
 
@@ -327,8 +330,8 @@ Claude Code reusable skill:
 
 ## Working with Claude
 
-- **Planning vs implementation sessions**: During planning work (reviewing Linear tickets, discussing architecture), do
-  not modify source files. Only update Linear. Wait for a separate implementation session before touching code.
+- **Planning vs implementation sessions**: During planning work (reviewing issues, discussing architecture), do not
+  modify source files. Only update Linear. Wait for a separate implementation session before touching code.
 - **User-facing strings**: Follow the two-tier voice guide for all throws, error messages, and canvas-visible text. See
   [docs/voice.md](docs/voice.md) before writing any throw or user-facing string.
 - **Documentation is part of every feature**: After completing any feature or fix, always update documentation without

@@ -1,5 +1,5 @@
 /**
- * Allocation regression tests for {@link PaletteView} draw hot path (VV-543).
+ * Allocation regression tests for {@link PaletteView} draw hot path.
  */
 
 // #region Imports

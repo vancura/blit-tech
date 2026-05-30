@@ -10,7 +10,7 @@ import type { Effect } from '../Effect';
  * Green monochrome PC monitor look (think original IBM monochrome / VT100).
  *
  * Ships as a parameter-only set - see the {@link amber} preset for the
- * caveat about re-quantization (VV-479). Same effect stack as `amber()`,
+ * caveat about re-quantization. Same effect stack as `amber()`,
  * tuned slightly toward a cooler / more flickery aesthetic.
  *
  * @returns Array of pre-configured display-tier effects.

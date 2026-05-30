@@ -52,10 +52,10 @@ CPU benchmark regression checks run in CI with the `perf` label.
 - CI fails if any benchmark regresses by more than **25%** (see `ci.yml` `--threshold 25`)
 
 New `*.bench.ts` files are picked up automatically on the next `main` baseline upload. No allowlist
-change is required. After adding benchmarks for overlay work (VV-543), label the PR `perf` if you
+change is required. After adding benchmarks for overlay work, label the PR `perf` if you
 want regression feedback before merge.
 
-### Overlay palette grid benchmarks (VV-543)
+### Overlay palette grid benchmarks
 
 | Benchmark file | What it measures |
 | --- | --- |

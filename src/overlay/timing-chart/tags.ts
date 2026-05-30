@@ -1,5 +1,5 @@
 /**
- * Pure helpers for timing chart event tags (VV-541, RetroBlit AssignTag parity).
+ * Pure helpers for timing chart event tags (RetroBlit AssignTag parity).
  */
 
 /** Label added automatically when the timing chart ring buffer is reset (RetroBlit Reset parity). */

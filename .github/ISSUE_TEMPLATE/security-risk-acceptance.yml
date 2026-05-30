@@ -76,8 +76,8 @@ body:
     id: remediation-issue
     attributes:
       label: Linked remediation issue
-      description: Linear or GitHub issue URL that tracks the fix
-      placeholder: https://linear.app/...
+      description: GitHub issue URL that tracks the fix
+      placeholder: https://github.com/vancura/blit-tech/issues/...
     validations:
       required: true
 

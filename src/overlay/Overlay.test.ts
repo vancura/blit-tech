@@ -55,7 +55,7 @@ interface OverlayTestOptions {
     backend?: 'webgpu' | 'software';
 }
 
-/** Builds a {@link Overlay} with explicit VV-546 visibility defaults for tests. */
+/** Builds a {@link Overlay} with explicit visibility defaults for tests. */
 function createOverlay(
     layout: ReturnType<typeof createOverlayLayout>,
     label: string,
@@ -121,7 +121,7 @@ describe('Overlay', () => {
         expect(overlay.tracksPaletteUsage).toBe(false);
     });
 
-    it('swatch press in the toggle corner does not toggle overlay body (VV-549)', () => {
+    it('swatch press in the toggle corner does not toggle overlay body', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Test Demo', { paletteView: true, visibleAtStart: true });
         const grid = computePaletteGrid(320);
@@ -144,7 +144,7 @@ describe('Overlay', () => {
         expect(overlay.bodyVisible).toBe(true);
     });
 
-    it('scrollbar track press blocks toggle but swatch press still copies first (VV-550)', () => {
+    it('scrollbar track press blocks toggle but swatch press still copies first', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Test Demo', {
             paletteView: true,

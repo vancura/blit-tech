@@ -213,35 +213,34 @@ otherwise.
 - **Timing chart (optional):** when `overlayTimingChart: true`, a scrolling band of **one-pixel dots** shows raw
   per-frame `update()` vs `render()` CPU time (one column per present frame, not per fixed `update()` tick). Band height
   defaults to **22 px**; override with `overlayTimingChartHeight`. Dot height scales linearly so about **16 ms** fills
-  the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). **Grid lines
-  (VV-7):** faint horizontal reference rows at **5**, **10**, and **33.33** ms plus a frame-budget line at
-  **`1000 / targetFPS`** ms are drawn behind the dots (qualitative scale on a ~22 px band, not a precision ruler). The
-  band bottom row is the zero baseline (sub-ms / light samples); top- and bottom-edge rows are not drawn as grid lines.
-  Grid color defaults to `overlayStyle.gapPaletteIndex` (then `barPaletteIndex`); override with
-  `overlayTimingChartStyle.gridPaletteIndex`. The band background uses `overlayStyle.barPaletteIndex`; dot colors
-  default to `overlayStyle.barPaletteIndex` / `textPaletteIndex`; override with `overlayTimingChartStyle`. **Semantic
-  tints (VV-545):** when a column is classified as a runtime risk, both update and render dots use the warning or error
-  palette index instead of the normal bar colors. Classification uses the prior frame's `Frame` wall time against
-  `1000 / targetFPS` (warning at **1.10x** budget, error at **1.50x**) and dropped-frame events from the game loop (one
-  dropped frame = warning, two or more = error; error wins when both apply). Default warning/error/event palette indices
-  are **3**, **4**, and **5** when not overridden. Drop detection for the chart runs whenever `overlayTimingChart: true`
-  (independent of `detectDroppedFrames`, which only controls console warnings). **Event tags (VV-541):** call
-  `BT.assignTag(label?)` from `update()` or `init()` to anchor a short label on the scrolling chart at the current
-  `BT.ticks`. Empty or omitted labels become `"Untitled"`. Each tag column draws a tick row (relative ticks since chart
-  reset, capped at **100000**) and stacked label rows above the chart band; spacing is fixed in `tags.ts`
-  (`TIMING_CHART_TAG_LABEL_Y_GAP`, `TIMING_CHART_TAG_LABEL_STACK_SPACING`). Tick and label text share the same
-  horizontal offset from the timing column. A faint vertical grid-colored line marks the column on the chart band. Tag
-  columns follow timing **samples** (one per rendered frame), not `BT.ticks`, which can advance multiple fixed-update
-  steps per frame: they fill from the left while the ring buffer is not full, then scroll left one column per sample
-  once full, in lockstep with the dots. Tags are removed when they scroll one full chart width past the left edge (text
-  keeps drawing at negative x until the display clips it); pruning runs on each timing sample while the chart is
-  enabled. Chart width resets (for example on resize) clear tags and add an automatic `"Start"` marker. Tint tags with
-  `overlayTimingChartStyle.tagPaletteIndex` (default **5**). **Renderer diagnostics (optional):** when the chart is
-  enabled, `overlayTimingChartDiagnostics` defaults to **`'minimal'`** (set `false` to disable chart markers).
-  **Minimal** mode bumps semantic severity when either pipeline overflowed that frame and draws a baseline overflow
-  marker (palette index from `overlayTimingChartStyle.overflowPaletteIndex`, defaulting to the warning index).
-  **`'rich'`** adds per-column vertex-pressure dots in the lower third of the band (primitive vs sprite submitted counts
-  scaled to the 50k vertex cap). Set **`overlayRendererDiagnosticsBar: true`** for a dedicated text row
+  the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). **Grid lines:**
+  faint horizontal reference rows at **5**, **10**, and **33.33** ms plus a frame-budget line at **`1000 / targetFPS`**
+  ms are drawn behind the dots (qualitative scale on a ~22 px band, not a precision ruler). The band bottom row is the
+  zero baseline (sub-ms / light samples); top- and bottom-edge rows are not drawn as grid lines. Grid color defaults to
+  `overlayStyle.gapPaletteIndex` (then `barPaletteIndex`); override with `overlayTimingChartStyle.gridPaletteIndex`. The
+  band background uses `overlayStyle.barPaletteIndex`; dot colors default to `overlayStyle.barPaletteIndex` /
+  `textPaletteIndex`; override with `overlayTimingChartStyle`. **Semantic tints:** when a column is classified as a
+  runtime risk, both update and render dots use the warning or error palette index instead of the normal bar colors.
+  Classification uses the prior frame's `Frame` wall time against `1000 / targetFPS` (warning at **1.10x** budget, error
+  at **1.50x**) and dropped-frame events from the game loop (one dropped frame = warning, two or more = error; error
+  wins when both apply). Default warning/error/event palette indices are **3**, **4**, and **5** when not overridden.
+  Drop detection for the chart runs whenever `overlayTimingChart: true` (independent of `detectDroppedFrames`, which
+  only controls console warnings). **Event tags:** call `BT.assignTag(label?)` from `update()` or `init()` to anchor a
+  short label on the scrolling chart at the current `BT.ticks`. Empty or omitted labels become `"Untitled"`. Each tag
+  column draws a tick row (relative ticks since chart reset, capped at **100000**) and stacked label rows above the
+  chart band; spacing is fixed in `tags.ts` (`TIMING_CHART_TAG_LABEL_Y_GAP`, `TIMING_CHART_TAG_LABEL_STACK_SPACING`).
+  Tick and label text share the same horizontal offset from the timing column. A faint vertical grid-colored line marks
+  the column on the chart band. Tag columns follow timing **samples** (one per rendered frame), not `BT.ticks`, which
+  can advance multiple fixed-update steps per frame: they fill from the left while the ring buffer is not full, then
+  scroll left one column per sample once full, in lockstep with the dots. Tags are removed when they scroll one full
+  chart width past the left edge (text keeps drawing at negative x until the display clips it); pruning runs on each
+  timing sample while the chart is enabled. Chart width resets (for example on resize) clear tags and add an automatic
+  `"Start"` marker. Tint tags with `overlayTimingChartStyle.tagPaletteIndex` (default **5**). **Renderer diagnostics
+  (optional):** when the chart is enabled, `overlayTimingChartDiagnostics` defaults to **`'minimal'`** (set `false` to
+  disable chart markers). **Minimal** mode bumps semantic severity when either pipeline overflowed that frame and draws
+  a baseline overflow marker (palette index from `overlayTimingChartStyle.overflowPaletteIndex`, defaulting to the
+  warning index). **`'rich'`** adds per-column vertex-pressure dots in the lower third of the band (primitive vs sprite
+  submitted counts scaled to the 50k vertex cap). Set **`overlayRendererDiagnosticsBar: true`** for a dedicated text row
   (`Prim Nv ov: X | Spr Nv ov: X`) below the frame timing line; collection runs when either the chart diagnostics mode
   is not `false` or the diagnostics bar is enabled. Overflow counts apply on WebGPU; the software backend reports
   `ov: 0` with GPU-equivalent vertex totals for primitive and sprite work.

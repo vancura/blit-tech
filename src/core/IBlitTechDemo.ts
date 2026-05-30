@@ -189,7 +189,7 @@ export interface HardwareSettings {
     /**
      * Optional palette indices for the timing chart band. Update/render bar colors default to
      * {@link OverlayStyle} bar/text indices; warning/error/event slots control semantic
-     * chart tints (VV-545) and future tag markers (VV-541).
+     * chart tints and future tag markers.
      */
     overlayTimingChartStyle?: OverlayTimingChartStyle;
 
@@ -237,17 +237,17 @@ export interface OverlayTimingChartStyle {
     /** Render bar color; defaults to {@link OverlayStyle.textPaletteIndex} or overlay text index. */
     renderBarPaletteIndex?: number;
 
-    /** Warning tint when a chart column is over budget or dropped one frame (VV-545). */
+    /** Warning tint when a chart column is over budget or dropped one frame. */
     warningPaletteIndex?: number;
 
-    /** Error tint when a chart column is severely over budget or dropped 2+ frames (VV-545). */
+    /** Error tint when a chart column is severely over budget or dropped 2+ frames. */
     errorPaletteIndex?: number;
 
-    /** Palette index for timing chart tag and tick text (VV-541). */
+    /** Palette index for timing chart tag and tick text. */
     tagPaletteIndex?: number;
 
     /**
-     * Faint horizontal grid lines behind chart dots (VV-7). Defaults to
+     * Faint horizontal grid lines behind chart dots. Defaults to
      * {@link OverlayStyle.gapPaletteIndex} or {@link OverlayStyle.barPaletteIndex} when omitted.
      */
     gridPaletteIndex?: number;

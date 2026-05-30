@@ -1,8 +1,8 @@
 /**
  * Screen-space overlay HUD orchestrator.
  *
- * Delegates layout planning, bar drawing, toggle input, timing chart (VV-539),
- * and palette grid (VV-540) to submodules under `overlay/`.
+ * Delegates layout planning, bar drawing, toggle input, timing chart,
+ * and palette grid to submodules under `overlay/`.
  */
 
 import type { BitmapFont } from '../assets/BitmapFont';
@@ -199,7 +199,7 @@ export class Overlay {
     // #region Public API
 
     /**
-     * Records a timing-chart event tag at the current tick (VV-541).
+     * Records a timing-chart event tag at the current tick.
      *
      * No-op when the timing chart is disabled.
      *

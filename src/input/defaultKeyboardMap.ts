@@ -1,5 +1,5 @@
 /**
- * Default keyboard bindings for face buttons (VV-435 key mapping).
+ * Default keyboard bindings for face buttons (key mapping).
  *
  * Values are `KeyboardEvent.code` strings. Logical button state is the OR of
  * all listed keys for that button.

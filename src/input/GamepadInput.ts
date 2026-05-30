@@ -1,5 +1,5 @@
 /**
- * Gamepad input subsystem (VV-135).
+ * Gamepad input subsystem.
  *
  * Uses the browser Gamepad API and snapshots previous-state at end-of-frame for
  * edge detection (`pressed`/`released`) and optional repeat timing.

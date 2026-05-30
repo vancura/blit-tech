@@ -1,5 +1,5 @@
 /**
- * Live palette swatch grid for the overlay bottom band (VV-540).
+ * Live palette swatch grid for the overlay bottom band.
  *
  * {@link computePaletteGrid} picks adaptive column counts from the active palette
  * size; {@link PaletteView.draw} renders indexed swatches with gaps and
@@ -208,7 +208,7 @@ function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusio
     return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
 }
 
-/** Cached hint exclusion rect; recomputed only when layout inputs change (VV-543). */
+/** Cached hint exclusion rect; recomputed only when layout inputs change. */
 const hintExclusionCache = {
     hintBarTopY: Number.NaN,
     displayWidth: Number.NaN,
