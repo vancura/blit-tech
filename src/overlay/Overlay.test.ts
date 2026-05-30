@@ -468,6 +468,50 @@ describe('Overlay', () => {
         expect(customRowFill).toMatchObject({ y: row0BarY, width: 320, height: OVERLAY_BAR_HEIGHT });
     });
 
+    it('draws palette tooltip label after custom row and hint labels', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', { paletteView: true, visibleAtStart: true });
+        const renderer = createMockRenderer();
+        const palette = Palette.vga();
+        const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
+        const grid = computePaletteGrid(320, undefined, palette.size);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
+        const swatch = new Rect2i();
+        const hoveredIndex = 7;
+
+        writePaletteSwatchTopLeft(swatch, hoveredIndex, paletteBand, grid);
+
+        const customRows = [{ leftText: 'Bounces: 11' }, { leftText: 'Position: (43, 166)' }];
+        const pointer = {
+            isValid: () => true,
+            getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+        };
+
+        overlay.updateAndRender(
+            renderer,
+            mockFont,
+            pointer as never,
+            null,
+            0,
+            () => customRows,
+            undefined,
+            palette,
+            usedMask,
+        );
+
+        const calls = getBitmapTextCalls(renderer);
+
+        expect(calls.some((call) => call.text === 'Position: (43, 166)')).toBe(true);
+        expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            String(hoveredIndex),
+            expect.any(Number),
+        );
+        expect(renderer.drawBarFillOnTop).toHaveBeenCalled();
+    });
+
     it('draws timing chart dots when overlayTimingChart is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {

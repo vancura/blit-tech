@@ -274,7 +274,7 @@ export function drawPaletteTooltipChrome(
     barIndex: number,
     textIndex: number,
 ): void {
-    target.drawBarFill(layout.body, barIndex);
+    target.drawBarFillOnTop(layout.body, barIndex);
 
     const edge = tooltipScratch.outlineEdge;
     const x0 = layout.body.x;
@@ -282,12 +282,12 @@ export function drawPaletteTooltipChrome(
     const x1 = layout.body.x + layout.body.width - 1;
     const y1 = layout.body.y + layout.body.height - 1;
 
-    target.drawBarFill(edge.set(x0, y0, x1 - x0 + 1, 1), textIndex);
-    target.drawBarFill(edge.set(x0, y1, x1 - x0 + 1, 1), textIndex);
+    target.drawBarFillOnTop(edge.set(x0, y0, x1 - x0 + 1, 1), textIndex);
+    target.drawBarFillOnTop(edge.set(x0, y1, x1 - x0 + 1, 1), textIndex);
 
     if (y1 - y0 > 1) {
-        target.drawBarFill(edge.set(x0, y0 + 1, 1, y1 - y0 - 1), textIndex);
-        target.drawBarFill(edge.set(x1, y0 + 1, 1, y1 - y0 - 1), textIndex);
+        target.drawBarFillOnTop(edge.set(x0, y0 + 1, 1, y1 - y0 - 1), textIndex);
+        target.drawBarFillOnTop(edge.set(x1, y0 + 1, 1, y1 - y0 - 1), textIndex);
     }
 }
 
@@ -313,7 +313,7 @@ export function drawPaletteTooltipLabel(
 
     const textPaletteOffset = overlayBitmapTextPaletteOffset(textIndex);
 
-    target.drawLabel(font, layout.textPos, label, textPaletteOffset);
+    target.drawLabelOnTop(font, layout.textPos, label, textPaletteOffset);
 }
 
 // #endregion

@@ -35,7 +35,11 @@ export function createMockRenderer(): OverlayRenderer & {
         rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
     }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
     drawBarFill.rectSnapshots = rectSnapshots;
+    const drawBarFillOnTop = vi.fn((rect: Rect2i) => {
+        rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
+    });
     const drawLabel = vi.fn();
+    const drawLabelOnTop = vi.fn();
     const drawPixel = vi.fn();
     const drawRect = vi.fn();
 
@@ -45,9 +49,11 @@ export function createMockRenderer(): OverlayRenderer & {
         setCameraOffset: vi.fn(),
         drawRectFill: vi.fn(),
         drawBarFill,
+        drawBarFillOnTop,
         drawRect,
         drawBitmapText: vi.fn(),
         drawLabel,
+        drawLabelOnTop,
         drawPixel,
     } as never;
 }
