@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Rect2i } from '../../utils/Rect2i';
 import {
     TIMING_CHART_DEFAULT_ERROR_IDX,
-    TIMING_CHART_DEFAULT_EVENT_IDX,
+    TIMING_CHART_DEFAULT_TAG_IDX,
     TIMING_CHART_DEFAULT_WARNING_IDX,
     TIMING_CHART_FULL_SCALE_MS,
 } from './constants';
@@ -11,7 +11,7 @@ import {
     computeTimingChartBarHeight,
     computeTimingChartDotY,
     computeTimingChartGridLineY,
-    resolveOverlayTimingChartStyle,
+    resolveTimingChartStyle,
     shouldDrawTimingChartGridLineY,
     timingChartBaselineY,
     timingChartFrameBudgetMs,
@@ -34,27 +34,27 @@ describe('computeTimingChartBarHeight', () => {
     });
 });
 
-describe('resolveOverlayTimingChartStyle', () => {
+describe('resolveTimingChartStyle', () => {
     it('defaults update/render bars to overlay style indices', () => {
-        const resolved = resolveOverlayTimingChartStyle({ barPaletteIndex: 10, textPaletteIndex: 11 }, undefined);
+        const resolved = resolveTimingChartStyle({ barPaletteIndex: 10, textPaletteIndex: 11 }, undefined);
 
         expect(resolved.updateBarIndex).toBe(10);
         expect(resolved.renderBarIndex).toBe(11);
         expect(resolved.warningBarIndex).toBe(TIMING_CHART_DEFAULT_WARNING_IDX);
         expect(resolved.errorBarIndex).toBe(TIMING_CHART_DEFAULT_ERROR_IDX);
-        expect(resolved.eventBarIndex).toBe(TIMING_CHART_DEFAULT_EVENT_IDX);
+        expect(resolved.tagBarIndex).toBe(TIMING_CHART_DEFAULT_TAG_IDX);
         expect(resolved.gridBarIndex).toBe(10);
     });
 
     it('honors timing chart palette overrides', () => {
-        const resolved = resolveOverlayTimingChartStyle(
+        const resolved = resolveTimingChartStyle(
             { barPaletteIndex: 1, textPaletteIndex: 2, gapPaletteIndex: 12 },
             {
                 updateBarPaletteIndex: 20,
                 renderBarPaletteIndex: 21,
                 warningPaletteIndex: 22,
                 errorPaletteIndex: 23,
-                eventPaletteIndex: 24,
+                tagPaletteIndex: 24,
                 gridPaletteIndex: 25,
             },
         );
@@ -63,21 +63,18 @@ describe('resolveOverlayTimingChartStyle', () => {
         expect(resolved.renderBarIndex).toBe(21);
         expect(resolved.warningBarIndex).toBe(22);
         expect(resolved.errorBarIndex).toBe(23);
-        expect(resolved.eventBarIndex).toBe(24);
+        expect(resolved.tagBarIndex).toBe(24);
         expect(resolved.gridBarIndex).toBe(25);
     });
 
     it('defaults grid lines to gap palette index when grid override is omitted', () => {
-        const resolved = resolveOverlayTimingChartStyle(
-            { barPaletteIndex: 1, textPaletteIndex: 2, gapPaletteIndex: 7 },
-            {},
-        );
+        const resolved = resolveTimingChartStyle({ barPaletteIndex: 1, textPaletteIndex: 2, gapPaletteIndex: 7 }, {});
 
         expect(resolved.gridBarIndex).toBe(7);
     });
 
     it('falls back grid lines to bar index when gap palette is omitted', () => {
-        const resolved = resolveOverlayTimingChartStyle({ barPaletteIndex: 9, textPaletteIndex: 2 }, undefined);
+        const resolved = resolveTimingChartStyle({ barPaletteIndex: 9, textPaletteIndex: 2 }, undefined);
 
         expect(resolved.gridBarIndex).toBe(9);
     });

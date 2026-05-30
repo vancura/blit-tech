@@ -352,6 +352,20 @@ describe('BT.ticksReset', () => {
     });
 });
 
+describe('BT.assignTag', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('delegates to BTAPI.instance.assignTag', () => {
+        const spy = vi.spyOn(BTAPI.instance, 'assignTag').mockReturnValue(undefined);
+
+        BT.assignTag('Milestone');
+
+        expect(spy).toHaveBeenCalledWith('Milestone');
+    });
+});
+
 // #endregion
 
 // #region BT.paletteCreate / BT.paletteSet / BT.palette

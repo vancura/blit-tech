@@ -77,6 +77,20 @@ export function getBitmapTextCalls(renderer: ReturnType<typeof createMockRendere
 }
 
 /**
+ * Collects {@link OverlayDrawTarget.drawLabelOnTop} calls from a mock renderer.
+ *
+ * @param renderer - Mock from {@link createMockRenderer}.
+ * @returns Parsed draw calls in invocation order.
+ */
+export function getLabelOnTopCalls(renderer: ReturnType<typeof createMockRenderer>): BitmapTextCall[] {
+    return renderer.drawLabelOnTop.mock.calls.map((call) => ({
+        pos: call[1] as Vector2i,
+        text: call[2] as string,
+        paletteOffset: (call[3] as number | undefined) ?? 0,
+    }));
+}
+
+/**
  * Collects {@link OverlayDrawTarget.drawBarFill} rects from a mock renderer.
  *
  * @param renderer - Mock from {@link createMockRenderer}.
@@ -100,6 +114,6 @@ export function customRowBarY(displayHeight: number, rowIndex: number, footerHei
     return customBarY(footerStackTopY, rowIndex);
 }
 
-export const mockFont = {} as BitmapFont;
+export const mockFont = { lineHeight: 14 } as BitmapFont;
 
 export { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY_TOP_TEXT_Y } from './layout/constants';

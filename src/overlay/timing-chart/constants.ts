@@ -10,8 +10,8 @@ export const TIMING_CHART_DEFAULT_WARNING_IDX = 3;
 /** Default error palette index for timing chart semantic overlays. */
 export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 
-/** Default event/tag palette index for timing chart semantic overlays. */
-export const TIMING_CHART_DEFAULT_EVENT_IDX = 5;
+/** Default palette index for timing chart tag and tick text. */
+export const TIMING_CHART_DEFAULT_TAG_IDX = 5;
 
 /**
  * Fixed interior grid markers in milliseconds (VV-7). Excludes 1 ms (band bottom edge).

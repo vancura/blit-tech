@@ -3,19 +3,19 @@ import type { Rect2i } from '../../utils/Rect2i';
 import { DEFAULT_IDX_BG, DEFAULT_IDX_TEXT } from '../constants';
 import {
     TIMING_CHART_DEFAULT_ERROR_IDX,
-    TIMING_CHART_DEFAULT_EVENT_IDX,
+    TIMING_CHART_DEFAULT_TAG_IDX,
     TIMING_CHART_DEFAULT_WARNING_IDX,
     TIMING_CHART_FULL_SCALE_MS,
     TIMING_CHART_GRID_MARKER_MS,
 } from './constants';
 
-/** Resolved palette indices used when drawing the timing chart band. */
-export interface ResolvedOverlayTimingChartStyle {
+/** Resolved palette indices used when drawing the overlay timing chart band. */
+export interface TimingChartDrawStyle {
     readonly updateBarIndex: number;
     readonly renderBarIndex: number;
     readonly warningBarIndex: number;
     readonly errorBarIndex: number;
-    readonly eventBarIndex: number;
+    readonly tagBarIndex: number;
     readonly gridBarIndex: number;
 }
 
@@ -38,10 +38,10 @@ const pickOverlayBarTextGap = (
  * @param chartStyle - Optional timing-chart palette overrides.
  * @returns Resolved indices for chart draw and semantic severity tints.
  */
-export function resolveOverlayTimingChartStyle(
+export function resolveTimingChartStyle(
     overlayStyle: OverlayStyle | undefined,
     chartStyle: OverlayTimingChartStyle | undefined,
-): ResolvedOverlayTimingChartStyle {
+): TimingChartDrawStyle {
     const { barIndex, textIndex, gapIndex } = pickOverlayBarTextGap(overlayStyle);
 
     return {
@@ -49,7 +49,7 @@ export function resolveOverlayTimingChartStyle(
         renderBarIndex: pickPaletteIndex(chartStyle?.renderBarPaletteIndex, textIndex),
         warningBarIndex: pickPaletteIndex(chartStyle?.warningPaletteIndex, TIMING_CHART_DEFAULT_WARNING_IDX),
         errorBarIndex: pickPaletteIndex(chartStyle?.errorPaletteIndex, TIMING_CHART_DEFAULT_ERROR_IDX),
-        eventBarIndex: pickPaletteIndex(chartStyle?.eventPaletteIndex, TIMING_CHART_DEFAULT_EVENT_IDX),
+        tagBarIndex: pickPaletteIndex(chartStyle?.tagPaletteIndex, TIMING_CHART_DEFAULT_TAG_IDX),
         gridBarIndex: pickPaletteIndex(chartStyle?.gridPaletteIndex, gapIndex),
     };
 }

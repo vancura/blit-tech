@@ -522,6 +522,19 @@ export const BT = {
     },
 
     /**
+     * Places a labeled marker on the overlay timing chart at the current tick.
+     *
+     * Requires `overlayTimingChart: true` in `configure()`. Tags scroll with the chart
+     * history and are pruned when they leave the visible window. Empty labels become
+     * `"Untitled"`. Chart width resets add an automatic `"Start"` tag.
+     *
+     * @param label - Short event name (for example `'Round start'`).
+     */
+    assignTag: (label?: string): void => {
+        BTAPI.instance.assignTag(label);
+    },
+
+    /**
      * Rendering backend that is currently active.
      *
      * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.

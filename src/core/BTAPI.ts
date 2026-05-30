@@ -484,6 +484,17 @@ export class BTAPI {
         this.loop?.resetTicks();
     }
 
+    /**
+     * Assigns an event tag on the stats overlay timing chart (VV-541).
+     *
+     * No-op when the overlay or timing chart is disabled.
+     *
+     * @param label - Tag text; empty becomes `"Untitled"`.
+     */
+    public assignTag(label?: string): void {
+        this.overlay?.assignTag(label, this.getTicks());
+    }
+
     // #endregion
 
     // #region Demo State Accessors

@@ -37,17 +37,16 @@ export { PaletteInteraction } from './palette/PaletteInteraction';
 export { computePaletteGrid, PaletteView } from './palette/PaletteView';
 export { FpsSampler } from './sampling/FpsSampler';
 export { TimingSampler } from './sampling/TimingSampler';
-export type { ResolvedOverlayTimingChartStyle } from './timing-chart/style';
+export type { TimingChartDrawStyle } from './timing-chart/style';
 export {
     computeTimingChartBarHeight,
     computeTimingChartDotY,
     computeTimingChartGridLineY,
-    resolveOverlayTimingChartStyle,
+    resolveTimingChartStyle,
     shouldDrawTimingChartGridLineY,
     timingChartBaselineY,
     timingChartFrameBudgetMs,
     writeTimingChartGridMarkers,
 } from './timing-chart/style';
-export type { OverlayTimingChartDrawStyle } from './timing-chart/TimingChart';
 export { TimingChart } from './timing-chart/TimingChart';
 export type { OverlayTimingSnapshot, PaletteGridLayout } from './types';

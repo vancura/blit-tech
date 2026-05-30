@@ -1135,6 +1135,51 @@ describe('BTAPI', () => {
 
     // #endregion
 
+    // #region Timing chart tags (VV-541)
+
+    describe('assignTag', () => {
+        it('forwards tags to Overlay when the timing chart is enabled', async () => {
+            const assignSpy = vi.spyOn(Overlay.prototype, 'assignTag');
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.assignTag('Checkpoint');
+
+            expect(assignSpy).toHaveBeenCalledWith('Checkpoint', expect.any(Number));
+        });
+
+        it('does not store tags when overlayTimingChart is disabled', async () => {
+            const { TimingChart } = await import('../overlay/timing-chart/TimingChart');
+            const assignSpy = vi.spyOn(TimingChart.prototype, 'assignTag');
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: false,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.assignTag('Ignored');
+
+            expect(assignSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    // #endregion
+
     // #region Palette usage tracking (VV-543)
 
     describe('palette usage tracking', () => {
