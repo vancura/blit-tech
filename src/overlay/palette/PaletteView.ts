@@ -124,11 +124,13 @@ export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?
         return 0;
     }
 
-    if (maxVisibleRows === undefined) {
+    if (maxVisibleRows === undefined || !Number.isFinite(maxVisibleRows)) {
         return totalRows;
     }
 
-    return Math.min(totalRows, Math.max(1, maxVisibleRows));
+    const parsedMax = Math.max(1, Math.trunc(maxVisibleRows));
+
+    return Math.min(totalRows, parsedMax);
 }
 
 /**

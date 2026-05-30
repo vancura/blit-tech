@@ -21,6 +21,7 @@ import {
     paletteGridRowWidth,
     PaletteView,
     pickPaletteGridColumnCount,
+    resolvePaletteGridVisibleRows,
 } from './PaletteView';
 
 /** Builds a usage mask from palette slot indices for tests. */
@@ -149,6 +150,17 @@ describe('computePaletteGrid', () => {
         expect(computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).cols).toBe(8);
         expect(computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).rows).toBe(2);
         expect(pickPaletteGridColumnCount(320, DEFAULT_PALETTE_SWATCH_SIZE, PALETTE_SWATCH_GAP_PX, 256, 8)).toBe(8);
+    });
+});
+
+describe('resolvePaletteGridVisibleRows', () => {
+    it('ignores non-finite caps and returns all rows', () => {
+        expect(resolvePaletteGridVisibleRows(8, Number.NaN)).toBe(8);
+        expect(resolvePaletteGridVisibleRows(8, Number.POSITIVE_INFINITY)).toBe(8);
+    });
+
+    it('truncates fractional caps before clamping', () => {
+        expect(resolvePaletteGridVisibleRows(8, 2.9)).toBe(2);
     });
 });
 
