@@ -19,6 +19,12 @@ export interface OverlayTimingSnapshot {
 
     /** Number of draw API calls issued by the demo for this frame. */
     readonly drawCalls: number;
+
+    /**
+     * Estimated dropped refresh intervals detected at the start of this present frame.
+     * Zero when none; set from {@link GameLoop} before the overlay samples the chart.
+     */
+    readonly droppedFrames: number;
 }
 
 /** Computed palette swatch grid dimensions for the palette band. */

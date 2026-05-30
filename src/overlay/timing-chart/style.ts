@@ -20,7 +20,7 @@ export interface ResolvedOverlayTimingChartStyle {
  *
  * @param overlayStyle - Global overlay bar/text indices from hardware settings.
  * @param chartStyle - Optional timing-chart palette overrides.
- * @returns Resolved indices for chart draw and future semantic overlays.
+ * @returns Resolved indices for chart draw and semantic severity tints.
  */
 export function resolveOverlayTimingChartStyle(
     overlayStyle: OverlayStyle | undefined,

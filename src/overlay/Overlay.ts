@@ -128,7 +128,7 @@ export class Overlay {
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
         this.#timingChartStyle = resolveOverlayTimingChartStyle(style, overlayTimingChartStyle);
         this.#timingChartHeight = overlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
-        this.#timingChart = new TimingChart(overlayTimingChart);
+        this.#timingChart = new TimingChart(overlayTimingChart, targetFps);
         this.#paletteView = new PaletteView(overlayPaletteView);
         this.#paletteInteraction = new PaletteInteraction(targetFps);
         this.#paletteColumns = paletteColumns;

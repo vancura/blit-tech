@@ -888,7 +888,14 @@ describe('BTAPI', () => {
             const lastCall = overlaySpy.mock.calls.at(-1);
             const getCustomRows = lastCall?.[5] as (() => typeof customRows) | undefined;
             const timing = lastCall?.[6] as
-                | { frameMs: number; updateMs: number; renderMs: number; updateSteps: number; drawCalls: number }
+                | {
+                      frameMs: number;
+                      updateMs: number;
+                      renderMs: number;
+                      updateSteps: number;
+                      drawCalls: number;
+                      droppedFrames: number;
+                  }
                 | undefined;
 
             expect(getCustomRows?.()).toBe(customRows);
@@ -898,6 +905,7 @@ describe('BTAPI', () => {
             expect(timing?.renderMs).toBeGreaterThanOrEqual(0);
             expect(timing?.updateSteps).toBeGreaterThanOrEqual(0);
             expect(timing?.drawCalls).toBeGreaterThanOrEqual(0);
+            expect(timing?.droppedFrames).toBeGreaterThanOrEqual(0);
         });
 
         it('calls gamepad.endFrame during render-phase input flush', async () => {

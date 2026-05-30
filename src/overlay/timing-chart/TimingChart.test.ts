@@ -27,7 +27,14 @@ describe('TimingChart', () => {
         const renderer = createMockRenderer();
 
         chart.reset(4);
-        chart.sample({ frameMs: 1, updateMs: 2, renderMs: 3, updateSteps: 1, drawCalls: 1 });
+        chart.sample({
+            frameMs: 1,
+            updateMs: 2,
+            renderMs: 3,
+            updateSteps: 1,
+            drawCalls: 1,
+            droppedFrames: 0,
+        });
         chart.draw(renderer, new Rect2i(0, 14, 4, 22), {
             updateBarIndex: 1,
             renderBarIndex: 2,
@@ -53,10 +60,10 @@ describe('TimingChart', () => {
         const baselineY = chartRect.y + chartRect.height - 1;
 
         chart.reset(3);
-        chart.sample({ frameMs: 0, updateMs: 4, renderMs: 0, updateSteps: 1, drawCalls: 0 });
-        chart.sample({ frameMs: 0, updateMs: 8, renderMs: 0, updateSteps: 1, drawCalls: 0 });
-        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 0, updateSteps: 1, drawCalls: 0 });
-        chart.sample({ frameMs: 0, updateMs: 16, renderMs: 0, updateSteps: 1, drawCalls: 0 });
+        chart.sample({ frameMs: 0, updateMs: 4, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({ frameMs: 0, updateMs: 8, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({ frameMs: 0, updateMs: 16, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
 
         chart.draw(renderer, chartRect, style);
 
@@ -87,7 +94,7 @@ describe('TimingChart', () => {
         };
 
         chart.reset(4);
-        chart.sample({ frameMs: 0, updateMs: 0, renderMs: 0.1, updateSteps: 1, drawCalls: 1 });
+        chart.sample({ frameMs: 0, updateMs: 0, renderMs: 0.1, updateSteps: 1, drawCalls: 1, droppedFrames: 0 });
         chart.draw(renderer, new Rect2i(0, 14, 4, 32), style);
 
         expect(
@@ -105,7 +112,7 @@ describe('TimingChart', () => {
         const renderer = createMockRenderer();
 
         chart.reset(1);
-        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 8, updateSteps: 1, drawCalls: 0 });
+        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 8, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
         chart.draw(renderer, new Rect2i(10, 14, 1, 22), {
             updateBarIndex: 8,
             renderBarIndex: 9,
@@ -124,6 +131,85 @@ describe('TimingChart', () => {
         expect(paletteIndices).toContain(8);
         expect(paletteIndices).toContain(9);
         expect(dots).toHaveLength(2);
+    });
+
+    it('tints both dots with warning palette when frame is over soft budget', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+        const style = {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+        };
+
+        chart.reset(1);
+        chart.sample({
+            frameMs: 20,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+        });
+        chart.draw(renderer, new Rect2i(0, 14, 1, 22), style);
+
+        const paletteIndices = renderer.drawBarFill.mock.calls.map((call) => call[1] as number);
+
+        expect(paletteIndices.every((index) => index === 3)).toBe(true);
+        expect(paletteIndices).not.toContain(8);
+        expect(paletteIndices).not.toContain(9);
+    });
+
+    it('tints with error palette when two or more frames were dropped', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+
+        chart.reset(1);
+        chart.sample({
+            frameMs: 0,
+            updateMs: 0,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 2,
+        });
+        chart.draw(renderer, new Rect2i(0, 14, 1, 22), {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+        });
+
+        expect(renderer.drawBarFill.mock.calls.every((call) => call[1] === 4)).toBe(true);
+    });
+
+    it('draws a baseline error marker when drop severity is active with zero timing samples', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(5, 14, 1, 22);
+        const baselineY = chartRect.y + chartRect.height - 1;
+
+        chart.reset(1);
+        chart.sample({
+            frameMs: 0,
+            updateMs: 0,
+            renderMs: 0,
+            updateSteps: 0,
+            drawCalls: 0,
+            droppedFrames: 1,
+        });
+        chart.draw(renderer, chartRect, {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+        });
+
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(expect.objectContaining({ x: 5, y: baselineY }), 3);
     });
 });
 

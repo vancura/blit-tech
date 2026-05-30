@@ -38,7 +38,12 @@ interface OverlayTestOptions {
     paletteColumns?: number;
     paletteRowsVisible?: number;
     timingChart?: boolean;
-    timingChartStyle?: { updateBarPaletteIndex?: number; renderBarPaletteIndex?: number };
+    timingChartStyle?: {
+        updateBarPaletteIndex?: number;
+        renderBarPaletteIndex?: number;
+        warningPaletteIndex?: number;
+        errorPaletteIndex?: number;
+    };
     timingChartHeight?: number;
     visibleAtStart?: boolean;
     toggleHintVisible?: boolean;
@@ -260,6 +265,7 @@ describe('Overlay', () => {
             renderMs: 3.75,
             updateSteps: 3,
             drawCalls: 42,
+            droppedFrames: 0,
         });
 
         const calls = getBitmapTextCalls(renderer);
@@ -625,6 +631,7 @@ describe('Overlay', () => {
             renderMs: 100,
             updateSteps: 1,
             drawCalls: 4,
+            droppedFrames: 0,
         });
 
         const dotCalls = renderer.drawBarFill.mock.calls.filter(
@@ -634,6 +641,38 @@ describe('Overlay', () => {
 
         expect(paletteIndices).toContain(10);
         expect(paletteIndices).toContain(11);
+    });
+
+    it('tints timing chart dots with warning palette when frame exceeds soft budget', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', {
+            timingChart: true,
+            timingChartStyle: {
+                updateBarPaletteIndex: 10,
+                renderBarPaletteIndex: 11,
+                warningPaletteIndex: 3,
+                errorPaletteIndex: 4,
+            },
+            visibleAtStart: true,
+        });
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 20,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 4,
+            droppedFrames: 0,
+        });
+
+        const dotCalls = renderer.drawBarFill.mock.calls.filter(
+            (call) => (call[0] as { width: number }).width === 1 && (call[0] as { height: number }).height === 1,
+        );
+        const paletteIndices = dotCalls.map((call) => call[1] as number);
+
+        expect(paletteIndices.length).toBeGreaterThan(0);
+        expect(paletteIndices.every((index) => index === 3)).toBe(true);
     });
 
     it('does not draw overlay while hidden but keeps timing chart samples for re-show', () => {
@@ -653,6 +692,7 @@ describe('Overlay', () => {
             renderMs: 8,
             updateSteps: 1,
             drawCalls: 4,
+            droppedFrames: 0,
         });
 
         expect(renderer.drawBarFill).not.toHaveBeenCalled();
@@ -664,6 +704,7 @@ describe('Overlay', () => {
             renderMs: 8,
             updateSteps: 1,
             drawCalls: 4,
+            droppedFrames: 1,
         });
 
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(true);
@@ -680,9 +721,45 @@ describe('Overlay', () => {
             renderMs: 100,
             updateSteps: 1,
             drawCalls: 4,
+            droppedFrames: 0,
         });
 
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(false);
+    });
+
+    it('records drop severity in chart history while body is hidden', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', {
+            timingChart: true,
+            timingChartStyle: { warningPaletteIndex: 3, errorPaletteIndex: 4 },
+            visibleAtStart: true,
+            toggleHintVisible: false,
+        });
+        const renderer = createMockRenderer();
+
+        overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 1);
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 0,
+            updateMs: 0,
+            renderMs: 0,
+            updateSteps: 0,
+            drawCalls: 0,
+            droppedFrames: 1,
+        });
+
+        expect(renderer.drawBarFill).not.toHaveBeenCalled();
+
+        overlay.handleToggle(null, { isKeyPressed: (key: string) => key === 'Backquote' } as never, 2);
+        overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
+            frameMs: 0,
+            updateMs: 0,
+            renderMs: 0,
+            updateSteps: 0,
+            drawCalls: 0,
+            droppedFrames: 0,
+        });
+
+        expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 3)).toBe(true);
     });
 
     it('ignores toggle input when overlayToggleEnabled is false', () => {
