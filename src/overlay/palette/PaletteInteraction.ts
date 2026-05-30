@@ -1,5 +1,5 @@
 /**
- * Palette swatch hover tooltips and clipboard copy for the overlay (VV-549).
+ * Palette swatch hover tooltips and clipboard copy for the overlay.
  */
 
 import type { BitmapFont } from '../../assets/BitmapFont';
@@ -25,7 +25,7 @@ import {
 
 // #region Constants and types
 
-/** Reserved width on the right edge of the palette band excluded from swatch hits (VV-550 scrollbar). */
+/** Reserved width on the right edge of the palette band excluded from swatch hits (scrollbar). */
 export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 4;
 
 /** Minimum wheel delta in pixels before advancing one palette row. */
@@ -167,7 +167,7 @@ function resolvePaletteIndexAtBandLocal(
  * @param colorCount - Active palette slot count.
  * @param hintExclusion - Region to skip for the toggle hint icon.
  * @param displayWidth - Logical display width for scrollbar track exclusion.
- * @param scrollRowOffset - First visible grid row (default `0`; VV-550 scroll).
+ * @param scrollRowOffset - First visible grid row (default `0`).
  * @param scrollbarTrackWidth - Right-edge track width excluded from hits (default {@link PALETTE_SCROLLBAR_TRACK_WIDTH_PX}).
  * @returns Palette index, or `null` when the pointer is not over a hittable swatch.
  */

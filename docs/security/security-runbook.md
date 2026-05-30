@@ -19,11 +19,11 @@ the `/security-run` skill and `pnpm run security:mcp-preflight`.
 2. Run [Repo-native commands](#repo-native-commands) for the affected repo (`pnpm run security:audit`,
    `pnpm run preflight`).
 3. Follow [dependency-policy.md](./dependency-policy.md) for CI failures or temporary risk acceptance.
-4. Record findings using the [Report template](#report-template) (Linear comment or issue body).
+4. Record findings using the [Report template](#report-template) (issue tracker or PR description).
 
-Bus-factor evidence (optional): run the `security-ownership-map` skill and attach `summary.json` to hardening reviews.
-VV-522 (backup-owner process) was canceled; the **Maintainers** section above (including incident triage) is the
-documented fallback instead of a fictional backup owner.
+Bus-factor evidence (optional): run the `security-ownership-map` skill and attach `summary.json` to hardening reviews. A
+formal backup-owner process is intentionally not used; the **Maintainers** section above (including incident triage) is
+the documented fallback instead of a fictional backup owner.
 
 ## When to run
 
@@ -163,7 +163,7 @@ node "<blit-tech-root>/scripts/security/mcp-preflight.mjs" \
 
 ## Report template
 
-Use this structure in agent output or Linear comments:
+Use this structure in agent output or issue/PR comments:
 
 ```md
 ## Security run report

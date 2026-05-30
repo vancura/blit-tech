@@ -1,5 +1,5 @@
 /**
- * Inline row-major mask for the overlay toggle hint icon (VV-548).
+ * Inline row-major mask for the overlay toggle hint icon.
  *
  * `1` draws a foreground pixel; `0` is transparent.
  */

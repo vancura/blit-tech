@@ -1,5 +1,5 @@
 /**
- * Scrolling update/render timing chart band for the overlay (VV-539, VV-545 severity, VV-7 grid, VV-541 tags).
+ * Scrolling update/render timing chart band for the overlay (severity tints, grid lines, event tags).
  */
 
 import type { BitmapFont } from '../../assets/BitmapFont';
@@ -73,7 +73,7 @@ export class TimingChart {
     /** Reusable marker list: fixed thresholds plus one frame-budget slot. */
     readonly #gridMarkerMs = new Float32Array(8);
 
-    /** Event tags anchored to absolute ticks (VV-541). */
+    /** Event tags anchored to absolute ticks. */
     readonly #tags: TimingChartTag[] = [];
 
     /** Tick at last chart reset; used for relative tick labels. */
@@ -312,7 +312,7 @@ export class TimingChart {
     }
 
     /**
-     * Draws a one-pixel vertical marker per tag, aligned with timing columns (VV-541).
+     * Draws a one-pixel vertical marker per tag, aligned with timing columns.
      *
      * @param target - Overlay draw target.
      * @param chartRect - Screen-space chart band.
@@ -338,7 +338,7 @@ export class TimingChart {
     }
 
     /**
-     * Draws event tag labels above the chart band (VV-541).
+     * Draws event tag labels above the chart band.
      *
      * @param target - Overlay draw target.
      * @param chartRect - Screen-space chart band.
@@ -399,7 +399,7 @@ export class TimingChart {
     }
 
     /**
-     * Draws faint horizontal grid lines behind timing dots (VV-7).
+     * Draws faint horizontal grid lines behind timing dots.
      *
      * @param target - Overlay draw target.
      * @param chartRect - Screen-space chart band from layout plan.

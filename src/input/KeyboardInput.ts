@@ -1,6 +1,6 @@
 /**
  * Keyboard input: DOM `code` tracking, edge detection, optional tick-based repeat,
- * and text accumulation via `beforeinput` (VV-396 / `inputString`).
+ * and text accumulation via `beforeinput` (`inputString`).
  */
 
 // #region Types

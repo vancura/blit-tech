@@ -2,8 +2,8 @@
  * Dynamic Y-band planner for the overlay.
  *
  * Computes bar rects and text anchors each frame from display size, custom row count,
- * and optional timing-chart / palette-grid feature flags (timing chart default off per
- * VV-539 timing chart opt-in via {@link HardwareSettings.overlayTimingChart}).
+ * and optional timing-chart / palette-grid feature flags (timing chart default off,
+ * opt-in via {@link HardwareSettings.overlayTimingChart}).
  */
 
 import { Rect2i } from '../../utils/Rect2i';

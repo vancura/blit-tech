@@ -7,7 +7,7 @@ import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
 
-/** Reused per-call bitmask of sheet indices seen while scanning a source rect (VV-543). */
+/** Reused per-call bitmask of sheet indices seen while scanning a source rect. */
 const markPaletteIndicesInRectScratch = new Uint8Array(256);
 
 /**
@@ -502,7 +502,7 @@ export class SpriteSheet {
      *
      * Used by the engine to build the overlay palette grid from demo draw
      * calls. Does not allocate; writes into the supplied usage mask. Each unique
-     * sheet index in the rect is resolved once (VV-543).
+     * sheet index in the rect is resolved once.
      *
      * @param srcRect - Region to scan in sheet coordinates.
      * @param paletteOffset - Palette offset applied at draw time.

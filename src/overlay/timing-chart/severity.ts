@@ -1,5 +1,5 @@
 /**
- * Timing chart severity classification (VV-545).
+ * Timing chart severity classification.
  */
 
 /** No semantic tint for this chart column. */

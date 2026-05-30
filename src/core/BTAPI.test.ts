@@ -1147,7 +1147,7 @@ describe('BTAPI', () => {
 
     // #endregion
 
-    // #region Timing chart tags (VV-541)
+    // #region Timing chart tags
 
     describe('assignTag', () => {
         it('forwards tags to Overlay when the timing chart is enabled', async () => {
@@ -1192,7 +1192,7 @@ describe('BTAPI', () => {
 
     // #endregion
 
-    // #region Renderer diagnostics (VV-544)
+    // #region Renderer diagnostics
 
     describe('renderer diagnostics in overlay timing snapshot', () => {
         /**
@@ -1349,7 +1349,7 @@ describe('BTAPI', () => {
 
     // #endregion
 
-    // #region Palette usage tracking (VV-543)
+    // #region Palette usage tracking
 
     describe('palette usage tracking', () => {
         function getOverlay(): Overlay | null {

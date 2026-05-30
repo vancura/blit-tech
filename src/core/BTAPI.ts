@@ -183,10 +183,10 @@ export class BTAPI {
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
 
-    /** Keyboard input (VV-134). Created during {@link init}. */
+    /** Keyboard input. Created during {@link init}. */
     private keyboard: KeyboardInput | null = null;
 
-    /** Gamepad input (VV-135). Created during {@link init}. */
+    /** Gamepad input. Created during {@link init}. */
     private gamepad: GamepadInput | null = null;
 
     // TODO: Additional subsystems for future implementation:
@@ -531,7 +531,7 @@ export class BTAPI {
     }
 
     /**
-     * Assigns an event tag on the stats overlay timing chart (VV-541).
+     * Assigns an event tag on the stats overlay timing chart.
      *
      * No-op when the overlay or timing chart is disabled.
      *

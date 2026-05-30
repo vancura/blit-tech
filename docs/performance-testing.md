@@ -51,7 +51,7 @@ Current benchmark files:
 - `src/assets/SystemFont.bench.ts`
 - `src/overlay/palette/PaletteView.bench.ts`
 
-### Overlay palette grid (VV-543)
+### Overlay palette grid
 
 These benchmarks guard perf follow-ups for the live palette swatch grid:
 

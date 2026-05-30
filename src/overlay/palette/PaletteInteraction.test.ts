@@ -1,5 +1,5 @@
 /**
- * Unit tests for palette swatch hit testing, tooltip layout, and clipboard copy (VV-549).
+ * Unit tests for palette swatch hit testing, tooltip layout, and clipboard copy.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

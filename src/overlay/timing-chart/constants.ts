@@ -32,7 +32,7 @@ export const TIMING_CHART_MAX_PIPELINE_VERTICES = 50000;
 export const TIMING_CHART_PRESSURE_REGION_RATIO = 1 / 3;
 
 /**
- * Fixed interior grid markers in milliseconds (VV-7). Excludes 1 ms (band bottom edge).
+ * Fixed interior grid markers in milliseconds. Excludes 1 ms (band bottom edge).
  * Frame budget is added at draw time from targetFPS.
  */
 export const TIMING_CHART_GRID_MARKER_MS: readonly number[] = [5, 10, 33.33];

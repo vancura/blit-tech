@@ -1,7 +1,7 @@
 # Software Fallback Smoke Matrix
 
-This checklist is for quick manual verification of the software renderer. Originally written for `VV-490` (MVP); updated
-for auto-fallback and the engine overlay (backend shown on the top bar when `overlayEnabled` is true).
+This checklist is for quick manual verification of the software renderer. Originally written for the software-renderer
+MVP; updated for auto-fallback and the engine overlay (backend shown on the top bar when `overlayEnabled` is true).
 
 ## Scope
 

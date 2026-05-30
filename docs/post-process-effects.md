@@ -299,7 +299,7 @@ Demos that want the full kitchen-sink effect should use this.
 ### `BT.preset.amber()`
 
 Amber monochrome PC monitor (think IBM 5151 / Hercules). Currently ships as a parameter-only set - the actual amber tint
-quantization will land with [VV-479](https://linear.app/vancura/issue/VV-479/monochrome-re-quantization-display-effect).
+quantization is planned but not yet implemented.
 
 ### `BT.preset.green()`
 
@@ -412,6 +412,5 @@ aberration via offset sampling) are common shader patterns and not original to a
 composition mirrors the PipBoy fork. The Blit-Tech port is original WGSL.
 
 If you intend to reuse `Interference`, `RollLine`, or `PixelGlitch` in a context with stricter licensing requirements,
-confirm provenance first. The license audit is tracked in
-[VV-480](https://linear.app/vancura/issue/VV-480/audit-and-resolve-pipboy-fork-licensing). If you can identify the
-upstream PipBoy fork, please open a PR to add a verifiable author / URL / license header.
+confirm provenance first. The license audit is still open. If you can identify the upstream PipBoy fork, please open a
+PR to add a verifiable author / URL / license header.
