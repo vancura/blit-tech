@@ -32,6 +32,15 @@ describe('buildOverlayLayoutPlan', () => {
         expect(plan.paletteBand).toMatchObject({ x: 0, y: hintBarY(240), width: 320, height: 0 });
         expect(plan.hintBar).toMatchObject({ x: 0, y: hintBarY(240), width: 320, height: OVERLAY_BAR_HEIGHT });
         expect(plan.timingChart.height).toBe(0);
+        expect(plan.rowGapRects).toHaveLength(2);
+        expect(plan.rowGapRects[0]).toMatchObject({ y: 13, width: 320, height: OVERLAY_ROW_GAP_PX });
+        expect(plan.rowGapRects[1]).toMatchObject({ y: 27, width: 320, height: OVERLAY_ROW_GAP_PX });
+        expect(plan.topClusterSeparator).toMatchObject({ y: 41, width: 320, height: OVERLAY_ROW_GAP_PX });
+        expect(plan.bottomClusterSeparator).toMatchObject({
+            y: hintBarY(240) - OVERLAY_ROW_GAP_PX,
+            width: 320,
+            height: OVERLAY_ROW_GAP_PX,
+        });
     });
 
     it('stacks custom rows above the bottom band with 1px gaps', () => {
@@ -49,6 +58,8 @@ describe('buildOverlayLayoutPlan', () => {
         expect(row0?.y).toBeDefined();
         expect(row1?.y).toBeDefined();
         expect((row0?.y ?? 0) - (row1?.y ?? 0)).toBe(OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX);
+        expect(plan.rowGapRects).toHaveLength(4);
+        expect(plan.bottomClusterSeparator).toMatchObject({ y: 198, width: 320, height: OVERLAY_ROW_GAP_PX });
     });
 
     it('inserts timing chart band when enabled', () => {

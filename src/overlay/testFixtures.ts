@@ -26,9 +26,11 @@ export type BitmapTextCall = {
 export function createMockRenderer(): OverlayRenderer & {
     drawBitmapText: ReturnType<typeof vi.fn>;
     drawLabel: ReturnType<typeof vi.fn>;
+    drawLabelOnTop: ReturnType<typeof vi.fn>;
     drawPixel: ReturnType<typeof vi.fn>;
     drawRectFill: ReturnType<typeof vi.fn>;
     drawBarFill: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
+    drawBarFillOnTop: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
 } {
     const rectSnapshots: Rect2i[] = [];
     const drawBarFill = vi.fn((rect: Rect2i) => {
@@ -37,7 +39,8 @@ export function createMockRenderer(): OverlayRenderer & {
     drawBarFill.rectSnapshots = rectSnapshots;
     const drawBarFillOnTop = vi.fn((rect: Rect2i) => {
         rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
-    });
+    }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
+    drawBarFillOnTop.rectSnapshots = rectSnapshots;
     const drawLabel = vi.fn();
     const drawLabelOnTop = vi.fn();
     const drawPixel = vi.fn();

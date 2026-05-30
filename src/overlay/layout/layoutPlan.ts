@@ -30,6 +30,9 @@ export interface OverlayLayoutPlanScratch {
     topMetricsPos: Vector2i;
     topTimingPos: Vector2i;
     hintLabelPos: Vector2i;
+    rowGapRects: Rect2i[];
+    topClusterSeparator: Rect2i;
+    bottomClusterSeparator: Rect2i;
 }
 
 /**
@@ -52,6 +55,9 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
         topMetricsPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
         topTimingPos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0),
         hintLabelPos: new Vector2i(0, 0),
+        rowGapRects: [],
+        topClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
+        bottomClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
     };
 }
 
@@ -136,6 +142,109 @@ function ensureCustomBarPool(scratch: OverlayLayoutPlanScratch, count: number, d
     while (scratch.customBars.length < count) {
         scratch.customBars.push(new Rect2i(0, 0, displayWidth, OVERLAY_BAR_HEIGHT));
     }
+}
+
+/**
+ * Writes a 1 px row gap rect immediately below a bar band.
+ *
+ * @param scratch - Layout scratch object.
+ * @param bar - Bar whose bottom edge precedes the gap.
+ * @param displayWidth - Logical display width.
+ * @param gapIndex - Index into {@link OverlayLayoutPlanScratch.rowGapRects}.
+ * @returns Next gap index.
+ */
+function writeRowGapBelow(
+    scratch: OverlayLayoutPlanScratch,
+    bar: Rect2i,
+    displayWidth: number,
+    gapIndex: number,
+): number {
+    while (scratch.rowGapRects.length <= gapIndex) {
+        scratch.rowGapRects.push(new Rect2i(0, 0, displayWidth, OVERLAY_ROW_GAP_PX));
+    }
+
+    const rect = scratch.rowGapRects.at(gapIndex);
+
+    if (rect === undefined) {
+        return gapIndex;
+    }
+
+    rect.x = 0;
+    rect.y = bar.y + bar.height;
+    rect.width = displayWidth;
+    rect.height = OVERLAY_ROW_GAP_PX;
+
+    return gapIndex + 1;
+}
+
+/**
+ * Resolves the top Y of the footer overlay cluster (custom rows, palette band, or hint bar).
+ *
+ * @param scratch - Layout scratch with footer rects populated.
+ * @param customRowCount - Demo custom row count for this frame.
+ * @returns Top Y of the uppermost footer band.
+ */
+function resolveFooterClusterTopY(scratch: OverlayLayoutPlanScratch, customRowCount: number): number {
+    if (customRowCount > 0) {
+        const topCustomBar = scratch.customBars[customRowCount - 1];
+
+        if (topCustomBar !== undefined) {
+            return topCustomBar.y;
+        }
+    }
+
+    if (scratch.paletteBand.height > 0) {
+        return scratch.paletteBand.y;
+    }
+
+    return scratch.hintBar.y;
+}
+
+/**
+ * Populates row gap rects and cluster boundary separators from bar geometry.
+ *
+ * @param scratch - Layout scratch with bar rects already assigned.
+ * @param config - Layout configuration.
+ * @param displayWidth - Logical display width.
+ */
+function populateGapLayout(scratch: OverlayLayoutPlanScratch, config: OverlayLayoutConfig, displayWidth: number): void {
+    let gapIndex = 0;
+
+    gapIndex = writeRowGapBelow(scratch, scratch.titleBar, displayWidth, gapIndex);
+
+    if (scratch.timingChart.height > 0) {
+        gapIndex = writeRowGapBelow(scratch, scratch.timingChart, displayWidth, gapIndex);
+    }
+
+    gapIndex = writeRowGapBelow(scratch, scratch.metricsBar, displayWidth, gapIndex);
+
+    /* eslint-disable security/detect-object-injection -- rowIndex bounded by customRowCount */
+    for (let rowIndex = 0; rowIndex < config.customRowCount; rowIndex++) {
+        const bar = scratch.customBars[rowIndex];
+
+        if (bar !== undefined) {
+            gapIndex = writeRowGapBelow(scratch, bar, displayWidth, gapIndex);
+        }
+    }
+    /* eslint-enable security/detect-object-injection */
+
+    if (scratch.paletteBand.height > 0) {
+        gapIndex = writeRowGapBelow(scratch, scratch.paletteBand, displayWidth, gapIndex);
+    }
+
+    scratch.rowGapRects.length = gapIndex;
+
+    scratch.topClusterSeparator.x = 0;
+    scratch.topClusterSeparator.y = scratch.timingTextBar.y + scratch.timingTextBar.height;
+    scratch.topClusterSeparator.width = displayWidth;
+    scratch.topClusterSeparator.height = OVERLAY_ROW_GAP_PX;
+
+    const footerTopY = resolveFooterClusterTopY(scratch, config.customRowCount);
+
+    scratch.bottomClusterSeparator.x = 0;
+    scratch.bottomClusterSeparator.y = footerTopY - OVERLAY_ROW_GAP_PX;
+    scratch.bottomClusterSeparator.width = displayWidth;
+    scratch.bottomClusterSeparator.height = OVERLAY_ROW_GAP_PX;
 }
 
 // #endregion
@@ -244,6 +353,8 @@ export function buildOverlayLayoutPlan(
 
     scratch.hintLabelPos.x = overlayToggleHintTextX();
     scratch.hintLabelPos.y = hintLabelBaselineY;
+
+    populateGapLayout(scratch, config, displayWidth);
 
     return scratch;
 }

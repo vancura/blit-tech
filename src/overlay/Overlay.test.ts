@@ -33,7 +33,7 @@ import {
 const OVERLAY_PALETTE_VIEW_OFF = false;
 
 interface OverlayTestOptions {
-    style?: { barPaletteIndex?: number; textPaletteIndex?: number };
+    style?: { barPaletteIndex?: number; textPaletteIndex?: number; gapPaletteIndex?: number };
     paletteView?: boolean;
     paletteColumns?: number;
     timingChart?: boolean;
@@ -257,8 +257,13 @@ describe('Overlay', () => {
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
-        expect(getRectFillCalls(renderer)).toHaveLength(1);
+        expect(getRectFillCalls(renderer)).toHaveLength(2);
         expect(getRectFillCalls(renderer)[0]).toMatchObject({
+            y: hintBarY(240) - OVERLAY_ROW_GAP_PX,
+            height: OVERLAY_ROW_GAP_PX,
+            width: 320,
+        });
+        expect(getRectFillCalls(renderer)[1]).toMatchObject({
             y: hintBarY(240),
             height: OVERLAY_BAR_HEIGHT,
             width: 320,
@@ -282,8 +287,13 @@ describe('Overlay', () => {
 
         const fills = getRectFillCalls(renderer);
 
-        expect(fills).toHaveLength(1);
-        expect(fills[0]).toMatchObject({ y: hintBarY(240), height: OVERLAY_BAR_HEIGHT, width: 320 });
+        expect(fills).toHaveLength(2);
+        expect(fills[0]).toMatchObject({
+            y: hintBarY(240) - OVERLAY_ROW_GAP_PX,
+            height: OVERLAY_ROW_GAP_PX,
+            width: 320,
+        });
+        expect(fills[1]).toMatchObject({ y: hintBarY(240), height: OVERLAY_BAR_HEIGHT, width: 320 });
         expect(fills.some((rect) => rect.y === paletteBandY(240, grid.totalHeight))).toBe(false);
     });
 
@@ -310,6 +320,42 @@ describe('Overlay', () => {
 
         expect(calls.every((call) => call.paletteOffset === 1)).toBe(true);
         expect(renderer.drawBarFill).toHaveBeenCalledWith(expect.anything(), 1);
+    });
+
+    it('uses overlayStyle gap palette index when provided', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', {
+            style: { barPaletteIndex: 8, textPaletteIndex: 9, gapPaletteIndex: 12 },
+            visibleAtStart: true,
+        });
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0);
+
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(
+            expect.objectContaining({ y: 13, height: OVERLAY_ROW_GAP_PX }),
+            12,
+        );
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(
+            expect.objectContaining({ y: 41, height: OVERLAY_ROW_GAP_PX }),
+            12,
+        );
+    });
+
+    it('falls back gap fills to bar palette index when gapPaletteIndex is omitted', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', {
+            style: { barPaletteIndex: 8, textPaletteIndex: 9 },
+            visibleAtStart: true,
+        });
+        const renderer = createMockRenderer();
+
+        overlay.updateAndRender(renderer, mockFont, null, null, 0);
+
+        expect(renderer.drawBarFill).toHaveBeenCalledWith(
+            expect.objectContaining({ y: 13, height: OVERLAY_ROW_GAP_PX }),
+            8,
+        );
     });
 
     it('uses overlayStyle palette indices when provided', () => {
@@ -360,10 +406,10 @@ describe('Overlay', () => {
         const row0BarY = customRowBarY(240, 0);
         const row1BarY = customRowBarY(240, 1);
 
-        expect(fills).toHaveLength(6);
+        expect(fills).toHaveLength(12);
         expect(fills[3]).toMatchObject({ y: row0BarY, width: 320, height: OVERLAY_BAR_HEIGHT });
         expect(fills[4]).toMatchObject({ y: row1BarY, width: 320, height: OVERLAY_BAR_HEIGHT });
-        expect(fills[5]).toMatchObject({ y: hintBarY(240), width: 320, height: OVERLAY_BAR_HEIGHT });
+        expect(fills[11]).toMatchObject({ y: hintBarY(240), width: 320, height: OVERLAY_BAR_HEIGHT });
         expect(row0BarY - row1BarY).toBe(OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX);
 
         const calls = getBitmapTextCalls(renderer);
@@ -394,7 +440,7 @@ describe('Overlay', () => {
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => []);
 
-        expect(getRectFillCalls(renderer)).toHaveLength(4);
+        expect(getRectFillCalls(renderer)).toHaveLength(8);
         expect(getBitmapTextCalls(renderer)).toHaveLength(5);
     });
 
@@ -443,7 +489,7 @@ describe('Overlay', () => {
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, palette);
 
         const fills = getRectFillCalls(renderer);
-        expect(fills[3]).toMatchObject({ y: hintBarY(240), height: OVERLAY_BAR_HEIGHT, width: 320 });
+        expect(fills.some((rect) => rect.y === hintBarY(240) && rect.height === OVERLAY_BAR_HEIGHT)).toBe(true);
         const swatchCalls = renderer.drawBarFill.mock.calls.filter(
             (call) => (call[0] as { width: number }).width === 1,
         );
@@ -501,8 +547,26 @@ describe('Overlay', () => {
         );
 
         const calls = getBitmapTextCalls(renderer);
+        const positionLabelIndex = renderer.drawLabel.mock.calls.findIndex((call) => call[2] === 'Position: (43, 166)');
 
         expect(calls.some((call) => call.text === 'Position: (43, 166)')).toBe(true);
+        expect(positionLabelIndex).toBeGreaterThanOrEqual(0);
+        const labelDrawOrder = renderer.drawLabel.mock.invocationCallOrder.at(positionLabelIndex);
+        const tooltipLabelDrawOrder = renderer.drawLabelOnTop.mock.invocationCallOrder.at(0);
+        const lastBarFillOrder = renderer.drawBarFill.mock.invocationCallOrder.at(-1);
+        const firstBarFillOnTopOrder = renderer.drawBarFillOnTop.mock.invocationCallOrder.at(0);
+
+        if (
+            labelDrawOrder === undefined ||
+            tooltipLabelDrawOrder === undefined ||
+            lastBarFillOrder === undefined ||
+            firstBarFillOnTopOrder === undefined
+        ) {
+            expect.fail('overlay draw-order snapshots missing');
+        }
+
+        expect(labelDrawOrder).toBeLessThan(tooltipLabelDrawOrder);
+        expect(lastBarFillOrder).toBeLessThan(firstBarFillOnTopOrder);
         expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(
             mockFont,
             expect.any(Vector2i),

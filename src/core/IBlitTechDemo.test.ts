@@ -153,11 +153,12 @@ describe('mergeHardwareSettings', () => {
 
     it('merges overlayStyle from configure()', () => {
         const settings = mergeHardwareSettings({
-            overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3 },
+            overlayStyle: { barPaletteIndex: 2, textPaletteIndex: 3, gapPaletteIndex: 4 },
         });
 
         expect(settings.overlayStyle?.barPaletteIndex).toBe(2);
         expect(settings.overlayStyle?.textPaletteIndex).toBe(3);
+        expect(settings.overlayStyle?.gapPaletteIndex).toBe(4);
     });
 
     it('merges overlay visibility and toggle flags from configure()', () => {
