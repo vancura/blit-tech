@@ -2,6 +2,7 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
+import type { OverlayRendererDiagnostics } from '../overlay/types';
 import { noActivePaletteError } from '../utils/errorMessages';
 import { FrameCapture } from '../utils/FrameCapture';
 import type { Rect2i } from '../utils/Rect2i';
@@ -379,6 +380,42 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.encodeScenePass(commandEncoder, sceneView);
         this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive, deltaMs);
         this.submitFrame(commandEncoder, swapTexture);
+    }
+
+    /**
+     * Returns aggregated per-frame renderer diagnostic counters for overlay internals.
+     *
+     * Call after demo and overlay draws complete and before {@link endFrame} resets
+     * pipeline batch state. All six scene pipelines (demo + overlay batches) are summed.
+     *
+     * @returns Diagnostic counters for the current frame.
+     */
+    getFrameDiagnostics(): OverlayRendererDiagnostics {
+        const primitivePipelines = [this.primitives, this.overlayPrimitives, this.overlayTopPrimitives];
+        const spritePipelines = [this.sprites, this.overlaySprites, this.overlayTopSprites];
+
+        let primitiveOverflowCount = 0;
+        let primitiveSubmittedVertices = 0;
+
+        for (const pipeline of primitivePipelines) {
+            primitiveOverflowCount += pipeline.getFrameOverflowCount();
+            primitiveSubmittedVertices += pipeline.getFrameSubmittedVertices();
+        }
+
+        let spriteOverflowCount = 0;
+        let spriteSubmittedVertices = 0;
+
+        for (const pipeline of spritePipelines) {
+            spriteOverflowCount += pipeline.getFrameOverflowCount();
+            spriteSubmittedVertices += pipeline.getFrameSubmittedVertices();
+        }
+
+        return {
+            primitiveOverflowCount,
+            spriteOverflowCount,
+            primitiveSubmittedVertices,
+            spriteSubmittedVertices,
+        };
     }
 
     // #endregion

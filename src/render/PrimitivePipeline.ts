@@ -80,6 +80,9 @@ export class PrimitivePipeline {
     /** Total primitive vertices across all flushed batches. */
     private totalVertices: number = 0;
 
+    /** Overflow events recorded this frame (dropped pixels or vertices). */
+    private overflowCount: number = 0;
+
     // #endregion
 
     // #region Reusable Objects
@@ -335,6 +338,25 @@ export class PrimitivePipeline {
         this.vertexCount = 0;
         this.totalVertices = 0;
         this.batches = [];
+        this.overflowCount = 0;
+    }
+
+    /**
+     * Overflow events recorded since the last {@link reset} (dropped pixels or vertices).
+     *
+     * @returns Per-frame primitive overflow count.
+     */
+    getFrameOverflowCount(): number {
+        return this.overflowCount;
+    }
+
+    /**
+     * Primitive vertices queued for GPU submission this frame (flushed + pending).
+     *
+     * @returns Total vertex count across all batches.
+     */
+    getFrameSubmittedVertices(): number {
+        return this.totalVertices + this.vertexCount;
     }
 
     /**
@@ -524,6 +546,7 @@ export class PrimitivePipeline {
             // Check again after flush - if still no space, buffer is exhausted.
             if ((this.totalVertices + this.vertexCount) * VALUES_PER_VERTEX + pixelValues > this.vertexFloats.length) {
                 console.warn('[PrimitivePipeline] Buffer exhausted, pixel dropped');
+                this.overflowCount++;
 
                 return;
             }
@@ -560,6 +583,7 @@ export class PrimitivePipeline {
 
             if (newIndex + VALUES_PER_VERTEX > this.vertexFloats.length) {
                 console.warn('[PrimitivePipeline] Primitive buffer capacity exceeded for this frame, vertex dropped');
+                this.overflowCount++;
                 return;
             }
 

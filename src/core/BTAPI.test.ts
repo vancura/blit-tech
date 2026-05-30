@@ -895,17 +895,29 @@ describe('BTAPI', () => {
                       updateSteps: number;
                       drawCalls: number;
                       droppedFrames: number;
+                      primitiveOverflowCount: number;
+                      spriteOverflowCount: number;
+                      primitiveSubmittedVertices: number;
+                      spriteSubmittedVertices: number;
                   }
                 | undefined;
 
-            expect(getCustomRows?.()).toBe(customRows);
+            expect(getCustomRows).toBeDefined();
+            if (!getCustomRows) return;
+            expect(getCustomRows()).toBe(customRows);
+
             expect(timing).toBeDefined();
-            expect(timing?.frameMs).toBeGreaterThanOrEqual(0);
-            expect(timing?.updateMs).toBeGreaterThanOrEqual(0);
-            expect(timing?.renderMs).toBeGreaterThanOrEqual(0);
-            expect(timing?.updateSteps).toBeGreaterThanOrEqual(0);
-            expect(timing?.drawCalls).toBeGreaterThanOrEqual(0);
-            expect(timing?.droppedFrames).toBeGreaterThanOrEqual(0);
+            if (!timing) return;
+            expect(timing.frameMs).toBeGreaterThanOrEqual(0);
+            expect(timing.updateMs).toBeGreaterThanOrEqual(0);
+            expect(timing.renderMs).toBeGreaterThanOrEqual(0);
+            expect(timing.updateSteps).toBeGreaterThanOrEqual(0);
+            expect(timing.drawCalls).toBeGreaterThanOrEqual(0);
+            expect(timing.droppedFrames).toBeGreaterThanOrEqual(0);
+            expect(timing.primitiveOverflowCount).toBeGreaterThanOrEqual(0);
+            expect(timing.spriteOverflowCount).toBeGreaterThanOrEqual(0);
+            expect(timing.primitiveSubmittedVertices).toBeGreaterThanOrEqual(0);
+            expect(timing.spriteSubmittedVertices).toBeGreaterThanOrEqual(0);
         });
 
         it('calls gamepad.endFrame during render-phase input flush', async () => {
@@ -1175,6 +1187,163 @@ describe('BTAPI', () => {
             BTAPI.instance.assignTag('Ignored');
 
             expect(assignSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    // #endregion
+
+    // #region Renderer diagnostics (VV-544)
+
+    describe('renderer diagnostics in overlay timing snapshot', () => {
+        /**
+         * Runs game-loop ticks using a stubbed rAF queue seeded before init.
+         *
+         * @param demo - Demo passed to {@link BTAPI.init}.
+         * @param stopWhen - Stop draining once this returns true.
+         * @returns Overlay spy from the initialized instance.
+         */
+        async function initAndDrainUntil(
+            demo: IBlitTechDemo,
+            stopWhen: (overlaySpy: ReturnType<typeof vi.spyOn>) => boolean,
+        ): Promise<ReturnType<typeof vi.spyOn>> {
+            const overlaySpy = vi.spyOn(Overlay.prototype, 'updateAndRender');
+            const rafCallbacks: FrameRequestCallback[] = [];
+
+            vi.stubGlobal(
+                'requestAnimationFrame',
+                vi.fn((callback: FrameRequestCallback) => {
+                    rafCallbacks.push(callback);
+
+                    return rafCallbacks.length;
+                }),
+            );
+
+            await BTAPI.instance.init(demo, makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (rafCallbacks.length > 0) {
+                iterations++;
+
+                if (iterations > maxIterations) {
+                    throw new Error('Exceeded max rAF callback drain iterations.');
+                }
+
+                const cb = rafCallbacks.shift();
+
+                if (cb) {
+                    cb(16 * iterations);
+                }
+
+                if (stopWhen(overlaySpy)) {
+                    break;
+                }
+            }
+
+            return overlaySpy;
+        }
+
+        it('calls getFrameDiagnostics when overlayTimingChart is enabled', async () => {
+            const diagnosticsSpy = vi.spyOn(
+                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                'getFrameDiagnostics',
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await initAndDrainUntil(demo, (overlaySpy) => overlaySpy.mock.calls.length > 0);
+
+            expect(diagnosticsSpy).toHaveBeenCalled();
+        });
+
+        it('does not call getFrameDiagnostics when overlayTimingChart is disabled', async () => {
+            const diagnosticsSpy = vi.spyOn(
+                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                'getFrameDiagnostics',
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: false,
+                    overlayRendererDiagnosticsBar: false,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await initAndDrainUntil(demo, (overlaySpy) => overlaySpy.mock.calls.length > 0);
+
+            expect(diagnosticsSpy).not.toHaveBeenCalled();
+        });
+
+        it('calls getFrameDiagnostics when overlayRendererDiagnosticsBar is enabled without chart', async () => {
+            const diagnosticsSpy = vi.spyOn(
+                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                'getFrameDiagnostics',
+            );
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: false,
+                    overlayRendererDiagnosticsBar: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await initAndDrainUntil(demo, (overlaySpy) => overlaySpy.mock.calls.length > 0);
+
+            expect(diagnosticsSpy).toHaveBeenCalled();
+        });
+
+        it('copies captured diagnostics into the timing snapshot on frame rollover', async () => {
+            const mockDiagnostics = {
+                primitiveOverflowCount: 3,
+                spriteOverflowCount: 2,
+                primitiveSubmittedVertices: 6000,
+                spriteSubmittedVertices: 1200,
+            };
+
+            vi.spyOn(
+                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                'getFrameDiagnostics',
+            ).mockReturnValue(mockDiagnostics);
+
+            const demo: IBlitTechDemo = {
+                configure: () => ({
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    overlayTimingChart: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const overlaySpy = await initAndDrainUntil(demo, (spy) => spy.mock.calls.length >= 2);
+
+            const secondTiming = overlaySpy.mock.calls[1]?.[6] as {
+                primitiveOverflowCount: number;
+                spriteOverflowCount: number;
+                primitiveSubmittedVertices: number;
+                spriteSubmittedVertices: number;
+            };
+
+            expect(secondTiming).toMatchObject(mockDiagnostics);
         });
     });
 

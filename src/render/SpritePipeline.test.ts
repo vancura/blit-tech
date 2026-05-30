@@ -363,6 +363,39 @@ describe('drawSprite', () => {
             warnSpy.mockRestore();
         }
     });
+
+    it('increments overflow count when capacity is exceeded and resets on reset()', () => {
+        pipeline.reset();
+
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const sheet = new SpriteSheet(mockImage);
+
+        try {
+            for (let i = 0; i < 8400; i++) {
+                pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));
+            }
+
+            expect(pipeline.getFrameOverflowCount()).toBeGreaterThan(0);
+            expect(pipeline.getFrameSubmittedVertices()).toBeLessThanOrEqual(50000);
+
+            pipeline.reset();
+
+            expect(pipeline.getFrameOverflowCount()).toBe(0);
+            expect(pipeline.getFrameSubmittedVertices()).toBe(0);
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it('reports submitted vertex count for batched sprites', () => {
+        pipeline.reset();
+
+        const sheet = new SpriteSheet(mockImage);
+
+        pipeline.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
+
+        expect(pipeline.getFrameSubmittedVertices()).toBe(6);
+    });
 });
 
 // #endregion

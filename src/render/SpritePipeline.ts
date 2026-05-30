@@ -89,6 +89,9 @@ export class SpritePipeline {
     /** Total sprite vertices across all flushed batches. */
     private totalVertices: number = 0;
 
+    /** Overflow events recorded this frame (dropped quads). */
+    private overflowCount: number = 0;
+
     // #endregion
 
     // #region Reusable Objects
@@ -249,6 +252,25 @@ export class SpritePipeline {
         this.batches = [];
         this.currentTexture = null;
         this.currentBindGroup = null;
+        this.overflowCount = 0;
+    }
+
+    /**
+     * Overflow events recorded since the last {@link reset} (dropped quads).
+     *
+     * @returns Per-frame sprite overflow count.
+     */
+    getFrameOverflowCount(): number {
+        return this.overflowCount;
+    }
+
+    /**
+     * Sprite vertices queued for GPU submission this frame (flushed + pending).
+     *
+     * @returns Total vertex count across all batches.
+     */
+    getFrameSubmittedVertices(): number {
+        return this.totalVertices + this.vertexCount;
     }
 
     /**
@@ -427,6 +449,7 @@ export class SpritePipeline {
             // Check again after flush - if still no space, the buffer is full for this frame.
             if (!this.hasSpaceForQuad()) {
                 console.warn('[SpritePipeline] Sprite buffer capacity exceeded for this frame, quad dropped');
+                this.overflowCount++;
 
                 return;
             }

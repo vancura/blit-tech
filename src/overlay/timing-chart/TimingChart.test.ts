@@ -67,6 +67,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 1,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, new Rect2i(0, 14, 4, 22), 0);
 
@@ -80,10 +84,54 @@ describe('TimingChart', () => {
         const chartRect = new Rect2i(0, 0, 3, 22);
 
         chart.reset(3, 0);
-        chart.sample({ frameMs: 0, updateMs: 4, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
-        chart.sample({ frameMs: 0, updateMs: 8, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
-        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
-        chart.sample({ frameMs: 0, updateMs: 16, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 4,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 8,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 12,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 16,
+            renderMs: 0,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
 
         drawChart(chart, renderer, chartRect, 4);
 
@@ -106,7 +154,18 @@ describe('TimingChart', () => {
         const renderer = createMockRenderer();
 
         chart.reset(4, 0);
-        chart.sample({ frameMs: 0, updateMs: 0, renderMs: 0.1, updateSteps: 1, drawCalls: 1, droppedFrames: 0 });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 0,
+            renderMs: 0.1,
+            updateSteps: 1,
+            drawCalls: 1,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
         drawChart(chart, renderer, new Rect2i(0, 14, 4, 32), 1);
 
         expect(
@@ -124,7 +183,18 @@ describe('TimingChart', () => {
         const renderer = createMockRenderer();
 
         chart.reset(1, 0);
-        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 8, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
         drawChart(chart, renderer, new Rect2i(10, 14, 1, 22), 1);
 
         const dotPaletteIndices = renderer.drawBarFill.mock.calls
@@ -148,6 +218,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, new Rect2i(0, 14, 1, 22), 1);
 
@@ -172,6 +246,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 2,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, new Rect2i(0, 14, 1, 22), 1);
 
@@ -195,6 +273,10 @@ describe('TimingChart', () => {
             updateSteps: 0,
             drawCalls: 0,
             droppedFrames: 1,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, chartRect, 1);
 
@@ -207,7 +289,18 @@ describe('TimingChart', () => {
         const chartRect = new Rect2i(10, 14, 8, 22);
 
         chart.reset(chartRect.width, 0);
-        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 8, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.sample({
+            frameMs: 0,
+            updateMs: 12,
+            renderMs: 8,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
         drawChart(chart, renderer, chartRect, 1);
 
         const mockCalls = renderer.drawBarFill.mock.calls;
@@ -284,6 +377,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         };
 
         drawChart(chart, renderer, chartRect, 50);
@@ -309,6 +406,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, chartRect, 1);
 
@@ -333,6 +434,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         };
 
         chart.reset(chartRect.width, 0);
@@ -397,6 +502,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
         drawChart(chart, renderer, chartRect, 1);
 
@@ -416,6 +525,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         };
 
         chart.reset(chartRect.width, 0);
@@ -443,6 +556,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         };
 
         chart.reset(width, 0);
@@ -479,6 +596,10 @@ describe('TimingChart', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         };
 
         chart.reset(width, 0);

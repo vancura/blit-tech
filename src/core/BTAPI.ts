@@ -142,6 +142,10 @@ export class BTAPI {
         updateSteps: number;
         drawCalls: number;
         droppedFrames: number;
+        primitiveOverflowCount: number;
+        spriteOverflowCount: number;
+        primitiveSubmittedVertices: number;
+        spriteSubmittedVertices: number;
     } = {
         frameMs: 0,
         updateMs: 0,
@@ -149,7 +153,27 @@ export class BTAPI {
         updateSteps: 0,
         drawCalls: 0,
         droppedFrames: 0,
+        primitiveOverflowCount: 0,
+        spriteOverflowCount: 0,
+        primitiveSubmittedVertices: 0,
+        spriteSubmittedVertices: 0,
     };
+
+    /** Pending renderer diagnostics captured after overlay draws; copied into {@link overlayTiming} at frame end. */
+    private readonly pendingRendererDiagnostics: {
+        primitiveOverflowCount: number;
+        spriteOverflowCount: number;
+        primitiveSubmittedVertices: number;
+        spriteSubmittedVertices: number;
+    } = {
+        primitiveOverflowCount: 0,
+        spriteOverflowCount: 0,
+        primitiveSubmittedVertices: 0,
+        spriteSubmittedVertices: 0,
+    };
+
+    /** When true, {@link captureRendererDiagnostics} reads WebGPU pipeline counters each frame. */
+    private overlayTimingChartEnabled = false;
 
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
@@ -261,6 +285,8 @@ export class BTAPI {
             ? (event) => this.handleFrameDrop(event, hwSettings.detectDroppedFrames === true)
             : undefined;
 
+        this.overlayTimingChartEnabled = hwSettings.overlayTimingChart === true;
+
         this.pendingUpdateMs = 0;
         this.pendingUpdateSteps = 0;
         this.pendingDrawCalls = 0;
@@ -270,6 +296,11 @@ export class BTAPI {
         this.overlayTiming.updateSteps = 0;
         this.overlayTiming.drawCalls = 0;
         this.overlayTiming.droppedFrames = 0;
+        this.overlayTiming.primitiveOverflowCount = 0;
+        this.overlayTiming.spriteOverflowCount = 0;
+        this.overlayTiming.primitiveSubmittedVertices = 0;
+        this.overlayTiming.spriteSubmittedVertices = 0;
+        this.resetPendingRendererDiagnostics();
 
         this.loop = new GameLoop(
             updateInterval,
@@ -316,6 +347,8 @@ export class BTAPI {
                         );
                     }
 
+                    this.captureRendererDiagnostics();
+
                     this.renderer.endFrame();
                 }
 
@@ -336,10 +369,16 @@ export class BTAPI {
                 this.overlayTiming.updateSteps = this.pendingUpdateSteps;
                 this.overlayTiming.drawCalls = this.pendingDrawCalls;
                 this.overlayTiming.droppedFrames = 0;
+                this.overlayTiming.primitiveOverflowCount = this.pendingRendererDiagnostics.primitiveOverflowCount;
+                this.overlayTiming.spriteOverflowCount = this.pendingRendererDiagnostics.spriteOverflowCount;
+                this.overlayTiming.primitiveSubmittedVertices =
+                    this.pendingRendererDiagnostics.primitiveSubmittedVertices;
+                this.overlayTiming.spriteSubmittedVertices = this.pendingRendererDiagnostics.spriteSubmittedVertices;
 
                 this.pendingUpdateMs = 0;
                 this.pendingUpdateSteps = 0;
                 this.pendingDrawCalls = 0;
+                this.resetPendingRendererDiagnostics();
             },
             onFrameDrop,
         );
@@ -1317,6 +1356,41 @@ export class BTAPI {
      */
     private markDrawCall(): void {
         this.pendingDrawCalls++;
+    }
+
+    /**
+     * Clears pending renderer diagnostics when collection is disabled or after frame rollover.
+     */
+    private resetPendingRendererDiagnostics(): void {
+        this.pendingRendererDiagnostics.primitiveOverflowCount = 0;
+        this.pendingRendererDiagnostics.spriteOverflowCount = 0;
+        this.pendingRendererDiagnostics.primitiveSubmittedVertices = 0;
+        this.pendingRendererDiagnostics.spriteSubmittedVertices = 0;
+    }
+
+    /**
+     * Reads WebGPU pipeline diagnostic counters when the timing chart is enabled.
+     *
+     * Must run after demo and overlay draws and before {@link IRenderer.endFrame}
+     * resets pipeline batch state.
+     */
+    private captureRendererDiagnostics(): void {
+        if (!this.overlayTimingChartEnabled) {
+            return;
+        }
+
+        const renderer = this.renderer;
+
+        if (!(renderer instanceof WebGpuRenderer)) {
+            return;
+        }
+
+        const diagnostics = renderer.getFrameDiagnostics();
+
+        this.pendingRendererDiagnostics.primitiveOverflowCount = diagnostics.primitiveOverflowCount;
+        this.pendingRendererDiagnostics.spriteOverflowCount = diagnostics.spriteOverflowCount;
+        this.pendingRendererDiagnostics.primitiveSubmittedVertices = diagnostics.primitiveSubmittedVertices;
+        this.pendingRendererDiagnostics.spriteSubmittedVertices = diagnostics.spriteSubmittedVertices;
     }
 
     /**

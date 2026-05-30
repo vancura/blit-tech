@@ -550,6 +550,38 @@ describe('with initialized renderer', () => {
 
         renderer.endFrame();
     });
+
+    it('aggregates overflow and submitted vertices across scene pipelines', () => {
+        renderer.beginFrame();
+        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), 1);
+        renderer.drawBarFill(new Rect2i(0, 220, 320, 16), 2);
+
+        const diagnostics = renderer.getFrameDiagnostics();
+
+        expect(diagnostics.primitiveSubmittedVertices).toBe(12);
+        expect(diagnostics.spriteSubmittedVertices).toBe(0);
+        expect(diagnostics.primitiveOverflowCount).toBe(0);
+        expect(diagnostics.spriteOverflowCount).toBe(0);
+
+        renderer.endFrame();
+    });
+
+    it('returns zeros after beginFrame clears prior frame pipeline state', () => {
+        renderer.beginFrame();
+        renderer.drawRectFill(new Rect2i(0, 0, 10, 10), 1);
+        renderer.endFrame();
+
+        renderer.beginFrame();
+
+        expect(renderer.getFrameDiagnostics()).toEqual({
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
+        });
+
+        renderer.endFrame();
+    });
 });
 
 // #endregion
