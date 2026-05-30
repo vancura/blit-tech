@@ -11,7 +11,7 @@ import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
 import type * as Rect2iModule from '../../utils/Rect2i';
 import { Rect2i } from '../../utils/Rect2i';
 import { createOverlayLayout } from '../layout/layoutHelpers';
-import { paletteBandY } from '../layout/layoutPlan';
+import { hintBarY, paletteBandY } from '../layout/layoutPlan';
 import { computePaletteGrid, DEFAULT_PALETTE_SWATCH_SIZE, PaletteView } from './PaletteView';
 
 // #endregion
@@ -72,9 +72,8 @@ describe('PaletteView allocation', () => {
                 paletteBand,
                 palette,
                 grid,
-                layout.bottomTextY,
+                hintBarY(layout.displayHeight),
                 layout.displayWidth,
-                layout.lineHeight,
                 usedMask,
                 2,
             );
@@ -88,9 +87,8 @@ describe('PaletteView allocation', () => {
                 paletteBand,
                 palette,
                 grid,
-                layout.bottomTextY,
+                hintBarY(layout.displayHeight),
                 layout.displayWidth,
-                layout.lineHeight,
                 usedMask,
                 2,
             );
@@ -114,9 +112,8 @@ describe('PaletteView allocation', () => {
                 paletteBand,
                 palette,
                 grid,
-                layout.bottomTextY,
+                hintBarY(layout.displayHeight),
                 layout.displayWidth,
-                layout.lineHeight,
                 usedMask,
                 2,
             );
@@ -130,9 +127,8 @@ describe('PaletteView allocation', () => {
                 paletteBand,
                 palette,
                 grid,
-                layout.bottomTextY,
+                hintBarY(layout.displayHeight),
                 layout.displayWidth,
-                layout.lineHeight,
                 usedMask,
                 2,
             );

@@ -11,9 +11,10 @@ import { markRenderPaletteIndexUsed } from '../core/RenderPaletteUsage';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { OVERLAY_BAR_HEIGHT, OVERLAY_ROW_GAP_PX } from './layout/constants';
-import { createOverlayLayout, overlayRightAlignedTextX, overlayToggleHintTextX } from './layout/layoutHelpers';
+import { createOverlayLayout, overlayRightAlignedTextX } from './layout/layoutHelpers';
 import { hintBarY, paletteBandY } from './layout/layoutPlan';
 import { Overlay } from './Overlay';
+import { overlayToggleHintIconPos } from './OverlayToggleIcon';
 import { computePaletteGrid, writePaletteScrollbarRects, writePaletteSwatchTopLeft } from './palette/PaletteView';
 import {
     createMockRenderer,
@@ -201,10 +202,8 @@ describe('Overlay', () => {
         const calls = getBitmapTextCalls(renderer);
         const topRightLabel = 'webgpu | 320x240';
         const topRightX = overlayRightAlignedTextX(topRightLabel, 320);
-        const bottomHintLabel = '[~]';
-        const bottomHintX = overlayToggleHintTextX();
 
-        expect(calls).toHaveLength(5);
+        expect(calls).toHaveLength(4);
         expect(calls[0]).toEqual({
             pos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, OVERLAY_TOP_TEXT_Y),
             text: topLeftLabel,
@@ -231,11 +230,8 @@ describe('Overlay', () => {
         expect(calls[3]?.text).toContain('Frame: ');
         expect(calls[3]?.text).toContain(' | update(): ');
         expect(calls[3]?.text).toContain(' | render(): ');
-        expect(calls[4]).toEqual({
-            pos: new Vector2i(bottomHintX, layout.bottomTextY),
-            text: bottomHintLabel,
-            paletteOffset: 1,
-        });
+        expect(renderer.drawBarFillOnTop).toHaveBeenCalled();
+        expect(renderer.drawBarFillOnTop.rectSnapshots[0]).toMatchObject({ x: 3, y: 230, width: 11, height: 1 });
     });
 
     it('uses activeBackend for the top-right label', () => {
@@ -278,35 +274,25 @@ describe('Overlay', () => {
 
         expect(renderer.drawBarFill).not.toHaveBeenCalled();
         expect(renderer.drawLabel).not.toHaveBeenCalled();
+        expect(renderer.drawBarFillOnTop).not.toHaveBeenCalled();
     });
 
     it('draws hint-only path while body is hidden and toggle hint is visible', () => {
-        const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo');
+        const overlay = createOverlay(createOverlayLayout(320, 240, 14), 'Demo');
         const renderer = createMockRenderer();
-        const bottomHintLabel = '[~]';
-        const bottomHintX = overlayToggleHintTextX();
+        const iconPos = overlayToggleHintIconPos(hintBarY(240));
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
-        expect(getRectFillCalls(renderer)).toHaveLength(2);
-        expect(getRectFillCalls(renderer)[0]).toMatchObject({
-            y: hintBarY(240) - OVERLAY_ROW_GAP_PX,
-            height: OVERLAY_ROW_GAP_PX,
-            width: 320,
+        expect(getRectFillCalls(renderer)).toHaveLength(0);
+        expect(renderer.drawLabel).not.toHaveBeenCalled();
+        expect(renderer.drawBarFillOnTop).toHaveBeenCalled();
+        expect(renderer.drawBarFillOnTop.rectSnapshots[0]).toMatchObject({
+            x: iconPos.x + 3,
+            y: iconPos.y + 2,
+            width: 2,
+            height: 1,
         });
-        expect(getRectFillCalls(renderer)[1]).toMatchObject({
-            y: hintBarY(240),
-            height: OVERLAY_BAR_HEIGHT,
-            width: 320,
-        });
-        expect(getBitmapTextCalls(renderer)).toEqual([
-            {
-                pos: new Vector2i(bottomHintX, layout.bottomTextY),
-                text: bottomHintLabel,
-                paletteOffset: 1,
-            },
-        ]);
     });
 
     it('does not draw the palette band while body is hidden even when palette view is enabled', () => {
@@ -319,14 +305,9 @@ describe('Overlay', () => {
 
         const fills = getRectFillCalls(renderer);
 
-        expect(fills).toHaveLength(2);
-        expect(fills[0]).toMatchObject({
-            y: hintBarY(240) - OVERLAY_ROW_GAP_PX,
-            height: OVERLAY_ROW_GAP_PX,
-            width: 320,
-        });
-        expect(fills[1]).toMatchObject({ y: hintBarY(240), height: OVERLAY_BAR_HEIGHT, width: 320 });
+        expect(fills).toHaveLength(0);
         expect(fills.some((rect) => rect.y === paletteBandY(240, grid.totalHeight))).toBe(false);
+        expect(renderer.drawBarFillOnTop).toHaveBeenCalled();
     });
 
     it('resets camera for overlay draws then restores the saved offset', () => {
@@ -447,7 +428,7 @@ describe('Overlay', () => {
         const calls = getBitmapTextCalls(renderer);
         const rightX = overlayRightAlignedTextX('ok', 320);
 
-        expect(calls).toHaveLength(8);
+        expect(calls).toHaveLength(7);
         expect(calls[0]).toEqual({
             pos: new Vector2i(OVERLAY_EDGE_MARGIN_PX, row0BarY + OVERLAY_TOP_TEXT_Y),
             text: 'Position: 10, 20',
@@ -473,7 +454,7 @@ describe('Overlay', () => {
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => []);
 
         expect(getRectFillCalls(renderer)).toHaveLength(8);
-        expect(getBitmapTextCalls(renderer)).toHaveLength(5);
+        expect(getBitmapTextCalls(renderer)).toHaveLength(4);
     });
 
     it('does not invoke getCustomRows while the overlay is hidden', () => {

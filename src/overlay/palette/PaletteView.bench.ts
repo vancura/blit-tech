@@ -7,6 +7,7 @@ import { resetRenderPaletteUsage } from '../../core/RenderPaletteUsage';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { createOverlayLayout } from '../layout/layoutHelpers';
+import { hintBarY } from '../layout/layoutPlan';
 import { computePaletteGrid, PaletteView } from './PaletteView';
 
 // #endregion
@@ -56,9 +57,8 @@ describe('PaletteView.draw', () => {
                 paletteBand16,
                 palette16,
                 grid16,
-                layout16.bottomTextY,
+                hintBarY(layout16.displayHeight),
                 layout16.displayWidth,
-                layout16.lineHeight,
                 usedMask16,
                 1,
             );
@@ -75,9 +75,8 @@ describe('PaletteView.draw', () => {
                 paletteBand256,
                 palette256,
                 grid256,
-                layout256.bottomTextY,
+                hintBarY(layout256.displayHeight),
                 layout256.displayWidth,
-                layout256.lineHeight,
                 usedMask256,
                 1,
             );

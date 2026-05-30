@@ -32,15 +32,16 @@ export function createMockRenderer(): OverlayRenderer & {
     drawBarFill: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
     drawBarFillOnTop: ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
 } {
-    const rectSnapshots: Rect2i[] = [];
+    const barFillSnapshots: Rect2i[] = [];
+    const barFillOnTopSnapshots: Rect2i[] = [];
     const drawBarFill = vi.fn((rect: Rect2i) => {
-        rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
+        barFillSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
     }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
-    drawBarFill.rectSnapshots = rectSnapshots;
+    drawBarFill.rectSnapshots = barFillSnapshots;
     const drawBarFillOnTop = vi.fn((rect: Rect2i) => {
-        rectSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
+        barFillOnTopSnapshots.push(new Rect2i(rect.x, rect.y, rect.width, rect.height));
     }) as ReturnType<typeof vi.fn> & { rectSnapshots: Rect2i[] };
-    drawBarFillOnTop.rectSnapshots = rectSnapshots;
+    drawBarFillOnTop.rectSnapshots = barFillOnTopSnapshots;
     const drawLabel = vi.fn();
     const drawLabelOnTop = vi.fn();
     const drawPixel = vi.fn();

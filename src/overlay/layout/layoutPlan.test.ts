@@ -24,7 +24,7 @@ describe('buildOverlayLayoutPlan', () => {
         const scratch = createOverlayLayoutPlanScratch();
         const config = createDefaultLayoutConfig(320, 240, 14, 0);
 
-        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.bottomTextY, layout.toggleRect);
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
 
         expect(plan.titleBar).toMatchObject({ x: 0, y: 0, width: 320, height: OVERLAY_BAR_HEIGHT });
         expect(plan.metricsBar).toMatchObject({ x: 0, y: 14, width: 320, height: OVERLAY_BAR_HEIGHT });
@@ -48,7 +48,7 @@ describe('buildOverlayLayoutPlan', () => {
         const scratch = createOverlayLayoutPlanScratch();
         const config = createDefaultLayoutConfig(320, 240, 14, 2);
 
-        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.bottomTextY, layout.toggleRect);
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
 
         const row0 = plan.customBars[0];
         const row1 = plan.customBars[1];
@@ -71,7 +71,7 @@ describe('buildOverlayLayoutPlan', () => {
             timingChartHeight: 22,
         };
 
-        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.bottomTextY, layout.toggleRect);
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
 
         expect(plan.timingChart).toMatchObject({ x: 0, y: 14, width: 320, height: 22 });
         expect(plan.metricsBar.y).toBe(14 + 22 + OVERLAY_ROW_GAP_PX);
@@ -87,7 +87,7 @@ describe('buildOverlayLayoutPlan', () => {
             paletteGrid,
         };
 
-        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.bottomTextY, layout.toggleRect);
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
 
         expect(plan.paletteBand).toMatchObject({
             y: paletteBandY(240, paletteGrid.totalHeight),
@@ -111,7 +111,7 @@ describe('buildOverlayLayoutPlan', () => {
             paletteGrid,
         };
 
-        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.bottomTextY, layout.toggleRect);
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
 
         expect(plan.customBars[0]).toMatchObject({
             y: plan.paletteBand.y - (OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX),
