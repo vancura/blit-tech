@@ -1,7 +1,7 @@
 /**
  * Inline row-major mask for the overlay toggle hint icon (VV-548).
  *
- * `1` draws a foreground pixel; `0` is transparent..
+ * `1` draws a foreground pixel; `0` is transparent.
  */
 
 /** Toggle hint icon width in pixels. */

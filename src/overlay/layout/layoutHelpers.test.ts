@@ -11,7 +11,7 @@ import {
 } from './layoutHelpers';
 
 describe('createOverlayLayout', () => {
-    it('places bottom text at the configured bottom gap offset', () => {
+    it('sets display dimensions, topTextY and toggleRect properties', () => {
         const layout = createOverlayLayout(320, 240, 14);
 
         expect(layout.displayWidth).toBe(320);
