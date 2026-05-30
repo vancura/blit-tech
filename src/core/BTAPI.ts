@@ -64,10 +64,10 @@ export class BTAPI {
     public static readonly VERSION_MAJOR = 1;
 
     /** Minor version number. */
-    public static readonly VERSION_MINOR = 0;
+    public static readonly VERSION_MINOR = 1;
 
     /** Patch version number. */
-    public static readonly VERSION_PATCH = 5;
+    public static readonly VERSION_PATCH = 0;
 
     // #endregion
 
