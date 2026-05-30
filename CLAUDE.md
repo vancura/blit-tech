@@ -48,7 +48,7 @@ sprites, and bitmap text resolve color through the active `Palette` before final
 src/
   BlitTech.ts              # Public API (BT namespace exports)
   core/
-    BTAPI.ts               # Internal singleton managing subsystems
+    BTAPI.ts               # Internal singleton managing subsystems (lazy-loads WebGpuRenderer on WebGPU init)
     IBlitTechDemo.ts       # Demo interface + HardwareSettings
     GameLoop.ts            # Fixed-timestep game loop
     WebGPUContext.ts       # WebGPU adapter/device/context setup

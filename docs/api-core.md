@@ -165,6 +165,10 @@ post-merge resolution:
 **Fallback:** When `requestedBackend` is `'webgpu'` (explicit or default) and WebGPU init fails, the engine logs a
 warning and starts the software renderer. Then `activeBackend === 'software'` while `requestedBackend` stays `'webgpu'`.
 
+The WebGPU renderer module is loaded lazily during init (only after a successful adapter/device setup). Browsers without
+WebGPU globals (for example Firefox on Linux without Nightly) can therefore start the software backend or auto-fallback
+without hitting module-load errors from WebGPU-only code.
+
 **Runtime checks (post-process, capture, etc.):** use `activeBackend`, not `requestedBackend`:
 
 ```ts

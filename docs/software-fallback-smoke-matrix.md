@@ -14,7 +14,7 @@ MVP; updated for auto-fallback and the engine overlay (backend shown on the top 
 
 ## Environment
 
-- Browser: latest Chrome or Edge
+- Browser: latest Chrome or Edge; Firefox on Linux without WebGPU (software path / auto-fallback)
 - URL override for software mode:
   - `?backend=software`
 - Optional baseline comparison:

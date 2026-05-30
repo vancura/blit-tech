@@ -180,14 +180,15 @@ WebGPU support varies by browser:
 | Firefox     | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux/Android |
 | Safari      | 26+            | Enabled by default; Safari 18-25 available via Feature Flags     |
 
-When WebGPU is unavailable the engine falls back to the Canvas 2D software renderer automatically. By default the engine
-draws a stats overlay after each frame: measured FPS, configured target FPS, the active backend name (via
-`BT.activeBackend`), logical resolution, and a short demo title derived from `document.title`. The overlay **body starts
-hidden** with a bitmap toggle hint in the bottom-left corner; toggle it with `~` (Backquote) or a primary press in the
-bottom-left corner. Use `overlayVisibleAtStart: true` to show the body on the first frame,
-`overlayToggleHintVisible: false` to hide the hint icon on immersive demos, or `overlayEnabled: false` to disable the
-overlay entirely in `configure()`. Use `BT.activeBackend` to read which backend is running (`'webgpu'`, `'software'`, or
-`null` before init).
+When WebGPU is unavailable the engine falls back to the Canvas 2D software renderer automatically. The software path
+also works on browsers that do not expose WebGPU globals at all (for example Firefox on Linux without Nightly); the
+WebGPU renderer is loaded only when WebGPU init succeeds. By default the engine draws a stats overlay after each frame:
+measured FPS, configured target FPS, the active backend name (via `BT.activeBackend`), logical resolution, and a short
+demo title derived from `document.title`. The overlay **body starts hidden** with a bitmap toggle hint in the
+bottom-left corner; toggle it with `~` (Backquote) or a primary press in the bottom-left corner. Use
+`overlayVisibleAtStart: true` to show the body on the first frame, `overlayToggleHintVisible: false` to hide the hint
+icon on immersive demos, or `overlayEnabled: false` to disable the overlay entirely in `configure()`. Use
+`BT.activeBackend` to read which backend is running (`'webgpu'`, `'software'`, or `null` before init).
 
 ## Contributors
 
