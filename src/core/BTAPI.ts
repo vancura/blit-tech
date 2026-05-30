@@ -18,7 +18,6 @@ import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
-import { WebGpuRenderer } from '../render/WebGpuRenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -1158,6 +1157,10 @@ export class BTAPI {
                 this.context = webGPUResult.context;
 
                 console.log('[BT] Initializing renderer (backend: webgpu)');
+
+                // Lazy-load WebGPU renderer code so browsers without WebGPU globals
+                // (e.g. Firefox on Linux) can still start with the software backend.
+                const { WebGpuRenderer } = await import('../render/WebGpuRenderer');
 
                 this.renderer = new WebGpuRenderer(
                     webGPUResult.device,
