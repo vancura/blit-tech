@@ -211,16 +211,20 @@ otherwise.
 - **Timing chart (optional):** when `overlayTimingChart: true`, a scrolling band of **one-pixel dots** shows raw
   per-frame `update()` vs `render()` CPU time (one column per present frame, not per fixed `update()` tick). Band height
   defaults to **22 px**; override with `overlayTimingChartHeight`. Dot height scales linearly so about **16 ms** fills
-  the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). The band
-  background uses `overlayStyle.barPaletteIndex`; dot colors default to `overlayStyle.barPaletteIndex` /
-  `textPaletteIndex`; override with `overlayTimingChartStyle`. **Semantic tints (VV-545):** when a column is classified
-  as a runtime risk, both update and render dots use the warning or error palette index instead of the normal bar
-  colors. Classification uses the prior frame's `Frame` wall time against `1000 / targetFPS` (warning at **1.10x**
-  budget, error at **1.50x**) and dropped-frame events from the game loop (one dropped frame = warning, two or more =
-  error; error wins when both apply). Default warning/error/event palette indices are **3**, **4**, and **5** when not
-  overridden. Drop detection for the chart runs whenever `overlayTimingChart: true` (independent of
-  `detectDroppedFrames`, which only controls console warnings). The `eventPaletteIndex` slot is reserved for chart event
-  tags (VV-541).
+  the band; any non-zero sample draws at least one pixel (sub-millisecond work shows as a baseline dot). **Grid lines
+  (VV-7):** faint horizontal reference rows at **5**, **10**, and **33.33** ms plus a frame-budget line at
+  **`1000 / targetFPS`** ms are drawn behind the dots (qualitative scale on a ~22 px band, not a precision ruler). The
+  band bottom row is the zero baseline (sub-ms / light samples); top- and bottom-edge rows are not drawn as grid lines.
+  Grid color defaults to `overlayStyle.gapPaletteIndex` (then `barPaletteIndex`); override with
+  `overlayTimingChartStyle.gridPaletteIndex`. The band background uses `overlayStyle.barPaletteIndex`; dot colors
+  default to `overlayStyle.barPaletteIndex` / `textPaletteIndex`; override with `overlayTimingChartStyle`. **Semantic
+  tints (VV-545):** when a column is classified as a runtime risk, both update and render dots use the warning or error
+  palette index instead of the normal bar colors. Classification uses the prior frame's `Frame` wall time against
+  `1000 / targetFPS` (warning at **1.10x** budget, error at **1.50x**) and dropped-frame events from the game loop (one
+  dropped frame = warning, two or more = error; error wins when both apply). Default warning/error/event palette indices
+  are **3**, **4**, and **5** when not overridden. Drop detection for the chart runs whenever `overlayTimingChart: true`
+  (independent of `detectDroppedFrames`, which only controls console warnings). The `eventPaletteIndex` slot is reserved
+  for chart event tags (VV-541).
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
@@ -328,6 +332,7 @@ configure() {
     overlayTimingChartStyle: {
       updateBarPaletteIndex: 2, // defaults to barPaletteIndex when omitted
       renderBarPaletteIndex: 3, // defaults to textPaletteIndex when omitted
+      gridPaletteIndex: 2, // horizontal grid lines; defaults to gapPaletteIndex
       warningPaletteIndex: 3, // soft over-budget / single drop; default 3
       errorPaletteIndex: 4, // hard over-budget / 2+ drops; default 4
     },

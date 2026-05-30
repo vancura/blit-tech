@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Rect2i } from '../../utils/Rect2i';
 import { createMockRenderer, getRectFillCalls } from '../testFixtures';
 import { TIMING_CHART_FULL_SCALE_MS } from './constants';
-import { computeTimingChartBarHeight } from './style';
+import { computeTimingChartBarHeight, computeTimingChartDotY } from './style';
 import { TimingChart } from './TimingChart';
 
 // #region computeTimingChartBarHeight tests
@@ -41,6 +41,7 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         });
 
         expect(renderer.drawBarFill).not.toHaveBeenCalled();
@@ -55,9 +56,9 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         };
         const chartRect = new Rect2i(0, 0, 3, 22);
-        const baselineY = chartRect.y + chartRect.height - 1;
 
         chart.reset(3);
         chart.sample({ frameMs: 0, updateMs: 4, renderMs: 0, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
@@ -67,8 +68,7 @@ describe('TimingChart', () => {
 
         chart.draw(renderer, chartRect, style);
 
-        const updateDotY = (ms: number) =>
-            baselineY - computeTimingChartBarHeight(ms, chartRect.height, TIMING_CHART_FULL_SCALE_MS) + 1;
+        const updateDotY = (ms: number) => computeTimingChartDotY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
 
         const updateDots = getRectFillCalls(renderer).filter(
             (rect) => rect.width === 1 && rect.height === 1 && rect.y === updateDotY(8),
@@ -91,6 +91,7 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         };
 
         chart.reset(4);
@@ -119,18 +120,16 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         });
 
-        const dots = getRectFillCalls(renderer).filter((rect) => rect.width === 1 && rect.height === 1);
-        const paletteIndices = renderer.drawBarFill.mock.calls
-            .filter(
-                (call) => (call[0] as { width: number }).width === 1 && (call[0] as { height: number }).height === 1,
-            )
+        const dotPaletteIndices = renderer.drawBarFill.mock.calls
+            .filter((call) => call[1] === 8 || call[1] === 9)
             .map((call) => call[1] as number);
 
-        expect(paletteIndices).toContain(8);
-        expect(paletteIndices).toContain(9);
-        expect(dots).toHaveLength(2);
+        expect(dotPaletteIndices).toContain(8);
+        expect(dotPaletteIndices).toContain(9);
+        expect(dotPaletteIndices).toHaveLength(2);
     });
 
     it('tints both dots with warning palette when frame is over soft budget', () => {
@@ -142,6 +141,7 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         };
 
         chart.reset(1);
@@ -155,11 +155,13 @@ describe('TimingChart', () => {
         });
         chart.draw(renderer, new Rect2i(0, 14, 1, 22), style);
 
-        const paletteIndices = renderer.drawBarFill.mock.calls.map((call) => call[1] as number);
+        const dotPaletteIndices = renderer.drawBarFill.mock.calls
+            .filter((call) => call[1] === 3)
+            .map((call) => call[1] as number);
 
-        expect(paletteIndices.every((index) => index === 3)).toBe(true);
-        expect(paletteIndices).not.toContain(8);
-        expect(paletteIndices).not.toContain(9);
+        expect(dotPaletteIndices.length).toBeGreaterThanOrEqual(2);
+        expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 8)).toBe(false);
+        expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 9)).toBe(false);
     });
 
     it('tints with error palette when two or more frames were dropped', () => {
@@ -181,9 +183,13 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         });
 
-        expect(renderer.drawBarFill.mock.calls.every((call) => call[1] === 4)).toBe(true);
+        const severityCalls = renderer.drawBarFill.mock.calls.filter((call) => call[1] === 4);
+
+        expect(severityCalls.length).toBeGreaterThanOrEqual(1);
+        expect(renderer.drawBarFill.mock.calls.every((call) => call[1] === 4 || call[1] === 6)).toBe(true);
     });
 
     it('draws a baseline error marker when drop severity is active with zero timing samples', () => {
@@ -207,9 +213,93 @@ describe('TimingChart', () => {
             warningBarIndex: 3,
             errorBarIndex: 4,
             eventBarIndex: 5,
+            gridBarIndex: 6,
         });
 
         expect(renderer.drawBarFill).toHaveBeenCalledWith(expect.objectContaining({ x: 5, y: baselineY }), 3);
+    });
+
+    it('draws full-width grid lines before dots when enabled', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(10, 14, 8, 22);
+        const style = {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+            gridBarIndex: 6,
+        };
+
+        chart.reset(chartRect.width);
+        chart.sample({ frameMs: 0, updateMs: 12, renderMs: 8, updateSteps: 1, drawCalls: 0, droppedFrames: 0 });
+        chart.draw(renderer, chartRect, style);
+
+        const mockCalls = renderer.drawBarFill.mock.calls;
+        const firstDotIndex = mockCalls.findIndex(
+            (call) => call[1] === style.updateBarIndex || call[1] === style.renderBarIndex,
+        );
+        const lastGridIndex = mockCalls.reduce((last, call, index) => (call[1] === 6 ? index : last), -1);
+
+        expect(lastGridIndex).toBeGreaterThanOrEqual(0);
+        expect(firstDotIndex).toBeGreaterThanOrEqual(0);
+        expect(lastGridIndex).toBeLessThan(firstDotIndex);
+    });
+
+    it('omits grid lines on top and bottom band rows', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(0, 14, 4, 22);
+
+        chart.reset(chartRect.width);
+        chart.draw(renderer, chartRect, {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+            gridBarIndex: 6,
+        });
+
+        expect(renderer.drawBarFill.mock.calls.filter((call) => call[1] === 6)).toHaveLength(2);
+    });
+
+    it('draws grid lines even when the ring buffer has no samples yet', () => {
+        const chart = new TimingChart(true, 60);
+        const renderer = createMockRenderer();
+        const chartRect = new Rect2i(0, 14, 4, 22);
+
+        chart.reset(4);
+        chart.draw(renderer, chartRect, {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+            gridBarIndex: 6,
+        });
+
+        const gridCallCount = renderer.drawBarFill.mock.calls.filter((call) => call[1] === 6).length;
+
+        expect(gridCallCount).toBeGreaterThan(0);
+    });
+
+    it('does not draw grid lines when disabled', () => {
+        const chart = new TimingChart(false, 60);
+        const renderer = createMockRenderer();
+
+        chart.reset(4);
+        chart.draw(renderer, new Rect2i(0, 14, 4, 22), {
+            updateBarIndex: 8,
+            renderBarIndex: 9,
+            warningBarIndex: 3,
+            errorBarIndex: 4,
+            eventBarIndex: 5,
+            gridBarIndex: 6,
+        });
+
+        expect(renderer.drawBarFill).not.toHaveBeenCalled();
     });
 });
 

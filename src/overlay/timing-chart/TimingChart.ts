@@ -1,5 +1,5 @@
 /**
- * Scrolling update/render timing chart band for the overlay (VV-539, VV-545 severity).
+ * Scrolling update/render timing chart band for the overlay (VV-539, VV-545 severity, VV-7 grid).
  */
 
 import { Rect2i } from '../../utils/Rect2i';
@@ -12,7 +12,15 @@ import {
     TIMING_CHART_SEVERITY_NONE,
     TIMING_CHART_SEVERITY_WARNING,
 } from './severity';
-import { computeTimingChartBarHeight, type ResolvedOverlayTimingChartStyle } from './style';
+import {
+    computeTimingChartBarHeight,
+    computeTimingChartDotY,
+    computeTimingChartGridLineY,
+    type ResolvedOverlayTimingChartStyle,
+    shouldDrawTimingChartGridLineY,
+    timingChartBaselineY,
+    writeTimingChartGridMarkers,
+} from './style';
 
 /** Palette indices for chart drawing. */
 export type OverlayTimingChartDrawStyle = ResolvedOverlayTimingChartStyle;
@@ -38,6 +46,11 @@ export class TimingChart {
     #severityBuffer = new Uint8Array(0);
 
     readonly #dotScratch = new Rect2i(0, 0, 1, 1);
+
+    readonly #lineScratch = new Rect2i(0, 0, 1, 1);
+
+    /** Reusable marker list: fixed thresholds plus one frame-budget slot. */
+    readonly #gridMarkerMs = new Float32Array(8);
 
     /**
      * Creates a timing chart with the given feature flag.
@@ -108,7 +121,7 @@ export class TimingChart {
     }
 
     /**
-     * Draws one-pixel timing dots for each populated ring-buffer column.
+     * Draws horizontal grid reference lines, then one-pixel timing dots for each populated ring-buffer column.
      *
      * Uses {@link OverlayDrawTarget.drawBarFill} with 1x1 rects so update and render samples stay
      * visible without alpha blending (palette-indexed engine).
@@ -124,11 +137,13 @@ export class TimingChart {
 
         this.reset(chartRect.width);
 
+        this.#drawGridLines(target, chartRect, style);
+
         if (this.#sampleCount <= 0) {
             return;
         }
 
-        const baselineY = chartRect.y + chartRect.height - 1;
+        const baselineY = timingChartBaselineY(chartRect);
 
         for (let column = 0; column < this.#sampleCount; column++) {
             const bufferIndex =
@@ -155,8 +170,8 @@ export class TimingChart {
                     TIMING_CHART_FULL_SCALE_MS,
                 );
 
-                this.#drawDot(target, x, baselineY, renderMs, chartRect, tintIndex);
-                this.#drawDot(target, x, baselineY, updateMs, chartRect, tintIndex);
+                this.#drawDot(target, x, renderMs, chartRect, tintIndex);
+                this.#drawDot(target, x, updateMs, chartRect, tintIndex);
 
                 if (renderOffset <= 0 && updateOffset <= 0) {
                     this.#drawBaselineMarker(target, x, baselineY, tintIndex);
@@ -165,8 +180,36 @@ export class TimingChart {
                 continue;
             }
 
-            this.#drawDot(target, x, baselineY, renderMs, chartRect, style.renderBarIndex);
-            this.#drawDot(target, x, baselineY, updateMs, chartRect, style.updateBarIndex);
+            this.#drawDot(target, x, renderMs, chartRect, style.renderBarIndex);
+            this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
+        }
+    }
+
+    /**
+     * Draws faint horizontal grid lines behind timing dots (VV-7).
+     *
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band from layout plan.
+     * @param style - Resolved chart palette indices.
+     */
+    #drawGridLines(target: OverlayDrawTarget, chartRect: Rect2i, style: OverlayTimingChartDrawStyle): void {
+        const markerCount = writeTimingChartGridMarkers(this.#targetFps, this.#gridMarkerMs);
+        let lastY = -1;
+
+        for (let index = 0; index < markerCount; index++) {
+            /* eslint-disable security/detect-object-injection -- index bounded by markerCount */
+            const ms = this.#gridMarkerMs[index] ?? 0;
+            /* eslint-enable security/detect-object-injection */
+
+            const y = computeTimingChartGridLineY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
+
+            if (y === null || !shouldDrawTimingChartGridLineY(y, chartRect) || y === lastY) {
+                continue;
+            }
+
+            lastY = y;
+            this.#lineScratch.set(chartRect.x, y, chartRect.width, 1);
+            target.drawBarFill(this.#lineScratch, style.gridBarIndex);
         }
     }
 
@@ -203,30 +246,20 @@ export class TimingChart {
     }
 
     /**
-     * Draws one timing sample as a single pixel above the chart baseline.
+     * Draws one timing sample as a single pixel anchored from the chart bottom row.
      *
      * @param target - Overlay draw target.
      * @param x - Column X in screen space.
-     * @param baselineY - Bottom row of the chart band.
      * @param ms - Timing sample in milliseconds.
      * @param chartRect - Chart band bounds for clamping.
      * @param paletteIndex - Palette index for the dot.
      */
-    #drawDot(
-        target: OverlayDrawTarget,
-        x: number,
-        baselineY: number,
-        ms: number,
-        chartRect: Rect2i,
-        paletteIndex: number,
-    ): void {
-        const offset = computeTimingChartBarHeight(ms, chartRect.height, TIMING_CHART_FULL_SCALE_MS);
+    #drawDot(target: OverlayDrawTarget, x: number, ms: number, chartRect: Rect2i, paletteIndex: number): void {
+        const y = computeTimingChartDotY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
 
-        if (offset <= 0) {
+        if (y === null) {
             return;
         }
-
-        const y = Math.max(chartRect.y, baselineY - offset + 1);
 
         this.#dotScratch.set(x, y, 1, 1);
         target.drawBarFill(this.#dotScratch, paletteIndex);

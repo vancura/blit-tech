@@ -230,6 +230,12 @@ export interface OverlayTimingChartStyle {
 
     /** Event/tag tint for future chart markers (VV-541). */
     eventPaletteIndex?: number;
+
+    /**
+     * Faint horizontal grid lines behind chart dots (VV-7). Defaults to
+     * {@link OverlayStyle.gapPaletteIndex} or {@link OverlayStyle.barPaletteIndex} when omitted.
+     */
+    gridPaletteIndex?: number;
 }
 
 /**
