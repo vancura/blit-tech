@@ -11,7 +11,12 @@ import { describe, expect, it } from 'vitest';
 
 import { validateRenderDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
-import { defaultConfig, mergeHardwareSettings } from './IBlitTechDemo';
+import {
+    defaultConfig,
+    mergeHardwareSettings,
+    needsOverlayRendererDiagnostics,
+    resolveOverlayTimingChartDiagnostics,
+} from './IBlitTechDemo';
 
 describe('defaultConfig', () => {
     it('should return 320x240 display size', () => {
@@ -196,6 +201,32 @@ describe('mergeHardwareSettings', () => {
         });
 
         expect(settings.overlayTimingChartHeight).toBe(36);
+    });
+
+    it('merges renderer diagnostics overlay flags from configure()', () => {
+        const settings = mergeHardwareSettings({
+            overlayTimingChart: true,
+            overlayTimingChartDiagnostics: 'rich',
+            overlayRendererDiagnosticsBar: true,
+        });
+
+        expect(settings.overlayTimingChartDiagnostics).toBe('rich');
+        expect(settings.overlayRendererDiagnosticsBar).toBe(true);
+    });
+
+    it('resolveOverlayTimingChartDiagnostics defaults to minimal when chart enabled', () => {
+        const settings = mergeHardwareSettings({ overlayTimingChart: true });
+
+        expect(resolveOverlayTimingChartDiagnostics(settings)).toBe('minimal');
+    });
+
+    it('needsOverlayRendererDiagnostics is true for diagnostics bar alone', () => {
+        const settings = mergeHardwareSettings({
+            overlayTimingChart: false,
+            overlayRendererDiagnosticsBar: true,
+        });
+
+        expect(needsOverlayRendererDiagnostics(settings)).toBe(true);
     });
 
     it('surfaces null displaySize via dimension validation instead of returning null', () => {

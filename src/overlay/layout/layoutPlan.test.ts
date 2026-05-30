@@ -77,6 +77,25 @@ describe('buildOverlayLayoutPlan', () => {
         expect(plan.metricsBar.y).toBe(14 + 22 + OVERLAY_ROW_GAP_PX);
     });
 
+    it('inserts renderer diagnostics bar below timing text when enabled', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const scratch = createOverlayLayoutPlanScratch();
+        const config = {
+            ...createDefaultLayoutConfig(320, 240, 14, 0),
+            rendererDiagnosticsBarEnabled: true,
+        };
+
+        const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
+
+        expect(plan.rendererDiagnosticsBar).toMatchObject({
+            x: 0,
+            y: 28 + OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX,
+            width: 320,
+            height: OVERLAY_BAR_HEIGHT,
+        });
+        expect(plan.topClusterSeparator.y).toBe(plan.rendererDiagnosticsBar.y + OVERLAY_BAR_HEIGHT);
+    });
+
     it('uses variable bottom height when palette grid is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const scratch = createOverlayLayoutPlanScratch();

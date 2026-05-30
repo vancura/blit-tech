@@ -14,6 +14,24 @@ export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 export const TIMING_CHART_DEFAULT_TAG_IDX = 5;
 
 /**
+ * WebGPU primitive/sprite pipeline vertex cap for rich-mode pressure scaling.
+ *
+ * Unit: vertices. Matches the batch limit used by {@link PrimitivePipeline} and
+ * {@link SpritePipeline}; submitted counts are scaled against this value when
+ * drawing vertex-pressure dots. Increase only if those pipeline caps change.
+ */
+export const TIMING_CHART_MAX_PIPELINE_VERTICES = 50000;
+
+/**
+ * Fraction of chart band height reserved for vertex-pressure dots in rich diagnostics.
+ *
+ * Unitless ratio in the 0–1 range (default 1/3).
+ * Dots render in the lower portion of the band; raising the value expands the
+ * pressure region upward; lowering it compresses dots toward the baseline.
+ */
+export const TIMING_CHART_PRESSURE_REGION_RATIO = 1 / 3;
+
+/**
  * Fixed interior grid markers in milliseconds (VV-7). Excludes 1 ms (band bottom edge).
  * Frame budget is added at draw time from targetFPS.
  */

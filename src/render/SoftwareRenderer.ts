@@ -2,6 +2,7 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
+import type { OverlayRendererDiagnostics } from '../overlay/types';
 import { clipSpriteSourceRect } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { noActivePaletteError } from '../utils/errorMessages';
@@ -88,6 +89,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
         "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().";
 
+    /** Vertices emitted for one filled rect or sprite quad (matches WebGPU batching). */
+    private static readonly QUAD_VERTEX_COUNT = 6;
+
     // #endregion
 
     // #region State
@@ -107,6 +111,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private readonly framePixels: Uint8ClampedArray;
     private imageData: ImageData | null = null;
     private pendingCapture: PendingCapture | null = null;
+    private primitiveSubmittedVertices = 0;
+    private spriteSubmittedVertices = 0;
 
     // #endregion
 
@@ -205,6 +211,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         }
 
         this.commands.length = 0;
+        this.primitiveSubmittedVertices = 0;
+        this.spriteSubmittedVertices = 0;
     }
 
     /**
@@ -234,6 +242,23 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         this.commands.length = 0;
     }
 
+    /**
+     * Returns GPU-equivalent vertex counts for queued primitive and sprite work this frame.
+     *
+     * Counts mirror {@link PrimitivePipeline} / {@link SpritePipeline} batch semantics so
+     * overlay diagnostics stay comparable across backends.
+     *
+     * @returns Diagnostic counters for the current frame.
+     */
+    getFrameDiagnostics(): OverlayRendererDiagnostics {
+        return {
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: this.primitiveSubmittedVertices,
+            spriteSubmittedVertices: this.spriteSubmittedVertices,
+        };
+    }
+
     // #endregion
 
     // #region Drawing - Primitives
@@ -255,6 +280,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+        this.primitiveSubmittedVertices += SoftwareRenderer.QUAD_VERTEX_COUNT;
     }
 
     /**
@@ -305,6 +331,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+        this.primitiveSubmittedVertices += SoftwareRenderer.estimateLineVertexCount(p0.x, p0.y, p1.x, p1.y);
     }
 
     /**
@@ -324,6 +351,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+        this.primitiveSubmittedVertices += SoftwareRenderer.estimateRectOutlineVertexCount(rect);
     }
 
     /**
@@ -358,6 +386,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+        this.spriteSubmittedVertices += SoftwareRenderer.QUAD_VERTEX_COUNT;
     }
 
     /**
@@ -378,6 +407,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             cameraX: this.cameraOffset.x,
             cameraY: this.cameraOffset.y,
         });
+        this.spriteSubmittedVertices += SoftwareRenderer.estimateBitmapTextVertexCount(font, text);
     }
 
     /**
@@ -896,6 +926,109 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             }
             request.resolve(blob);
         }, 'image/png');
+    }
+
+    // #endregion
+
+    // #region Diagnostic estimation
+
+    /**
+     * Estimates primitive vertices for a line using the same rules as {@link PrimitivePipeline.drawLine}.
+     *
+     * @param x0 - Start X.
+     * @param y0 - Start Y.
+     * @param x1 - End X.
+     * @param y1 - End Y.
+     * @returns Vertex count for the line draw.
+     */
+    private static estimateLineVertexCount(x0: number, y0: number, x1: number, y1: number): number {
+        const ix0 = x0 | 0;
+        const iy0 = y0 | 0;
+        const ix1 = x1 | 0;
+        const iy1 = y1 | 0;
+
+        if (iy0 === iy1 || ix0 === ix1) {
+            return SoftwareRenderer.QUAD_VERTEX_COUNT;
+        }
+
+        return SoftwareRenderer.countBresenhamSteps(ix0, iy0, ix1, iy1) * SoftwareRenderer.QUAD_VERTEX_COUNT;
+    }
+
+    /**
+     * Estimates primitive vertices for a rectangle outline using {@link PrimitivePipeline.drawRect} rules.
+     *
+     * @param rect - Outline bounds.
+     * @returns Vertex count for the outline draw.
+     */
+    private static estimateRectOutlineVertexCount(rect: Rect2i): number {
+        const y0 = rect.y;
+        const y1 = rect.y + rect.height - 1;
+        let vertices = SoftwareRenderer.QUAD_VERTEX_COUNT * 2;
+
+        if (y1 - y0 > 1) {
+            vertices += SoftwareRenderer.QUAD_VERTEX_COUNT * 2;
+        }
+
+        return vertices;
+    }
+
+    /**
+     * Estimates sprite vertices for bitmap text (one quad per resolved glyph).
+     *
+     * @param font - Bitmap font containing glyph metrics.
+     * @param text - String to render.
+     * @returns Vertex count for the text draw.
+     */
+    private static estimateBitmapTextVertexCount(font: BitmapFont, text: string): number {
+        let glyphCount = 0;
+
+        for (const char of text) {
+            if (font.getGlyph(char)) {
+                glyphCount++;
+            }
+        }
+
+        return glyphCount * SoftwareRenderer.QUAD_VERTEX_COUNT;
+    }
+
+    /**
+     * Counts Bresenham steps between two integer endpoints (inclusive).
+     *
+     * @param x0 - Start X.
+     * @param y0 - Start Y.
+     * @param x1 - End X.
+     * @param y1 - End Y.
+     * @returns Number of pixels visited.
+     */
+    private static countBresenhamSteps(x0: number, y0: number, x1: number, y1: number): number {
+        let cx = x0;
+        let cy = y0;
+        const tx = x1;
+        const ty = y1;
+        const dx = Math.abs(tx - cx);
+        const dy = Math.abs(ty - cy);
+        const sx = cx < tx ? 1 : -1;
+        const sy = cy < ty ? 1 : -1;
+        let err = dx - dy;
+        let steps = 1;
+
+        while (cx !== tx || cy !== ty) {
+            const e2 = err * 2;
+
+            if (e2 > -dy) {
+                err -= dy;
+                cx += sx;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                cy += sy;
+            }
+
+            steps++;
+        }
+
+        return steps;
     }
 
     // #endregion

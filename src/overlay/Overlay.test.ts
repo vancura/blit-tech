@@ -47,6 +47,8 @@ interface OverlayTestOptions {
         tagPaletteIndex?: number;
     };
     overlayTimingChartHeight?: number;
+    overlayTimingChartDiagnostics?: false | 'minimal' | 'rich';
+    overlayRendererDiagnosticsBar?: boolean;
     visibleAtStart?: boolean;
     toggleHintVisible?: boolean;
     toggleEnabled?: boolean;
@@ -71,6 +73,8 @@ function createOverlay(
         options.overlayTimingChart ?? false,
         options.overlayTimingChartStyle,
         options.overlayTimingChartHeight,
+        options.overlayTimingChartDiagnostics ?? false,
+        options.overlayRendererDiagnosticsBar ?? false,
         options.visibleAtStart ?? false,
         options.toggleHintVisible ?? true,
         options.toggleEnabled ?? true,
@@ -263,6 +267,10 @@ describe('Overlay', () => {
             updateSteps: 3,
             drawCalls: 42,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         const calls = getBitmapTextCalls(renderer);
@@ -613,6 +621,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         const tagCall = renderer.drawLabelOnTop.mock.calls.find((call) => call[2] === 'Spawn');
@@ -639,6 +651,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 4,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         const dotCalls = renderer.drawBarFill.mock.calls.filter(
@@ -671,6 +687,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 4,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         const dotCalls = renderer.drawBarFill.mock.calls.filter(
@@ -700,6 +720,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 4,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         expect(renderer.drawBarFill).not.toHaveBeenCalled();
@@ -712,6 +736,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 4,
             droppedFrames: 1,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(true);
@@ -729,6 +757,10 @@ describe('Overlay', () => {
             updateSteps: 1,
             drawCalls: 4,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(false);
@@ -752,6 +784,10 @@ describe('Overlay', () => {
             updateSteps: 0,
             drawCalls: 0,
             droppedFrames: 1,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         expect(renderer.drawBarFill).not.toHaveBeenCalled();
@@ -764,6 +800,10 @@ describe('Overlay', () => {
             updateSteps: 0,
             drawCalls: 0,
             droppedFrames: 0,
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 0,
+            spriteSubmittedVertices: 0,
         });
 
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 3)).toBe(true);

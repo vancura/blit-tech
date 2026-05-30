@@ -17,6 +17,14 @@ export class TimingSampler {
 
     #drawCalls = 0;
 
+    #primitiveOverflowCount = 0;
+
+    #spriteOverflowCount = 0;
+
+    #primitiveSubmittedVertices = 0;
+
+    #spriteSubmittedVertices = 0;
+
     /**
      * Ingests one frame-timing snapshot.
      *
@@ -40,6 +48,10 @@ export class TimingSampler {
 
         this.#updateSteps = Math.max(0, Math.floor(sample.updateSteps));
         this.#drawCalls = Math.max(0, Math.floor(sample.drawCalls));
+        this.#primitiveOverflowCount = Math.max(0, Math.floor(sample.primitiveOverflowCount));
+        this.#spriteOverflowCount = Math.max(0, Math.floor(sample.spriteOverflowCount));
+        this.#primitiveSubmittedVertices = Math.max(0, Math.floor(sample.primitiveSubmittedVertices));
+        this.#spriteSubmittedVertices = Math.max(0, Math.floor(sample.spriteSubmittedVertices));
     }
 
     /**
@@ -85,5 +97,53 @@ export class TimingSampler {
      */
     get drawCalls(): number {
         return this.#drawCalls;
+    }
+
+    /**
+     * Most recent primitive pipeline overflow events for the frame.
+     *
+     * @returns Primitive overflow count.
+     */
+    get primitiveOverflowCount(): number {
+        return this.#primitiveOverflowCount;
+    }
+
+    /**
+     * Most recent sprite pipeline overflow events for the frame.
+     *
+     * @returns Sprite overflow count.
+     */
+    get spriteOverflowCount(): number {
+        return this.#spriteOverflowCount;
+    }
+
+    /**
+     * Most recent primitive vertices batched for GPU submission.
+     *
+     * @returns Primitive submitted vertex count.
+     */
+    get primitiveSubmittedVertices(): number {
+        return this.#primitiveSubmittedVertices;
+    }
+
+    /**
+     * Most recent sprite vertices batched for GPU submission.
+     *
+     * @returns Sprite submitted vertex count.
+     */
+    get spriteSubmittedVertices(): number {
+        return this.#spriteSubmittedVertices;
+    }
+
+    /**
+     * Formats the renderer diagnostics overlay row from the latest sample.
+     *
+     * @returns Single-line GPU batch summary for the diagnostics bar.
+     */
+    formatRendererDiagnosticsLabel(): string {
+        return (
+            `Prim ${this.#primitiveSubmittedVertices}v ov: ${this.#primitiveOverflowCount} | ` +
+            `Spr ${this.#spriteSubmittedVertices}v ov: ${this.#spriteOverflowCount}`
+        );
     }
 }

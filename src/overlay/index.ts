@@ -49,4 +49,4 @@ export {
     writeTimingChartGridMarkers,
 } from './timing-chart/style';
 export { TimingChart } from './timing-chart/TimingChart';
-export type { OverlayTimingSnapshot, PaletteGridLayout } from './types';
+export type { OverlayRendererDiagnostics, OverlayTimingSnapshot, PaletteGridLayout } from './types';

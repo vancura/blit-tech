@@ -434,6 +434,35 @@ describe('vertex count verification', () => {
             warnSpy.mockRestore();
         }
     });
+
+    it('increments overflow count when capacity is exceeded and resets on reset()', () => {
+        pipeline.reset();
+
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        try {
+            for (let i = 0; i < 8400; i++) {
+                pipeline.drawRectFill(new Rect2i(0, 0, 1, 1), 1);
+            }
+
+            expect(pipeline.getFrameOverflowCount()).toBeGreaterThan(0);
+            expect(pipeline.getFrameSubmittedVertices()).toBeLessThanOrEqual(50000);
+
+            pipeline.reset();
+
+            expect(pipeline.getFrameOverflowCount()).toBe(0);
+            expect(pipeline.getFrameSubmittedVertices()).toBe(0);
+        } finally {
+            warnSpy.mockRestore();
+        }
+    });
+
+    it('reports submitted vertex count for batched primitives', () => {
+        pipeline.reset();
+        pipeline.drawRectFill(new Rect2i(0, 0, 10, 10), 1);
+
+        expect(pipeline.getFrameSubmittedVertices()).toBe(6);
+    });
 });
 
 // #endregion

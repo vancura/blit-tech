@@ -459,5 +459,34 @@ describe('SoftwareRenderer', () => {
         expect(second).toBe(first);
     });
 
+    it('getFrameDiagnostics reports GPU-equivalent vertex counts before endFrame', async () => {
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: canvasGet2d(context),
+            toBlob: (_cb: (blob: Blob | null) => void) => {},
+        } as unknown as HTMLCanvasElement;
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(8, 8));
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const sheet = SpriteSheet.fromIndexedPixels(2, 1, new Uint8Array([1, 0]));
+
+        renderer.beginFrame();
+        renderer.drawRectFill(new Rect2i(0, 0, 2, 2), 1);
+        renderer.drawLine(new Vector2i(0, 0), new Vector2i(3, 0), 2);
+        renderer.drawSprite(sheet, new Rect2i(0, 0, 2, 1), new Vector2i(0, 0), 0);
+
+        expect(renderer.getFrameDiagnostics()).toEqual({
+            primitiveOverflowCount: 0,
+            spriteOverflowCount: 0,
+            primitiveSubmittedVertices: 12,
+            spriteSubmittedVertices: 6,
+        });
+
+        renderer.endFrame();
+    });
+
     // #endregion
 });

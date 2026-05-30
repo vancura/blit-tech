@@ -122,6 +122,10 @@ export class OverlayBars {
 
         target.drawBarFill(plan.metricsBar, barIndex);
         target.drawBarFill(plan.timingTextBar, barIndex);
+
+        if (plan.rendererDiagnosticsBar.height > 0) {
+            target.drawBarFill(plan.rendererDiagnosticsBar, barIndex);
+        }
     }
 
     /**
@@ -159,6 +163,7 @@ export class OverlayBars {
      * @param topRightLabel - Backend and resolution (right).
      * @param topMetricsLabel - Present FPS / target / draw calls line.
      * @param topTimingLabel - Frame / update / render ms line.
+     * @param rendererDiagnosticsLabel - Optional GPU diagnostics line; omitted when empty.
      */
     drawTopLabels(
         target: OverlayDrawTarget,
@@ -169,6 +174,7 @@ export class OverlayBars {
         topRightLabel: string,
         topMetricsLabel: string,
         topTimingLabel: string,
+        rendererDiagnosticsLabel = '',
     ): void {
         const textPaletteOffset = overlayBitmapTextPaletteOffset(style.textIndex);
 
@@ -176,6 +182,10 @@ export class OverlayBars {
         target.drawLabel(font, plan.topRightPos, topRightLabel, textPaletteOffset);
         target.drawLabel(font, plan.topMetricsPos, topMetricsLabel, textPaletteOffset);
         target.drawLabel(font, plan.topTimingPos, topTimingLabel, textPaletteOffset);
+
+        if (rendererDiagnosticsLabel.length > 0 && plan.rendererDiagnosticsBar.height > 0) {
+            target.drawLabel(font, plan.rendererDiagnosticsPos, rendererDiagnosticsLabel, textPaletteOffset);
+        }
     }
 
     /**

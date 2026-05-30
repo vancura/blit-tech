@@ -1,4 +1,24 @@
 /**
+ * Per-frame WebGPU pipeline diagnostic counters for overlay timing/chart internals.
+ *
+ * Populated by {@link BTAPI} when overlay renderer diagnostics collection is enabled.
+ * Overflow counts are WebGPU-only; software reports zero overflow with comparable vertex totals.
+ */
+export interface OverlayRendererDiagnostics {
+    /** Primitive pipeline overflow events this frame (dropped pixels or vertices). */
+    readonly primitiveOverflowCount: number;
+
+    /** Sprite pipeline overflow events this frame (dropped quads). */
+    readonly spriteOverflowCount: number;
+
+    /** Primitive vertices batched for GPU submission this frame. */
+    readonly primitiveSubmittedVertices: number;
+
+    /** Sprite vertices batched for GPU submission this frame. */
+    readonly spriteSubmittedVertices: number;
+}
+
+/**
  * Per-frame timing snapshot fed into {@link Overlay.updateAndRender}.
  *
  * Values are wall-clock CPU timings from `performance.now()` measured by
@@ -25,6 +45,18 @@ export interface OverlayTimingSnapshot {
      * Zero when none; set from {@link GameLoop} before the overlay samples the chart.
      */
     readonly droppedFrames: number;
+
+    /** {@link OverlayRendererDiagnostics.primitiveOverflowCount} for this frame. */
+    readonly primitiveOverflowCount: number;
+
+    /** {@link OverlayRendererDiagnostics.spriteOverflowCount} for this frame. */
+    readonly spriteOverflowCount: number;
+
+    /** {@link OverlayRendererDiagnostics.primitiveSubmittedVertices} for this frame. */
+    readonly primitiveSubmittedVertices: number;
+
+    /** {@link OverlayRendererDiagnostics.spriteSubmittedVertices} for this frame. */
+    readonly spriteSubmittedVertices: number;
 }
 
 /** Computed palette swatch grid dimensions for the palette band. */
