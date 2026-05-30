@@ -157,6 +157,14 @@ export interface HardwareSettings {
     overlayPaletteColumns?: number;
 
     /**
+     * Maximum visible palette grid rows in the overlay footer viewport. When unset,
+     * all rows are shown (current behavior). When set, the bottom band height uses
+     * this row count rather than the full palette row count; values are clamped to
+     * at least `1` and at most the total row count.
+     */
+    overlayPaletteRowsVisible?: number;
+
+    /**
      * Palette indices for the built-in overlay bars (top and bottom), row gaps,
      * and as defaults for custom {@link OverlayRow} entries that omit per-row colors.
      *
@@ -474,6 +482,7 @@ function pickDefinedOverlaySettings(picked: Partial<HardwareSettings>, partial: 
     pickIfDefinedPartial(picked, partial, 'overlayToggleEnabled');
     pickIfDefinedPartial(picked, partial, 'overlayPaletteView');
     pickIfDefinedPartial(picked, partial, 'overlayPaletteColumns');
+    pickIfDefinedPartial(picked, partial, 'overlayPaletteRowsVisible');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChart');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChartHeight');
 
@@ -630,6 +639,8 @@ function assignFullDefaultMergeScalars(
 
     assignIfDefined(optionals, 'overlayPaletteColumns', picked.overlayPaletteColumns);
 
+    assignIfDefined(optionals, 'overlayPaletteRowsVisible', picked.overlayPaletteRowsVisible);
+
     assignIfDefined(optionals, 'overlayTimingChart', picked.overlayTimingChart ?? defaults.overlayTimingChart);
 
     assignIfDefined(
@@ -690,6 +701,7 @@ function buildExplicitDisplayOptionals(
     assignIfDefined(optionals, 'detectDroppedFrames', picked.detectDroppedFrames);
     assignIfDefined(optionals, 'overlayStyle', shallowCloneOptional(picked.overlayStyle));
     assignIfDefined(optionals, 'overlayPaletteColumns', picked.overlayPaletteColumns);
+    assignIfDefined(optionals, 'overlayPaletteRowsVisible', picked.overlayPaletteRowsVisible);
     assignIfDefined(optionals, 'overlayTimingChart', picked.overlayTimingChart);
     assignIfDefined(optionals, 'overlayTimingChartHeight', picked.overlayTimingChartHeight);
     assignIfDefined(optionals, 'overlayTimingChartStyle', shallowCloneOptional(picked.overlayTimingChartStyle));

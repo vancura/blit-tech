@@ -26,8 +26,11 @@ export interface PaletteGridLayout {
     /** Number of columns in the grid. */
     readonly cols: number;
 
-    /** Number of rows in the grid. */
+    /** Number of rows in the full palette grid. */
     readonly rows: number;
+
+    /** Number of rows visible in the viewport (<= {@link rows}). */
+    readonly visibleRows: number;
 
     /** Side length of each swatch in pixels. */
     readonly swatchSize: number;
@@ -35,6 +38,6 @@ export interface PaletteGridLayout {
     /** Gap between swatches horizontally and vertically. */
     readonly gap: number;
 
-    /** Total palette band height including padding. */
+    /** Total palette band height including padding (based on {@link visibleRows}). */
     readonly totalHeight: number;
 }

@@ -14,7 +14,7 @@ import { OVERLAY_BAR_HEIGHT, OVERLAY_ROW_GAP_PX } from './layout/constants';
 import { createOverlayLayout, overlayRightAlignedTextX, overlayToggleHintTextX } from './layout/layoutHelpers';
 import { hintBarY, paletteBandY } from './layout/layoutPlan';
 import { Overlay } from './Overlay';
-import { computePaletteGrid, writePaletteSwatchTopLeft } from './palette/PaletteView';
+import { computePaletteGrid, writePaletteScrollbarRects, writePaletteSwatchTopLeft } from './palette/PaletteView';
 import {
     createMockRenderer,
     customRowBarY,
@@ -36,6 +36,7 @@ interface OverlayTestOptions {
     style?: { barPaletteIndex?: number; textPaletteIndex?: number; gapPaletteIndex?: number };
     paletteView?: boolean;
     paletteColumns?: number;
+    paletteRowsVisible?: number;
     timingChart?: boolean;
     timingChartStyle?: { updateBarPaletteIndex?: number; renderBarPaletteIndex?: number };
     timingChartHeight?: number;
@@ -59,6 +60,7 @@ function createOverlay(
         options.style,
         options.paletteView ?? OVERLAY_PALETTE_VIEW_OFF,
         options.paletteColumns,
+        options.paletteRowsVisible,
         options.timingChart ?? false,
         options.timingChartStyle,
         options.timingChartHeight,
@@ -123,6 +125,36 @@ describe('Overlay', () => {
             {
                 isButtonPressed: () => true,
                 getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
+            } as never,
+            null,
+            1,
+        );
+
+        expect(overlay.bodyVisible).toBe(true);
+    });
+
+    it('scrollbar track press blocks toggle but swatch press still copies first (VV-550)', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Test Demo', {
+            paletteView: true,
+            visibleAtStart: true,
+            paletteRowsVisible: 3,
+        });
+        const grid = computePaletteGrid(320, undefined, 256, undefined, undefined, 3);
+        const paletteBandTop = paletteBandY(240, grid.totalHeight);
+        const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
+        const track = new Rect2i();
+        const thumb = new Rect2i();
+        writePaletteScrollbarRects(track, thumb, paletteBand, grid, 0, 4);
+
+        overlay.handleFrameInput(
+            {
+                isButtonPressed: () => true,
+                isButtonDown: () => true,
+                isValid: () => true,
+                getPos: () => new Vector2i(track.x + 1, track.y + 1),
+                getScrollDelta: () => 0,
+                consumeScrollDelta: vi.fn(),
             } as never,
             null,
             1,

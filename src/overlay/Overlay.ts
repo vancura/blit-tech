@@ -68,6 +68,8 @@ export class Overlay {
 
     readonly #paletteColumns: number | undefined;
 
+    readonly #paletteRowsVisible: number | undefined;
+
     readonly #layoutScratch = createOverlayLayoutPlanScratch();
 
     readonly #barStyle = { barIndex: DEFAULT_IDX_BG, textIndex: DEFAULT_IDX_TEXT };
@@ -92,6 +94,7 @@ export class Overlay {
      * @param style - Optional palette indices from {@link HardwareSettings.overlayStyle}.
      * @param overlayPaletteView - When true, draws the live palette swatch grid.
      * @param paletteColumns - Optional max swatches per row from {@link HardwareSettings.overlayPaletteColumns}.
+     * @param overlayPaletteRowsVisible - Optional max visible palette grid rows from {@link HardwareSettings.overlayPaletteRowsVisible}.
      * @param overlayTimingChart - When true, draws the update/render timing chart band.
      * @param overlayTimingChartStyle - Optional timing chart palette overrides.
      * @param overlayTimingChartHeight - Chart band height in pixels (default 22).
@@ -107,6 +110,7 @@ export class Overlay {
         style?: OverlayStyle,
         overlayPaletteView = false,
         paletteColumns?: number,
+        overlayPaletteRowsVisible?: number,
         overlayTimingChart = false,
         overlayTimingChartStyle?: OverlayTimingChartStyle,
         overlayTimingChartHeight?: number,
@@ -128,6 +132,7 @@ export class Overlay {
         this.#paletteView = new PaletteView(overlayPaletteView);
         this.#paletteInteraction = new PaletteInteraction(targetFps);
         this.#paletteColumns = paletteColumns;
+        this.#paletteRowsVisible = overlayPaletteRowsVisible;
         this.#toggle = new Toggle(overlayVisibleAtStart, overlayToggleEnabled);
         this.#toggleHintVisible = overlayToggleHintVisible;
 
@@ -186,6 +191,8 @@ export class Overlay {
             const colorCount = palette?.size ?? 256;
 
             if (grid !== undefined && plan.paletteBand.height > 0) {
+                this.#paletteInteraction.syncScrollBounds(grid);
+
                 pointerPressConsumed = this.#paletteInteraction.handlePress(
                     pointer,
                     currentTick,
@@ -196,6 +203,10 @@ export class Overlay {
                     this.#layout.displayWidth,
                     this.#layout.lineHeight,
                 );
+
+                pointerPressConsumed =
+                    this.#paletteInteraction.handleScroll(pointer, plan, grid, pointerPressConsumed) ||
+                    pointerPressConsumed;
             }
         }
 
@@ -299,7 +310,14 @@ export class Overlay {
         const overlayPaletteView = this.#paletteView.enabled;
         const colorCount = palette?.size ?? 256;
         const paletteGrid = overlayPaletteView
-            ? computePaletteGrid(this.#layout.displayWidth, undefined, colorCount, undefined, this.#paletteColumns)
+            ? computePaletteGrid(
+                  this.#layout.displayWidth,
+                  undefined,
+                  colorCount,
+                  undefined,
+                  this.#paletteColumns,
+                  this.#paletteRowsVisible,
+              )
             : undefined;
 
         return {
@@ -420,6 +438,9 @@ export class Overlay {
                 this.#layout.displayWidth,
                 this.#layout.lineHeight,
                 usedPaletteMask,
+                this.#idxText,
+                this.#paletteInteraction.scrollRowOffset,
+                this.#paletteInteraction.scrollbarTrackWidth,
                 this.#idxText,
             );
 
