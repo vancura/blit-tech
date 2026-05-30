@@ -13,9 +13,6 @@ export interface OverlayLayout {
     /** System font line height in pixels. */
     readonly lineHeight: number;
 
-    /** Y baseline for the bottom hint label. */
-    readonly bottomTextY: number;
-
     /** Y baseline for top-bar text. */
     readonly topTextY: number;
 
@@ -58,7 +55,7 @@ export interface OverlayLayoutPlan {
     /** Palette swatch grid band when {@link HardwareSettings.overlayPaletteView} is enabled; height 0 otherwise. */
     readonly paletteBand: Rect2i;
 
-    /** Bottom `[~]` hint bar (13 px); always at the display bottom edge. */
+    /** Bottom hint bar (13 px); always at the display bottom edge. */
     readonly hintBar: Rect2i;
 
     readonly toggleRect: Rect2i;
@@ -70,9 +67,6 @@ export interface OverlayLayoutPlan {
     readonly topMetricsPos: Vector2i;
 
     readonly topTimingPos: Vector2i;
-
-    /** Bottom-left `[~]` toggle hint label anchor. */
-    readonly hintLabelPos: Vector2i;
 
     /** 1 px row gaps between stacked overlay bands (top stack, custom rows, palette/hint). */
     readonly rowGapRects: readonly Rect2i[];

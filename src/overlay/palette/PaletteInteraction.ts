@@ -61,7 +61,7 @@ const tooltipScratch = {
  * @param swatchX - Swatch left edge in display pixels.
  * @param swatchY - Swatch top edge in display pixels.
  * @param swatchSize - Side length of the swatch.
- * @param hintExclusion - Region reserved for the `[~]` hint label.
+ * @param hintExclusion - Region reserved for the toggle hint icon.
  * @returns `true` when the swatch should not receive hits or draws.
  */
 function swatchOverlapsHintExclusion(
@@ -165,7 +165,7 @@ function resolvePaletteIndexAtBandLocal(
  * @param paletteBand - Palette band rect from the layout plan.
  * @param grid - Precomputed grid layout.
  * @param colorCount - Active palette slot count.
- * @param hintExclusion - Region to skip for the `[~]` hint label.
+ * @param hintExclusion - Region to skip for the toggle hint icon.
  * @param displayWidth - Logical display width for scrollbar track exclusion.
  * @param scrollRowOffset - First visible grid row (default `0`; VV-550 scroll).
  * @param scrollbarTrackWidth - Right-edge track width excluded from hits (default {@link PALETTE_SCROLLBAR_TRACK_WIDTH_PX}).
@@ -758,18 +758,16 @@ export class PaletteInteraction {
      * @param plan - Layout plan for this frame.
      * @param grid - Palette grid layout.
      * @param colorCount - Active palette slot count.
-     * @param bottomTextY - Baseline Y for the `[~]` hint.
+     * @param hintBarTopY - Top Y of the bottom hint bar for icon exclusion.
      * @param displayWidth - Logical display width.
-     * @param lineHeight - System font line height.
      */
     updateHover(
         pointer: PointerInput | null,
         plan: OverlayLayoutPlan,
         grid: PaletteGridLayout,
         colorCount: number,
-        bottomTextY: number,
+        hintBarTopY: number,
         displayWidth: number,
-        lineHeight: number,
     ): void {
         if (plan.paletteBand.height <= 0 || grid.cols <= 0) {
             this.#hoveredIndex = null;
@@ -783,7 +781,7 @@ export class PaletteInteraction {
             return;
         }
 
-        const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
         let hovered: number | null = null;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
@@ -822,9 +820,8 @@ export class PaletteInteraction {
      * @param plan - Layout plan for this frame.
      * @param grid - Palette grid layout.
      * @param colorCount - Active palette slot count.
-     * @param bottomTextY - Baseline Y for the `[~]` hint.
+     * @param hintBarTopY - Top Y of the bottom hint bar for icon exclusion.
      * @param displayWidth - Logical display width.
-     * @param lineHeight - System font line height.
      * @returns `true` when a swatch press was handled (toggle should be skipped).
      */
     handlePress(
@@ -833,9 +830,8 @@ export class PaletteInteraction {
         plan: OverlayLayoutPlan,
         grid: PaletteGridLayout,
         colorCount: number,
-        bottomTextY: number,
+        hintBarTopY: number,
         displayWidth: number,
-        lineHeight: number,
     ): boolean {
         if (plan.paletteBand.height <= 0 || grid.cols <= 0 || !pointer) {
             return false;
@@ -843,7 +839,7 @@ export class PaletteInteraction {
 
         this.#lastKnownTick = currentTick;
 
-        const hintExclusion = resolvePaletteHintExclusionRect(bottomTextY, displayWidth, lineHeight);
+        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
             if (!pointer.isButtonPressed(POINTER_PRIMARY_BUTTON, slot)) {

@@ -6,6 +6,3 @@ export const DEFAULT_IDX_TEXT = 2;
 
 /** System font glyph advance in pixels. */
 export const SYSTEM_CHAR_ADVANCE = 6;
-
-/** Bottom-left hint label when palette grid is disabled. */
-export const OVERLAY_BOTTOM_HINT_LABEL = '[~]';

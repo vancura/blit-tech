@@ -130,7 +130,7 @@ export interface HardwareSettings {
     overlayVisibleAtStart?: boolean;
 
     /**
-     * When `true` (default), the engine draws the `[~]` toggle hint while the overlay
+     * When `true` (default), the engine draws the toggle hint icon while the overlay
      * body is hidden. Set to `false` for expert/minimal demos that want no on-screen
      * overlay affordance until the body is shown.
      */
@@ -335,7 +335,7 @@ export interface IBlitTechDemo {
      *
      * Called once per render frame after `render()` when {@link HardwareSettings.overlayEnabled}
      * is `true` and the overlay body is visible (not hidden via Backquote or corner toggle). Rows stack
-     * upward from just above the bottom `[~]` bar (1 px gap between bars). Omit this hook or return
+     * upward from just above the bottom hint bar (1 px gap between bars). Omit this hook or return
      * an empty array when no custom rows are needed.
      *
      * Hot path: reuse the same array and row objects when content is unchanged; avoid

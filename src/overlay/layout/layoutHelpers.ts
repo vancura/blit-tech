@@ -2,13 +2,7 @@ import { Rect2i } from '../../utils/Rect2i';
 import type { Vector2i } from '../../utils/Vector2i';
 import { SYSTEM_CHAR_ADVANCE } from '../constants';
 import { OVERLAY_TOGGLE_CORNER_SIZE } from '../input/constants';
-import {
-    OVERLAY_BAR_HEIGHT,
-    OVERLAY_BOTTOM_TEXT_GAP_PX,
-    OVERLAY_EDGE_MARGIN_PX,
-    OVERLAY_ROW_GAP_PX,
-    OVERLAY_TOP_TEXT_Y,
-} from './constants';
+import { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY_TOP_TEXT_Y } from './constants';
 import type { OverlayLayout } from './types';
 
 /**
@@ -20,7 +14,6 @@ import type { OverlayLayout } from './types';
  * @returns Frozen layout used for the lifetime of the overlay instance.
  */
 export function createOverlayLayout(displayWidth: number, displayHeight: number, lineHeight: number): OverlayLayout {
-    const bottomTextY = displayHeight - lineHeight - OVERLAY_BOTTOM_TEXT_GAP_PX;
     const toggleRect = new Rect2i(
         0,
         displayHeight - OVERLAY_TOGGLE_CORNER_SIZE,
@@ -32,7 +25,6 @@ export function createOverlayLayout(displayWidth: number, displayHeight: number,
         displayWidth,
         displayHeight,
         lineHeight,
-        bottomTextY,
         topTextY: OVERLAY_TOP_TEXT_Y,
         toggleRect,
     };
@@ -63,24 +55,14 @@ export function overlayRightAlignedTextX(text: string, displayWidth: number): nu
 }
 
 /**
- * X position for the bottom-left `[~]` toggle hint label.
+ * X position for the bottom-left toggle hint icon.
  *
  * Aligns with the bottom-left toggle hit region ({@link OVERLAY_TOGGLE_CORNER_SIZE}).
  *
- * @returns Left edge X for `drawBitmapText`.
+ * @returns Left edge X for the inline toggle icon.
  */
-export function overlayToggleHintTextX(): number {
+export function overlayToggleHintIconX(): number {
     return OVERLAY_EDGE_MARGIN_PX;
-}
-
-/**
- * Width in pixels of the bottom-left toggle hint label.
- *
- * @param hintLabel - Toggle hint text (typically `[~]`).
- * @returns Pixel width from system font advance.
- */
-export function overlayToggleHintTextWidth(hintLabel: string): number {
-    return hintLabel.length * SYSTEM_CHAR_ADVANCE;
 }
 
 /**
