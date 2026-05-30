@@ -223,8 +223,18 @@ otherwise.
   `1000 / targetFPS` (warning at **1.10x** budget, error at **1.50x**) and dropped-frame events from the game loop (one
   dropped frame = warning, two or more = error; error wins when both apply). Default warning/error/event palette indices
   are **3**, **4**, and **5** when not overridden. Drop detection for the chart runs whenever `overlayTimingChart: true`
-  (independent of `detectDroppedFrames`, which only controls console warnings). The `eventPaletteIndex` slot is reserved
-  for chart event tags (VV-541).
+  (independent of `detectDroppedFrames`, which only controls console warnings). **Event tags (VV-541):** call
+  `BT.assignTag(label?)` from `update()` or `init()` to anchor a short label on the scrolling chart at the current
+  `BT.ticks`. Empty or omitted labels become `"Untitled"`. Each tag column draws a tick row (relative ticks since chart
+  reset, capped at **100000**) and stacked label rows above the chart band; spacing is fixed in `tags.ts`
+  (`TIMING_CHART_TAG_LABEL_Y_GAP`, `TIMING_CHART_TAG_LABEL_STACK_SPACING`). Tick and label text share the same
+  horizontal offset from the timing column. A faint vertical grid-colored line marks the column on the chart band. Tag
+  columns follow timing **samples** (one per rendered frame), not `BT.ticks`, which can advance multiple fixed-update
+  steps per frame: they fill from the left while the ring buffer is not full, then scroll left one column per sample
+  once full, in lockstep with the dots. Tags are removed when they scroll one full chart width past the left edge (text
+  keeps drawing at negative x until the display clips it); pruning runs on each timing sample while the chart is
+  enabled. Chart width resets (for example on resize) clear tags and add an automatic `"Start"` marker. Tint tags with
+  `overlayTimingChartStyle.tagPaletteIndex` (default **5**).
 - **Top row 2 (left):** `Present: N FPS | Target: T FPS | Draw Calls: C`
 - **Top row 3 (left):** `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed
   updates ran this frame)
@@ -335,6 +345,7 @@ configure() {
       gridPaletteIndex: 2, // horizontal grid lines; defaults to gapPaletteIndex
       warningPaletteIndex: 3, // soft over-budget / single drop; default 3
       errorPaletteIndex: 4, // hard over-budget / 2+ drops; default 4
+      tagPaletteIndex: 5, // tag and tick text; default 5
     },
   };
 }
@@ -359,6 +370,7 @@ BT.deltaSeconds; // seconds per fixed tick (1 / BT.targetFPS)
 BT.timeSeconds; // elapsed seconds since init (ticks × deltaSeconds)
 BT.ticks; // current tick counter (increments each update)
 BT.ticksReset(); // reset tick counter to 0
+BT.assignTag('Round start'); // timing chart event tag at current tick (requires overlayTimingChart)
 ```
 
 ### Timer

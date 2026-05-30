@@ -22,8 +22,8 @@ import { computePaletteGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette
 import { FpsSampler } from './sampling/FpsSampler';
 import { TimingSampler } from './sampling/TimingSampler';
 import { DEFAULT_TIMING_CHART_HEIGHT } from './timing-chart/constants';
-import type { ResolvedOverlayTimingChartStyle } from './timing-chart/style';
-import { resolveOverlayTimingChartStyle } from './timing-chart/style';
+import type { TimingChartDrawStyle } from './timing-chart/style';
+import { resolveTimingChartStyle } from './timing-chart/style';
 import { TimingChart } from './timing-chart/TimingChart';
 import type { OverlayTimingSnapshot } from './types';
 
@@ -61,7 +61,7 @@ export class Overlay {
 
     readonly #timingChartHeight: number;
 
-    readonly #timingChartStyle: ResolvedOverlayTimingChartStyle;
+    readonly #timingChartStyle: TimingChartDrawStyle;
 
     readonly #paletteView: PaletteView;
 
@@ -127,7 +127,7 @@ export class Overlay {
         this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
         this.#idxGap = style?.gapPaletteIndex ?? this.#idxBg;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
-        this.#timingChartStyle = resolveOverlayTimingChartStyle(style, overlayTimingChartStyle);
+        this.#timingChartStyle = resolveTimingChartStyle(style, overlayTimingChartStyle);
         this.#timingChartHeight = overlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
         this.#timingChart = new TimingChart(overlayTimingChart, targetFps);
         this.#paletteView = new PaletteView(overlayPaletteView);
@@ -138,13 +138,29 @@ export class Overlay {
         this.#toggleHintVisible = overlayToggleHintVisible;
 
         if (overlayTimingChart) {
-            this.#timingChart.reset(layout.displayWidth);
+            this.#timingChart.reset(layout.displayWidth, 0);
         }
     }
 
     // #endregion
 
     // #region Public API
+
+    /**
+     * Records a timing-chart event tag at the current tick (VV-541).
+     *
+     * No-op when the timing chart is disabled.
+     *
+     * @param label - Tag text; empty becomes `"Untitled"`.
+     * @param currentTick - Current fixed-update tick (`BT.ticks`).
+     */
+    assignTag(label: string | undefined, currentTick: number): void {
+        if (!this.#timingChart.enabled) {
+            return;
+        }
+
+        this.#timingChart.assignTag(label, currentTick);
+    }
 
     /**
      * Whether the overlay body is currently drawn (runtime toggle).
@@ -420,7 +436,7 @@ export class Overlay {
                 `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
 
             this.#bars.drawTopBars(renderer, plan, this.#idxBg);
-            this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle);
+            this.#timingChart.draw(renderer, plan.timingChart, this.#timingChartStyle, font, currentTick);
 
             if (customRows !== undefined && customRows.length > 0) {
                 this.#bars.drawCustomRowFills(renderer, plan, customRows, this.#barStyle);

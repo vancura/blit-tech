@@ -213,7 +213,7 @@ export interface OverlayStyle {
 }
 
 /**
- * Palette indices for the overlay timing chart band.
+ * Palette indices for the timing chart band.
  */
 export interface OverlayTimingChartStyle {
     /** Update bar color; defaults to {@link OverlayStyle.barPaletteIndex} or overlay bar index. */
@@ -228,8 +228,8 @@ export interface OverlayTimingChartStyle {
     /** Error tint when a chart column is severely over budget or dropped 2+ frames (VV-545). */
     errorPaletteIndex?: number;
 
-    /** Event/tag tint for future chart markers (VV-541). */
-    eventPaletteIndex?: number;
+    /** Palette index for timing chart tag and tick text (VV-541). */
+    tagPaletteIndex?: number;
 
     /**
      * Faint horizontal grid lines behind chart dots (VV-7). Defaults to

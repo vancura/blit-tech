@@ -38,14 +38,15 @@ interface OverlayTestOptions {
     paletteView?: boolean;
     paletteColumns?: number;
     paletteRowsVisible?: number;
-    timingChart?: boolean;
-    timingChartStyle?: {
+    overlayTimingChart?: boolean;
+    overlayTimingChartStyle?: {
         updateBarPaletteIndex?: number;
         renderBarPaletteIndex?: number;
         warningPaletteIndex?: number;
         errorPaletteIndex?: number;
+        tagPaletteIndex?: number;
     };
-    timingChartHeight?: number;
+    overlayTimingChartHeight?: number;
     visibleAtStart?: boolean;
     toggleHintVisible?: boolean;
     toggleEnabled?: boolean;
@@ -67,9 +68,9 @@ function createOverlay(
         options.paletteView ?? OVERLAY_PALETTE_VIEW_OFF,
         options.paletteColumns,
         options.paletteRowsVisible,
-        options.timingChart ?? false,
-        options.timingChartStyle,
-        options.timingChartHeight,
+        options.overlayTimingChart ?? false,
+        options.overlayTimingChartStyle,
+        options.overlayTimingChartHeight,
         options.visibleAtStart ?? false,
         options.toggleHintVisible ?? true,
         options.toggleEnabled ?? true,
@@ -595,13 +596,38 @@ describe('Overlay', () => {
         expect(renderer.drawBarFillOnTop).toHaveBeenCalled();
     });
 
+    it('forwards timing chart tags to drawLabelOnTop with event palette offset', () => {
+        const layout = createOverlayLayout(320, 240, 14);
+        const overlay = createOverlay(layout, 'Demo', {
+            overlayTimingChart: true,
+            overlayTimingChartStyle: { tagPaletteIndex: 7 },
+            visibleAtStart: true,
+        });
+        const renderer = createMockRenderer();
+
+        overlay.assignTag('Spawn', 42);
+        overlay.updateAndRender(renderer, mockFont, null, null, 42, undefined, {
+            frameMs: 1,
+            updateMs: 1,
+            renderMs: 1,
+            updateSteps: 1,
+            drawCalls: 0,
+            droppedFrames: 0,
+        });
+
+        const tagCall = renderer.drawLabelOnTop.mock.calls.find((call) => call[2] === 'Spawn');
+
+        expect(tagCall).toBeDefined();
+        expect(tagCall?.[3]).toBe(6);
+    });
+
     it('draws timing chart dots when overlayTimingChart is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 8, textPaletteIndex: 9 },
-            timingChart: true,
-            timingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
-            timingChartHeight: 36,
+            overlayTimingChart: true,
+            overlayTimingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
+            overlayTimingChartHeight: 36,
             visibleAtStart: true,
         });
         const renderer = createMockRenderer();
@@ -627,8 +653,8 @@ describe('Overlay', () => {
     it('tints timing chart dots with warning palette when frame exceeds soft budget', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            timingChart: true,
-            timingChartStyle: {
+            overlayTimingChart: true,
+            overlayTimingChartStyle: {
                 updateBarPaletteIndex: 10,
                 renderBarPaletteIndex: 11,
                 warningPaletteIndex: 3,
@@ -659,8 +685,8 @@ describe('Overlay', () => {
     it('does not draw overlay while hidden but keeps timing chart samples for re-show', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            timingChart: true,
-            timingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
+            overlayTimingChart: true,
+            overlayTimingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
             visibleAtStart: true,
             toggleHintVisible: false,
         });
@@ -711,8 +737,8 @@ describe('Overlay', () => {
     it('records drop severity in chart history while body is hidden', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            timingChart: true,
-            timingChartStyle: { warningPaletteIndex: 3, errorPaletteIndex: 4 },
+            overlayTimingChart: true,
+            overlayTimingChartStyle: { warningPaletteIndex: 3, errorPaletteIndex: 4 },
             visibleAtStart: true,
             toggleHintVisible: false,
         });
