@@ -268,6 +268,16 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
+     * Queues an overlay bar fill above prior overlay labels (same FIFO queue as {@link drawRectFill}).
+     *
+     * @param rect - Rectangle to fill in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
+     */
+    drawBarFillOnTop(rect: Rect2i, paletteIndex: number): void {
+        this.drawBarFill(rect, paletteIndex);
+    }
+
+    /**
      * Queues a single pixel draw command at the given position.
      *
      * @param pos - Pixel position in logical coordinates.
@@ -380,6 +390,18 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      */
     drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.drawBitmapText(font, pos, text, paletteOffset);
+    }
+
+    /**
+     * Queues an overlay label above prior overlay bar fills (same FIFO queue as {@link drawBitmapText}).
+     *
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text origin in logical pixels.
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawLabelOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.drawLabel(font, pos, text, paletteOffset);
     }
 
     // #endregion

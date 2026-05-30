@@ -205,7 +205,7 @@ describe('layoutPaletteTooltip', () => {
 });
 
 describe('drawPaletteTooltipChrome', () => {
-    it('draws tooltip body and border via drawBarFill', () => {
+    it('draws tooltip body and border via drawBarFillOnTop', () => {
         const layoutScratch = {
             body: new Rect2i(),
             swatch: new Rect2i(40, 180, 7, 7),
@@ -214,18 +214,21 @@ describe('drawPaletteTooltipChrome', () => {
         const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
         const target = {
             drawBarFill: vi.fn(),
+            drawBarFillOnTop: vi.fn(),
             drawLabel: vi.fn(),
+            drawLabelOnTop: vi.fn(),
         };
 
         drawPaletteTooltipChrome(target, layout, DEFAULT_IDX_BG, DEFAULT_IDX_TEXT);
 
-        expect(target.drawBarFill).toHaveBeenCalled();
-        expect(target.drawLabel).not.toHaveBeenCalled();
+        expect(target.drawBarFillOnTop).toHaveBeenCalled();
+        expect(target.drawBarFill).not.toHaveBeenCalled();
+        expect(target.drawLabelOnTop).not.toHaveBeenCalled();
     });
 });
 
 describe('drawPaletteTooltipLabel', () => {
-    it('draws tooltip text via drawLabel', () => {
+    it('draws tooltip text via drawLabelOnTop', () => {
         const layoutScratch = {
             body: new Rect2i(),
             swatch: new Rect2i(40, 180, 7, 7),
@@ -234,13 +237,16 @@ describe('drawPaletteTooltipLabel', () => {
         const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
         const target = {
             drawBarFill: vi.fn(),
+            drawBarFillOnTop: vi.fn(),
             drawLabel: vi.fn(),
+            drawLabelOnTop: vi.fn(),
         };
 
         drawPaletteTooltipLabel(target, mockFont, layout, '42', DEFAULT_IDX_TEXT);
 
-        expect(target.drawLabel).toHaveBeenCalled();
+        expect(target.drawLabelOnTop).toHaveBeenCalled();
         expect(target.drawBarFill).not.toHaveBeenCalled();
+        expect(target.drawBarFillOnTop).not.toHaveBeenCalled();
     });
 });
 
@@ -293,7 +299,7 @@ describe('PaletteInteraction clipboard', () => {
             await Promise.resolve();
             const probe = {
                 drawBarFill: vi.fn(),
-                drawLabel: vi.fn(),
+                drawLabelOnTop: vi.fn(),
                 drawPixel: vi.fn(),
             };
 
@@ -307,12 +313,12 @@ describe('PaletteInteraction clipboard', () => {
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(probe.drawLabel).toHaveBeenCalled();
+            expect(probe.drawLabelOnTop).toHaveBeenCalled();
         });
 
         const renderer = {
             drawBarFill: vi.fn(),
-            drawLabel: vi.fn(),
+            drawLabelOnTop: vi.fn(),
             drawPixel: vi.fn(),
         };
 
@@ -326,7 +332,12 @@ describe('PaletteInteraction clipboard', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), 'Copied 7', expect.any(Number));
+        expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            'Copied 7',
+            expect.any(Number),
+        );
     });
 
     it('shows Copy failed when clipboard write is denied', async () => {
@@ -358,7 +369,7 @@ describe('PaletteInteraction clipboard', () => {
         await vi.waitFor(() => {
             const renderer = {
                 drawBarFill: vi.fn(),
-                drawLabel: vi.fn(),
+                drawLabelOnTop: vi.fn(),
                 drawPixel: vi.fn(),
             };
 
@@ -372,7 +383,7 @@ describe('PaletteInteraction clipboard', () => {
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(renderer.drawLabel).toHaveBeenCalledWith(
+            expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(
                 mockFont,
                 expect.any(Vector2i),
                 'Copy failed',
@@ -415,7 +426,7 @@ describe('PaletteInteraction clipboard', () => {
 
         const renderer = {
             drawBarFill: vi.fn(),
-            drawLabel: vi.fn(),
+            drawLabelOnTop: vi.fn(),
             drawPixel: vi.fn(),
         };
 
@@ -442,7 +453,7 @@ describe('PaletteInteraction clipboard', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), '9', expect.any(Number));
+        expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), '9', expect.any(Number));
     });
 
     it('starts copy-status expiry from clipboard completion tick', async () => {
@@ -488,7 +499,7 @@ describe('PaletteInteraction clipboard', () => {
 
             const probe = {
                 drawBarFill: vi.fn(),
-                drawLabel: vi.fn(),
+                drawLabelOnTop: vi.fn(),
             };
 
             interaction.drawTooltipLabel(
@@ -501,7 +512,7 @@ describe('PaletteInteraction clipboard', () => {
                 DEFAULT_IDX_TEXT,
             );
 
-            expect(probe.drawLabel).toHaveBeenCalledWith(
+            expect(probe.drawLabelOnTop).toHaveBeenCalledWith(
                 mockFont,
                 expect.any(Vector2i),
                 'Copied 9',
@@ -514,7 +525,7 @@ describe('PaletteInteraction clipboard', () => {
 
         const renderer = {
             drawBarFill: vi.fn(),
-            drawLabel: vi.fn(),
+            drawLabelOnTop: vi.fn(),
             drawPixel: vi.fn(),
         };
 
@@ -529,7 +540,12 @@ describe('PaletteInteraction clipboard', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawLabel).toHaveBeenCalledWith(mockFont, expect.any(Vector2i), 'Copied 9', expect.any(Number));
+        expect(renderer.drawLabelOnTop).toHaveBeenCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            'Copied 9',
+            expect.any(Number),
+        );
 
         interaction.tickCopyStatus(completionExpiryTick);
         interaction.updateHover(
@@ -554,6 +570,11 @@ describe('PaletteInteraction clipboard', () => {
             DEFAULT_IDX_TEXT,
         );
 
-        expect(renderer.drawLabel).toHaveBeenLastCalledWith(mockFont, expect.any(Vector2i), '9', expect.any(Number));
+        expect(renderer.drawLabelOnTop).toHaveBeenLastCalledWith(
+            mockFont,
+            expect.any(Vector2i),
+            '9',
+            expect.any(Number),
+        );
     });
 });

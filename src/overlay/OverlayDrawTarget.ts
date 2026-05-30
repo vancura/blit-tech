@@ -21,6 +21,16 @@ export interface OverlayDrawTarget {
     drawBarFill(rect: Rect2i, paletteIndex: number): void;
 
     /**
+     * Filled rectangles composited above overlay labels (for example palette tooltips).
+     *
+     * On WebGPU, batched in `overlayTopPrimitives` after the overlay label pass.
+     *
+     * @param rect - Rectangle bounds in display coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawBarFillOnTop(rect: Rect2i, paletteIndex: number): void;
+
+    /**
      * Bitmap text composited above overlay bar fills for the overlay.
      *
      * On WebGPU, batched in `overlaySprites` after overlay bar fills.
@@ -31,6 +41,18 @@ export interface OverlayDrawTarget {
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
+
+    /**
+     * Bitmap text composited above {@link drawBarFillOnTop} fills.
+     *
+     * On WebGPU, batched in `overlayTopSprites` after `overlayTopPrimitives`.
+     *
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawLabelOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
 }
 
 /**

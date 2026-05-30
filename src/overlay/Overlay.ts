@@ -433,16 +433,6 @@ export class Overlay {
                 this.#layout.displayWidth,
                 this.#layout.lineHeight,
             );
-
-            this.#paletteInteraction.drawTooltipChrome(
-                renderer,
-                plan,
-                paletteGrid,
-                this.#layout.displayWidth,
-                this.#layout.displayHeight,
-                this.#idxBg,
-                this.#idxText,
-            );
         }
 
         this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
@@ -462,6 +452,20 @@ export class Overlay {
                 topMetricsLabel,
                 topTimingLabel,
             );
+        }
+
+        this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, OVERLAY_BOTTOM_HINT_LABEL);
+
+        if (bodyVisible) {
+            this.#paletteInteraction.drawTooltipChrome(
+                renderer,
+                plan,
+                paletteGrid,
+                this.#layout.displayWidth,
+                this.#layout.displayHeight,
+                this.#idxBg,
+                this.#idxText,
+            );
 
             this.#paletteInteraction.drawTooltipLabel(
                 renderer,
@@ -473,8 +477,6 @@ export class Overlay {
                 this.#idxText,
             );
         }
-
-        this.#bars.drawHintLabel(renderer, font, plan, this.#idxText, OVERLAY_BOTTOM_HINT_LABEL);
     }
 
     // #endregion

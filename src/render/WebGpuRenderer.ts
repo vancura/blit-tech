@@ -128,6 +128,16 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     private readonly overlaySprites: SpritePipeline;
 
+    /**
+     * Primitives encoded after overlay label sprites (tooltip chrome, etc.).
+     */
+    private readonly overlayTopPrimitives: PrimitivePipeline;
+
+    /**
+     * Sprites encoded after overlay top primitives (tooltip labels, etc.).
+     */
+    private readonly overlayTopSprites: SpritePipeline;
+
     /** Pixel-tier post-process chain (logical resolution). */
     private pixelChain: PostProcessChain | null = null;
 
@@ -184,8 +194,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.upscaleFilterMode = upscaleFilter;
         this.primitives = new PrimitivePipeline();
         this.overlayPrimitives = new PrimitivePipeline();
+        this.overlayTopPrimitives = new PrimitivePipeline();
         this.sprites = new SpritePipeline();
         this.overlaySprites = new SpritePipeline();
+        this.overlayTopSprites = new SpritePipeline();
     }
 
     // #endregion
@@ -231,8 +243,15 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
             // the camera scaling here cares about logical size.
             await this.primitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
             await this.overlayPrimitives.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
+            await this.overlayTopPrimitives.init(
+                this.device,
+                this.displaySize,
+                this.paletteBuffer,
+                LOGICAL_TARGET_FORMAT,
+            );
             await this.sprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
             await this.overlaySprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
+            await this.overlayTopSprites.init(this.device, this.displaySize, this.paletteBuffer, LOGICAL_TARGET_FORMAT);
 
             this.swapFormat = navigator.gpu.getPreferredCanvasFormat();
 
@@ -314,8 +333,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
         this.primitives.reset();
         this.overlayPrimitives.reset();
+        this.overlayTopPrimitives.reset();
         this.sprites.reset();
         this.overlaySprites.reset();
+        this.overlayTopSprites.reset();
     }
 
     /**
@@ -382,6 +403,16 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     drawBarFill(rect: Rect2i, paletteIndex: number): void {
         this.overlayPrimitives.drawRectFill(rect, paletteIndex);
+    }
+
+    /**
+     * Draws a filled rectangle above overlay labels (tooltip chrome, etc.).
+     *
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
+     */
+    drawBarFillOnTop(rect: Rect2i, paletteIndex: number): void {
+        this.overlayTopPrimitives.drawRectFill(rect, paletteIndex);
     }
 
     /**
@@ -467,6 +498,18 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.overlaySprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
+    /**
+     * Draws bitmap text above overlay top bar fills (tooltip labels, etc.).
+     *
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
+     */
+    drawLabelOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
+        this.overlayTopSprites.drawBitmapText(font, pos, text, paletteOffset);
+    }
+
     // #endregion
 
     // #region Frame Capture API
@@ -490,7 +533,8 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * Sets the camera offset for scrolling.
      *
      * The offset is propagated to all scene pipelines: `primitives`,
-     * `overlayPrimitives`, `sprites`, and `overlaySprites`.
+     * `overlayPrimitives`, `overlayTopPrimitives`, `sprites`, `overlaySprites`,
+     * and `overlayTopSprites`.
      *
      * @param offset - Camera position in pixels.
      */
@@ -498,8 +542,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.cameraOffset = offset.clone();
         this.primitives.setCameraOffset(this.cameraOffset);
         this.overlayPrimitives.setCameraOffset(this.cameraOffset);
+        this.overlayTopPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
         this.overlaySprites.setCameraOffset(this.cameraOffset);
+        this.overlayTopSprites.setCameraOffset(this.cameraOffset);
     }
 
     /**
@@ -518,8 +564,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.cameraOffset = Vector2i.zero();
         this.primitives.setCameraOffset(this.cameraOffset);
         this.overlayPrimitives.setCameraOffset(this.cameraOffset);
+        this.overlayTopPrimitives.setCameraOffset(this.cameraOffset);
         this.sprites.setCameraOffset(this.cameraOffset);
         this.overlaySprites.setCameraOffset(this.cameraOffset);
+        this.overlayTopSprites.setCameraOffset(this.cameraOffset);
     }
 
     // #endregion
@@ -613,8 +661,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
             this.primitives.reset();
             this.overlayPrimitives.reset();
+            this.overlayTopPrimitives.reset();
             this.sprites.reset();
             this.overlaySprites.reset();
+            this.overlayTopSprites.reset();
 
             return null;
         }
@@ -624,8 +674,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
             this.primitives.reset();
             this.overlayPrimitives.reset();
+            this.overlayTopPrimitives.reset();
             this.sprites.reset();
             this.overlaySprites.reset();
+            this.overlayTopSprites.reset();
 
             return null;
         }
@@ -650,7 +702,9 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * Encodes the scene render pass into the supplied target view.
      *
      * Draw order: `primitives`, `sprites`, `overlayPrimitives` (overlay bars via
-     * {@link drawBarFill}), then `overlaySprites` (overlay labels via {@link drawLabel}).
+     * {@link drawBarFill}), `overlaySprites` (overlay labels via {@link drawLabel}),
+     * `overlayTopPrimitives` ({@link drawBarFillOnTop}), then `overlayTopSprites`
+     * ({@link drawLabelOnTop}).
      *
      * @param encoder - Active command encoder.
      * @param sceneView - Logical scene attachment view to render into.
@@ -678,6 +732,8 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.sprites.encodePass(renderPass);
         this.overlayPrimitives.encodePass(renderPass);
         this.overlaySprites.encodePass(renderPass);
+        this.overlayTopPrimitives.encodePass(renderPass);
+        this.overlayTopSprites.encodePass(renderPass);
 
         renderPass.end();
     }
@@ -742,8 +798,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         // persisting across frames.
         this.primitives.reset();
         this.overlayPrimitives.reset();
+        this.overlayTopPrimitives.reset();
         this.sprites.reset();
         this.overlaySprites.reset();
+        this.overlayTopSprites.reset();
     }
 
     // #endregion
