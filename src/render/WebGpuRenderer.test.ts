@@ -46,10 +46,10 @@ type WebGpuRendererPipelineAccess = {
 };
 
 /**
- * Returns the four scene-pass pipeline batches for encode-order and routing tests.
+ * Returns the six scene-pass pipeline batches for encode-order and routing tests.
  *
  * @param renderer - Initialized {@link WebGpuRenderer}.
- * @returns Primitive and sprite pipeline instances.
+ * @returns Primitive, sprite, overlay, and overlay-top pipeline instances.
  */
 function getRendererPipelines(renderer: WebGpuRenderer): WebGpuRendererPipelineAccess {
     return renderer as unknown as WebGpuRendererPipelineAccess;

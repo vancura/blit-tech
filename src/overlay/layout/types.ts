@@ -73,4 +73,13 @@ export interface OverlayLayoutPlan {
 
     /** Bottom-left `[~]` toggle hint label anchor. */
     readonly hintLabelPos: Vector2i;
+
+    /** 1 px row gaps between stacked overlay bands (top stack, custom rows, palette/hint). */
+    readonly rowGapRects: readonly Rect2i[];
+
+    /** 1 px separator below the top overlay cluster (between overlay and demo content). */
+    readonly topClusterSeparator: Rect2i;
+
+    /** 1 px separator above the bottom hint bar (between demo content and overlay footer). */
+    readonly bottomClusterSeparator: Rect2i;
 }

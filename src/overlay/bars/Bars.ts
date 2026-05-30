@@ -2,8 +2,9 @@
 
 import type { BitmapFont } from '../../assets/BitmapFont';
 import type { OverlayRow } from '../../core/IBlitTechDemo';
+import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
-import { OVERLAY_EDGE_MARGIN_PX, OVERLAY_TOP_TEXT_Y } from '../layout/constants';
+import { OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY_TOP_TEXT_Y } from '../layout/constants';
 import { overlayBitmapTextPaletteOffset, overlayRightAlignedTextX } from '../layout/layoutHelpers';
 import type { OverlayLayoutPlan } from '../layout/types';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
@@ -30,6 +31,8 @@ export class OverlayBars {
 
     readonly #customRightPos: Vector2i[] = [];
 
+    readonly #hintSeparatorRect = new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX);
+
     // #endregion
 
     // #region Private helpers
@@ -49,6 +52,59 @@ export class OverlayBars {
     // #endregion
 
     // #region Draw methods
+
+    /**
+     * Draws 1 px row gaps between stacked overlay bands.
+     *
+     * @param target - Overlay draw target.
+     * @param plan - Computed layout plan.
+     * @param gapIndex - Palette index for gap fills.
+     */
+    drawRowGaps(target: OverlayDrawTarget, plan: OverlayLayoutPlan, gapIndex: number): void {
+        for (const gapRect of plan.rowGapRects) {
+            target.drawBarFill(gapRect, gapIndex);
+        }
+    }
+
+    /**
+     * Draws the 1 px separator immediately above the bottom hint bar.
+     *
+     * @param target - Overlay draw target.
+     * @param hintBar - Bottom hint bar rect.
+     * @param gapIndex - Palette index for separator fill.
+     */
+    drawHintClusterSeparator(target: OverlayDrawTarget, hintBar: Rect2i, gapIndex: number): void {
+        this.#hintSeparatorRect.x = 0;
+        this.#hintSeparatorRect.y = hintBar.y - OVERLAY_ROW_GAP_PX;
+        this.#hintSeparatorRect.width = hintBar.width;
+        this.#hintSeparatorRect.height = OVERLAY_ROW_GAP_PX;
+        target.drawBarFill(this.#hintSeparatorRect, gapIndex);
+    }
+
+    /**
+     * Draws boundary separators between overlay clusters and demo content.
+     *
+     * @param target - Overlay draw target.
+     * @param plan - Computed layout plan.
+     * @param gapIndex - Palette index for separator fills.
+     * @param drawTop - When true, draws the separator below the top overlay cluster.
+     * @param drawBottom - When true, draws the separator above the bottom overlay cluster.
+     */
+    drawClusterSeparators(
+        target: OverlayDrawTarget,
+        plan: OverlayLayoutPlan,
+        gapIndex: number,
+        drawTop: boolean,
+        drawBottom: boolean,
+    ): void {
+        if (drawTop) {
+            target.drawBarFill(plan.topClusterSeparator, gapIndex);
+        }
+
+        if (drawBottom) {
+            target.drawBarFill(plan.bottomClusterSeparator, gapIndex);
+        }
+    }
 
     /**
      * Draws title, timing chart, metrics, and timing text bar fills.

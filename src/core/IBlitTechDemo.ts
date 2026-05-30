@@ -157,10 +157,10 @@ export interface HardwareSettings {
     overlayPaletteColumns?: number;
 
     /**
-     * Palette indices for the built-in overlay bars (top and bottom) and as defaults
-     * for custom {@link OverlayRow} entries that omit per-row colors.
+     * Palette indices for the built-in overlay bars (top and bottom), row gaps,
+     * and as defaults for custom {@link OverlayRow} entries that omit per-row colors.
      *
-     * When omitted, the overlay uses palette index `1` for bars and `2` for text.
+     * When omitted, the overlay uses palette index `1` for bars and gaps and `2` for text.
      */
     overlayStyle?: OverlayStyle;
 
@@ -195,6 +195,13 @@ export interface OverlayStyle {
 
     /** Palette index for overlay text (built-in labels and custom rows unless overridden). */
     textPaletteIndex?: number;
+
+    /**
+     * Palette index for 1 px row gaps between overlay bands and boundary separators
+     * (below the top cluster, above the bottom hint bar). Defaults to
+     * {@link OverlayStyle.barPaletteIndex} when omitted.
+     */
+    gapPaletteIndex?: number;
 }
 
 /**

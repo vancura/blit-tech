@@ -76,6 +76,8 @@ export class Overlay {
 
     #idxText = DEFAULT_IDX_TEXT;
 
+    #idxGap = DEFAULT_IDX_BG;
+
     // #endregion
 
     // #region Constructor
@@ -118,6 +120,7 @@ export class Overlay {
         this.#fps = new FpsSampler(this.#targetFps);
         this.#idxBg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
         this.#idxText = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
+        this.#idxGap = style?.gapPaletteIndex ?? this.#idxBg;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
         this.#timingChartStyle = resolveOverlayTimingChartStyle(style, overlayTimingChartStyle);
         this.#timingChartHeight = overlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
@@ -433,6 +436,13 @@ export class Overlay {
                 this.#layout.displayWidth,
                 this.#layout.lineHeight,
             );
+
+            this.#bars.drawRowGaps(renderer, plan, this.#idxGap);
+            this.#bars.drawClusterSeparators(renderer, plan, this.#idxGap, true, true);
+        }
+
+        if (!bodyVisible) {
+            this.#bars.drawHintClusterSeparator(renderer, plan.hintBar, this.#idxGap);
         }
 
         this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
