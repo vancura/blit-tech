@@ -246,7 +246,8 @@ export interface OverlayTimingChartStyle {
     /** Palette index for timing chart tag and tick text (VV-541). */
     tagPaletteIndex?: number;
 
-    /** Faint horizontal grid lines behind chart dots (VV-7). Defaults to
+    /**
+     * Faint horizontal grid lines behind chart dots (VV-7). Defaults to
      * {@link OverlayStyle.gapPaletteIndex} or {@link OverlayStyle.barPaletteIndex} when omitted.
      */
     gridPaletteIndex?: number;

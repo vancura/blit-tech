@@ -13,10 +13,22 @@ export const TIMING_CHART_DEFAULT_ERROR_IDX = 4;
 /** Default palette index for timing chart tag and tick text. */
 export const TIMING_CHART_DEFAULT_TAG_IDX = 5;
 
-/** WebGPU primitive/sprite pipeline vertex cap used for rich-mode pressure scaling. */
+/**
+ * WebGPU primitive/sprite pipeline vertex cap for rich-mode pressure scaling.
+ *
+ * Unit: vertices. Matches the batch limit used by {@link PrimitivePipeline} and
+ * {@link SpritePipeline}; submitted counts are scaled against this value when
+ * drawing vertex-pressure dots. Increase only if those pipeline caps change.
+ */
 export const TIMING_CHART_MAX_PIPELINE_VERTICES = 50000;
 
-/** Lower third of the chart band used for vertex-pressure dots in rich diagnostics mode. */
+/**
+ * Fraction of chart band height reserved for vertex-pressure dots in rich diagnostics.
+ *
+ * Unitless ratio in the 0–1 range (default 1/3).
+ * Dots render in the lower portion of the band; raising the value expands the
+ * pressure region upward; lowering it compresses dots toward the baseline.
+ */
 export const TIMING_CHART_PRESSURE_REGION_RATIO = 1 / 3;
 
 /**
