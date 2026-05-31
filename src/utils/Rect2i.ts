@@ -363,7 +363,7 @@ export class Rect2i {
      * @param other - Rectangle to test against.
      * @returns True if rectangles overlap.
      */
-    intersects(other: Rect2i): boolean {
+    isIntersecting(other: Rect2i): boolean {
         return !(
             other.x >= this.x + this.width ||
             other.x + other.width <= this.x ||
@@ -379,7 +379,7 @@ export class Rect2i {
      * @returns New rectangle representing the overlap, or null if no overlap.
      */
     intersection(other: Rect2i): Rect2i | null {
-        if (!this.intersects(other)) {
+        if (!this.isIntersecting(other)) {
             return null;
         }
 
@@ -400,7 +400,7 @@ export class Rect2i {
      * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
      */
     intersectionTo(other: Rect2i, out: Rect2i): boolean {
-        if (!this.intersects(other)) {
+        if (!this.isIntersecting(other)) {
             return false;
         }
 
@@ -422,8 +422,8 @@ export class Rect2i {
      *
      * Note: Creates a new Vector2i. Use intersectionDepthTo() in hot paths.
      *
-     * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they don't overlap, the returned depths
+     * Assumes this rectangle already isIntersecting {@link other}. Call
+     * {@link isIntersecting} first; if they don't overlap, the returned depths
      * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
@@ -447,8 +447,8 @@ export class Rect2i {
      * Calculates intersection depth and writes to an existing vector.
      * Zero allocation alternative to intersectionDepth().
      *
-     * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they don't overlap, the returned depths
+     * Assumes this rectangle already isIntersecting {@link other}. Call
+     * {@link isIntersecting} first; if they don't overlap, the returned depths
      * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.

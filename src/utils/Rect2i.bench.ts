@@ -76,9 +76,9 @@ describe('Rect2i collision benchmarks', () => {
     );
 
     bench(
-        'intersects(Rect2i)',
+        'isIntersecting(Rect2i)',
         () => {
-            rect.intersects(overlapping);
+            rect.isIntersecting(overlapping);
         },
         BENCH_OPTIONS,
     );

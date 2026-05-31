@@ -437,35 +437,35 @@ describe('Rect2i', () => {
         });
     });
 
-    describe('intersects', () => {
+    describe('isIntersecting', () => {
         it('should return true for overlapping rects', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(50, 50, 100, 100);
 
-            expect(a.intersects(b)).toBe(true);
-            expect(b.intersects(a)).toBe(true);
+            expect(a.isIntersecting(b)).toBe(true);
+            expect(b.isIntersecting(a)).toBe(true);
         });
 
         it('should return false for adjacent rects (no overlap)', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(100, 0, 100, 100);
 
-            expect(a.intersects(b)).toBe(false);
+            expect(a.isIntersecting(b)).toBe(false);
         });
 
         it('should return true when one rect is fully inside another', () => {
             const outer = new Rect2i(0, 0, 100, 100);
             const inner = new Rect2i(20, 20, 10, 10);
 
-            expect(outer.intersects(inner)).toBe(true);
-            expect(inner.intersects(outer)).toBe(true);
+            expect(outer.isIntersecting(inner)).toBe(true);
+            expect(inner.isIntersecting(outer)).toBe(true);
         });
 
         it('should return false for non-overlapping rects', () => {
             const a = new Rect2i(0, 0, 10, 10);
             const b = new Rect2i(50, 50, 10, 10);
 
-            expect(a.intersects(b)).toBe(false);
+            expect(a.isIntersecting(b)).toBe(false);
         });
     });
 
