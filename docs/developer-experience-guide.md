@@ -76,6 +76,7 @@ exceptions: [audit-exceptions.md](security/audit-exceptions.md).
 | [Input Guide](input.md)                                     | pointer, keyboard, gamepad                             |
 | [Post-Process Effects](post-process-effects.md)             | effect chain, built-in effects, custom effects         |
 | [Bitmap Fonts](bitmap-fonts.md)                             | .btfont format, BMFont conversion                      |
+| [Deprecation Timeline](deprecations.md)                     | dated compatibility aliases and cleanup checklist      |
 | [Testing](testing.md)                                       | test tiers, WebGPU mocks, visual regression            |
 | [Performance Testing](performance-testing.md)               | CPU benchmarks, CI regression checks                   |
 | [Performance Best Practices](performance-best-practices.md) | optimization guidelines                                |

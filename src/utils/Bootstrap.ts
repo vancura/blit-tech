@@ -24,10 +24,20 @@ export interface BootstrapOptions {
     canvasID?: string;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use `canvasID` instead.
+     */
+    canvasId?: string;
+
+    /**
      * Container element ID for error display.
      * Default: 'canvas-container'
      */
     containerID?: string;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use `containerID` instead.
+     */
+    containerId?: string;
 
     /** Custom callback on successful initialization. */
     onSuccess?: () => void;
@@ -40,6 +50,11 @@ export interface BootstrapOptions {
      * Default: true
      */
     isWaitingForDOMReady?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use `isWaitingForDOMReady` instead.
+     */
+    waitForDOMReady?: boolean;
 }
 
 /**
@@ -228,12 +243,18 @@ async function initDemo(
  */
 export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOptions = {}): Promise<boolean> {
     const {
-        canvasID = DEFAULT_CANVAS_ID,
-        containerID = DEFAULT_CONTAINER_ID,
+        canvasID: providedCanvasID,
+        canvasId,
+        containerID: providedContainerID,
+        containerId,
         onSuccess,
         onError,
-        isWaitingForDOMReady = true,
+        isWaitingForDOMReady: providedIsWaitingForDOMReady,
+        waitForDOMReady,
     } = options;
+    const canvasID = providedCanvasID ?? canvasId ?? DEFAULT_CANVAS_ID;
+    const containerID = providedContainerID ?? containerId ?? DEFAULT_CONTAINER_ID;
+    const isWaitingForDOMReady = providedIsWaitingForDOMReady ?? waitForDOMReady ?? true;
 
     let success: boolean;
 

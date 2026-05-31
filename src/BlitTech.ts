@@ -981,6 +981,17 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isPointerActive}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isPointerActive} instead.
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
+     * @returns `true` while the slot has live position data.
+     */
+    pointerPosValid: (pointerIndex: number = 0): boolean => {
+        return BT.isPointerActive(pointerIndex);
+    },
+
+    /**
      * Wheel scroll delta accumulated during the current frame, in pixels.
      *
      * Aggregates `WheelEvent.deltaY` across all wheel events received since
@@ -1083,6 +1094,18 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isDown}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isDown} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads / keyboard, or pointer slot.
+     * @returns `true` while the button remains pressed.
+     */
+    buttonDown: (button: number, player: number = 0): boolean => {
+        return BT.isDown(button, player);
+    },
+
+    /**
      * Checks whether a button was pressed on the current frame.
      *
      * Same parameter semantics as {@link isDown}; returns `true` only on
@@ -1149,6 +1172,19 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isPressed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isPressed} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
+     * @param repeatRate - Optional repeat interval in fixed ticks (`0`/omitted = edge only).
+     * @returns `true` on the transition frame.
+     */
+    buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
+        return BT.isPressed(button, player, repeatRate);
+    },
+
+    /**
      * Checks whether a button was released on the current frame.
      *
      * Same parameter semantics as {@link isDown}; returns `true` only on
@@ -1208,6 +1244,18 @@ export const BT = {
         }
 
         return false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isReleased}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isReleased} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
+     * @returns `true` on the release frame.
+     */
+    buttonReleased: (button: number, player: number = 0): boolean => {
+        return BT.isReleased(button, player);
     },
 
     /**
@@ -1274,6 +1322,17 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isGamepadConnected}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isGamepadConnected} instead.
+     * @param player - Zero-based player index (`0`..`3`).
+     * @returns `true` when a gamepad is available for that slot.
+     */
+    gamepadConnected: (player: number = 0): boolean => {
+        return BT.isGamepadConnected(player);
+    },
+
+    /**
      * Number of currently connected gamepads (max 4).
      *
      * @returns Connected gamepad count (0..4).
@@ -1299,6 +1358,17 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isKeyDown}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyDown} instead.
+     * @param key - DOM keyboard code string.
+     * @returns `true` while the key remains pressed.
+     */
+    keyDown: (key: string): boolean => {
+        return BT.isKeyDown(key);
+    },
+
+    /**
      * Checks whether a keyboard key was pressed on the current fixed-update tick.
      *
      * Optional `repeatRate` is in fixed ticks between repeats (`0` or omitted =
@@ -1316,6 +1386,18 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isKeyPressed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyPressed} instead.
+     * @param key - DOM keyboard code string.
+     * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
+     * @returns `true` on the press edge (and on repeat ticks when configured).
+     */
+    keyPressed: (key: string, repeatRate?: number): boolean => {
+        return BT.isKeyPressed(key, repeatRate);
+    },
+
+    /**
      * Checks whether a keyboard key was released on the current frame.
      *
      * @param key - DOM keyboard code string.
@@ -1323,6 +1405,17 @@ export const BT = {
      */
     isKeyReleased: (key: string): boolean => {
         return BTAPI.instance.getKeyboard()?.isKeyReleased(key) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isKeyReleased}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyReleased} instead.
+     * @param key - DOM keyboard code string.
+     * @returns `true` on the release edge.
+     */
+    keyReleased: (key: string): boolean => {
+        return BT.isKeyReleased(key);
     },
 
     /**

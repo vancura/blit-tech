@@ -1034,6 +1034,17 @@ export class Vector2i {
     }
 
     /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Vector to compare with.
+     * @returns True if both x and y components are equal.
+     */
+    equals(other: Vector2i): boolean {
+        return this.isEqual(other);
+    }
+
+    /**
      * Checks if this vector equals raw coordinates.
      * Avoids creating a temporary Vector2i for comparison.
      *

@@ -568,6 +568,17 @@ export class Color32 {
         );
     }
 
+    /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Color to compare with.
+     * @returns True if all RGBA channels are identical.
+     */
+    equals(other: Color32): boolean {
+        return this.isEqual(other);
+    }
+
     // #endregion
 
     // #region Modification Methods

@@ -347,6 +347,17 @@ export class Rect2i {
     }
 
     /**
+     * Backward-compatible alias for {@link isContaining}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isContaining} instead.
+     * @param point - Point to test.
+     * @returns True if point is inside the rectangle.
+     */
+    contains(point: Vector2i): boolean {
+        return this.isContaining(point);
+    }
+
+    /**
      * Tests raw coordinates against this rectangle without allocating a vector.
      *
      * @param px - X coordinate to test.
@@ -355,6 +366,18 @@ export class Rect2i {
      */
     isContainingXY(px: number, py: number): boolean {
         return px >= this.x && px < this.x + this.width && py >= this.y && py < this.y + this.height;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isContainingXY}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isContainingXY} instead.
+     * @param px - X coordinate to test.
+     * @param py - Y coordinate to test.
+     * @returns True if point is inside the rectangle.
+     */
+    containsXY(px: number, py: number): boolean {
+        return this.isContainingXY(px, py);
     }
 
     /**
@@ -370,6 +393,17 @@ export class Rect2i {
             other.y >= this.y + this.height ||
             other.y + other.height <= this.y
         );
+    }
+
+    /**
+     * Backward-compatible alias for {@link isIntersecting}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isIntersecting} instead.
+     * @param other - Rectangle to test against.
+     * @returns True if rectangles overlap.
+     */
+    intersects(other: Rect2i): boolean {
+        return this.isIntersecting(other);
     }
 
     /**
@@ -413,6 +447,18 @@ export class Rect2i {
         out.height = Math.min(this.y + this.height, other.y + other.height) - y1;
 
         return true;
+    }
+
+    /**
+     * Backward-compatible alias for {@link intersectTo}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link intersectTo} instead.
+     * @param other - Rectangle to intersect with.
+     * @param out - Rectangle to write the result to.
+     * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
+     */
+    intersectionTo(other: Rect2i, out: Rect2i): boolean {
+        return this.intersectTo(other, out);
     }
 
     /**
@@ -480,6 +526,17 @@ export class Rect2i {
      */
     isEqual(other: Rect2i): boolean {
         return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Rectangle to compare with.
+     * @returns True if position and size are identical.
+     */
+    equals(other: Rect2i): boolean {
+        return this.isEqual(other);
     }
 
     /**

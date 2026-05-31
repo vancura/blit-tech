@@ -103,6 +103,11 @@ export interface HardwareSettings {
     isDetectingDroppedFrames?: boolean;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isDetectingDroppedFrames} instead.
+     */
+    detectDroppedFrames?: boolean;
+
+    /**
      * Rendering backend to use. Defaults to `'webgpu'`.
      *
      * Set to `'software'` to opt into the Canvas 2D fallback backend.
@@ -123,11 +128,21 @@ export interface HardwareSettings {
     isOverlayEnabled?: boolean;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayEnabled} instead.
+     */
+    overlayEnabled?: boolean;
+
+    /**
      * When `true`, the overlay body (metrics bars, palette grid, custom rows) is
      * visible on the first frame. Defaults to `false` in {@link defaultConfig}; the
      * toggle hint may still draw when {@link isOverlayToggleHintVisible} is `true`.
      */
     isOverlayVisibleAtStart?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayVisibleAtStart} instead.
+     */
+    overlayVisibleAtStart?: boolean;
 
     /**
      * When `true` (default), the engine draws the toggle hint icon while the overlay
@@ -137,6 +152,11 @@ export interface HardwareSettings {
     isOverlayToggleHintVisible?: boolean;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayToggleHintVisible} instead.
+     */
+    overlayToggleHintVisible?: boolean;
+
+    /**
      * When `true` (default), Backquote and the bottom-left corner pointer press toggle
      * overlay body visibility. Set to `false` to lock body visibility at
      * {@link isOverlayVisibleAtStart}.
@@ -144,11 +164,21 @@ export interface HardwareSettings {
     isOverlayToggleEnabled?: boolean;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayToggleEnabled} instead.
+     */
+    overlayToggleEnabled?: boolean;
+
+    /**
      * When `true`, the engine draws a live palette swatch grid in the overlay
      * footer stacked above the hint bar. Defaults to `false` in {@link defaultConfig};
      * set to `true` to opt in.
      */
     isOverlayPaletteEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayPaletteEnabled} instead.
+     */
+    overlayPaletteView?: boolean;
 
     /**
      * Maximum palette swatches per row in the overlay grid. When unset, the engine
@@ -181,6 +211,11 @@ export interface HardwareSettings {
     isOverlayTimingChartEnabled?: boolean;
 
     /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayTimingChartEnabled} instead.
+     */
+    overlayTimingChart?: boolean;
+
+    /**
      * Height in pixels of the timing chart band when {@link isOverlayTimingChartEnabled} is `true`.
      * Defaults to 22 pixels when omitted.
      */
@@ -207,6 +242,11 @@ export interface HardwareSettings {
      * overflow counts and submitted vertex totals. Defaults to `false`.
      */
     isOverlayRendererDiagnosticsBarEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayRendererDiagnosticsBarEnabled} instead.
+     */
+    overlayRendererDiagnosticsBar?: boolean;
 }
 
 /**
@@ -554,6 +594,42 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
     return picked;
 }
 
+/** Legacy-to-current boolean field aliases accepted by configure() compatibility handling. */
+const DEPRECATED_BOOLEAN_ALIASES = [
+    { current: 'isDetectingDroppedFrames', legacy: 'detectDroppedFrames' },
+    { current: 'isOverlayEnabled', legacy: 'overlayEnabled' },
+    { current: 'isOverlayVisibleAtStart', legacy: 'overlayVisibleAtStart' },
+    { current: 'isOverlayToggleHintVisible', legacy: 'overlayToggleHintVisible' },
+    { current: 'isOverlayToggleEnabled', legacy: 'overlayToggleEnabled' },
+    { current: 'isOverlayPaletteEnabled', legacy: 'overlayPaletteView' },
+    { current: 'isOverlayTimingChartEnabled', legacy: 'overlayTimingChart' },
+    { current: 'isOverlayRendererDiagnosticsBarEnabled', legacy: 'overlayRendererDiagnosticsBar' },
+] as const;
+
+/**
+ * Normalizes deprecated configure() keys onto current HardwareSettings fields.
+ *
+ * New names always win when both are provided in the same object.
+ *
+ * @param partial - Raw values returned by configure().
+ * @returns Partial settings with legacy keys mapped to current keys.
+ */
+function normalizeDeprecatedHardwareSettings(partial: Partial<HardwareSettings>): Partial<HardwareSettings> {
+    const normalized = { ...partial };
+
+    for (const alias of DEPRECATED_BOOLEAN_ALIASES) {
+        const currentValue = normalized[alias.current];
+
+        const legacyValue = partial[alias.legacy];
+
+        if (currentValue === undefined && legacyValue !== undefined) {
+            normalized[alias.current] = legacyValue;
+        }
+    }
+
+    return normalized;
+}
+
 /**
  * Resolves an optional vector from picked configure values or defaults.
  *
@@ -832,13 +908,14 @@ export function mergeHardwareSettings(partial?: Partial<HardwareSettings>): Hard
         return defaults;
     }
 
-    const picked = pickDefinedHardwareSettings(partial);
+    const normalized = normalizeDeprecatedHardwareSettings(partial);
+    const picked = pickDefinedHardwareSettings(normalized);
 
-    if (partial.displaySize === undefined) {
-        return mergePartialWithFullDefaults(partial, picked, defaults);
+    if (normalized.displaySize === undefined) {
+        return mergePartialWithFullDefaults(normalized, picked, defaults);
     }
 
-    return mergeExplicitDisplayProfile(partial, picked, defaults);
+    return mergeExplicitDisplayProfile(normalized, picked, defaults);
 }
 
 /** Resolved timing-chart renderer diagnostic visualization mode. */

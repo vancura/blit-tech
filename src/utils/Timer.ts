@@ -52,6 +52,17 @@ export class Timer {
     }
 
     /**
+     * Backward-compatible alias for {@link fireIfElapsed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link fireIfElapsed} instead.
+     * @param currentTick - Tick to evaluate against; defaults to engine tick counter.
+     * @returns True when at least `intervalTicks` have elapsed since the last fire/reset.
+     */
+    public tick(currentTick: number = BTAPI.instance.getTicks()): boolean {
+        return this.fireIfElapsed(currentTick);
+    }
+
+    /**
      * Resets the timer baseline to a tick value.
      *
      * @param currentTick - Tick to reset against; defaults to engine tick counter.
