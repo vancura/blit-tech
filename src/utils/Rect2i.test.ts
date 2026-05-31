@@ -501,12 +501,12 @@ describe('Rect2i', () => {
         });
     });
 
-    describe('intersectionTo', () => {
+    describe('intersectTo', () => {
         it('should write intersection to output rect and return true', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(50, 50, 100, 100);
             const out = new Rect2i();
-            const result = a.intersectionTo(b, out);
+            const result = a.intersectTo(b, out);
 
             expect(result).toBe(true);
             expect(out.x).toBe(50);
@@ -519,7 +519,7 @@ describe('Rect2i', () => {
             const a = new Rect2i(0, 0, 10, 10);
             const b = new Rect2i(20, 20, 10, 10);
             const out = new Rect2i(99, 99, 99, 99);
-            const result = a.intersectionTo(b, out);
+            const result = a.intersectTo(b, out);
 
             expect(result).toBe(false);
             expect(out.x).toBe(99);

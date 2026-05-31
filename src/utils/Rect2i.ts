@@ -399,7 +399,7 @@ export class Rect2i {
      * @param out - Rectangle to write the result to.
      * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
      */
-    intersectionTo(other: Rect2i, out: Rect2i): boolean {
+    intersectTo(other: Rect2i, out: Rect2i): boolean {
         if (!this.isIntersecting(other)) {
             return false;
         }
