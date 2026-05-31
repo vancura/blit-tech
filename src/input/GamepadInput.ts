@@ -83,7 +83,7 @@ const VALID_AXIS_INDICES = [
  */
 interface PlayerSnapshot {
     /** Whether a gamepad is connected for this player slot. */
-    connected: boolean;
+    isConnected: boolean;
     /** Current button-state bitmask (`BTN_*`). */
     buttons: number;
     /** Snapshot axis values in `AXIS_*` order. */
@@ -206,11 +206,11 @@ export class GamepadInput {
                 continue;
             }
 
-            previous.connected = current.connected;
+            previous.isConnected = current.isConnected;
             previous.buttons = current.buttons;
             previous.axes = [...current.axes] as PlayerSnapshot['axes'];
 
-            if (!current.connected) {
+            if (!current.isConnected) {
                 this.firstPressTick[i]?.clear();
             }
         }
@@ -234,7 +234,7 @@ export class GamepadInput {
 
         const current = this.current[index];
 
-        if (!current?.connected) {
+        if (!current?.isConnected) {
             return false;
         }
 
@@ -269,7 +269,7 @@ export class GamepadInput {
         const current = this.current[index];
         const previous = this.previous[index];
 
-        if (!current?.connected || !previous) {
+        if (!current?.isConnected || !previous) {
             return false;
         }
 
@@ -324,11 +324,11 @@ export class GamepadInput {
             return false;
         }
 
-        if (!current?.connected && previous.connected) {
+        if (!current?.isConnected && previous.isConnected) {
             return (previous.buttons & buttonMask) !== 0;
         }
 
-        if (!current?.connected) {
+        if (!current?.isConnected) {
             return false;
         }
 
@@ -355,7 +355,7 @@ export class GamepadInput {
 
         const snapshot = this.current[index];
 
-        if (!snapshot?.connected) {
+        if (!snapshot?.isConnected) {
             return 0;
         }
 
@@ -377,7 +377,7 @@ export class GamepadInput {
 
         this.pollGamepads();
 
-        return this.current[index]?.connected ?? false;
+        return this.current[index]?.isConnected ?? false;
     }
 
     /**
@@ -391,7 +391,7 @@ export class GamepadInput {
         let count = 0;
 
         for (let i = 0; i < GAMEPAD_PLAYER_COUNT; i++) {
-            if (this.current[i]?.connected) {
+            if (this.current[i]?.isConnected) {
                 count++;
             }
         }
@@ -408,7 +408,7 @@ export class GamepadInput {
      */
     private createEmptySnapshot(): PlayerSnapshot {
         return {
-            connected: false,
+            isConnected: false,
             buttons: 0,
             axes: [0, 0, 0, 0, 0, 0],
         };
@@ -444,13 +444,13 @@ export class GamepadInput {
             const pad = pads[player];
 
             if (!pad?.connected) {
-                snapshot.connected = false;
+                snapshot.isConnected = false;
                 snapshot.buttons = 0;
                 snapshot.axes = [0, 0, 0, 0, 0, 0];
                 continue;
             }
 
-            snapshot.connected = true;
+            snapshot.isConnected = true;
             snapshot.buttons = this.mapButtons(pad);
             snapshot.axes = this.mapAxes(pad);
             this.dropReleasedTickAnchors(player, snapshot.buttons);
@@ -702,13 +702,13 @@ export class GamepadInput {
             const previous = this.previous[i];
 
             if (current) {
-                current.connected = false;
+                current.isConnected = false;
                 current.buttons = 0;
                 current.axes = [0, 0, 0, 0, 0, 0];
             }
 
             if (previous) {
-                previous.connected = false;
+                previous.isConnected = false;
                 previous.buttons = 0;
                 previous.axes = [0, 0, 0, 0, 0, 0];
             }
