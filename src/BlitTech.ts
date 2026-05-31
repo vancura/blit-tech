@@ -976,8 +976,8 @@ export const BT = {
      * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns `true` while the slot has live position data.
      */
-    pointerPosValid: (pointerIndex: number = 0): boolean => {
-        return BTAPI.instance.getPointer()?.isValid(pointerIndex) ?? false;
+    isPointerActive: (pointerIndex: number = 0): boolean => {
+        return BTAPI.instance.getPointer()?.isActive(pointerIndex) ?? false;
     },
 
     /**
@@ -1042,7 +1042,7 @@ export const BT = {
      * @returns `true` while the button remains pressed.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonDown: (button: number, player: number = 0): boolean => {
+    isDown: (button: number, player: number = 0): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1070,11 +1070,11 @@ export const BT = {
                 continue;
             }
 
-            const keyboardMatch =
+            const isKeyboardDown =
                 BTAPI.instance.getKeyboard()?.isButtonDown(faceButtonKeys(faceButton, player) ?? []) ?? false;
-            const gamepadMatch = BTAPI.instance.getGamepad()?.isButtonDown(faceButton, player) ?? false;
+            const isGamepadDown = BTAPI.instance.getGamepad()?.isButtonDown(faceButton, player) ?? false;
 
-            if (keyboardMatch || gamepadMatch) {
+            if (isKeyboardDown || isGamepadDown) {
                 return true;
             }
         }
@@ -1085,7 +1085,7 @@ export const BT = {
     /**
      * Checks whether a button was pressed on the current frame.
      *
-     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * Same parameter semantics as {@link isDown}; returns `true` only on
      * the frame the button transitions from up to down.
      *
      * @param button - Button constant from the `BTN_*` set.
@@ -1095,7 +1095,7 @@ export const BT = {
      * @returns `true` on the transition frame.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
+    isPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1130,17 +1130,17 @@ export const BT = {
             const keyboard = BTAPI.instance.getKeyboard();
             const gamepad = BTAPI.instance.getGamepad();
             const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
-            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
-            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
-            const keyboardPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
-            const gamepadPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
-            const repeatEnabled = repeatRate !== undefined && repeatRate > 0;
-            const mergedPressed = repeatEnabled
-                ? keyboardPressed || gamepadPressed
-                : (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
-                  (gamepadPressed && !(keyboardDown && !keyboardPressed));
+            const isKeyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const isGamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardIsPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
+            const gamepadIsPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
+            const isRepeatEnabled = repeatRate !== undefined && repeatRate > 0;
+            const mergedIsPressed = isRepeatEnabled
+                ? keyboardIsPressed || gamepadIsPressed
+                : (keyboardIsPressed && !(isGamepadDown && !gamepadIsPressed)) ||
+                  (gamepadIsPressed && !(isKeyboardDown && !keyboardIsPressed));
 
-            if (mergedPressed) {
+            if (mergedIsPressed) {
                 return true;
             }
         }
@@ -1151,7 +1151,7 @@ export const BT = {
     /**
      * Checks whether a button was released on the current frame.
      *
-     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * Same parameter semantics as {@link isDown}; returns `true` only on
      * the frame the button transitions from down to up.
      *
      * @param button - Button constant from the `BTN_*` set.
@@ -1160,7 +1160,7 @@ export const BT = {
      * @returns `true` on the release frame.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonReleased: (button: number, player: number = 0): boolean => {
+    isReleased: (button: number, player: number = 0): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1194,15 +1194,15 @@ export const BT = {
             const keyboard = BTAPI.instance.getKeyboard();
             const gamepad = BTAPI.instance.getGamepad();
             const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
-            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
-            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
-            const keyboardReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
-            const gamepadReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
-            const mergedReleased =
-                (keyboardReleased && !(gamepadDown && !gamepadReleased)) ||
-                (gamepadReleased && !(keyboardDown && !keyboardReleased));
+            const isKeyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const isGamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardIsReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
+            const gamepadIsReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
+            const mergedIsReleased =
+                (keyboardIsReleased && !(isGamepadDown && !gamepadIsReleased)) ||
+                (gamepadIsReleased && !(isKeyboardDown && !keyboardIsReleased));
 
-            if (mergedReleased) {
+            if (mergedIsReleased) {
                 return true;
             }
         }
@@ -1269,7 +1269,7 @@ export const BT = {
      * @param player - Zero-based player index (`0`..`3`).
      * @returns `true` when a gamepad is available for that slot.
      */
-    gamepadConnected: (player: number = 0): boolean => {
+    isGamepadConnected: (player: number = 0): boolean => {
         return BTAPI.instance.getGamepad()?.isConnected(player) ?? false;
     },
 
@@ -1294,7 +1294,7 @@ export const BT = {
      * @param key - DOM keyboard code string.
      * @returns `true` while the key remains pressed.
      */
-    keyDown: (key: string): boolean => {
+    isKeyDown: (key: string): boolean => {
         return BTAPI.instance.getKeyboard()?.isKeyDown(key) ?? false;
     },
 
@@ -1309,7 +1309,7 @@ export const BT = {
      * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
      * @returns `true` on the press edge (and on repeat ticks when configured).
      */
-    keyPressed: (key: string, repeatRate?: number): boolean => {
+    isKeyPressed: (key: string, repeatRate?: number): boolean => {
         const tick = BTAPI.instance.getTicks();
 
         return BTAPI.instance.getKeyboard()?.isKeyPressed(key, repeatRate, tick) ?? false;
@@ -1321,7 +1321,7 @@ export const BT = {
      * @param key - DOM keyboard code string.
      * @returns `true` on the release edge.
      */
-    keyReleased: (key: string): boolean => {
+    isKeyReleased: (key: string): boolean => {
         return BTAPI.instance.getKeyboard()?.isKeyReleased(key) ?? false;
     },
 

@@ -76,7 +76,7 @@ interface PointerSlot {
     /** Current state of `BTN_POINTER_D` for this slot. */
     d: boolean;
 
-    /** Snapshot of `a` taken at `endFrame()`, used for pressed/released edge detection. */
+    /** Snapshot of `a` taken at `endFrame()`, used for isPressed/released edge detection. */
     prevA: boolean;
 
     /** Snapshot of `b` taken at `endFrame()`. */
@@ -494,7 +494,7 @@ export class PointerInput {
     private handlePointerMove(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
-            const wasActive = slot.isActive;
+            const isPreviouslyActive = slot.isActive;
 
             slot.pointerId = event.pointerId;
             slot.pointerType = 'mouse';
@@ -505,7 +505,7 @@ export class PointerInput {
             // Activation: sync prevPos to the entry pos so the first frame's
             // delta is zero rather than a jump from (0, 0) (or wherever the
             // slot was previously zeroed) to the entry point.
-            if (!wasActive) {
+            if (!isPreviouslyActive) {
                 slot.prevPos.copyFrom(slot.pos);
             }
 
@@ -532,7 +532,7 @@ export class PointerInput {
     private handlePointerDown(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
-            const wasActive = slot.isActive;
+            const isPreviouslyActive = slot.isActive;
 
             slot.pointerId = event.pointerId;
             slot.pointerType = 'mouse';
@@ -544,7 +544,7 @@ export class PointerInput {
             // Activation: sync prevPos so the first delta is zero. Without
             // this, the very first read after the mouse enters would see a
             // delta from (0, 0) to the entry point.
-            if (!wasActive) {
+            if (!isPreviouslyActive) {
                 slot.prevPos.copyFrom(slot.pos);
             }
 
@@ -818,7 +818,7 @@ export class PointerInput {
 
     /**
      * Maps a DOM `PointerEvent.button` value to the corresponding pointer
-     * button on slot 0 and sets it to `pressed`.
+     * button on slot 0 and sets it to `isPressed`.
      *
      * The mapping intentionally follows RetroBlit canonical (A=left, B=right,
      * C=middle), not the DOM index order (where 1 is middle and 2 is right).
@@ -827,22 +827,22 @@ export class PointerInput {
      *
      * @param slot - Mouse slot to update (always slot 0).
      * @param button - DOM `PointerEvent.button` value.
-     * @param pressed - `true` to set the button down, `false` to release it.
+     * @param isPressed - `true` to set the button down, `false` to release it.
      */
-    private setMouseButton(slot: PointerSlot, button: number, pressed: boolean): void {
+    private setMouseButton(slot: PointerSlot, button: number, isPressed: boolean): void {
         switch (button) {
             case 0:
-                slot.a = pressed;
+                slot.a = isPressed;
                 break;
             case 2:
-                slot.b = pressed;
+                slot.b = isPressed;
                 break;
             case 1:
-                slot.c = pressed;
+                slot.c = isPressed;
                 break;
             case 3:
             case 4:
-                slot.d = pressed;
+                slot.d = isPressed;
                 break;
             default:
                 break;
