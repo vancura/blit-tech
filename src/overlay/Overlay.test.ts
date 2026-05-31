@@ -14,7 +14,7 @@ import { OVERLAY_BAR_HEIGHT, OVERLAY_ROW_GAP_PX } from './layout/constants';
 import { createOverlayLayout, overlayRightAlignedTextX } from './layout/layoutHelpers';
 import { hintBarY, paletteBandY } from './layout/layoutPlan';
 import { Overlay } from './Overlay';
-import { overlayToggleHintIconPos } from './OverlayToggleIcon';
+import { hintIconPos } from './OverlayToggleIcon';
 import { computePaletteGrid, writePaletteScrollbarRects, writePaletteSwatchTopLeft } from './palette/PaletteView';
 import {
     createMockRenderer,
@@ -31,14 +31,14 @@ import {
 // #region Helpers
 
 /** Default overlay tests use the 13 px hint bar (palette grid opt-in off). */
-const OVERLAY_PALETTE_VIEW_OFF = false;
+const OVERLAY_PALETTE_GRID_OFF = false;
 
 interface OverlayTestOptions {
     style?: { barPaletteIndex?: number; textPaletteIndex?: number; gapPaletteIndex?: number };
-    paletteView?: boolean;
+    isOverlayPaletteEnabled?: boolean;
     paletteColumns?: number;
     paletteRowsVisible?: number;
-    overlayTimingChart?: boolean;
+    isOverlayTimingChartEnabled?: boolean;
     overlayTimingChartStyle?: {
         updateBarPaletteIndex?: number;
         renderBarPaletteIndex?: number;
@@ -48,10 +48,10 @@ interface OverlayTestOptions {
     };
     overlayTimingChartHeight?: number;
     overlayTimingChartDiagnostics?: false | 'minimal' | 'rich';
-    overlayRendererDiagnosticsBar?: boolean;
-    visibleAtStart?: boolean;
-    toggleHintVisible?: boolean;
-    toggleEnabled?: boolean;
+    isOverlayRendererDiagnosticsBarEnabled?: boolean;
+    isOverlayVisibleAtStart?: boolean;
+    isOverlayToggleHintVisible?: boolean;
+    isOverlayToggleEnabled?: boolean;
     backend?: 'webgpu' | 'software';
 }
 
@@ -67,17 +67,17 @@ function createOverlay(
         60,
         options.backend ?? 'webgpu',
         options.style,
-        options.paletteView ?? OVERLAY_PALETTE_VIEW_OFF,
+        options.isOverlayPaletteEnabled ?? OVERLAY_PALETTE_GRID_OFF,
         options.paletteColumns,
         options.paletteRowsVisible,
-        options.overlayTimingChart ?? false,
+        options.isOverlayTimingChartEnabled ?? false,
         options.overlayTimingChartStyle,
         options.overlayTimingChartHeight,
         options.overlayTimingChartDiagnostics ?? false,
-        options.overlayRendererDiagnosticsBar ?? false,
-        options.visibleAtStart ?? false,
-        options.toggleHintVisible ?? true,
-        options.toggleEnabled ?? true,
+        options.isOverlayRendererDiagnosticsBarEnabled ?? false,
+        options.isOverlayVisibleAtStart ?? false,
+        options.isOverlayToggleHintVisible ?? true,
+        options.isOverlayToggleEnabled ?? true,
     );
 }
 
@@ -97,18 +97,21 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
 // #region Tests
 
 describe('Overlay', () => {
-    it('tracksPaletteUsage is false when palette grid is disabled', () => {
+    it('isTrackingPaletteUsage is false when palette grid is disabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Test Demo');
 
-        expect(overlay.tracksPaletteUsage).toBe(false);
+        expect(overlay.isTrackingPaletteUsage).toBe(false);
     });
 
-    it('tracksPaletteUsage follows palette grid opt-in and visibility toggle', () => {
+    it('isTrackingPaletteUsage follows palette grid opt-in and visibility toggle', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Test Demo', { paletteView: true, visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Test Demo', {
+            isOverlayPaletteEnabled: true,
+            isOverlayVisibleAtStart: true,
+        });
 
-        expect(overlay.tracksPaletteUsage).toBe(true);
+        expect(overlay.isTrackingPaletteUsage).toBe(true);
 
         overlay.handleToggle(
             null,
@@ -118,12 +121,15 @@ describe('Overlay', () => {
             1,
         );
 
-        expect(overlay.tracksPaletteUsage).toBe(false);
+        expect(overlay.isTrackingPaletteUsage).toBe(false);
     });
 
     it('swatch press in the toggle corner does not toggle overlay body', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Test Demo', { paletteView: true, visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Test Demo', {
+            isOverlayPaletteEnabled: true,
+            isOverlayVisibleAtStart: true,
+        });
         const grid = computePaletteGrid(320);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
@@ -141,14 +147,14 @@ describe('Overlay', () => {
             1,
         );
 
-        expect(overlay.bodyVisible).toBe(true);
+        expect(overlay.isBodyVisible).toBe(true);
     });
 
     it('scrollbar track press blocks toggle but swatch press still copies first', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Test Demo', {
-            paletteView: true,
-            visibleAtStart: true,
+            isOverlayPaletteEnabled: true,
+            isOverlayVisibleAtStart: true,
             paletteRowsVisible: 3,
         });
         const grid = computePaletteGrid(320, undefined, 256, undefined, undefined, 3);
@@ -162,7 +168,7 @@ describe('Overlay', () => {
             {
                 isButtonPressed: () => true,
                 isButtonDown: () => true,
-                isValid: () => true,
+                isActive: () => true,
                 getPos: () => new Vector2i(track.x + 1, track.y + 1),
                 getScrollDelta: () => 0,
                 consumeScrollDelta: vi.fn(),
@@ -204,7 +210,7 @@ describe('Overlay', () => {
     it('draws top and bottom overlay labels when body is visible', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const topLeftLabel = 'Patterns Demo';
-        const overlay = createOverlay(layout, topLeftLabel, { visibleAtStart: true });
+        const overlay = createOverlay(layout, topLeftLabel, { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -246,7 +252,7 @@ describe('Overlay', () => {
 
     it('uses activeBackend for the top-right label', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { backend: 'software', visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { backend: 'software', isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -257,7 +263,7 @@ describe('Overlay', () => {
 
     it('uses provided frame timings and shows update-step suffix when multiple updates ran', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
@@ -282,7 +288,7 @@ describe('Overlay', () => {
 
     it('skips draw calls when body is hidden and the toggle hint is disabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { toggleHintVisible: false });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayToggleHintVisible: false });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -295,7 +301,7 @@ describe('Overlay', () => {
     it('draws hint-only path while body is hidden and toggle hint is visible', () => {
         const overlay = createOverlay(createOverlayLayout(320, 240, 14), 'Demo');
         const renderer = createMockRenderer();
-        const iconPos = overlayToggleHintIconPos(hintBarY(240));
+        const iconPos = hintIconPos(hintBarY(240));
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
@@ -312,7 +318,7 @@ describe('Overlay', () => {
 
     it('does not draw the palette band while body is hidden even when palette view is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { paletteView: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayPaletteEnabled: true });
         const renderer = createMockRenderer();
         const grid = computePaletteGrid(320, undefined, 256);
 
@@ -327,7 +333,7 @@ describe('Overlay', () => {
 
     it('resets camera for overlay draws then restores the saved offset', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const saved = new Vector2i(12, 34);
 
@@ -340,7 +346,7 @@ describe('Overlay', () => {
 
     it('uses default overlay palette indices when style is omitted', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
 
@@ -354,7 +360,7 @@ describe('Overlay', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 8, textPaletteIndex: 9, gapPaletteIndex: 12 },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
 
@@ -374,7 +380,7 @@ describe('Overlay', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 8, textPaletteIndex: 9 },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
 
@@ -390,7 +396,7 @@ describe('Overlay', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 8, textPaletteIndex: 9 },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
         overlay.updateAndRender(renderer, mockFont, null, null, 0);
@@ -406,7 +412,7 @@ describe('Overlay', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 2, textPaletteIndex: 3 },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
         const customRows = [{ leftText: 'Left', barPaletteIndex: 5, textPaletteIndex: 6 }];
@@ -424,7 +430,7 @@ describe('Overlay', () => {
 
     it('draws custom rows stacked above the bottom bar with 1px gaps', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const customRows = [{ leftText: 'Position: 10, 20' }, { leftText: 'Bounces: 3', rightText: 'ok' }];
 
@@ -463,7 +469,7 @@ describe('Overlay', () => {
 
     it('skips extra custom row draws when customRows is empty', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => []);
@@ -483,9 +489,9 @@ describe('Overlay', () => {
         expect(getCustomRows).not.toHaveBeenCalled();
     });
 
-    it('renders palette grid when overlayPaletteView is enabled', () => {
+    it('renders palette grid when isOverlayPaletteEnabled is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { paletteView: true, visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayPaletteEnabled: true, isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -510,7 +516,7 @@ describe('Overlay', () => {
 
     it('preserves default hint bar height when palette view is disabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const palette = Palette.vga();
 
@@ -526,7 +532,7 @@ describe('Overlay', () => {
 
     it('stacks custom rows above the palette grid bottom band', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { paletteView: true, visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayPaletteEnabled: true, isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -544,7 +550,7 @@ describe('Overlay', () => {
 
     it('draws palette tooltip label after custom row and hint labels', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { paletteView: true, visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayPaletteEnabled: true, isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -607,9 +613,9 @@ describe('Overlay', () => {
     it('forwards timing chart tags to drawLabelOnTop with event palette offset', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: { tagPaletteIndex: 7 },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
 
@@ -633,14 +639,14 @@ describe('Overlay', () => {
         expect(tagCall?.[3]).toBe(6);
     });
 
-    it('draws timing chart dots when overlayTimingChart is enabled', () => {
+    it('draws timing chart dots when isOverlayTimingChartEnabled is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
             style: { barPaletteIndex: 8, textPaletteIndex: 9 },
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
             overlayTimingChartHeight: 36,
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
 
@@ -669,14 +675,14 @@ describe('Overlay', () => {
     it('tints timing chart dots with warning palette when frame exceeds soft budget', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: {
                 updateBarPaletteIndex: 10,
                 renderBarPaletteIndex: 11,
                 warningPaletteIndex: 3,
                 errorPaletteIndex: 4,
             },
-            visibleAtStart: true,
+            isOverlayVisibleAtStart: true,
         });
         const renderer = createMockRenderer();
 
@@ -705,10 +711,10 @@ describe('Overlay', () => {
     it('does not draw overlay while hidden but keeps timing chart samples for re-show', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: { updateBarPaletteIndex: 10, renderBarPaletteIndex: 11 },
-            visibleAtStart: true,
-            toggleHintVisible: false,
+            isOverlayVisibleAtStart: true,
+            isOverlayToggleHintVisible: false,
         });
         const renderer = createMockRenderer();
 
@@ -745,9 +751,9 @@ describe('Overlay', () => {
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 10)).toBe(true);
     });
 
-    it('does not draw timing chart dots when overlayTimingChart is disabled', () => {
+    it('does not draw timing chart dots when isOverlayTimingChartEnabled is disabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { visibleAtStart: true });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayVisibleAtStart: true });
         const renderer = createMockRenderer();
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, {
@@ -769,10 +775,10 @@ describe('Overlay', () => {
     it('records drop severity in chart history while body is hidden', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', {
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: { warningPaletteIndex: 3, errorPaletteIndex: 4 },
-            visibleAtStart: true,
-            toggleHintVisible: false,
+            isOverlayVisibleAtStart: true,
+            isOverlayToggleHintVisible: false,
         });
         const renderer = createMockRenderer();
 
@@ -809,11 +815,11 @@ describe('Overlay', () => {
         expect(renderer.drawBarFill.mock.calls.some((call) => call[1] === 3)).toBe(true);
     });
 
-    it('ignores toggle input when overlayToggleEnabled is false', () => {
+    it('ignores toggle input when isOverlayToggleEnabled is false', () => {
         const layout = createOverlayLayout(320, 240, 14);
-        const overlay = createOverlay(layout, 'Demo', { toggleEnabled: false });
+        const overlay = createOverlay(layout, 'Demo', { isOverlayToggleEnabled: false });
 
-        expect(overlay.bodyVisible).toBe(false);
+        expect(overlay.isBodyVisible).toBe(false);
 
         overlay.handleToggle(
             null,

@@ -11,17 +11,17 @@ import { OVERLAY_TOGGLE_KEY_CODE, POINTER_PRIMARY_BUTTON } from './constants';
 export class Toggle {
     #isBodyVisible: boolean;
 
-    readonly #toggleEnabled: boolean;
+    readonly #isToggleEnabled: boolean;
 
     /**
      * Creates toggle state from configure-time visibility and input flags.
      *
-     * @param visibleAtStart - Initial overlay body visibility from configure.
-     * @param toggleEnabled - When false, toggle input is ignored.
+     * @param isOverlayVisibleAtStart - Initial overlay body visibility from configure.
+     * @param isOverlayToggleEnabled - When false, toggle input is ignored.
      */
-    constructor(visibleAtStart = false, toggleEnabled = true) {
-        this.#bodyVisible = visibleAtStart;
-        this.#toggleEnabled = toggleEnabled;
+    constructor(isOverlayVisibleAtStart = false, isOverlayToggleEnabled = true) {
+        this.#isBodyVisible = isOverlayVisibleAtStart;
+        this.#isToggleEnabled = isOverlayToggleEnabled;
     }
 
     /**
@@ -40,16 +40,16 @@ export class Toggle {
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      * @param toggleRect - Bottom-left toggle hit region.
-     * @param pointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
+     * @param isPointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
      */
     handleToggle(
         pointer: PointerInput | null,
         keyboard: KeyboardInput | null,
         currentTick: number,
         toggleRect: Rect2i,
-        pointerPressConsumed = false,
+        isPointerPressConsumed = false,
     ): void {
-        if (!this.#toggleEnabled) {
+        if (!this.#isToggleEnabled) {
             return;
         }
 
@@ -59,7 +59,7 @@ export class Toggle {
             return;
         }
 
-        if (!pointer || pointerPressConsumed) {
+        if (!pointer || isPointerPressConsumed) {
             return;
         }
 

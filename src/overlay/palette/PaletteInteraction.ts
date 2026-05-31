@@ -64,7 +64,7 @@ const tooltipScratch = {
  * @param hintExclusion - Region reserved for the toggle hint icon.
  * @returns `true` when the swatch should not receive hits or draws.
  */
-function swatchOverlapsHintExclusion(
+function isSwatchOverlappingWithHintExclusion(
     swatchX: number,
     swatchY: number,
     swatchSize: number,
@@ -209,7 +209,7 @@ export function hitTestPaletteSwatch(
 
     writePaletteSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
 
-    if (swatchOverlapsHintExclusion(swatchScratch.x, swatchScratch.y, swatchSize, hintExclusion)) {
+    if (isSwatchOverlappingWithHintExclusion(swatchScratch.x, swatchScratch.y, swatchSize, hintExclusion)) {
         return null;
     }
 
@@ -551,14 +551,14 @@ export class PaletteInteraction {
      * @param pointer - Pointer subsystem, or `null` when unavailable.
      * @param plan - Layout plan for this frame.
      * @param grid - Palette grid layout.
-     * @param swatchPressConsumed - When true, drag scrolling is skipped this frame.
+     * @param isSwatchPressConsumed - When true, drag scrolling is skipped this frame.
      * @returns `true` when a scrollbar-track press should block the toggle corner.
      */
     handleScroll(
         pointer: PointerInput | null,
         plan: OverlayLayoutPlan,
         grid: PaletteGridLayout,
-        swatchPressConsumed: boolean,
+        isSwatchPressConsumed: boolean,
     ): boolean {
         if (plan.paletteBand.height <= 0 || grid.cols <= 0 || maxScrollRowOffset(grid) <= 0 || !pointer) {
             this.#scrollDragSlot = null;
@@ -568,7 +568,7 @@ export class PaletteInteraction {
 
         this.syncScrollBounds(grid);
 
-        let togglePressConsumed = false;
+        let isTogglePressConsumed = false;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
             if (!pointer.isActive(slot)) {
@@ -595,20 +595,20 @@ export class PaletteInteraction {
                     this.#scrollDragSlot = slot;
                     this.#scrollDragStartY = pos.y;
                     this.#scrollDragStartOffset = this.#scrollRowOffset;
-                    togglePressConsumed = true;
+                    isTogglePressConsumed = true;
                 }
             }
         }
 
-        if (!swatchPressConsumed) {
-            togglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || togglePressConsumed;
+        if (!isSwatchPressConsumed) {
+            isTogglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || isTogglePressConsumed;
         } else {
             this.#scrollDragSlot = null;
         }
 
-        togglePressConsumed = this.#applyScrollWheel(pointer, plan, grid) || togglePressConsumed;
+        isTogglePressConsumed = this.#applyScrollWheel(pointer, plan, grid) || isTogglePressConsumed;
 
-        return togglePressConsumed;
+        return isTogglePressConsumed;
     }
 
     /**
@@ -658,10 +658,10 @@ export class PaletteInteraction {
      * @returns `true` when drag scrolling consumed a toggle-corner press.
      */
     #applyScrollDrag(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
-        let togglePressConsumed = false;
+        let isTogglePressConsumed = false;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isButtonDown(POINTER_PRIMARY_BUTTON, slot) || !pointer.isValid(slot)) {
+            if (!pointer.isButtonDown(POINTER_PRIMARY_BUTTON, slot) || !pointer.isActive(slot)) {
                 if (this.#scrollDragSlot === slot) {
                     this.#scrollDragSlot = null;
                 }
@@ -670,9 +670,9 @@ export class PaletteInteraction {
             }
 
             const pos = pointer.getPos(slot);
-            const inScrollRegion = isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand);
+            const isInScrollRegion = isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand);
 
-            if (!inScrollRegion && this.#scrollDragSlot !== slot) {
+            if (!isInScrollRegion && this.#scrollDragSlot !== slot) {
                 continue;
             }
 
@@ -686,7 +686,7 @@ export class PaletteInteraction {
                     this.#scrollbarTrackWidth,
                 )
             ) {
-                togglePressConsumed = true;
+                isTogglePressConsumed = true;
             }
 
             if (this.#scrollDragSlot === slot) {
@@ -716,7 +716,7 @@ export class PaletteInteraction {
                 continue;
             }
 
-            if (!inScrollRegion) {
+            if (!isInScrollRegion) {
                 continue;
             }
 
@@ -732,7 +732,7 @@ export class PaletteInteraction {
             }
         }
 
-        return togglePressConsumed;
+        return isTogglePressConsumed;
     }
 
     /**

@@ -19,7 +19,7 @@ import {
     computeTimingChartDotY,
     computeTimingChartGridLineY,
     computeTimingChartPressureHeight,
-    shouldDrawTimingChartGridLineY,
+    isTimingChartGridLineAtY,
     timingChartBaselineY,
     type TimingChartDrawStyle,
     writeTimingChartGridMarkers,
@@ -87,14 +87,14 @@ export class TimingChart {
     /**
      * Creates a timing chart with the given feature flag.
      *
-     * @param enabled - When false, sample/draw are no-ops.
+     * @param isEnabled - When false, sample/draw are no-ops.
      * @param targetFps - Configured fixed-step rate for frame-budget classification.
      * @param diagnosticsMode - Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
      */
-    constructor(enabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
-        this.#isEnabled = enabled;
+    constructor(isEnabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
+        this.#isEnabled = isEnabled;
         this.#targetFps = targetFps;
-        this.#diagnosticsMode = enabled ? diagnosticsMode : false;
+        this.#diagnosticsMode = isEnabled ? diagnosticsMode : false;
     }
 
     /**
@@ -259,9 +259,9 @@ export class TimingChart {
             const updateMs = this.#updateMsBuffer[bufferIndex] as number;
             const renderMs = this.#renderMsBuffer[bufferIndex] as number;
             let severity = this.#severityBuffer[bufferIndex] as number;
-            const overflow = this.#diagnosticsMode !== false && (this.#overflowBuffer[bufferIndex] as number) > 0;
+            const hasOverflow = this.#diagnosticsMode !== false && (this.#overflowBuffer[bufferIndex] as number) > 0;
 
-            if (overflow && severity < TIMING_CHART_SEVERITY_WARNING) {
+            if (hasOverflow && severity < TIMING_CHART_SEVERITY_WARNING) {
                 severity = TIMING_CHART_SEVERITY_WARNING;
             }
             /* eslint-enable security/detect-object-injection */
@@ -293,7 +293,7 @@ export class TimingChart {
                 this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
             }
 
-            if (overflow) {
+            if (hasOverflow) {
                 this.#drawBaselineMarker(target, x, baselineY, style.overflowBarIndex);
             }
 
@@ -416,7 +416,7 @@ export class TimingChart {
 
             const y = computeTimingChartGridLineY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
 
-            if (y === null || !shouldDrawTimingChartGridLineY(y, chartRect) || y === lastY) {
+            if (y === null || !isTimingChartGridLineAtY(y, chartRect) || y === lastY) {
                 continue;
             }
 

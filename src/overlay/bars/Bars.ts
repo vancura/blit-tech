@@ -87,21 +87,21 @@ export class OverlayBars {
      * @param target - Overlay draw target.
      * @param plan - Computed layout plan.
      * @param gapIndex - Palette index for separator fills.
-     * @param drawTop - When true, draws the separator below the top overlay cluster.
-     * @param drawBottom - When true, draws the separator above the bottom overlay cluster.
+     * @param isDrawTop - When true, draws the separator below the top overlay cluster.
+     * @param isDrawBottom - When true, draws the separator above the bottom overlay cluster.
      */
     drawClusterSeparators(
         target: OverlayDrawTarget,
         plan: OverlayLayoutPlan,
         gapIndex: number,
-        drawTop: boolean,
-        drawBottom: boolean,
+        isDrawTop: boolean,
+        isDrawBottom: boolean,
     ): void {
-        if (drawTop) {
+        if (isDrawTop) {
             target.drawBarFill(plan.topClusterSeparator, gapIndex);
         }
 
-        if (drawBottom) {
+        if (isDrawBottom) {
             target.drawBarFill(plan.bottomClusterSeparator, gapIndex);
         }
     }

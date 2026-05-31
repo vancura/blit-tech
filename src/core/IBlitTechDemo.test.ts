@@ -61,37 +61,37 @@ describe('defaultConfig', () => {
     it('should enable overlay by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayEnabled).toBe(true);
+        expect(settings.isOverlayEnabled).toBe(true);
     });
 
     it('should disable overlay palette view by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayPaletteView).toBe(false);
+        expect(settings.isOverlayPaletteEnabled).toBe(false);
     });
 
     it('should hide overlay body by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayVisibleAtStart).toBe(false);
+        expect(settings.isOverlayVisibleAtStart).toBe(false);
     });
 
     it('should show overlay toggle hint by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayToggleHintVisible).toBe(true);
+        expect(settings.isOverlayToggleHintVisible).toBe(true);
     });
 
     it('should enable overlay toggle input by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayToggleEnabled).toBe(true);
+        expect(settings.isOverlayToggleEnabled).toBe(true);
     });
 
     it('should disable overlay timing chart by default', () => {
         const settings = defaultConfig();
 
-        expect(settings.overlayTimingChart).toBe(false);
+        expect(settings.isOverlayTimingChartEnabled).toBe(false);
     });
 
     it('should return a fresh object on each call', () => {
@@ -121,7 +121,7 @@ describe('mergeHardwareSettings', () => {
         expect(settings.displaySize.x).toBe(320);
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.targetFPS).toBe(30);
-        expect(settings.overlayPaletteView).toBe(false);
+        expect(settings.isOverlayPaletteEnabled).toBe(false);
     });
 
     it('keeps drawingBufferSize unset when displaySize is provided without output sizing', () => {
@@ -146,14 +146,14 @@ describe('mergeHardwareSettings', () => {
         expect(settings.drawingBufferSize?.x).toBe(640);
         expect(settings.backend).toBe('software');
         expect(settings.targetFPS).toBe(60);
-        expect(settings.overlayEnabled).toBe(true);
-        expect(settings.overlayPaletteView).toBe(false);
+        expect(settings.isOverlayEnabled).toBe(true);
+        expect(settings.isOverlayPaletteEnabled).toBe(false);
     });
 
-    it('honors overlayEnabled: false from configure()', () => {
-        const settings = mergeHardwareSettings({ overlayEnabled: false });
+    it('honors isOverlayEnabled: false from configure()', () => {
+        const settings = mergeHardwareSettings({ isOverlayEnabled: false });
 
-        expect(settings.overlayEnabled).toBe(false);
+        expect(settings.isOverlayEnabled).toBe(false);
     });
 
     it('merges overlayStyle from configure()', () => {
@@ -168,19 +168,19 @@ describe('mergeHardwareSettings', () => {
 
     it('merges overlay visibility and toggle flags from configure()', () => {
         const settings = mergeHardwareSettings({
-            overlayVisibleAtStart: true,
-            overlayToggleHintVisible: false,
-            overlayToggleEnabled: false,
+            isOverlayVisibleAtStart: true,
+            isOverlayToggleHintVisible: false,
+            isOverlayToggleEnabled: false,
         });
 
-        expect(settings.overlayVisibleAtStart).toBe(true);
-        expect(settings.overlayToggleHintVisible).toBe(false);
-        expect(settings.overlayToggleEnabled).toBe(false);
+        expect(settings.isOverlayVisibleAtStart).toBe(true);
+        expect(settings.isOverlayToggleHintVisible).toBe(false);
+        expect(settings.isOverlayToggleEnabled).toBe(false);
     });
 
-    it('merges overlayTimingChart flags from configure()', () => {
+    it('merges isOverlayTimingChartEnabled flags from configure()', () => {
         const settings = mergeHardwareSettings({
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartStyle: {
                 updateBarPaletteIndex: 20,
                 renderBarPaletteIndex: 21,
@@ -188,7 +188,7 @@ describe('mergeHardwareSettings', () => {
             },
         });
 
-        expect(settings.overlayTimingChart).toBe(true);
+        expect(settings.isOverlayTimingChartEnabled).toBe(true);
         expect(settings.overlayTimingChartStyle?.updateBarPaletteIndex).toBe(20);
         expect(settings.overlayTimingChartStyle?.renderBarPaletteIndex).toBe(21);
         expect(settings.overlayTimingChartStyle?.warningPaletteIndex).toBe(22);
@@ -196,7 +196,7 @@ describe('mergeHardwareSettings', () => {
 
     it('merges overlayTimingChartHeight from configure()', () => {
         const settings = mergeHardwareSettings({
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartHeight: 36,
         });
 
@@ -205,25 +205,25 @@ describe('mergeHardwareSettings', () => {
 
     it('merges renderer diagnostics overlay flags from configure()', () => {
         const settings = mergeHardwareSettings({
-            overlayTimingChart: true,
+            isOverlayTimingChartEnabled: true,
             overlayTimingChartDiagnostics: 'rich',
-            overlayRendererDiagnosticsBar: true,
+            isOverlayRendererDiagnosticsBarEnabled: true,
         });
 
         expect(settings.overlayTimingChartDiagnostics).toBe('rich');
-        expect(settings.overlayRendererDiagnosticsBar).toBe(true);
+        expect(settings.isOverlayRendererDiagnosticsBarEnabled).toBe(true);
     });
 
     it('resolveOverlayTimingChartDiagnostics defaults to minimal when chart enabled', () => {
-        const settings = mergeHardwareSettings({ overlayTimingChart: true });
+        const settings = mergeHardwareSettings({ isOverlayTimingChartEnabled: true });
 
         expect(resolveOverlayTimingChartDiagnostics(settings)).toBe('minimal');
     });
 
     it('needsOverlayRendererDiagnostics is true for diagnostics bar alone', () => {
         const settings = mergeHardwareSettings({
-            overlayTimingChart: false,
-            overlayRendererDiagnosticsBar: true,
+            isOverlayTimingChartEnabled: false,
+            isOverlayRendererDiagnosticsBarEnabled: true,
         });
 
         expect(needsOverlayRendererDiagnostics(settings)).toBe(true);

@@ -67,7 +67,7 @@ describe('buildOverlayLayoutPlan', () => {
         const scratch = createOverlayLayoutPlanScratch();
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
-            timingChartEnabled: true,
+            isOverlayTimingChartEnabled: true,
             timingChartHeight: 22,
         };
 
@@ -82,7 +82,7 @@ describe('buildOverlayLayoutPlan', () => {
         const scratch = createOverlayLayoutPlanScratch();
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
-            rendererDiagnosticsBarEnabled: true,
+            isOverlayRendererDiagnosticsBarEnabled: true,
         };
 
         const plan = buildOverlayLayoutPlan(config, scratch, 'webgpu | 320x240', layout.toggleRect);
@@ -102,7 +102,7 @@ describe('buildOverlayLayoutPlan', () => {
         const paletteGrid = computePaletteGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
-            overlayPaletteView: true,
+            isOverlayPaletteEnabled: true,
             paletteGrid,
         };
 
@@ -126,7 +126,7 @@ describe('buildOverlayLayoutPlan', () => {
         const paletteGrid = computePaletteGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 1),
-            overlayPaletteView: true,
+            isOverlayPaletteEnabled: true,
             paletteGrid,
         };
 
@@ -145,12 +145,12 @@ describe('buildOverlayLayoutPlan', () => {
         const hintOnlyConfig = createDefaultLayoutConfig(320, 240, 14, 0);
         const paletteConfig = {
             ...hintOnlyConfig,
-            overlayPaletteView: true,
+            isOverlayPaletteEnabled: true,
             paletteGrid,
         };
         const cappedPaletteConfig = {
             ...hintOnlyConfig,
-            overlayPaletteView: true,
+            isOverlayPaletteEnabled: true,
             paletteGrid: cappedGrid,
         };
 

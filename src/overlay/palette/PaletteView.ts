@@ -13,8 +13,8 @@ import { Rect2i } from '../../utils/Rect2i';
 import { OVERLAY_EDGE_MARGIN_PX } from '../layout/constants';
 import { overlayToggleHintIconX } from '../layout/layoutHelpers';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
-import { overlayToggleHintIconY } from '../OverlayToggleIcon';
-import { OVERLAY_TOGGLE_ICON_HEIGHT, OVERLAY_TOGGLE_ICON_WIDTH } from '../toggleIconData';
+import { hintIconY } from '../OverlayToggleIcon';
+import { ICON_HEIGHT, ICON_WIDTH } from '../toggleIconData';
 import type { PaletteGridLayout } from '../types';
 
 /** Default swatch size in pixels. */
@@ -182,7 +182,7 @@ export function computePaletteGrid(
  * @param bh - Height of rect B.
  * @returns `true` when the rects overlap.
  */
-function rectsIntersect(
+function doRectsOverlap(
     ax: number,
     ay: number,
     aw: number,
@@ -204,8 +204,8 @@ function rectsIntersect(
  * @param exclusion - Region to avoid (for example the toggle hint icon).
  * @returns `true` when any part of the swatch overlaps the exclusion rect.
  */
-function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
-    return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
+function doesSwatchIntersectExclusion(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
+    return doRectsOverlap(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
 }
 
 /** Cached hint exclusion rect; recomputed only when layout inputs change. */
@@ -232,12 +232,7 @@ export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidt
     hintExclusionCache.hintBarTopY = hintBarTopY;
     hintExclusionCache.displayWidth = displayWidth;
 
-    hintExclusionCache.rect.set(
-        overlayToggleHintIconX(),
-        overlayToggleHintIconY(hintBarTopY),
-        OVERLAY_TOGGLE_ICON_WIDTH,
-        OVERLAY_TOGGLE_ICON_HEIGHT,
-    );
+    hintExclusionCache.rect.set(overlayToggleHintIconX(), hintIconY(hintBarTopY), ICON_WIDTH, ICON_HEIGHT);
 
     return hintExclusionCache.rect;
 }
@@ -429,7 +424,7 @@ function drawPaletteSwatchGrid(
 
         // Reserve only the toggle hint icon band; do not clip against the 48x48 toggle hit rect
         // (it overlaps many grid rows and would truncate every row below it).
-        if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
+        if (doesSwatchIntersectExclusion(x, y, swatchSize, hintExclusion)) {
             continue;
         }
 
@@ -551,10 +546,10 @@ export class PaletteView {
     /**
      * Creates a palette view with the given feature flag.
      *
-     * @param enabled - When false, draw is a no-op (default matches public opt-in API).
+     * @param isEnabled - When false, draw is a no-op (default matches public opt-in API).
      */
-    constructor(enabled = false) {
-        this.#isEnabled = enabled;
+    constructor(isEnabled = false) {
+        this.#isEnabled = isEnabled;
     }
 
     /**

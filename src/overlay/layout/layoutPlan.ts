@@ -3,7 +3,7 @@
  *
  * Computes bar rects and text anchors each frame from display size, custom row count,
  * and optional timing-chart / palette-grid feature flags (timing chart default off,
- * opt-in via {@link HardwareSettings.overlayTimingChart}).
+ * opt-in via {@link HardwareSettings.isOverlayTimingChartEnabled}).
  */
 
 import { Rect2i } from '../../utils/Rect2i';
@@ -100,9 +100,9 @@ function resolveFooterLayout(
     displayHeight: number,
 ): { paletteBandHeight: number; footerStackTopY: number; hintBarTopY: number } {
     const hintBarTopY = hintBarY(displayHeight);
-    const paletteEnabled = config.overlayPaletteView && config.paletteGrid !== undefined;
+    const isPaletteLayoutEnabled = config.isOverlayPaletteEnabled && config.paletteGrid !== undefined;
 
-    if (paletteEnabled) {
+    if (isPaletteLayoutEnabled) {
         const paletteBandHeight = config.paletteGrid.totalHeight;
 
         return {
@@ -126,7 +126,7 @@ function resolveFooterLayout(
  * @returns Footer band height in pixels.
  */
 export function resolveOverlayFooterHeight(config: OverlayLayoutConfig): number {
-    if (config.overlayPaletteView && config.paletteGrid !== undefined) {
+    if (config.isOverlayPaletteEnabled && config.paletteGrid !== undefined) {
         return config.paletteGrid.totalHeight + OVERLAY_ROW_GAP_PX + OVERLAY_BAR_HEIGHT;
     }
 
@@ -316,7 +316,7 @@ export function buildOverlayLayoutPlan(
     scratch.titleBar.height = OVERLAY_BAR_HEIGHT;
     y += OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX;
 
-    if (config.timingChartEnabled) {
+    if (config.isOverlayTimingChartEnabled) {
         const chartHeight = config.timingChartHeight > 0 ? config.timingChartHeight : DEFAULT_TIMING_CHART_HEIGHT;
 
         scratch.timingChart.x = 0;
@@ -342,7 +342,7 @@ export function buildOverlayLayoutPlan(
     scratch.timingTextBar.width = displayWidth;
     scratch.timingTextBar.height = OVERLAY_BAR_HEIGHT;
 
-    if (config.rendererDiagnosticsBarEnabled) {
+    if (config.isOverlayRendererDiagnosticsBarEnabled) {
         const diagnosticsY = y + OVERLAY_BAR_HEIGHT + OVERLAY_ROW_GAP_PX;
 
         scratch.rendererDiagnosticsBar.x = 0;
@@ -406,10 +406,10 @@ export function createDefaultLayoutConfig(
         displayHeight,
         lineHeight,
         customRowCount,
-        timingChartEnabled: false,
+        isOverlayTimingChartEnabled: false,
         timingChartHeight: DEFAULT_TIMING_CHART_HEIGHT,
-        rendererDiagnosticsBarEnabled: false,
-        overlayPaletteView: false,
+        isOverlayRendererDiagnosticsBarEnabled: false,
+        isOverlayPaletteEnabled: false,
     };
 }
 

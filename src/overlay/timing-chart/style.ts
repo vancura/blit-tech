@@ -179,7 +179,7 @@ export function timingChartBaselineY(chartRect: Rect2i): number {
  * @param chartRect - Chart band bounds.
  * @returns `true` when the row is strictly between the band edges.
  */
-export function shouldDrawTimingChartGridLineY(y: number, chartRect: Rect2i): boolean {
+export function isTimingChartGridLineAtY(y: number, chartRect: Rect2i): boolean {
     return y !== chartRect.y && y !== timingChartBaselineY(chartRect);
 }
 

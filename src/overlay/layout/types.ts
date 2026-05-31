@@ -30,15 +30,15 @@ export interface OverlayLayoutConfig {
 
     readonly customRowCount: number;
 
-    readonly timingChartEnabled: boolean;
+    readonly isOverlayTimingChartEnabled: boolean;
 
     readonly timingChartHeight: number;
 
-    /** Mirrors {@link HardwareSettings.overlayRendererDiagnosticsBar}. */
-    readonly rendererDiagnosticsBarEnabled: boolean;
+    /** Mirrors {@link HardwareSettings.isOverlayRendererDiagnosticsBarEnabled}. */
+    readonly isOverlayRendererDiagnosticsBarEnabled: boolean;
 
-    /** Mirrors {@link HardwareSettings.overlayPaletteView}. */
-    readonly overlayPaletteView: boolean;
+    /** Mirrors {@link HardwareSettings.isOverlayPaletteEnabled}. */
+    readonly isOverlayPaletteEnabled: boolean;
 
     readonly paletteGrid?: PaletteGridLayout;
 }

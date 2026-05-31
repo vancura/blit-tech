@@ -11,8 +11,8 @@ import {
     computeTimingChartBarHeight,
     computeTimingChartDotY,
     computeTimingChartGridLineY,
+    isTimingChartGridLineAtY,
     resolveTimingChartStyle,
-    shouldDrawTimingChartGridLineY,
     timingChartBaselineY,
     timingChartFrameBudgetMs,
     writeTimingChartGridMarkers,
@@ -99,8 +99,8 @@ describe('computeTimingChartGridLineY', () => {
     });
 
     it('skips top and bottom band edges for grid draw', () => {
-        expect(shouldDrawTimingChartGridLineY(chartRect22.y, chartRect22)).toBe(false);
-        expect(shouldDrawTimingChartGridLineY(baselineY, chartRect22)).toBe(false);
+        expect(isTimingChartGridLineAtY(chartRect22.y, chartRect22)).toBe(false);
+        expect(isTimingChartGridLineAtY(baselineY, chartRect22)).toBe(false);
         const gridLineY5 = gridY(5);
 
         expect(gridLineY5).not.toBeNull();
@@ -108,7 +108,7 @@ describe('computeTimingChartGridLineY', () => {
             return;
         }
 
-        expect(shouldDrawTimingChartGridLineY(gridLineY5, chartRect22)).toBe(true);
+        expect(isTimingChartGridLineAtY(gridLineY5, chartRect22)).toBe(true);
     });
 
     it('maps frame-budget marker from targetFPS at 60 Hz', () => {
