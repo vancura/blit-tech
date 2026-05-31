@@ -154,7 +154,7 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 - **Hold vs edge on `BT`:** `isDown` / `isKeyDown` (held), `isPressed` / `isReleased` (button masks), `isKeyPressed` /
   `isKeyReleased` (keyboard codes). Internal input classes use the same names (`PointerInput.isButtonDown`,
   `KeyboardInput.isKeyDown`, `GamepadInput.isButtonDown`). Do **not** embed a second `Is` in the identifier
-  (`isKeyIsPressed` — grep: `\bis[A-Za-z]+Is[A-Z]`).
+  (`isKeyPressed` — grep: `\bis[A-Za-z]+Is[A-Z]`).
 - Identifier acronyms use both capitals: `canvasID`, `containerID` (not `canvasId`).
 
 ---

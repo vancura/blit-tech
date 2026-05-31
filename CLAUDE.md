@@ -208,7 +208,7 @@ Runtime queries use **`is*`** / **`has*`** (`isPointerActive`, `isIndexed`, `has
 
 **Input hold vs edge on `BT`:** `BT.isDown` / `BT.isKeyDown` (held), `BT.isPressed` / `BT.isReleased` (button masks),
 `BT.isKeyPressed` / `BT.isKeyReleased` (keyboard codes). Internal input classes mirror those names; never embed a second
-`Is` (`isKeyIsPressed`). Audit: `\bis[A-Za-z]+Is[A-Z]`. Identifier acronyms: `canvasID`, `containerID`.
+`Is` (`isKeyPressed`). Audit: `\bis[A-Za-z]+Is[A-Z]`. Identifier acronyms: `canvasID`, `containerID`.
 
 Full tiers: `docs/developer-experience-guide.md` (Boolean naming).
 
