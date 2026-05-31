@@ -37,6 +37,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | Is this API exported publicly?                             | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                        |
 | What test mock do I need for GPU code?                     | `src/__test__/webgpu-mock.ts`                                                                                                                                                                           |
 | Declaration tooling / TS version alignment?                | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                        |
+| Should this private name repeat the class/file?            | **Internal scoped naming** below; `docs/developer-experience-guide.md` (Naming conventions)                                                                                                             |
 
 ## Architecture
 
@@ -211,6 +212,25 @@ Runtime queries use **`is*`** / **`has*`** (`isPointerActive`, `isIndexed`, `has
 `Is` (`isKeyPressed`). Audit: `\bis[A-Za-z]+Is[A-Z]`. Identifier acronyms: `canvasID`, `containerID`.
 
 Full tiers: `docs/developer-experience-guide.md` (Boolean naming).
+
+## Internal scoped naming
+
+**Private fields, private methods, protected members, and module-local constants/types must not repeat the enclosing
+class or file name.** The type or file already provides scope; strip redundant prefixes from internal identifiers.
+
+Examples:
+
+- `FrameCapture.request()` not `requestCapture()`; `width` not `captureWidth`
+- `GamepadInput.poll()` not `pollGamepads()`
+- `Bloom.ts`: `FRAGMENT_WGSL` not `BLOOM_FRAGMENT_WGSL`
+- `Palette.ts`: file-local `Serialized` (or similar), not `PaletteJSON` or `JSON`
+
+**Does not apply to public API:** `BT.*`, the `BlitTech.ts` export block, public methods on exported classes, or
+documented configure field names. When JSDoc references public symbols, use their full public names (e.g. internal
+pointer wire codes map to `BT.BTN_POINTER_A`, not gamepad `BT.BTN_A`).
+
+Apply when adding new internal symbols or when refactoring a file you are already changing; do not rename public surface
+or drive breaking changes through consumers for naming-only cleanup.
 
 ## API Conventions
 

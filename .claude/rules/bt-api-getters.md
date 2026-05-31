@@ -45,4 +45,4 @@ Not `is*`: `Timer.fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolea
 - Use a derived getter when the value is computed from configure fields (`outputSize`); do not add a matching field
 - Use a runtime-descriptive name when no configure field exists (`activeBackend`, not `renderer`)
 
-Cursor: `.cursor/rules/bt-api-getters.mdc` (always applied in this repo).
+Cursor: `.cursor/rules/bt-api-getters.mdc` and `.cursor/rules/internal-scoped-naming.mdc` (always applied in this repo).

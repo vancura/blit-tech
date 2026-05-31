@@ -132,6 +132,12 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 - Constants: `SCREAMING_SNAKE_CASE` for module-level; camelCase for local
 - Named exports only; no default exports
 - JSDoc required for all public API members
+- **Internal scoped naming:** private fields, private methods, protected members, and module-local constants/types
+  **must not repeat the class or file name** (context already scopes them). Examples: `FrameCapture.request()` not
+  `requestCapture()`; `FRAGMENT_WGSL` in `Bloom.ts` not `BLOOM_FRAGMENT_WGSL`; file-local `Serialized` in `Palette.ts`
+  not `PaletteJSON` or `JSON`. Does **not** apply to `BT.*`, barrel exports, or public class methods. JSDoc that points
+  at public API uses full public names (`BT.BTN_POINTER_A`, not shortened internal aliases). See
+  [CLAUDE.md](../CLAUDE.md) (**Internal scoped naming**).
 - **`BT` getters vs methods:** zero-argument read-only snapshots are getters (`BT.displaySize.y`); actions,
   parameterized queries, and async work are methods (`BT.cameraSet`, `BT.pointerPos(0)`). Full rules:
   [CLAUDE.md](../CLAUDE.md) (**BT API: getters vs methods**).
