@@ -77,4 +77,24 @@ export class Toggle {
             }
         }
     }
+
+    /**
+     * Backward-compatible alias for {@link handleInput}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link handleInput} instead.
+     * @param pointer - Pointer subsystem, or `null` when unavailable.
+     * @param keyboard - Keyboard subsystem, or `null` when unavailable.
+     * @param currentTick - Current fixed-update tick for keyboard edge detection.
+     * @param toggleRect - Bottom-left toggle hit region.
+     * @param isPointerPressConsumed - When true, skip pointer corner toggle.
+     */
+    handleToggle(
+        pointer: PointerInput | null,
+        keyboard: KeyboardInput | null,
+        currentTick: number,
+        toggleRect: Rect2i,
+        isPointerPressConsumed = false,
+    ): void {
+        this.handleInput(pointer, keyboard, currentTick, toggleRect, isPointerPressConsumed);
+    }
 }
