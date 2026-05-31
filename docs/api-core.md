@@ -399,7 +399,7 @@ BT.assignTag('Round start'); // timing chart event tag at current tick (requires
 const spawn = new Timer(180); // every 180 ticks (3 s when BT.targetFPS === 60)
 
 // Inside update():
-if (spawn.tick()) {
+if (spawn.shouldFire()) {
   spawnEnemy();
 }
 
@@ -410,7 +410,7 @@ spawn.remainingTicks(); // ticks until next fire
 spawn.intervalTicks; // readonly interval size
 ```
 
-`Timer.tick()` advances the internal baseline on each true return. Pass `BT.ticks` explicitly only when you need a
+`Timer.shouldFire()` advances the internal baseline on each true return. Pass `BT.ticks` explicitly only when you need a
 specific snapshot; the default is the engine tick counter.
 
 ---

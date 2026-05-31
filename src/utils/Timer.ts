@@ -37,7 +37,7 @@ export class Timer {
      * @param currentTick - Tick to evaluate against; defaults to engine tick counter.
      * @returns True when at least `intervalTicks` have elapsed since the last fire/reset.
      */
-    public tick(currentTick: number = BTAPI.instance.getTicks()): boolean {
+    public shouldFire(currentTick: number = BTAPI.instance.getTicks()): boolean {
         if (currentTick < this.lastFiredTick) {
             this.lastFiredTick = currentTick;
             return false;

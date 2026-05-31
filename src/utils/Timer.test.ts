@@ -25,23 +25,23 @@ describe('Timer', () => {
         });
     });
 
-    describe('tick', () => {
+    describe('shouldFire', () => {
         it('returns false before interval, true at interval, then resets baseline', () => {
             vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(5);
 
-            expect(timer.tick(4)).toBe(false);
-            expect(timer.tick(5)).toBe(true);
-            expect(timer.tick(9)).toBe(false);
-            expect(timer.tick(10)).toBe(true);
+            expect(timer.shouldFire(4)).toBe(false);
+            expect(timer.shouldFire(5)).toBe(true);
+            expect(timer.shouldFire(9)).toBe(false);
+            expect(timer.shouldFire(10)).toBe(true);
         });
 
         it('fires once per call when large gaps pass', () => {
             vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(5);
 
-            expect(timer.tick(20)).toBe(true);
-            expect(timer.tick(20)).toBe(false);
+            expect(timer.shouldFire(20)).toBe(true);
+            expect(timer.shouldFire(20)).toBe(false);
             expect(timer.elapsedTicks(23)).toBe(3);
         });
 
@@ -51,20 +51,20 @@ describe('Timer', () => {
             const timer = new Timer(3);
 
             spy.mockReturnValue(2);
-            expect(timer.tick()).toBe(false);
+            expect(timer.shouldFire()).toBe(false);
 
             spy.mockReturnValue(3);
-            expect(timer.tick()).toBe(true);
+            expect(timer.shouldFire()).toBe(true);
         });
 
         it('does not lock when current tick rewinds shallowly', () => {
             vi.spyOn(BTAPI.instance, 'getTicks').mockReturnValue(0);
             const timer = new Timer(5);
 
-            expect(timer.tick(5)).toBe(true);
+            expect(timer.shouldFire(5)).toBe(true);
             expect(timer.elapsedTicks(3)).toBe(0);
             expect(timer.remainingTicks(3)).toBe(5);
-            expect(timer.tick(10)).toBe(true);
+            expect(timer.shouldFire(10)).toBe(true);
         });
 
         it('resets baseline and does not lock after a hard tick rewind', () => {
@@ -72,14 +72,14 @@ describe('Timer', () => {
             const timer = new Timer(5);
 
             // Advance well past the interval so lastFiredTick is 1000.
-            expect(timer.tick(1000)).toBe(true);
+            expect(timer.shouldFire(1000)).toBe(true);
 
             // Hard rewind to 0 - without the guard the timer would lock until tick 1005.
-            expect(timer.tick(0)).toBe(false); // rewind detected, baseline reset to 0
+            expect(timer.shouldFire(0)).toBe(false); // rewind detected, baseline reset to 0
 
             // Should now fire exactly intervalTicks later.
-            expect(timer.tick(4)).toBe(false);
-            expect(timer.tick(5)).toBe(true);
+            expect(timer.shouldFire(4)).toBe(false);
+            expect(timer.shouldFire(5)).toBe(true);
         });
     });
 
