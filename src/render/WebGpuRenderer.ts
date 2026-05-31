@@ -78,7 +78,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * `drawingBufferSize` in `configure()`), enabling display-tier effects
      * regardless of whether the output resolution differs from the logical one.
      */
-    private readonly displayTierEnabled: boolean;
+    private readonly isDisplayTierEnabled: boolean;
 
     /** Palette index used for the frame clear color. Defaults to 0 (transparent). */
     private clearPaletteIndex: number = 0;
@@ -190,7 +190,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.device = device;
         this.context = context;
         this.displaySize = displaySize.clone();
-        this.displayTierEnabled = outputSize !== undefined;
+        this.isDisplayTierEnabled = outputSize !== undefined;
         this.outputSize = (outputSize ?? displaySize).clone();
         this.upscaleFilterMode = upscaleFilter;
         this.primitives = new PrimitivePipeline();
@@ -369,16 +369,16 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
         const swapChainView = swapTexture.createView();
         const commandEncoder = this.device.createCommandEncoder({ label: 'Render Commands' });
-        const pixelActive = this.pixelChain?.isActive() ?? false;
-        const displayActive = this.displayChain?.isActive() ?? false;
-        const sceneView = this.resolveSceneView(pixelActive);
+        const isPixelChainActive = this.pixelChain?.isActive() ?? false;
+        const isDisplayChainActive = this.displayChain?.isActive() ?? false;
+        const sceneView = this.resolveSceneView(isPixelChainActive);
 
         const now = performance.now();
         const deltaMs = this.lastFrameMs === 0 ? 0 : Math.max(0, now - this.lastFrameMs);
         this.lastFrameMs = now;
 
         this.encodeScenePass(commandEncoder, sceneView);
-        this.encodePostProcess(commandEncoder, swapChainView, pixelActive, displayActive, deltaMs);
+        this.encodePostProcess(commandEncoder, swapChainView, isPixelChainActive, isDisplayChainActive, deltaMs);
         this.submitFrame(commandEncoder, swapTexture);
     }
 
@@ -629,7 +629,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
             throw new Error('WebGpuRenderer.addEffect: renderer not initialized.');
         }
 
-        if (effect.tier === 'display' && !this.displayTierEnabled) {
+        if (effect.tier === 'display' && !this.isDisplayTierEnabled) {
             throw new Error(
                 'WebGpuRenderer.addEffect: display-tier effects require drawingBufferSize to be set in configure().',
             );
@@ -781,18 +781,18 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      *
      * @param encoder - Active command encoder.
      * @param swapChainView - Current swap-chain view (final destination).
-     * @param pixelActive - Whether the pixel chain has any registered effects.
-     * @param displayActive - Whether the display chain has any registered effects.
+     * @param isPixelChainActive - Whether the pixel chain has any registered effects.
+     * @param isDisplayChainActive - Whether the display chain has any registered effects.
      * @param deltaMs - Wall-clock milliseconds since the previous frame.
      */
     private encodePostProcess(
         encoder: GPUCommandEncoder,
         swapChainView: GPUTextureView,
-        pixelActive: boolean,
-        displayActive: boolean,
+        isPixelChainActive: boolean,
+        isDisplayChainActive: boolean,
         deltaMs: number,
     ): void {
-        if (pixelActive && this.pixelChain) {
+        if (isPixelChainActive && this.pixelChain) {
             this.pixelChain.encode(encoder, deltaMs, this.pixelChainDestView());
         }
 
@@ -800,12 +800,12 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         // any display-tier RGBA effects run.
         if (this.resolvePass) {
             const resolveSrc = this.requireSceneTexView();
-            const resolveDest = displayActive ? this.requireDisplayChainInput() : swapChainView;
+            const resolveDest = isDisplayChainActive ? this.requireDisplayChainInput() : swapChainView;
 
             this.resolvePass.encode(encoder, resolveSrc, resolveDest, this.displaySize);
         }
 
-        if (displayActive && this.displayChain) {
+        if (isDisplayChainActive && this.displayChain) {
             this.displayChain.encode(encoder, deltaMs, swapChainView);
         }
     }
@@ -818,15 +818,15 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * @param swapTexture - Current swap-chain texture (capture source).
      */
     private submitFrame(encoder: GPUCommandEncoder, swapTexture: GPUTexture): void {
-        const capturing = this.frameCapture.hasPendingCapture();
+        const isCapturing = this.frameCapture.hasPendingCapture();
 
-        if (capturing) {
+        if (isCapturing) {
             this.frameCapture.executeCaptureInEncoder(this.device, swapTexture, encoder);
         }
 
         this.device.queue.submit([encoder.finish()]);
 
-        if (capturing) {
+        if (isCapturing) {
             void this.frameCapture.resolveCapture(this.device);
         }
 
@@ -848,11 +848,11 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Picks the texture view the scene render pass should target this frame.
      *
-     * @param pixelActive - Whether the pixel chain has any registered effects.
+     * @param isPixelChainActive - Whether the pixel chain has any registered effects.
      * @returns Stable view to render the scene into.
      */
-    private resolveSceneView(pixelActive: boolean): GPUTextureView {
-        if (pixelActive && this.pixelChain) {
+    private resolveSceneView(isPixelChainActive: boolean): GPUTextureView {
+        if (isPixelChainActive && this.pixelChain) {
             return this.pixelChain.getInputView();
         }
 
