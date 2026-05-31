@@ -109,7 +109,7 @@ describe('PaletteEffectManager', () => {
         clock.advance(16);
         manager.update(palette);
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 
     it('skips first-frame delta (delta is 0 on first call)', () => {
@@ -536,7 +536,7 @@ describe('paletteSwap', () => {
         palette.clearDirty();
         paletteSwap(palette, 1, 2);
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 
     it('is a no-op when indices are the same', () => {
@@ -547,7 +547,7 @@ describe('paletteSwap', () => {
         paletteSwap(palette, 5, 5);
 
         expect(palette.getRef(5).equals(original)).toBe(true);
-        expect(palette.dirty).toBe(false);
+        expect(palette.isDirty).toBe(false);
     });
 });
 

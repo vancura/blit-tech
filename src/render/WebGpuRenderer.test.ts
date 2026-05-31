@@ -925,7 +925,7 @@ describe('palette dirty-flag auto-propagation', () => {
         expect(renderer.getPalette()).not.toBe(palette);
     });
 
-    it('palette.dirty is cleared after endFrame uploads', async () => {
+    it('palette.isDirty is cleared after endFrame uploads', async () => {
         const renderer = new WebGpuRenderer(
             createMockGPUDevice(),
             createMockGPUCanvasContext(),
@@ -943,18 +943,18 @@ describe('palette dirty-flag auto-propagation', () => {
         // Dirty the palette AFTER setPalette, simulating per-frame animation.
         palette.set(1, new Color32(200, 100, 50, 255));
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
 
         renderer.beginFrame();
         renderer.endFrame();
 
         // Renderer must clear the dirty flag as part of the GPU upload.
-        expect(palette.dirty).toBe(false);
+        expect(palette.isDirty).toBe(false);
 
         uninstallMockNavigatorGPU();
     });
 
-    it('palette.dirty drives upload without requiring a new paletteSet call', async () => {
+    it('palette.isDirty drives upload without requiring a new paletteSet call', async () => {
         const device = createMockGPUDevice();
         const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
 
@@ -977,7 +977,7 @@ describe('palette dirty-flag auto-propagation', () => {
         // Mutate palette without calling BT.paletteSet() again.
         palette.set(1, new Color32(255, 0, 128, 255));
 
-        // Second frame - must re-upload because palette.dirty is true.
+        // Second frame - must re-upload because palette.isDirty is true.
         renderer.beginFrame();
         renderer.endFrame();
 

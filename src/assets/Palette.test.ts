@@ -260,7 +260,7 @@ describe('Palette', () => {
 
 describe('Palette dirty flag', () => {
     it('starts clean after construction', () => {
-        expect(new Palette(16).dirty).toBe(false);
+        expect(new Palette(16).isDirty).toBe(false);
     });
 
     it('becomes dirty after set()', () => {
@@ -268,7 +268,7 @@ describe('Palette dirty flag', () => {
 
         palette.set(1, new Color32(255, 0, 0, 255));
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 
     it('clearDirty() resets the flag', () => {
@@ -277,7 +277,7 @@ describe('Palette dirty flag', () => {
         palette.set(1, new Color32(255, 0, 0, 255));
         palette.clearDirty();
 
-        expect(palette.dirty).toBe(false);
+        expect(palette.isDirty).toBe(false);
     });
 
     it('becomes dirty after copyFrom()', () => {
@@ -286,7 +286,7 @@ describe('Palette dirty flag', () => {
 
         dest.copyFrom(src);
 
-        expect(dest.dirty).toBe(true);
+        expect(dest.isDirty).toBe(true);
     });
 
     it('clone() returns a non-dirty palette regardless of source state', () => {
@@ -294,8 +294,8 @@ describe('Palette dirty flag', () => {
 
         palette.set(1, new Color32(255, 0, 0, 255));
 
-        expect(palette.dirty).toBe(true);
-        expect(palette.clone().dirty).toBe(false);
+        expect(palette.isDirty).toBe(true);
+        expect(palette.clone().isDirty).toBe(false);
     });
 
     it('setting index 0 to transparent does not mark dirty', () => {
@@ -303,7 +303,7 @@ describe('Palette dirty flag', () => {
 
         palette.set(0, new Color32(0, 0, 0, 0));
 
-        expect(palette.dirty).toBe(false);
+        expect(palette.isDirty).toBe(false);
     });
 
     it('remains dirty through multiple set() calls until cleared', () => {
@@ -314,11 +314,11 @@ describe('Palette dirty flag', () => {
         palette.set(3, new Color32(0, 0, 255, 255));
         palette.clearDirty();
 
-        expect(palette.dirty).toBe(false);
+        expect(palette.isDirty).toBe(false);
 
         palette.set(4, new Color32(255, 255, 0, 255));
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 });
 
@@ -434,7 +434,7 @@ describe('applyHUD', () => {
         palette.clearDirty();
         palette.applyHUD(1);
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 });
 

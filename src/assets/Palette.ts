@@ -152,7 +152,7 @@ export class Palette {
      * the renderer has uploaded the updated palette uniform buffer. Not set by the
      * constructor - initial upload is always triggered by {@link Renderer.setPalette}.
      */
-    private _dirty: boolean = false;
+    private _isDirty: boolean = false;
 
     /**
      * Creates a new palette with the requested indexed size.
@@ -365,7 +365,7 @@ export class Palette {
 
         // eslint-disable-next-line security/detect-object-injection -- Index range is validated by assertIndexInRange above
         this.colors[index] = color.clone();
-        this._dirty = true;
+        this._isDirty = true;
     }
 
     /**
@@ -499,7 +499,7 @@ export class Palette {
             }
         }
 
-        this._dirty = true;
+        this._isDirty = true;
     }
 
     /**
@@ -512,8 +512,8 @@ export class Palette {
      * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
      *   since the last call to {@link clearDirty}.
      */
-    public get dirty(): boolean {
-        return this._dirty;
+    public get isDirty(): boolean {
+        return this._isDirty;
     }
 
     /**
@@ -523,7 +523,7 @@ export class Palette {
      * contract between {@link Palette} and {@link Renderer}.
      */
     public clearDirty(): void {
-        this._dirty = false;
+        this._isDirty = false;
     }
 
     /**
@@ -534,7 +534,7 @@ export class Palette {
      * only needed when bypassing them for performance.
      */
     public markDirty(): void {
-        this._dirty = true;
+        this._isDirty = true;
     }
 
     /**

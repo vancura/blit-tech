@@ -105,7 +105,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * True after {@link setPalette} is called, guaranteeing at least one upload
      * even when the palette was never mutated via {@link Palette.set}.
-     * Per-frame mutations are detected separately via {@link Palette.dirty}.
+     * Per-frame mutations are detected separately via {@link Palette.isDirty}.
      */
     private paletteDirty: boolean = false;
 
@@ -286,7 +286,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      *
      * Stores a reference to the supplied palette - no clone is made. Subsequent
      * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
-     * will be detected via {@link Palette.dirty} and uploaded automatically at the
+     * will be detected via {@link Palette.isDirty} and uploaded automatically at the
      * start of the next frame. {@link paletteDirty} is set to guarantee the initial
      * upload even when the palette has never been mutated through {@link Palette.set}.
      *
@@ -727,7 +727,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * since the last frame.
      */
     private flushPaletteIfDirty(): void {
-        if (this.palette && this.paletteBuffer && (this.paletteDirty || this.palette.dirty)) {
+        if (this.palette && this.paletteBuffer && (this.paletteDirty || this.palette.isDirty)) {
             this.palette.toFloat32ArrayInto(this.paletteStaging);
             this.device.queue.writeBuffer(this.paletteBuffer, 0, this.paletteStaging);
             this.paletteDirty = false;
