@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { validateRenderDimensions } from '../utils/RenderLimits';
+import { validateDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import {
     defaultConfig,
@@ -235,7 +235,7 @@ describe('mergeHardwareSettings', () => {
         });
 
         expect(settings.displaySize).toEqual(new Vector2i(0, 0));
-        expect(validateRenderDimensions(settings)).not.toBeNull();
+        expect(validateDimensions(settings)).not.toBeNull();
     });
 
     it('surfaces null optional vectors via dimension validation in the explicit profile path', () => {
@@ -245,7 +245,7 @@ describe('mergeHardwareSettings', () => {
         });
 
         expect(settings.drawingBufferSize).toEqual(new Vector2i(0, 0));
-        expect(validateRenderDimensions(settings)).not.toBeNull();
+        expect(validateDimensions(settings)).not.toBeNull();
     });
 
     it('surfaces null maxCanvasSize via dimension validation in the explicit profile path', () => {
@@ -255,6 +255,6 @@ describe('mergeHardwareSettings', () => {
         });
 
         expect(settings.maxCanvasSize).toEqual(new Vector2i(0, 0));
-        expect(validateRenderDimensions(settings)).not.toBeNull();
+        expect(validateDimensions(settings)).not.toBeNull();
     });
 });

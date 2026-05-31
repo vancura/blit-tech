@@ -1,5 +1,5 @@
 import type { Vector2i } from '../utils/Vector2i';
-import { FULLSCREEN_VS_WGSL } from './effects/fullscreenVS';
+import { VS_WGSL } from './effects/fullscreenVS';
 
 // #region Configuration
 
@@ -82,7 +82,7 @@ export class UpscalePass {
 
         const module = device.createShaderModule({
             label: 'UpscalePass Shader',
-            code: FULLSCREEN_VS_WGSL + UPSCALE_FRAGMENT_WGSL,
+            code: VS_WGSL + FRAGMENT_WGSL,
         });
 
         this.pipeline = device.createRenderPipeline({
@@ -224,7 +224,7 @@ export class UpscalePass {
 
 // #region WGSL fragment shader
 
-const UPSCALE_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 @group(0) @binding(0) var src: texture_2d<f32>;
 @group(0) @binding(1) var samp: sampler;
 

@@ -34,7 +34,7 @@ import { OVERLAY_EDGE_MARGIN_PX } from '../overlay/layout/constants';
 import { paletteBandY } from '../overlay/layout/layoutPlan';
 import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import {
-    computePaletteGrid,
+    computeGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,
     PALETTE_GRID_PADDING_PX,
     PALETTE_SWATCH_GAP_PX,
@@ -44,7 +44,7 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { BTAPI } from './BTAPI';
 import type { IBlitTechDemo, OverlayRow } from './IBlitTechDemo';
-import { collectUsedRenderPaletteIndices } from './RenderPaletteUsage';
+import { collectUsedIndices } from './RenderPaletteUsage';
 
 // #region Helpers
 
@@ -1554,9 +1554,9 @@ describe('BTAPI', () => {
             const maskScratch: number[] = [];
 
             expect(usedMask).toBeDefined();
-            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, palette.size, maskScratch)).toEqual([5, 6]);
+            expect(collectUsedIndices(usedMask as Uint8Array, palette.size, maskScratch)).toEqual([5, 6]);
 
-            const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, PALETTE_SWATCH_GAP_PX);
+            const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, PALETTE_SWATCH_GAP_PX);
             const paletteBandTop = paletteBandY(240, grid.totalHeight);
             const { cols, swatchSize, gap } = grid;
 
@@ -1641,7 +1641,7 @@ describe('BTAPI', () => {
                 .framePaletteUsageMask;
             const scratch: number[] = [];
 
-            expect(collectUsedRenderPaletteIndices(usageMask, 16, scratch)).toEqual([textPaletteIndex]);
+            expect(collectUsedIndices(usageMask, 16, scratch)).toEqual([textPaletteIndex]);
         });
 
         it('drawBitmapText scans glyph rects when palette tracking is enabled', async () => {
@@ -1748,7 +1748,7 @@ describe('BTAPI', () => {
             const usedMask = overlaySpy.mock.calls.at(-1)?.[8] as Uint8Array | undefined;
             const scratch: number[] = [];
 
-            expect(collectUsedRenderPaletteIndices(usedMask as Uint8Array, 16, scratch)).toEqual([7]);
+            expect(collectUsedIndices(usedMask as Uint8Array, 16, scratch)).toEqual([7]);
         });
     });
 

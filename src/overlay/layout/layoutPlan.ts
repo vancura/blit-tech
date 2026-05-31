@@ -81,7 +81,7 @@ export function hintBarY(displayHeight: number): number {
  * Top Y of the palette swatch grid band stacked above the hint bar row gap.
  *
  * @param displayHeight - Logical display height in pixels.
- * @param paletteGridHeight - Total palette grid height from {@link computePaletteGrid}.
+ * @param paletteGridHeight - Total palette grid height from {@link computeGrid}.
  * @returns Palette band top Y.
  */
 export function paletteBandY(displayHeight: number, paletteGridHeight: number): number {

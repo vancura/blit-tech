@@ -1,5 +1,5 @@
 import type { Vector2i } from '../utils/Vector2i';
-import { FULLSCREEN_VS_WGSL } from './effects/fullscreenVS';
+import { VS_WGSL } from './effects/fullscreenVS';
 import type { UpscaleFilter } from './UpscalePass';
 
 /**
@@ -49,7 +49,7 @@ export class PaletteResolveUpscalePass {
 
         const module = device.createShaderModule({
             label: 'PaletteResolveUpscalePass Shader',
-            code: FULLSCREEN_VS_WGSL + RESOLVE_FRAGMENT_WGSL,
+            code: VS_WGSL + FRAGMENT_WGSL,
         });
 
         this.pipeline = device.createRenderPipeline({
@@ -170,9 +170,9 @@ export class PaletteResolveUpscalePass {
 
 // #endregion
 
-// #region RESOLVE_FRAGMENT_WGSL
+// #region FRAGMENT_WGSL
 
-const RESOLVE_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     logicalSize: vec2<f32>,
     filterLinear: f32,

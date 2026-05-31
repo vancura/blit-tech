@@ -2,7 +2,7 @@
 
 import { bench, describe } from 'vitest';
 
-import { resetRenderPaletteUsage } from '../core/RenderPaletteUsage';
+import { resetUsage } from '../core/RenderPaletteUsage';
 import { Rect2i } from '../utils/Rect2i';
 import { SpriteSheet } from './SpriteSheet';
 
@@ -55,7 +55,7 @@ describe('SpriteSheet.markPaletteIndicesInRect', () => {
     bench(
         'glyph rect (8x8)',
         () => {
-            resetRenderPaletteUsage(usageMask);
+            resetUsage(usageMask);
             glyphSheet.markPaletteIndicesInRect(GLYPH_RECT, 0, usageMask);
         },
         BENCH_OPTIONS,
@@ -64,7 +64,7 @@ describe('SpriteSheet.markPaletteIndicesInRect', () => {
     bench(
         'sprite rect (64x64)',
         () => {
-            resetRenderPaletteUsage(usageMask);
+            resetUsage(usageMask);
             spriteSheet.markPaletteIndicesInRect(SPRITE_RECT, 0, usageMask);
         },
         BENCH_OPTIONS,

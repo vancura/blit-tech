@@ -17,10 +17,10 @@ import { HUD_SLOTS } from './palettes/hudData';
 import { C64_HEX, CGA_HEX, GAMEBOY_HEX, NES_HEX, PICO8_HEX, VGA_HEX } from './palettes/presetData';
 
 /** Supported palette sizes exposed by the public API. */
-const VALID_PALETTE_SIZES = [2, 4, 16, 32, 64, 128, 256] as const;
+const VALID_SIZES = [2, 4, 16, 32, 64, 128, 256] as const;
 
 /** Uniform-buffer slot count used by the renderer regardless of active palette size. */
-const GPU_PALETTE_SIZE = 256;
+const GPU_SIZE = 256;
 
 /** Number of normalized floats stored per palette color in GPU upload buffers. */
 const GPU_FLOATS_PER_COLOR = 4;
@@ -31,7 +31,7 @@ const GPU_FLOATS_PER_COLOR = 4;
  * `colors` stores `#RRGGBBAA` values and `names` maps friendly aliases to
  * palette indices.
  */
-type PaletteJSON = {
+type Serialized = {
     colors: string[];
     names?: Record<string, number>;
     size: number;
@@ -43,8 +43,8 @@ type PaletteJSON = {
  * @param size - Candidate palette size.
  * @returns `true` when the size is supported.
  */
-function isValidPaletteSize(size: number): boolean {
-    return VALID_PALETTE_SIZES.includes(size as (typeof VALID_PALETTE_SIZES)[number]);
+function isValidSize(size: number): boolean {
+    return VALID_SIZES.includes(size as (typeof VALID_SIZES)[number]);
 }
 
 /**
@@ -53,8 +53,8 @@ function isValidPaletteSize(size: number): boolean {
  * @param size - Palette size to validate.
  * @throws Error if the size is not one of the supported indexed formats.
  */
-function validatePaletteSize(size: number): void {
-    if (!isValidPaletteSize(size)) {
+function validateSize(size: number): void {
+    if (!isValidSize(size)) {
         throw new Error(`A palette can hold 2, 4, 16, 32, 64, 128, or 256 colors. Got ${size}.`);
     }
 }
@@ -150,7 +150,7 @@ export class Palette {
      *
      * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
      * the renderer has uploaded the updated palette uniform buffer. Not set by the
-     * constructor - initial upload is always triggered by {@link Renderer.setPalette}.
+     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
      */
     private _isDirty: boolean = false;
 
@@ -159,8 +159,8 @@ export class Palette {
      *
      * @param size - Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
      */
-    constructor(size: number = GPU_PALETTE_SIZE) {
-        validatePaletteSize(size);
+    constructor(size: number = GPU_SIZE) {
+        validateSize(size);
 
         this.size = size;
         this.colors = new Array<Color32>(size);
@@ -180,7 +180,7 @@ export class Palette {
      * @throws Error if the payload shape or size is invalid.
      */
     public static fromJSON(data: object): Palette {
-        const json = data as Partial<PaletteJSON>;
+        const json = data as Partial<Serialized>;
         const { colors, names, size } = json;
 
         if (!Array.isArray(colors) || typeof size !== 'number') {
@@ -223,7 +223,7 @@ export class Palette {
         const inferredSize = data.length / 3;
         const resolvedSize = size ?? inferredSize;
 
-        validatePaletteSize(resolvedSize);
+        validateSize(resolvedSize);
 
         if (data.length !== resolvedSize * 3) {
             throw new Error(`Palette byte array length ${data.length} does not match palette size ${resolvedSize}`);
@@ -452,7 +452,7 @@ export class Palette {
      * Creates a deep copy of the palette, including named indices.
      *
      * The returned clone starts with a clean dirty flag regardless of the source
-     * palette's state. When passed to {@link Renderer.setPalette}, the renderer's
+     * palette's state. When passed to {@link IRenderer.setPalette}, the renderer's
      * own dirty flag ensures the first upload.
      *
      * @returns Independent palette clone.
@@ -520,7 +520,7 @@ export class Palette {
      * Clears the dirty flag after the renderer has uploaded the palette to the GPU.
      *
      * Do not call this from application code. It is part of the internal renderer
-     * contract between {@link Palette} and {@link Renderer}.
+     * contract between {@link Palette} and {@link IRenderer}.
      */
     public clearDirty(): void {
         this._isDirty = false;
@@ -542,7 +542,7 @@ export class Palette {
      *
      * @returns Plain object containing size, colors, and optional names.
      */
-    public toJSON(): PaletteJSON {
+    public toJSON(): Serialized {
         return {
             colors: this.colors.map((color) => color.toHex()),
             names: Object.fromEntries(this.namedIndices.entries()),
@@ -583,7 +583,7 @@ export class Palette {
      * @returns Float buffer containing normalized RGBA values.
      */
     public toFloat32Array(): Float32Array {
-        const floats = new Float32Array(GPU_PALETTE_SIZE * GPU_FLOATS_PER_COLOR);
+        const floats = new Float32Array(GPU_SIZE * GPU_FLOATS_PER_COLOR);
 
         this.toFloat32ArrayInto(floats);
 

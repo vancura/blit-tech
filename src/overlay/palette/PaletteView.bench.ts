@@ -3,12 +3,12 @@
 import { bench, describe } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
-import { resetRenderPaletteUsage } from '../../core/RenderPaletteUsage';
+import { resetUsage } from '../../core/RenderPaletteUsage';
 import { Rect2i } from '../../utils/Rect2i';
 import { Vector2i } from '../../utils/Vector2i';
 import { createOverlayLayout } from '../layout/layoutHelpers';
 import { hintBarY } from '../layout/layoutPlan';
-import { computePaletteGrid, PaletteView } from './PaletteView';
+import { computeGrid, PaletteView } from './PaletteView';
 
 // #endregion
 
@@ -26,13 +26,13 @@ const BENCH_OPTIONS = {
 // #region Fixtures
 
 const layout16 = createOverlayLayout(320, 240, 14);
-const grid16 = computePaletteGrid(320, undefined, 16);
+const grid16 = computeGrid(320, undefined, 16);
 const palette16 = new Palette(16);
 const usedMask16 = new Uint8Array(256);
 const paletteBand16 = new Rect2i(0, 200, 320, 40);
 
 const layout256 = createOverlayLayout(320, 240, 14);
-const grid256 = computePaletteGrid(320, undefined, 256);
+const grid256 = computeGrid(320, undefined, 256);
 const palette256 = new Palette(256);
 const usedMask256 = new Uint8Array(256);
 const paletteBand256 = new Rect2i(0, 120, 320, 120);
@@ -51,7 +51,7 @@ describe('PaletteView.draw', () => {
     bench(
         '16-slot palette grid',
         () => {
-            resetRenderPaletteUsage(usedMask16);
+            resetUsage(usedMask16);
             paletteView.draw(
                 noopRenderer as never,
                 paletteBand16,
@@ -69,7 +69,7 @@ describe('PaletteView.draw', () => {
     bench(
         '256-slot palette grid',
         () => {
-            resetRenderPaletteUsage(usedMask256);
+            resetUsage(usedMask256);
             paletteView.draw(
                 noopRenderer as never,
                 paletteBand256,

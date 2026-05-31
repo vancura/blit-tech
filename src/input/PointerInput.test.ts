@@ -191,7 +191,7 @@ describe('PointerInput', () => {
             const p = new PointerInput();
             p.attach(c, new Vector2i(DISPLAY_WIDTH, DISPLAY_HEIGHT));
 
-            // Register a touch contact so a pointerId is tracked in pointerIdToSlot.
+            // Register a touch contact so a pointerId is tracked in idToSlot.
             c.dispatchEvent(
                 pointerEvent('pointerdown', {
                     pointerId: 42,

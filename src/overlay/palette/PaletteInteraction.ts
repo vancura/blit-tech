@@ -15,12 +15,12 @@ import type { OverlayLayoutPlan } from '../layout/types';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
 import type { PaletteGridLayout } from '../types';
 import {
-    computePaletteScrollbarThumbHeight,
+    computeScrollbarThumbHeight,
     PALETTE_GRID_PADDING_PX,
     PALETTE_SCROLLBAR_EDGE_PADDING_PX,
-    resolvePaletteHintExclusionRect,
-    writePaletteScrollbarRects,
-    writePaletteSwatchTopLeft,
+    resolveHintExclusionRect,
+    writeScrollbarRects,
+    writeSwatchTopLeft,
 } from './PaletteView';
 
 // #region Constants and types
@@ -29,10 +29,10 @@ import {
 export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 4;
 
 /** Minimum wheel delta in pixels before advancing one palette row. */
-const PALETTE_SCROLL_WHEEL_ROW_PX = 8;
+const SCROLL_WHEEL_ROW_PX = 8;
 
 /** Minimum pointer drag delta in pixels before advancing one palette row. */
-const PALETTE_SCROLL_DRAG_ROW_PX = 4;
+const SCROLL_DRAG_ROW_PX = 4;
 
 /** Duration for transient copy status tooltips in seconds. */
 export const PALETTE_COPY_STATUS_SECONDS = 0.75;
@@ -41,7 +41,7 @@ export const PALETTE_COPY_STATUS_SECONDS = 0.75;
 const TOOLTIP_GAP_ABOVE_SWATCH_PX = 1;
 
 /** Clipboard copy feedback state for palette swatch presses. */
-type PaletteCopyStatus = 'idle' | 'copied' | 'failed';
+type CopyStatus = 'idle' | 'copied' | 'failed';
 
 /** Scratch rects and points reused by tooltip layout and draw (one overlay at a time). */
 const tooltipScratch = {
@@ -89,12 +89,7 @@ function isSwatchOverlappingWithHintExclusion(
  * @param bandRight - Right edge of the hittable band (excludes scrollbar track).
  * @returns `true` when the pointer lies outside the palette band (including scrollbar track).
  */
-function isPointerOutsidePaletteBand(
-    pointerX: number,
-    pointerY: number,
-    paletteBand: Rect2i,
-    bandRight: number,
-): boolean {
+function isPointerOutsideBand(pointerX: number, pointerY: number, paletteBand: Rect2i, bandRight: number): boolean {
     return (
         pointerX < paletteBand.x ||
         pointerX >= bandRight ||
@@ -115,7 +110,7 @@ function isPointerOutsidePaletteBand(
  * @param colorCount - Active palette slot count.
  * @returns Palette index, or `null` when the point is in padding or out of range.
  */
-function resolvePaletteIndexAtBandLocal(
+function resolveIndexAtBandLocal(
     localX: number,
     localY: number,
     cols: number,
@@ -171,7 +166,7 @@ function resolvePaletteIndexAtBandLocal(
  * @param scrollbarTrackWidth - Right-edge track width excluded from hits (default {@link PALETTE_SCROLLBAR_TRACK_WIDTH_PX}).
  * @returns Palette index, or `null` when the pointer is not over a hittable swatch.
  */
-export function hitTestPaletteSwatch(
+export function hitTestSwatch(
     pointerX: number,
     pointerY: number,
     paletteBand: Rect2i,
@@ -193,13 +188,13 @@ export function hitTestPaletteSwatch(
         scrollbarTrackWidth -
         PALETTE_SCROLLBAR_EDGE_PADDING_PX;
 
-    if (isPointerOutsidePaletteBand(pointerX, pointerY, paletteBand, bandRight)) {
+    if (isPointerOutsideBand(pointerX, pointerY, paletteBand, bandRight)) {
         return null;
     }
 
     const localX = pointerX - (paletteBand.x + OVERLAY_EDGE_MARGIN_PX);
     const localY = pointerY - (paletteBand.y + PALETTE_GRID_PADDING_PX);
-    const index = resolvePaletteIndexAtBandLocal(localX, localY, cols, swatchSize, gap, scrollRowOffset, colorCount);
+    const index = resolveIndexAtBandLocal(localX, localY, cols, swatchSize, gap, scrollRowOffset, colorCount);
 
     if (index === null) {
         return null;
@@ -207,7 +202,7 @@ export function hitTestPaletteSwatch(
 
     const swatchScratch = tooltipScratch.swatch;
 
-    writePaletteSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
+    writeSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
 
     if (isSwatchOverlappingWithHintExclusion(swatchScratch.x, swatchScratch.y, swatchSize, hintExclusion)) {
         return null;
@@ -255,7 +250,7 @@ export function clampScrollRowOffset(offset: number, grid: PaletteGridLayout): n
  * @param paletteBand - Palette band rect from the layout plan.
  * @returns `true` when wheel or drag scrolling may apply.
  */
-function isPointerInPaletteScrollRegion(pointerX: number, pointerY: number, paletteBand: Rect2i): boolean {
+function isPointerInScrollRegion(pointerX: number, pointerY: number, paletteBand: Rect2i): boolean {
     return (
         pointerX >= paletteBand.x &&
         pointerX < paletteBand.x + paletteBand.width &&
@@ -275,7 +270,7 @@ function isPointerInPaletteScrollRegion(pointerX: number, pointerY: number, pale
  * @param trackWidth - Scrollbar track width in pixels.
  * @returns `true` when the pointer is over the track rect.
  */
-export function isPointerInPaletteScrollbarTrack(
+export function isPointerInScrollbarTrack(
     pointerX: number,
     pointerY: number,
     paletteBand: Rect2i,
@@ -286,7 +281,7 @@ export function isPointerInPaletteScrollbarTrack(
     const trackScratch = tooltipScratch.swatch;
     const thumbScratch = tooltipScratch.outlineEdge;
 
-    if (!writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
+    if (!writeScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
         return false;
     }
 
@@ -322,11 +317,11 @@ export function resolveScrollRowOffsetFromTrackPointerY(
     const trackScratch = tooltipScratch.swatch;
     const thumbScratch = tooltipScratch.outlineEdge;
 
-    writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, 0, trackWidth);
+    writeScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, 0, trackWidth);
 
     const trackTop = trackScratch.y;
     const trackHeight = trackScratch.height;
-    const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+    const thumbHeight = computeScrollbarThumbHeight(trackHeight, grid);
     const scrollRange = Math.max(1, trackHeight - thumbHeight);
     const localY = pointerY - trackTop - Math.floor(thumbHeight / 2);
     const ratio = localY / scrollRange;
@@ -358,7 +353,7 @@ export interface PaletteTooltipLayout {
  * @param displayHeight - Logical display height.
  * @returns `target` for chaining.
  */
-export function layoutPaletteTooltip(
+export function layoutTooltip(
     target: PaletteTooltipLayout,
     swatchRect: Rect2i,
     label: string,
@@ -399,11 +394,11 @@ export function layoutPaletteTooltip(
  * Draws a docked palette swatch tooltip body and 1px border.
  *
  * @param target - Overlay draw target.
- * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
+ * @param layout - Tooltip layout from {@link layoutTooltip}.
  * @param barIndex - Palette index for tooltip body fill (overlay background).
  * @param textIndex - Palette index for the border stroke.
  */
-export function drawPaletteTooltipChrome(
+export function drawTooltipChrome(
     target: OverlayDrawTarget,
     layout: PaletteTooltipLayout,
     barIndex: number,
@@ -431,11 +426,11 @@ export function drawPaletteTooltipChrome(
  *
  * @param target - Overlay draw target.
  * @param font - System bitmap font.
- * @param layout - Tooltip layout from {@link layoutPaletteTooltip}.
+ * @param layout - Tooltip layout from {@link layoutTooltip}.
  * @param label - Tooltip label text.
  * @param textIndex - Palette index for label text.
  */
-export function drawPaletteTooltipLabel(
+export function drawTooltipLabel(
     target: OverlayDrawTarget,
     font: BitmapFont,
     layout: PaletteTooltipLayout,
@@ -461,7 +456,7 @@ export function drawPaletteTooltipLabel(
  * @param index - Palette slot to copy.
  * @returns Resolves on success; rejects when clipboard is unavailable or denied.
  */
-export async function writePaletteIndexToClipboard(index: number): Promise<void> {
+export async function writeIndexToClipboard(index: number): Promise<void> {
     const clipboard = globalThis.navigator?.clipboard;
 
     if (!clipboard?.writeText) {
@@ -483,7 +478,7 @@ export class PaletteInteraction {
 
     #hoveredIndex: number | null = null;
 
-    #copyStatus: PaletteCopyStatus = 'idle';
+    #copyStatus: CopyStatus = 'idle';
 
     #copyStatusIndex = -1;
 
@@ -583,7 +578,7 @@ export class PaletteInteraction {
 
             if (pointer.isButtonPressed(POINTER_PRIMARY_BUTTON, slot)) {
                 if (
-                    isPointerInPaletteScrollbarTrack(
+                    isPointerInScrollbarTrack(
                         pos.x,
                         pos.y,
                         plan.paletteBand,
@@ -633,11 +628,11 @@ export class PaletteInteraction {
 
             const pos = pointer.getPos(slot);
 
-            if (!isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand)) {
+            if (!isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand)) {
                 continue;
             }
 
-            const rowStep = Math.max(1, Math.trunc(Math.abs(scrollDelta) / PALETTE_SCROLL_WHEEL_ROW_PX));
+            const rowStep = Math.max(1, Math.trunc(Math.abs(scrollDelta) / SCROLL_WHEEL_ROW_PX));
             const nextOffset = this.#scrollRowOffset + (scrollDelta > 0 ? rowStep : -rowStep);
 
             this.#scrollRowOffset = clampScrollRowOffset(nextOffset, grid);
@@ -670,14 +665,14 @@ export class PaletteInteraction {
             }
 
             const pos = pointer.getPos(slot);
-            const isInScrollRegion = isPointerInPaletteScrollRegion(pos.x, pos.y, plan.paletteBand);
+            const isInScrollRegion = isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand);
 
             if (!isInScrollRegion && this.#scrollDragSlot !== slot) {
                 continue;
             }
 
             if (
-                isPointerInPaletteScrollbarTrack(
+                isPointerInScrollbarTrack(
                     pos.x,
                     pos.y,
                     plan.paletteBand,
@@ -691,7 +686,7 @@ export class PaletteInteraction {
 
             if (this.#scrollDragSlot === slot) {
                 if (
-                    isPointerInPaletteScrollbarTrack(
+                    isPointerInScrollbarTrack(
                         pos.x,
                         pos.y,
                         plan.paletteBand,
@@ -708,7 +703,7 @@ export class PaletteInteraction {
                     );
                 } else {
                     const deltaY = pos.y - this.#scrollDragStartY;
-                    const rowStep = Math.trunc(deltaY / PALETTE_SCROLL_DRAG_ROW_PX);
+                    const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
 
                     this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
                 }
@@ -725,7 +720,7 @@ export class PaletteInteraction {
             this.#scrollDragStartOffset = this.#scrollRowOffset;
 
             const deltaY = pos.y - this.#scrollDragStartY;
-            const rowStep = Math.trunc(deltaY / PALETTE_SCROLL_DRAG_ROW_PX);
+            const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
 
             if (rowStep !== 0) {
                 this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
@@ -781,7 +776,7 @@ export class PaletteInteraction {
             return;
         }
 
-        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
+        const hintExclusion = resolveHintExclusionRect(hintBarTopY, displayWidth);
         let hovered: number | null = null;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
@@ -790,7 +785,7 @@ export class PaletteInteraction {
             }
 
             const pos = pointer.getPos(slot);
-            const hit = hitTestPaletteSwatch(
+            const hit = hitTestSwatch(
                 pos.x,
                 pos.y,
                 plan.paletteBand,
@@ -839,7 +834,7 @@ export class PaletteInteraction {
 
         this.#lastKnownTick = currentTick;
 
-        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
+        const hintExclusion = resolveHintExclusionRect(hintBarTopY, displayWidth);
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
             if (!pointer.isButtonPressed(POINTER_PRIMARY_BUTTON, slot)) {
@@ -847,7 +842,7 @@ export class PaletteInteraction {
             }
 
             const pos = pointer.getPos(slot);
-            const index = hitTestPaletteSwatch(
+            const index = hitTestSwatch(
                 pos.x,
                 pos.y,
                 plan.paletteBand,
@@ -865,7 +860,7 @@ export class PaletteInteraction {
 
             void (async () => {
                 try {
-                    await writePaletteIndexToClipboard(index);
+                    await writeIndexToClipboard(index);
                     this.#setCopyStatus('copied', index, this.#lastKnownTick);
                 } catch {
                     this.#setCopyStatus('failed', index, this.#lastKnownTick);
@@ -905,9 +900,9 @@ export class PaletteInteraction {
             return null;
         }
 
-        writePaletteSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
+        writeSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
 
-        const layout = layoutPaletteTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
+        const layout = layoutTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
 
         return { layout, label };
     }
@@ -938,7 +933,7 @@ export class PaletteInteraction {
             return;
         }
 
-        drawPaletteTooltipChrome(target, active.layout, barIndex, textIndex);
+        drawTooltipChrome(target, active.layout, barIndex, textIndex);
     }
 
     /**
@@ -967,7 +962,7 @@ export class PaletteInteraction {
             return;
         }
 
-        drawPaletteTooltipLabel(target, font, active.layout, active.label, textIndex);
+        drawTooltipLabel(target, font, active.layout, active.label, textIndex);
     }
 
     /**
@@ -977,7 +972,7 @@ export class PaletteInteraction {
      * @param index - Palette index that was copied.
      * @param completionTick - Fixed-update tick when the clipboard write finished.
      */
-    #setCopyStatus(status: Exclude<PaletteCopyStatus, 'idle'>, index: number, completionTick: number): void {
+    #setCopyStatus(status: Exclude<CopyStatus, 'idle'>, index: number, completionTick: number): void {
         this.#copyStatus = status;
         this.#copyStatusIndex = index;
         this.#copyStatusExpiryTick = completionTick + Math.ceil(PALETTE_COPY_STATUS_SECONDS * this.#targetFps);

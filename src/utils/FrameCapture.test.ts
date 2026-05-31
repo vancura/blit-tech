@@ -147,34 +147,34 @@ describe('FrameCapture', () => {
     it('should start with no pending capture', () => {
         const capture = new FrameCapture();
 
-        expect(capture.hasPendingCapture()).toBe(false);
+        expect(capture.hasPending()).toBe(false);
     });
 
-    it('should set a pending flag after requestCapture', () => {
+    it('should set a pending flag after request', () => {
         const capture = new FrameCapture();
 
         // Don't await - just queue the request.
-        void capture.requestCapture();
+        void capture.request();
 
-        expect(capture.hasPendingCapture()).toBe(true);
+        expect(capture.hasPending()).toBe(true);
     });
 
     it('should reject the previous capture when a new one is requested', async () => {
         const capture = new FrameCapture();
 
-        const firstCapture = capture.requestCapture();
+        const firstCapture = capture.request();
 
-        void capture.requestCapture();
+        void capture.request();
 
         await expect(firstCapture).rejects.toThrow('superseded');
     });
 
-    it('should clear the pending flag after resolveCapture', async () => {
+    it('should clear the pending flag after resolve', async () => {
         const capture = new FrameCapture();
 
-        void capture.requestCapture();
+        void capture.request();
 
-        expect(capture.hasPendingCapture()).toBe(true);
+        expect(capture.hasPending()).toBe(true);
 
         const device = createMockGPUDevice();
         const texture = createMockGPUTexture(4, 4);
@@ -183,17 +183,17 @@ describe('FrameCapture', () => {
         // Add copyTextureToBuffer to mock encoder.
         (encoder as unknown as Record<string, unknown>).copyTextureToBuffer = vi.fn();
 
-        capture.executeCaptureInEncoder(device, texture, encoder as unknown as GPUCommandEncoder);
+        capture.executeInEncoder(device, texture, encoder as unknown as GPUCommandEncoder);
 
-        await capture.resolveCapture(device);
+        await capture.resolve(device);
 
-        expect(capture.hasPendingCapture()).toBe(false);
+        expect(capture.hasPending()).toBe(false);
     });
 
-    it('should call copyTextureToBuffer in executeCaptureInEncoder', () => {
+    it('should call copyTextureToBuffer in executeInEncoder', () => {
         const capture = new FrameCapture();
 
-        void capture.requestCapture();
+        void capture.request();
 
         const device = createMockGPUDevice();
         const texture = createMockGPUTexture(320, 240);
@@ -203,7 +203,7 @@ describe('FrameCapture', () => {
             copyTextureToBuffer: copyFn,
         } as unknown as GPUCommandEncoder;
 
-        capture.executeCaptureInEncoder(device, texture, encoder);
+        capture.executeInEncoder(device, texture, encoder);
 
         expect(copyFn).toHaveBeenCalledOnce();
 
@@ -215,7 +215,7 @@ describe('FrameCapture', () => {
 
     it('should resolve with a Blob on successful capture', async () => {
         const capture = new FrameCapture();
-        const capturePromise = capture.requestCapture();
+        const capturePromise = capture.request();
 
         const device = createMockGPUDevice();
         const texture = createMockGPUTexture(4, 4);
@@ -224,9 +224,9 @@ describe('FrameCapture', () => {
             copyTextureToBuffer: vi.fn(),
         } as unknown as GPUCommandEncoder;
 
-        capture.executeCaptureInEncoder(device, texture, encoder);
+        capture.executeInEncoder(device, texture, encoder);
 
-        await capture.resolveCapture(device);
+        await capture.resolve(device);
 
         const result = await capturePromise;
 
@@ -236,7 +236,7 @@ describe('FrameCapture', () => {
 
     it('should swizzle BGRA pixels to RGBA during resolve', async () => {
         const capture = new FrameCapture();
-        const capturePromise = capture.requestCapture();
+        const capturePromise = capture.request();
 
         const device = createMockGPUDevice();
         const bgraTexture = { ...createMockGPUTexture(4, 4), format: 'bgra8unorm' } as unknown as GPUTexture;
@@ -273,7 +273,7 @@ describe('FrameCapture', () => {
             copyTextureToBuffer: vi.fn(),
         } as unknown as GPUCommandEncoder;
 
-        capture.executeCaptureInEncoder(device, bgraTexture, encoder);
+        capture.executeInEncoder(device, bgraTexture, encoder);
 
         // Capture the pixel data passed to ImageData to verify swizzle.
         let capturedPixels: Uint8ClampedArray | null = null;
@@ -304,10 +304,10 @@ describe('FrameCapture', () => {
             },
         );
 
-        await capture.resolveCapture(device);
+        await capture.resolve(device);
         await capturePromise;
 
-        expect(capture.hasPendingCapture()).toBe(false);
+        expect(capture.hasPending()).toBe(false);
         expect(capturedPixels).not.toBeNull();
 
         // After swizzle, first pixel of each row should be RGBA = [30, 20, 10, 255].
@@ -328,11 +328,11 @@ describe('FrameCapture', () => {
         vi.unstubAllGlobals();
     });
 
-    it('should not throw when resolveCapture is called without pending capture', async () => {
+    it('should not throw when resolve is called without pending capture', async () => {
         const capture = new FrameCapture();
         const device = createMockGPUDevice();
 
-        await expect(capture.resolveCapture(device)).resolves.toBeUndefined();
+        await expect(capture.resolve(device)).resolves.toBeUndefined();
     });
 });
 

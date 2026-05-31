@@ -230,31 +230,31 @@ export class FadeEffect implements PaletteEffect {
     /**
      * Creates a full-palette fade effect.
      *
-     * @param sourcePalette - Snapshot of the starting palette (cloned internally).
-     * @param targetPalette - Target palette to fade toward.
+     * @param source - Snapshot of the starting palette (cloned internally).
+     * @param target - Target palette to fade toward.
      * @param durationMs - Fade duration in milliseconds.
      * @param easing - Easing curve to apply. Defaults to `'linear'`.
      */
     constructor(
-        sourcePalette: Palette,
-        targetPalette: Palette,
+        source: Palette,
+        target: Palette,
         private readonly durationMs: number,
         private readonly easing: EasingFunction = 'linear',
     ) {
-        this.size = sourcePalette.size;
+        this.size = source.size;
 
         // Snapshot source colors once (one-time allocation).
         this.snapshotColors = [];
 
         for (let i = 0; i < this.size; i++) {
-            this.snapshotColors.push(sourcePalette.get(i));
+            this.snapshotColors.push(source.get(i));
         }
 
         // Cache target colors to avoid repeated cloning.
         this.targetColors = [];
 
-        for (let i = 0; i < targetPalette.size; i++) {
-            this.targetColors.push(targetPalette.get(i));
+        for (let i = 0; i < target.size; i++) {
+            this.targetColors.push(target.get(i));
         }
     }
 
@@ -308,16 +308,16 @@ export class FadeRangeEffect implements PaletteEffect {
      *
      * @param start - First palette index to fade (inclusive).
      * @param end - Last palette index to fade (inclusive).
-     * @param sourcePalette - Snapshot of the starting palette (cloned internally).
-     * @param targetPalette - Target palette to fade toward.
+     * @param source - Snapshot of the starting palette (cloned internally).
+     * @param target - Target palette to fade toward.
      * @param durationMs - Fade duration in milliseconds.
      * @param easing - Easing curve to apply. Defaults to `'linear'`.
      */
     constructor(
         private readonly start: number,
         private readonly end: number,
-        sourcePalette: Palette,
-        targetPalette: Palette,
+        source: Palette,
+        target: Palette,
         private readonly durationMs: number,
         private readonly easing: EasingFunction = 'linear',
     ) {
@@ -325,13 +325,13 @@ export class FadeRangeEffect implements PaletteEffect {
         this.snapshotColors = [];
 
         for (let i = start; i <= end; i++) {
-            this.snapshotColors.push(sourcePalette.get(i));
+            this.snapshotColors.push(source.get(i));
         }
 
         this.targetColors = [];
 
         for (let i = start; i <= end; i++) {
-            this.targetColors.push(targetPalette.get(i));
+            this.targetColors.push(target.get(i));
         }
     }
 

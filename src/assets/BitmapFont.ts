@@ -60,7 +60,7 @@ interface GlyphData {
 /**
  * Serialized bitmap-font descriptor loaded from disk.
  */
-interface FontFileData {
+interface FileData {
     /** Font display name. */
     name: string;
 
@@ -262,7 +262,7 @@ export class BitmapFont {
         const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error(BitmapFont.buildFontLoadErrorMessage(url, response.status));
+            throw new Error(BitmapFont.buildLoadErrorMessage(url, response.status));
         }
 
         const { data, glyphEntries } = BitmapFont.parseBtfontFile(url, await response.text());
@@ -276,9 +276,9 @@ export class BitmapFont {
         const atlasHeight = spriteSheet.height;
 
         const { glyphs, asciiGlyphs } = BitmapFont.buildGlyphsFromEntries(glyphEntries, atlasWidth, atlasHeight);
-        const size = BitmapFont.resolvePositiveFontMetric(data.size, 12);
-        const lineHeight = BitmapFont.resolvePositiveFontMetric(data.lineHeight, size);
-        const baseline = BitmapFont.resolvePositiveFontMetric(data.baseline, size);
+        const size = BitmapFont.resolvePositiveMetric(data.size, 12);
+        const lineHeight = BitmapFont.resolvePositiveMetric(data.lineHeight, size);
+        const baseline = BitmapFont.resolvePositiveMetric(data.baseline, size);
 
         return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, data.name || 'Unknown', size, lineHeight, baseline);
     }
@@ -292,7 +292,7 @@ export class BitmapFont {
      * @param fallback - Value used when `value` is missing or invalid.
      * @returns Safe positive metric for {@link BitmapFont} construction.
      */
-    private static resolvePositiveFontMetric(value: unknown, fallback: number): number {
+    private static resolvePositiveMetric(value: unknown, fallback: number): number {
         const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
 
         if (Number.isFinite(parsed) && parsed > 0) {
@@ -312,7 +312,7 @@ export class BitmapFont {
     private static parseBtfontFile(
         url: string,
         jsonText: string,
-    ): { data: FontFileData; glyphEntries: Array<[string, GlyphData]> } {
+    ): { data: FileData; glyphEntries: Array<[string, GlyphData]> } {
         const jsonByteLength = new TextEncoder().encode(jsonText).length;
         const jsonSizeError = validateBtfontJsonByteSize(jsonByteLength);
 
@@ -320,10 +320,10 @@ export class BitmapFont {
             throw new AssetLimitError(jsonSizeError);
         }
 
-        let data: FontFileData;
+        let data: FileData;
 
         try {
-            data = JSON.parse(jsonText) as FontFileData;
+            data = JSON.parse(jsonText) as FileData;
         } catch {
             throw new Error(
                 `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
@@ -433,17 +433,17 @@ export class BitmapFont {
      * Loads a texture from either a base64 data URI or a relative path.
      *
      * @param texture - Data URI (starts with "data:") or relative path.
-     * @param fontUrl - URL of the .btfont file (used to resolve relative paths).
+     * @param url - URL of the .btfont file (used to resolve relative paths).
      * @returns Loaded texture image for the font atlas.
      */
-    private static loadTexture(texture: string, fontUrl: string): Promise<HTMLImageElement> {
+    private static loadTexture(texture: string, url: string): Promise<HTMLImageElement> {
         // Embedded PNG data URIs are validated in parseBtfontFile before decode.
         if (texture.toLowerCase().startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
             return BitmapFont.loadImage(texture);
         }
 
         // Otherwise, resolve the path relative to the font file.
-        const baseUrl = fontUrl.substring(0, fontUrl.lastIndexOf('/') + 1);
+        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
         const textureUrl = baseUrl + texture;
 
         return BitmapFont.loadImage(textureUrl);
@@ -456,7 +456,7 @@ export class BitmapFont {
      * @param status - HTTP status code from fetch.
      * @returns Beginner-friendly message with useful hints.
      */
-    private static buildFontLoadErrorMessage(url: string, status: number): string {
+    private static buildLoadErrorMessage(url: string, status: number): string {
         const statusMessage =
             status === 404
                 ? `Can't find the font file '${url}'. Check that the file exists and the path is spelled correctly.`

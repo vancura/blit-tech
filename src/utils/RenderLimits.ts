@@ -80,7 +80,7 @@ function formatSize(size: Vector2i | undefined | null): string {
  * @param size - Size value to validate.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateRenderDimension(field: RenderDimensionField, size: Vector2i | undefined | null): string | null {
+export function validateDimension(field: RenderDimensionField, size: Vector2i | undefined | null): string | null {
     const x = size?.x;
     const y = size?.y;
 
@@ -119,21 +119,21 @@ export function validateRenderDimension(field: RenderDimensionField, size: Vecto
  * @param settings - Hardware settings returned by `configure()` or defaults.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateRenderDimensions(settings: RenderDimensionSettings): string | null {
-    const logicalError = validateRenderDimension('displaySize', settings.displaySize);
+export function validateDimensions(settings: RenderDimensionSettings): string | null {
+    const logicalError = validateDimension('displaySize', settings.displaySize);
     if (logicalError) {
         return logicalError;
     }
 
     if (settings.drawingBufferSize !== undefined) {
-        const maxCanvasError = validateRenderDimension('drawingBufferSize', settings.drawingBufferSize);
+        const maxCanvasError = validateDimension('drawingBufferSize', settings.drawingBufferSize);
         if (maxCanvasError) {
             return maxCanvasError;
         }
     }
 
     if (settings.maxCanvasSize !== undefined) {
-        const maxCanvasError = validateRenderDimension('maxCanvasSize', settings.maxCanvasSize);
+        const maxCanvasError = validateDimension('maxCanvasSize', settings.maxCanvasSize);
         if (maxCanvasError) {
             return maxCanvasError;
         }

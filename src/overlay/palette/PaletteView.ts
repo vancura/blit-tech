@@ -1,7 +1,7 @@
 /**
  * Live palette swatch grid for the overlay bottom band.
  *
- * {@link computePaletteGrid} picks adaptive column counts from the active palette
+ * {@link computeGrid} picks adaptive column counts from the active palette
  * size; {@link PaletteView.draw} renders indexed swatches with gaps and
  * transparent corner pixels.
  */
@@ -54,7 +54,7 @@ export const DEFAULT_PALETTE_GRID: PaletteGridLayout = {
  * @param gap - Gap between swatches.
  * @returns Row width in pixels.
  */
-export function paletteGridRowWidth(cols: number, swatchSize: number, gap: number): number {
+export function gridRowWidth(cols: number, swatchSize: number, gap: number): number {
     if (cols <= 0) {
         return 0;
     }
@@ -70,7 +70,7 @@ export function paletteGridRowWidth(cols: number, swatchSize: number, gap: numbe
  * @param gap - Gap between swatches.
  * @returns Grid height in pixels.
  */
-export function paletteGridRowStackHeight(rows: number, swatchSize: number, gap: number): number {
+export function gridRowStackHeight(rows: number, swatchSize: number, gap: number): number {
     if (rows <= 0) {
         return 0;
     }
@@ -88,7 +88,7 @@ export function paletteGridRowStackHeight(rows: number, swatchSize: number, gap:
  * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
  * @returns Column count (at least 1).
  */
-export function pickPaletteGridColumnCount(
+export function pickGridColumnCount(
     displayWidth: number,
     swatchSize: number,
     gap: number,
@@ -103,7 +103,7 @@ export function pickPaletteGridColumnCount(
     }
 
     while (candidate > 1) {
-        if (paletteGridRowWidth(candidate, swatchSize, gap) <= availableWidth) {
+        if (gridRowWidth(candidate, swatchSize, gap) <= availableWidth) {
             return candidate;
         }
 
@@ -120,7 +120,7 @@ export function pickPaletteGridColumnCount(
  * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
  * @returns Visible rows (0 when `totalRows` is 0; otherwise clamped to `[1, totalRows]`).
  */
-export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?: number): number {
+export function resolveGridVisibleRows(totalRows: number, maxVisibleRows?: number): number {
     if (totalRows <= 0) {
         return 0;
     }
@@ -145,7 +145,7 @@ export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?
  * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
  * @returns Grid dimensions and viewport band height.
  */
-export function computePaletteGrid(
+export function computeGrid(
     displayWidth: number,
     swatchSize = DEFAULT_PALETTE_SWATCH_SIZE,
     colorCount = 256,
@@ -157,10 +157,10 @@ export function computePaletteGrid(
         return { cols: 0, rows: 0, visibleRows: 0, swatchSize, gap, totalHeight: 0 };
     }
 
-    const cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, colorCount, maxColumns);
+    const cols = pickGridColumnCount(displayWidth, swatchSize, gap, colorCount, maxColumns);
     const rows = Math.ceil(colorCount / cols);
-    const visibleRows = resolvePaletteGridVisibleRows(rows, maxVisibleRows);
-    const totalHeight = paletteGridRowStackHeight(visibleRows, swatchSize, gap) + PALETTE_GRID_PADDING_PX * 2;
+    const visibleRows = resolveGridVisibleRows(rows, maxVisibleRows);
+    const totalHeight = gridRowStackHeight(visibleRows, swatchSize, gap) + PALETTE_GRID_PADDING_PX * 2;
 
     return { cols, rows, visibleRows, swatchSize, gap, totalHeight };
 }
@@ -224,7 +224,7 @@ const hintExclusionCache = {
  * @param displayWidth - Logical display width (cache key only; icon X is margin-based).
  * @returns Exclusion rect for swatch placement and hit testing.
  */
-export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidth: number): Rect2i {
+export function resolveHintExclusionRect(hintBarTopY: number, displayWidth: number): Rect2i {
     if (hintExclusionCache.hintBarTopY === hintBarTopY && hintExclusionCache.displayWidth === displayWidth) {
         return hintExclusionCache.rect;
     }
@@ -245,7 +245,7 @@ export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidt
 const UNUSED_SWATCH_MARKER_SIZE = 3;
 
 /** Reused draw scratch rects for the palette grid hot loop (one overlay draw at a time). */
-const paletteGridDrawScratch = {
+const gridDrawScratch = {
     swatch: new Rect2i(),
     marker: new Rect2i(),
 };
@@ -325,7 +325,7 @@ function drawUnusedSwatch(
  * @param index - Palette slot to query.
  * @returns `true` when the slot is marked used.
  */
-function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
+function isSlotUsed(usedMask: Uint8Array, index: number): boolean {
     // eslint-disable-next-line security/detect-object-injection -- index bounds checked below
     return index > 0 && index < usedMask.length && usedMask[index] === 1;
 }
@@ -343,7 +343,7 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
  * @param usedMask - Per-frame usage mask from BTAPI.
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  */
-function drawPaletteSwatch(
+function drawSwatch(
     target: OverlayDrawTarget,
     swatchScratch: Rect2i,
     markerScratch: Rect2i,
@@ -354,7 +354,7 @@ function drawPaletteSwatch(
     usedMask: Uint8Array,
     unusedMarkIndex: number,
 ): void {
-    if (isPaletteSlotUsed(usedMask, index)) {
+    if (isSlotUsed(usedMask, index)) {
         swatchScratch.set(x, y, swatchSize, swatchSize);
         target.drawBarFill(swatchScratch, index);
     } else {
@@ -371,7 +371,7 @@ function drawPaletteSwatch(
  * @param grid - Precomputed grid layout.
  * @param scrollRowOffset - First visible grid row (default `0`).
  */
-export function writePaletteSwatchTopLeft(
+export function writeSwatchTopLeft(
     target: Rect2i,
     index: number,
     paletteBand: Rect2i,
@@ -401,7 +401,7 @@ export function writePaletteSwatchTopLeft(
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  * @param scrollRowOffset - First visible grid row (default `0`).
  */
-function drawPaletteSwatchGrid(
+function drawSwatchGrid(
     target: OverlayDrawTarget,
     paletteBand: Rect2i,
     colorCount: number,
@@ -412,13 +412,13 @@ function drawPaletteSwatchGrid(
     scrollRowOffset = 0,
 ): void {
     const { cols, visibleRows, swatchSize } = grid;
-    const swatchScratch = paletteGridDrawScratch.swatch;
-    const markerScratch = paletteGridDrawScratch.marker;
+    const swatchScratch = gridDrawScratch.swatch;
+    const markerScratch = gridDrawScratch.marker;
     const firstIndex = scrollRowOffset * cols;
     const lastIndex = Math.min(colorCount, (scrollRowOffset + visibleRows) * cols);
 
     for (let index = firstIndex; index < lastIndex; index++) {
-        writePaletteSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
+        writeSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
         const x = swatchScratch.x;
         const y = swatchScratch.y;
 
@@ -428,7 +428,7 @@ function drawPaletteSwatchGrid(
             continue;
         }
 
-        drawPaletteSwatch(target, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+        drawSwatch(target, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
     }
 }
 
@@ -439,7 +439,7 @@ function drawPaletteSwatchGrid(
  * @param grid - Precomputed grid layout.
  * @returns Thumb height in pixels, or `0` when inputs are invalid.
  */
-export function computePaletteScrollbarThumbHeight(trackHeight: number, grid: PaletteGridLayout): number {
+export function computeScrollbarThumbHeight(trackHeight: number, grid: PaletteGridLayout): number {
     const { rows, visibleRows } = grid;
 
     if (rows <= 0 || trackHeight <= 0) {
@@ -465,7 +465,7 @@ export function computePaletteScrollbarThumbHeight(trackHeight: number, grid: Pa
  * @param trackWidth - Scrollbar track width in pixels.
  * @returns `true` when scrolling is possible and rects were written.
  */
-export function writePaletteScrollbarRects(
+export function writeScrollbarRects(
     trackTarget: Rect2i,
     thumbTarget: Rect2i,
     paletteBand: Rect2i,
@@ -496,7 +496,7 @@ export function writePaletteScrollbarRects(
 
     trackTarget.set(trackX, trackY, trackWidth, trackHeight);
 
-    const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+    const thumbHeight = computeScrollbarThumbHeight(trackHeight, grid);
     const scrollRange = Math.max(0, trackHeight - thumbHeight);
     const thumbY = trackY + Math.floor((scrollRowOffset / maxOffset) * scrollRange);
 
@@ -515,7 +515,7 @@ export function writePaletteScrollbarRects(
  * @param trackWidth - Scrollbar track width in pixels.
  * @param thumbIndex - Palette index for the thumb fill.
  */
-function drawPaletteScrollbar(
+function drawScrollbar(
     target: OverlayDrawTarget,
     paletteBand: Rect2i,
     grid: PaletteGridLayout,
@@ -523,10 +523,10 @@ function drawPaletteScrollbar(
     trackWidth: number,
     thumbIndex: number,
 ): void {
-    const trackScratch = paletteGridDrawScratch.swatch;
-    const thumbScratch = paletteGridDrawScratch.marker;
+    const trackScratch = gridDrawScratch.swatch;
+    const thumbScratch = gridDrawScratch.marker;
 
-    if (!writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
+    if (!writeScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
         return;
     }
 
@@ -593,9 +593,9 @@ export class PaletteView {
             return;
         }
 
-        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
+        const hintExclusion = resolveHintExclusionRect(hintBarTopY, displayWidth);
 
-        drawPaletteSwatchGrid(
+        drawSwatchGrid(
             target,
             paletteBand,
             palette.size,
@@ -606,7 +606,7 @@ export class PaletteView {
             scrollRowOffset,
         );
 
-        drawPaletteScrollbar(target, paletteBand, grid, scrollRowOffset, scrollbarTrackWidth, scrollbarThumbIndex);
+        drawScrollbar(target, paletteBand, grid, scrollRowOffset, scrollbarTrackWidth, scrollbarThumbIndex);
     }
 }
 

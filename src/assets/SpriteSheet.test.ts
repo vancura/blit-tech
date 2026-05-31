@@ -17,7 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
-import { collectUsedRenderPaletteIndices, resetRenderPaletteUsage } from '../core/RenderPaletteUsage';
+import { collectUsedIndices, resetUsage } from '../core/RenderPaletteUsage';
 import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_ASSET_PIXELS } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
@@ -735,7 +735,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 4, 4), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([1, 2, 3]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([1, 2, 3]);
         });
 
         it('applies palette offset when marking resolved slots', () => {
@@ -746,7 +746,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 4, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([5, 6]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([5, 6]);
         });
 
         it('ignores transparent sheet pixels and leaves the mask unchanged when none are used', () => {
@@ -757,7 +757,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
         });
 
         it('is a no-op when the sheet is not indexized', () => {
@@ -765,10 +765,10 @@ describe('SpriteSheet', () => {
             const mask = new Uint8Array(16);
             const scratch: number[] = [];
 
-            resetRenderPaletteUsage(mask);
+            resetUsage(mask);
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 16, 16), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
         });
     });
 

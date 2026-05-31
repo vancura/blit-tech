@@ -11,7 +11,7 @@ import { OVERLAY_TOGGLE_KEY_CODE, POINTER_PRIMARY_BUTTON } from './constants';
 export class Toggle {
     #isBodyVisible: boolean;
 
-    readonly #isToggleEnabled: boolean;
+    readonly #isEnabled: boolean;
 
     /**
      * Creates toggle state from configure-time visibility and input flags.
@@ -21,7 +21,7 @@ export class Toggle {
      */
     constructor(isOverlayVisibleAtStart = false, isOverlayToggleEnabled = true) {
         this.#isBodyVisible = isOverlayVisibleAtStart;
-        this.#isToggleEnabled = isOverlayToggleEnabled;
+        this.#isEnabled = isOverlayToggleEnabled;
     }
 
     /**
@@ -42,14 +42,14 @@ export class Toggle {
      * @param toggleRect - Bottom-left toggle hit region.
      * @param isPointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
      */
-    handleToggle(
+    handleInput(
         pointer: PointerInput | null,
         keyboard: KeyboardInput | null,
         currentTick: number,
         toggleRect: Rect2i,
         isPointerPressConsumed = false,
     ): void {
-        if (!this.#isToggleEnabled) {
+        if (!this.#isEnabled) {
             return;
         }
 

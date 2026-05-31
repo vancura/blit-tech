@@ -7,7 +7,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../assets/Palette';
-import { markRenderPaletteIndexUsed } from '../core/RenderPaletteUsage';
+import { markIndexUsed } from '../core/RenderPaletteUsage';
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { OVERLAY_BAR_HEIGHT, OVERLAY_ROW_GAP_PX } from './layout/constants';
@@ -15,7 +15,7 @@ import { createOverlayLayout, overlayRightAlignedTextX } from './layout/layoutHe
 import { hintBarY, paletteBandY } from './layout/layoutPlan';
 import { Overlay } from './Overlay';
 import { hintIconPos } from './OverlayToggleIcon';
-import { computePaletteGrid, writePaletteScrollbarRects, writePaletteSwatchTopLeft } from './palette/PaletteView';
+import { computeGrid, writeScrollbarRects, writeSwatchTopLeft } from './palette/PaletteView';
 import {
     createMockRenderer,
     customRowBarY,
@@ -31,7 +31,7 @@ import {
 // #region Helpers
 
 /** Default overlay tests use the 13 px hint bar (palette grid opt-in off). */
-const OVERLAY_PALETTE_GRID_OFF = false;
+const PALETTE_GRID_OFF = false;
 
 interface OverlayTestOptions {
     style?: { barPaletteIndex?: number; textPaletteIndex?: number; gapPaletteIndex?: number };
@@ -67,7 +67,7 @@ function createOverlay(
         60,
         options.backend ?? 'webgpu',
         options.style,
-        options.isOverlayPaletteEnabled ?? OVERLAY_PALETTE_GRID_OFF,
+        options.isOverlayPaletteEnabled ?? PALETTE_GRID_OFF,
         options.paletteColumns,
         options.paletteRowsVisible,
         options.isOverlayTimingChartEnabled ?? false,
@@ -86,7 +86,7 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
     const mask = new Uint8Array(size);
 
     for (const index of indices) {
-        markRenderPaletteIndexUsed(mask, index);
+        markIndexUsed(mask, index);
     }
 
     return mask;
@@ -130,13 +130,13 @@ describe('Overlay', () => {
             isOverlayPaletteEnabled: true,
             isOverlayVisibleAtStart: true,
         });
-        const grid = computePaletteGrid(320);
+        const grid = computeGrid(320);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
         const swatch = new Rect2i();
         const index = grid.cols * (grid.rows - 1);
 
-        writePaletteSwatchTopLeft(swatch, index, paletteBand, grid);
+        writeSwatchTopLeft(swatch, index, paletteBand, grid);
 
         overlay.handleFrameInput(
             {
@@ -157,12 +157,12 @@ describe('Overlay', () => {
             isOverlayVisibleAtStart: true,
             paletteRowsVisible: 3,
         });
-        const grid = computePaletteGrid(320, undefined, 256, undefined, undefined, 3);
+        const grid = computeGrid(320, undefined, 256, undefined, undefined, 3);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
         const track = new Rect2i();
         const thumb = new Rect2i();
-        writePaletteScrollbarRects(track, thumb, paletteBand, grid, 0, 4);
+        writeScrollbarRects(track, thumb, paletteBand, grid, 0, 4);
 
         overlay.handleFrameInput(
             {
@@ -320,7 +320,7 @@ describe('Overlay', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Demo', { isOverlayPaletteEnabled: true });
         const renderer = createMockRenderer();
-        const grid = computePaletteGrid(320, undefined, 256);
+        const grid = computeGrid(320, undefined, 256);
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, Palette.vga());
 
@@ -495,7 +495,7 @@ describe('Overlay', () => {
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
-        const grid = computePaletteGrid(320, undefined, palette.size);
+        const grid = computeGrid(320, undefined, palette.size);
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, undefined, undefined, palette, usedMask);
 
@@ -536,7 +536,7 @@ describe('Overlay', () => {
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
-        const grid = computePaletteGrid(320, undefined, palette.size);
+        const grid = computeGrid(320, undefined, palette.size);
         const customRows = [{ leftText: 'Palette row' }];
 
         overlay.updateAndRender(renderer, mockFont, null, null, 0, () => customRows, undefined, palette, usedMask);
@@ -554,13 +554,13 @@ describe('Overlay', () => {
         const renderer = createMockRenderer();
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8]);
-        const grid = computePaletteGrid(320, undefined, palette.size);
+        const grid = computeGrid(320, undefined, palette.size);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
         const swatch = new Rect2i();
         const hoveredIndex = 7;
 
-        writePaletteSwatchTopLeft(swatch, hoveredIndex, paletteBand, grid);
+        writeSwatchTopLeft(swatch, hoveredIndex, paletteBand, grid);
 
         const customRows = [{ leftText: 'Bounces: 11' }, { leftText: 'Position: (43, 166)' }];
         const pointer = {

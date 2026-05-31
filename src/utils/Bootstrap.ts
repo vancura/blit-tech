@@ -50,7 +50,7 @@ export type DemoConstructor = new () => IBlitTechDemo;
 /**
  * Internal result type for bootstrap steps.
  */
-interface BootstrapResult {
+interface Result {
     success: boolean;
     error?: Error;
 }
@@ -80,15 +80,15 @@ async function waitForDOM(): Promise<void> {
  * @param error - The Error object.
  * @param containerID - Container ID for error display.
  * @param onError - Optional error callback.
- * @returns BootstrapResult indicating failure.
+ * @returns Result indicating failure.
  */
-function handleBootstrapError(
+function handleError(
     title: string,
     message: ErrorContent,
     error: Error,
     containerID: string,
     onError?: (error: Error) => void,
-): BootstrapResult {
+): Result {
     displayError(title, message, containerID);
     onError?.(error);
     return { success: false, error };
@@ -106,14 +106,14 @@ function validateCanvas(
     canvasID: string,
     containerID: string,
     onError?: (error: Error) => void,
-): { canvas: HTMLCanvasElement | null; result: BootstrapResult } {
+): { canvas: HTMLCanvasElement | null; result: Result } {
     const canvas = getCanvas(canvasID);
-    let result: BootstrapResult;
+    let result: Result;
 
     if (canvas) {
         result = { success: true };
     } else {
-        result = handleBootstrapError(
+        result = handleError(
             'Canvas Error',
             CANVAS_NOT_FOUND_MESSAGE(canvasID),
             new Error(`Canvas element '${canvasID}' not found`),
@@ -133,7 +133,7 @@ function validateCanvas(
  * @param containerID - Container ID for error display.
  * @param onSuccess - Optional success callback.
  * @param onError - Optional error callback.
- * @returns BootstrapResult with success status.
+ * @returns Result with success status.
  */
 async function initDemo(
     DemoClass: DemoConstructor,
@@ -141,11 +141,11 @@ async function initDemo(
     containerID: string,
     onSuccess?: () => void,
     onError?: (error: Error) => void,
-): Promise<BootstrapResult> {
+): Promise<Result> {
     const demo = new DemoClass();
 
     if (typeof demo.update !== 'function' || typeof demo.render !== 'function') {
-        return handleBootstrapError(
+        return handleError(
             'Demo Setup Error',
             'Your Demo class is missing update() or render(). Add both methods so the engine knows what to run each frame.',
             new Error('Demo class is missing update() or render()'),
@@ -165,7 +165,7 @@ async function initDemo(
         initialized = false;
     }
 
-    let result: BootstrapResult;
+    let result: Result;
 
     if (initialized) {
         console.log('[BT] Demo started successfully');
@@ -178,7 +178,7 @@ async function initDemo(
             ? { text: INIT_FAILED_MESSAGE, code: initError.message }
             : INIT_FAILED_MESSAGE;
 
-        result = handleBootstrapError(
+        result = handleError(
             'Initialization Failed',
             displayMessage,
             initError ?? new Error('Engine initialization failed'),
@@ -265,7 +265,7 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
 
         console.error('[BT] Bootstrap error:', error);
 
-        handleBootstrapError(
+        handleError(
             'Unexpected Error',
             {
                 text: 'An unexpected error occurred during initialization:',

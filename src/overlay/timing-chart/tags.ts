@@ -210,11 +210,11 @@ export function groupTimingChartTagsByColumn(
  * Relative tick text for the tag tick row (ticks since chart reset).
  *
  * @param tagTick - Absolute tick when the tag was assigned.
- * @param chartStartTick - Tick recorded when the chart last reset.
+ * @param startTick - Tick recorded when the chart last reset.
  * @returns Relative tick string capped at {@link TIMING_CHART_TAG_REL_TICK_MAX}.
  */
-export function formatTimingChartTagRelTick(tagTick: number, chartStartTick: number): string {
-    const relTick = tagTick - chartStartTick;
+export function formatTimingChartTagRelTick(tagTick: number, startTick: number): string {
+    const relTick = tagTick - startTick;
 
     return String(Math.min(relTick, TIMING_CHART_TAG_REL_TICK_MAX));
 }

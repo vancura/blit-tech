@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { computePaletteGrid } from '../palette/PaletteView';
+import { computeGrid } from '../palette/PaletteView';
 import { OVERLAY_BAR_HEIGHT, OVERLAY_ROW_GAP_PX } from './constants';
 import { createOverlayLayout } from './layoutHelpers';
 import {
@@ -99,7 +99,7 @@ describe('buildOverlayLayoutPlan', () => {
     it('uses variable bottom height when palette grid is enabled', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const scratch = createOverlayLayoutPlanScratch();
-        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
+        const paletteGrid = computeGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 0),
             isOverlayPaletteEnabled: true,
@@ -123,7 +123,7 @@ describe('buildOverlayLayoutPlan', () => {
     it('stacks custom rows above a palette grid bottom band', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const scratch = createOverlayLayoutPlanScratch();
-        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
+        const paletteGrid = computeGrid(320, 4, 256, 1);
         const config = {
             ...createDefaultLayoutConfig(320, 240, 14, 1),
             isOverlayPaletteEnabled: true,
@@ -140,8 +140,8 @@ describe('buildOverlayLayoutPlan', () => {
     });
 
     it('resolveOverlayFooterHeight reserves hint bar or palette plus gap plus hint', () => {
-        const paletteGrid = computePaletteGrid(320, 4, 256, 1);
-        const cappedGrid = computePaletteGrid(320, 4, 256, 1, undefined, 3);
+        const paletteGrid = computeGrid(320, 4, 256, 1);
+        const cappedGrid = computeGrid(320, 4, 256, 1, undefined, 3);
         const hintOnlyConfig = createDefaultLayoutConfig(320, 240, 14, 0);
         const paletteConfig = {
             ...hintOnlyConfig,

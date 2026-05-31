@@ -6,14 +6,14 @@
  */
 
 /** Maximum palette slots tracked by the usage mask. */
-export const RENDER_PALETTE_USAGE_CAPACITY = 256;
+export const USAGE_CAPACITY = 256;
 
 /**
  * Clears a palette usage bitmask.
  *
  * @param usedMask - Mutable usage mask cleared in place.
  */
-export function resetRenderPaletteUsage(usedMask: Uint8Array): void {
+export function resetUsage(usedMask: Uint8Array): void {
     usedMask.fill(0);
 }
 
@@ -25,7 +25,7 @@ export function resetRenderPaletteUsage(usedMask: Uint8Array): void {
  * @param usedMask - Mutable usage mask.
  * @param index - Palette index referenced by a draw call.
  */
-export function markRenderPaletteIndexUsed(usedMask: Uint8Array, index: number): void {
+export function markIndexUsed(usedMask: Uint8Array, index: number): void {
     if (!Number.isInteger(index) || index <= 0 || index >= usedMask.length) {
         return;
     }
@@ -42,11 +42,7 @@ export function markRenderPaletteIndexUsed(usedMask: Uint8Array, index: number):
  * @param scratch - Reusable output buffer mutated in place.
  * @returns The same scratch array containing sorted used indices.
  */
-export function collectUsedRenderPaletteIndices(
-    usedMask: Uint8Array,
-    paletteSize: number,
-    scratch: number[],
-): readonly number[] {
+export function collectUsedIndices(usedMask: Uint8Array, paletteSize: number, scratch: number[]): readonly number[] {
     scratch.length = 0;
 
     const limit = Math.min(paletteSize, usedMask.length);

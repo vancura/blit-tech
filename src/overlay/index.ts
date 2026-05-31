@@ -29,7 +29,7 @@ export { Overlay } from './Overlay';
 export type { OverlayDrawTarget, OverlayRenderer } from './OverlayDrawTarget';
 export { hintIconExclusionRect, hintIconPos, hintIconY, toggleIcon } from './OverlayToggleIcon';
 export { PaletteInteraction } from './palette/PaletteInteraction';
-export { computePaletteGrid, PaletteView } from './palette/PaletteView';
+export { computeGrid, PaletteView } from './palette/PaletteView';
 export { FpsSampler } from './sampling/FpsSampler';
 export { TimingSampler } from './sampling/TimingSampler';
 export type { TimingChartDrawStyle } from './timing-chart/style';

@@ -410,7 +410,7 @@ function cloneVector2i(size: Vector2i): Vector2i {
     return new Vector2i(size.x, size.y);
 }
 
-/** Non-positive sentinel surfaced when configure() passes null vectors; rejected by {@link validateRenderDimensions}. */
+/** Non-positive sentinel surfaced when configure() passes null vectors; rejected by {@link validateDimensions}. */
 const INVALID_CONFIGURE_VECTOR_SIZE = new Vector2i(0, 0);
 
 /**
@@ -433,7 +433,7 @@ function pickConfigureVector(value: Vector2i | undefined | null): Vector2i | und
  * Resolves required `displaySize` for the explicit-profile merge path.
  *
  * Uses defaults only when the field was omitted (`undefined`). Explicit `null` maps to
- * {@link INVALID_CONFIGURE_VECTOR_SIZE} so {@link validateRenderDimensions} can reject it.
+ * {@link INVALID_CONFIGURE_VECTOR_SIZE} so {@link validateDimensions} can reject it.
  *
  * @param partialDisplaySize - Raw `configure()` value.
  * @param pickedDisplaySize - Cloned value from {@link pickDefinedHardwareSettings}, if any.

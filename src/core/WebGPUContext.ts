@@ -7,7 +7,7 @@ import type { Vector2i } from '../utils/Vector2i';
 /**
  * Result returned when WebGPU canvas initialization succeeds.
  */
-export interface WebGPUContextResult {
+export interface Result {
     /** Initialized WebGPU device. */
     device: GPUDevice;
 
@@ -48,7 +48,7 @@ export async function initWebGPU(
     canvas: HTMLCanvasElement,
     displaySize: Vector2i,
     configuredDrawingBufferSize?: Vector2i,
-): Promise<WebGPUContextResult | null> {
+): Promise<Result | null> {
     if (!navigator.gpu) {
         console.error("[BT] WebGPU isn't supported in this browser.");
         console.error('[BT] Please use Chrome/Edge 113+ or Firefox Nightly with WebGPU enabled.');

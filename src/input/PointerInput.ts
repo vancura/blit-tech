@@ -26,17 +26,17 @@ export const POINTER_SLOT_COUNT = 4;
 /** Pixels-per-line conversion for `WheelEvent.deltaMode === DOM_DELTA_LINE`. */
 const WHEEL_LINE_HEIGHT_PX = 16;
 
-/** Primary pointer button code (mouse left / touch contact). Mirrors `BT.BTN_POINTER_A`. */
-const BTN_POINTER_A = 20;
+/** Primary pointer button code (mouse left / touch contact). Maps to `BT.BTN_POINTER_A`. */
+const BTN_A = 20;
 
-/** Secondary pointer button code (mouse right). Mirrors `BT.BTN_POINTER_B`. */
-const BTN_POINTER_B = 21;
+/** Secondary pointer button code (mouse right). Maps to `BT.BTN_POINTER_B`. */
+const BTN_B = 21;
 
-/** Tertiary pointer button code (mouse middle). Mirrors `BT.BTN_POINTER_C`. */
-const BTN_POINTER_C = 22;
+/** Tertiary pointer button code (mouse middle). Maps to `BT.BTN_POINTER_C`. */
+const BTN_C = 22;
 
-/** Auxiliary pointer button code (mouse back / forward). Mirrors `BT.BTN_POINTER_D`. */
-const BTN_POINTER_D = 23;
+/** Auxiliary pointer button code (mouse back / forward). Maps to `BT.BTN_POINTER_D`. */
+const BTN_D = 23;
 
 // #endregion
 
@@ -48,7 +48,7 @@ const BTN_POINTER_D = 23;
  * `pos` and `prevPos` are reused `Vector2i` instances; allocation discipline
  * keeps the event hot path free of per-call object churn.
  */
-interface PointerSlot {
+interface Slot {
     /** Native `pointerId` currently bound to this slot, or `null` when the slot is empty. */
     pointerId: number | null;
 
@@ -64,16 +64,16 @@ interface PointerSlot {
     /** Snapshot of `pos` taken at `endFrame()`; used to compute the per-frame delta. */
     prevPos: Vector2i;
 
-    /** Current state of `BTN_POINTER_A` for this slot. */
+    /** Current state of `BTN_A` for this slot. */
     a: boolean;
 
-    /** Current state of `BTN_POINTER_B` for this slot. */
+    /** Current state of `BTN_B` for this slot. */
     b: boolean;
 
-    /** Current state of `BTN_POINTER_C` for this slot. */
+    /** Current state of `BTN_C` for this slot. */
     c: boolean;
 
-    /** Current state of `BTN_POINTER_D` for this slot. */
+    /** Current state of `BTN_D` for this slot. */
     d: boolean;
 
     /** Snapshot of `a` taken at `endFrame()`, used for isPressed/released edge detection. */
@@ -112,10 +112,10 @@ export class PointerInput {
      * Per-slot pointer state. Fixed-length tuple of {@link POINTER_SLOT_COUNT}
      * entries (0 = mouse, 1-3 = touch / pen).
      */
-    private readonly slots: readonly [PointerSlot, PointerSlot, PointerSlot, PointerSlot];
+    private readonly slots: readonly [Slot, Slot, Slot, Slot];
 
     /** Maps native `pointerId` -> slot index, so up / move / cancel events can route correctly. */
-    private readonly pointerIdToSlot: Map<number, number> = new Map();
+    private readonly idToSlot: Map<number, number> = new Map();
 
     /** Accumulated wheel delta in pixels for the current frame. */
     private scrollDeltaY: number = 0;
@@ -136,10 +136,10 @@ export class PointerInput {
 
     // #region Bound Listeners
 
-    private readonly onPointerMove: (event: PointerEvent) => void;
-    private readonly onPointerDown: (event: PointerEvent) => void;
-    private readonly onPointerUp: (event: PointerEvent) => void;
-    private readonly onPointerCancel: (event: PointerEvent) => void;
+    private readonly onMove: (event: PointerEvent) => void;
+    private readonly onDown: (event: PointerEvent) => void;
+    private readonly onUp: (event: PointerEvent) => void;
+    private readonly onCancel: (event: PointerEvent) => void;
     private readonly onPointerLeave: (event: PointerEvent) => void;
     private readonly onWheel: (event: WheelEvent) => void;
     private readonly onContextMenu: (event: Event) => void;
@@ -157,10 +157,10 @@ export class PointerInput {
     constructor() {
         this.slots = [this.createEmptySlot(), this.createEmptySlot(), this.createEmptySlot(), this.createEmptySlot()];
 
-        this.onPointerMove = (event) => this.handlePointerMove(event);
-        this.onPointerDown = (event) => this.handlePointerDown(event);
-        this.onPointerUp = (event) => this.handlePointerUp(event);
-        this.onPointerCancel = (event) => this.handlePointerCancel(event);
+        this.onMove = (event) => this.handleMove(event);
+        this.onDown = (event) => this.handleDown(event);
+        this.onUp = (event) => this.handleUp(event);
+        this.onCancel = (event) => this.handleCancel(event);
         this.onPointerLeave = (event) => this.handlePointerLeave(event);
         this.onWheel = (event) => this.handleWheel(event);
         this.onContextMenu = (event) => event.preventDefault();
@@ -178,7 +178,7 @@ export class PointerInput {
      *   doesn't scroll the page when the user spins the wheel over the game
      * - `canvas.style.touchAction = 'none'` so iOS Safari doesn't intercept
      *   touches for pinch-zoom or double-tap-zoom
-     * - `contextmenu.preventDefault()` so right-click feeds `BTN_POINTER_B`
+     * - `contextmenu.preventDefault()` so right-click feeds `BTN_B`
      *   instead of popping the OS context menu
      *
      * @param canvas - Canvas element rendering the engine output.
@@ -194,10 +194,10 @@ export class PointerInput {
         canvas.style.touchAction = 'none';
         this.originalCursor = canvas.style.cursor;
 
-        canvas.addEventListener('pointermove', this.onPointerMove);
-        canvas.addEventListener('pointerdown', this.onPointerDown);
-        canvas.addEventListener('pointerup', this.onPointerUp);
-        canvas.addEventListener('pointercancel', this.onPointerCancel);
+        canvas.addEventListener('pointermove', this.onMove);
+        canvas.addEventListener('pointerdown', this.onDown);
+        canvas.addEventListener('pointerup', this.onUp);
+        canvas.addEventListener('pointercancel', this.onCancel);
         canvas.addEventListener('pointerleave', this.onPointerLeave);
         canvas.addEventListener('wheel', this.onWheel, { passive: false });
         canvas.addEventListener('contextmenu', this.onContextMenu);
@@ -214,7 +214,7 @@ export class PointerInput {
         const canvas = this.canvas;
 
         if (canvas !== null) {
-            for (const [pointerId] of this.pointerIdToSlot) {
+            for (const [pointerId] of this.idToSlot) {
                 try {
                     if (canvas.hasPointerCapture(pointerId)) {
                         canvas.releasePointerCapture(pointerId);
@@ -224,10 +224,10 @@ export class PointerInput {
                 }
             }
 
-            canvas.removeEventListener('pointermove', this.onPointerMove);
-            canvas.removeEventListener('pointerdown', this.onPointerDown);
-            canvas.removeEventListener('pointerup', this.onPointerUp);
-            canvas.removeEventListener('pointercancel', this.onPointerCancel);
+            canvas.removeEventListener('pointermove', this.onMove);
+            canvas.removeEventListener('pointerdown', this.onDown);
+            canvas.removeEventListener('pointerup', this.onUp);
+            canvas.removeEventListener('pointercancel', this.onCancel);
             canvas.removeEventListener('pointerleave', this.onPointerLeave);
             canvas.removeEventListener('wheel', this.onWheel);
             canvas.removeEventListener('contextmenu', this.onContextMenu);
@@ -246,7 +246,7 @@ export class PointerInput {
         this.originalTouchAction = null;
         this.originalCursor = null;
 
-        this.pointerIdToSlot.clear();
+        this.idToSlot.clear();
         this.scrollDeltaY = 0;
 
         for (const slot of this.slots) {
@@ -366,14 +366,14 @@ export class PointerInput {
     /**
      * Reports whether the given pointer button is held in slot `slot`.
      *
-     * For slot 0 (mouse): `BTN_POINTER_A` is left, `B` is right, `C` is middle,
+     * For slot 0 (mouse): `BTN_A` is left, `B` is right, `C` is middle,
      * `D` is back / forward (matches RetroBlit canonical, not DOM
      * `PointerEvent.button` index order).
      *
-     * For slots 1-3 (touch / pen): only `BTN_POINTER_A` is ever true while the
+     * For slots 1-3 (touch / pen): only `BTN_A` is ever true while the
      * contact is down; `B`, `C`, `D` always return `false`.
      *
-     * @param button - One of `BTN_POINTER_A..D`.
+     * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
      * @returns `true` while the button remains pressed.
      */
@@ -385,13 +385,13 @@ export class PointerInput {
         }
 
         switch (button) {
-            case BTN_POINTER_A:
+            case BTN_A:
                 return s.a;
-            case BTN_POINTER_B:
+            case BTN_B:
                 return s.b;
-            case BTN_POINTER_C:
+            case BTN_C:
                 return s.c;
-            case BTN_POINTER_D:
+            case BTN_D:
                 return s.d;
             default:
                 return false;
@@ -401,7 +401,7 @@ export class PointerInput {
     /**
      * Reports whether the given pointer button transitioned to down on the current frame.
      *
-     * @param button - One of `BTN_POINTER_A..D`.
+     * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
      * @returns `true` only on the frame the button transitions from up to down.
      */
@@ -413,13 +413,13 @@ export class PointerInput {
         }
 
         switch (button) {
-            case BTN_POINTER_A:
+            case BTN_A:
                 return s.a && !s.prevA;
-            case BTN_POINTER_B:
+            case BTN_B:
                 return s.b && !s.prevB;
-            case BTN_POINTER_C:
+            case BTN_C:
                 return s.c && !s.prevC;
-            case BTN_POINTER_D:
+            case BTN_D:
                 return s.d && !s.prevD;
             default:
                 return false;
@@ -429,7 +429,7 @@ export class PointerInput {
     /**
      * Reports whether the given pointer button transitioned to up on the current frame.
      *
-     * @param button - One of `BTN_POINTER_A..D`.
+     * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
      * @returns `true` only on the frame the button transitions from down to up.
      */
@@ -441,13 +441,13 @@ export class PointerInput {
         }
 
         switch (button) {
-            case BTN_POINTER_A:
+            case BTN_A:
                 return !s.a && s.prevA;
-            case BTN_POINTER_B:
+            case BTN_B:
                 return !s.b && s.prevB;
-            case BTN_POINTER_C:
+            case BTN_C:
                 return !s.c && s.prevC;
-            case BTN_POINTER_D:
+            case BTN_D:
                 return !s.d && s.prevD;
             default:
                 return false;
@@ -491,7 +491,7 @@ export class PointerInput {
      *
      * @param event - DOM pointer event from the canvas.
      */
-    private handlePointerMove(event: PointerEvent): void {
+    private handleMove(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
             const isPreviouslyActive = slot.isActive;
@@ -512,7 +512,7 @@ export class PointerInput {
             return;
         }
 
-        const slot = this.lookupSlotByPointerId(event.pointerId);
+        const slot = this.lookupSlotById(event.pointerId);
 
         if (slot === null) {
             return;
@@ -524,12 +524,12 @@ export class PointerInput {
     /**
      * Routes a `pointerdown` event. Mouse events claim slot 0 and set the
      * mapped button. Touch / pen events allocate the first free slot in
-     * 1..3 and set `BTN_POINTER_A`; events that arrive while all touch
+     * 1..3 and set `BTN_A`; events that arrive while all touch
      * slots are full are dropped silently.
      *
      * @param event - DOM pointer event from the canvas.
      */
-    private handlePointerDown(event: PointerEvent): void {
+    private handleDown(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
             const isPreviouslyActive = slot.isActive;
@@ -552,7 +552,7 @@ export class PointerInput {
         }
 
         // Touch or pen: route to the first free slot in 1..POINTER_SLOT_COUNT - 1.
-        if (this.pointerIdToSlot.has(event.pointerId)) {
+        if (this.idToSlot.has(event.pointerId)) {
             return;
         }
 
@@ -582,7 +582,7 @@ export class PointerInput {
         // position from the previous occupant of this slot.
         slot.prevPos.copyFrom(slot.pos);
 
-        this.pointerIdToSlot.set(event.pointerId, slotIndex);
+        this.idToSlot.set(event.pointerId, slotIndex);
 
         // Capture so off-canvas drags keep delivering events to this canvas.
         this.canvas?.setPointerCapture(event.pointerId);
@@ -595,7 +595,7 @@ export class PointerInput {
      *
      * @param event - DOM pointer event from the canvas.
      */
-    private handlePointerUp(event: PointerEvent): void {
+    private handleUp(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
 
@@ -605,13 +605,13 @@ export class PointerInput {
             return;
         }
 
-        const slotIndex = this.pointerIdToSlot.get(event.pointerId);
+        const slotIndex = this.idToSlot.get(event.pointerId);
 
         if (slotIndex === undefined) {
             return;
         }
 
-        // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from pointerIdToSlot, always in [0, POINTER_SLOT_COUNT)
+        // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from idToSlot, always in [0, POINTER_SLOT_COUNT)
         const slot = this.slots[slotIndex];
 
         if (slot !== undefined) {
@@ -628,14 +628,14 @@ export class PointerInput {
      *
      * @param event - DOM pointer event from the canvas.
      */
-    private handlePointerCancel(event: PointerEvent): void {
+    private handleCancel(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             this.deactivateMouseSlot();
 
             return;
         }
 
-        const slotIndex = this.pointerIdToSlot.get(event.pointerId);
+        const slotIndex = this.idToSlot.get(event.pointerId);
 
         if (slotIndex === undefined) {
             return;
@@ -658,7 +658,7 @@ export class PointerInput {
             return;
         }
 
-        const slotIndex = this.pointerIdToSlot.get(event.pointerId);
+        const slotIndex = this.idToSlot.get(event.pointerId);
 
         if (slotIndex === undefined) {
             return;
@@ -696,12 +696,12 @@ export class PointerInput {
     // #region Slot Helpers
 
     /**
-     * Builds a fresh `PointerSlot` with newly allocated `Vector2i` instances
+     * Builds a fresh `Slot` with newly allocated `Vector2i` instances
      * so each slot owns its own position storage.
      *
      * @returns Slot in the empty / inactive state.
      */
-    private createEmptySlot(): PointerSlot {
+    private createEmptySlot(): Slot {
         return {
             pointerId: null,
             pointerType: null,
@@ -725,7 +725,7 @@ export class PointerInput {
      *
      * @param slot - Slot to reset in place.
      */
-    private resetSlot(slot: PointerSlot): void {
+    private resetSlot(slot: Slot): void {
         slot.pointerId = null;
         slot.pointerType = null;
         slot.isActive = false;
@@ -770,7 +770,7 @@ export class PointerInput {
      * @param slotIndex - Index of the slot to free.
      */
     private freeSlot(slotIndex: number): void {
-        // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from pointerIdToSlot, always in [0, POINTER_SLOT_COUNT)
+        // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from idToSlot, always in [0, POINTER_SLOT_COUNT)
         const slot = this.slots[slotIndex];
 
         if (slot === undefined) {
@@ -782,7 +782,7 @@ export class PointerInput {
                 this.canvas.releasePointerCapture(slot.pointerId);
             }
 
-            this.pointerIdToSlot.delete(slot.pointerId);
+            this.idToSlot.delete(slot.pointerId);
         }
 
         slot.pointerId = null;
@@ -804,7 +804,7 @@ export class PointerInput {
         const slot = this.slots[0];
 
         if (slot.pointerId !== null) {
-            this.pointerIdToSlot.delete(slot.pointerId);
+            this.idToSlot.delete(slot.pointerId);
         }
 
         slot.pointerId = null;
@@ -829,7 +829,7 @@ export class PointerInput {
      * @param button - DOM `PointerEvent.button` value.
      * @param isPressed - `true` to set the button down, `false` to release it.
      */
-    private setMouseButton(slot: PointerSlot, button: number, isPressed: boolean): void {
+    private setMouseButton(slot: Slot, button: number, isPressed: boolean): void {
         switch (button) {
             case 0:
                 slot.a = isPressed;
@@ -860,7 +860,7 @@ export class PointerInput {
      * @param clientX - DOM `clientX` from the source event.
      * @param clientY - DOM `clientY` from the source event.
      */
-    private updateSlotPosition(slot: PointerSlot, clientX: number, clientY: number): void {
+    private updateSlotPosition(slot: Slot, clientX: number, clientY: number): void {
         const canvas = this.canvas;
         const displaySize = this.displaySize;
 
@@ -897,7 +897,7 @@ export class PointerInput {
      * @param index - Slot index to look up.
      * @returns Slot at the index, or `null` for out-of-range indices.
      */
-    private getSlotOrNull(index: number): PointerSlot | null {
+    private getSlotOrNull(index: number): Slot | null {
         if (!Number.isInteger(index) || index < 0 || index >= POINTER_SLOT_COUNT) {
             return null;
         }
@@ -909,20 +909,20 @@ export class PointerInput {
     /**
      * Looks up the slot bound to a native `pointerId`, or `null` when none is bound.
      *
-     * Resolves the `pointerIdToSlot` map and the indexed slot lookup in one
+     * Resolves the `idToSlot` map and the indexed slot lookup in one
      * helper so event handlers can early-return without repeating the guards.
      *
      * @param pointerId - Native `pointerId` from a DOM pointer event.
      * @returns Slot bound to this `pointerId`, or `null` when no slot is bound.
      */
-    private lookupSlotByPointerId(pointerId: number): PointerSlot | null {
-        const index = this.pointerIdToSlot.get(pointerId);
+    private lookupSlotById(pointerId: number): Slot | null {
+        const index = this.idToSlot.get(pointerId);
 
         if (index === undefined) {
             return null;
         }
 
-        // eslint-disable-next-line security/detect-object-injection -- index originated from pointerIdToSlot, always in [0, POINTER_SLOT_COUNT)
+        // eslint-disable-next-line security/detect-object-injection -- index originated from idToSlot, always in [0, POINTER_SLOT_COUNT)
         return this.slots[index] ?? null;
     }
 

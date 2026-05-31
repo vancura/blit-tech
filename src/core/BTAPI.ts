@@ -29,7 +29,7 @@ import {
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
 import type { Rect2i } from '../utils/Rect2i';
-import { RenderDimensionLimitError, validateRenderDimensions } from '../utils/RenderLimits';
+import { RenderDimensionLimitError, validateDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
@@ -40,11 +40,7 @@ import {
     needsOverlayRendererDiagnostics,
     resolveOverlayTimingChartDiagnostics,
 } from './IBlitTechDemo';
-import {
-    markRenderPaletteIndexUsed,
-    RENDER_PALETTE_USAGE_CAPACITY,
-    resetRenderPaletteUsage,
-} from './RenderPaletteUsage';
+import { markIndexUsed, resetUsage, USAGE_CAPACITY } from './RenderPaletteUsage';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -136,7 +132,7 @@ export class BTAPI {
     private pendingDrawCalls = 0;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
-    private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
+    private readonly framePaletteUsageMask = new Uint8Array(USAGE_CAPACITY);
 
     /** Reused timing snapshot passed into the overlay each frame. */
     private readonly overlayTiming: {
@@ -413,7 +409,7 @@ export class BTAPI {
 
         this.applyBackendQueryOverride();
 
-        const renderDimensionError = validateRenderDimensions(this.hwSettings);
+        const renderDimensionError = validateDimensions(this.hwSettings);
 
         if (renderDimensionError) {
             console.error(`[BT] ${renderDimensionError}`);
@@ -1414,7 +1410,7 @@ export class BTAPI {
             );
         }
 
-        resetRenderPaletteUsage(this.framePaletteUsageMask);
+        resetUsage(this.framePaletteUsageMask);
     }
 
     /**
@@ -1436,7 +1432,7 @@ export class BTAPI {
             return;
         }
 
-        markRenderPaletteIndexUsed(this.framePaletteUsageMask, index);
+        markIndexUsed(this.framePaletteUsageMask, index);
     }
 
     /**

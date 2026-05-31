@@ -46,10 +46,10 @@ export class PostProcessChain {
     private readonly format: GPUTextureFormat;
 
     /** Resolution of this chain's render targets in pixels. */
-    private readonly chainSize: Vector2i;
+    private readonly size: Vector2i;
 
     /** Tier this chain serves. Effects added to it must declare the same tier. */
-    private readonly chainTier: EffectTier;
+    readonly tier: EffectTier;
 
     /** Effects in execution order. */
     private effects: Effect[] = [];
@@ -88,22 +88,13 @@ export class PostProcessChain {
     constructor(device: GPUDevice, format: GPUTextureFormat, chainSize: Vector2i, tier: EffectTier) {
         this.device = device;
         this.format = format;
-        this.chainSize = chainSize.clone();
-        this.chainTier = tier;
+        this.size = chainSize.clone();
+        this.tier = tier;
     }
 
     // #endregion
 
     // #region Public API
-
-    /**
-     * Returns the tier this chain serves.
-     *
-     * @returns Tier of effects this chain holds.
-     */
-    get tier(): EffectTier {
-        return this.chainTier;
-    }
 
     /**
      * Returns `true` when at least one effect is registered.
@@ -135,9 +126,9 @@ export class PostProcessChain {
      * @throws If the effect instance is already registered.
      */
     add(effect: Effect): void {
-        if (effect.tier !== this.chainTier) {
+        if (effect.tier !== this.tier) {
             throw new Error(
-                `PostProcessChain.add: effect.tier='${effect.tier}' does not match chain tier='${this.chainTier}'.`,
+                `PostProcessChain.add: effect.tier='${effect.tier}' does not match chain tier='${this.tier}'.`,
             );
         }
 
@@ -155,7 +146,7 @@ export class PostProcessChain {
             this.allocateSecondary();
         }
 
-        effect.init(this.device, this.format, this.chainSize);
+        effect.init(this.device, this.format, this.size);
         this.effects = [...this.effects, effect];
     }
 
@@ -264,7 +255,7 @@ export class PostProcessChain {
             // eslint-disable-next-line security/detect-object-injection
             const effect = this.effects[i] as Effect;
 
-            effect.updateUniforms(deltaMs, this.chainSize);
+            effect.updateUniforms(deltaMs, this.size);
             effect.encodePass(encoder, read, write);
 
             read = write;
@@ -288,8 +279,8 @@ export class PostProcessChain {
     /** Allocates {@link texA}. */
     private allocatePrimary(): void {
         this.texA = this.device.createTexture({
-            label: `PostProcessChain[${this.chainTier}] texA`,
-            size: { width: this.chainSize.x, height: this.chainSize.y, depthOrArrayLayers: 1 },
+            label: `PostProcessChain[${this.tier}] texA`,
+            size: { width: this.size.x, height: this.size.y, depthOrArrayLayers: 1 },
             format: this.format,
             usage: OFFSCREEN_USAGE,
         });
@@ -299,8 +290,8 @@ export class PostProcessChain {
     /** Allocates {@link texB} for chains with two or more effects. */
     private allocateSecondary(): void {
         this.texB = this.device.createTexture({
-            label: `PostProcessChain[${this.chainTier}] texB`,
-            size: { width: this.chainSize.x, height: this.chainSize.y, depthOrArrayLayers: 1 },
+            label: `PostProcessChain[${this.tier}] texB`,
+            size: { width: this.size.x, height: this.size.y, depthOrArrayLayers: 1 },
             format: this.format,
             usage: OFFSCREEN_USAGE,
         });

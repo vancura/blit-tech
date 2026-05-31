@@ -13,28 +13,28 @@ import type { OverlayLayoutPlan } from '../layout/types';
 import { mockFont } from '../testFixtures';
 import {
     clampScrollRowOffset,
-    drawPaletteTooltipChrome,
-    drawPaletteTooltipLabel,
-    hitTestPaletteSwatch,
-    isPointerInPaletteScrollbarTrack,
-    layoutPaletteTooltip,
+    drawTooltipChrome,
+    drawTooltipLabel,
+    hitTestSwatch,
+    isPointerInScrollbarTrack,
+    layoutTooltip,
     maxScrollRowOffset,
     PALETTE_COPY_STATUS_SECONDS,
     PALETTE_SCROLLBAR_TRACK_WIDTH_PX,
     PaletteInteraction,
     resolveScrollRowOffsetFromTrackPointerY,
-    writePaletteIndexToClipboard,
+    writeIndexToClipboard,
 } from './PaletteInteraction';
 import {
-    computePaletteGrid,
-    computePaletteScrollbarThumbHeight,
+    computeGrid,
+    computeScrollbarThumbHeight,
     DEFAULT_PALETTE_SWATCH_SIZE,
     PALETTE_SCROLLBAR_EDGE_PADDING_PX,
     PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX,
     PALETTE_SWATCH_GAP_PX,
-    resolvePaletteHintExclusionRect,
-    writePaletteScrollbarRects,
-    writePaletteSwatchTopLeft,
+    resolveHintExclusionRect,
+    writeScrollbarRects,
+    writeSwatchTopLeft,
 } from './PaletteView';
 
 /** Minimal layout plan with only the palette band populated. */
@@ -46,12 +46,12 @@ function paletteOnlyPlan(paletteBand: Rect2i): OverlayLayoutPlan {
 function goldenHintExclusion(): Rect2i {
     const layout = createOverlayLayout(320, 240, 14);
 
-    return resolvePaletteHintExclusionRect(hintBarY(layout.displayHeight), layout.displayWidth);
+    return resolveHintExclusionRect(hintBarY(layout.displayHeight), layout.displayWidth);
 }
 
-describe('hitTestPaletteSwatch', () => {
+describe('hitTestSwatch', () => {
     const layout = createOverlayLayout(320, 240, 14);
-    const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+    const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
     const paletteBandTop = paletteBandY(240, grid.totalHeight);
     const paletteBand = new Rect2i(0, paletteBandTop, 320, grid.totalHeight);
     const hintExclusion = goldenHintExclusion();
@@ -60,9 +60,9 @@ describe('hitTestPaletteSwatch', () => {
         const index = 42;
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, index, paletteBand, grid);
+        writeSwatchTopLeft(swatch, index, paletteBand, grid);
 
-        const hit = hitTestPaletteSwatch(
+        const hit = hitTestSwatch(
             swatch.x + 1,
             swatch.y + 1,
             paletteBand,
@@ -78,22 +78,22 @@ describe('hitTestPaletteSwatch', () => {
     it('returns null in horizontal and vertical gaps between swatches', () => {
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 0, paletteBand, grid);
+        writeSwatchTopLeft(swatch, 0, paletteBand, grid);
         const gapX = swatch.x + grid.swatchSize;
 
         expect(
-            hitTestPaletteSwatch(gapX, swatch.y + 1, paletteBand, grid, 256, hintExclusion, layout.displayWidth),
+            hitTestSwatch(gapX, swatch.y + 1, paletteBand, grid, 256, hintExclusion, layout.displayWidth),
         ).toBeNull();
 
         const gapY = swatch.y + grid.swatchSize;
 
         expect(
-            hitTestPaletteSwatch(swatch.x + 1, gapY, paletteBand, grid, 256, hintExclusion, layout.displayWidth),
+            hitTestSwatch(swatch.x + 1, gapY, paletteBand, grid, 256, hintExclusion, layout.displayWidth),
         ).toBeNull();
     });
 
     it('returns null over the hint exclusion band', () => {
-        const hit = hitTestPaletteSwatch(
+        const hit = hitTestSwatch(
             hintExclusion.x + 1,
             hintExclusion.y + 1,
             paletteBand,
@@ -110,10 +110,10 @@ describe('hitTestPaletteSwatch', () => {
         const trackWidth = PALETTE_SCROLLBAR_TRACK_WIDTH_PX;
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 31, paletteBand, grid);
+        writeSwatchTopLeft(swatch, 31, paletteBand, grid);
 
         expect(
-            hitTestPaletteSwatch(
+            hitTestSwatch(
                 layout.displayWidth - 1,
                 swatch.y + 1,
                 paletteBand,
@@ -132,10 +132,10 @@ describe('hitTestPaletteSwatch', () => {
         const index = scrollRowOffset * grid.cols + 5;
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, index, paletteBand, grid, scrollRowOffset);
+        writeSwatchTopLeft(swatch, index, paletteBand, grid, scrollRowOffset);
 
         expect(
-            hitTestPaletteSwatch(
+            hitTestSwatch(
                 swatch.x + 1,
                 swatch.y + 1,
                 paletteBand,
@@ -152,25 +152,17 @@ describe('hitTestPaletteSwatch', () => {
         const index = grid.cols * (grid.rows - 1);
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, index, paletteBand, grid);
+        writeSwatchTopLeft(swatch, index, paletteBand, grid);
 
         expect(
-            hitTestPaletteSwatch(
-                swatch.x + 1,
-                swatch.y + 1,
-                paletteBand,
-                grid,
-                256,
-                hintExclusion,
-                layout.displayWidth,
-            ),
+            hitTestSwatch(swatch.x + 1, swatch.y + 1, paletteBand, grid, 256, hintExclusion, layout.displayWidth),
         ).toBe(index);
         expect(layout.toggleRect.isContaining(new Vector2i(swatch.x + 1, swatch.y + 1))).toBe(true);
     });
 });
 
 describe('palette scroll helpers', () => {
-    const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+    const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
 
     it('computes maxScrollRowOffset from total and visible rows', () => {
         expect(maxScrollRowOffset(grid)).toBe(grid.rows - grid.visibleRows);
@@ -185,7 +177,7 @@ describe('palette scroll helpers', () => {
     it('sizes thumb proportionally to visible rows with a 4 px minimum', () => {
         const paletteBand = new Rect2i(0, 200, 320, grid.totalHeight);
         const trackHeight = paletteBand.height - PALETTE_SCROLLBAR_EDGE_PADDING_PX * 2;
-        const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+        const thumbHeight = computeScrollbarThumbHeight(trackHeight, grid);
 
         expect(thumbHeight).toBeGreaterThanOrEqual(PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX);
         expect(thumbHeight).toBe(Math.floor((grid.visibleRows / grid.rows) * trackHeight));
@@ -199,7 +191,7 @@ describe('palette scroll helpers', () => {
         const scrollRowOffset = 3;
         const pad = PALETTE_SCROLLBAR_EDGE_PADDING_PX;
 
-        writePaletteScrollbarRects(track, thumb, paletteBand, grid, scrollRowOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writeScrollbarRects(track, thumb, paletteBand, grid, scrollRowOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
 
         expect(track).toMatchObject({
             x: paletteBand.x + paletteBand.width - PALETTE_SCROLLBAR_TRACK_WIDTH_PX - pad,
@@ -216,8 +208,8 @@ describe('palette scroll helpers', () => {
         const topThumb = new Rect2i();
         const bottomThumb = new Rect2i();
 
-        writePaletteScrollbarRects(track, topThumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
-        writePaletteScrollbarRects(track, bottomThumb, paletteBand, grid, maxOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writeScrollbarRects(track, topThumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writeScrollbarRects(track, bottomThumb, paletteBand, grid, maxOffset, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
 
         expect(topThumb.y).toBe(track.y);
         expect(bottomThumb.y + bottomThumb.height).toBe(track.y + track.height);
@@ -229,7 +221,7 @@ describe('palette scroll helpers', () => {
         const track = new Rect2i();
         const thumb = new Rect2i();
 
-        writePaletteScrollbarRects(track, thumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writeScrollbarRects(track, thumb, paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
 
         expect(
             resolveScrollRowOffsetFromTrackPointerY(track.y, paletteBand, grid, PALETTE_SCROLLBAR_TRACK_WIDTH_PX),
@@ -248,12 +240,12 @@ describe('palette scroll helpers', () => {
 describe('PaletteInteraction scroll', () => {
     it('advances scroll offset from wheel delta over the palette band and consumes scroll', () => {
         const interaction = new PaletteInteraction(60);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 0, plan.paletteBand, grid);
+        writeSwatchTopLeft(swatch, 0, plan.paletteBand, grid);
 
         const pointer = {
             isActive: () => true,
@@ -272,7 +264,7 @@ describe('PaletteInteraction scroll', () => {
 
     it('does not consume wheel delta when pointer is outside the palette band', () => {
         const interaction = new PaletteInteraction(60);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const pointer = {
@@ -292,13 +284,13 @@ describe('PaletteInteraction scroll', () => {
 
     it('blocks toggle when primary press starts on the scrollbar track', () => {
         const interaction = new PaletteInteraction(60);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const track = new Rect2i();
         const thumb = new Rect2i();
 
-        writePaletteScrollbarRects(track, thumb, plan.paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
+        writeScrollbarRects(track, thumb, plan.paletteBand, grid, 0, PALETTE_SCROLLBAR_TRACK_WIDTH_PX);
 
         const consumed = interaction.handleScroll(
             {
@@ -316,7 +308,7 @@ describe('PaletteInteraction scroll', () => {
 
         expect(consumed).toBe(true);
         expect(
-            isPointerInPaletteScrollbarTrack(
+            isPointerInScrollbarTrack(
                 track.x + 1,
                 track.y + 2,
                 plan.paletteBand,
@@ -328,7 +320,7 @@ describe('PaletteInteraction scroll', () => {
     });
 });
 
-describe('layoutPaletteTooltip', () => {
+describe('layoutTooltip', () => {
     const layoutScratch = {
         body: new Rect2i(),
         swatch: new Rect2i(),
@@ -339,7 +331,7 @@ describe('layoutPaletteTooltip', () => {
         const swatch = new Rect2i(300, 180, 7, 7);
         const label = '255';
 
-        layoutPaletteTooltip(layoutScratch, swatch, label, 320, 240);
+        layoutTooltip(layoutScratch, swatch, label, 320, 240);
 
         expect(layoutScratch.body.x + layoutScratch.body.width).toBeLessThanOrEqual(320);
         expect(layoutScratch.body.x).toBeGreaterThanOrEqual(0);
@@ -349,7 +341,7 @@ describe('layoutPaletteTooltip', () => {
         const swatch = new Rect2i(0, 180, 7, 7);
         const label = '255';
 
-        layoutPaletteTooltip(layoutScratch, swatch, label, 320, 240);
+        layoutTooltip(layoutScratch, swatch, label, 320, 240);
 
         expect(layoutScratch.body.x).toBeGreaterThanOrEqual(0);
     });
@@ -357,7 +349,7 @@ describe('layoutPaletteTooltip', () => {
     it('places tooltip body above the swatch with a one-pixel gap', () => {
         const swatch = new Rect2i(40, 180, 7, 7);
 
-        layoutPaletteTooltip(layoutScratch, swatch, '12', 320, 240);
+        layoutTooltip(layoutScratch, swatch, '12', 320, 240);
 
         expect(layoutScratch.body.y + layoutScratch.body.height).toBe(swatch.y - 1);
     });
@@ -365,21 +357,21 @@ describe('layoutPaletteTooltip', () => {
     it('keeps tooltip body fully inside the display on the bottom edge', () => {
         const swatch = new Rect2i(0, 235, 7, 7);
 
-        layoutPaletteTooltip(layoutScratch, swatch, '12', 320, 240);
+        layoutTooltip(layoutScratch, swatch, '12', 320, 240);
 
         expect(layoutScratch.body.y + layoutScratch.body.height).toBeLessThanOrEqual(240);
         expect(layoutScratch.body.y).toBeGreaterThanOrEqual(0);
     });
 });
 
-describe('drawPaletteTooltipChrome', () => {
+describe('drawTooltipChrome', () => {
     it('draws tooltip body and border via drawBarFillOnTop', () => {
         const layoutScratch = {
             body: new Rect2i(),
             swatch: new Rect2i(40, 180, 7, 7),
             textPos: new Vector2i(),
         };
-        const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
+        const layout = layoutTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
         const target = {
             drawBarFill: vi.fn(),
             drawBarFillOnTop: vi.fn(),
@@ -387,7 +379,7 @@ describe('drawPaletteTooltipChrome', () => {
             drawLabelOnTop: vi.fn(),
         };
 
-        drawPaletteTooltipChrome(target, layout, DEFAULT_IDX_BG, DEFAULT_IDX_TEXT);
+        drawTooltipChrome(target, layout, DEFAULT_IDX_BG, DEFAULT_IDX_TEXT);
 
         expect(target.drawBarFillOnTop).toHaveBeenCalled();
         expect(target.drawBarFill).not.toHaveBeenCalled();
@@ -395,14 +387,14 @@ describe('drawPaletteTooltipChrome', () => {
     });
 });
 
-describe('drawPaletteTooltipLabel', () => {
+describe('drawTooltipLabel', () => {
     it('draws tooltip text via drawLabelOnTop', () => {
         const layoutScratch = {
             body: new Rect2i(),
             swatch: new Rect2i(40, 180, 7, 7),
             textPos: new Vector2i(),
         };
-        const layout = layoutPaletteTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
+        const layout = layoutTooltip(layoutScratch, layoutScratch.swatch, '42', 320, 240);
         const target = {
             drawBarFill: vi.fn(),
             drawBarFillOnTop: vi.fn(),
@@ -410,7 +402,7 @@ describe('drawPaletteTooltipLabel', () => {
             drawLabelOnTop: vi.fn(),
         };
 
-        drawPaletteTooltipLabel(target, mockFont, layout, '42', DEFAULT_IDX_TEXT);
+        drawTooltipLabel(target, mockFont, layout, '42', DEFAULT_IDX_TEXT);
 
         expect(target.drawLabelOnTop).toHaveBeenCalled();
         expect(target.drawBarFill).not.toHaveBeenCalled();
@@ -432,7 +424,7 @@ describe('PaletteInteraction clipboard', () => {
     });
 
     it('writes plain index strings to the clipboard', async () => {
-        await writePaletteIndexToClipboard(42);
+        await writeIndexToClipboard(42);
 
         expect(navigator.clipboard.writeText).toHaveBeenCalledWith('42');
     });
@@ -440,12 +432,12 @@ describe('PaletteInteraction clipboard', () => {
     it('shows Copied N after successful press', async () => {
         const interaction = new PaletteInteraction(60);
         const layout = createOverlayLayout(320, 240, 14);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 7, plan.paletteBand, grid);
+        writeSwatchTopLeft(swatch, 7, plan.paletteBand, grid);
 
         const consumed = interaction.handlePress(
             {
@@ -512,12 +504,12 @@ describe('PaletteInteraction clipboard', () => {
 
         const interaction = new PaletteInteraction(60);
         const layout = createOverlayLayout(320, 240, 14);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 3, plan.paletteBand, grid);
+        writeSwatchTopLeft(swatch, 3, plan.paletteBand, grid);
 
         interaction.handlePress(
             {
@@ -561,12 +553,12 @@ describe('PaletteInteraction clipboard', () => {
     it('clears copy status after the configured duration', async () => {
         const interaction = new PaletteInteraction(60);
         const layout = createOverlayLayout(320, 240, 14);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 9, plan.paletteBand, grid);
+        writeSwatchTopLeft(swatch, 9, plan.paletteBand, grid);
 
         interaction.handlePress(
             {
@@ -632,12 +624,12 @@ describe('PaletteInteraction clipboard', () => {
 
         const interaction = new PaletteInteraction(60);
         const layout = createOverlayLayout(320, 240, 14);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const swatch = new Rect2i();
 
-        writePaletteSwatchTopLeft(swatch, 9, plan.paletteBand, grid);
+        writeSwatchTopLeft(swatch, 9, plan.paletteBand, grid);
 
         interaction.handlePress(
             {

@@ -8,7 +8,7 @@ import { Vector2i } from '../utils/Vector2i';
 /**
  * Maximum number of sprite vertices retained for a frame.
  */
-const MAX_SPRITE_VERTICES = 50000;
+const MAX_VERTICES = 50000;
 
 /**
  * Number of values per vertex: x (f32), y (f32), u (f32), v (f32), paletteOffset (u32).
@@ -111,7 +111,7 @@ export class SpritePipeline {
      * Call `init()` before encoding GPU work.
      */
     constructor() {
-        this.vertexArrayBuffer = new ArrayBuffer(MAX_SPRITE_VERTICES * VERTEX_STRIDE);
+        this.vertexArrayBuffer = new ArrayBuffer(MAX_VERTICES * VERTEX_STRIDE);
         this.vertexFloats = new Float32Array(this.vertexArrayBuffer);
         this.vertexUints = new Uint32Array(this.vertexArrayBuffer);
     }

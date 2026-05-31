@@ -77,7 +77,7 @@ export class TimingChart {
     readonly #tags: TimingChartTag[] = [];
 
     /** Tick at last chart reset; used for relative tick labels. */
-    #chartStartTick = 0;
+    #startTick = 0;
 
     /** Timing samples recorded since the last chart width reset (one per overlay frame). */
     #totalSamples = 0;
@@ -159,7 +159,7 @@ export class TimingChart {
         this.#overflowBuffer = new Uint8Array(width);
         this.#primitiveVertexBuffer = new Uint32Array(width);
         this.#spriteVertexBuffer = new Uint32Array(width);
-        this.#chartStartTick = currentTick;
+        this.#startTick = currentTick;
         this.#tags.length = 0;
 
         this.assignTag(TIMING_CHART_TAG_START, currentTick);
@@ -376,7 +376,7 @@ export class TimingChart {
                 target.drawLabelOnTop(
                     font,
                     this.#tagLabelPos.clone(),
-                    formatTimingChartTagRelTick(leadTag.tick, this.#chartStartTick),
+                    formatTimingChartTagRelTick(leadTag.tick, this.#startTick),
                     paletteOffset,
                 );
             }

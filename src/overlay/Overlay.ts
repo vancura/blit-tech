@@ -24,7 +24,7 @@ import type { OverlayLayout, OverlayLayoutConfig, OverlayLayoutPlan } from './la
 import type { OverlayRenderer } from './OverlayDrawTarget';
 import { toggleIcon } from './OverlayToggleIcon';
 import { PaletteInteraction } from './palette/PaletteInteraction';
-import { computePaletteGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
+import { computeGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
 import { FpsSampler } from './sampling/FpsSampler';
 import { TimingSampler } from './sampling/TimingSampler';
 import { DEFAULT_TIMING_CHART_HEIGHT } from './timing-chart/constants';
@@ -275,7 +275,7 @@ export class Overlay {
             }
         }
 
-        this.#toggle.handleToggle(pointer, keyboard, currentTick, this.#layout.toggleRect, isPointerPressConsumed);
+        this.#toggle.handleInput(pointer, keyboard, currentTick, this.#layout.toggleRect, isPointerPressConsumed);
     }
 
     /**
@@ -330,7 +330,7 @@ export class Overlay {
         const customRows = isBodyVisible ? getCustomRows?.() : undefined;
         const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
 
-        this.#withOverlayCamera(renderer, () => {
+        this.#withCamera(renderer, () => {
             this.#drawFrame(
                 renderer,
                 font,
@@ -375,7 +375,7 @@ export class Overlay {
         const isOverlayPaletteEnabled = this.#paletteView.isEnabled;
         const colorCount = palette?.size ?? 256;
         const paletteGrid = isOverlayPaletteEnabled
-            ? computePaletteGrid(
+            ? computeGrid(
                   this.#layout.displayWidth,
                   undefined,
                   colorCount,
@@ -428,7 +428,7 @@ export class Overlay {
      * @param renderer - Active renderer.
      * @param draw - Callback that issues overlay draws.
      */
-    #withOverlayCamera(renderer: OverlayRenderer, draw: () => void): void {
+    #withCamera(renderer: OverlayRenderer, draw: () => void): void {
         const savedCamera = renderer.getCameraOffset();
 
         renderer.resetCamera();

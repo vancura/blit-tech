@@ -559,7 +559,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * @returns Promise resolving to a PNG Blob of the rendered frame.
      */
     captureFrame(): Promise<Blob> {
-        return this.frameCapture.requestCapture();
+        return this.frameCapture.request();
     }
 
     // #endregion
@@ -818,16 +818,16 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * @param swapTexture - Current swap-chain texture (capture source).
      */
     private submitFrame(encoder: GPUCommandEncoder, swapTexture: GPUTexture): void {
-        const isCapturing = this.frameCapture.hasPendingCapture();
+        const isCapturing = this.frameCapture.hasPending();
 
         if (isCapturing) {
-            this.frameCapture.executeCaptureInEncoder(this.device, swapTexture, encoder);
+            this.frameCapture.executeInEncoder(this.device, swapTexture, encoder);
         }
 
         this.device.queue.submit([encoder.finish()]);
 
         if (isCapturing) {
-            void this.frameCapture.resolveCapture(this.device);
+            void this.frameCapture.resolve(this.device);
         }
 
         // Defensive reset so the pipeline state is clean even if beginFrame() is not

@@ -76,6 +76,63 @@ const VALID_AXIS_INDICES = [
 
 // #endregion
 
+// #region Raw gamepad reads
+
+/**
+ * Reads and clamps a raw stick axis to `[-1, 1]`.
+ *
+ * @param pad - Gamepad object.
+ * @param index - Raw axis index.
+ * @returns Clamped axis value.
+ */
+function getAxis(pad: Gamepad, index: number): number {
+    const value = pad.axes[index] ?? 0;
+
+    if (!Number.isFinite(value)) {
+        return 0;
+    }
+
+    return Math.max(-1, Math.min(1, value));
+}
+
+/**
+ * Reads a trigger/button analog value and clamps to `[0, 1]`.
+ *
+ * @param pad - Gamepad object.
+ * @param index - Raw button index.
+ * @returns Clamped analog value.
+ */
+function getButtonValue(pad: Gamepad, index: number): number {
+    const button = pad.buttons[index];
+
+    if (!button) {
+        return 0;
+    }
+
+    const value = Number.isFinite(button.value) ? button.value : button.pressed ? 1 : 0;
+
+    return Math.max(0, Math.min(1, value));
+}
+
+/**
+ * Checks digital down-state for a gamepad button.
+ *
+ * @param pad - Gamepad object.
+ * @param index - Raw button index.
+ * @returns `true` when considered pressed.
+ */
+function isButtonDown(pad: Gamepad, index: number): boolean {
+    const button = pad.buttons[index];
+
+    if (!button) {
+        return false;
+    }
+
+    return button.pressed || button.value >= 0.5;
+}
+
+// #endregion
+
 // #region Types
 
 /**
@@ -141,8 +198,8 @@ export class GamepadInput {
         ];
         this.firstPressTick = [new Map(), new Map(), new Map(), new Map()];
         this.deadZone = this.sanitizeDeadZone(deadZone);
-        this.onConnected = () => this.pollGamepads();
-        this.onDisconnected = () => this.pollGamepads();
+        this.onConnected = () => this.poll();
+        this.onDisconnected = () => this.poll();
     }
 
     /**
@@ -157,7 +214,7 @@ export class GamepadInput {
             globalThis.window.addEventListener('gamepaddisconnected', this.onDisconnected);
         }
 
-        this.pollGamepads();
+        this.poll();
     }
 
     /**
@@ -196,7 +253,7 @@ export class GamepadInput {
      * @param _currentTick - Current engine tick (unused; kept for BTAPI parity).
      */
     public endFrame(_currentTick: number): void {
-        this.pollGamepads();
+        this.poll();
 
         for (let i = 0; i < GAMEPAD_PLAYER_COUNT; i++) {
             const current = this.current[i];
@@ -230,7 +287,7 @@ export class GamepadInput {
             return false;
         }
 
-        this.pollGamepads();
+        this.poll();
 
         const current = this.current[index];
 
@@ -264,7 +321,7 @@ export class GamepadInput {
             return false;
         }
 
-        this.pollGamepads();
+        this.poll();
 
         const current = this.current[index];
         const previous = this.previous[index];
@@ -315,7 +372,7 @@ export class GamepadInput {
             return false;
         }
 
-        this.pollGamepads();
+        this.poll();
 
         const current = this.current[index];
         const previous = this.previous[index];
@@ -351,7 +408,7 @@ export class GamepadInput {
             return 0;
         }
 
-        this.pollGamepads();
+        this.poll();
 
         const snapshot = this.current[index];
 
@@ -375,7 +432,7 @@ export class GamepadInput {
             return false;
         }
 
-        this.pollGamepads();
+        this.poll();
 
         return this.current[index]?.isConnected ?? false;
     }
@@ -386,7 +443,7 @@ export class GamepadInput {
      * @returns Number of connected gamepads in `[0, GAMEPAD_PLAYER_COUNT]`.
      */
     public connectedCount(): number {
-        this.pollGamepads();
+        this.poll();
 
         let count = 0;
 
@@ -431,8 +488,8 @@ export class GamepadInput {
     /**
      * Polls `navigator.getGamepads()` and refreshes current snapshots.
      */
-    private pollGamepads(): void {
-        const pads = this.readGamepads();
+    private poll(): void {
+        const pads = this.read();
 
         for (let player = 0; player < GAMEPAD_PLAYER_COUNT; player++) {
             const snapshot = this.current[player];
@@ -462,7 +519,7 @@ export class GamepadInput {
      *
      * @returns Current browser gamepad array or an empty array.
      */
-    private readGamepads(): readonly (Gamepad | null)[] {
+    private read(): readonly (Gamepad | null)[] {
         if (typeof globalThis.navigator === 'undefined' || typeof globalThis.navigator.getGamepads !== 'function') {
             return [];
         }
@@ -479,40 +536,40 @@ export class GamepadInput {
     private mapButtons(pad: Gamepad): number {
         let mask = 0;
 
-        if (this.isPadButtonDown(pad, GP_BUTTON_UP)) {
+        if (isButtonDown(pad, GP_BUTTON_UP)) {
             mask |= BTN_UP;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_DOWN)) {
+        if (isButtonDown(pad, GP_BUTTON_DOWN)) {
             mask |= BTN_DOWN;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_LEFT)) {
+        if (isButtonDown(pad, GP_BUTTON_LEFT)) {
             mask |= BTN_LEFT;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_RIGHT)) {
+        if (isButtonDown(pad, GP_BUTTON_RIGHT)) {
             mask |= BTN_RIGHT;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_A)) {
+        if (isButtonDown(pad, GP_BUTTON_A)) {
             mask |= BTN_A;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_B)) {
+        if (isButtonDown(pad, GP_BUTTON_B)) {
             mask |= BTN_B;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_X)) {
+        if (isButtonDown(pad, GP_BUTTON_X)) {
             mask |= BTN_X;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_Y)) {
+        if (isButtonDown(pad, GP_BUTTON_Y)) {
             mask |= BTN_Y;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_L)) {
+        if (isButtonDown(pad, GP_BUTTON_L)) {
             mask |= BTN_L;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_R)) {
+        if (isButtonDown(pad, GP_BUTTON_R)) {
             mask |= BTN_R;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_START)) {
+        if (isButtonDown(pad, GP_BUTTON_START)) {
             mask |= BTN_START;
         }
-        if (this.isPadButtonDown(pad, GP_BUTTON_SELECT)) {
+        if (isButtonDown(pad, GP_BUTTON_SELECT)) {
             mask |= BTN_SELECT;
         }
 
@@ -526,67 +583,14 @@ export class GamepadInput {
      * @returns Axis tuple in engine API order.
      */
     private mapAxes(pad: Gamepad): PlayerSnapshot['axes'] {
-        const leftX = this.applyStickDeadZone(this.getPadAxis(pad, 0));
-        const leftY = this.applyStickDeadZone(this.getPadAxis(pad, 1));
-        const rightX = this.applyStickDeadZone(this.getPadAxis(pad, 2));
-        const rightY = this.applyStickDeadZone(this.getPadAxis(pad, 3));
-        const triggerL = this.getPadButtonValue(pad, 6);
-        const triggerR = this.getPadButtonValue(pad, 7);
+        const leftX = this.applyStickDeadZone(getAxis(pad, 0));
+        const leftY = this.applyStickDeadZone(getAxis(pad, 1));
+        const rightX = this.applyStickDeadZone(getAxis(pad, 2));
+        const rightY = this.applyStickDeadZone(getAxis(pad, 3));
+        const triggerL = getButtonValue(pad, 6);
+        const triggerR = getButtonValue(pad, 7);
 
         return [leftX, leftY, rightX, rightY, triggerL, triggerR];
-    }
-
-    /**
-     * Reads and clamps a raw stick axis to `[-1, 1]`.
-     *
-     * @param pad - Gamepad object.
-     * @param index - Raw axis index.
-     * @returns Clamped axis value.
-     */
-    private getPadAxis(pad: Gamepad, index: number): number {
-        const value = pad.axes[index] ?? 0;
-
-        if (!Number.isFinite(value)) {
-            return 0;
-        }
-
-        return Math.max(-1, Math.min(1, value));
-    }
-
-    /**
-     * Reads a trigger/button analog value and clamps to `[0, 1]`.
-     *
-     * @param pad - Gamepad object.
-     * @param index - Raw button index.
-     * @returns Clamped analog value.
-     */
-    private getPadButtonValue(pad: Gamepad, index: number): number {
-        const button = pad.buttons[index];
-
-        if (!button) {
-            return 0;
-        }
-
-        const value = Number.isFinite(button.value) ? button.value : button.pressed ? 1 : 0;
-
-        return Math.max(0, Math.min(1, value));
-    }
-
-    /**
-     * Checks digital down-state for a gamepad button.
-     *
-     * @param pad - Gamepad object.
-     * @param index - Raw button index.
-     * @returns `true` when considered pressed.
-     */
-    private isPadButtonDown(pad: Gamepad, index: number): boolean {
-        const button = pad.buttons[index];
-
-        if (!button) {
-            return false;
-        }
-
-        return button.pressed || button.value >= 0.5;
     }
 
     /**
