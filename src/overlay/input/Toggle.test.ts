@@ -3,15 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { Rect2i } from '../../utils/Rect2i';
 import { Toggle } from './Toggle';
 
-describe('Toggle.handleToggle', () => {
-    it('forwards to handleInput and toggles from keyboard input', () => {
+describe('Toggle.handleInput', () => {
+    it('toggles from keyboard input', () => {
         const toggle = new Toggle(false, true);
         const keyboard = {
             isKeyPressed: (key: string, _repeatRate: number | undefined, tick: number): boolean =>
                 key === 'Backquote' && tick === 5,
         };
 
-        toggle.handleToggle(null, keyboard as never, 5, new Rect2i(0, 0, 48, 48), false);
+        toggle.handleInput(null, keyboard as never, 5, new Rect2i(0, 0, 48, 48), false);
 
         expect(toggle.isBodyVisible).toBe(true);
     });
@@ -26,7 +26,7 @@ describe('Toggle.handleToggle', () => {
             isKeyPressed: (): boolean => false,
         };
 
-        toggle.handleToggle(pointer as never, keyboard as never, 1, new Rect2i(0, 0, 48, 48), true);
+        toggle.handleInput(pointer as never, keyboard as never, 1, new Rect2i(0, 0, 48, 48), true);
 
         expect(toggle.isBodyVisible).toBe(false);
     });
