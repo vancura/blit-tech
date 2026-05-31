@@ -3,6 +3,11 @@
   "entry": ["src/**/*.test.ts", "src/**/*.bench.ts"],
   "project": ["src/**/*.ts"],
   "ignoreExportsUsedInFile": true,
+  "tags": ["-deprecated"],
+  "ignoreIssues": {
+    "src/core/RenderPaletteUsage.ts": ["duplicates"],
+    "src/overlay/palette/PaletteView.ts": ["duplicates"]
+  },
   "ignoreDependencies": ["vite-plugin-istanbul"],
   "typescript": {
     "config": ["tsconfig.json"]
