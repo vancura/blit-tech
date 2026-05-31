@@ -21,13 +21,13 @@ export interface BootstrapOptions {
      * Canvas element ID to use.
      * Default: 'blit-tech-canvas'
      */
-    canvasId?: string;
+    canvasID?: string;
 
     /**
      * Container element ID for error display.
      * Default: 'canvas-container'
      */
-    containerId?: string;
+    containerID?: string;
 
     /** Custom callback on successful initialization. */
     onSuccess?: () => void;
@@ -39,7 +39,7 @@ export interface BootstrapOptions {
      * Whether to automatically handle DOM ready state.
      * Default: true
      */
-    waitForDOMReady?: boolean;
+    isWaitingForDOMReady?: boolean;
 }
 
 /**
@@ -78,7 +78,7 @@ async function waitForDOM(): Promise<void> {
  * @param title - Error title for display.
  * @param message - Error message for display.
  * @param error - The Error object.
- * @param containerId - Container ID for error display.
+ * @param containerID - Container ID for error display.
  * @param onError - Optional error callback.
  * @returns BootstrapResult indicating failure.
  */
@@ -86,10 +86,10 @@ function handleBootstrapError(
     title: string,
     message: ErrorContent,
     error: Error,
-    containerId: string,
+    containerID: string,
     onError?: (error: Error) => void,
 ): BootstrapResult {
-    displayError(title, message, containerId);
+    displayError(title, message, containerID);
     onError?.(error);
     return { success: false, error };
 }
@@ -97,17 +97,17 @@ function handleBootstrapError(
 /**
  * Validates the canvas element and returns it.
  *
- * @param canvasId - Canvas element ID.
- * @param containerId - Container ID for error display.
+ * @param canvasID - Canvas element ID.
+ * @param containerID - Container ID for error display.
  * @param onError - Optional error callback.
  * @returns Canvas element or null with error handling.
  */
 function validateCanvas(
-    canvasId: string,
-    containerId: string,
+    canvasID: string,
+    containerID: string,
     onError?: (error: Error) => void,
 ): { canvas: HTMLCanvasElement | null; result: BootstrapResult } {
-    const canvas = getCanvas(canvasId);
+    const canvas = getCanvas(canvasID);
     let result: BootstrapResult;
 
     if (canvas) {
@@ -115,9 +115,9 @@ function validateCanvas(
     } else {
         result = handleBootstrapError(
             'Canvas Error',
-            CANVAS_NOT_FOUND_MESSAGE(canvasId),
-            new Error(`Canvas element '${canvasId}' not found`),
-            containerId,
+            CANVAS_NOT_FOUND_MESSAGE(canvasID),
+            new Error(`Canvas element '${canvasID}' not found`),
+            containerID,
             onError,
         );
     }
@@ -130,7 +130,7 @@ function validateCanvas(
  *
  * @param DemoClass - Demo class constructor.
  * @param canvas - Canvas element.
- * @param containerId - Container ID for error display.
+ * @param containerID - Container ID for error display.
  * @param onSuccess - Optional success callback.
  * @param onError - Optional error callback.
  * @returns BootstrapResult with success status.
@@ -138,7 +138,7 @@ function validateCanvas(
 async function initDemo(
     DemoClass: DemoConstructor,
     canvas: HTMLCanvasElement,
-    containerId: string,
+    containerID: string,
     onSuccess?: () => void,
     onError?: (error: Error) => void,
 ): Promise<BootstrapResult> {
@@ -149,7 +149,7 @@ async function initDemo(
             'Demo Setup Error',
             'Your Demo class is missing update() or render(). Add both methods so the engine knows what to run each frame.',
             new Error('Demo class is missing update() or render()'),
-            containerId,
+            containerID,
             onError,
         );
     }
@@ -182,7 +182,7 @@ async function initDemo(
             'Initialization Failed',
             displayMessage,
             initError ?? new Error('Engine initialization failed'),
-            containerId,
+            containerID,
             onError,
         );
     }
@@ -213,8 +213,8 @@ async function initDemo(
  * @example
  * // With custom options.
  * bootstrap(MyDemo, {
- *     canvasId: 'custom-canvas',
- *     containerId: 'custom-container',
+ *     canvasID: 'custom-canvas',
+ *     containerID: 'custom-container',
  *     onSuccess: () => console.log('Demo started!'),
  *     onError: (err) => analytics.trackError(err),
  * });
@@ -228,22 +228,22 @@ async function initDemo(
  */
 export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOptions = {}): Promise<boolean> {
     const {
-        canvasId = DEFAULT_CANVAS_ID,
-        containerId = DEFAULT_CONTAINER_ID,
+        canvasID = DEFAULT_CANVAS_ID,
+        containerID = DEFAULT_CONTAINER_ID,
         onSuccess,
         onError,
-        waitForDOMReady = true,
+        isWaitingForDOMReady = true,
     } = options;
 
     let success: boolean;
 
     // Wait for DOM if needed.
-    if (waitForDOMReady) {
+    if (isWaitingForDOMReady) {
         await waitForDOM();
     }
 
     try {
-        const { canvas, result: canvasResult } = validateCanvas(canvasId, containerId, onError);
+        const { canvas, result: canvasResult } = validateCanvas(canvasID, containerID, onError);
 
         success = canvasResult.success;
 
@@ -256,7 +256,7 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
                 canvas.focus();
             }
 
-            const initResult = await initDemo(DemoClass, canvas, containerId, onSuccess, onError);
+            const initResult = await initDemo(DemoClass, canvas, containerID, onSuccess, onError);
 
             success = initResult.success;
         }
@@ -272,7 +272,7 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
                 code: error.message,
             },
             error,
-            containerId,
+            containerID,
             onError,
         );
 

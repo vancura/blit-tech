@@ -73,13 +73,13 @@ describe('bootstrap', () => {
         teardownDOM();
     });
 
-    // #region waitForDOMReady
+    // #region isWaitingForDOMReady
 
-    describe('waitForDOMReady', () => {
-        it('should skip DOM waiting when waitForDOMReady is false', async () => {
+    describe('isWaitingForDOMReady', () => {
+        it('should skip DOM waiting when isWaitingForDOMReady is false', async () => {
             setupDOM();
 
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false });
 
             expect(result).toBe(true);
         });
@@ -89,7 +89,7 @@ describe('bootstrap', () => {
 
             setupDOM();
 
-            const bootstrapPromise = bootstrap(MockDemo, { waitForDOMReady: true });
+            const bootstrapPromise = bootstrap(MockDemo, { isWaitingForDOMReady: true });
 
             Object.defineProperty(document, 'readyState', { value: 'complete', writable: true, configurable: true });
 
@@ -103,7 +103,7 @@ describe('bootstrap', () => {
         it('should proceed immediately when the readyState is complete', async () => {
             setupDOM();
 
-            const result = await bootstrap(MockDemo, { waitForDOMReady: true });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: true });
 
             expect(result).toBe(true);
         });
@@ -119,7 +119,7 @@ describe('bootstrap', () => {
 
             // No navigator.gpu installed. BTAPI.init is mocked to return true (set in beforeEach).
             const onError = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false, onError });
 
             // Bootstrap no longer hard-stops on missing WebGPU; BTAPI handles backend selection.
             expect(result).toBe(true);
@@ -143,8 +143,8 @@ describe('bootstrap', () => {
             const onError = vi.fn();
 
             const result = await bootstrap(MockDemo, {
-                waitForDOMReady: false,
-                canvasId: 'nonexistent-canvas',
+                isWaitingForDOMReady: false,
+                canvasID: 'nonexistent-canvas',
                 onError,
             });
 
@@ -176,7 +176,7 @@ describe('bootstrap', () => {
 
             const onError = vi.fn();
             const result = await bootstrap(BrokenDemo as unknown as new () => IBlitTechDemo, {
-                waitForDOMReady: false,
+                isWaitingForDOMReady: false,
                 onError,
             });
 
@@ -196,7 +196,7 @@ describe('bootstrap', () => {
             vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(false);
 
             const onError = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false, onError });
 
             expect(result).toBe(false);
             expect(onError).toHaveBeenCalledOnce();
@@ -208,7 +208,7 @@ describe('bootstrap', () => {
             vi.spyOn(BTAPI.instance, 'init').mockRejectedValue(new Error('Init exploded'));
 
             const onError = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false, onError });
 
             expect(result).toBe(false);
             expect(onError).toHaveBeenCalledOnce();
@@ -218,7 +218,7 @@ describe('bootstrap', () => {
             setupDOM();
 
             const onSuccess = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onSuccess });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false, onSuccess });
 
             expect(result).toBe(true);
             expect(onSuccess).toHaveBeenCalledOnce();
@@ -229,7 +229,7 @@ describe('bootstrap', () => {
 
             const focusSpy = vi.spyOn(canvas, 'focus');
 
-            await bootstrap(MockDemo, { waitForDOMReady: false });
+            await bootstrap(MockDemo, { isWaitingForDOMReady: false });
 
             expect(canvas.tabIndex).toBe(0);
             expect(focusSpy).toHaveBeenCalled();
@@ -238,7 +238,7 @@ describe('bootstrap', () => {
         it('should use default canvas and container IDs when not specified', async () => {
             setupDOM();
 
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false });
 
             expect(result).toBe(true);
         });
@@ -257,9 +257,9 @@ describe('bootstrap', () => {
             document.body.appendChild(canvas);
 
             const result = await bootstrap(MockDemo, {
-                waitForDOMReady: false,
-                canvasId: 'custom-canvas',
-                containerId: 'custom-container',
+                isWaitingForDOMReady: false,
+                canvasID: 'custom-canvas',
+                containerID: 'custom-container',
             });
 
             expect(result).toBe(true);
@@ -279,7 +279,7 @@ describe('bootstrap', () => {
             });
 
             const onError = vi.fn();
-            const result = await bootstrap(MockDemo, { waitForDOMReady: false, onError });
+            const result = await bootstrap(MockDemo, { isWaitingForDOMReady: false, onError });
 
             expect(result).toBe(false);
             expect(onError).toHaveBeenCalledOnce();

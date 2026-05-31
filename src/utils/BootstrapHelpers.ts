@@ -63,7 +63,7 @@ function appendTextWithLineBreaks(element: HTMLElement, text: string): void {
  *
  * @param title - Error heading text displayed prominently.
  * @param content - Error message content (string or object with optional code formatting).
- * @param containerId - ID of the container element. Default: 'canvas-container'
+ * @param containerID - ID of the container element. Default: 'canvas-container'
  *
  * @example
  * displayError(
@@ -77,8 +77,8 @@ function appendTextWithLineBreaks(element: HTMLElement, text: string): void {
  *     { text: 'An error occurred:', code: error.message }
  * );
  */
-export function displayError(title: string, content: ErrorContent, containerId: string = DEFAULT_CONTAINER_ID): void {
-    const container = document.getElementById(containerId);
+export function displayError(title: string, content: ErrorContent, containerID: string = DEFAULT_CONTAINER_ID): void {
+    const container = document.getElementById(containerID);
 
     if (container) {
         // Create error elements using DOM methods for safety.
@@ -148,7 +148,7 @@ export function displayError(title: string, content: ErrorContent, containerId: 
  * Retrieves a canvas element from the DOM by ID.
  * Validates that the element exists and is a canvas element.
  *
- * @param canvasId - ID of the canvas element. Default: 'blit-tech-canvas'
+ * @param canvasID - ID of the canvas element. Default: 'blit-tech-canvas'
  * @returns The canvas element if found and valid, null otherwise.
  *
  * @example
@@ -158,14 +158,14 @@ export function displayError(title: string, content: ErrorContent, containerId: 
  *     return;
  * }
  */
-export function getCanvas(canvasId: string = DEFAULT_CANVAS_ID): HTMLCanvasElement | null {
-    const element = document.getElementById(canvasId);
+export function getCanvas(canvasID: string = DEFAULT_CANVAS_ID): HTMLCanvasElement | null {
+    const element = document.getElementById(canvasID);
     let canvas: HTMLCanvasElement | null = null;
 
     if (!element) {
-        console.error(`[BT] Canvas element with id '${canvasId}' not found`);
+        console.error(`[BT] Canvas element with id '${canvasID}' not found`);
     } else if (!(element instanceof HTMLCanvasElement)) {
-        console.error(`[BT] Element with id '${canvasId}' is not a canvas element`);
+        console.error(`[BT] Element with id '${canvasID}' is not a canvas element`);
     } else {
         canvas = element;
     }
