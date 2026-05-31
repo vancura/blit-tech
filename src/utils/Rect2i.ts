@@ -340,7 +340,7 @@ export class Rect2i {
      * @param point - Point to test.
      * @returns True if point is inside the rectangle.
      */
-    contains(point: Vector2i): boolean {
+    isContaining(point: Vector2i): boolean {
         return (
             point.x >= this.x && point.x < this.x + this.width && point.y >= this.y && point.y < this.y + this.height
         );
@@ -353,7 +353,7 @@ export class Rect2i {
      * @param py - Y coordinate to test.
      * @returns True if point is inside the rectangle.
      */
-    containsXY(px: number, py: number): boolean {
+    isContainingXY(px: number, py: number): boolean {
         return px >= this.x && px < this.x + this.width && py >= this.y && py < this.y + this.height;
     }
 

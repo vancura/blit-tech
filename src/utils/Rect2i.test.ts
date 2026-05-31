@@ -382,32 +382,32 @@ describe('Rect2i', () => {
 
     // #region Intersection Tests
 
-    describe('contains', () => {
+    describe('isContaining', () => {
         it('should return true for a point inside', () => {
             const r = new Rect2i(0, 0, 100, 100);
 
-            expect(r.contains(new Vector2i(50, 50))).toBe(true);
+            expect(r.isContaining(new Vector2i(50, 50))).toBe(true);
         });
 
         it('should return true for a point on the min edge (inclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(10, 20))).toBe(true);
+            expect(r.isContaining(new Vector2i(10, 20))).toBe(true);
         });
 
         it('should return false for a point on the max edge (exclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(110, 120))).toBe(false);
-            expect(r.contains(new Vector2i(110, 50))).toBe(false);
-            expect(r.contains(new Vector2i(50, 120))).toBe(false);
+            expect(r.isContaining(new Vector2i(110, 120))).toBe(false);
+            expect(r.isContaining(new Vector2i(110, 50))).toBe(false);
+            expect(r.isContaining(new Vector2i(50, 120))).toBe(false);
         });
 
         it('should return false for a point outside', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(0, 0))).toBe(false);
-            expect(r.contains(new Vector2i(200, 200))).toBe(false);
+            expect(r.isContaining(new Vector2i(0, 0))).toBe(false);
+            expect(r.isContaining(new Vector2i(200, 200))).toBe(false);
         });
     });
 
@@ -415,25 +415,25 @@ describe('Rect2i', () => {
         it('should return true for a point inside', () => {
             const r = new Rect2i(0, 0, 100, 100);
 
-            expect(r.containsXY(50, 50)).toBe(true);
+            expect(r.isContainingXY(50, 50)).toBe(true);
         });
 
         it('should return true for min edge (inclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(10, 20)).toBe(true);
+            expect(r.isContainingXY(10, 20)).toBe(true);
         });
 
         it('should return false for max edge (exclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(110, 120)).toBe(false);
+            expect(r.isContainingXY(110, 120)).toBe(false);
         });
 
         it('should return false for a point outside', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(0, 0)).toBe(false);
+            expect(r.isContainingXY(0, 0)).toBe(false);
         });
     });
 

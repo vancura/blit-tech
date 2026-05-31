@@ -165,7 +165,7 @@ describe('hitTestPaletteSwatch', () => {
                 layout.displayWidth,
             ),
         ).toBe(index);
-        expect(layout.toggleRect.contains(new Vector2i(swatch.x + 1, swatch.y + 1))).toBe(true);
+        expect(layout.toggleRect.isContaining(new Vector2i(swatch.x + 1, swatch.y + 1))).toBe(true);
     });
 });
 
