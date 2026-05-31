@@ -9,7 +9,7 @@
 export interface KeyboardAttachOptions {
     /**
      * Returns the current fixed-update tick (same as `BT.ticks`).
-     * Used when recording first key-down time for `keyPressed(..., repeatRate)`.
+     * Used when recording first key-down time for `isKeyPressed(..., repeatRate)`.
      */
     getTicks: () => number;
 }
@@ -136,13 +136,13 @@ export class KeyboardInput {
      * @returns `true` on the initial press edge or on repeat ticks when configured.
      */
     public isKeyPressed(code: string, repeatRate: number | undefined, currentTick: number): boolean {
-        const edge = this.held.has(code) && !this.prevHeld.has(code);
+        const isPressEdge = this.held.has(code) && !this.prevHeld.has(code);
 
         if (repeatRate === undefined || repeatRate <= 0) {
-            return edge;
+            return isPressEdge;
         }
 
-        if (edge) {
+        if (isPressEdge) {
             return true;
         }
 
@@ -213,14 +213,14 @@ export class KeyboardInput {
             return false;
         }
 
-        const down = this.isButtonDown(codes);
-        const prevDown = codes.some((c) => this.prevHeld.has(c));
+        const isDown = this.isButtonDown(codes);
+        const isPrevDown = codes.some((c) => this.prevHeld.has(c));
 
-        if (!down) {
+        if (!isDown) {
             return false;
         }
 
-        if (!prevDown) {
+        if (!isPrevDown) {
             return true;
         }
 

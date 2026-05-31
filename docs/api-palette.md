@@ -161,7 +161,7 @@ const slot = palette.findColor(color); // → index, or -1 if not found
 
 Animated effects run automatically each frame in the engine's end-of-frame pass (after `demo.render()`, before the GPU
 upload). Multiple effects can run simultaneously on different palette ranges and will not conflict. Effects process via
-the `dirty` flag - no polling needed.
+the `isDirty` flag - no polling needed.
 
 ```ts
 // Cycle a range of slots (water, fire, plasma)

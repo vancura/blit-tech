@@ -66,7 +66,7 @@ type BitmapTextCommand = {
 type DrawCommand = PrimitiveCommand | SpriteCommand | BitmapTextCommand;
 
 /** Pending `captureFrame` promise callbacks, held until the next `endFrame`. */
-type PendingCapture = {
+type Pending = {
     resolve: (blob: Blob) => void;
     reject: (reason?: unknown) => void;
 };
@@ -110,7 +110,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private readonly commands: DrawCommand[] = [];
     private readonly framePixels: Uint8ClampedArray;
     private imageData: ImageData | null = null;
-    private pendingCapture: PendingCapture | null = null;
+    private pending: Pending | null = null;
     private primitiveSubmittedVertices = 0;
     private spriteSubmittedVertices = 0;
 
@@ -238,7 +238,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         }
 
         this.presentFrame();
-        this.resolvePendingCapture();
+        this.resolvePending();
         this.commands.length = 0;
     }
 
@@ -445,8 +445,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * @returns Promise that resolves with the captured frame as a PNG `Blob`.
      */
     captureFrame(): Promise<Blob> {
-        if (this.pendingCapture) {
-            this.pendingCapture.reject(
+        if (this.pending) {
+            this.pending.reject(
                 new Error(
                     'A capture is already in progress. Wait for the first captureFrame() to finish before requesting another.',
                 ),
@@ -454,7 +454,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         }
 
         return new Promise<Blob>((resolve, reject) => {
-            this.pendingCapture = { resolve, reject };
+            this.pending = { resolve, reject };
         });
     }
 
@@ -893,28 +893,28 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
     /**
      * Resolves or rejects the pending `captureFrame` promise using `canvas.toBlob`.
-     * Clears `pendingCapture` after handling.
+     * Clears `pending` after handling.
      */
-    private resolvePendingCapture(): void {
-        if (!this.pendingCapture) {
+    private resolvePending(): void {
+        if (!this.pending) {
             return;
         }
 
         if (typeof this.canvas.toBlob !== 'function') {
-            this.pendingCapture.reject(
+            this.pending.reject(
                 new Error(
                     "Can't save this frame - your browser doesn't support canvas image export. Try Chrome or Edge.",
                 ),
             );
 
-            this.pendingCapture = null;
+            this.pending = null;
 
             return;
         }
 
-        const request = this.pendingCapture;
+        const request = this.pending;
 
-        this.pendingCapture = null;
+        this.pending = null;
         this.canvas.toBlob((blob) => {
             if (!blob) {
                 request.reject(

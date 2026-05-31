@@ -344,7 +344,7 @@ describe('drawSprite', () => {
         const sheet = new SpriteSheet(mockImage);
 
         try {
-            // MAX_SPRITE_VERTICES = 50,000, each sprite = 6 vertices * 5 values (20 bytes)
+            // MAX_VERTICES = 50,000, each sprite = 6 vertices * 5 values (20 bytes)
             // 50,000 / 6 = ~8333 sprites max; draw more to trigger overflow
             for (let i = 0; i < 8400; i++) {
                 pipeline.drawSprite(sheet, new Rect2i(0, 0, 8, 8), new Vector2i(0, 0));

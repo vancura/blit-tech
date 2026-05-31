@@ -30,7 +30,7 @@ export class BarrelDistortion extends FullscreenEffect {
     /** vec2 resolution + curvature + 1 padding f32 = 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = BARREL_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution and curvature into the uniform block.
@@ -51,7 +51,7 @@ export class BarrelDistortion extends FullscreenEffect {
     }
 }
 
-const BARREL_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     curvature: f32,

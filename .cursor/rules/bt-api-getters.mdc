@@ -25,8 +25,24 @@ Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use prope
 ## Keep as methods
 
 - Mutations and draws: `cameraSet`, `paletteSet`, `drawSprite`, `effectAdd`, …
-- Any **parameter**: `pointerPos(0)`, `buttonDown(BT.BTN_A)`, `cameraClamp(...)`
+- Any **parameter**: `pointerPos(0)`, `isDown(BT.BTN_A)`, `cameraClamp(...)`
+- **Boolean queries with parameters** (Tier A; always methods on `BT`): `isPointerActive(0)`, `isDown(...)`,
+  `isPressed(...)`, `isReleased(...)`, `isKeyDown(...)`, `isKeyPressed(...)`, `isKeyReleased(...)`
+- **Side-effect booleans** (Tier C): `Timer.fireIfElapsed()` — not `is*` because the call advances state
 - **Async**: `captureFrame`, `downloadFrame`
+
+## Boolean naming (three tiers)
+
+| Tier | Use | Examples |
+| ---- | --- | -------- |
+| **A** Runtime queries | `is*` / `has*` | `isPointerActive`, `isIndexed`, `hasGlyph`, `Palette.isDirty` |
+| **B** Configure flags | grammatical `is*` | `isOverlayEnabled`, `isDetectingDroppedFrames`, `isOverlayPaletteEnabled` |
+| **C** Side effects / results | imperative verbs | `fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolean>` |
+
+- Use **`-ing`** for configure flags that enable ongoing behavior (`isDetectingDroppedFrames`).
+- **Hold vs edge on `BT`:** `isDown` / `isKeyDown`; `isPressed` / `isReleased`; `isKeyPressed` / `isKeyReleased`.
+  Internal input classes mirror those names. No embedded second `Is` — audit with `\bis[A-Za-z]+Is[A-Z]`.
+- Identifier acronyms: `canvasID`, `containerID` (not `canvasId`).
 
 ## Naming
 
@@ -41,4 +57,4 @@ Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use prope
 3. Mirrors configure? → **same field name** as `HardwareSettings` (exception: derived getters like `outputSize` have no field)
 4. Update `docs/api-*.md`, `CLAUDE.md`, demos if public
 
-See `CLAUDE.md` section **BT API: getters vs methods** and `docs/api-core.md`.
+See `CLAUDE.md` section **BT API: getters vs methods**, **Boolean naming**, **Internal scoped naming**, and `docs/api-core.md`.

@@ -340,10 +340,21 @@ export class Rect2i {
      * @param point - Point to test.
      * @returns True if point is inside the rectangle.
      */
-    contains(point: Vector2i): boolean {
+    isContaining(point: Vector2i): boolean {
         return (
             point.x >= this.x && point.x < this.x + this.width && point.y >= this.y && point.y < this.y + this.height
         );
+    }
+
+    /**
+     * Backward-compatible alias for {@link isContaining}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isContaining} instead.
+     * @param point - Point to test.
+     * @returns True if point is inside the rectangle.
+     */
+    contains(point: Vector2i): boolean {
+        return this.isContaining(point);
     }
 
     /**
@@ -353,8 +364,20 @@ export class Rect2i {
      * @param py - Y coordinate to test.
      * @returns True if point is inside the rectangle.
      */
-    containsXY(px: number, py: number): boolean {
+    isContainingXY(px: number, py: number): boolean {
         return px >= this.x && px < this.x + this.width && py >= this.y && py < this.y + this.height;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isContainingXY}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isContainingXY} instead.
+     * @param px - X coordinate to test.
+     * @param py - Y coordinate to test.
+     * @returns True if point is inside the rectangle.
+     */
+    containsXY(px: number, py: number): boolean {
+        return this.isContainingXY(px, py);
     }
 
     /**
@@ -363,7 +386,7 @@ export class Rect2i {
      * @param other - Rectangle to test against.
      * @returns True if rectangles overlap.
      */
-    intersects(other: Rect2i): boolean {
+    isIntersecting(other: Rect2i): boolean {
         return !(
             other.x >= this.x + this.width ||
             other.x + other.width <= this.x ||
@@ -373,13 +396,24 @@ export class Rect2i {
     }
 
     /**
+     * Backward-compatible alias for {@link isIntersecting}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isIntersecting} instead.
+     * @param other - Rectangle to test against.
+     * @returns True if rectangles overlap.
+     */
+    intersects(other: Rect2i): boolean {
+        return this.isIntersecting(other);
+    }
+
+    /**
      * Calculates the overlapping region of two rectangles.
      *
      * @param other - Rectangle to intersect with.
      * @returns New rectangle representing the overlap, or null if no overlap.
      */
     intersection(other: Rect2i): Rect2i | null {
-        if (!this.intersects(other)) {
+        if (!this.isIntersecting(other)) {
             return null;
         }
 
@@ -399,8 +433,8 @@ export class Rect2i {
      * @param out - Rectangle to write the result to.
      * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
      */
-    intersectionTo(other: Rect2i, out: Rect2i): boolean {
-        if (!this.intersects(other)) {
+    intersectTo(other: Rect2i, out: Rect2i): boolean {
+        if (!this.isIntersecting(other)) {
             return false;
         }
 
@@ -416,14 +450,26 @@ export class Rect2i {
     }
 
     /**
+     * Backward-compatible alias for {@link intersectTo}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link intersectTo} instead.
+     * @param other - Rectangle to intersect with.
+     * @param out - Rectangle to write the result to.
+     * @returns True if intersection exists (out is valid), false otherwise (out unchanged).
+     */
+    intersectionTo(other: Rect2i, out: Rect2i): boolean {
+        return this.intersectTo(other, out);
+    }
+
+    /**
      * Calculates intersection depth for collision resolution.
      * Returns how much the rectangles overlap in each axis.
      * Useful for pushing objects apart after collision detection.
      *
      * Note: Creates a new Vector2i. Use intersectionDepthTo() in hot paths.
      *
-     * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they don't overlap, the returned depths
+     * Assumes this rectangle already isIntersecting {@link other}. Call
+     * {@link isIntersecting} first; if they don't overlap, the returned depths
      * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
@@ -447,8 +493,8 @@ export class Rect2i {
      * Calculates intersection depth and writes to an existing vector.
      * Zero allocation alternative to intersectionDepth().
      *
-     * Assumes this rectangle already intersects {@link other}. Call
-     * {@link intersects} first; if they don't overlap, the returned depths
+     * Assumes this rectangle already isIntersecting {@link other}. Call
+     * {@link isIntersecting} first; if they don't overlap, the returned depths
      * may be zero or negative and aren't meaningful for resolution.
      *
      * @param other - Rectangle to measure overlap with.
@@ -478,8 +524,19 @@ export class Rect2i {
      * @param other - Rectangle to compare with.
      * @returns True if position and size are identical.
      */
-    equals(other: Rect2i): boolean {
+    isEqual(other: Rect2i): boolean {
         return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Rectangle to compare with.
+     * @returns True if position and size are identical.
+     */
+    equals(other: Rect2i): boolean {
+        return this.isEqual(other);
     }
 
     /**

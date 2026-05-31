@@ -9,7 +9,7 @@ import { Vector2i } from '../utils/Vector2i';
  * Note: Axis-aligned lines are optimized to use 6 vertices total instead of
  * 6 vertices per pixel, dramatically reducing buffer requirements.
  */
-const MAX_PRIMITIVE_VERTICES = 50000;
+const MAX_VERTICES = 50000;
 
 /**
  * Number of 4-byte values per vertex: x (f32), y (f32), paletteIndex (u32).
@@ -99,7 +99,7 @@ export class PrimitivePipeline {
      * Call `init()` before encoding GPU work.
      */
     constructor() {
-        this.vertexArrayBuffer = new ArrayBuffer(MAX_PRIMITIVE_VERTICES * VERTEX_STRIDE);
+        this.vertexArrayBuffer = new ArrayBuffer(MAX_VERTICES * VERTEX_STRIDE);
         this.vertexFloats = new Float32Array(this.vertexArrayBuffer);
         this.vertexIndices = new Uint32Array(this.vertexArrayBuffer);
     }

@@ -17,7 +17,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createMockGPUDevice } from '../__test__/webgpu-mock';
-import { collectUsedRenderPaletteIndices, resetRenderPaletteUsage } from '../core/RenderPaletteUsage';
+import { collectUsedIndices, resetUsage } from '../core/RenderPaletteUsage';
 import { AssetLimitError, MAX_ASSET_DIMENSION, MAX_ASSET_PIXELS } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { Rect2i } from '../utils/Rect2i';
@@ -175,10 +175,10 @@ describe('SpriteSheet', () => {
 
     // #region Indexization
 
-    describe('isIndexized', () => {
+    describe('isIndexed', () => {
         it('returns false before indexize is called', () => {
             const sheet = new SpriteSheet(mockImage);
-            expect(sheet.isIndexized()).toBe(false);
+            expect(sheet.isIndexed()).toBe(false);
         });
     });
 
@@ -188,14 +188,14 @@ describe('SpriteSheet', () => {
             vi.unstubAllGlobals();
         });
 
-        it('sets isIndexized to true after conversion', () => {
+        it('sets isIndexed to true after conversion', () => {
             // Default stub from setup.ts returns all-zero pixels (all transparent).
             const palette = new Palette(16);
             const sheet = new SpriteSheet(mockImage);
 
             sheet.indexize(palette);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('maps transparent pixels (alpha=0) to palette index 0', () => {
@@ -204,7 +204,7 @@ describe('SpriteSheet', () => {
             const sheet = new SpriteSheet({ width: 2, height: 2 } as HTMLImageElement);
 
             expect(() => sheet.indexize(palette)).not.toThrow();
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('maps opaque pixels to the matching palette index', () => {
@@ -221,7 +221,7 @@ describe('SpriteSheet', () => {
             const sheet = new SpriteSheet({ width: w, height: h } as HTMLImageElement);
             sheet.indexize(palette);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('throws when an opaque pixel color is not in the palette', () => {
@@ -410,7 +410,7 @@ describe('SpriteSheet', () => {
             expect(loadOrder).toBeLessThan(indexizeOrder);
             expect(result.sheet).toBe(sheet);
             expect(result.colors).toBe(colors);
-            expect(result.srcRect.equals(new Rect2i(0, 0, 12, 8))).toBe(true);
+            expect(result.srcRect.isEqual(new Rect2i(0, 0, 12, 8))).toBe(true);
         });
 
         it('forwards sort option to color registration', async () => {
@@ -585,9 +585,9 @@ describe('SpriteSheet', () => {
             );
 
             const after = [13, 14, 15].map((i) => palette.get(i));
-            expect(after[0]?.equals(before[0] as Color32)).toBe(true);
-            expect(after[1]?.equals(before[1] as Color32)).toBe(true);
-            expect(after[2]?.equals(before[2] as Color32)).toBe(true);
+            expect(after[0]?.isEqual(before[0] as Color32)).toBe(true);
+            expect(after[1]?.isEqual(before[1] as Color32)).toBe(true);
+            expect(after[2]?.isEqual(before[2] as Color32)).toBe(true);
         });
     });
 
@@ -608,7 +608,7 @@ describe('SpriteSheet', () => {
             const pixels = new Uint8Array(8 * 8) as Uint8Array<ArrayBuffer>;
             const sheet = SpriteSheet.fromIndexedPixels(8, 8, pixels);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('throws on indexize (no source image)', () => {
@@ -735,7 +735,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 4, 4), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([1, 2, 3]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([1, 2, 3]);
         });
 
         it('applies palette offset when marking resolved slots', () => {
@@ -746,7 +746,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 4, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([5, 6]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([5, 6]);
         });
 
         it('ignores transparent sheet pixels and leaves the mask unchanged when none are used', () => {
@@ -757,7 +757,7 @@ describe('SpriteSheet', () => {
 
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 2, 2), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
         });
 
         it('is a no-op when the sheet is not indexized', () => {
@@ -765,10 +765,10 @@ describe('SpriteSheet', () => {
             const mask = new Uint8Array(16);
             const scratch: number[] = [];
 
-            resetRenderPaletteUsage(mask);
+            resetUsage(mask);
             sheet.markPaletteIndicesInRect(new Rect2i(0, 0, 16, 16), 0, mask);
 
-            expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+            expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
         });
     });
 

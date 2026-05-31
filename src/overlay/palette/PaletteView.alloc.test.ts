@@ -7,12 +7,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
-import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
+import { markIndexUsed } from '../../core/RenderPaletteUsage';
 import type * as Rect2iModule from '../../utils/Rect2i';
 import { Rect2i } from '../../utils/Rect2i';
 import { createOverlayLayout } from '../layout/layoutHelpers';
 import { hintBarY, paletteBandY } from '../layout/layoutPlan';
-import { computePaletteGrid, DEFAULT_PALETTE_SWATCH_SIZE, PaletteView } from './PaletteView';
+import { computeGrid, DEFAULT_PALETTE_SWATCH_SIZE, PaletteView } from './PaletteView';
 
 // #endregion
 
@@ -42,7 +42,7 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
     const mask = new Uint8Array(size);
 
     for (const index of indices) {
-        markRenderPaletteIndexUsed(mask, index);
+        markIndexUsed(mask, index);
     }
 
     return mask;
@@ -61,7 +61,7 @@ describe('PaletteView allocation', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const palette = Palette.cga();
         const usedMask = buildUsageMask([1, 2, 3]);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
         const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new PaletteView(true);
         const renderer = { drawBarFill: vi.fn() } as never;
@@ -101,7 +101,7 @@ describe('PaletteView allocation', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const palette = Palette.vga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5]);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size);
         const paletteBand = new Rect2i(0, paletteBandY(240, grid.totalHeight), 320, grid.totalHeight);
         const view = new PaletteView(true);
         const renderer = { drawBarFill: vi.fn() } as never;

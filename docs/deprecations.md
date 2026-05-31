@@ -1,0 +1,56 @@
+# Deprecation Timeline
+
+Central tracker for public API compatibility aliases and planned removals.
+
+Use this file as the single source of truth when pruning old names.
+
+---
+
+## 2026-05-31 - compatibility aliases added
+
+These aliases were introduced to preserve backward compatibility after the API naming refactor.
+
+### `BT` namespace
+
+- `BT.pointerPosValid()` -> `BT.isPointerActive()`
+- `BT.buttonDown()` -> `BT.isDown()`
+- `BT.buttonPressed()` -> `BT.isPressed()`
+- `BT.buttonReleased()` -> `BT.isReleased()`
+- `BT.gamepadConnected()` -> `BT.isGamepadConnected()`
+- `BT.keyDown()` -> `BT.isKeyDown()`
+- `BT.keyPressed()` -> `BT.isKeyPressed()`
+- `BT.keyReleased()` -> `BT.isKeyReleased()`
+
+### `HardwareSettings` compatibility fields
+
+- `detectDroppedFrames` -> `isDetectingDroppedFrames`
+- `overlayEnabled` -> `isOverlayEnabled`
+- `overlayVisibleAtStart` -> `isOverlayVisibleAtStart`
+- `overlayToggleHintVisible` -> `isOverlayToggleHintVisible`
+- `overlayToggleEnabled` -> `isOverlayToggleEnabled`
+- `overlayPaletteView` -> `isOverlayPaletteEnabled`
+- `overlayTimingChart` -> `isOverlayTimingChartEnabled`
+- `overlayRendererDiagnosticsBar` -> `isOverlayRendererDiagnosticsBarEnabled`
+
+### `BootstrapOptions` compatibility fields
+
+- `canvasId` -> `canvasID`
+- `containerId` -> `containerID`
+- `waitForDOMReady` -> `isWaitingForDOMReady`
+
+### Class method aliases
+
+- `SpriteSheet.isIndexized()` -> `SpriteSheet.isIndexed()`
+- `Timer.tick()` -> `Timer.fireIfElapsed()`
+- `Vector2i.equals()` -> `Vector2i.isEqual()`
+- `Rect2i.contains()` -> `Rect2i.isContaining()`
+- `Rect2i.containsXY()` -> `Rect2i.isContainingXY()`
+- `Rect2i.intersects()` -> `Rect2i.isIntersecting()`
+- `Rect2i.intersectionTo()` -> `Rect2i.intersectTo()`
+- `Rect2i.equals()` -> `Rect2i.isEqual()`
+- `Color32.equals()` -> `Color32.isEqual()`
+
+### Removal checklist
+
+- Search for `@deprecated Deprecated since 2026-05-31` in `src/`.
+- Remove aliases only after confirming downstream demos/apps have migrated.

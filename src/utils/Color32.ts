@@ -57,7 +57,7 @@ export class Color32 {
     private static readonly _magenta: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 0, 255, 255));
 
     /** Internal named-color registry used by string color resolution. */
-    private static readonly namedColors: Map<string, Color32> = Color32.createNamedColorMap();
+    private static readonly namedColors: Map<string, Color32> = Color32.createNamedMap();
 
     // #endregion
 
@@ -555,7 +555,7 @@ export class Color32 {
      * @param other - Color to compare with.
      * @returns True if all RGBA channels are identical.
      */
-    equals(other: Color32): boolean {
+    isEqual(other: Color32): boolean {
         // Simple comparison with early exit on the first mismatch.
         // Modern JS engines optimize this well.
         return (
@@ -566,6 +566,17 @@ export class Color32 {
             this.b === other.b &&
             this.a === other.a
         );
+    }
+
+    /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Color to compare with.
+     * @returns True if all RGBA channels are identical.
+     */
+    equals(other: Color32): boolean {
+        return this.isEqual(other);
     }
 
     // #endregion
@@ -818,7 +829,7 @@ export class Color32 {
      *
      * @returns Map of normalized names to frozen singleton Color32 values.
      */
-    private static createNamedColorMap(): Map<string, Color32> {
+    private static createNamedMap(): Map<string, Color32> {
         const map = new Map<string, Color32>();
         const define = (name: string, r: number, g: number, b: number, a: number = 255): void => {
             map.set(name, Object.freeze(Color32.fromRGBAUnchecked(r, g, b, a)));

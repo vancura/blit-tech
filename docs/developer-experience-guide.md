@@ -76,6 +76,7 @@ exceptions: [audit-exceptions.md](security/audit-exceptions.md).
 | [Input Guide](input.md)                                     | pointer, keyboard, gamepad                             |
 | [Post-Process Effects](post-process-effects.md)             | effect chain, built-in effects, custom effects         |
 | [Bitmap Fonts](bitmap-fonts.md)                             | .btfont format, BMFont conversion                      |
+| [Deprecation Timeline](deprecations.md)                     | dated compatibility aliases and cleanup checklist      |
 | [Testing](testing.md)                                       | test tiers, WebGPU mocks, visual regression            |
 | [Performance Testing](performance-testing.md)               | CPU benchmarks, CI regression checks                   |
 | [Performance Best Practices](performance-best-practices.md) | optimization guidelines                                |
@@ -132,6 +133,12 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 - Constants: `SCREAMING_SNAKE_CASE` for module-level; camelCase for local
 - Named exports only; no default exports
 - JSDoc required for all public API members
+- **Internal scoped naming:** private fields, private methods, protected members, and module-local constants/types
+  **must not repeat the class or file name** (context already scopes them). Examples: `FrameCapture.request()` not
+  `requestCapture()`; `FRAGMENT_WGSL` in `Bloom.ts` not `BLOOM_FRAGMENT_WGSL`; file-local `Serialized` in `Palette.ts`
+  not `PaletteJSON` or `JSON`. Does **not** apply to `BT.*`, barrel exports, or public class methods. JSDoc that points
+  at public API uses full public names (`BT.BTN_POINTER_A`, not shortened internal aliases). See
+  [CLAUDE.md](../CLAUDE.md) (**Internal scoped naming**).
 - **`BT` getters vs methods:** zero-argument read-only snapshots are getters (`BT.displaySize.y`); actions,
   parameterized queries, and async work are methods (`BT.cameraSet`, `BT.pointerPos(0)`). Full rules:
   [CLAUDE.md](../CLAUDE.md) (**BT API: getters vs methods**).
@@ -140,6 +147,22 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
   configure field. Keep acronym spelling consistent (`targetFPS`, not `targetFps`). Runtime-only reads use descriptive
   names (`activeBackend`, `requestedBackend`, `ticks`, `deltaSeconds`). Use `activeBackend` for runtime capability
   checks; `requestedBackend` mirrors resolved `HardwareSettings.backend` (including `?backend=software`).
+
+**Boolean naming (three tiers):**
+
+| Tier                                          | Use                         | Examples                                                                   |
+| --------------------------------------------- | --------------------------- | -------------------------------------------------------------------------- |
+| **A** Runtime read-only queries               | `is*` / `has*`              | `isPointerActive`, `isIndexed`, `hasGlyph`, `isDirty`                      |
+| **B** `HardwareSettings` / `BootstrapOptions` | grammatical `is*`           | `isOverlayEnabled`, `isDetectingDroppedFrames`                             |
+| **C** Side effects / operation results        | imperative verbs, not `is*` | `fireIfElapsed()`, `intersectTo(other, out): boolean`, `remove(): boolean` |
+
+- Use **`-ing`** for configure flags that enable ongoing behavior (`isDetectingDroppedFrames`, not
+  `isDetectDroppedFrames`).
+- **Hold vs edge on `BT`:** `isDown` / `isKeyDown` (held), `isPressed` / `isReleased` (button masks), `isKeyPressed` /
+  `isKeyReleased` (keyboard codes). Internal input classes use the same names (`PointerInput.isButtonDown`,
+  `KeyboardInput.isKeyDown`, `GamepadInput.isButtonDown`). Do **not** embed a second `Is` in the identifier
+  (`isKeyPressed` — grep: `\bis[A-Za-z]+Is[A-Z]`).
+- Identifier acronyms use both capitals: `canvasID`, `containerID` (not `canvasId`).
 
 ---
 

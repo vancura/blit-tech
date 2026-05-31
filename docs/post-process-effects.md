@@ -148,7 +148,7 @@ interface HardwareSettings {
   drawingBufferSize?: Vector2i; // drives drawing buffer + CSS, enables display tier
   outputUpscaleFilter?: 'nearest' | 'linear'; // default 'nearest'
   targetFPS: number;
-  detectDroppedFrames?: boolean;
+  isDetectingDroppedFrames?: boolean;
   backend?: 'webgpu' | 'software'; // default 'webgpu'; 'software' disables all post-process effects
 }
 ```

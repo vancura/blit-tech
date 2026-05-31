@@ -1542,59 +1542,59 @@ describe('Vector2i', () => {
     // #region Comparison
 
     describe('Comparison', () => {
-        describe('equals', () => {
+        describe('isEqual', () => {
             it('should return true for equal vectors', () => {
                 const a = new Vector2i(3, 5);
                 const b = new Vector2i(3, 5);
 
-                expect(a.equals(b)).toBe(true);
+                expect(a.isEqual(b)).toBe(true);
             });
 
             it('should return false for different x', () => {
                 const a = new Vector2i(3, 5);
                 const b = new Vector2i(4, 5);
 
-                expect(a.equals(b)).toBe(false);
+                expect(a.isEqual(b)).toBe(false);
             });
 
             it('should return false for different y', () => {
                 const a = new Vector2i(3, 5);
                 const b = new Vector2i(3, 6);
 
-                expect(a.equals(b)).toBe(false);
+                expect(a.isEqual(b)).toBe(false);
             });
 
             it('should return true for two zero vectors', () => {
                 const a = new Vector2i(0, 0);
                 const b = new Vector2i(0, 0);
 
-                expect(a.equals(b)).toBe(true);
+                expect(a.isEqual(b)).toBe(true);
             });
         });
 
-        describe('equalsXY', () => {
+        describe('isEqualXY', () => {
             it('should return true for matching coordinates', () => {
                 const v = new Vector2i(3, 5);
 
-                expect(v.equalsXY(3, 5)).toBe(true);
+                expect(v.isEqualXY(3, 5)).toBe(true);
             });
 
             it('should return false for non-matching coordinates', () => {
                 const v = new Vector2i(3, 5);
 
-                expect(v.equalsXY(4, 5)).toBe(false);
+                expect(v.isEqualXY(4, 5)).toBe(false);
             });
 
             it('should truncate float arguments before comparing', () => {
                 const v = new Vector2i(3, 5);
 
-                expect(v.equalsXY(3.9, 5.1)).toBe(true);
+                expect(v.isEqualXY(3.9, 5.1)).toBe(true);
             });
 
             it('should handle negative truncation correctly', () => {
                 const v = new Vector2i(-2, -5);
 
-                expect(v.equalsXY(-2.3, -5.8)).toBe(true);
+                expect(v.isEqualXY(-2.3, -5.8)).toBe(true);
             });
         });
 

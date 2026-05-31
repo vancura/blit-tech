@@ -32,7 +32,7 @@ Examples:
 - `Vector2i.add()` vs `Vector2i.addInPlace()`
 - `Color32.toFloat32Array()` vs `Color32.writeToFloat32Array()`
 - `BitmapFont.measureText()` cold vs warm cache
-- `Rect2i.containsXY()` vs `Rect2i.contains()`
+- `Rect2i.isContainingXY()` vs `Rect2i.isContaining()`
 
 ---
 

@@ -22,9 +22,9 @@ import { Toggle } from './input/Toggle';
 import { buildOverlayLayoutPlan, createDefaultLayoutConfig, createOverlayLayoutPlanScratch } from './layout/layoutPlan';
 import type { OverlayLayout, OverlayLayoutConfig, OverlayLayoutPlan } from './layout/types';
 import type { OverlayRenderer } from './OverlayDrawTarget';
-import { drawOverlayToggleIcon } from './OverlayToggleIcon';
+import { toggleIcon } from './OverlayToggleIcon';
 import { PaletteInteraction } from './palette/PaletteInteraction';
-import { computePaletteGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
+import { computeGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
 import { FpsSampler } from './sampling/FpsSampler';
 import { TimingSampler } from './sampling/TimingSampler';
 import { DEFAULT_TIMING_CHART_HEIGHT } from './timing-chart/constants';
@@ -42,7 +42,7 @@ const EMPTY_PALETTE_USAGE_MASK = new Uint8Array(0);
  * @param style - Optional configure-time overlay style.
  * @returns Resolved palette indices for overlay chrome.
  */
-function resolveOverlayStyleIndices(style?: OverlayStyle): { bg: number; gap: number; text: number } {
+function resolveStyleIndices(style?: OverlayStyle): { bg: number; gap: number; text: number } {
     const bg = style?.barPaletteIndex ?? DEFAULT_IDX_BG;
     const text = style?.textPaletteIndex ?? DEFAULT_IDX_TEXT;
 
@@ -53,20 +53,20 @@ function resolveOverlayStyleIndices(style?: OverlayStyle): { bg: number; gap: nu
  * Creates a timing chart instance and resets its ring buffer when enabled.
  *
  * @param layout - Cached display layout.
- * @param enabled - Whether the timing chart band is active.
+ * @param isEnabled - Whether the timing chart band is active.
  * @param targetFps - Configured fixed-update rate.
  * @param diagnosticsMode - Renderer diagnostic visualization mode.
  * @returns Configured {@link TimingChart} for the overlay.
  */
-function createOverlayTimingChart(
+function createTimingChart(
     layout: OverlayLayout,
-    enabled: boolean,
+    isEnabled: boolean,
     targetFps: number,
     diagnosticsMode: OverlayTimingChartDiagnosticsMode,
 ): TimingChart {
-    const chart = new TimingChart(enabled, targetFps, enabled ? diagnosticsMode : false);
+    const chart = new TimingChart(isEnabled, targetFps, isEnabled ? diagnosticsMode : false);
 
-    if (enabled) {
+    if (isEnabled) {
         chart.reset(layout.displayWidth, 0);
     }
 
@@ -77,7 +77,7 @@ function createOverlayTimingChart(
  * Screen-space overlay HUD rendered after demo content each frame.
  *
  * Internal to the engine; demos do not instantiate this class. Use
- * {@link HardwareSettings.overlayEnabled} and {@link BT.activeBackend} instead.
+ * {@link HardwareSettings.isOverlayEnabled} and {@link BT.activeBackend} instead.
  */
 export class Overlay {
     // #region Fields
@@ -96,7 +96,7 @@ export class Overlay {
 
     readonly #toggle: Toggle;
 
-    readonly #toggleHintVisible: boolean;
+    readonly #isToggleHintVisible: boolean;
 
     readonly #bars: OverlayBars = new OverlayBars();
 
@@ -104,7 +104,7 @@ export class Overlay {
 
     readonly #timingChartHeight: number;
 
-    readonly #rendererDiagnosticsBarEnabled: boolean;
+    readonly #isOverlayRendererDiagnosticsBarEnabled: boolean;
 
     readonly #timingChartStyle: TimingChartDrawStyle;
 
@@ -138,17 +138,17 @@ export class Overlay {
      * @param targetFps - Configured fixed-update rate for the target FPS line.
      * @param activeBackend - Backend started by BTAPI (`webgpu` or `software`).
      * @param style - Optional palette indices from {@link HardwareSettings.overlayStyle}.
-     * @param overlayPaletteView - When true, draws the live palette swatch grid.
+     * @param isOverlayPaletteEnabled - When true, draws the live palette swatch grid.
      * @param paletteColumns - Optional max swatches per row from {@link HardwareSettings.overlayPaletteColumns}.
-     * @param overlayPaletteRowsVisible - Optional max visible palette grid rows from {@link HardwareSettings.overlayPaletteRowsVisible}.
-     * @param overlayTimingChart - When true, draws the update/render timing chart band.
-     * @param overlayTimingChartStyle - Optional timing chart palette overrides.
-     * @param overlayTimingChartHeight - Chart band height in pixels (default 22).
-     * @param overlayTimingChartDiagnostics - Chart renderer diagnostic mode (`minimal`, `rich`, or `false`).
-     * @param overlayRendererDiagnosticsBar - When true, draws the GPU diagnostics text row.
-     * @param overlayVisibleAtStart - Initial overlay body visibility (default false).
-     * @param overlayToggleHintVisible - Draw toggle hint while body hidden (default true).
-     * @param overlayToggleEnabled - Enable Backquote and corner toggle input (default true).
+     * @param paletteRowsVisible - Optional max visible palette grid rows from {@link HardwareSettings.overlayPaletteRowsVisible}.
+     * @param isOverlayTimingChartEnabled - When true, draws the update/render timing chart band.
+     * @param timingChartStyle - Optional timing chart palette overrides.
+     * @param timingChartHeight - Chart band height in pixels (default 22).
+     * @param timingChartDiagnostics - Chart renderer diagnostic mode (`minimal`, `rich`, or `false`).
+     * @param isOverlayRendererDiagnosticsBarEnabled - When true, draws the GPU diagnostics text row.
+     * @param isOverlayVisibleAtStart - Initial overlay body visibility (default false).
+     * @param isOverlayToggleHintVisible - Draw toggle hint while body hidden (default true).
+     * @param isOverlayToggleEnabled - Enable Backquote and corner toggle input (default true).
      */
     constructor(
         layout: OverlayLayout,
@@ -156,42 +156,39 @@ export class Overlay {
         targetFps: number,
         activeBackend: Backend,
         style?: OverlayStyle,
-        overlayPaletteView = false,
+        isOverlayPaletteEnabled = false,
         paletteColumns?: number,
-        overlayPaletteRowsVisible?: number,
-        overlayTimingChart = false,
-        overlayTimingChartStyle?: OverlayTimingChartStyle,
-        overlayTimingChartHeight?: number,
-        overlayTimingChartDiagnostics: OverlayTimingChartDiagnosticsMode = false,
-        overlayRendererDiagnosticsBar = false,
-        overlayVisibleAtStart = false,
-        overlayToggleHintVisible = true,
-        overlayToggleEnabled = true,
+        paletteRowsVisible?: number,
+        isOverlayTimingChartEnabled = false,
+        timingChartStyle?: OverlayTimingChartStyle,
+        timingChartHeight?: number,
+        timingChartDiagnostics: OverlayTimingChartDiagnosticsMode = false,
+        isOverlayRendererDiagnosticsBarEnabled = false,
+        isOverlayVisibleAtStart = false,
+        isOverlayToggleHintVisible = true,
+        isOverlayToggleEnabled = true,
     ) {
         this.#layout = layout;
         this.#topLeftLabel = topLeftLabel;
         this.#targetFps = targetFps;
         this.#fps = new FpsSampler(this.#targetFps);
-        const indices = resolveOverlayStyleIndices(style);
+
+        const indices = resolveStyleIndices(style);
+
         this.#idxBg = indices.bg;
         this.#idxText = indices.text;
         this.#idxGap = indices.gap;
         this.#topRightLabel = `${activeBackend} | ${layout.displayWidth}x${layout.displayHeight}`;
-        this.#timingChartStyle = resolveTimingChartStyle(style, overlayTimingChartStyle);
-        this.#timingChartHeight = overlayTimingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
-        this.#timingChart = createOverlayTimingChart(
-            layout,
-            overlayTimingChart,
-            targetFps,
-            overlayTimingChartDiagnostics,
-        );
-        this.#rendererDiagnosticsBarEnabled = overlayRendererDiagnosticsBar;
-        this.#paletteView = new PaletteView(overlayPaletteView);
+        this.#timingChartStyle = resolveTimingChartStyle(style, timingChartStyle);
+        this.#timingChartHeight = timingChartHeight ?? DEFAULT_TIMING_CHART_HEIGHT;
+        this.#timingChart = createTimingChart(layout, isOverlayTimingChartEnabled, targetFps, timingChartDiagnostics);
+        this.#isOverlayRendererDiagnosticsBarEnabled = isOverlayRendererDiagnosticsBarEnabled;
+        this.#paletteView = new PaletteView(isOverlayPaletteEnabled);
         this.#paletteInteraction = new PaletteInteraction(targetFps);
         this.#paletteColumns = paletteColumns;
-        this.#paletteRowsVisible = overlayPaletteRowsVisible;
-        this.#toggle = new Toggle(overlayVisibleAtStart, overlayToggleEnabled);
-        this.#toggleHintVisible = overlayToggleHintVisible;
+        this.#paletteRowsVisible = paletteRowsVisible;
+        this.#toggle = new Toggle(isOverlayVisibleAtStart, isOverlayToggleEnabled);
+        this.#isToggleHintVisible = isOverlayToggleHintVisible;
     }
 
     // #endregion
@@ -207,7 +204,7 @@ export class Overlay {
      * @param currentTick - Current fixed-update tick (`BT.ticks`).
      */
     assignTag(label: string | undefined, currentTick: number): void {
-        if (!this.#timingChart.enabled) {
+        if (!this.#timingChart.isEnabled) {
             return;
         }
 
@@ -219,8 +216,8 @@ export class Overlay {
      *
      * @returns `true` while metrics bars and palette grid are rendered.
      */
-    get bodyVisible(): boolean {
-        return this.#toggle.bodyVisible;
+    get isBodyVisible(): boolean {
+        return this.#toggle.isBodyVisible;
     }
 
     /**
@@ -231,8 +228,8 @@ export class Overlay {
      *
      * @returns `true` when sprite/text palette usage scanning is needed.
      */
-    get tracksPaletteUsage(): boolean {
-        return this.#paletteView.enabled && this.#toggle.bodyVisible;
+    get isTrackingPaletteUsage(): boolean {
+        return this.#paletteView.isEnabled && this.#toggle.isBodyVisible;
     }
 
     /**
@@ -251,9 +248,9 @@ export class Overlay {
         getCustomRows?: () => readonly OverlayRow[] | undefined,
         palette?: Palette | null,
     ): void {
-        let pointerPressConsumed = false;
+        let isPointerPressConsumed = false;
 
-        if (this.#paletteView.enabled && this.#toggle.bodyVisible) {
+        if (this.#paletteView.isEnabled && this.#toggle.isBodyVisible) {
             const customRows = getCustomRows?.();
             const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
             const grid = layoutConfig.paletteGrid;
@@ -262,7 +259,7 @@ export class Overlay {
             if (grid !== undefined && plan.paletteBand.height > 0) {
                 this.#paletteInteraction.syncScrollBounds(grid);
 
-                pointerPressConsumed = this.#paletteInteraction.handlePress(
+                isPointerPressConsumed = this.#paletteInteraction.handlePress(
                     pointer,
                     currentTick,
                     plan,
@@ -272,13 +269,13 @@ export class Overlay {
                     this.#layout.displayWidth,
                 );
 
-                pointerPressConsumed =
-                    this.#paletteInteraction.handleScroll(pointer, plan, grid, pointerPressConsumed) ||
-                    pointerPressConsumed;
+                isPointerPressConsumed =
+                    this.#paletteInteraction.handleScroll(pointer, plan, grid, isPointerPressConsumed) ||
+                    isPointerPressConsumed;
             }
         }
 
-        this.#toggle.handleToggle(pointer, keyboard, currentTick, this.#layout.toggleRect, pointerPressConsumed);
+        this.#toggle.handleInput(pointer, keyboard, currentTick, this.#layout.toggleRect, isPointerPressConsumed);
     }
 
     /**
@@ -320,26 +317,26 @@ export class Overlay {
         // Chart history keeps advancing while hidden so re-show reflects demo-only timing.
         this.#sampleTiming(timing);
 
-        const bodyVisible = this.#toggle.bodyVisible;
+        const isBodyVisible = this.#toggle.isBodyVisible;
 
-        if (!bodyVisible && !this.#toggleHintVisible) {
+        if (!isBodyVisible && !this.#isToggleHintVisible) {
             return;
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#fps.sample();
         }
 
-        const customRows = bodyVisible ? getCustomRows?.() : undefined;
+        const customRows = isBodyVisible ? getCustomRows?.() : undefined;
         const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
 
-        this.#withOverlayCamera(renderer, () => {
+        this.#withCamera(renderer, () => {
             this.#drawFrame(
                 renderer,
                 font,
                 plan,
                 layoutConfig,
-                bodyVisible,
+                isBodyVisible,
                 customRows,
                 palette,
                 usedPaletteMask,
@@ -375,10 +372,10 @@ export class Overlay {
      * @returns Layout config for {@link buildOverlayLayoutPlan}.
      */
     #createLayoutConfig(customRowCount: number, palette: Palette | null | undefined): OverlayLayoutConfig {
-        const overlayPaletteView = this.#paletteView.enabled;
+        const isOverlayPaletteEnabled = this.#paletteView.isEnabled;
         const colorCount = palette?.size ?? 256;
-        const paletteGrid = overlayPaletteView
-            ? computePaletteGrid(
+        const paletteGrid = isOverlayPaletteEnabled
+            ? computeGrid(
                   this.#layout.displayWidth,
                   undefined,
                   colorCount,
@@ -395,11 +392,11 @@ export class Overlay {
                 this.#layout.lineHeight,
                 customRowCount,
             ),
-            overlayPaletteView,
-            timingChartEnabled: this.#timingChart.enabled,
+            isOverlayPaletteEnabled,
+            isOverlayTimingChartEnabled: this.#timingChart.isEnabled,
             timingChartHeight: this.#timingChartHeight,
-            rendererDiagnosticsBarEnabled: this.#rendererDiagnosticsBarEnabled,
-            ...(paletteGrid !== undefined ? { paletteGrid } : {}),
+            isOverlayRendererDiagnosticsBarEnabled: this.#isOverlayRendererDiagnosticsBarEnabled,
+            ...(paletteGrid === undefined ? {} : { paletteGrid }),
         };
     }
 
@@ -431,7 +428,7 @@ export class Overlay {
      * @param renderer - Active renderer.
      * @param draw - Callback that issues overlay draws.
      */
-    #withOverlayCamera(renderer: OverlayRenderer, draw: () => void): void {
+    #withCamera(renderer: OverlayRenderer, draw: () => void): void {
         const savedCamera = renderer.getCameraOffset();
 
         renderer.resetCamera();
@@ -446,14 +443,14 @@ export class Overlay {
     /**
      * Draws overlay content for one frame.
      *
-     * Body panels and the footer hint bar draw only when {@link bodyVisible} is true.
+     * Body panels and the footer hint bar draw only when {@link isBodyVisible} is true.
      * The toggle hint icon always draws when this method runs (symbol only while hidden).
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan for this frame.
      * @param layoutConfig - Layout config used to build the plan.
-     * @param bodyVisible - Whether metrics bars and palette grid should draw.
+     * @param isBodyVisible - Whether metrics bars and palette grid should draw.
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
      * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
@@ -465,7 +462,7 @@ export class Overlay {
         font: BitmapFont,
         plan: OverlayLayoutPlan,
         layoutConfig: OverlayLayoutConfig,
-        bodyVisible: boolean,
+        isBodyVisible: boolean,
         customRows: readonly OverlayRow[] | undefined,
         palette: Palette | null | undefined,
         usedPaletteMask: Uint8Array,
@@ -480,7 +477,7 @@ export class Overlay {
         let rendererDiagnosticsLabel = '';
         const paletteGrid = layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID;
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
 
             topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
@@ -489,7 +486,7 @@ export class Overlay {
                 `Frame: ${this.#timing.frameMs.toFixed(1)}ms | update(): ${this.#timing.updateMs.toFixed(1)}ms${updateStepSuffix} | ` +
                 `render(): ${this.#timing.renderMs.toFixed(1)}ms`;
 
-            if (this.#rendererDiagnosticsBarEnabled) {
+            if (this.#isOverlayRendererDiagnosticsBarEnabled) {
                 rendererDiagnosticsLabel = this.#timing.formatRendererDiagnosticsLabel();
             }
 
@@ -533,11 +530,11 @@ export class Overlay {
             this.#bars.drawClusterSeparators(renderer, plan, this.#idxGap, true, true);
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             if (customRows !== undefined && customRows.length > 0) {
                 this.#bars.drawCustomRowLabels(renderer, font, plan, customRows, this.#barStyle);
             }
@@ -555,9 +552,9 @@ export class Overlay {
             );
         }
 
-        drawOverlayToggleIcon(renderer, plan.hintBar.y, this.#idxText, bodyVisible);
+        toggleIcon(renderer, plan.hintBar.y, this.#idxText, isBodyVisible);
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#paletteInteraction.drawTooltipChrome(
                 renderer,
                 plan,

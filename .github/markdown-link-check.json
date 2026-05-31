@@ -28,6 +28,9 @@
       "pattern": "^https?://github\\.com/[^/]+/[^/]+/actions(/|$)"
     },
     {
+      "pattern": "^https?://github\\.com/[^/]+/[^/]+/security(/|$)"
+    },
+    {
       "pattern": "^https?://www\\.npmjs\\.com/package/[^\\s]+$"
     },
     {

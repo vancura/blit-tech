@@ -37,7 +37,7 @@ export class Scanlines extends FullscreenEffect {
     /** amount + strength + density + _pad = 4 floats / 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = SCANLINES_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes amount, strength, and density into the uniform block.
@@ -60,7 +60,7 @@ export class Scanlines extends FullscreenEffect {
     }
 }
 
-const SCANLINES_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     amount: f32,
     strength: f32,

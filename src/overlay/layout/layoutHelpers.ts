@@ -35,10 +35,10 @@ export function createOverlayLayout(displayWidth: number, displayHeight: number,
  *
  * @param pos - Pointer position in display coordinates.
  * @param toggleRect - Bottom-left toggle region.
- * @returns `true` when the point is inside the rect (`Rect2i.contains` half-open bounds).
+ * @returns `true` when the point is inside the rect (`Rect2i.isContaining` half-open bounds).
  */
 export function isPointerInOverlayToggleCorner(pos: Vector2i, toggleRect: Rect2i): boolean {
-    return toggleRect.contains(pos);
+    return toggleRect.isContaining(pos);
 }
 
 /**

@@ -95,8 +95,20 @@ export interface BtfontGlyphData {
  * @param height - Height in pixels.
  * @returns Size formatted as `WIDTHxHEIGHT`.
  */
-export function formatAssetSize(width: number, height: number): string {
+export function formatSize(width: number, height: number): string {
     return `${width}x${height}`;
+}
+
+/**
+ * Backward-compatible alias for {@link formatSize}.
+ *
+ * @deprecated Deprecated since 2026-05-31. Use {@link formatSize} instead.
+ * @param width - Width in pixels.
+ * @param height - Height in pixels.
+ * @returns Size formatted as `WIDTHxHEIGHT`.
+ */
+export function formatAssetSize(width: number, height: number): string {
+    return formatSize(width, height);
 }
 
 /**
@@ -156,15 +168,15 @@ function isIntegerMetric(value: number): boolean {
  * @param height - Height in pixels.
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
-export function validateAssetDimensions(context: string, width: number, height: number): string | null {
+export function validateDimensions(context: string, width: number, height: number): string | null {
     if (!isPositiveIntegerDimension(width) || !isPositiveIntegerDimension(height)) {
-        return assetDimensionInvalidError(context, formatAssetSize(width, height));
+        return assetDimensionInvalidError(context, formatSize(width, height));
     }
 
     if (width > ASSET_DIMENSION_LIMITS.maxWidth || height > ASSET_DIMENSION_LIMITS.maxHeight) {
         return assetDimensionTooLargeError(
             context,
-            formatAssetSize(width, height),
+            formatSize(width, height),
             ASSET_DIMENSION_LIMITS.maxWidth,
             ASSET_DIMENSION_LIMITS.maxHeight,
         );
@@ -173,14 +185,23 @@ export function validateAssetDimensions(context: string, width: number, height: 
     const area = width * height;
 
     if (!Number.isSafeInteger(area) || area > ASSET_DIMENSION_LIMITS.maxPixels) {
-        return assetDimensionAreaTooLargeError(
-            context,
-            formatAssetSize(width, height),
-            ASSET_DIMENSION_LIMITS.maxPixels,
-        );
+        return assetDimensionAreaTooLargeError(context, formatSize(width, height), ASSET_DIMENSION_LIMITS.maxPixels);
     }
 
     return null;
+}
+
+/**
+ * Backward-compatible alias for {@link validateDimensions}.
+ *
+ * @deprecated Deprecated since 2026-05-31. Use {@link validateDimensions} instead.
+ * @param context - Asset label used in error text (for example `'sprite sheet'`).
+ * @param width - Width in pixels.
+ * @param height - Height in pixels.
+ * @returns A user-facing error message when invalid, otherwise `null`.
+ */
+export function validateAssetDimensions(context: string, width: number, height: number): string | null {
+    return validateDimensions(context, width, height);
 }
 
 /**
@@ -191,12 +212,25 @@ export function validateAssetDimensions(context: string, width: number, height: 
  * @param height - Height in pixels.
  * @throws {@link AssetLimitError} when the dimensions are invalid.
  */
-export function assertAssetDimensions(context: string, width: number, height: number): void {
-    const error = validateAssetDimensions(context, width, height);
+export function assertDimensions(context: string, width: number, height: number): void {
+    const error = validateDimensions(context, width, height);
 
     if (error) {
         throw new AssetLimitError(error);
     }
+}
+
+/**
+ * Backward-compatible alias for {@link assertDimensions}.
+ *
+ * @deprecated Deprecated since 2026-05-31. Use {@link assertDimensions} instead.
+ * @param context - Asset label used in error text.
+ * @param width - Width in pixels.
+ * @param height - Height in pixels.
+ * @throws {@link AssetLimitError} when the dimensions are invalid.
+ */
+export function assertAssetDimensions(context: string, width: number, height: number): void {
+    assertDimensions(context, width, height);
 }
 
 /**
@@ -207,7 +241,7 @@ export function assertAssetDimensions(context: string, width: number, height: nu
  * @throws {@link AssetLimitError} when the image dimensions are invalid.
  */
 export function assertImageElementWithinLimits(context: string, image: HTMLImageElement): void {
-    assertAssetDimensions(context, image.width, image.height);
+    assertDimensions(context, image.width, image.height);
 }
 
 /**
@@ -219,7 +253,7 @@ export function assertImageElementWithinLimits(context: string, image: HTMLImage
  * @returns A user-facing error message when invalid, otherwise `null`.
  */
 export function validateIndexedPixelInput(width: number, height: number, pixelLength?: number): string | null {
-    const dimensionError = validateAssetDimensions('indexed sprite sheet', width, height);
+    const dimensionError = validateDimensions('indexed sprite sheet', width, height);
 
     if (dimensionError) {
         return dimensionError;
@@ -228,7 +262,7 @@ export function validateIndexedPixelInput(width: number, height: number, pixelLe
     const expectedLength = computeSafePixelArea(width, height);
 
     if (expectedLength === null) {
-        return assetIndexedPixelOverflowError(formatAssetSize(width, height));
+        return assetIndexedPixelOverflowError(formatSize(width, height));
     }
 
     if (pixelLength !== undefined && pixelLength !== expectedLength) {

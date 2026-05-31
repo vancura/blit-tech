@@ -100,6 +100,11 @@ export interface HardwareSettings {
      * such as Firefox where rAF often fires at the display rate rather than
      * at `targetFPS`.
      */
+    isDetectingDroppedFrames?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isDetectingDroppedFrames} instead.
+     */
     detectDroppedFrames?: boolean;
 
     /**
@@ -114,18 +119,28 @@ export interface HardwareSettings {
     /**
      * When `true` (default), the engine draws a screen-space overlay after
      * each demo `render()` call (FPS, target rate, resolution, backend, demo title).
-     * The overlay body starts hidden unless {@link overlayVisibleAtStart} is
+     * The overlay body starts hidden unless {@link isOverlayVisibleAtStart} is
      * `true`. Users can show or hide the body with Backquote or a primary press in
-     * the bottom-left 48x48 px corner when {@link overlayToggleEnabled} is
+     * the bottom-left 48x48 px corner when {@link isOverlayToggleEnabled} is
      * `true`. Set to `false` to disable the overlay subsystem and all toggle input
      * (for release builds that must not expose debug HUD).
+     */
+    isOverlayEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayEnabled} instead.
      */
     overlayEnabled?: boolean;
 
     /**
      * When `true`, the overlay body (metrics bars, palette grid, custom rows) is
      * visible on the first frame. Defaults to `false` in {@link defaultConfig}; the
-     * toggle hint may still draw when {@link overlayToggleHintVisible} is `true`.
+     * toggle hint may still draw when {@link isOverlayToggleHintVisible} is `true`.
+     */
+    isOverlayVisibleAtStart?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayVisibleAtStart} instead.
      */
     overlayVisibleAtStart?: boolean;
 
@@ -134,12 +149,22 @@ export interface HardwareSettings {
      * body is hidden. Set to `false` for expert/minimal demos that want no on-screen
      * overlay affordance until the body is shown.
      */
+    isOverlayToggleHintVisible?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayToggleHintVisible} instead.
+     */
     overlayToggleHintVisible?: boolean;
 
     /**
      * When `true` (default), Backquote and the bottom-left corner pointer press toggle
      * overlay body visibility. Set to `false` to lock body visibility at
-     * {@link overlayVisibleAtStart}.
+     * {@link isOverlayVisibleAtStart}.
+     */
+    isOverlayToggleEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayToggleEnabled} instead.
      */
     overlayToggleEnabled?: boolean;
 
@@ -147,6 +172,11 @@ export interface HardwareSettings {
      * When `true`, the engine draws a live palette swatch grid in the overlay
      * footer stacked above the hint bar. Defaults to `false` in {@link defaultConfig};
      * set to `true` to opt in.
+     */
+    isOverlayPaletteEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayPaletteEnabled} instead.
      */
     overlayPaletteView?: boolean;
 
@@ -178,10 +208,15 @@ export interface HardwareSettings {
      *
      * Chart bars use raw per-frame CPU samples from BTAPI (not EMA-smoothed text row values).
      */
+    isOverlayTimingChartEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayTimingChartEnabled} instead.
+     */
     overlayTimingChart?: boolean;
 
     /**
-     * Height in pixels of the timing chart band when {@link overlayTimingChart} is `true`.
+     * Height in pixels of the timing chart band when {@link isOverlayTimingChartEnabled} is `true`.
      * Defaults to 22 pixels when omitted.
      */
     overlayTimingChartHeight?: number;
@@ -194,7 +229,7 @@ export interface HardwareSettings {
     overlayTimingChartStyle?: OverlayTimingChartStyle;
 
     /**
-     * Renderer diagnostic visualization on the timing chart when {@link overlayTimingChart} is enabled.
+     * Renderer diagnostic visualization on the timing chart when {@link isOverlayTimingChartEnabled} is enabled.
      *
      * - `'minimal'`: bottom-column marker and warning tint when GPU batch overflow occurred (default when chart enabled)
      * - `'rich'`: minimal plus vertex-pressure dots in the lower third of the chart band
@@ -205,6 +240,11 @@ export interface HardwareSettings {
     /**
      * When `true`, adds a 13 px row below the Frame/update/render timing text showing primitive/sprite
      * overflow counts and submitted vertex totals. Defaults to `false`.
+     */
+    isOverlayRendererDiagnosticsBarEnabled?: boolean;
+
+    /**
+     * @deprecated Deprecated since 2026-05-31. Use {@link isOverlayRendererDiagnosticsBarEnabled} instead.
      */
     overlayRendererDiagnosticsBar?: boolean;
 }
@@ -260,7 +300,7 @@ export interface OverlayTimingChartStyle {
  * One optional overlay row supplied by a demo (left label, optional right label).
  *
  * Rendered as a 13 px bar stacked above the footer (palette grid + hint bar when
- * {@link HardwareSettings.overlayPaletteView} is `true`, or the hint bar alone) with 1 px gaps.
+ * {@link HardwareSettings.isOverlayPaletteEnabled} is `true`, or the hint bar alone) with 1 px gaps.
  * Reuse the same array instance from {@link IBlitTechDemo.overlayRows} when possible to avoid
  * per-frame allocations.
  */
@@ -292,7 +332,7 @@ export interface OverlayRow {
  * 2. init() - Called after renderer setup, load assets here
  * 3. update() - Fixed timestep via accumulator (may run 0..N times per frame)
  * 4. render() - Called once per requestAnimationFrame (browser refresh rate)
- * 5. (engine) overlay - When {@link HardwareSettings.overlayEnabled} is true, drawn after `render()` on top
+ * 5. (engine) overlay - When {@link HardwareSettings.isOverlayEnabled} is true, drawn after `render()` on top
  */
 export interface IBlitTechDemo {
     /**
@@ -338,12 +378,12 @@ export interface IBlitTechDemo {
      * Called once per `requestAnimationFrame` tick (browser refresh rate).
      * Issue all draw calls for the current frame here.
      *
-     * When {@link HardwareSettings.overlayEnabled} is `true` (default), the engine
+     * When {@link HardwareSettings.isOverlayEnabled} is `true` (default), the engine
      * draws a screen-space overlay HUD after this method returns (present FPS, target FPS, draw calls,
      * frame/update()/render() timings, backend, demo title). Optional {@link overlayRows} adds stacked bars above
      * the footer.
      * Demos do not need to duplicate engine overlay text. Reserve about ~42 px at the top and space for the bottom palette
-     * grid (or ~13 px when {@link HardwareSettings.overlayPaletteView} is `false`) at the bottom (plus ~14 px per
+     * grid (or ~13 px when {@link HardwareSettings.isOverlayPaletteEnabled} is `false`) at the bottom (plus ~14 px per
      * custom overlay row) for overlay bars, or disable the overlay in `configure()` when using custom full-screen HUD
      * layouts.
      *
@@ -357,7 +397,7 @@ export interface IBlitTechDemo {
     /**
      * Optional hook returning extra overlay rows for the current frame.
      *
-     * Called once per render frame after `render()` when {@link HardwareSettings.overlayEnabled}
+     * Called once per render frame after `render()` when {@link HardwareSettings.isOverlayEnabled}
      * is `true` and the overlay body is visible (not hidden via Backquote or corner toggle). Rows stack
      * upward from just above the bottom hint bar (1 px gap between bars). Omit this hook or return
      * an empty array when no custom rows are needed.
@@ -391,12 +431,12 @@ export function defaultConfig(): HardwareSettings {
         targetFPS: 60,
         outputUpscaleFilter: 'nearest',
         backend: 'webgpu',
-        overlayEnabled: true,
-        overlayVisibleAtStart: false,
-        overlayToggleHintVisible: true,
-        overlayToggleEnabled: true,
-        overlayPaletteView: false,
-        overlayTimingChart: false,
+        isOverlayEnabled: true,
+        isOverlayVisibleAtStart: false,
+        isOverlayToggleHintVisible: true,
+        isOverlayToggleEnabled: true,
+        isOverlayPaletteEnabled: false,
+        isOverlayTimingChartEnabled: false,
     };
 }
 
@@ -410,7 +450,7 @@ function cloneVector2i(size: Vector2i): Vector2i {
     return new Vector2i(size.x, size.y);
 }
 
-/** Non-positive sentinel surfaced when configure() passes null vectors; rejected by {@link validateRenderDimensions}. */
+/** Non-positive sentinel surfaced when configure() passes null vectors; rejected by {@link validateDimensions}. */
 const INVALID_CONFIGURE_VECTOR_SIZE = new Vector2i(0, 0);
 
 /**
@@ -433,7 +473,7 @@ function pickConfigureVector(value: Vector2i | undefined | null): Vector2i | und
  * Resolves required `displaySize` for the explicit-profile merge path.
  *
  * Uses defaults only when the field was omitted (`undefined`). Explicit `null` maps to
- * {@link INVALID_CONFIGURE_VECTOR_SIZE} so {@link validateRenderDimensions} can reject it.
+ * {@link INVALID_CONFIGURE_VECTOR_SIZE} so {@link validateDimensions} can reject it.
  *
  * @param partialDisplaySize - Raw `configure()` value.
  * @param pickedDisplaySize - Cloned value from {@link pickDefinedHardwareSettings}, if any.
@@ -500,17 +540,17 @@ function pickIfDefinedPartial<K extends keyof HardwareSettings>(
  * @param partial - Values returned by the demo's `configure()` hook.
  */
 function pickDefinedOverlaySettings(picked: Partial<HardwareSettings>, partial: Partial<HardwareSettings>): void {
-    pickIfDefinedPartial(picked, partial, 'overlayEnabled');
-    pickIfDefinedPartial(picked, partial, 'overlayVisibleAtStart');
-    pickIfDefinedPartial(picked, partial, 'overlayToggleHintVisible');
-    pickIfDefinedPartial(picked, partial, 'overlayToggleEnabled');
-    pickIfDefinedPartial(picked, partial, 'overlayPaletteView');
+    pickIfDefinedPartial(picked, partial, 'isOverlayEnabled');
+    pickIfDefinedPartial(picked, partial, 'isOverlayVisibleAtStart');
+    pickIfDefinedPartial(picked, partial, 'isOverlayToggleHintVisible');
+    pickIfDefinedPartial(picked, partial, 'isOverlayToggleEnabled');
+    pickIfDefinedPartial(picked, partial, 'isOverlayPaletteEnabled');
     pickIfDefinedPartial(picked, partial, 'overlayPaletteColumns');
     pickIfDefinedPartial(picked, partial, 'overlayPaletteRowsVisible');
-    pickIfDefinedPartial(picked, partial, 'overlayTimingChart');
+    pickIfDefinedPartial(picked, partial, 'isOverlayTimingChartEnabled');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChartHeight');
     pickIfDefinedPartial(picked, partial, 'overlayTimingChartDiagnostics');
-    pickIfDefinedPartial(picked, partial, 'overlayRendererDiagnosticsBar');
+    pickIfDefinedPartial(picked, partial, 'isOverlayRendererDiagnosticsBarEnabled');
 
     if (partial.overlayStyle !== undefined) {
         picked.overlayStyle = { ...partial.overlayStyle };
@@ -547,11 +587,47 @@ function pickDefinedHardwareSettings(partial: Partial<HardwareSettings>): Partia
 
     pickIfDefinedPartial(picked, partial, 'targetFPS');
     pickIfDefinedPartial(picked, partial, 'outputUpscaleFilter');
-    pickIfDefinedPartial(picked, partial, 'detectDroppedFrames');
+    pickIfDefinedPartial(picked, partial, 'isDetectingDroppedFrames');
     pickIfDefinedPartial(picked, partial, 'backend');
     pickDefinedOverlaySettings(picked, partial);
 
     return picked;
+}
+
+/** Legacy-to-current boolean field aliases accepted by configure() compatibility handling. */
+const DEPRECATED_BOOLEAN_ALIASES = [
+    { current: 'isDetectingDroppedFrames', legacy: 'detectDroppedFrames' },
+    { current: 'isOverlayEnabled', legacy: 'overlayEnabled' },
+    { current: 'isOverlayVisibleAtStart', legacy: 'overlayVisibleAtStart' },
+    { current: 'isOverlayToggleHintVisible', legacy: 'overlayToggleHintVisible' },
+    { current: 'isOverlayToggleEnabled', legacy: 'overlayToggleEnabled' },
+    { current: 'isOverlayPaletteEnabled', legacy: 'overlayPaletteView' },
+    { current: 'isOverlayTimingChartEnabled', legacy: 'overlayTimingChart' },
+    { current: 'isOverlayRendererDiagnosticsBarEnabled', legacy: 'overlayRendererDiagnosticsBar' },
+] as const;
+
+/**
+ * Normalizes deprecated configure() keys onto current HardwareSettings fields.
+ *
+ * New names always win when both are provided in the same object.
+ *
+ * @param partial - Raw values returned by configure().
+ * @returns Partial settings with legacy keys mapped to current keys.
+ */
+function normalizeDeprecatedHardwareSettings(partial: Partial<HardwareSettings>): Partial<HardwareSettings> {
+    const normalized = { ...partial };
+
+    for (const alias of DEPRECATED_BOOLEAN_ALIASES) {
+        const currentValue = normalized[alias.current];
+
+        const legacyValue = partial[alias.legacy];
+
+        if (currentValue === undefined && legacyValue !== undefined) {
+            normalized[alias.current] = legacyValue;
+        }
+    }
+
+    return normalized;
 }
 
 /**
@@ -646,28 +722,48 @@ function assignFullDefaultMergeScalars(
     defaults: HardwareSettings,
 ): void {
     assignIfDefined(optionals, 'outputUpscaleFilter', picked.outputUpscaleFilter ?? defaults.outputUpscaleFilter);
-    assignIfDefined(optionals, 'detectDroppedFrames', picked.detectDroppedFrames ?? defaults.detectDroppedFrames);
+    assignIfDefined(
+        optionals,
+        'isDetectingDroppedFrames',
+        picked.isDetectingDroppedFrames ?? defaults.isDetectingDroppedFrames,
+    );
     assignIfDefined(optionals, 'backend', picked.backend ?? defaults.backend);
 
     assignIfDefined(optionals, 'overlayStyle', shallowCloneOptional(picked.overlayStyle ?? defaults.overlayStyle));
 
-    assignIfDefined(optionals, 'overlayVisibleAtStart', picked.overlayVisibleAtStart ?? defaults.overlayVisibleAtStart);
+    assignIfDefined(
+        optionals,
+        'isOverlayVisibleAtStart',
+        picked.isOverlayVisibleAtStart ?? defaults.isOverlayVisibleAtStart,
+    );
 
     assignIfDefined(
         optionals,
-        'overlayToggleHintVisible',
-        picked.overlayToggleHintVisible ?? defaults.overlayToggleHintVisible,
+        'isOverlayToggleHintVisible',
+        picked.isOverlayToggleHintVisible ?? defaults.isOverlayToggleHintVisible,
     );
 
-    assignIfDefined(optionals, 'overlayToggleEnabled', picked.overlayToggleEnabled ?? defaults.overlayToggleEnabled);
+    assignIfDefined(
+        optionals,
+        'isOverlayToggleEnabled',
+        picked.isOverlayToggleEnabled ?? defaults.isOverlayToggleEnabled,
+    );
 
-    assignIfDefined(optionals, 'overlayPaletteView', picked.overlayPaletteView ?? defaults.overlayPaletteView);
+    assignIfDefined(
+        optionals,
+        'isOverlayPaletteEnabled',
+        picked.isOverlayPaletteEnabled ?? defaults.isOverlayPaletteEnabled,
+    );
 
     assignIfDefined(optionals, 'overlayPaletteColumns', picked.overlayPaletteColumns);
 
     assignIfDefined(optionals, 'overlayPaletteRowsVisible', picked.overlayPaletteRowsVisible);
 
-    assignIfDefined(optionals, 'overlayTimingChart', picked.overlayTimingChart ?? defaults.overlayTimingChart);
+    assignIfDefined(
+        optionals,
+        'isOverlayTimingChartEnabled',
+        picked.isOverlayTimingChartEnabled ?? defaults.isOverlayTimingChartEnabled,
+    );
 
     assignIfDefined(
         optionals,
@@ -683,7 +779,7 @@ function assignFullDefaultMergeScalars(
 
     assignIfDefined(optionals, 'overlayTimingChartDiagnostics', picked.overlayTimingChartDiagnostics);
 
-    assignIfDefined(optionals, 'overlayRendererDiagnosticsBar', picked.overlayRendererDiagnosticsBar);
+    assignIfDefined(optionals, 'isOverlayRendererDiagnosticsBarEnabled', picked.isOverlayRendererDiagnosticsBarEnabled);
 }
 
 /**
@@ -728,15 +824,15 @@ function buildExplicitDisplayOptionals(
         resolveExplicitOptionalVector(partial.maxCanvasSize, picked.maxCanvasSize),
     );
     assignIfDefined(optionals, 'outputUpscaleFilter', picked.outputUpscaleFilter);
-    assignIfDefined(optionals, 'detectDroppedFrames', picked.detectDroppedFrames);
+    assignIfDefined(optionals, 'isDetectingDroppedFrames', picked.isDetectingDroppedFrames);
     assignIfDefined(optionals, 'overlayStyle', shallowCloneOptional(picked.overlayStyle));
     assignIfDefined(optionals, 'overlayPaletteColumns', picked.overlayPaletteColumns);
     assignIfDefined(optionals, 'overlayPaletteRowsVisible', picked.overlayPaletteRowsVisible);
-    assignIfDefined(optionals, 'overlayTimingChart', picked.overlayTimingChart);
+    assignIfDefined(optionals, 'isOverlayTimingChartEnabled', picked.isOverlayTimingChartEnabled);
     assignIfDefined(optionals, 'overlayTimingChartHeight', picked.overlayTimingChartHeight);
     assignIfDefined(optionals, 'overlayTimingChartStyle', shallowCloneOptional(picked.overlayTimingChartStyle));
     assignIfDefined(optionals, 'overlayTimingChartDiagnostics', picked.overlayTimingChartDiagnostics);
-    assignIfDefined(optionals, 'overlayRendererDiagnosticsBar', picked.overlayRendererDiagnosticsBar);
+    assignIfDefined(optionals, 'isOverlayRendererDiagnosticsBarEnabled', picked.isOverlayRendererDiagnosticsBarEnabled);
     return optionals;
 }
 
@@ -757,11 +853,11 @@ function mergePartialWithFullDefaults(
     return {
         displaySize: cloneVector2i(defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
-        overlayEnabled: picked.overlayEnabled ?? defaults.overlayEnabled ?? true,
-        overlayVisibleAtStart: picked.overlayVisibleAtStart ?? defaults.overlayVisibleAtStart ?? false,
-        overlayToggleHintVisible: picked.overlayToggleHintVisible ?? defaults.overlayToggleHintVisible ?? true,
-        overlayToggleEnabled: picked.overlayToggleEnabled ?? defaults.overlayToggleEnabled ?? true,
-        overlayPaletteView: picked.overlayPaletteView ?? defaults.overlayPaletteView ?? false,
+        isOverlayEnabled: picked.isOverlayEnabled ?? defaults.isOverlayEnabled ?? true,
+        isOverlayVisibleAtStart: picked.isOverlayVisibleAtStart ?? defaults.isOverlayVisibleAtStart ?? false,
+        isOverlayToggleHintVisible: picked.isOverlayToggleHintVisible ?? defaults.isOverlayToggleHintVisible ?? true,
+        isOverlayToggleEnabled: picked.isOverlayToggleEnabled ?? defaults.isOverlayToggleEnabled ?? true,
+        isOverlayPaletteEnabled: picked.isOverlayPaletteEnabled ?? defaults.isOverlayPaletteEnabled ?? false,
         ...buildFullDefaultMergeOptionals(partial, picked, defaults),
     };
 }
@@ -783,11 +879,11 @@ function mergeExplicitDisplayProfile(
     return {
         displaySize: resolveExplicitDisplaySize(partial.displaySize, picked.displaySize, defaults.displaySize),
         targetFPS: picked.targetFPS ?? defaults.targetFPS,
-        overlayEnabled: picked.overlayEnabled ?? defaults.overlayEnabled ?? true,
-        overlayVisibleAtStart: picked.overlayVisibleAtStart ?? defaults.overlayVisibleAtStart ?? false,
-        overlayToggleHintVisible: picked.overlayToggleHintVisible ?? defaults.overlayToggleHintVisible ?? true,
-        overlayToggleEnabled: picked.overlayToggleEnabled ?? defaults.overlayToggleEnabled ?? true,
-        overlayPaletteView: picked.overlayPaletteView ?? defaults.overlayPaletteView ?? false,
+        isOverlayEnabled: picked.isOverlayEnabled ?? defaults.isOverlayEnabled ?? true,
+        isOverlayVisibleAtStart: picked.isOverlayVisibleAtStart ?? defaults.isOverlayVisibleAtStart ?? false,
+        isOverlayToggleHintVisible: picked.isOverlayToggleHintVisible ?? defaults.isOverlayToggleHintVisible ?? true,
+        isOverlayToggleEnabled: picked.isOverlayToggleEnabled ?? defaults.isOverlayToggleEnabled ?? true,
+        isOverlayPaletteEnabled: picked.isOverlayPaletteEnabled ?? defaults.isOverlayPaletteEnabled ?? false,
         backend: picked.backend ?? defaults.backend ?? 'webgpu',
         ...buildExplicitDisplayOptionals(partial, picked),
     };
@@ -797,10 +893,10 @@ function mergeExplicitDisplayProfile(
  * Resolves demo `configure()` output into complete {@link HardwareSettings}.
  *
  * When `displaySize` is omitted from `partial`, unset fields inherit from
- * {@link defaultConfig} (including `drawingBufferSize` and `overlayEnabled`).
+ * {@link defaultConfig} (including `drawingBufferSize` and `isOverlayEnabled`).
  * When `displaySize` is provided, only fields present in `partial` are applied;
  * omitted optionals such as `drawingBufferSize` remain unset so the drawing buffer
- * can match logical resolution. `overlayEnabled` defaults to `true` when omitted.
+ * can match logical resolution. `isOverlayEnabled` defaults to `true` when omitted.
  *
  * @param partial - Optional partial settings from `configure()`.
  * @returns Resolved hardware settings for initialization.
@@ -812,13 +908,14 @@ export function mergeHardwareSettings(partial?: Partial<HardwareSettings>): Hard
         return defaults;
     }
 
-    const picked = pickDefinedHardwareSettings(partial);
+    const normalized = normalizeDeprecatedHardwareSettings(partial);
+    const picked = pickDefinedHardwareSettings(normalized);
 
-    if (partial.displaySize === undefined) {
-        return mergePartialWithFullDefaults(partial, picked, defaults);
+    if (normalized.displaySize === undefined) {
+        return mergePartialWithFullDefaults(normalized, picked, defaults);
     }
 
-    return mergeExplicitDisplayProfile(partial, picked, defaults);
+    return mergeExplicitDisplayProfile(normalized, picked, defaults);
 }
 
 /** Resolved timing-chart renderer diagnostic visualization mode. */
@@ -837,7 +934,7 @@ export function resolveOverlayTimingChartDiagnostics(settings: HardwareSettings)
         return settings.overlayTimingChartDiagnostics;
     }
 
-    return settings.overlayTimingChart === true ? 'minimal' : false;
+    return settings.isOverlayTimingChartEnabled === true ? 'minimal' : false;
 }
 
 /**
@@ -847,7 +944,10 @@ export function resolveOverlayTimingChartDiagnostics(settings: HardwareSettings)
  * @returns `true` when chart diagnostics or the renderer diagnostics bar needs data.
  */
 export function needsOverlayRendererDiagnostics(settings: HardwareSettings): boolean {
-    return resolveOverlayTimingChartDiagnostics(settings) !== false || settings.overlayRendererDiagnosticsBar === true;
+    return (
+        resolveOverlayTimingChartDiagnostics(settings) !== false ||
+        settings.isOverlayRendererDiagnosticsBarEnabled === true
+    );
 }
 
 // #endregion

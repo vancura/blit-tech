@@ -60,25 +60,25 @@ describe('Rect2i collision benchmarks', () => {
     const overlapping = Rect2i.fromValuesUnchecked(30, 36, 20, 18);
 
     bench(
-        'contains(Vector2i)',
+        'isContaining(Vector2i)',
         () => {
-            rect.contains(point);
+            rect.isContaining(point);
         },
         BENCH_OPTIONS,
     );
 
     bench(
-        'containsXY()',
+        'isContainingXY()',
         () => {
-            rect.containsXY(24, 32);
+            rect.isContainingXY(24, 32);
         },
         BENCH_OPTIONS,
     );
 
     bench(
-        'intersects(Rect2i)',
+        'isIntersecting(Rect2i)',
         () => {
-            rect.intersects(overlapping);
+            rect.isIntersecting(overlapping);
         },
         BENCH_OPTIONS,
     );

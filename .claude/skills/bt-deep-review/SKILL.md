@@ -50,6 +50,8 @@ pushing significant changes or creating pull requests.
    - Integer coordinates (Vector2i, Rect2i) for all rendering
    - TypeScript strict types (no `any`)
    - Type imports use `import type` syntax
+   - Internal scoped naming: private/protected/module-local names must not repeat class or file; public `BT.*` and
+     exports unchanged (`CLAUDE.md` **Internal scoped naming**)
 
 6. **Generate PR-ready summary**
    - Create a summary suitable for PR description

@@ -9,18 +9,18 @@ import {
     MAX_BTFONT_EMBEDDED_TEXTURE_BYTES,
     MAX_BTFONT_JSON_BYTES,
     MAX_GLYPH_COUNT,
-    validateAssetDimensions,
     validateBtfontEmbeddedTextureUri,
     validateBtfontGlyphData,
     validateBtfontGlyphDataPreAtlas,
     validateBtfontJsonByteSize,
+    validateDimensions,
     validateGlyphCount,
     validateIndexedPixelInput,
 } from './AssetLimits';
 import { Rect2i } from './Rect2i';
 
 describe('AssetLimits', () => {
-    describe('validateAssetDimensions', () => {
+    describe('validateDimensions', () => {
         const cases: Array<{ name: string; width: number; height: number }> = [
             { name: 'zero width', width: 0, height: 16 },
             { name: 'negative height', width: 16, height: -1 },
@@ -33,16 +33,16 @@ describe('AssetLimits', () => {
 
         for (const testCase of cases) {
             it(`rejects ${testCase.name}`, () => {
-                expect(validateAssetDimensions('sprite sheet', testCase.width, testCase.height)).not.toBeNull();
+                expect(validateDimensions('sprite sheet', testCase.width, testCase.height)).not.toBeNull();
             });
         }
 
         it('accepts valid dimensions', () => {
-            expect(validateAssetDimensions('sprite sheet', 256, 256)).toBeNull();
+            expect(validateDimensions('sprite sheet', 256, 256)).toBeNull();
         });
 
         it('rejects total area separately from per-axis limits', () => {
-            const error = validateAssetDimensions('sprite sheet', 4096, 4097);
+            const error = validateDimensions('sprite sheet', 4096, 4097);
 
             expect(error).toContain(MAX_ASSET_PIXELS.toLocaleString('en-US'));
         });

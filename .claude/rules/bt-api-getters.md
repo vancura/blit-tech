@@ -1,6 +1,6 @@
 # BT API: getters vs methods
 
-Canonical reference: [CLAUDE.md](../../CLAUDE.md) (**BT API: getters vs methods**).
+Canonical reference: [CLAUDE.md](../../CLAUDE.md) (**BT API: getters vs methods**, **Boolean naming**).
 
 Quick rules when changing `src/BlitTech.ts` or demos:
 
@@ -23,10 +23,26 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 `configure().backend`.
 `palette` is a live reference - mutating slots affects rendering on the next frame.
 
+## Boolean queries on `BT` (Tier A; always methods)
+
+- Hold: `isDown(...)`, `isKeyDown(...)`
+- Edge: `isPressed(...)`, `isReleased(...)`, `isKeyPressed(...)`, `isKeyReleased(...)`
+- Pointer: `isPointerActive(slot?)`
+- Internal input classes mirror the same names (`isButtonDown`, `isKeyDown`, …). No embedded second `Is` (`\bis[A-Za-z]+Is[A-Z]`).
+
+## Configure flags (Tier B)
+
+Mirror `HardwareSettings` / `BootstrapOptions` field names: `isOverlayEnabled`, `isOverlayVisibleAtStart`,
+`isDetectingDroppedFrames`, `isWaitingForDOMReady`, `canvasID`, `containerID`. Use `-ing` for ongoing behavior flags.
+
+## Side-effect booleans (Tier C)
+
+Not `is*`: `Timer.fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolean>`.
+
 ## Naming when adding getters
 
 - Match `HardwareSettings` field name exactly for configure values (`targetFPS`, not `fps` or `targetFps`)
 - Use a derived getter when the value is computed from configure fields (`outputSize`); do not add a matching field
 - Use a runtime-descriptive name when no configure field exists (`activeBackend`, not `renderer`)
 
-Cursor: `.cursor/rules/bt-api-getters.mdc` (always applied in this repo).
+Cursor: `.cursor/rules/bt-api-getters.mdc` and `.cursor/rules/internal-scoped-naming.mdc` (always applied in this repo).

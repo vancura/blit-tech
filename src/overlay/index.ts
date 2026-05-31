@@ -29,12 +29,16 @@ export { Overlay } from './Overlay';
 export type { OverlayDrawTarget, OverlayRenderer } from './OverlayDrawTarget';
 export {
     drawOverlayToggleIcon,
+    hintIconExclusionRect,
+    hintIconPos,
+    hintIconY,
     overlayToggleHintIconExclusionRect,
     overlayToggleHintIconPos,
     overlayToggleHintIconY,
+    toggleIcon,
 } from './OverlayToggleIcon';
 export { PaletteInteraction } from './palette/PaletteInteraction';
-export { computePaletteGrid, PaletteView } from './palette/PaletteView';
+export { computeGrid, PaletteView } from './palette/PaletteView';
 export { FpsSampler } from './sampling/FpsSampler';
 export { TimingSampler } from './sampling/TimingSampler';
 export type { TimingChartDrawStyle } from './timing-chart/style';
@@ -42,6 +46,7 @@ export {
     computeTimingChartBarHeight,
     computeTimingChartDotY,
     computeTimingChartGridLineY,
+    isTimingChartGridLineAtY,
     resolveTimingChartStyle,
     shouldDrawTimingChartGridLineY,
     timingChartBaselineY,

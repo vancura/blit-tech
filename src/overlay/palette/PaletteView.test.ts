@@ -1,27 +1,27 @@
 /**
- * Unit tests for {@link computePaletteGrid} and palette swatch drawing.
+ * Unit tests for {@link computeGrid} and palette swatch drawing.
  */
 
 import { describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
-import { markRenderPaletteIndexUsed } from '../../core/RenderPaletteUsage';
+import { markIndexUsed } from '../../core/RenderPaletteUsage';
 import { Rect2i } from '../../utils/Rect2i';
 import { DEFAULT_IDX_TEXT } from '../constants';
 import { OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX } from '../layout/constants';
 import { createOverlayLayout } from '../layout/layoutHelpers';
 import { hintBarY, paletteBandY } from '../layout/layoutPlan';
 import {
-    computePaletteGrid,
+    computeGrid,
     computeUnusedSwatchMarkerRect,
     DEFAULT_PALETTE_SWATCH_SIZE,
+    gridRowStackHeight,
+    gridRowWidth,
     PALETTE_GRID_PADDING_PX,
     PALETTE_SWATCH_GAP_PX,
-    paletteGridRowStackHeight,
-    paletteGridRowWidth,
     PaletteView,
-    pickPaletteGridColumnCount,
-    resolvePaletteGridVisibleRows,
+    pickGridColumnCount,
+    resolveGridVisibleRows,
 } from './PaletteView';
 
 /** Builds a usage mask from palette slot indices for tests. */
@@ -29,7 +29,7 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
     const mask = new Uint8Array(size);
 
     for (const index of indices) {
-        markRenderPaletteIndexUsed(mask, index);
+        markIndexUsed(mask, index);
     }
 
     return mask;
@@ -68,46 +68,46 @@ function swatchTopLeft(
     };
 }
 
-describe('computePaletteGrid', () => {
+describe('computeGrid', () => {
     it('uses 32 columns and 8 rows at 320 px width for a 256-color palette', () => {
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX);
 
         expect(grid.cols).toBe(32);
         expect(grid.rows).toBe(8);
         expect(grid.swatchSize).toBe(DEFAULT_PALETTE_SWATCH_SIZE);
         expect(grid.gap).toBe(PALETTE_SWATCH_GAP_PX);
         expect(grid.totalHeight).toBe(
-            paletteGridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
+            gridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
         );
-        expect(paletteGridRowWidth(grid.cols, grid.swatchSize, grid.gap)).toBeLessThanOrEqual(320 - 6);
+        expect(gridRowWidth(grid.cols, grid.swatchSize, grid.gap)).toBeLessThanOrEqual(320 - 6);
     });
 
     it('keeps small palettes on one row when width allows', () => {
-        expect(computePaletteGrid(320, 4, 2).cols).toBe(2);
-        expect(computePaletteGrid(320, 4, 4).cols).toBe(4);
-        expect(computePaletteGrid(320, 4, 16).cols).toBe(16);
+        expect(computeGrid(320, 4, 2).cols).toBe(2);
+        expect(computeGrid(320, 4, 4).cols).toBe(4);
+        expect(computeGrid(320, 4, 16).cols).toBe(16);
     });
 
     it('halves column count when a single row no longer fits', () => {
-        const narrowWidth = paletteGridRowWidth(16, 4, 1) + OVERLAY_EDGE_MARGIN_PX * 2 - 1;
-        const grid = computePaletteGrid(narrowWidth, 4, 16, 1);
+        const narrowWidth = gridRowWidth(16, 4, 1) + OVERLAY_EDGE_MARGIN_PX * 2 - 1;
+        const grid = computeGrid(narrowWidth, 4, 16, 1);
 
         expect(grid.cols).toBe(8);
         expect(grid.rows).toBe(2);
     });
 
     it('falls back to one column when only one swatch fits horizontally', () => {
-        const grid = computePaletteGrid(10, 4, 256, 1);
+        const grid = computeGrid(10, 4, 256, 1);
 
         expect(grid.cols).toBe(1);
         expect(grid.rows).toBe(256);
         expect(grid.totalHeight).toBe(
-            paletteGridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
+            gridRowStackHeight(grid.rows, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
         );
     });
 
     it('returns an empty grid when color count is zero', () => {
-        expect(computePaletteGrid(320, 4, 0, 1)).toEqual({
+        expect(computeGrid(320, 4, 0, 1)).toEqual({
             cols: 0,
             rows: 0,
             visibleRows: 0,
@@ -118,49 +118,47 @@ describe('computePaletteGrid', () => {
     });
 
     it('caps visible rows and band height when overlayPaletteRowsVisible is set', () => {
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 3);
 
         expect(grid.rows).toBe(8);
         expect(grid.visibleRows).toBe(3);
-        expect(grid.totalHeight).toBe(
-            paletteGridRowStackHeight(3, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2,
-        );
+        expect(grid.totalHeight).toBe(gridRowStackHeight(3, grid.swatchSize, grid.gap) + PALETTE_GRID_PADDING_PX * 2);
     });
 
     it('clamps overlayPaletteRowsVisible below 1 up to one visible row', () => {
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 0);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 256, PALETTE_SWATCH_GAP_PX, undefined, 0);
 
         expect(grid.visibleRows).toBe(1);
     });
 
     it('clamps overlayPaletteRowsVisible above total rows down to total rows', () => {
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, undefined, 99);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, undefined, 99);
 
         expect(grid.rows).toBe(1);
         expect(grid.visibleRows).toBe(1);
     });
 
-    it('matches pickPaletteGridColumnCount helper cases', () => {
-        expect(pickPaletteGridColumnCount(320, 4, 1, 256)).toBe(32);
-        expect(pickPaletteGridColumnCount(320, 4, 1, 32)).toBe(32);
-        expect(pickPaletteGridColumnCount(120, 4, 1, 32)).toBe(16);
+    it('matches pickGridColumnCount helper cases', () => {
+        expect(pickGridColumnCount(320, 4, 1, 256)).toBe(32);
+        expect(pickGridColumnCount(320, 4, 1, 32)).toBe(32);
+        expect(pickGridColumnCount(120, 4, 1, 32)).toBe(16);
     });
 
     it('caps column count when overlayPaletteColumns is set', () => {
-        expect(computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).cols).toBe(8);
-        expect(computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).rows).toBe(2);
-        expect(pickPaletteGridColumnCount(320, DEFAULT_PALETTE_SWATCH_SIZE, PALETTE_SWATCH_GAP_PX, 256, 8)).toBe(8);
+        expect(computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).cols).toBe(8);
+        expect(computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, 16, PALETTE_SWATCH_GAP_PX, 8).rows).toBe(2);
+        expect(pickGridColumnCount(320, DEFAULT_PALETTE_SWATCH_SIZE, PALETTE_SWATCH_GAP_PX, 256, 8)).toBe(8);
     });
 });
 
-describe('resolvePaletteGridVisibleRows', () => {
+describe('resolveGridVisibleRows', () => {
     it('ignores non-finite caps and returns all rows', () => {
-        expect(resolvePaletteGridVisibleRows(8, Number.NaN)).toBe(8);
-        expect(resolvePaletteGridVisibleRows(8, Number.POSITIVE_INFINITY)).toBe(8);
+        expect(resolveGridVisibleRows(8, Number.NaN)).toBe(8);
+        expect(resolveGridVisibleRows(8, Number.POSITIVE_INFINITY)).toBe(8);
     });
 
     it('truncates fractional caps before clamping', () => {
-        expect(resolvePaletteGridVisibleRows(8, 2.9)).toBe(2);
+        expect(resolveGridVisibleRows(8, 2.9)).toBe(2);
     });
 });
 
@@ -185,7 +183,7 @@ describe('PaletteView.draw', () => {
         const palette = Palette.cga();
         const usedMask = buildUsageMask([5]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
-        const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
+        const grid = computeGrid(320, swatchSize, palette.size, 1);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new PaletteView(true);
         const { drawBarFill, calls } = createRectFillMock();
@@ -249,7 +247,7 @@ describe('PaletteView.draw', () => {
         const palette = Palette.cga();
         const usedMask = buildUsageMask([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         const swatchSize = DEFAULT_PALETTE_SWATCH_SIZE;
-        const grid = computePaletteGrid(320, swatchSize, palette.size, 1);
+        const grid = computeGrid(320, swatchSize, palette.size, 1);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new PaletteView(true);
         const { drawBarFill, calls } = createRectFillMock();
@@ -292,7 +290,7 @@ describe('PaletteView.draw', () => {
     it('keeps palette swatches above the dedicated hint bar', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const palette = new Palette(256);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, 36);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, 36);
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const swatchOriginY = paletteBandTop + PALETTE_GRID_PADDING_PX;
         const view = new PaletteView(true);
@@ -324,7 +322,7 @@ describe('PaletteView.draw', () => {
             renderer,
             new Rect2i(0, 201, 320, 39),
             Palette.cga(),
-            computePaletteGrid(320),
+            computeGrid(320),
             227,
             320,
             buildUsageMask([1, 2, 3]),
@@ -337,7 +335,7 @@ describe('PaletteView.draw', () => {
     it('draws only the visible row window when scroll offset is non-zero', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const palette = new Palette(256);
-        const grid = computePaletteGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, undefined, 3);
+        const grid = computeGrid(320, DEFAULT_PALETTE_SWATCH_SIZE, palette.size, 1, undefined, 3);
         const scrollRowOffset = 2;
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const view = new PaletteView(true);

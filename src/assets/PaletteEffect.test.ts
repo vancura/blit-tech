@@ -109,7 +109,7 @@ describe('PaletteEffectManager', () => {
         clock.advance(16);
         manager.update(palette);
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 
     it('skips first-frame delta (delta is 0 on first call)', () => {
@@ -203,9 +203,9 @@ describe('CycleEffect', () => {
         effect.update(palette, 1000);
 
         // Forward rotation: [1,2,3] -> [2,3,1]
-        expect(palette.getRef(1).equals(original2)).toBe(true);
-        expect(palette.getRef(2).equals(original3)).toBe(true);
-        expect(palette.getRef(3).equals(original1)).toBe(true);
+        expect(palette.getRef(1).isEqual(original2)).toBe(true);
+        expect(palette.getRef(2).isEqual(original3)).toBe(true);
+        expect(palette.getRef(3).isEqual(original1)).toBe(true);
     });
 
     it('rotates entries backward with negative speed', () => {
@@ -218,9 +218,9 @@ describe('CycleEffect', () => {
         effect.update(palette, 1000);
 
         // Backward rotation: [1,2,3] -> [3,1,2]
-        expect(palette.getRef(1).equals(original3)).toBe(true);
-        expect(palette.getRef(2).equals(original1)).toBe(true);
-        expect(palette.getRef(3).equals(original2)).toBe(true);
+        expect(palette.getRef(1).isEqual(original3)).toBe(true);
+        expect(palette.getRef(2).isEqual(original1)).toBe(true);
+        expect(palette.getRef(3).isEqual(original2)).toBe(true);
     });
 
     it('uses fractional accumulator for sub-frame precision', () => {
@@ -231,13 +231,13 @@ describe('CycleEffect', () => {
         // 400ms = 0.8 steps -> no rotation yet.
         effect.update(palette, 400);
 
-        expect(palette.getRef(1).equals(original1)).toBe(true);
+        expect(palette.getRef(1).isEqual(original1)).toBe(true);
 
         // 200ms more = 1.2 steps total -> 1 rotation.
         effect.update(palette, 200);
 
         // Should have rotated once.
-        expect(palette.getRef(1).equals(original1)).toBe(false);
+        expect(palette.getRef(1).isEqual(original1)).toBe(false);
     });
 
     it('handles multiple rotations in a single frame', () => {
@@ -250,9 +250,9 @@ describe('CycleEffect', () => {
         // 3 seconds = 3 full rotations of 3 entries -> back to original.
         effect.update(palette, 3000);
 
-        expect(palette.getRef(1).equals(original1)).toBe(true);
-        expect(palette.getRef(2).equals(original2)).toBe(true);
-        expect(palette.getRef(3).equals(original3)).toBe(true);
+        expect(palette.getRef(1).isEqual(original1)).toBe(true);
+        expect(palette.getRef(2).isEqual(original2)).toBe(true);
+        expect(palette.getRef(3).isEqual(original3)).toBe(true);
     });
 
     it('runs indefinitely (always returns true)', () => {
@@ -271,7 +271,7 @@ describe('CycleEffect', () => {
 
         effect.update(palette, 1000);
 
-        expect(palette.getRef(1).equals(original1)).toBe(true);
+        expect(palette.getRef(1).isEqual(original1)).toBe(true);
     });
 
     it('does nothing when start >= end', () => {
@@ -281,7 +281,7 @@ describe('CycleEffect', () => {
 
         effect.update(palette, 1000);
 
-        expect(palette.getRef(5).equals(original5)).toBe(true);
+        expect(palette.getRef(5).isEqual(original5)).toBe(true);
     });
 });
 
@@ -412,7 +412,7 @@ describe('FadeRangeEffect', () => {
         effect.update(source, 1000);
 
         // Index 1 should be unchanged (outside range).
-        expect(source.getRef(1).equals(originalOutside)).toBe(true);
+        expect(source.getRef(1).isEqual(originalOutside)).toBe(true);
 
         // Index 5 should be at target.
         expect(source.getRef(5).r).toBe(255);
@@ -499,7 +499,7 @@ describe('FlashEffect', () => {
             const original = originalColors[i];
 
             if (original) {
-                expect(palette.getRef(i).equals(original)).toBe(true);
+                expect(palette.getRef(i).isEqual(original)).toBe(true);
             }
         }
     });
@@ -526,8 +526,8 @@ describe('paletteSwap', () => {
 
         paletteSwap(palette, 3, 7);
 
-        expect(palette.getRef(3).equals(color7)).toBe(true);
-        expect(palette.getRef(7).equals(color3)).toBe(true);
+        expect(palette.getRef(3).isEqual(color7)).toBe(true);
+        expect(palette.getRef(7).isEqual(color3)).toBe(true);
     });
 
     it('marks palette dirty', () => {
@@ -536,7 +536,7 @@ describe('paletteSwap', () => {
         palette.clearDirty();
         paletteSwap(palette, 1, 2);
 
-        expect(palette.dirty).toBe(true);
+        expect(palette.isDirty).toBe(true);
     });
 
     it('is a no-op when indices are the same', () => {
@@ -546,8 +546,8 @@ describe('paletteSwap', () => {
         palette.clearDirty();
         paletteSwap(palette, 5, 5);
 
-        expect(palette.getRef(5).equals(original)).toBe(true);
-        expect(palette.dirty).toBe(false);
+        expect(palette.getRef(5).isEqual(original)).toBe(true);
+        expect(palette.isDirty).toBe(false);
     });
 });
 

@@ -1029,8 +1029,19 @@ export class Vector2i {
      * @param other - Vector to compare with.
      * @returns True if both x and y components are equal.
      */
-    equals(other: Vector2i): boolean {
+    isEqual(other: Vector2i): boolean {
         return this.x === other.x && this.y === other.y;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isEqual}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isEqual} instead.
+     * @param other - Vector to compare with.
+     * @returns True if both x and y components are equal.
+     */
+    equals(other: Vector2i): boolean {
+        return this.isEqual(other);
     }
 
     /**
@@ -1041,7 +1052,7 @@ export class Vector2i {
      * @param y - Y coordinate to compare.
      * @returns True if components match the given coordinates.
      */
-    equalsXY(x: number, y: number): boolean {
+    isEqualXY(x: number, y: number): boolean {
         return this.x === (x | 0) && this.y === (y | 0);
     }
 

@@ -200,14 +200,14 @@ describe('static color getters', () => {
 
 describe('named color registry', () => {
     it('resolves required CSS level 1 names', () => {
-        expect(Color32.resolveNamedColor('black')?.equals(Color32.black)).toBe(true);
-        expect(Color32.resolveNamedColor('white')?.equals(Color32.white)).toBe(true);
-        expect(Color32.resolveNamedColor('red')?.equals(Color32.red)).toBe(true);
-        expect(Color32.resolveNamedColor('green')?.equals(Color32.green)).toBe(true);
-        expect(Color32.resolveNamedColor('blue')?.equals(Color32.blue)).toBe(true);
-        expect(Color32.resolveNamedColor('yellow')?.equals(Color32.yellow)).toBe(true);
-        expect(Color32.resolveNamedColor('cyan')?.equals(Color32.cyan)).toBe(true);
-        expect(Color32.resolveNamedColor('magenta')?.equals(Color32.magenta)).toBe(true);
+        expect(Color32.resolveNamedColor('black')?.isEqual(Color32.black)).toBe(true);
+        expect(Color32.resolveNamedColor('white')?.isEqual(Color32.white)).toBe(true);
+        expect(Color32.resolveNamedColor('red')?.isEqual(Color32.red)).toBe(true);
+        expect(Color32.resolveNamedColor('green')?.isEqual(Color32.green)).toBe(true);
+        expect(Color32.resolveNamedColor('blue')?.isEqual(Color32.blue)).toBe(true);
+        expect(Color32.resolveNamedColor('yellow')?.isEqual(Color32.yellow)).toBe(true);
+        expect(Color32.resolveNamedColor('cyan')?.isEqual(Color32.cyan)).toBe(true);
+        expect(Color32.resolveNamedColor('magenta')?.isEqual(Color32.magenta)).toBe(true);
     });
 
     it('resolves gray and grey to the same singleton', () => {
@@ -216,19 +216,19 @@ describe('named color registry', () => {
 
         expect(gray).toBeDefined();
         expect(gray).toBe(grey);
-        expect(gray?.equals(Color32.gray(128))).toBe(true);
+        expect(gray?.isEqual(Color32.gray(128))).toBe(true);
     });
 
     it('resolves common extra names', () => {
-        expect(Color32.resolveNamedColor('cornflowerblue')?.equals(Color32.fromRGBAUnchecked(100, 149, 237, 255))).toBe(
-            true,
-        );
-        expect(Color32.resolveNamedColor('tomato')?.equals(Color32.fromRGBAUnchecked(255, 99, 71, 255))).toBe(true);
+        expect(
+            Color32.resolveNamedColor('cornflowerblue')?.isEqual(Color32.fromRGBAUnchecked(100, 149, 237, 255)),
+        ).toBe(true);
+        expect(Color32.resolveNamedColor('tomato')?.isEqual(Color32.fromRGBAUnchecked(255, 99, 71, 255))).toBe(true);
     });
 
     it('normalizes lookup names with trim + lowercase', () => {
         const color = Color32.resolveNamedColor('  CoRnFlOwErBlUe  ');
-        expect(color?.equals(Color32.fromRGBAUnchecked(100, 149, 237, 255))).toBe(true);
+        expect(color?.isEqual(Color32.fromRGBAUnchecked(100, 149, 237, 255))).toBe(true);
     });
 
     it('returns same instance on repeated lookups', () => {
@@ -252,7 +252,7 @@ describe('named color registry', () => {
             const resolved = Color32.resolveNamedColor('mycustomcolor');
             expect(resolved).toBeDefined();
             expect(resolved).not.toBe(source);
-            expect(resolved?.equals(source)).toBe(true);
+            expect(resolved?.isEqual(source)).toBe(true);
             expect(Object.isFrozen(resolved)).toBe(true);
         } finally {
             Color32.unregisterColor('mycustomcolor');
@@ -277,7 +277,7 @@ describe('named color registry', () => {
             Color32.updateColor('  UpdatableColor  ', updatedSource);
 
             const resolved = Color32.resolveNamedColor('updatablecolor');
-            expect(resolved?.equals(updatedSource)).toBe(true);
+            expect(resolved?.isEqual(updatedSource)).toBe(true);
             expect(resolved).not.toBe(updatedSource);
             expect(Object.isFrozen(resolved)).toBe(true);
         } finally {
@@ -305,8 +305,8 @@ describe('named color registry', () => {
 
             expect(gray).toBeDefined();
             expect(grey).toBeDefined();
-            expect(gray?.equals(new Color32(200, 200, 200, 255))).toBe(true);
-            expect(grey?.equals(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(gray?.isEqual(new Color32(200, 200, 200, 255))).toBe(true);
+            expect(grey?.isEqual(new Color32(200, 200, 200, 255))).toBe(true);
             expect(gray).toBe(grey);
             expect(Object.isFrozen(gray)).toBe(true);
         } finally {
@@ -676,26 +676,26 @@ describe('toString', () => {
 
 // #region Comparison
 
-describe('equals', () => {
+describe('isEqual', () => {
     it('returns true for identical colors', () => {
         const a = new Color32(10, 20, 30, 40);
         const b = new Color32(10, 20, 30, 40);
 
-        expect(a.equals(b)).toBe(true);
+        expect(a.isEqual(b)).toBe(true);
     });
 
     it('returns false for different colors', () => {
         const a = new Color32(10, 20, 30, 40);
         const b = new Color32(10, 20, 30, 41);
 
-        expect(a.equals(b)).toBe(false);
+        expect(a.isEqual(b)).toBe(false);
     });
 
     it('returns false for null or undefined', () => {
         const a = new Color32(10, 20, 30, 40);
 
-        expect(a.equals(null as unknown as Color32)).toBe(false);
-        expect(a.equals(undefined as unknown as Color32)).toBe(false);
+        expect(a.isEqual(null as unknown as Color32)).toBe(false);
+        expect(a.isEqual(undefined as unknown as Color32)).toBe(false);
     });
 });
 
@@ -845,7 +845,7 @@ describe('Color32.lerp (static)', () => {
         const b = new Color32(200, 100, 50, 254);
 
         for (const t of [0, 0.25, 0.5, 0.75, 1, -1, 2]) {
-            expect(Color32.lerp(a, b, t).equals(a.lerp(b, t))).toBe(true);
+            expect(Color32.lerp(a, b, t).isEqual(a.lerp(b, t))).toBe(true);
         }
     });
 

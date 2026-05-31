@@ -4,32 +4,28 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-    collectUsedRenderPaletteIndices,
-    markRenderPaletteIndexUsed,
-    resetRenderPaletteUsage,
-} from './RenderPaletteUsage';
+import { collectUsedIndices, markIndexUsed, resetUsage } from './RenderPaletteUsage';
 
 describe('RenderPaletteUsage', () => {
     it('collects sorted used indices and skips transparent slot 0', () => {
         const mask = new Uint8Array(256);
         const scratch: number[] = [];
 
-        markRenderPaletteIndexUsed(mask, 0);
-        markRenderPaletteIndexUsed(mask, 3);
-        markRenderPaletteIndexUsed(mask, 1);
-        markRenderPaletteIndexUsed(mask, 7);
+        markIndexUsed(mask, 0);
+        markIndexUsed(mask, 3);
+        markIndexUsed(mask, 1);
+        markIndexUsed(mask, 7);
 
-        expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([1, 3, 7]);
+        expect(collectUsedIndices(mask, 16, scratch)).toEqual([1, 3, 7]);
     });
 
     it('reset clears prior marks', () => {
         const mask = new Uint8Array(256);
         const scratch: number[] = [];
 
-        markRenderPaletteIndexUsed(mask, 2);
-        resetRenderPaletteUsage(mask);
+        markIndexUsed(mask, 2);
+        resetUsage(mask);
 
-        expect(collectUsedRenderPaletteIndices(mask, 16, scratch)).toEqual([]);
+        expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
     });
 });

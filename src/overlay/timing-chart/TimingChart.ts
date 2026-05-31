@@ -19,7 +19,7 @@ import {
     computeTimingChartDotY,
     computeTimingChartGridLineY,
     computeTimingChartPressureHeight,
-    shouldDrawTimingChartGridLineY,
+    isTimingChartGridLineAtY,
     timingChartBaselineY,
     type TimingChartDrawStyle,
     writeTimingChartGridMarkers,
@@ -42,7 +42,7 @@ import {
  * Scrolling update/render timing chart with a fixed-capacity ring buffer.
  */
 export class TimingChart {
-    readonly #enabled: boolean;
+    readonly #isEnabled: boolean;
 
     readonly #targetFps: number;
 
@@ -77,7 +77,7 @@ export class TimingChart {
     readonly #tags: TimingChartTag[] = [];
 
     /** Tick at last chart reset; used for relative tick labels. */
-    #chartStartTick = 0;
+    #startTick = 0;
 
     /** Timing samples recorded since the last chart width reset (one per overlay frame). */
     #totalSamples = 0;
@@ -87,14 +87,14 @@ export class TimingChart {
     /**
      * Creates a timing chart with the given feature flag.
      *
-     * @param enabled - When false, sample/draw are no-ops.
+     * @param isEnabled - When false, sample/draw are no-ops.
      * @param targetFps - Configured fixed-step rate for frame-budget classification.
      * @param diagnosticsMode - Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
      */
-    constructor(enabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
-        this.#enabled = enabled;
+    constructor(isEnabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
+        this.#isEnabled = isEnabled;
         this.#targetFps = targetFps;
-        this.#diagnosticsMode = enabled ? diagnosticsMode : false;
+        this.#diagnosticsMode = isEnabled ? diagnosticsMode : false;
     }
 
     /**
@@ -102,8 +102,8 @@ export class TimingChart {
      *
      * @returns Feature flag state.
      */
-    get enabled(): boolean {
-        return this.#enabled;
+    get isEnabled(): boolean {
+        return this.#isEnabled;
     }
 
     /**
@@ -159,7 +159,7 @@ export class TimingChart {
         this.#overflowBuffer = new Uint8Array(width);
         this.#primitiveVertexBuffer = new Uint32Array(width);
         this.#spriteVertexBuffer = new Uint32Array(width);
-        this.#chartStartTick = currentTick;
+        this.#startTick = currentTick;
         this.#tags.length = 0;
 
         this.assignTag(TIMING_CHART_TAG_START, currentTick);
@@ -171,7 +171,7 @@ export class TimingChart {
      * @param timing - Per-frame snapshot from BTAPI.
      */
     sample(timing: OverlayTimingSnapshot): void {
-        if (!this.#enabled || this.#bufferWidth <= 0) {
+        if (!this.#isEnabled || this.#bufferWidth <= 0) {
             return;
         }
 
@@ -222,7 +222,7 @@ export class TimingChart {
         font: BitmapFont,
         currentTick: number,
     ): void {
-        if (!this.#enabled || chartRect.width <= 0 || chartRect.height <= 0) {
+        if (!this.#isEnabled || chartRect.width <= 0 || chartRect.height <= 0) {
             return;
         }
 
@@ -259,9 +259,9 @@ export class TimingChart {
             const updateMs = this.#updateMsBuffer[bufferIndex] as number;
             const renderMs = this.#renderMsBuffer[bufferIndex] as number;
             let severity = this.#severityBuffer[bufferIndex] as number;
-            const overflow = this.#diagnosticsMode !== false && (this.#overflowBuffer[bufferIndex] as number) > 0;
+            const hasOverflow = this.#diagnosticsMode !== false && (this.#overflowBuffer[bufferIndex] as number) > 0;
 
-            if (overflow && severity < TIMING_CHART_SEVERITY_WARNING) {
+            if (hasOverflow && severity < TIMING_CHART_SEVERITY_WARNING) {
                 severity = TIMING_CHART_SEVERITY_WARNING;
             }
             /* eslint-enable security/detect-object-injection */
@@ -293,7 +293,7 @@ export class TimingChart {
                 this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
             }
 
-            if (overflow) {
+            if (hasOverflow) {
                 this.#drawBaselineMarker(target, x, baselineY, style.overflowBarIndex);
             }
 
@@ -376,7 +376,7 @@ export class TimingChart {
                 target.drawLabelOnTop(
                     font,
                     this.#tagLabelPos.clone(),
-                    formatTimingChartTagRelTick(leadTag.tick, this.#chartStartTick),
+                    formatTimingChartTagRelTick(leadTag.tick, this.#startTick),
                     paletteOffset,
                 );
             }
@@ -416,7 +416,7 @@ export class TimingChart {
 
             const y = computeTimingChartGridLineY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
 
-            if (y === null || !shouldDrawTimingChartGridLineY(y, chartRect) || y === lastY) {
+            if (y === null || !isTimingChartGridLineAtY(y, chartRect) || y === lastY) {
                 continue;
             }
 

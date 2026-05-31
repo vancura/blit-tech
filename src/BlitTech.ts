@@ -524,7 +524,7 @@ export const BT = {
     /**
      * Places a labeled marker on the overlay timing chart at the current tick.
      *
-     * Requires `overlayTimingChart: true` in `configure()`. Tags scroll with the chart
+     * Requires `isOverlayTimingChartEnabled: true` in `configure()`. Tags scroll with the chart
      * history and are pruned when they leave the visible window. Empty labels become
      * `"Untitled"`. Chart width resets add an automatic `"Start"` tag.
      *
@@ -976,8 +976,19 @@ export const BT = {
      * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns `true` while the slot has live position data.
      */
+    isPointerActive: (pointerIndex: number = 0): boolean => {
+        return BTAPI.instance.getPointer()?.isActive(pointerIndex) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isPointerActive}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isPointerActive} instead.
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
+     * @returns `true` while the slot has live position data.
+     */
     pointerPosValid: (pointerIndex: number = 0): boolean => {
-        return BTAPI.instance.getPointer()?.isValid(pointerIndex) ?? false;
+        return BT.isPointerActive(pointerIndex);
     },
 
     /**
@@ -1042,7 +1053,7 @@ export const BT = {
      * @returns `true` while the button remains pressed.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonDown: (button: number, player: number = 0): boolean => {
+    isDown: (button: number, player: number = 0): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1070,11 +1081,11 @@ export const BT = {
                 continue;
             }
 
-            const keyboardMatch =
+            const isKeyboardDown =
                 BTAPI.instance.getKeyboard()?.isButtonDown(faceButtonKeys(faceButton, player) ?? []) ?? false;
-            const gamepadMatch = BTAPI.instance.getGamepad()?.isButtonDown(faceButton, player) ?? false;
+            const isGamepadDown = BTAPI.instance.getGamepad()?.isButtonDown(faceButton, player) ?? false;
 
-            if (keyboardMatch || gamepadMatch) {
+            if (isKeyboardDown || isGamepadDown) {
                 return true;
             }
         }
@@ -1083,9 +1094,21 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isDown}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isDown} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads / keyboard, or pointer slot.
+     * @returns `true` while the button remains pressed.
+     */
+    buttonDown: (button: number, player: number = 0): boolean => {
+        return BT.isDown(button, player);
+    },
+
+    /**
      * Checks whether a button was pressed on the current frame.
      *
-     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * Same parameter semantics as {@link isDown}; returns `true` only on
      * the frame the button transitions from up to down.
      *
      * @param button - Button constant from the `BTN_*` set.
@@ -1095,7 +1118,7 @@ export const BT = {
      * @returns `true` on the transition frame.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
+    isPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1130,17 +1153,17 @@ export const BT = {
             const keyboard = BTAPI.instance.getKeyboard();
             const gamepad = BTAPI.instance.getGamepad();
             const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
-            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
-            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
-            const keyboardPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
-            const gamepadPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
-            const repeatEnabled = repeatRate !== undefined && repeatRate > 0;
-            const mergedPressed = repeatEnabled
-                ? keyboardPressed || gamepadPressed
-                : (keyboardPressed && !(gamepadDown && !gamepadPressed)) ||
-                  (gamepadPressed && !(keyboardDown && !keyboardPressed));
+            const isKeyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const isGamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardIsPressed = keyboard?.isButtonPressed(keyboardCodes, repeatRate, tick) ?? false;
+            const gamepadIsPressed = gamepad?.isButtonPressed(faceButton, player, repeatRate, tick) ?? false;
+            const isRepeatEnabled = repeatRate !== undefined && repeatRate > 0;
+            const mergedIsPressed = isRepeatEnabled
+                ? keyboardIsPressed || gamepadIsPressed
+                : (keyboardIsPressed && !(isGamepadDown && !gamepadIsPressed)) ||
+                  (gamepadIsPressed && !(isKeyboardDown && !keyboardIsPressed));
 
-            if (mergedPressed) {
+            if (mergedIsPressed) {
                 return true;
             }
         }
@@ -1149,9 +1172,22 @@ export const BT = {
     },
 
     /**
+     * Backward-compatible alias for {@link isPressed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isPressed} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
+     * @param repeatRate - Optional repeat interval in fixed ticks (`0`/omitted = edge only).
+     * @returns `true` on the transition frame.
+     */
+    buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
+        return BT.isPressed(button, player, repeatRate);
+    },
+
+    /**
      * Checks whether a button was released on the current frame.
      *
-     * Same parameter semantics as {@link buttonDown}; returns `true` only on
+     * Same parameter semantics as {@link isDown}; returns `true` only on
      * the frame the button transitions from down to up.
      *
      * @param button - Button constant from the `BTN_*` set.
@@ -1160,7 +1196,7 @@ export const BT = {
      * @returns `true` on the release frame.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
-    buttonReleased: (button: number, player: number = 0): boolean => {
+    isReleased: (button: number, player: number = 0): boolean => {
         if (!Number.isInteger(button) || button <= 0) {
             return false;
         }
@@ -1194,20 +1230,32 @@ export const BT = {
             const keyboard = BTAPI.instance.getKeyboard();
             const gamepad = BTAPI.instance.getGamepad();
             const keyboardCodes = faceButtonKeys(faceButton, player) ?? [];
-            const keyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
-            const gamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
-            const keyboardReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
-            const gamepadReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
-            const mergedReleased =
-                (keyboardReleased && !(gamepadDown && !gamepadReleased)) ||
-                (gamepadReleased && !(keyboardDown && !keyboardReleased));
+            const isKeyboardDown = keyboard?.isButtonDown(keyboardCodes) ?? false;
+            const isGamepadDown = gamepad?.isButtonDown(faceButton, player) ?? false;
+            const keyboardIsReleased = keyboard?.isButtonReleased(keyboardCodes) ?? false;
+            const gamepadIsReleased = gamepad?.isButtonReleased(faceButton, player) ?? false;
+            const mergedIsReleased =
+                (keyboardIsReleased && !(isGamepadDown && !gamepadIsReleased)) ||
+                (gamepadIsReleased && !(isKeyboardDown && !keyboardIsReleased));
 
-            if (mergedReleased) {
+            if (mergedIsReleased) {
                 return true;
             }
         }
 
         return false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isReleased}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isReleased} instead.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
+     * @returns `true` on the release frame.
+     */
+    buttonReleased: (button: number, player: number = 0): boolean => {
+        return BT.isReleased(button, player);
     },
 
     /**
@@ -1269,8 +1317,19 @@ export const BT = {
      * @param player - Zero-based player index (`0`..`3`).
      * @returns `true` when a gamepad is available for that slot.
      */
-    gamepadConnected: (player: number = 0): boolean => {
+    isGamepadConnected: (player: number = 0): boolean => {
         return BTAPI.instance.getGamepad()?.isConnected(player) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isGamepadConnected}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isGamepadConnected} instead.
+     * @param player - Zero-based player index (`0`..`3`).
+     * @returns `true` when a gamepad is available for that slot.
+     */
+    gamepadConnected: (player: number = 0): boolean => {
+        return BT.isGamepadConnected(player);
     },
 
     /**
@@ -1294,8 +1353,19 @@ export const BT = {
      * @param key - DOM keyboard code string.
      * @returns `true` while the key remains pressed.
      */
-    keyDown: (key: string): boolean => {
+    isKeyDown: (key: string): boolean => {
         return BTAPI.instance.getKeyboard()?.isKeyDown(key) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isKeyDown}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyDown} instead.
+     * @param key - DOM keyboard code string.
+     * @returns `true` while the key remains pressed.
+     */
+    keyDown: (key: string): boolean => {
+        return BT.isKeyDown(key);
     },
 
     /**
@@ -1309,10 +1379,22 @@ export const BT = {
      * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
      * @returns `true` on the press edge (and on repeat ticks when configured).
      */
-    keyPressed: (key: string, repeatRate?: number): boolean => {
+    isKeyPressed: (key: string, repeatRate?: number): boolean => {
         const tick = BTAPI.instance.getTicks();
 
         return BTAPI.instance.getKeyboard()?.isKeyPressed(key, repeatRate, tick) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isKeyPressed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyPressed} instead.
+     * @param key - DOM keyboard code string.
+     * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
+     * @returns `true` on the press edge (and on repeat ticks when configured).
+     */
+    keyPressed: (key: string, repeatRate?: number): boolean => {
+        return BT.isKeyPressed(key, repeatRate);
     },
 
     /**
@@ -1321,8 +1403,19 @@ export const BT = {
      * @param key - DOM keyboard code string.
      * @returns `true` on the release edge.
      */
-    keyReleased: (key: string): boolean => {
+    isKeyReleased: (key: string): boolean => {
         return BTAPI.instance.getKeyboard()?.isKeyReleased(key) ?? false;
+    },
+
+    /**
+     * Backward-compatible alias for {@link isKeyReleased}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isKeyReleased} instead.
+     * @param key - DOM keyboard code string.
+     * @returns `true` on the release edge.
+     */
+    keyReleased: (key: string): boolean => {
+        return BT.isKeyReleased(key);
     },
 
     /**

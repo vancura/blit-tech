@@ -9,19 +9,19 @@ import { OVERLAY_TOGGLE_KEY_CODE, POINTER_PRIMARY_BUTTON } from './constants';
  * Handles overlay body visibility toggle input (Backquote and corner pointer).
  */
 export class Toggle {
-    #bodyVisible: boolean;
+    #isBodyVisible: boolean;
 
-    readonly #toggleEnabled: boolean;
+    readonly #isEnabled: boolean;
 
     /**
      * Creates toggle state from configure-time visibility and input flags.
      *
-     * @param visibleAtStart - Initial overlay body visibility from configure.
-     * @param toggleEnabled - When false, toggle input is ignored.
+     * @param isOverlayVisibleAtStart - Initial overlay body visibility from configure.
+     * @param isOverlayToggleEnabled - When false, toggle input is ignored.
      */
-    constructor(visibleAtStart = false, toggleEnabled = true) {
-        this.#bodyVisible = visibleAtStart;
-        this.#toggleEnabled = toggleEnabled;
+    constructor(isOverlayVisibleAtStart = false, isOverlayToggleEnabled = true) {
+        this.#isBodyVisible = isOverlayVisibleAtStart;
+        this.#isEnabled = isOverlayToggleEnabled;
     }
 
     /**
@@ -29,8 +29,8 @@ export class Toggle {
      *
      * @returns `true` while metrics bars and palette grid are rendered.
      */
-    get bodyVisible(): boolean {
-        return this.#bodyVisible;
+    get isBodyVisible(): boolean {
+        return this.#isBodyVisible;
     }
 
     /**
@@ -40,26 +40,26 @@ export class Toggle {
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
      * @param toggleRect - Bottom-left toggle hit region.
-     * @param pointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
+     * @param isPointerPressConsumed - When true, skip pointer corner toggle (palette swatch handled the press).
      */
-    handleToggle(
+    handleInput(
         pointer: PointerInput | null,
         keyboard: KeyboardInput | null,
         currentTick: number,
         toggleRect: Rect2i,
-        pointerPressConsumed = false,
+        isPointerPressConsumed = false,
     ): void {
-        if (!this.#toggleEnabled) {
+        if (!this.#isEnabled) {
             return;
         }
 
         if (keyboard?.isKeyPressed(OVERLAY_TOGGLE_KEY_CODE, undefined, currentTick)) {
-            this.#bodyVisible = !this.#bodyVisible;
+            this.#isBodyVisible = !this.#isBodyVisible;
 
             return;
         }
 
-        if (!pointer || pointerPressConsumed) {
+        if (!pointer || isPointerPressConsumed) {
             return;
         }
 
@@ -71,10 +71,30 @@ export class Toggle {
             const pos = pointer.getPos(slot);
 
             if (isPointerInOverlayToggleCorner(pos, toggleRect)) {
-                this.#bodyVisible = !this.#bodyVisible;
+                this.#isBodyVisible = !this.#isBodyVisible;
 
                 return;
             }
         }
+    }
+
+    /**
+     * Backward-compatible alias for {@link handleInput}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link handleInput} instead.
+     * @param pointer - Pointer subsystem, or `null` when unavailable.
+     * @param keyboard - Keyboard subsystem, or `null` when unavailable.
+     * @param currentTick - Current fixed-update tick for keyboard edge detection.
+     * @param toggleRect - Bottom-left toggle hit region.
+     * @param isPointerPressConsumed - When true, skip pointer corner toggle.
+     */
+    handleToggle(
+        pointer: PointerInput | null,
+        keyboard: KeyboardInput | null,
+        currentTick: number,
+        toggleRect: Rect2i,
+        isPointerPressConsumed = false,
+    ): void {
+        this.handleInput(pointer, keyboard, currentTick, toggleRect, isPointerPressConsumed);
     }
 }

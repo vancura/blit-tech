@@ -168,6 +168,21 @@ await BT.downloadFrame();
 await BT.downloadFrame('screenshot-001.png'); // custom filename
 ```
 
+### Internal `FrameCapture` flow reference
+
+`BT.captureFrame()` uses `FrameCapture` internally. The capture lifecycle is:
+
+1. `FrameCapture.request()` - queue one capture
+2. `FrameCapture.executeInEncoder(device, texture, commandEncoder)` - record GPU copy in the frame encoder
+3. `FrameCapture.resolve(device)` - wait for submit completion, map readback, encode PNG
+
+Reference methods:
+
+- `FrameCapture.hasPending()`
+- `FrameCapture.request()`
+- `FrameCapture.executeInEncoder(device, texture, commandEncoder)`
+- `FrameCapture.resolve(device)`
+
 ---
 
 ## See Also

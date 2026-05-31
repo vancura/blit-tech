@@ -39,7 +39,7 @@ complex frameworks, just sprites, primitives, and fonts.
 - **Fixed timestep**: deterministic update loop with tick counter, `Timer`, and timing helpers
 - **Frame capture**: `BT.captureFrame()` and `BT.downloadFrame()` for PNG export
 - **Overlay**: engine-drawn FPS, backend, resolution, and demo title (toggle with `~` or bottom-left corner; disable via
-  `overlayEnabled: false` in `configure()`)
+  `isOverlayEnabled: false` in `configure()`)
 
 ## Why Blit-Tech?
 
@@ -186,8 +186,8 @@ WebGPU renderer is loaded only when WebGPU init succeeds. By default the engine 
 measured FPS, configured target FPS, the active backend name (via `BT.activeBackend`), logical resolution, and a short
 demo title derived from `document.title`. The overlay **body starts hidden** with a bitmap toggle hint in the
 bottom-left corner; toggle it with `~` (Backquote) or a primary press in the bottom-left corner. Use
-`overlayVisibleAtStart: true` to show the body on the first frame, `overlayToggleHintVisible: false` to hide the hint
-icon on immersive demos, or `overlayEnabled: false` to disable the overlay entirely in `configure()`. Use
+`isOverlayVisibleAtStart: true` to show the body on the first frame, `isOverlayToggleHintVisible: false` to hide the
+hint icon on immersive demos, or `isOverlayEnabled: false` to disable the overlay entirely in `configure()`. Use
 `BT.activeBackend` to read which backend is running (`'webgpu'`, `'software'`, or `null` before init).
 
 ## Contributors

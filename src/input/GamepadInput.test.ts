@@ -9,7 +9,7 @@ import { BT } from '../BlitTech';
 import { DEFAULT_GAMEPAD_DEAD_ZONE, GamepadInput } from './GamepadInput';
 
 interface PadState {
-    connected?: boolean;
+    isConnected?: boolean;
     buttons?: number[];
     pressed?: number[];
     axes?: number[];
@@ -25,7 +25,7 @@ function makeGamepad(state: PadState): Gamepad {
     return {
         id: 'test-pad',
         index: 0,
-        connected: state.connected ?? true,
+        connected: state.isConnected ?? true,
         mapping: 'standard',
         timestamp: 0,
         axes: state.axes ?? [0, 0, 0, 0],
@@ -61,8 +61,8 @@ describe('GamepadInput', () => {
     });
 
     it('tracks connected gamepads and counts connected players', () => {
-        pads[0] = makeGamepad({ connected: true });
-        pads[1] = makeGamepad({ connected: true });
+        pads[0] = makeGamepad({ isConnected: true });
+        pads[1] = makeGamepad({ isConnected: true });
 
         expect(input.isConnected(0)).toBe(true);
         expect(input.isConnected(1)).toBe(true);

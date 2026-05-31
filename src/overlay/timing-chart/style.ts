@@ -177,11 +177,21 @@ export function timingChartBaselineY(chartRect: Rect2i): number {
  *
  * @param y - Screen Y from {@link computeTimingChartGridLineY}.
  * @param chartRect - Chart band bounds.
- * @returns `true` when the row is strictly between the band edges.
+ * @returns `true` when the row is strictly inside the band and not the baseline.
  */
-export function shouldDrawTimingChartGridLineY(y: number, chartRect: Rect2i): boolean {
-    return y !== chartRect.y && y !== timingChartBaselineY(chartRect);
+export function isTimingChartGridLineAtY(y: number, chartRect: Rect2i): boolean {
+    return y > chartRect.y && y < chartRect.y + chartRect.height && y !== timingChartBaselineY(chartRect);
 }
+
+/**
+ * Backward-compatible alias for {@link isTimingChartGridLineAtY}.
+ *
+ * @deprecated Deprecated since 2026-05-31. Use {@link isTimingChartGridLineAtY} instead.
+ * @param y - Screen Y from {@link computeTimingChartGridLineY}.
+ * @param chartRect - Chart band bounds.
+ * @returns `true` when the row is strictly inside the band and not the baseline.
+ */
+export const shouldDrawTimingChartGridLineY = isTimingChartGridLineAtY;
 
 /**
  * Frame-budget grid marker in milliseconds from configured fixed-step rate.

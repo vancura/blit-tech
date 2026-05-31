@@ -241,7 +241,7 @@ if (elapsedTime >= 1.0) {
 
 If your `update()` or `render()` takes too long:
 
-1. **Confirm the symptom** - Set `detectDroppedFrames: true` in `configure()` to log a console warning whenever the
+1. **Confirm the symptom** - Set `isDetectingDroppedFrames: true` in `configure()` to log a console warning whenever the
    browser misses a vsync deadline. The detector auto-calibrates to the actual rAF cadence so it works on any refresh
    rate (60 / 120 / 144 Hz, etc.) and on Firefox where rAF often fires at the display rate rather than at `targetFPS`.
 2. **Profile with browser dev tools** - Find the actual bottleneck
@@ -277,7 +277,7 @@ Don't guess what's slow - **measure it**. Use:
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
 - Simulation rate: `BT.targetFPS` and `BT.ticks`
-- Render rate: overlay `Present: N FPS` when `overlayEnabled` is true (measured rAF cadence, not `targetFPS`)
+- Render rate: overlay `Present: N FPS` when `isOverlayEnabled` is true (measured rAF cadence, not `targetFPS`)
 
 ### 3. Allocating in Hot Paths
 

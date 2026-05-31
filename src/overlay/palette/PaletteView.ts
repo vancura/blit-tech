@@ -1,7 +1,7 @@
 /**
  * Live palette swatch grid for the overlay bottom band.
  *
- * {@link computePaletteGrid} picks adaptive column counts from the active palette
+ * {@link computeGrid} picks adaptive column counts from the active palette
  * size; {@link PaletteView.draw} renders indexed swatches with gaps and
  * transparent corner pixels.
  */
@@ -13,8 +13,8 @@ import { Rect2i } from '../../utils/Rect2i';
 import { OVERLAY_EDGE_MARGIN_PX } from '../layout/constants';
 import { overlayToggleHintIconX } from '../layout/layoutHelpers';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
-import { overlayToggleHintIconY } from '../OverlayToggleIcon';
-import { OVERLAY_TOGGLE_ICON_HEIGHT, OVERLAY_TOGGLE_ICON_WIDTH } from '../toggleIconData';
+import { hintIconY } from '../OverlayToggleIcon';
+import { ICON_HEIGHT, ICON_WIDTH } from '../toggleIconData';
 import type { PaletteGridLayout } from '../types';
 
 /** Default swatch size in pixels. */
@@ -54,13 +54,22 @@ export const DEFAULT_PALETTE_GRID: PaletteGridLayout = {
  * @param gap - Gap between swatches.
  * @returns Row width in pixels.
  */
-export function paletteGridRowWidth(cols: number, swatchSize: number, gap: number): number {
+export function gridRowWidth(cols: number, swatchSize: number, gap: number): number {
     if (cols <= 0) {
         return 0;
     }
 
     return cols * swatchSize + (cols - 1) * gap;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link gridRowWidth} instead.
+ * @param cols - Column count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Row width in pixels.
+ */
+export const paletteGridRowWidth = gridRowWidth;
 
 /**
  * Computes the vertical span of the full grid.
@@ -70,13 +79,22 @@ export function paletteGridRowWidth(cols: number, swatchSize: number, gap: numbe
  * @param gap - Gap between swatches.
  * @returns Grid height in pixels.
  */
-export function paletteGridRowStackHeight(rows: number, swatchSize: number, gap: number): number {
+export function gridRowStackHeight(rows: number, swatchSize: number, gap: number): number {
     if (rows <= 0) {
         return 0;
     }
 
     return rows * swatchSize + (rows - 1) * gap;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link gridRowStackHeight} instead.
+ * @param rows - Row count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Grid height in pixels.
+ */
+export const paletteGridRowStackHeight = gridRowStackHeight;
 
 /**
  * Picks the widest column count that fits the display while halving from the palette size.
@@ -88,7 +106,7 @@ export function paletteGridRowStackHeight(rows: number, swatchSize: number, gap:
  * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
  * @returns Column count (at least 1).
  */
-export function pickPaletteGridColumnCount(
+export function pickGridColumnCount(
     displayWidth: number,
     swatchSize: number,
     gap: number,
@@ -103,7 +121,7 @@ export function pickPaletteGridColumnCount(
     }
 
     while (candidate > 1) {
-        if (paletteGridRowWidth(candidate, swatchSize, gap) <= availableWidth) {
+        if (gridRowWidth(candidate, swatchSize, gap) <= availableWidth) {
             return candidate;
         }
 
@@ -114,13 +132,24 @@ export function pickPaletteGridColumnCount(
 }
 
 /**
+ * @deprecated Deprecated since 2026-05-31. Use {@link pickGridColumnCount} instead.
+ * @param displayWidth - Logical display width in pixels.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @param colorCount - Active palette slot count.
+ * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
+ * @returns Column count (at least 1).
+ */
+export const pickPaletteGridColumnCount = pickGridColumnCount;
+
+/**
  * Resolves the visible row count for a palette grid viewport.
  *
  * @param totalRows - Full palette row count.
  * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
  * @returns Visible rows (0 when `totalRows` is 0; otherwise clamped to `[1, totalRows]`).
  */
-export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?: number): number {
+export function resolveGridVisibleRows(totalRows: number, maxVisibleRows?: number): number {
     if (totalRows <= 0) {
         return 0;
     }
@@ -135,6 +164,14 @@ export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?
 }
 
 /**
+ * @deprecated Deprecated since 2026-05-31. Use {@link resolveGridVisibleRows} instead.
+ * @param totalRows - Full palette row count.
+ * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
+ * @returns Visible rows (0 when `totalRows` is 0; otherwise clamped to `[1, totalRows]`).
+ */
+export const resolvePaletteGridVisibleRows = resolveGridVisibleRows;
+
+/**
  * Computes palette grid layout for the bottom band.
  *
  * @param displayWidth - Logical display width in pixels.
@@ -145,7 +182,7 @@ export function resolvePaletteGridVisibleRows(totalRows: number, maxVisibleRows?
  * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
  * @returns Grid dimensions and viewport band height.
  */
-export function computePaletteGrid(
+export function computeGrid(
     displayWidth: number,
     swatchSize = DEFAULT_PALETTE_SWATCH_SIZE,
     colorCount = 256,
@@ -157,13 +194,25 @@ export function computePaletteGrid(
         return { cols: 0, rows: 0, visibleRows: 0, swatchSize, gap, totalHeight: 0 };
     }
 
-    const cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, colorCount, maxColumns);
+    const cols = pickGridColumnCount(displayWidth, swatchSize, gap, colorCount, maxColumns);
     const rows = Math.ceil(colorCount / cols);
-    const visibleRows = resolvePaletteGridVisibleRows(rows, maxVisibleRows);
-    const totalHeight = paletteGridRowStackHeight(visibleRows, swatchSize, gap) + PALETTE_GRID_PADDING_PX * 2;
+    const visibleRows = resolveGridVisibleRows(rows, maxVisibleRows);
+    const totalHeight = gridRowStackHeight(visibleRows, swatchSize, gap) + PALETTE_GRID_PADDING_PX * 2;
 
     return { cols, rows, visibleRows, swatchSize, gap, totalHeight };
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link computeGrid} instead.
+ * @param displayWidth - Logical display width in pixels.
+ * @param swatchSize - Side length of each swatch.
+ * @param colorCount - Number of palette slots to show.
+ * @param gap - Gap between swatches.
+ * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
+ * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
+ * @returns Grid dimensions and viewport band height.
+ */
+export const computePaletteGrid = computeGrid;
 
 // #endregion
 
@@ -182,7 +231,7 @@ export function computePaletteGrid(
  * @param bh - Height of rect B.
  * @returns `true` when the rects overlap.
  */
-function rectsIntersect(
+function doRectsOverlap(
     ax: number,
     ay: number,
     aw: number,
@@ -204,8 +253,8 @@ function rectsIntersect(
  * @param exclusion - Region to avoid (for example the toggle hint icon).
  * @returns `true` when any part of the swatch overlaps the exclusion rect.
  */
-function swatchIntersectsRect(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
-    return rectsIntersect(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
+function doesSwatchIntersectExclusion(x: number, y: number, swatchSize: number, exclusion: Rect2i): boolean {
+    return doRectsOverlap(x, y, swatchSize, swatchSize, exclusion.x, exclusion.y, exclusion.width, exclusion.height);
 }
 
 /** Cached hint exclusion rect; recomputed only when layout inputs change. */
@@ -224,7 +273,7 @@ const hintExclusionCache = {
  * @param displayWidth - Logical display width (cache key only; icon X is margin-based).
  * @returns Exclusion rect for swatch placement and hit testing.
  */
-export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidth: number): Rect2i {
+export function resolveHintExclusionRect(hintBarTopY: number, displayWidth: number): Rect2i {
     if (hintExclusionCache.hintBarTopY === hintBarTopY && hintExclusionCache.displayWidth === displayWidth) {
         return hintExclusionCache.rect;
     }
@@ -232,15 +281,18 @@ export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidt
     hintExclusionCache.hintBarTopY = hintBarTopY;
     hintExclusionCache.displayWidth = displayWidth;
 
-    hintExclusionCache.rect.set(
-        overlayToggleHintIconX(),
-        overlayToggleHintIconY(hintBarTopY),
-        OVERLAY_TOGGLE_ICON_WIDTH,
-        OVERLAY_TOGGLE_ICON_HEIGHT,
-    );
+    hintExclusionCache.rect.set(overlayToggleHintIconX(), hintIconY(hintBarTopY), ICON_WIDTH, ICON_HEIGHT);
 
     return hintExclusionCache.rect;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link resolveHintExclusionRect} instead.
+ * @param hintBarTopY - Top Y of the bottom hint bar from the layout plan.
+ * @param displayWidth - Logical display width (cache key only; icon X is margin-based).
+ * @returns Exclusion rect for swatch placement and hit testing.
+ */
+export const resolvePaletteHintExclusionRect = resolveHintExclusionRect;
 
 // #endregion
 
@@ -250,7 +302,7 @@ export function resolvePaletteHintExclusionRect(hintBarTopY: number, displayWidt
 const UNUSED_SWATCH_MARKER_SIZE = 3;
 
 /** Reused draw scratch rects for the palette grid hot loop (one overlay draw at a time). */
-const paletteGridDrawScratch = {
+const gridDrawScratch = {
     swatch: new Rect2i(),
     marker: new Rect2i(),
 };
@@ -330,7 +382,7 @@ function drawUnusedSwatch(
  * @param index - Palette slot to query.
  * @returns `true` when the slot is marked used.
  */
-function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
+function isSlotUsed(usedMask: Uint8Array, index: number): boolean {
     // eslint-disable-next-line security/detect-object-injection -- index bounds checked below
     return index > 0 && index < usedMask.length && usedMask[index] === 1;
 }
@@ -348,7 +400,7 @@ function isPaletteSlotUsed(usedMask: Uint8Array, index: number): boolean {
  * @param usedMask - Per-frame usage mask from BTAPI.
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  */
-function drawPaletteSwatch(
+function drawSwatch(
     target: OverlayDrawTarget,
     swatchScratch: Rect2i,
     markerScratch: Rect2i,
@@ -359,7 +411,7 @@ function drawPaletteSwatch(
     usedMask: Uint8Array,
     unusedMarkIndex: number,
 ): void {
-    if (isPaletteSlotUsed(usedMask, index)) {
+    if (isSlotUsed(usedMask, index)) {
         swatchScratch.set(x, y, swatchSize, swatchSize);
         target.drawBarFill(swatchScratch, index);
     } else {
@@ -376,7 +428,7 @@ function drawPaletteSwatch(
  * @param grid - Precomputed grid layout.
  * @param scrollRowOffset - First visible grid row (default `0`).
  */
-export function writePaletteSwatchTopLeft(
+export function writeSwatchTopLeft(
     target: Rect2i,
     index: number,
     paletteBand: Rect2i,
@@ -384,6 +436,12 @@ export function writePaletteSwatchTopLeft(
     scrollRowOffset = 0,
 ): void {
     const { cols, swatchSize, gap } = grid;
+
+    if (cols === 0) {
+        target.set(0, 0, 0, 0);
+        return;
+    }
+
     const col = index % cols;
     const row = Math.floor(index / cols) - scrollRowOffset;
     const originX = paletteBand.x + OVERLAY_EDGE_MARGIN_PX;
@@ -393,6 +451,16 @@ export function writePaletteSwatchTopLeft(
 
     target.set(x, y, swatchSize, swatchSize);
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link writeSwatchTopLeft} instead.
+ * @param target - Reusable rect mutated in place.
+ * @param index - Palette slot index.
+ * @param paletteBand - Palette band rect from layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row (default `0`).
+ */
+export const writePaletteSwatchTopLeft = writeSwatchTopLeft;
 
 /**
  * Draws the visible palette swatch window inside the bottom band.
@@ -406,7 +474,7 @@ export function writePaletteSwatchTopLeft(
  * @param unusedMarkIndex - Palette index for unused swatch marker fills.
  * @param scrollRowOffset - First visible grid row (default `0`).
  */
-function drawPaletteSwatchGrid(
+function drawSwatchGrid(
     target: OverlayDrawTarget,
     paletteBand: Rect2i,
     colorCount: number,
@@ -417,23 +485,23 @@ function drawPaletteSwatchGrid(
     scrollRowOffset = 0,
 ): void {
     const { cols, visibleRows, swatchSize } = grid;
-    const swatchScratch = paletteGridDrawScratch.swatch;
-    const markerScratch = paletteGridDrawScratch.marker;
+    const swatchScratch = gridDrawScratch.swatch;
+    const markerScratch = gridDrawScratch.marker;
     const firstIndex = scrollRowOffset * cols;
     const lastIndex = Math.min(colorCount, (scrollRowOffset + visibleRows) * cols);
 
     for (let index = firstIndex; index < lastIndex; index++) {
-        writePaletteSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
+        writeSwatchTopLeft(swatchScratch, index, paletteBand, grid, scrollRowOffset);
         const x = swatchScratch.x;
         const y = swatchScratch.y;
 
         // Reserve only the toggle hint icon band; do not clip against the 48x48 toggle hit rect
         // (it overlaps many grid rows and would truncate every row below it).
-        if (swatchIntersectsRect(x, y, swatchSize, hintExclusion)) {
+        if (doesSwatchIntersectExclusion(x, y, swatchSize, hintExclusion)) {
             continue;
         }
 
-        drawPaletteSwatch(target, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
+        drawSwatch(target, swatchScratch, markerScratch, x, y, swatchSize, index, usedMask, unusedMarkIndex);
     }
 }
 
@@ -444,7 +512,7 @@ function drawPaletteSwatchGrid(
  * @param grid - Precomputed grid layout.
  * @returns Thumb height in pixels, or `0` when inputs are invalid.
  */
-export function computePaletteScrollbarThumbHeight(trackHeight: number, grid: PaletteGridLayout): number {
+export function computeScrollbarThumbHeight(trackHeight: number, grid: PaletteGridLayout): number {
     const { rows, visibleRows } = grid;
 
     if (rows <= 0 || trackHeight <= 0) {
@@ -455,6 +523,14 @@ export function computePaletteScrollbarThumbHeight(trackHeight: number, grid: Pa
 
     return Math.min(trackHeight, Math.max(PALETTE_SCROLLBAR_MIN_THUMB_HEIGHT_PX, proportional));
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link computeScrollbarThumbHeight} instead.
+ * @param trackHeight - Full palette band height in pixels.
+ * @param grid - Precomputed grid layout.
+ * @returns Thumb height in pixels, or `0` when inputs are invalid.
+ */
+export const computePaletteScrollbarThumbHeight = computeScrollbarThumbHeight;
 
 /**
  * Writes the palette scrollbar track and thumb rects for the bottom band.
@@ -470,7 +546,7 @@ export function computePaletteScrollbarThumbHeight(trackHeight: number, grid: Pa
  * @param trackWidth - Scrollbar track width in pixels.
  * @returns `true` when scrolling is possible and rects were written.
  */
-export function writePaletteScrollbarRects(
+export function writeScrollbarRects(
     trackTarget: Rect2i,
     thumbTarget: Rect2i,
     paletteBand: Rect2i,
@@ -501,7 +577,7 @@ export function writePaletteScrollbarRects(
 
     trackTarget.set(trackX, trackY, trackWidth, trackHeight);
 
-    const thumbHeight = computePaletteScrollbarThumbHeight(trackHeight, grid);
+    const thumbHeight = computeScrollbarThumbHeight(trackHeight, grid);
     const scrollRange = Math.max(0, trackHeight - thumbHeight);
     const thumbY = trackY + Math.floor((scrollRowOffset / maxOffset) * scrollRange);
 
@@ -509,6 +585,18 @@ export function writePaletteScrollbarRects(
 
     return true;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link writeScrollbarRects} instead.
+ * @param trackTarget - Reusable track rect mutated in place.
+ * @param thumbTarget - Reusable thumb rect mutated in place.
+ * @param paletteBand - Palette band rect from layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row.
+ * @param trackWidth - Scrollbar track width in pixels.
+ * @returns `true` when scrolling is possible and rects were written.
+ */
+export const writePaletteScrollbarRects = writeScrollbarRects;
 
 /**
  * Draws the palette scrollbar thumb inside the bottom band (no track fill).
@@ -520,7 +608,7 @@ export function writePaletteScrollbarRects(
  * @param trackWidth - Scrollbar track width in pixels.
  * @param thumbIndex - Palette index for the thumb fill.
  */
-function drawPaletteScrollbar(
+function drawScrollbar(
     target: OverlayDrawTarget,
     paletteBand: Rect2i,
     grid: PaletteGridLayout,
@@ -528,10 +616,10 @@ function drawPaletteScrollbar(
     trackWidth: number,
     thumbIndex: number,
 ): void {
-    const trackScratch = paletteGridDrawScratch.swatch;
-    const thumbScratch = paletteGridDrawScratch.marker;
+    const trackScratch = gridDrawScratch.swatch;
+    const thumbScratch = gridDrawScratch.marker;
 
-    if (!writePaletteScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
+    if (!writeScrollbarRects(trackScratch, thumbScratch, paletteBand, grid, scrollRowOffset, trackWidth)) {
         return;
     }
 
@@ -546,15 +634,15 @@ function drawPaletteScrollbar(
  * Live palette swatch renderer for the overlay bottom band.
  */
 export class PaletteView {
-    readonly #enabled: boolean;
+    readonly #isEnabled: boolean;
 
     /**
      * Creates a palette view with the given feature flag.
      *
-     * @param enabled - When false, draw is a no-op (default matches public opt-in API).
+     * @param isEnabled - When false, draw is a no-op (default matches public opt-in API).
      */
-    constructor(enabled = false) {
-        this.#enabled = enabled;
+    constructor(isEnabled = false) {
+        this.#isEnabled = isEnabled;
     }
 
     /**
@@ -562,8 +650,8 @@ export class PaletteView {
      *
      * @returns Feature flag state.
      */
-    get enabled(): boolean {
-        return this.#enabled;
+    get isEnabled(): boolean {
+        return this.#isEnabled;
     }
 
     /**
@@ -594,13 +682,13 @@ export class PaletteView {
         scrollbarTrackWidth = 0,
         scrollbarThumbIndex = unusedMarkIndex,
     ): void {
-        if (!this.#enabled || palette === null || grid.cols <= 0) {
+        if (!this.#isEnabled || palette === null || grid.cols <= 0) {
             return;
         }
 
-        const hintExclusion = resolvePaletteHintExclusionRect(hintBarTopY, displayWidth);
+        const hintExclusion = resolveHintExclusionRect(hintBarTopY, displayWidth);
 
-        drawPaletteSwatchGrid(
+        drawSwatchGrid(
             target,
             paletteBand,
             palette.size,
@@ -611,7 +699,7 @@ export class PaletteView {
             scrollRowOffset,
         );
 
-        drawPaletteScrollbar(target, paletteBand, grid, scrollRowOffset, scrollbarTrackWidth, scrollbarThumbIndex);
+        drawScrollbar(target, paletteBand, grid, scrollRowOffset, scrollbarTrackWidth, scrollbarThumbIndex);
     }
 }
 

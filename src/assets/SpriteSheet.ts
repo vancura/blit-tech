@@ -1,5 +1,5 @@
-import { markRenderPaletteIndexUsed } from '../core/RenderPaletteUsage';
-import { assertAssetDimensions, assertImageElementWithinLimits, assertIndexedPixelInput } from '../utils/AssetLimits';
+import { markIndexUsed } from '../core/RenderPaletteUsage';
+import { assertDimensions, assertImageElementWithinLimits, assertIndexedPixelInput } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { spriteColorNotInPaletteError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
@@ -8,7 +8,7 @@ import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
 
 /** Reused per-call bitmask of sheet indices seen while scanning a source rect. */
-const markPaletteIndicesInRectScratch = new Uint8Array(256);
+const markIndicesInRectScratch = new Uint8Array(256);
 
 /**
  * Result object returned by {@link SpriteSheet.loadIndexed}.
@@ -76,7 +76,7 @@ export class SpriteSheet {
             assertImageElementWithinLimits('sprite sheet', image);
             this.size = new Vector2i(image.width, image.height);
         } else if (size) {
-            assertAssetDimensions('sprite sheet', size.x, size.y);
+            assertDimensions('sprite sheet', size.x, size.y);
             this.size = size;
         } else {
             throw new Error('Either an image or explicit size must be provided.');
@@ -477,8 +477,18 @@ export class SpriteSheet {
      *
      * @returns True if `indexize()` has been called successfully.
      */
-    isIndexized(): boolean {
+    isIndexed(): boolean {
         return this.indexedPixels !== null;
+    }
+
+    /**
+     * Backward-compatible alias for {@link isIndexed}.
+     *
+     * @deprecated Deprecated since 2026-05-31. Use {@link isIndexed} instead.
+     * @returns True if `indexize()` has been called successfully.
+     */
+    isIndexized(): boolean {
+        return this.isIndexed();
     }
 
     /**
@@ -519,7 +529,7 @@ export class SpriteSheet {
         const startY = Math.max(0, srcRect.y);
         const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
         const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
-        const seenSheetIndices = markPaletteIndicesInRectScratch;
+        const seenSheetIndices = markIndicesInRectScratch;
 
         seenSheetIndices.fill(0);
 
@@ -541,7 +551,7 @@ export class SpriteSheet {
                 // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
                 seenSheetIndices[sheetIndex] = 1;
 
-                markRenderPaletteIndexUsed(usedMask, sheetIndex + paletteOffset);
+                markIndexUsed(usedMask, sheetIndex + paletteOffset);
             }
         }
     }
@@ -675,7 +685,7 @@ export class SpriteSheet {
             throw new Error('createTexture: no source image available.');
         }
 
-        assertAssetDimensions('sprite sheet texture', this.size.x, this.size.y);
+        assertDimensions('sprite sheet texture', this.size.x, this.size.y);
         this.texture = device.createTexture({
             label: 'Sprite Sheet Texture',
             size: [this.size.x, this.size.y, 1],
@@ -704,7 +714,7 @@ export class SpriteSheet {
      * @param device - WebGPU device for texture creation.
      */
     private createIndexedTexture(device: GPUDevice): void {
-        assertAssetDimensions('sprite sheet texture', this.size.x, this.size.y);
+        assertDimensions('sprite sheet texture', this.size.x, this.size.y);
         this.texture = device.createTexture({
             label: 'Sprite Sheet Indexed Texture',
             size: [this.size.x, this.size.y, 1],

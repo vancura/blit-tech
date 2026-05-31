@@ -6,8 +6,8 @@ import {
     type RenderDimensionField,
     RenderDimensionLimitError,
     type RenderDimensionSettings,
-    validateRenderDimension,
-    validateRenderDimensions,
+    validateDimension,
+    validateDimensions,
     validateWebGPUTextureDimension,
 } from './RenderLimits';
 import { Vector2i } from './Vector2i';
@@ -44,7 +44,7 @@ function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimens
 // #endregion
 
 describe('RenderLimits', () => {
-    describe('validateRenderDimensions', () => {
+    describe('validateDimensions', () => {
         const fields: RenderDimensionField[] = ['displaySize', 'drawingBufferSize', 'maxCanvasSize'];
         const cases: Array<{ name: string; size: Vector2i }> = [
             { name: 'zero', size: rawSize(0, 240) },
@@ -60,7 +60,7 @@ describe('RenderLimits', () => {
         for (const field of fields) {
             for (const testCase of cases) {
                 it(`rejects ${testCase.name} ${field}`, () => {
-                    const error = validateRenderDimensions(makeSettings(field, testCase.size));
+                    const error = validateDimensions(makeSettings(field, testCase.size));
 
                     expect(error).toContain(field);
                 });
@@ -69,7 +69,7 @@ describe('RenderLimits', () => {
 
         it('accepts the default render dimensions', () => {
             expect(
-                validateRenderDimensions({
+                validateDimensions({
                     displaySize: new Vector2i(320, 240),
                     drawingBufferSize: new Vector2i(640, 480),
                     maxCanvasSize: new Vector2i(960, 720),
@@ -79,14 +79,14 @@ describe('RenderLimits', () => {
 
         it('accepts omitted optional canvas dimensions', () => {
             expect(
-                validateRenderDimensions({
+                validateDimensions({
                     displaySize: new Vector2i(320, 240),
                 }),
             ).toBeNull();
         });
 
         it('rejects total area separately from per-axis limits', () => {
-            const error = validateRenderDimensions({
+            const error = validateDimensions({
                 displaySize: rawSize(4096, 4097),
             });
 
@@ -94,7 +94,7 @@ describe('RenderLimits', () => {
         });
 
         it('rejects 8192x8192 when per-axis limits pass but total area exceeds cap', () => {
-            const error = validateRenderDimensions({
+            const error = validateDimensions({
                 displaySize: rawSize(MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION),
             });
 
@@ -104,7 +104,7 @@ describe('RenderLimits', () => {
 
         it('accepts dimensions at the per-axis maximum with area within cap', () => {
             expect(
-                validateRenderDimensions({
+                validateDimensions({
                     displaySize: rawSize(MAX_RENDER_DIMENSION, 2048),
                 }),
             ).toBeNull();
@@ -112,7 +112,7 @@ describe('RenderLimits', () => {
 
         it('accepts dimensions at the total pixel area maximum', () => {
             expect(
-                validateRenderDimensions({
+                validateDimensions({
                     displaySize: rawSize(4096, 4096),
                 }),
             ).toBeNull();
@@ -120,20 +120,20 @@ describe('RenderLimits', () => {
 
         it('accepts dimensions at the per-axis maximum on a single axis', () => {
             expect(
-                validateRenderDimensions({
+                validateDimensions({
                     displaySize: rawSize(MAX_RENDER_DIMENSION, 1),
                 }),
             ).toBeNull();
         });
     });
 
-    describe('validateRenderDimension', () => {
+    describe('validateDimension', () => {
         it('returns null for a valid size at engine limits', () => {
-            expect(validateRenderDimension('displaySize', new Vector2i(4096, 4096))).toBeNull();
+            expect(validateDimension('displaySize', new Vector2i(4096, 4096))).toBeNull();
         });
 
         it('returns a field-specific message for invalid sizes', () => {
-            const error = validateRenderDimension('drawingBufferSize', rawSize(0, 480));
+            const error = validateDimension('drawingBufferSize', rawSize(0, 480));
 
             expect(error).toContain('drawingBufferSize');
         });

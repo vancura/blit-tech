@@ -5,15 +5,15 @@
  */
 
 /** Toggle hint icon width in pixels. */
-export const OVERLAY_TOGGLE_ICON_WIDTH = 11;
+export const ICON_WIDTH = 11;
 
 /** Toggle hint icon height in pixels. */
-export const OVERLAY_TOGGLE_ICON_HEIGHT = 7;
+export const ICON_HEIGHT = 7;
 
 /**
  * Row-major tilde toggle hint mask (`width` × `height`).
  */
-export const OVERLAY_TOGGLE_ICON_MASK: readonly number[] = [
+export const ICON_MASK: readonly number[] = [
     0,
     0,
     0,

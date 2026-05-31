@@ -29,7 +29,7 @@ import {
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
 import type { Rect2i } from '../utils/Rect2i';
-import { RenderDimensionLimitError, validateRenderDimensions } from '../utils/RenderLimits';
+import { RenderDimensionLimitError, validateDimensions } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import type { FrameDropCallback, FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
@@ -40,11 +40,7 @@ import {
     needsOverlayRendererDiagnostics,
     resolveOverlayTimingChartDiagnostics,
 } from './IBlitTechDemo';
-import {
-    markRenderPaletteIndexUsed,
-    RENDER_PALETTE_USAGE_CAPACITY,
-    resetRenderPaletteUsage,
-} from './RenderPaletteUsage';
+import { markIndexUsed, resetUsage, USAGE_CAPACITY } from './RenderPaletteUsage';
 import { initWebGPU } from './WebGPUContext';
 
 /**
@@ -102,7 +98,7 @@ export class BTAPI {
     private activeBackend: Backend | null = null;
 
     /**
-     * Engine overlay; non-null when {@link HardwareSettings.overlayEnabled}
+     * Engine overlay; non-null when {@link HardwareSettings.isOverlayEnabled}
      * is not `false`. Layout is fixed at init; drawn after demo `render()` each frame.
      */
     private overlay: Overlay | null = null;
@@ -136,7 +132,7 @@ export class BTAPI {
     private pendingDrawCalls = 0;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
-    private readonly framePaletteUsageMask = new Uint8Array(RENDER_PALETTE_USAGE_CAPACITY);
+    private readonly framePaletteUsageMask = new Uint8Array(USAGE_CAPACITY);
 
     /** Reused timing snapshot passed into the overlay each frame. */
     private readonly overlayTiming: {
@@ -177,7 +173,7 @@ export class BTAPI {
     };
 
     /** When true, {@link captureRendererDiagnostics} reads renderer pipeline counters each frame. */
-    private collectRendererDiagnosticsEnabled = false;
+    private isCollectRendererDiagnosticsEnabled = false;
 
     /** Pointer / mouse / touch input subsystem. Created during {@link init}. */
     private pointer: PointerInput | null = null;
@@ -283,13 +279,13 @@ export class BTAPI {
 
         // Start the loop. The GameLoop's double-RAF delay ensures the canvas is
         // fully ready before the first tick.
-        const needsFrameDropCallback =
-            hwSettings.detectDroppedFrames === true || hwSettings.overlayTimingChart === true;
-        const onFrameDrop: FrameDropCallback | undefined = needsFrameDropCallback
-            ? (event) => this.handleFrameDrop(event, hwSettings.detectDroppedFrames === true)
+        const isFrameDropCallbackNeeded =
+            hwSettings.isDetectingDroppedFrames === true || hwSettings.isOverlayTimingChartEnabled === true;
+        const onFrameDrop: FrameDropCallback | undefined = isFrameDropCallbackNeeded
+            ? (event) => this.handleFrameDrop(event, hwSettings.isDetectingDroppedFrames === true)
             : undefined;
 
-        this.collectRendererDiagnosticsEnabled = needsOverlayRendererDiagnostics(hwSettings);
+        this.isCollectRendererDiagnosticsEnabled = needsOverlayRendererDiagnostics(hwSettings);
 
         this.pendingUpdateMs = 0;
         this.pendingUpdateSteps = 0;
@@ -413,7 +409,7 @@ export class BTAPI {
 
         this.applyBackendQueryOverride();
 
-        const renderDimensionError = validateRenderDimensions(this.hwSettings);
+        const renderDimensionError = validateDimensions(this.hwSettings);
 
         if (renderDimensionError) {
             console.error(`[BT] ${renderDimensionError}`);
@@ -440,7 +436,7 @@ export class BTAPI {
 
         const hw = this.hwSettings;
 
-        if (!hw || hw.overlayEnabled === false || !this.systemFont) {
+        if (!hw || hw.isOverlayEnabled === false || !this.systemFont) {
             return;
         }
 
@@ -458,17 +454,17 @@ export class BTAPI {
             hw.targetFPS,
             this.activeBackend,
             hw.overlayStyle,
-            hw.overlayPaletteView === true,
+            hw.isOverlayPaletteEnabled === true,
             hw.overlayPaletteColumns,
             hw.overlayPaletteRowsVisible,
-            hw.overlayTimingChart === true,
+            hw.isOverlayTimingChartEnabled === true,
             hw.overlayTimingChartStyle,
             hw.overlayTimingChartHeight,
             resolveOverlayTimingChartDiagnostics(hw),
-            hw.overlayRendererDiagnosticsBar === true,
-            hw.overlayVisibleAtStart === true,
-            hw.overlayToggleHintVisible !== false,
-            hw.overlayToggleEnabled !== false,
+            hw.isOverlayRendererDiagnosticsBarEnabled === true,
+            hw.isOverlayVisibleAtStart === true,
+            hw.isOverlayToggleHintVisible !== false,
+            hw.isOverlayToggleEnabled !== false,
         );
     }
 
@@ -833,7 +829,7 @@ export class BTAPI {
         this.assertPaletteIndex(paletteOffset);
         this.requireIndexizedSheet(spriteSheet);
 
-        if (this.renderer && this.shouldTrackFramePaletteUsage()) {
+        if (this.renderer && this.isTrackingFramePaletteUsage()) {
             spriteSheet.markPaletteIndicesInRect(srcRect, paletteOffset, this.framePaletteUsageMask);
         }
 
@@ -885,7 +881,7 @@ export class BTAPI {
         let refreshed = 0;
 
         for (const sheet of this.spriteSheets) {
-            if (!sheet.isIndexized()) {
+            if (!sheet.isIndexed()) {
                 this.spriteSheets.delete(sheet);
                 continue;
             }
@@ -1341,7 +1337,7 @@ export class BTAPI {
      * @throws If the sprite sheet has not been indexized.
      */
     private requireIndexizedSheet(sheet: SpriteSheet): void {
-        if (!sheet.isIndexized()) {
+        if (!sheet.isIndexed()) {
             throw new Error(spriteNotIndexizedError());
         }
 
@@ -1385,7 +1381,7 @@ export class BTAPI {
      * resets pipeline batch state.
      */
     private captureRendererDiagnostics(): void {
-        if (!this.collectRendererDiagnosticsEnabled || !this.renderer) {
+        if (!this.isCollectRendererDiagnosticsEnabled || !this.renderer) {
             return;
         }
 
@@ -1414,7 +1410,7 @@ export class BTAPI {
             );
         }
 
-        resetRenderPaletteUsage(this.framePaletteUsageMask);
+        resetUsage(this.framePaletteUsageMask);
     }
 
     /**
@@ -1422,8 +1418,8 @@ export class BTAPI {
      *
      * @returns `true` when the overlay palette grid is active and visible.
      */
-    private shouldTrackFramePaletteUsage(): boolean {
-        return this.overlay?.tracksPaletteUsage ?? false;
+    private isTrackingFramePaletteUsage(): boolean {
+        return this.overlay?.isTrackingPaletteUsage ?? false;
     }
 
     /**
@@ -1432,11 +1428,11 @@ export class BTAPI {
      * @param index - Palette index to track.
      */
     private trackPaletteIndexUsed(index: number): void {
-        if (!this.shouldTrackFramePaletteUsage() || !this.renderer) {
+        if (!this.isTrackingFramePaletteUsage() || !this.renderer) {
             return;
         }
 
-        markRenderPaletteIndexUsed(this.framePaletteUsageMask, index);
+        markIndexUsed(this.framePaletteUsageMask, index);
     }
 
     /**
@@ -1447,7 +1443,7 @@ export class BTAPI {
      * @param paletteOffset - Palette offset applied at draw time.
      */
     private markBitmapTextPaletteUsage(font: BitmapFont, text: string, paletteOffset: number): void {
-        if (!this.shouldTrackFramePaletteUsage()) {
+        if (!this.isTrackingFramePaletteUsage()) {
             return;
         }
 

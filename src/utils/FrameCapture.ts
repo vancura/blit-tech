@@ -18,10 +18,10 @@ const BYTES_PER_PIXEL = 4;
 // #region Pending Capture State
 
 /** Promise resolve callback for a pending frame capture. */
-type CaptureResolve = (blob: Blob) => void;
+type Resolve = (blob: Blob) => void;
 
 /** Promise reject callback for a pending frame capture. */
-type CaptureReject = (reason: Error) => void;
+type Reject = (reason: Error) => void;
 
 // #endregion
 
@@ -109,25 +109,25 @@ export async function pixelBufferToPNG(
 /**
  * Manages single-frame capture from the WebGPU rendering pipeline.
  *
- * A capture request is queued via {@link requestCapture}, executed during the
- * next render pass via {@link executeCaptureInEncoder}, and resolved
- * asynchronously in {@link resolveCapture}.
+ * A capture request is queued via {@link request}, executed during the
+ * next render pass via {@link executeInEncoder}, and resolved
+ * asynchronously in {@link resolve}.
  */
 export class FrameCapture {
     /** Resolve callback for the pending capture. */
-    private pendingResolve: CaptureResolve | null = null;
+    private pendingResolve: Resolve | null = null;
 
     /** Reject callback for the pending capture. */
-    private pendingReject: CaptureReject | null = null;
+    private pendingReject: Reject | null = null;
 
     /** Staging buffer for GPU-to-CPU readback. */
     private stagingBuffer: GPUBuffer | null = null;
 
     /** Width of the captured frame. */
-    private captureWidth = 0;
+    private width = 0;
 
     /** Height of the captured frame. */
-    private captureHeight = 0;
+    private height = 0;
 
     /** Padded bytes per row used in the staging buffer. */
     private paddedBytesPerRow = 0;
@@ -140,7 +140,7 @@ export class FrameCapture {
      *
      * @returns True if a capture request is pending.
      */
-    hasPendingCapture(): boolean {
+    hasPending(): boolean {
         return this.pendingResolve !== null;
     }
 
@@ -150,7 +150,7 @@ export class FrameCapture {
      *
      * @returns Promise resolving to the captured PNG Blob.
      */
-    requestCapture(): Promise<Blob> {
+    request(): Promise<Blob> {
         if (this.pendingResolve) {
             this.pendingReject?.(new Error('[FrameCapture] Capture superseded by a new request'));
 
@@ -171,13 +171,13 @@ export class FrameCapture {
      * @param texture - The rendered canvas texture to capture.
      * @param commandEncoder - Active command encoder to add the copy command to.
      */
-    executeCaptureInEncoder(device: GPUDevice, texture: GPUTexture, commandEncoder: GPUCommandEncoder): void {
-        this.captureWidth = texture.width;
-        this.captureHeight = texture.height;
-        this.paddedBytesPerRow = alignedBytesPerRow(this.captureWidth);
+    executeInEncoder(device: GPUDevice, texture: GPUTexture, commandEncoder: GPUCommandEncoder): void {
+        this.width = texture.width;
+        this.height = texture.height;
+        this.paddedBytesPerRow = alignedBytesPerRow(this.width);
         this.isBGRA = texture.format === 'bgra8unorm';
 
-        const bufferSize = this.paddedBytesPerRow * this.captureHeight;
+        const bufferSize = this.paddedBytesPerRow * this.height;
 
         this.stagingBuffer = device.createBuffer({
             label: 'Frame Capture Staging',
@@ -187,8 +187,8 @@ export class FrameCapture {
 
         commandEncoder.copyTextureToBuffer(
             { texture },
-            { buffer: this.stagingBuffer, bytesPerRow: this.paddedBytesPerRow, rowsPerImage: this.captureHeight },
-            { width: this.captureWidth, height: this.captureHeight },
+            { buffer: this.stagingBuffer, bytesPerRow: this.paddedBytesPerRow, rowsPerImage: this.height },
+            { width: this.width, height: this.height },
         );
     }
 
@@ -197,7 +197,7 @@ export class FrameCapture {
      *
      * @param device - WebGPU device (used for onSubmittedWorkDone).
      */
-    async resolveCapture(device: GPUDevice): Promise<void> {
+    async resolve(device: GPUDevice): Promise<void> {
         const resolve = this.pendingResolve;
         const reject = this.pendingReject;
         const buffer = this.stagingBuffer;
@@ -216,13 +216,7 @@ export class FrameCapture {
             await buffer.mapAsync(GPUMapMode.READ);
 
             const data = buffer.getMappedRange();
-            const blob = await pixelBufferToPNG(
-                data,
-                this.captureWidth,
-                this.captureHeight,
-                this.paddedBytesPerRow,
-                this.isBGRA,
-            );
+            const blob = await pixelBufferToPNG(data, this.width, this.height, this.paddedBytesPerRow, this.isBGRA);
 
             buffer.unmap();
             buffer.destroy();

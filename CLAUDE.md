@@ -25,7 +25,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | How does a subsystem work internally?                      | The relevant `src/core/` or `src/render/` file                                                                                                                                                          |
 | What does a demo implement?                                | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                              |
 | How does palette usage tracking work for the overlay grid? | `src/core/RenderPaletteUsage.ts`, `src/overlay/palette/PaletteView.ts`                                                                                                                                  |
-| How does the overlay work?                                 | `src/overlay/` (orchestrator + `layout/layoutPlan.ts`), `docs/api-core.md` (Overlay), `HardwareSettings.overlayEnabled`                                                                                 |
+| How does the overlay work?                                 | `src/overlay/` (orchestrator + `layout/layoutPlan.ts`), `docs/api-core.md` (Overlay), `HardwareSettings.isOverlayEnabled`                                                                               |
 | What palette/sprite setup pattern is correct?              | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                      |
 | What are the render/asset dimension limits?                | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints) |
 | Which preset has which exact color values?                 | `docs/palette-presets.md`                                                                                                                                                                               |
@@ -37,6 +37,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | Is this API exported publicly?                             | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                        |
 | What test mock do I need for GPU code?                     | `src/__test__/webgpu-mock.ts`                                                                                                                                                                           |
 | Declaration tooling / TS version alignment?                | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                        |
+| Should this private name repeat the class/file?            | **Internal scoped naming** below; `docs/developer-experience-guide.md` (Naming conventions)                                                                                                             |
 
 ## Architecture
 
@@ -131,9 +132,12 @@ Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
 
 ### Core Types
 
-- `Vector2i` - integer 2D vector. Constructor auto-floors. Has `width`/`height` aliases.
-- `Rect2i` - integer rectangle. Methods: `contains()`, `intersects()`, `intersection()`.
-- `Color32` - 32-bit RGBA (0-255). Static colors, hex parsing, named-color registry, float array conversion.
+- `Vector2i` - integer 2D vector. Constructor auto-floors. Has `width`/`height` aliases. Predicates: `isEqual()`,
+  `isEqualXY()`, `isZero()`.
+- `Rect2i` - integer rectangle. Predicates: `isContaining()`, `isContainingXY()`, `isIntersecting()`, `isEqual()`.
+  Geometry: `intersection()`, `intersectTo()`.
+- `Color32` - 32-bit RGBA (0-255). Static colors, hex parsing, named-color registry, float array conversion. Predicate:
+  `isEqual()`.
 
 ## Critical Rules
 
@@ -151,7 +155,7 @@ Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
 ## Input Conventions
 
 - `BTN_*` constants are bit flags (powers of 2), not sequential integers
-- `BT.buttonDown` / `BT.buttonPressed` / `BT.buttonReleased` use ANY-match semantics for masks
+- `BT.isDown` / `BT.isPressed` / `BT.isReleased` use ANY-match semantics for masks
 - Face buttons: players `0` and `1` are keyboard OR gamepad; players `2` and `3` are gamepad-only
 - Input previous-state rollover is end-of-frame aligned (same snapshot model across pointer/keyboard/gamepad)
 - Default gamepad stick dead zone is `0.75`
@@ -180,8 +184,8 @@ Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
 
 - **Lifecycle / mutations:** `init`, `ticksReset`, `cameraSet`, `cameraReset`, `paletteSet`, `hideCursor`, all
   draw/clear/effect APIs.
-- **Parameterized queries:** `pointerPos(index?)`, `pointerDelta`, `pointerPosValid`, `buttonDown` / `Pressed` /
-  `Released`, `getAxis`, `gamepadConnected`, `keyDown` / `Pressed` / `Released`.
+- **Parameterized queries:** `pointerPos(index?)`, `pointerDelta`, `isPointerActive`, `isDown`, `isPressed`,
+  `isReleased`, `getAxis`, `isGamepadConnected`, `isKeyDown`, `isKeyPressed`, `isKeyReleased`.
 - **Utilities with arguments:** `cameraClamp(camera, worldSize, viewSize?)`, `systemPrintMeasure(text)`.
 - **Async:** `captureFrame`, `downloadFrame`.
 
@@ -195,6 +199,38 @@ Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBac
   for runtime gates (post-process, capture). They differ when WebGPU was requested but fell back to software.
 
 Full tables: `docs/api-core.md`. Style guide: `docs/developer-experience-guide.md` (Naming conventions).
+
+## Boolean naming
+
+Runtime queries use **`is*`** / **`has*`** (`isPointerActive`, `isIndexed`, `hasGlyph`, `isDirty`). Configure flags in
+`HardwareSettings` and `BootstrapOptions` also use grammatical **`is*`** (`isOverlayEnabled`,
+`isDetectingDroppedFrames`). Side-effect or operation-result booleans use imperative verbs, not `is*`
+(`Timer.fireIfElapsed()`, `intersectTo(other, out): boolean`, `remove(): boolean`).
+
+**Input hold vs edge on `BT`:** `BT.isDown` / `BT.isKeyDown` (held), `BT.isPressed` / `BT.isReleased` (button masks),
+`BT.isKeyPressed` / `BT.isKeyReleased` (keyboard codes). Internal input classes mirror those names; never embed a second
+`Is` (`isKeyPressed`). Audit: `\bis[A-Za-z]+Is[A-Z]`. Identifier acronyms: `canvasID`, `containerID`.
+
+Full tiers: `docs/developer-experience-guide.md` (Boolean naming).
+
+## Internal scoped naming
+
+**Private fields, private methods, protected members, and module-local constants/types must not repeat the enclosing
+class or file name.** The type or file already provides scope; strip redundant prefixes from internal identifiers.
+
+Examples:
+
+- `FrameCapture.request()` not `requestCapture()`; `width` not `captureWidth`
+- `GamepadInput.poll()` not `pollGamepads()`
+- `Bloom.ts`: `FRAGMENT_WGSL` not `BLOOM_FRAGMENT_WGSL`
+- `Palette.ts`: file-local `Serialized` (or similar), not `PaletteJSON` or `JSON`
+
+**Does not apply to public API:** `BT.*`, the `BlitTech.ts` export block, public methods on exported classes, or
+documented configure field names. When JSDoc references public symbols, use their full public names (e.g. internal
+pointer wire codes map to `BT.BTN_POINTER_A`, not gamepad `BT.BTN_A`).
+
+Apply when adding new internal symbols or when refactoring a file you are already changing; do not rename public surface
+or drive breaking changes through consumers for naming-only cleanup.
 
 ## API Conventions
 

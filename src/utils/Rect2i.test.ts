@@ -382,32 +382,32 @@ describe('Rect2i', () => {
 
     // #region Intersection Tests
 
-    describe('contains', () => {
+    describe('isContaining', () => {
         it('should return true for a point inside', () => {
             const r = new Rect2i(0, 0, 100, 100);
 
-            expect(r.contains(new Vector2i(50, 50))).toBe(true);
+            expect(r.isContaining(new Vector2i(50, 50))).toBe(true);
         });
 
         it('should return true for a point on the min edge (inclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(10, 20))).toBe(true);
+            expect(r.isContaining(new Vector2i(10, 20))).toBe(true);
         });
 
         it('should return false for a point on the max edge (exclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(110, 120))).toBe(false);
-            expect(r.contains(new Vector2i(110, 50))).toBe(false);
-            expect(r.contains(new Vector2i(50, 120))).toBe(false);
+            expect(r.isContaining(new Vector2i(110, 120))).toBe(false);
+            expect(r.isContaining(new Vector2i(110, 50))).toBe(false);
+            expect(r.isContaining(new Vector2i(50, 120))).toBe(false);
         });
 
         it('should return false for a point outside', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.contains(new Vector2i(0, 0))).toBe(false);
-            expect(r.contains(new Vector2i(200, 200))).toBe(false);
+            expect(r.isContaining(new Vector2i(0, 0))).toBe(false);
+            expect(r.isContaining(new Vector2i(200, 200))).toBe(false);
         });
     });
 
@@ -415,57 +415,57 @@ describe('Rect2i', () => {
         it('should return true for a point inside', () => {
             const r = new Rect2i(0, 0, 100, 100);
 
-            expect(r.containsXY(50, 50)).toBe(true);
+            expect(r.isContainingXY(50, 50)).toBe(true);
         });
 
         it('should return true for min edge (inclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(10, 20)).toBe(true);
+            expect(r.isContainingXY(10, 20)).toBe(true);
         });
 
         it('should return false for max edge (exclusive)', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(110, 120)).toBe(false);
+            expect(r.isContainingXY(110, 120)).toBe(false);
         });
 
         it('should return false for a point outside', () => {
             const r = new Rect2i(10, 20, 100, 100);
 
-            expect(r.containsXY(0, 0)).toBe(false);
+            expect(r.isContainingXY(0, 0)).toBe(false);
         });
     });
 
-    describe('intersects', () => {
+    describe('isIntersecting', () => {
         it('should return true for overlapping rects', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(50, 50, 100, 100);
 
-            expect(a.intersects(b)).toBe(true);
-            expect(b.intersects(a)).toBe(true);
+            expect(a.isIntersecting(b)).toBe(true);
+            expect(b.isIntersecting(a)).toBe(true);
         });
 
         it('should return false for adjacent rects (no overlap)', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(100, 0, 100, 100);
 
-            expect(a.intersects(b)).toBe(false);
+            expect(a.isIntersecting(b)).toBe(false);
         });
 
         it('should return true when one rect is fully inside another', () => {
             const outer = new Rect2i(0, 0, 100, 100);
             const inner = new Rect2i(20, 20, 10, 10);
 
-            expect(outer.intersects(inner)).toBe(true);
-            expect(inner.intersects(outer)).toBe(true);
+            expect(outer.isIntersecting(inner)).toBe(true);
+            expect(inner.isIntersecting(outer)).toBe(true);
         });
 
         it('should return false for non-overlapping rects', () => {
             const a = new Rect2i(0, 0, 10, 10);
             const b = new Rect2i(50, 50, 10, 10);
 
-            expect(a.intersects(b)).toBe(false);
+            expect(a.isIntersecting(b)).toBe(false);
         });
     });
 
@@ -501,12 +501,12 @@ describe('Rect2i', () => {
         });
     });
 
-    describe('intersectionTo', () => {
+    describe('intersectTo', () => {
         it('should write intersection to output rect and return true', () => {
             const a = new Rect2i(0, 0, 100, 100);
             const b = new Rect2i(50, 50, 100, 100);
             const out = new Rect2i();
-            const result = a.intersectionTo(b, out);
+            const result = a.intersectTo(b, out);
 
             expect(result).toBe(true);
             expect(out.x).toBe(50);
@@ -519,7 +519,7 @@ describe('Rect2i', () => {
             const a = new Rect2i(0, 0, 10, 10);
             const b = new Rect2i(20, 20, 10, 10);
             const out = new Rect2i(99, 99, 99, 99);
-            const result = a.intersectionTo(b, out);
+            const result = a.intersectTo(b, out);
 
             expect(result).toBe(false);
             expect(out.x).toBe(99);
@@ -574,21 +574,21 @@ describe('Rect2i', () => {
 
     // #region Utility
 
-    describe('equals', () => {
+    describe('isEqual', () => {
         it('should return true for identical rects', () => {
             const a = new Rect2i(10, 20, 30, 40);
             const b = new Rect2i(10, 20, 30, 40);
 
-            expect(a.equals(b)).toBe(true);
+            expect(a.isEqual(b)).toBe(true);
         });
 
         it('should return false when any component differs', () => {
             const base = new Rect2i(10, 20, 30, 40);
 
-            expect(base.equals(new Rect2i(99, 20, 30, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 99, 30, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 20, 99, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 20, 30, 99))).toBe(false);
+            expect(base.isEqual(new Rect2i(99, 20, 30, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 99, 30, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 20, 99, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 20, 30, 99))).toBe(false);
         });
     });
 

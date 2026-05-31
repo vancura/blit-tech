@@ -1,6 +1,6 @@
 import type { Vector2i } from '../../utils/Vector2i';
 import type { Effect, EffectTier } from './Effect';
-import { FULLSCREEN_VS_WGSL } from './fullscreenVS';
+import { VS_WGSL } from './fullscreenVS';
 
 /**
  * Sampler magnification/minification mode used by a fullscreen effect.
@@ -88,7 +88,7 @@ export abstract class FullscreenEffect implements Effect {
 
         const module = device.createShaderModule({
             label: `${this.label} Shader`,
-            code: FULLSCREEN_VS_WGSL + this.fragmentShader,
+            code: VS_WGSL + this.fragmentShader,
         });
 
         this.pipeline = device.createRenderPipeline({

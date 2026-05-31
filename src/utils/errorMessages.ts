@@ -10,11 +10,11 @@
 /**
  * Returns the canvas-not-found error message for the given canvas element ID.
  *
- * @param canvasId - The canvas element ID that was searched for.
+ * @param canvasID - The canvas element ID that was searched for.
  * @returns User-facing error string.
  */
-export function CANVAS_NOT_FOUND_MESSAGE(canvasId: string): string {
-    return `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasId}'> element.`;
+export function CANVAS_NOT_FOUND_MESSAGE(canvasID: string): string {
+    return `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasID}'> element.`;
 }
 
 /**
