@@ -316,14 +316,15 @@ clear at the top (three built-in text rows + filled gaps + separator below the t
 13 px hint bar). When `isOverlayPaletteEnabled: true`, reserve additional space for the palette grid, the **1 px**
 filled row gap, and the **13 px** hint bar—for example about **83 px** on the default `320×240` layout with a 256-slot
 palette (32 columns × 8 rows of 7 px swatches with 1 px gaps, plus the gap and hint bar). Column count is chosen by
-halving from `palette.size` until the row fits `displayWidth - 2 * edgeMargin`. The footer band height matches
-`resolveOverlayFooterHeight()` in `layoutPlan.ts`:
+halving from `palette.size` until the row fits `displayWidth - 2 * edgeMargin`. Implementation lives in
+`src/overlay/palette/PaletteView.ts` (`computeGrid`, `pickGridColumnCount`, `resolveGridVisibleRows`). The footer band
+height matches `resolveOverlayFooterHeight()` in `layoutPlan.ts`:
 
 ```text
-cols = pickPaletteGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
+cols = pickGridColumnCount(displayWidth, swatchSize, gap, palette.size, maxColumns?)
 rows = ceil(palette.size / cols)
-visibleRows = overlayPaletteRowsVisible ?? rows   // clamped to [1, rows] when set
-paletteGridHeight = visibleRows * swatchSize + max(0, visibleRows - 1) * gap + 2 * paletteGridPadding
+visibleRows = resolveGridVisibleRows(rows, overlayPaletteRowsVisible)
+paletteGridHeight = gridRowStackHeight(visibleRows, swatchSize, gap) + 2 * PALETTE_GRID_PADDING_PX
 bottomReserve = paletteGridHeight + 1 + 13
 ```
 
