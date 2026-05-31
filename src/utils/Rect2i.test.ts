@@ -574,21 +574,21 @@ describe('Rect2i', () => {
 
     // #region Utility
 
-    describe('equals', () => {
+    describe('isEqual', () => {
         it('should return true for identical rects', () => {
             const a = new Rect2i(10, 20, 30, 40);
             const b = new Rect2i(10, 20, 30, 40);
 
-            expect(a.equals(b)).toBe(true);
+            expect(a.isEqual(b)).toBe(true);
         });
 
         it('should return false when any component differs', () => {
             const base = new Rect2i(10, 20, 30, 40);
 
-            expect(base.equals(new Rect2i(99, 20, 30, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 99, 30, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 20, 99, 40))).toBe(false);
-            expect(base.equals(new Rect2i(10, 20, 30, 99))).toBe(false);
+            expect(base.isEqual(new Rect2i(99, 20, 30, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 99, 30, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 20, 99, 40))).toBe(false);
+            expect(base.isEqual(new Rect2i(10, 20, 30, 99))).toBe(false);
         });
     });
 

@@ -605,7 +605,7 @@ describe('BT.cameraClamp', () => {
     it('clamps camera coordinates when viewSize is provided', () => {
         const clamped = BT.cameraClamp(new Vector2i(500, 300), new Vector2i(640, 480), new Vector2i(320, 240));
 
-        expect(clamped.equalsXY(320, 240)).toBe(true);
+        expect(clamped.isEqualXY(320, 240)).toBe(true);
     });
 
     it('uses BT.displaySize when viewSize is omitted', () => {
@@ -615,7 +615,7 @@ describe('BT.cameraClamp', () => {
 
         const clamped = BT.cameraClamp(new Vector2i(100, 100), new Vector2i(250, 200));
 
-        expect(clamped.equalsXY(50, 50)).toBe(true);
+        expect(clamped.isEqualXY(50, 50)).toBe(true);
     });
 });
 

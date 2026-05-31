@@ -220,9 +220,9 @@ describe('Color32 comparison benchmarks', () => {
     const right = Color32.fromRGBAUnchecked(BASE_R, BASE_G, BASE_B, BASE_A);
 
     bench(
-        'equals()',
+        'isEqual()',
         () => {
-            left.equals(right);
+            left.isEqual(right);
         },
         BENCH_OPTIONS,
     );

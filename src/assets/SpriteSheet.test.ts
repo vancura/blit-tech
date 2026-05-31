@@ -410,7 +410,7 @@ describe('SpriteSheet', () => {
             expect(loadOrder).toBeLessThan(indexizeOrder);
             expect(result.sheet).toBe(sheet);
             expect(result.colors).toBe(colors);
-            expect(result.srcRect.equals(new Rect2i(0, 0, 12, 8))).toBe(true);
+            expect(result.srcRect.isEqual(new Rect2i(0, 0, 12, 8))).toBe(true);
         });
 
         it('forwards sort option to color registration', async () => {
@@ -585,9 +585,9 @@ describe('SpriteSheet', () => {
             );
 
             const after = [13, 14, 15].map((i) => palette.get(i));
-            expect(after[0]?.equals(before[0] as Color32)).toBe(true);
-            expect(after[1]?.equals(before[1] as Color32)).toBe(true);
-            expect(after[2]?.equals(before[2] as Color32)).toBe(true);
+            expect(after[0]?.isEqual(before[0] as Color32)).toBe(true);
+            expect(after[1]?.isEqual(before[1] as Color32)).toBe(true);
+            expect(after[2]?.isEqual(before[2] as Color32)).toBe(true);
         });
     });
 

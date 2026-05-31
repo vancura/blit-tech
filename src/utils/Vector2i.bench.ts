@@ -289,17 +289,17 @@ describe('Vector2i comparison benchmarks', () => {
     const zero = new Vector2i();
 
     bench(
-        'equals()',
+        'isEqual()',
         () => {
-            left.equals(equal);
+            left.isEqual(equal);
         },
         BENCH_OPTIONS,
     );
 
     bench(
-        'equalsXY()',
+        'isEqualXY()',
         () => {
-            left.equalsXY(BASE_X, BASE_Y);
+            left.isEqualXY(BASE_X, BASE_Y);
         },
         BENCH_OPTIONS,
     );

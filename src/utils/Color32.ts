@@ -555,7 +555,7 @@ export class Color32 {
      * @param other - Color to compare with.
      * @returns True if all RGBA channels are identical.
      */
-    equals(other: Color32): boolean {
+    isEqual(other: Color32): boolean {
         // Simple comparison with early exit on the first mismatch.
         // Modern JS engines optimize this well.
         return (

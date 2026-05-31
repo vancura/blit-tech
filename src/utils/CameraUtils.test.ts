@@ -11,7 +11,7 @@ describe('clampCameraToWorld', () => {
 
         const clamped = clampCameraToWorld(camera, world, view);
 
-        expect(clamped.equalsXY(320, 240)).toBe(true);
+        expect(clamped.isEqualXY(320, 240)).toBe(true);
     });
 
     it('clamps negative camera coordinates to zero', () => {
@@ -21,7 +21,7 @@ describe('clampCameraToWorld', () => {
 
         const clamped = clampCameraToWorld(camera, world, view);
 
-        expect(clamped.equalsXY(0, 0)).toBe(true);
+        expect(clamped.isEqualXY(0, 0)).toBe(true);
     });
 
     it('pins axis to zero when world is smaller than viewport', () => {
@@ -31,6 +31,6 @@ describe('clampCameraToWorld', () => {
 
         const clamped = clampCameraToWorld(camera, world, view);
 
-        expect(clamped.equalsXY(0, 0)).toBe(true);
+        expect(clamped.isEqualXY(0, 0)).toBe(true);
     });
 });

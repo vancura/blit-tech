@@ -478,7 +478,7 @@ export class Rect2i {
      * @param other - Rectangle to compare with.
      * @returns True if position and size are identical.
      */
-    equals(other: Rect2i): boolean {
+    isEqual(other: Rect2i): boolean {
         return this.x === other.x && this.y === other.y && this.width === other.width && this.height === other.height;
     }
 

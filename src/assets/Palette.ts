@@ -612,7 +612,7 @@ export class Palette {
      */
     public findColor(color: Color32): number {
         for (let i = 0; i < this.size; i++) {
-            if (this.colorAt(i).equals(color)) {
+            if (this.colorAt(i).isEqual(color)) {
                 return i;
             }
         }
