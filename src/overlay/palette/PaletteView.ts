@@ -63,6 +63,15 @@ export function gridRowWidth(cols: number, swatchSize: number, gap: number): num
 }
 
 /**
+ * @deprecated Deprecated since 2026-05-31. Use {@link gridRowWidth} instead.
+ * @param cols - Column count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Row width in pixels.
+ */
+export const paletteGridRowWidth = gridRowWidth;
+
+/**
  * Computes the vertical span of the full grid.
  *
  * @param rows - Row count.
@@ -77,6 +86,15 @@ export function gridRowStackHeight(rows: number, swatchSize: number, gap: number
 
     return rows * swatchSize + (rows - 1) * gap;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link gridRowStackHeight} instead.
+ * @param rows - Row count.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @returns Grid height in pixels.
+ */
+export const paletteGridRowStackHeight = gridRowStackHeight;
 
 /**
  * Picks the widest column count that fits the display while halving from the palette size.
@@ -114,6 +132,17 @@ export function pickGridColumnCount(
 }
 
 /**
+ * @deprecated Deprecated since 2026-05-31. Use {@link pickGridColumnCount} instead.
+ * @param displayWidth - Logical display width in pixels.
+ * @param swatchSize - Side length of each swatch.
+ * @param gap - Gap between swatches.
+ * @param colorCount - Active palette slot count.
+ * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
+ * @returns Column count (at least 1).
+ */
+export const pickPaletteGridColumnCount = pickGridColumnCount;
+
+/**
  * Resolves the visible row count for a palette grid viewport.
  *
  * @param totalRows - Full palette row count.
@@ -133,6 +162,14 @@ export function resolveGridVisibleRows(totalRows: number, maxVisibleRows?: numbe
 
     return Math.min(totalRows, parsedMax);
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link resolveGridVisibleRows} instead.
+ * @param totalRows - Full palette row count.
+ * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
+ * @returns Visible rows (0 when `totalRows` is 0; otherwise clamped to `[1, totalRows]`).
+ */
+export const resolvePaletteGridVisibleRows = resolveGridVisibleRows;
 
 /**
  * Computes palette grid layout for the bottom band.
@@ -164,6 +201,18 @@ export function computeGrid(
 
     return { cols, rows, visibleRows, swatchSize, gap, totalHeight };
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link computeGrid} instead.
+ * @param displayWidth - Logical display width in pixels.
+ * @param swatchSize - Side length of each swatch.
+ * @param colorCount - Number of palette slots to show.
+ * @param gap - Gap between swatches.
+ * @param maxColumns - Optional cap from {@link HardwareSettings.overlayPaletteColumns}.
+ * @param maxVisibleRows - Optional cap from {@link HardwareSettings.overlayPaletteRowsVisible}.
+ * @returns Grid dimensions and viewport band height.
+ */
+export const computePaletteGrid = computeGrid;
 
 // #endregion
 
@@ -236,6 +285,14 @@ export function resolveHintExclusionRect(hintBarTopY: number, displayWidth: numb
 
     return hintExclusionCache.rect;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link resolveHintExclusionRect} instead.
+ * @param hintBarTopY - Top Y of the bottom hint bar from the layout plan.
+ * @param displayWidth - Logical display width (cache key only; icon X is margin-based).
+ * @returns Exclusion rect for swatch placement and hit testing.
+ */
+export const resolvePaletteHintExclusionRect = resolveHintExclusionRect;
 
 // #endregion
 
@@ -379,6 +436,12 @@ export function writeSwatchTopLeft(
     scrollRowOffset = 0,
 ): void {
     const { cols, swatchSize, gap } = grid;
+
+    if (cols === 0) {
+        target.set(0, 0, 0, 0);
+        return;
+    }
+
     const col = index % cols;
     const row = Math.floor(index / cols) - scrollRowOffset;
     const originX = paletteBand.x + OVERLAY_EDGE_MARGIN_PX;
@@ -388,6 +451,16 @@ export function writeSwatchTopLeft(
 
     target.set(x, y, swatchSize, swatchSize);
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link writeSwatchTopLeft} instead.
+ * @param target - Reusable rect mutated in place.
+ * @param index - Palette slot index.
+ * @param paletteBand - Palette band rect from layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row (default `0`).
+ */
+export const writePaletteSwatchTopLeft = writeSwatchTopLeft;
 
 /**
  * Draws the visible palette swatch window inside the bottom band.
@@ -452,6 +525,14 @@ export function computeScrollbarThumbHeight(trackHeight: number, grid: PaletteGr
 }
 
 /**
+ * @deprecated Deprecated since 2026-05-31. Use {@link computeScrollbarThumbHeight} instead.
+ * @param trackHeight - Full palette band height in pixels.
+ * @param grid - Precomputed grid layout.
+ * @returns Thumb height in pixels, or `0` when inputs are invalid.
+ */
+export const computePaletteScrollbarThumbHeight = computeScrollbarThumbHeight;
+
+/**
  * Writes the palette scrollbar track and thumb rects for the bottom band.
  *
  * The track is inset 1 px from the palette band top, right, and bottom edges. Only the
@@ -504,6 +585,18 @@ export function writeScrollbarRects(
 
     return true;
 }
+
+/**
+ * @deprecated Deprecated since 2026-05-31. Use {@link writeScrollbarRects} instead.
+ * @param trackTarget - Reusable track rect mutated in place.
+ * @param thumbTarget - Reusable thumb rect mutated in place.
+ * @param paletteBand - Palette band rect from layout plan.
+ * @param grid - Precomputed grid layout.
+ * @param scrollRowOffset - First visible grid row.
+ * @param trackWidth - Scrollbar track width in pixels.
+ * @returns `true` when scrolling is possible and rects were written.
+ */
+export const writePaletteScrollbarRects = writeScrollbarRects;
 
 /**
  * Draws the palette scrollbar thumb inside the bottom band (no track fill).
