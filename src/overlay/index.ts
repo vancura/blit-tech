@@ -48,6 +48,7 @@ export {
     computeTimingChartGridLineY,
     isTimingChartGridLineAtY,
     resolveTimingChartStyle,
+    shouldDrawTimingChartGridLineY,
     timingChartBaselineY,
     timingChartFrameBudgetMs,
     writeTimingChartGridMarkers,
