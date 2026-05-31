@@ -256,7 +256,7 @@ describe('PaletteInteraction scroll', () => {
         writePaletteSwatchTopLeft(swatch, 0, plan.paletteBand, grid);
 
         const pointer = {
-            isValid: () => true,
+            isActive: () => true,
             getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
             getScrollDelta: () => 16,
             consumeScrollDelta: vi.fn(),
@@ -276,7 +276,7 @@ describe('PaletteInteraction scroll', () => {
         const paletteBandTop = paletteBandY(240, grid.totalHeight);
         const plan = paletteOnlyPlan(new Rect2i(0, paletteBandTop, 320, grid.totalHeight));
         const pointer = {
-            isValid: () => true,
+            isActive: () => true,
             getPos: () => new Vector2i(0, 0),
             getScrollDelta: () => 16,
             consumeScrollDelta: vi.fn(),
@@ -302,7 +302,7 @@ describe('PaletteInteraction scroll', () => {
 
         const consumed = interaction.handleScroll(
             {
-                isValid: () => true,
+                isActive: () => true,
                 getPos: () => new Vector2i(track.x + 1, track.y + 2),
                 getScrollDelta: () => 0,
                 consumeScrollDelta: vi.fn(),
@@ -597,7 +597,7 @@ describe('PaletteInteraction clipboard', () => {
 
         interaction.updateHover(
             {
-                isValid: () => true,
+                isActive: () => true,
                 getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
             } as never,
             plan,
@@ -713,7 +713,7 @@ describe('PaletteInteraction clipboard', () => {
         interaction.tickCopyStatus(completionExpiryTick);
         interaction.updateHover(
             {
-                isValid: () => true,
+                isActive: () => true,
                 getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
             } as never,
             plan,

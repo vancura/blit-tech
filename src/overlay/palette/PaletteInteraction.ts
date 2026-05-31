@@ -571,7 +571,7 @@ export class PaletteInteraction {
         let togglePressConsumed = false;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isValid(slot)) {
+            if (!pointer.isActive(slot)) {
                 if (this.#scrollDragSlot === slot) {
                     this.#scrollDragSlot = null;
                 }
@@ -627,7 +627,7 @@ export class PaletteInteraction {
         }
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isValid(slot)) {
+            if (!pointer.isActive(slot)) {
                 continue;
             }
 
@@ -785,7 +785,7 @@ export class PaletteInteraction {
         let hovered: number | null = null;
 
         for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isValid(slot)) {
+            if (!pointer.isActive(slot)) {
                 continue;
             }
 

@@ -978,11 +978,11 @@ describe('BT.pointerPosValid', () => {
     });
 
     it('delegates to the pointer subsystem', () => {
-        const isValid = vi.fn().mockReturnValue(true);
-        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isValid } as never);
+        const isActive = vi.fn().mockReturnValue(true);
+        vi.spyOn(BTAPI.instance, 'getPointer').mockReturnValue({ isActive } as never);
 
-        expect(BT.pointerPosValid(0)).toBe(true);
-        expect(isValid).toHaveBeenCalledWith(0);
+        expect(BT.isPointerActive(0)).toBe(true);
+        expect(isActive).toHaveBeenCalledWith(0);
     });
 });
 

@@ -106,7 +106,7 @@ describe('PointerInput', () => {
             const fresh = new PointerInput();
 
             for (let i = 0; i < POINTER_SLOT_COUNT; i++) {
-                expect(fresh.isValid(i)).toBe(false);
+                expect(fresh.isActive(i)).toBe(false);
             }
 
             expect(fresh.getScrollDelta()).toBe(0);
@@ -157,7 +157,7 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(0)).toBe(false);
+            expect(input.isActive(0)).toBe(false);
         });
 
         it('safe to call detach before attach', () => {
@@ -181,7 +181,7 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(0)).toBe(true);
+            expect(input.isActive(0)).toBe(true);
 
             otherCanvas.remove();
         });
@@ -276,11 +276,11 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(0)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 0)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_B, 0)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_C, 0)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_D, 0)).toBe(false);
+            expect(input.isActive(0)).toBe(true);
         });
 
         it.each([
@@ -308,7 +308,7 @@ describe('PointerInput', () => {
                 pointerEvent('pointermove', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
             );
 
-            expect(input.isValid(0)).toBe(true);
+            expect(input.isActive(0)).toBe(true);
         });
 
         it('clears all four mouse buttons and deactivates slot 0 on pointerleave', () => {
@@ -335,9 +335,9 @@ describe('PointerInput', () => {
                 pointerEvent('pointerleave', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
             );
 
-            expect(input.isValid(0)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_A, 0)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_B, 0)).toBe(false);
+            expect(input.isActive(0)).toBe(false);
         });
 
         it('keeps slot 0 valid after pointerup (only the button releases)', () => {
@@ -355,8 +355,8 @@ describe('PointerInput', () => {
                 pointerEvent('pointerup', { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 50, clientY: 50 }),
             );
 
-            expect(input.isValid(0)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 0)).toBe(false);
+            expect(input.isActive(0)).toBe(true);
         });
 
         it('ignores an unknown DOM mouse button code (default case in setMouseButton)', () => {
@@ -387,13 +387,13 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(0)).toBe(true);
+            expect(input.isActive(0)).toBe(true);
 
             canvas.dispatchEvent(
                 pointerEvent('pointercancel', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
             );
 
-            expect(input.isValid(0)).toBe(false);
+            expect(input.isActive(0)).toBe(false);
         });
 
         it('handles pointerleave for mouse when slot was never activated (null pointerId path)', () => {
@@ -401,7 +401,7 @@ describe('PointerInput', () => {
                 pointerEvent('pointerleave', { pointerId: 1, pointerType: 'mouse', clientX: 50, clientY: 50 }),
             );
 
-            expect(input.isValid(0)).toBe(false);
+            expect(input.isActive(0)).toBe(false);
         });
     });
 
@@ -439,12 +439,12 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
-            expect(input.isValid(2)).toBe(true);
-            expect(input.isValid(3)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 1)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 2)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 3)).toBe(true);
+            expect(input.isActive(1)).toBe(true);
+            expect(input.isActive(2)).toBe(true);
+            expect(input.isActive(3)).toBe(true);
         });
 
         it('drops a 4th simultaneous touch silently when all slots are full', () => {
@@ -461,9 +461,9 @@ describe('PointerInput', () => {
             }
 
             // Slots 1-3 occupied; 4th touch should not throw or appear anywhere.
-            expect(input.isValid(1)).toBe(true);
-            expect(input.isValid(2)).toBe(true);
-            expect(input.isValid(3)).toBe(true);
+            expect(input.isActive(1)).toBe(true);
+            expect(input.isActive(2)).toBe(true);
+            expect(input.isActive(3)).toBe(true);
         });
 
         it('frees a touch slot on pointerup; the next touch reuses it', () => {
@@ -486,7 +486,7 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(false);
+            expect(input.isActive(1)).toBe(false);
 
             canvas.dispatchEvent(
                 pointerEvent('pointerdown', {
@@ -498,7 +498,7 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
+            expect(input.isActive(1)).toBe(true);
         });
 
         it('frees a touch slot on pointercancel', () => {
@@ -516,7 +516,7 @@ describe('PointerInput', () => {
                 pointerEvent('pointercancel', { pointerId: 400, pointerType: 'touch', clientX: 10, clientY: 10 }),
             );
 
-            expect(input.isValid(1)).toBe(false);
+            expect(input.isActive(1)).toBe(false);
         });
 
         it('reports BTN_POINTER_B/C/D as false for touch slots even when valid', () => {
@@ -530,11 +530,11 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_A, 1)).toBe(true);
             expect(input.isButtonDown(BTN_POINTER_B, 1)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_C, 1)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_D, 1)).toBe(false);
+            expect(input.isActive(1)).toBe(true);
         });
 
         it('routes pen input to touch slots 1-3 (not slot 0)', () => {
@@ -548,8 +548,8 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(0)).toBe(false);
-            expect(input.isValid(1)).toBe(true);
+            expect(input.isActive(0)).toBe(false);
+            expect(input.isActive(1)).toBe(true);
         });
 
         it('ignores a duplicate pointerdown for the same touch ID', () => {
@@ -563,7 +563,7 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
+            expect(input.isActive(1)).toBe(true);
 
             canvas.dispatchEvent(
                 pointerEvent('pointerdown', {
@@ -575,8 +575,8 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
-            expect(input.isValid(2)).toBe(false);
+            expect(input.isActive(1)).toBe(true);
+            expect(input.isActive(2)).toBe(false);
         });
 
         it('ignores touch pointermove with no prior pointerdown (unknown slot)', () => {
@@ -586,7 +586,7 @@ describe('PointerInput', () => {
                 );
             }).not.toThrow();
 
-            expect(input.isValid(1)).toBe(false);
+            expect(input.isActive(1)).toBe(false);
         });
 
         it('ignores touch pointerup with no prior pointerdown (unknown slot)', () => {
@@ -622,13 +622,13 @@ describe('PointerInput', () => {
                 }),
             );
 
-            expect(input.isValid(1)).toBe(true);
+            expect(input.isActive(1)).toBe(true);
 
             canvas.dispatchEvent(
                 pointerEvent('pointerleave', { pointerId: 1001, pointerType: 'touch', clientX: 10, clientY: 10 }),
             );
 
-            expect(input.isValid(1)).toBe(false);
+            expect(input.isActive(1)).toBe(false);
 
             expect(() => {
                 canvas.dispatchEvent(
@@ -1116,10 +1116,10 @@ describe('PointerInput', () => {
             expect(pos.y).toBe(0);
             expect(delta.x).toBe(0);
             expect(delta.y).toBe(0);
-            expect(input.isValid(slot)).toBe(false);
             expect(input.isButtonDown(BTN_POINTER_A, slot)).toBe(false);
             expect(input.isButtonPressed(BTN_POINTER_A, slot)).toBe(false);
             expect(input.isButtonReleased(BTN_POINTER_A, slot)).toBe(false);
+            expect(input.isActive(slot)).toBe(false);
         });
 
         it('returns false for unknown button codes', () => {

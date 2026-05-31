@@ -56,7 +56,7 @@ interface PointerSlot {
     pointerType: 'mouse' | 'touch' | 'pen' | null;
 
     /** True when this slot represents an active pointer (mouse hovering, touch in contact). */
-    valid: boolean;
+    isActive: boolean;
 
     /** Last known position in display coordinates (mutated in place by event handlers). */
     pos: Vector2i;
@@ -335,8 +335,8 @@ export class PointerInput {
      * @param slot - Pointer slot index.
      * @returns `true` when the slot has live position data.
      */
-    public isValid(slot: number): boolean {
-        return this.getSlotOrNull(slot)?.valid ?? false;
+    public isActive(slot: number): boolean {
+        return this.getSlotOrNull(slot)?.isActive ?? false;
     }
 
     /**
@@ -380,7 +380,7 @@ export class PointerInput {
     public isButtonDown(button: number, slot: number): boolean {
         const s = this.getSlotOrNull(slot);
 
-        if (s === null || !s.valid) {
+        if (s === null || !s.isActive) {
             return false;
         }
 
@@ -494,18 +494,18 @@ export class PointerInput {
     private handlePointerMove(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
-            const wasValid = slot.valid;
+            const wasActive = slot.isActive;
 
             slot.pointerId = event.pointerId;
             slot.pointerType = 'mouse';
-            slot.valid = true;
+            slot.isActive = true;
 
             this.updateSlotPosition(slot, event.clientX, event.clientY);
 
             // Activation: sync prevPos to the entry pos so the first frame's
             // delta is zero rather than a jump from (0, 0) (or wherever the
             // slot was previously zeroed) to the entry point.
-            if (!wasValid) {
+            if (!wasActive) {
                 slot.prevPos.copyFrom(slot.pos);
             }
 
@@ -532,11 +532,11 @@ export class PointerInput {
     private handlePointerDown(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
             const slot = this.slots[0];
-            const wasValid = slot.valid;
+            const wasActive = slot.isActive;
 
             slot.pointerId = event.pointerId;
             slot.pointerType = 'mouse';
-            slot.valid = true;
+            slot.isActive = true;
 
             this.updateSlotPosition(slot, event.clientX, event.clientY);
             this.setMouseButton(slot, event.button, true);
@@ -544,7 +544,7 @@ export class PointerInput {
             // Activation: sync prevPos so the first delta is zero. Without
             // this, the very first read after the mouse enters would see a
             // delta from (0, 0) to the entry point.
-            if (!wasValid) {
+            if (!wasActive) {
                 slot.prevPos.copyFrom(slot.pos);
             }
 
@@ -572,7 +572,7 @@ export class PointerInput {
 
         slot.pointerId = event.pointerId;
         slot.pointerType = event.pointerType === 'pen' ? 'pen' : 'touch';
-        slot.valid = true;
+        slot.isActive = true;
         slot.a = true;
 
         this.updateSlotPosition(slot, event.clientX, event.clientY);
@@ -705,7 +705,7 @@ export class PointerInput {
         return {
             pointerId: null,
             pointerType: null,
-            valid: false,
+            isActive: false,
             pos: new Vector2iImpl(0, 0),
             prevPos: new Vector2iImpl(0, 0),
             a: false,
@@ -728,7 +728,7 @@ export class PointerInput {
     private resetSlot(slot: PointerSlot): void {
         slot.pointerId = null;
         slot.pointerType = null;
-        slot.valid = false;
+        slot.isActive = false;
         slot.pos.set(0, 0);
         slot.prevPos.set(0, 0);
         slot.a = false;
@@ -787,7 +787,7 @@ export class PointerInput {
 
         slot.pointerId = null;
         slot.pointerType = null;
-        slot.valid = false;
+        slot.isActive = false;
         slot.a = false;
         slot.b = false;
         slot.c = false;
@@ -809,7 +809,7 @@ export class PointerInput {
 
         slot.pointerId = null;
         slot.pointerType = null;
-        slot.valid = false;
+        slot.isActive = false;
         slot.a = false;
         slot.b = false;
         slot.c = false;
