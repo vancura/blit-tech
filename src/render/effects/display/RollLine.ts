@@ -25,7 +25,7 @@ export class RollLine extends FullscreenEffect {
     /** vec2 resolution + amount + speed + time + 1 pad = 32 bytes. */
     protected readonly uniformBytes = 32;
 
-    protected readonly fragmentShader = ROLL_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution, amount, speed, and time into the uniform block.
@@ -48,7 +48,7 @@ export class RollLine extends FullscreenEffect {
     }
 }
 
-const ROLL_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     amount: f32,

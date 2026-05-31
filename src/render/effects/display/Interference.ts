@@ -28,7 +28,7 @@ export class Interference extends FullscreenEffect {
     /** vec2 resolution + amount + time = 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = INTERFERENCE_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution, amount, and time into the uniform block.
@@ -49,7 +49,7 @@ export class Interference extends FullscreenEffect {
     }
 }
 
-const INTERFERENCE_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     amount: f32,

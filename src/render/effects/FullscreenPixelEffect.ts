@@ -1,6 +1,6 @@
 import type { Vector2i } from '../../utils/Vector2i';
 import type { Effect } from './Effect';
-import { FULLSCREEN_VS_WGSL } from './fullscreenVS';
+import { VS_WGSL } from './fullscreenVS';
 
 // #region FullscreenPixelEffect
 
@@ -56,7 +56,7 @@ export abstract class FullscreenPixelEffect implements Effect {
         const fragment = format === 'r8uint' ? this.fragmentShaderUint : this.fragmentShaderRgba;
         const module = device.createShaderModule({
             label: `${this.label} Shader`,
-            code: FULLSCREEN_VS_WGSL + fragment,
+            code: VS_WGSL + fragment,
         });
 
         this.pipeline = device.createRenderPipeline({

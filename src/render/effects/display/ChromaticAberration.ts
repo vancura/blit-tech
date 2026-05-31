@@ -23,7 +23,7 @@ export class ChromaticAberration extends FullscreenEffect {
     /** vec2 resolution + aberration + 1 pad = 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = AB_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution and aberration offset into the uniform block.
@@ -44,7 +44,7 @@ export class ChromaticAberration extends FullscreenEffect {
     }
 }
 
-const AB_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     aberration: f32,

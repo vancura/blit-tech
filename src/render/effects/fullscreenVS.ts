@@ -15,7 +15,7 @@
  *
  * Draw with `pass.draw(3, 1, 0, 0)`.
  */
-export const FULLSCREEN_VS_WGSL = `
+export const VS_WGSL = `
 struct VsOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) uv: vec2<f32>,

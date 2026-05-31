@@ -14,9 +14,9 @@ export class PixelGlitch extends FullscreenPixelEffect {
     /** vec2 resolution + intensity + bandHeight + seed + 3 pads = 32 bytes. */
     protected readonly uniformBytes = 32;
 
-    protected readonly fragmentShaderRgba = RGBA_UNSUPPORTED_WGSL;
+    protected readonly fragmentShaderRgba = UNSUPPORTED_WGSL;
 
-    protected readonly fragmentShaderUint = GLITCH_FRAGMENT_UINT_WGSL;
+    protected readonly fragmentShaderUint = FRAGMENT_UINT_WGSL;
 
     /**
      * Glitch strength in `[0, 1]`. Drives both the per-band shift magnitude
@@ -58,7 +58,7 @@ export class PixelGlitch extends FullscreenPixelEffect {
 }
 
 /** Unused RGBA path retained only so {@link FullscreenPixelEffect} can compile both branches. */
-const RGBA_UNSUPPORTED_WGSL = `
+const UNSUPPORTED_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     intensity: f32,
@@ -79,7 +79,7 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 `;
 
-const GLITCH_FRAGMENT_UINT_WGSL = `
+const FRAGMENT_UINT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     intensity: f32,

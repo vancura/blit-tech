@@ -22,7 +22,7 @@ export class Vignette extends FullscreenEffect {
     /** vec2 resolution + amount + 1 pad = 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = VIGNETTE_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution and amount into the uniform block.
@@ -43,7 +43,7 @@ export class Vignette extends FullscreenEffect {
     }
 }
 
-const VIGNETTE_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     amount: f32,

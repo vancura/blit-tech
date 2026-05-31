@@ -28,7 +28,7 @@ export class RGBMask extends FullscreenEffect {
     /** vec2 resolution + intensity + size + border + 1 pad = 32 bytes. */
     protected readonly uniformBytes = 32;
 
-    protected readonly fragmentShader = MASK_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution, intensity, size, and border into the uniform block.
@@ -52,7 +52,7 @@ export class RGBMask extends FullscreenEffect {
     }
 }
 
-const MASK_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     intensity: f32,

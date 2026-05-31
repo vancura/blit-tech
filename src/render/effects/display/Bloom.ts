@@ -32,7 +32,7 @@ export class Bloom extends FullscreenEffect {
     /** vec2 resolution + spread + glow = 16 bytes. */
     protected readonly uniformBytes = 16;
 
-    protected readonly fragmentShader = BLOOM_FRAGMENT_WGSL;
+    protected readonly fragmentShader = FRAGMENT_WGSL;
 
     /**
      * Writes resolution, spread, and glow into the uniform block.
@@ -53,7 +53,7 @@ export class Bloom extends FullscreenEffect {
     }
 }
 
-const BLOOM_FRAGMENT_WGSL = `
+const FRAGMENT_WGSL = `
 struct Params {
     resolution: vec2<f32>,
     spread: f32,
