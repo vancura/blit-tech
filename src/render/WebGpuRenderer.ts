@@ -107,7 +107,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * even when the palette was never mutated via {@link Palette.set}.
      * Per-frame mutations are detected separately via {@link Palette.isDirty}.
      */
-    private paletteDirty: boolean = false;
+    private isPaletteDirty: boolean = false;
 
     // #endregion
 
@@ -237,7 +237,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
             // Mark the palette dirty so the new buffer is populated on the first
             // endFrame(), even if the palette data has not changed since the last
             // init() call (e.g. after a WebGPU device-loss recovery).
-            this.paletteDirty = true;
+            this.isPaletteDirty = true;
 
             // Primitive and sprite pipelines run at logical resolution. The
             // viewport is automatic since each pass binds a target view; only
@@ -287,14 +287,14 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * Stores a reference to the supplied palette - no clone is made. Subsequent
      * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
      * will be detected via {@link Palette.isDirty} and uploaded automatically at the
-     * start of the next frame. {@link paletteDirty} is set to guarantee the initial
+     * start of the next frame. {@link isPaletteDirty} is set to guarantee the initial
      * upload even when the palette has never been mutated through {@link Palette.set}.
      *
      * @param palette - Palette to use for color lookups and GPU upload.
      */
     setPalette(palette: Palette): void {
         this.palette = palette;
-        this.paletteDirty = true;
+        this.isPaletteDirty = true;
 
         // If the new palette is smaller than the current clear index, reset to 0
         // (transparent) so resolveClearColor does not warn on every endFrame().
@@ -727,10 +727,10 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * since the last frame.
      */
     private flushPaletteIfDirty(): void {
-        if (this.palette && this.paletteBuffer && (this.paletteDirty || this.palette.isDirty)) {
+        if (this.palette && this.paletteBuffer && (this.isPaletteDirty || this.palette.isDirty)) {
             this.palette.toFloat32ArrayInto(this.paletteStaging);
             this.device.queue.writeBuffer(this.paletteBuffer, 0, this.paletteStaging);
-            this.paletteDirty = false;
+            this.isPaletteDirty = false;
             this.palette.clearDirty();
         }
     }

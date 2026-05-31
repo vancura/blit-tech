@@ -968,7 +968,7 @@ describe('palette dirty-flag auto-propagation', () => {
 
         renderer.setPalette(palette);
 
-        // First frame - initial upload due to paletteDirty.
+        // First frame - initial upload due to isPaletteDirty.
         renderer.beginFrame();
         renderer.endFrame();
 
@@ -988,7 +988,7 @@ describe('palette dirty-flag auto-propagation', () => {
         uninstallMockNavigatorGPU();
     });
 
-    it('no GPU upload happens when palette is clean and paletteDirty is false', async () => {
+    it('no GPU upload happens when palette is clean and isPaletteDirty is false', async () => {
         const device = createMockGPUDevice();
         const writeBufferSpy = vi.spyOn(device.queue, 'writeBuffer');
 
