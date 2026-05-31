@@ -477,7 +477,7 @@ export class SpriteSheet {
      *
      * @returns True if `indexize()` has been called successfully.
      */
-    isIndexized(): boolean {
+    isIndexed(): boolean {
         return this.indexedPixels !== null;
     }
 

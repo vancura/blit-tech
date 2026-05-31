@@ -175,10 +175,10 @@ describe('SpriteSheet', () => {
 
     // #region Indexization
 
-    describe('isIndexized', () => {
+    describe('isIndexed', () => {
         it('returns false before indexize is called', () => {
             const sheet = new SpriteSheet(mockImage);
-            expect(sheet.isIndexized()).toBe(false);
+            expect(sheet.isIndexed()).toBe(false);
         });
     });
 
@@ -188,14 +188,14 @@ describe('SpriteSheet', () => {
             vi.unstubAllGlobals();
         });
 
-        it('sets isIndexized to true after conversion', () => {
+        it('sets isIndexed to true after conversion', () => {
             // Default stub from setup.ts returns all-zero pixels (all transparent).
             const palette = new Palette(16);
             const sheet = new SpriteSheet(mockImage);
 
             sheet.indexize(palette);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('maps transparent pixels (alpha=0) to palette index 0', () => {
@@ -204,7 +204,7 @@ describe('SpriteSheet', () => {
             const sheet = new SpriteSheet({ width: 2, height: 2 } as HTMLImageElement);
 
             expect(() => sheet.indexize(palette)).not.toThrow();
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('maps opaque pixels to the matching palette index', () => {
@@ -221,7 +221,7 @@ describe('SpriteSheet', () => {
             const sheet = new SpriteSheet({ width: w, height: h } as HTMLImageElement);
             sheet.indexize(palette);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('throws when an opaque pixel color is not in the palette', () => {
@@ -608,7 +608,7 @@ describe('SpriteSheet', () => {
             const pixels = new Uint8Array(8 * 8) as Uint8Array<ArrayBuffer>;
             const sheet = SpriteSheet.fromIndexedPixels(8, 8, pixels);
 
-            expect(sheet.isIndexized()).toBe(true);
+            expect(sheet.isIndexed()).toBe(true);
         });
 
         it('throws on indexize (no source image)', () => {

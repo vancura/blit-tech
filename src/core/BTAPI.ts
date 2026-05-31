@@ -885,7 +885,7 @@ export class BTAPI {
         let refreshed = 0;
 
         for (const sheet of this.spriteSheets) {
-            if (!sheet.isIndexized()) {
+            if (!sheet.isIndexed()) {
                 this.spriteSheets.delete(sheet);
                 continue;
             }
@@ -1341,7 +1341,7 @@ export class BTAPI {
      * @throws If the sprite sheet has not been indexized.
      */
     private requireIndexizedSheet(sheet: SpriteSheet): void {
-        if (!sheet.isIndexized()) {
+        if (!sheet.isIndexed()) {
             throw new Error(spriteNotIndexizedError());
         }
 

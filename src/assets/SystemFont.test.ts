@@ -145,7 +145,7 @@ describe('system font sprite sheet', () => {
         const font = createSystemFont();
         const sheet = font.getSpriteSheet();
 
-        expect(sheet.isIndexized()).toBe(true);
+        expect(sheet.isIndexed()).toBe(true);
     });
 
     it('sprite sheet has correct atlas dimensions', () => {

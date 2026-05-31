@@ -291,14 +291,14 @@ describe('BTAPI', () => {
         });
 
         it('drawSprite should not throw before init', () => {
-            const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => true } as unknown as SpriteSheet;
             expect(() =>
                 BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0)),
             ).not.toThrow();
         });
 
         it('drawSprite should throw when sprite sheet is not indexized', () => {
-            const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => false } as unknown as SpriteSheet;
             expect(() => BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0))).toThrow(
                 "This sprite sheet hasn't been prepared yet.",
             );
@@ -307,7 +307,7 @@ describe('BTAPI', () => {
         it('drawSprite should register the sheet for spritesRefresh tracking', () => {
             const palette = new Palette(16);
             const reindexize = vi.fn();
-            const mockSheet = { isIndexized: () => true, reindexize } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => true, reindexize } as unknown as SpriteSheet;
 
             BTAPI.instance.setPalette(palette);
             BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
@@ -317,13 +317,13 @@ describe('BTAPI', () => {
         });
 
         it('drawBitmapText should not throw before init', () => {
-            const mockSheet = { isIndexized: () => true } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => true } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).not.toThrow();
         });
 
         it('drawBitmapText should throw when font sprite sheet is not indexized', () => {
-            const mockSheet = { isIndexized: () => false } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => false } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
             expect(() => BTAPI.instance.drawBitmapText(mockFont, new Vector2i(0, 0), 'hi')).toThrow(
                 "This sprite sheet hasn't been prepared yet.",
@@ -333,7 +333,7 @@ describe('BTAPI', () => {
         it('drawBitmapText should register the font sheet for spritesRefresh tracking', () => {
             const palette = new Palette(16);
             const reindexize = vi.fn();
-            const mockSheet = { isIndexized: () => true, reindexize } as unknown as SpriteSheet;
+            const mockSheet = { isIndexed: () => true, reindexize } as unknown as SpriteSheet;
             const mockFont = { getSpriteSheet: () => mockSheet } as unknown as BitmapFont;
 
             BTAPI.instance.setPalette(palette);
@@ -1358,7 +1358,7 @@ describe('BTAPI', () => {
 
         function makeIndexizedSpriteSheet(markSpy: ReturnType<typeof vi.fn>): SpriteSheet {
             return {
-                isIndexized: () => true,
+                isIndexed: () => true,
                 markPaletteIndicesInRect: markSpy,
             } as unknown as SpriteSheet;
         }
