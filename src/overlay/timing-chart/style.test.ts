@@ -101,6 +101,8 @@ describe('computeTimingChartGridLineY', () => {
     it('skips top and bottom band edges for grid draw', () => {
         expect(isTimingChartGridLineAtY(chartRect22.y, chartRect22)).toBe(false);
         expect(isTimingChartGridLineAtY(baselineY, chartRect22)).toBe(false);
+        expect(isTimingChartGridLineAtY(chartRect22.y - 1, chartRect22)).toBe(false);
+        expect(isTimingChartGridLineAtY(chartRect22.y + chartRect22.height, chartRect22)).toBe(false);
         const gridLineY5 = gridY(5);
 
         expect(gridLineY5).not.toBeNull();

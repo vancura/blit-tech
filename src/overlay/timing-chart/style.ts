@@ -177,10 +177,10 @@ export function timingChartBaselineY(chartRect: Rect2i): number {
  *
  * @param y - Screen Y from {@link computeTimingChartGridLineY}.
  * @param chartRect - Chart band bounds.
- * @returns `true` when the row is strictly between the band edges.
+ * @returns `true` when the row is strictly inside the band and not the baseline.
  */
 export function isTimingChartGridLineAtY(y: number, chartRect: Rect2i): boolean {
-    return y !== chartRect.y && y !== timingChartBaselineY(chartRect);
+    return y > chartRect.y && y < chartRect.y + chartRect.height && y !== timingChartBaselineY(chartRect);
 }
 
 /**
