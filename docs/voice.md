@@ -49,7 +49,7 @@ non-public `src/assets/` paths.
 
 | Context                                | Before (avoid)                  | After (Tier 1 style)                                                                                                                                                   |
 | -------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Canvas not found                       | `Element not found`             | `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasId}'> element.`                                                                      |
+| Canvas not found                       | `Element not found`             | `Can't find the canvas on the page. Make sure your HTML has a <canvas id='${canvasID}'> element.`                                                                      |
 | No active palette                      | `No palette`                    | `No palette set yet. Call BT.paletteSet(somePalette) before drawing or running palette effects.`                                                                       |
 | Palette index out of range             | `Index out of bounds: ${index}` | `The color number ${index} is too big for this palette. The palette has ${size} colors, so use a number from 0 to ${size - 1}.`                                        |
 | Sprite not indexized                   | `Sheet not indexized`           | `This sprite sheet hasn't been prepared yet. Use SpriteSheet.loadIndexed(...) for one-step setup, or call sheet.indexize(palette) after BT.paletteSet.`                |

@@ -47,10 +47,10 @@ const delta = BT.pointerDelta(); // slot 0 (mouse)
 const td = BT.pointerDelta(1); // slot 1
 
 // Validity check - false means no live pointer in this slot
-if (BT.pointerPosValid()) {
+if (BT.isPointerActive()) {
   /* mouse is over the canvas */
 }
-if (BT.pointerPosValid(1)) {
+if (BT.isPointerActive(1)) {
   /* touch slot 1 is active */
 }
 ```
@@ -60,21 +60,21 @@ if (BT.pointerPosValid(1)) {
 
 ## Buttons
 
-Use `BT.buttonDown()`, `BT.buttonPressed()`, and `BT.buttonReleased()` with the `BTN_POINTER_*` constants. The second
-parameter is the pointer slot (defaults to `0`):
+Use `BT.isDown()`, `BT.isPressed()`, and `BT.isReleased()` with the `BTN_POINTER_*` constants. The second parameter is
+the pointer slot (defaults to `0`):
 
 ```ts
 // Hold detection
-BT.buttonDown(BT.BTN_POINTER_A); // left mouse button held
-BT.buttonDown(BT.BTN_POINTER_B); // right mouse button held
-BT.buttonDown(BT.BTN_POINTER_C); // middle mouse button held
-BT.buttonDown(BT.BTN_POINTER_D); // back / forward button held
-BT.buttonDown(BT.BTN_POINTER_A, 1); // touch slot 1 in contact
+BT.isDown(BT.BTN_POINTER_A); // left mouse button held
+BT.isDown(BT.BTN_POINTER_B); // right mouse button held
+BT.isDown(BT.BTN_POINTER_C); // middle mouse button held
+BT.isDown(BT.BTN_POINTER_D); // back / forward button held
+BT.isDown(BT.BTN_POINTER_A, 1); // touch slot 1 in contact
 
 // Edge detection (true only on the transition frame)
-BT.buttonPressed(BT.BTN_POINTER_A); // left button just pressed
-BT.buttonReleased(BT.BTN_POINTER_A); // left button just released
-BT.buttonPressed(BT.BTN_POINTER_A, 2); // touch slot 2 just touched down
+BT.isPressed(BT.BTN_POINTER_A); // left button just pressed
+BT.isReleased(BT.BTN_POINTER_A); // left button just released
+BT.isPressed(BT.BTN_POINTER_A, 2); // touch slot 2 just touched down
 ```
 
 ### Mouse button mapping
@@ -100,17 +100,17 @@ Use these for direct key checks:
 
 ```ts
 // Held state
-if (BT.keyDown('KeyW')) {
+if (BT.isKeyDown('KeyW')) {
   /* W key held */
 }
 
 // Edge and optional tick-based repeat (repeat interval in fixed-update ticks)
-if (BT.keyPressed('ArrowUp', 10)) {
+if (BT.isKeyPressed('ArrowUp', 10)) {
   /* first press or repeat every 10 ticks while held */
 }
 
 // Release edge
-if (BT.keyReleased('Escape')) {
+if (BT.isKeyReleased('Escape')) {
   /* Escape released this frame */
 }
 ```
@@ -118,21 +118,21 @@ if (BT.keyReleased('Escape')) {
 ### Face buttons (`BTN_UP` through `BTN_SELECT`)
 
 Face button constants are bit flags. You can pass a single button or a combined mask; matching uses **ANY** semantics:
-`BT.buttonDown(BT.BTN_A | BT.BTN_B)` is true when either A or B is down.
+`BT.isDown(BT.BTN_A | BT.BTN_B)` is true when either A or B is down.
 
 For **player 0** and **player 1**, face-button reads merge keyboard maps and gamepad state (logical OR). For **player
 2** and **player 3**, face-button reads use gamepad only.
 
-`BT.buttonPressed` supports optional tick-based repeat via `repeatRate` (`0` or omitted = edge only), matching
-`BT.keyPressed` semantics.
+`BT.isPressed` supports optional tick-based repeat via `repeatRate` (`0` or omitted = edge only), matching
+`BT.isKeyPressed` semantics.
 
 ```ts
 // Player 0 (default: WASD-style + Space / KeyB for A, etc.)
-BT.buttonDown(BT.BTN_UP, 0);
-BT.buttonPressed(BT.BTN_A, 0, 6); // edge + repeat every 6 ticks while held
+BT.isDown(BT.BTN_UP, 0);
+BT.isPressed(BT.BTN_A, 0, 6); // edge + repeat every 6 ticks while held
 
 // Player 1 (default: arrow keys + alternate bindings)
-BT.buttonDown(BT.BTN_LEFT, 1);
+BT.isDown(BT.BTN_LEFT, 1);
 ```
 
 Built-in defaults are exposed as read-only tables (same values the engine starts with):
@@ -163,7 +163,7 @@ BT.inputMap(0, BT.BTN_X); // player 0 X has no keyboard keys until remapped
 ### Gamepad API
 
 ```ts
-BT.gamepadConnected(0); // true when player 0 has a connected gamepad
+BT.isGamepadConnected(0); // true when player 0 has a connected gamepad
 BT.gamepadCount; // number of connected gamepads (0..4)
 
 BT.getAxis(BT.AXIS_LEFT_X, 0); // -1.0 .. 1.0 (dead-zone filtered)
@@ -232,8 +232,8 @@ means:
   aligns with pointer flush).
 - Gamepad previous-state rollover also happens at end-of-frame, while current gamepad state is polled from the Gamepad
   API during button/axis queries.
-- `buttonPressed()` / `buttonReleased()` edges are never lost even when a press and release both arrive in the same
-  inter-frame gap (they appear as pressed-then-released across consecutive frames).
+- `isPressed()` / `isReleased()` edges are never lost even when a press and release both arrive in the same inter-frame
+  gap (they appear as pressed-then-released across consecutive frames).
 
 ## Page-Interaction Guards
 

@@ -1,6 +1,6 @@
 # BT API: getters vs methods
 
-Canonical reference: [CLAUDE.md](../../CLAUDE.md) (**BT API: getters vs methods**).
+Canonical reference: [CLAUDE.md](../../CLAUDE.md) (**BT API: getters vs methods**, **Boolean naming**).
 
 Quick rules when changing `src/BlitTech.ts` or demos:
 
@@ -22,6 +22,22 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 `Vector2i` getters return a clone per read. `activeBackend` is what actually started after fallback, not
 `configure().backend`.
 `palette` is a live reference - mutating slots affects rendering on the next frame.
+
+## Boolean queries on `BT` (Tier A; always methods)
+
+- Hold: `isDown(...)`, `isKeyDown(...)`
+- Edge: `isPressed(...)`, `isReleased(...)`, `isKeyPressed(...)`, `isKeyReleased(...)`
+- Pointer: `isPointerActive(slot?)`
+- Internal input classes mirror the same names (`isButtonDown`, `isKeyDown`, …). No embedded second `Is` (`\bis[A-Za-z]+Is[A-Z]`).
+
+## Configure flags (Tier B)
+
+Mirror `HardwareSettings` / `BootstrapOptions` field names: `isOverlayEnabled`, `isOverlayVisibleAtStart`,
+`isDetectingDroppedFrames`, `isWaitingForDOMReady`, `canvasID`, `containerID`. Use `-ing` for ongoing behavior flags.
+
+## Side-effect booleans (Tier C)
+
+Not `is*`: `Timer.fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolean>`.
 
 ## Naming when adding getters
 

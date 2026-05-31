@@ -150,7 +150,7 @@ BT.systemPrintMeasure('Score: 100'); // → Vector2i (pixel width, height)
 
 Use `BT.systemPrint()` for demo-specific HUD panels and labels. The engine draws a default overlay (present FPS, target
 FPS, draw calls, frame/update()/render() timings, backend, resolution, demo title) after each `render()` when
-`overlayEnabled` is true; see [API: Core - Overlay](api-core.md#overlay). For styled variable-width text, use a bitmap
+`isOverlayEnabled` is true; see [API: Core - Overlay](api-core.md#overlay). For styled variable-width text, use a bitmap
 font instead.
 
 ---

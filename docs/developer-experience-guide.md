@@ -141,6 +141,22 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
   names (`activeBackend`, `requestedBackend`, `ticks`, `deltaSeconds`). Use `activeBackend` for runtime capability
   checks; `requestedBackend` mirrors resolved `HardwareSettings.backend` (including `?backend=software`).
 
+**Boolean naming (three tiers):**
+
+| Tier                                          | Use                         | Examples                                                                   |
+| --------------------------------------------- | --------------------------- | -------------------------------------------------------------------------- |
+| **A** Runtime read-only queries               | `is*` / `has*`              | `isPointerActive`, `isIndexed`, `hasGlyph`, `isDirty`                      |
+| **B** `HardwareSettings` / `BootstrapOptions` | grammatical `is*`           | `isOverlayEnabled`, `isDetectingDroppedFrames`                             |
+| **C** Side effects / operation results        | imperative verbs, not `is*` | `fireIfElapsed()`, `intersectTo(other, out): boolean`, `remove(): boolean` |
+
+- Use **`-ing`** for configure flags that enable ongoing behavior (`isDetectingDroppedFrames`, not
+  `isDetectDroppedFrames`).
+- **Hold vs edge on `BT`:** `isDown` / `isKeyDown` (held), `isPressed` / `isReleased` (button masks), `isKeyPressed` /
+  `isKeyReleased` (keyboard codes). Internal input classes use the same names (`PointerInput.isButtonDown`,
+  `KeyboardInput.isKeyDown`, `GamepadInput.isButtonDown`). Do **not** embed a second `Is` in the identifier
+  (`isKeyIsPressed` — grep: `\bis[A-Za-z]+Is[A-Z]`).
+- Identifier acronyms use both capitals: `canvasID`, `containerID` (not `canvasId`).
+
 ---
 
 ## IDE Setup
