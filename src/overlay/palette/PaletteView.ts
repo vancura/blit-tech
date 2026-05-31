@@ -546,7 +546,7 @@ function drawPaletteScrollbar(
  * Live palette swatch renderer for the overlay bottom band.
  */
 export class PaletteView {
-    readonly #enabled: boolean;
+    readonly #isEnabled: boolean;
 
     /**
      * Creates a palette view with the given feature flag.
@@ -554,7 +554,7 @@ export class PaletteView {
      * @param enabled - When false, draw is a no-op (default matches public opt-in API).
      */
     constructor(enabled = false) {
-        this.#enabled = enabled;
+        this.#isEnabled = enabled;
     }
 
     /**
@@ -562,8 +562,8 @@ export class PaletteView {
      *
      * @returns Feature flag state.
      */
-    get enabled(): boolean {
-        return this.#enabled;
+    get isEnabled(): boolean {
+        return this.#isEnabled;
     }
 
     /**
@@ -594,7 +594,7 @@ export class PaletteView {
         scrollbarTrackWidth = 0,
         scrollbarThumbIndex = unusedMarkIndex,
     ): void {
-        if (!this.#enabled || palette === null || grid.cols <= 0) {
+        if (!this.#isEnabled || palette === null || grid.cols <= 0) {
             return;
         }
 

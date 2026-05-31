@@ -42,7 +42,7 @@ import {
  * Scrolling update/render timing chart with a fixed-capacity ring buffer.
  */
 export class TimingChart {
-    readonly #enabled: boolean;
+    readonly #isEnabled: boolean;
 
     readonly #targetFps: number;
 
@@ -92,7 +92,7 @@ export class TimingChart {
      * @param diagnosticsMode - Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
      */
     constructor(enabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
-        this.#enabled = enabled;
+        this.#isEnabled = enabled;
         this.#targetFps = targetFps;
         this.#diagnosticsMode = enabled ? diagnosticsMode : false;
     }
@@ -102,8 +102,8 @@ export class TimingChart {
      *
      * @returns Feature flag state.
      */
-    get enabled(): boolean {
-        return this.#enabled;
+    get isEnabled(): boolean {
+        return this.#isEnabled;
     }
 
     /**
@@ -171,7 +171,7 @@ export class TimingChart {
      * @param timing - Per-frame snapshot from BTAPI.
      */
     sample(timing: OverlayTimingSnapshot): void {
-        if (!this.#enabled || this.#bufferWidth <= 0) {
+        if (!this.#isEnabled || this.#bufferWidth <= 0) {
             return;
         }
 
@@ -222,7 +222,7 @@ export class TimingChart {
         font: BitmapFont,
         currentTick: number,
     ): void {
-        if (!this.#enabled || chartRect.width <= 0 || chartRect.height <= 0) {
+        if (!this.#isEnabled || chartRect.width <= 0 || chartRect.height <= 0) {
             return;
         }
 

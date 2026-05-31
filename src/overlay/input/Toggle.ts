@@ -9,7 +9,7 @@ import { OVERLAY_TOGGLE_KEY_CODE, POINTER_PRIMARY_BUTTON } from './constants';
  * Handles overlay body visibility toggle input (Backquote and corner pointer).
  */
 export class Toggle {
-    #bodyVisible: boolean;
+    #isBodyVisible: boolean;
 
     readonly #toggleEnabled: boolean;
 
@@ -29,8 +29,8 @@ export class Toggle {
      *
      * @returns `true` while metrics bars and palette grid are rendered.
      */
-    get bodyVisible(): boolean {
-        return this.#bodyVisible;
+    get isBodyVisible(): boolean {
+        return this.#isBodyVisible;
     }
 
     /**
@@ -54,7 +54,7 @@ export class Toggle {
         }
 
         if (keyboard?.isKeyPressed(OVERLAY_TOGGLE_KEY_CODE, undefined, currentTick)) {
-            this.#bodyVisible = !this.#bodyVisible;
+            this.#isBodyVisible = !this.#isBodyVisible;
 
             return;
         }
@@ -71,7 +71,7 @@ export class Toggle {
             const pos = pointer.getPos(slot);
 
             if (isPointerInOverlayToggleCorner(pos, toggleRect)) {
-                this.#bodyVisible = !this.#bodyVisible;
+                this.#isBodyVisible = !this.#isBodyVisible;
 
                 return;
             }

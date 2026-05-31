@@ -22,7 +22,7 @@ import { Toggle } from './input/Toggle';
 import { buildOverlayLayoutPlan, createDefaultLayoutConfig, createOverlayLayoutPlanScratch } from './layout/layoutPlan';
 import type { OverlayLayout, OverlayLayoutConfig, OverlayLayoutPlan } from './layout/types';
 import type { OverlayRenderer } from './OverlayDrawTarget';
-import { drawOverlayToggleIcon } from './OverlayToggleIcon';
+import { toggleIcon } from './OverlayToggleIcon';
 import { PaletteInteraction } from './palette/PaletteInteraction';
 import { computePaletteGrid, DEFAULT_PALETTE_GRID, PaletteView } from './palette/PaletteView';
 import { FpsSampler } from './sampling/FpsSampler';
@@ -96,7 +96,7 @@ export class Overlay {
 
     readonly #toggle: Toggle;
 
-    readonly #toggleHintVisible: boolean;
+    readonly #isToggleHintVisible: boolean;
 
     readonly #bars: OverlayBars = new OverlayBars();
 
@@ -207,7 +207,7 @@ export class Overlay {
      * @param currentTick - Current fixed-update tick (`BT.ticks`).
      */
     assignTag(label: string | undefined, currentTick: number): void {
-        if (!this.#timingChart.enabled) {
+        if (!this.#timingChart.isEnabled) {
             return;
         }
 
@@ -219,8 +219,8 @@ export class Overlay {
      *
      * @returns `true` while metrics bars and palette grid are rendered.
      */
-    get bodyVisible(): boolean {
-        return this.#toggle.bodyVisible;
+    get isBodyVisible(): boolean {
+        return this.#toggle.isBodyVisible;
     }
 
     /**
@@ -232,7 +232,7 @@ export class Overlay {
      * @returns `true` when sprite/text palette usage scanning is needed.
      */
     get tracksPaletteUsage(): boolean {
-        return this.#paletteView.enabled && this.#toggle.bodyVisible;
+        return this.#paletteView.isEnabled && this.#toggle.isBodyVisible;
     }
 
     /**
@@ -253,7 +253,7 @@ export class Overlay {
     ): void {
         let pointerPressConsumed = false;
 
-        if (this.#paletteView.enabled && this.#toggle.bodyVisible) {
+        if (this.#paletteView.isEnabled && this.#toggle.isBodyVisible) {
             const customRows = getCustomRows?.();
             const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
             const grid = layoutConfig.paletteGrid;
@@ -320,17 +320,17 @@ export class Overlay {
         // Chart history keeps advancing while hidden so re-show reflects demo-only timing.
         this.#sampleTiming(timing);
 
-        const bodyVisible = this.#toggle.bodyVisible;
+        const isBodyVisible = this.#toggle.isBodyVisible;
 
-        if (!bodyVisible && !this.#toggleHintVisible) {
+        if (!isBodyVisible && !this.#isToggleHintVisible) {
             return;
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#fps.sample();
         }
 
-        const customRows = bodyVisible ? getCustomRows?.() : undefined;
+        const customRows = isBodyVisible ? getCustomRows?.() : undefined;
         const { layoutConfig, plan } = this.#buildFramePlan(customRows?.length ?? 0, palette);
 
         this.#withOverlayCamera(renderer, () => {
@@ -339,7 +339,7 @@ export class Overlay {
                 font,
                 plan,
                 layoutConfig,
-                bodyVisible,
+                isBodyVisible,
                 customRows,
                 palette,
                 usedPaletteMask,
@@ -375,9 +375,9 @@ export class Overlay {
      * @returns Layout config for {@link buildOverlayLayoutPlan}.
      */
     #createLayoutConfig(customRowCount: number, palette: Palette | null | undefined): OverlayLayoutConfig {
-        const overlayPaletteView = this.#paletteView.enabled;
+        const isOverlayPaletteEnabled = this.#paletteView.isEnabled;
         const colorCount = palette?.size ?? 256;
-        const paletteGrid = overlayPaletteView
+        const paletteGrid = isOverlayPaletteEnabled
             ? computePaletteGrid(
                   this.#layout.displayWidth,
                   undefined,
@@ -395,8 +395,8 @@ export class Overlay {
                 this.#layout.lineHeight,
                 customRowCount,
             ),
-            overlayPaletteView,
-            timingChartEnabled: this.#timingChart.enabled,
+            isOverlayPaletteEnabled,
+            isOverlayTimingChartEnabled: this.#timingChart.isEnabled,
             timingChartHeight: this.#timingChartHeight,
             rendererDiagnosticsBarEnabled: this.#rendererDiagnosticsBarEnabled,
             ...(paletteGrid !== undefined ? { paletteGrid } : {}),
@@ -446,14 +446,14 @@ export class Overlay {
     /**
      * Draws overlay content for one frame.
      *
-     * Body panels and the footer hint bar draw only when {@link bodyVisible} is true.
+     * Body panels and the footer hint bar draw only when {@link isBodyVisible} is true.
      * The toggle hint icon always draws when this method runs (symbol only while hidden).
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.
      * @param plan - Computed layout plan for this frame.
      * @param layoutConfig - Layout config used to build the plan.
-     * @param bodyVisible - Whether metrics bars and palette grid should draw.
+     * @param isBodyVisible - Whether metrics bars and palette grid should draw.
      * @param customRows - Optional demo rows, if any.
      * @param palette - Active demo palette.
      * @param usedPaletteMask - Per-frame palette usage mask from BTAPI.
@@ -465,7 +465,7 @@ export class Overlay {
         font: BitmapFont,
         plan: OverlayLayoutPlan,
         layoutConfig: OverlayLayoutConfig,
-        bodyVisible: boolean,
+        isBodyVisible: boolean,
         customRows: readonly OverlayRow[] | undefined,
         palette: Palette | null | undefined,
         usedPaletteMask: Uint8Array,
@@ -480,7 +480,7 @@ export class Overlay {
         let rendererDiagnosticsLabel = '';
         const paletteGrid = layoutConfig.paletteGrid ?? DEFAULT_PALETTE_GRID;
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             const updateStepSuffix = this.#timing.updateSteps > 1 ? `x${this.#timing.updateSteps}` : '';
 
             topMetricsLabel = `Present: ${this.#fps.measuredFps} FPS | Target: ${this.#targetFps} FPS | Draw Calls: ${this.#timing.drawCalls}`;
@@ -533,11 +533,11 @@ export class Overlay {
             this.#bars.drawClusterSeparators(renderer, plan, this.#idxGap, true, true);
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#bars.drawHintBarFill(renderer, plan, this.#idxBg);
         }
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             if (customRows !== undefined && customRows.length > 0) {
                 this.#bars.drawCustomRowLabels(renderer, font, plan, customRows, this.#barStyle);
             }
@@ -555,9 +555,9 @@ export class Overlay {
             );
         }
 
-        drawOverlayToggleIcon(renderer, plan.hintBar.y, this.#idxText, bodyVisible);
+        toggleIcon(renderer, plan.hintBar.y, this.#idxText, isBodyVisible);
 
-        if (bodyVisible) {
+        if (isBodyVisible) {
             this.#paletteInteraction.drawTooltipChrome(
                 renderer,
                 plan,

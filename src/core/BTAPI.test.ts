@@ -1475,8 +1475,8 @@ describe('BTAPI', () => {
 
             const overlay = getOverlay();
             expect(overlay).not.toBeNull();
-            expect(overlay?.bodyVisible).toBe(false);
             expect(overlay?.tracksPaletteUsage).toBe(false);
+            expect(overlay?.isBodyVisible).toBe(false);
 
             BTAPI.instance.drawSprite(mockSheet, new Rect2i(0, 0, 16, 16), new Vector2i(0, 0));
 
@@ -1730,7 +1730,7 @@ describe('BTAPI', () => {
 
             const overlay = getOverlay();
             expect(overlay).not.toBeNull();
-            expect(overlay?.bodyVisible).toBe(true);
+            expect(overlay?.isBodyVisible).toBe(true);
 
             drainRafUntilRenderCount(1);
 

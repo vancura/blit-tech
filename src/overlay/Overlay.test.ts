@@ -171,14 +171,14 @@ describe('Overlay', () => {
             1,
         );
 
-        expect(overlay.bodyVisible).toBe(true);
+        expect(overlay.isBodyVisible).toBe(true);
     });
 
     it('starts hidden by default and toggles body visibility', () => {
         const layout = createOverlayLayout(320, 240, 14);
         const overlay = createOverlay(layout, 'Test Demo');
 
-        expect(overlay.bodyVisible).toBe(false);
+        expect(overlay.isBodyVisible).toBe(false);
 
         overlay.handleToggle(
             null,
@@ -188,7 +188,7 @@ describe('Overlay', () => {
             1,
         );
 
-        expect(overlay.bodyVisible).toBe(true);
+        expect(overlay.isBodyVisible).toBe(true);
 
         overlay.handleToggle(
             null,
@@ -198,7 +198,7 @@ describe('Overlay', () => {
             2,
         );
 
-        expect(overlay.bodyVisible).toBe(false);
+        expect(overlay.isBodyVisible).toBe(false);
     });
 
     it('draws top and bottom overlay labels when body is visible', () => {
@@ -558,7 +558,7 @@ describe('Overlay', () => {
 
         const customRows = [{ leftText: 'Bounces: 11' }, { leftText: 'Position: (43, 166)' }];
         const pointer = {
-            isValid: () => true,
+            isActive: () => true,
             getPos: () => new Vector2i(swatch.x + 1, swatch.y + 1),
         };
 
@@ -823,7 +823,7 @@ describe('Overlay', () => {
             1,
         );
 
-        expect(overlay.bodyVisible).toBe(false);
+        expect(overlay.isBodyVisible).toBe(false);
     });
 
     it('resets camera for hint-only draws then restores the saved offset', () => {
