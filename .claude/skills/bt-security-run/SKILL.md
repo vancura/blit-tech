@@ -1,4 +1,5 @@
 ---
+name: bt-security-run
 description: Run MCP security preflight, governance checks, and documented fallbacks for Blit-Tech security workflows.
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: bt-quick-format
 description: Quickly format all code files without verification steps.
 ---
 

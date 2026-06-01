@@ -353,7 +353,7 @@ CI status:
 
 Claude Code reusable skill:
 
-- Use `.claude/skills/perf/SKILL.md` for benchmark-related work
+- Use `.claude/skills/bt-perf/SKILL.md` for benchmark-related work
 - Use it when adding a new `*.bench.ts` or reasoning about benchmark CI behavior
 
 ## Git

@@ -1,4 +1,5 @@
 ---
+name: bt-deep-review
 description: Comprehensive code review with AI analysis, security audit, and PR-ready summary.
 ---
 

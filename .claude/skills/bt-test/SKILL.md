@@ -1,4 +1,5 @@
 ---
+name: bt-test
 description: Run tests - unit tests, coverage, visual regression, or watch mode.
 ---
 
@@ -9,11 +10,11 @@ Run the test suite with various options.
 ## Usage
 
 ```text
-/test              # Run all unit tests
-/test coverage     # Run with coverage report (80% threshold)
-/test watch        # Run in watch mode
-/test visual       # Run visual regression tests (requires Chrome with WebGPU)
-/test <file>       # Run tests for a specific file
+/bt-test              # Run all unit tests
+/bt-test coverage     # Run with coverage report (80% threshold)
+/bt-test watch        # Run in watch mode
+/bt-test visual       # Run visual regression tests (requires Chrome with WebGPU)
+/bt-test <file>       # Run tests for a specific file
 ```
 
 ## Steps
