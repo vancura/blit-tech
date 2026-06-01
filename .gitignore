@@ -55,7 +55,8 @@ ai-rules/
 !.vscode/extensions.json
 .idea/
 *.iml
-.zed/
+.zed/*
+!.zed/settings.json
 .cursor/*
 !.cursor/hooks.json
 !.cursor/hooks/
