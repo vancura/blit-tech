@@ -1,4 +1,5 @@
 ---
+name: bt-review
 description: Review current changes against project rules, conventions, and quality standards.
 ---
 

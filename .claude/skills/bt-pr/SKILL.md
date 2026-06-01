@@ -1,4 +1,5 @@
 ---
+name: bt-pr
 description: Create a pull request with automatic quality checks, conventional commit, and gh CLI.
 ---
 

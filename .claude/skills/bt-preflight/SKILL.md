@@ -1,4 +1,5 @@
 ---
+name: bt-preflight
 description: Run all quality checks (format, lint, typecheck, spellcheck, knip) before committing.
 ---
 

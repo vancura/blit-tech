@@ -1,4 +1,5 @@
 ---
+name: bt-perf
 description: Add or update Blit-Tech CPU benchmarks and explain the CI benchmark workflow.
 ---
 

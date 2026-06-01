@@ -1,4 +1,5 @@
 ---
+name: bt-spellcheck
 description: Run cspell spellcheck across the project, fix typos and add legitimate words to the dictionary.
 ---
 

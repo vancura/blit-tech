@@ -1,4 +1,5 @@
 ---
+name: bt-format
 description: Format all code files using Biome and Prettier, then verify formatting passes.
 ---
 
