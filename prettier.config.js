@@ -20,7 +20,7 @@ export default {
 
     overrides: [
         {
-            files: ['*.md', '*.mdx'],
+            files: ['*.md', '*.mdx', '*.mdc'],
             options: {
                 parser: 'markdown',
                 proseWrap: 'always',

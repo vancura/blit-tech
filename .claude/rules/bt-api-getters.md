@@ -8,27 +8,27 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 - **Method:** mutation, parameters, or async (`BT.cameraSet`, `BT.pointerPos(0)`, `await BT.captureFrame()`)
 - **Never** reintroduce `BT.displaySize()` / `BT.getActiveBackend()`-style call syntax for these reads
 
-## Getter list
+## Getter lists
 
-| Category | Members |
-| - | - |
-| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS` |
-| Derived | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field) |
-| Configure-time (backend) | `requestedBackend` (mirrors `HardwareSettings.backend`) |
-| Loop timing | `deltaSeconds`, `timeSeconds`, `ticks` |
-| Runtime state | `activeBackend`, `camera`, `palette` |
-| Per-frame input | `pointerScrollDelta`, `inputString`, `gamepadCount` |
+| Category                                         | Members                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS`                                |
+| Derived                                          | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field) |
+| Configure-time (backend)                         | `requestedBackend` (mirrors `HardwareSettings.backend`)                        |
+| Loop timing                                      | `deltaSeconds`, `timeSeconds`, `ticks`                                         |
+| Runtime state                                    | `activeBackend`, `camera`, `palette`                                           |
+| Per-frame input                                  | `pointerScrollDelta`, `inputString`, `gamepadCount`                            |
 
 `Vector2i` getters return a clone per read. `activeBackend` is what actually started after fallback, not
-`configure().backend`.
-`palette` is a live reference - mutating slots affects rendering on the next frame.
+`configure().backend`. `palette` is a live reference - mutating slots affects rendering on the next frame.
 
 ## Boolean queries on `BT` (Tier A; always methods)
 
 - Hold: `isDown(...)`, `isKeyDown(...)`
 - Edge: `isPressed(...)`, `isReleased(...)`, `isKeyPressed(...)`, `isKeyReleased(...)`
 - Pointer: `isPointerActive(slot?)`
-- Internal input classes mirror the same names (`isButtonDown`, `isKeyDown`, …). No embedded second `Is` (`\bis[A-Za-z]+Is[A-Z]`).
+- Internal input classes mirror the same names (`isButtonDown`, `isKeyDown`, …). No embedded second `Is`
+  (`\bis[A-Za-z]+Is[A-Z]`).
 
 ## Configure flags (Tier B)
 

@@ -1,6 +1,6 @@
 ---
 description: Require docs updates for API and behavior changes
-globs: {src/**/*.ts,docs/**/*.md,README.md,CLAUDE.md}
+globs: { src/**/*.ts, docs/**/*.md, README.md, CLAUDE.md }
 alwaysApply: false
 ---
 

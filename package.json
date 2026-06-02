@@ -58,10 +58,10 @@
     "test:declarations": "node --test scripts/check-declaration-tooling.test.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,yml,yaml}\"",
-    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,yml,yaml}\"",
+    "format": "biome format --write . && prettier --write \"**/*.{md,mdx,mdc,yml,yaml}\"",
+    "format:check": "biome check . && prettier --check \"**/*.{md,mdx,mdc,yml,yaml}\"",
     "format:biome": "biome format --write .",
-    "format:prettier": "prettier --write \"**/*.{md,mdx,yml,yaml}\"",
+    "format:prettier": "prettier --write \"**/*.{md,mdx,mdc,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
     "spellcheck": "cspell \"src/**/*.{ts,md,mdx}\" \"docs/**/*.{md,mdx}\" \"README.md\" --no-progress",
     "docs:links": "node scripts/check-markdown-links.mjs",
@@ -107,7 +107,7 @@
     "*.{ts,tsx,js,cjs,mjs,json,jsonc,css}": [
       "biome check --write"
     ],
-    "*.{md,mdx,yml,yaml}": [
+    "*.{md,mdx,mdc,yml,yaml}": [
       "prettier --write"
     ],
     "*.{ts,tsx,js,cjs,mjs,md,mdx}": [
