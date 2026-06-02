@@ -34,8 +34,8 @@ hardening passes, or when MCP scanner availability is uncertain.
      ```
 
    - Record each security MCP status: `healthy`, `auth_required`, `errored`, or `absent`.
-   - If Opsera (`plugin-opsera-devsecops-opsera`) is not `healthy`, do **not** skip scans; continue with
-     fallbacks from [docs/security/security-runbook.md](../../../docs/security/security-runbook.md).
+   - If Opsera (`plugin-opsera-devsecops-opsera`) is not `healthy`, do **not** skip scans; continue with fallbacks from
+     [docs/security/security-runbook.md](../../../docs/security/security-runbook.md).
 
 2. **Repo-native checks (this repo)**
    - `pnpm run security:audit`

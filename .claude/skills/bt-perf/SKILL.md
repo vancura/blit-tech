@@ -11,8 +11,8 @@ Use this skill when the task involves:
 - benchmarking a new hot method or allocation pattern
 - working on benchmark CI behavior
 
-For visual correctness verification (not performance), use `pnpm run test:visual` - see the Visual Regression Tests section
-in CLAUDE.md.
+For visual correctness verification (not performance), use `pnpm run test:visual` - see the Visual Regression Tests
+section in CLAUDE.md.
 
 ## CPU Benchmarks
 
@@ -52,20 +52,18 @@ CPU benchmark regression checks run in CI with the `perf` label.
 - CI posts or updates a PR comment with the comparison table
 - CI fails if any benchmark regresses by more than **25%** (see `ci.yml` `--threshold 25`)
 
-New `*.bench.ts` files are picked up automatically on the next `main` baseline upload. No allowlist
-change is required. After adding benchmarks for overlay work, label the PR `perf` if you
-want regression feedback before merge.
+New `*.bench.ts` files are picked up automatically on the next `main` baseline upload. No allowlist change is required.
+After adding benchmarks for overlay work, label the PR `perf` if you want regression feedback before merge.
 
 ### Overlay palette grid benchmarks
 
-| Benchmark file | What it measures |
-| --- | --- |
-| `src/assets/SpriteSheet.bench.ts` | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
-| `src/overlay/palette/PaletteView.bench.ts` | Full palette grid `draw()` for 16 vs 256 slots |
+| Benchmark file                             | What it measures                                              |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| `src/assets/SpriteSheet.bench.ts`          | `markPaletteIndicesInRect` on 8x8 glyph vs 64x64 sprite rects |
+| `src/overlay/palette/PaletteView.bench.ts` | Full palette grid `draw()` for 16 vs 256 slots                |
 
-Use these when changing palette usage gating, swatch draw scratch reuse, or unique-index marking in
-`SpriteSheet`. Compare locally with `pnpm run bench`; use `pnpm run bench:json` before opening a `perf`
-labeled PR.
+Use these when changing palette usage gating, swatch draw scratch reuse, or unique-index marking in `SpriteSheet`.
+Compare locally with `pnpm run bench`; use `pnpm run bench:json` before opening a `perf` labeled PR.
 
 ## References
 
