@@ -9,7 +9,7 @@
  * callback, after `demo.render()` but before `Renderer.endFrame()`.
  */
 
-import { Color32 } from '../utils/Color32';
+import { clampUnit, Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
 import { applyEasing } from '../utils/Easing';
 import type { Palette } from './Palette';
@@ -45,8 +45,13 @@ export interface PaletteEffect {
  * {@link GameLoop} callback signatures remain unchanged.
  */
 export class PaletteEffectManager {
+    /** Active effects managed by this instance. */
     private effects: PaletteEffect[] = [];
+
+    /** Last wall-clock time in milliseconds, used to compute delta time. */
     private lastTime = 0;
+
+    /** Clock function returning milliseconds. */
     private readonly timeProvider: () => number;
 
     /**
@@ -139,7 +144,10 @@ export class PaletteEffectManager {
  * temporary {@link Color32} to avoid per-frame allocations.
  */
 export class CycleEffect implements PaletteEffect {
+    /** Accumulator for tracking the cycling progress. */
     private accumulator = 0;
+
+    /** Temporary {@link Color32} used for color calculations. */
     private readonly temp = new Color32(0, 0, 0, 0);
 
     /**
@@ -150,31 +158,60 @@ export class CycleEffect implements PaletteEffect {
      * @param speed - Steps per second. Positive = forward, negative = backward.
      */
     constructor(
+        /** First palette index in the cycling range (inclusive). */
         private readonly start: number,
+
+        /** Last palette index in the cycling range (inclusive). */
         private readonly end: number,
+
+        /** Steps per second. Positive = forward, negative = backward. */
         private readonly speed: number,
     ) {}
 
+    /**
+     * Advances the effect by one frame.
+     *
+     * @param palette - Active palette to modify.
+     * @param deltaMs - Wall-clock milliseconds since the last frame.
+     * @returns `true` to keep running, `false` to remove from the manager.
+     */
     update(palette: Palette, deltaMs: number): boolean {
         if (this.speed === 0 || this.start >= this.end) {
             return true;
         }
 
-        this.accumulator += (this.speed * deltaMs) / 1000;
+        // Milliseconds per second for delta-to-rate conversion in time-based effects.
+        const msPerSecond = 1_000;
 
-        // Forward rotation: shift entries toward lower indices, wrap last to first.
+        this.accumulator += (this.speed * deltaMs) / msPerSecond;
+        this.applyForwardSteps(palette);
+        this.applyBackwardSteps(palette);
+
+        return true; // Runs indefinitely.
+    }
+
+    /**
+     * Drains the forward accumulator, rotating entries toward lower indices one step at a time.
+     *
+     * @param palette - Palette whose entries are rotated.
+     */
+    private applyForwardSteps(palette: Palette): void {
         while (this.accumulator >= 1) {
             this.accumulator -= 1;
             this.rotateForward(palette);
         }
+    }
 
-        // Backward rotation: shift entries toward higher indices, wrap first to last.
+    /**
+     * Drains the backward accumulator, rotating entries toward higher indices one step at a time.
+     *
+     * @param palette - Palette whose entries are rotated.
+     */
+    private applyBackwardSteps(palette: Palette): void {
         while (this.accumulator <= -1) {
             this.accumulator += 1;
             this.rotateBackward(palette);
         }
-
-        return true; // Runs indefinitely.
     }
 
     /**
@@ -210,6 +247,102 @@ export class CycleEffect implements PaletteEffect {
 
 // #endregion
 
+// #region Fade Helpers
+
+/**
+ * Snapshots a contiguous palette index range into a new array.
+ *
+ * @param source - Palette to read from.
+ * @param start - First index (inclusive).
+ * @param end - Last index (inclusive).
+ * @returns Cloned colors for each index in the range.
+ */
+function snapshotPaletteRange(source: Palette, start: number, end: number): Color32[] {
+    return Array.from({ length: end - start + 1 }, (_, index) => source.get(start + index));
+}
+
+/**
+ * Computes normalized and eased fade progress for the current elapsed time.
+ *
+ * @param elapsed - Elapsed fade time in milliseconds.
+ * @param durationMs - Total fade duration in milliseconds.
+ * @param easing - Easing curve to apply.
+ * @returns Normalized `t`, eased factor, and whether the fade is still running.
+ */
+function computeFadeProgress(
+    elapsed: number,
+    durationMs: number,
+    easing: EasingFunction,
+): { t: number; easedT: number; isRunning: boolean } {
+    const rawT = durationMs <= 0 ? 1 : elapsed / durationMs;
+    const t = clampUnit(rawT);
+    const easedT = applyEasing(t, easing);
+
+    return { t, easedT, isRunning: t < 1 };
+}
+
+/**
+ * Applies one fade step to a single palette entry.
+ *
+ * @param palette - Active palette to modify.
+ * @param index - Palette index to update.
+ * @param snap - Snapshot color at fade start.
+ * @param tgt - Target color at fade end.
+ * @param t - Normalized progress in [0, 1].
+ * @param easedT - Eased progress factor.
+ */
+function applyFadeEntry(palette: Palette, index: number, snap: Color32, tgt: Color32, t: number, easedT: number): void {
+    if (t >= 1) {
+        palette.getRef(index).copyFrom(tgt);
+    } else {
+        palette.getRef(index).copyFrom(snap).lerpInPlace(tgt, easedT);
+    }
+}
+
+/**
+ * Applies one fade step to a contiguous sub-range of palette entries.
+ *
+ * Both {@link FadeEffect} and {@link FadeRangeEffect} use this helper.
+ * Snapshot arrays use zero-based local indices; `offset` maps them to palette
+ * indices: `snapshot[i - offset]` corresponds to palette entry `i`.
+ *
+ * @param palette - Active palette to modify.
+ * @param snapshot - Snapshot colors indexed from `0`.
+ * @param targets - Target colors indexed from `0`.
+ * @param from - First palette index to update (inclusive).
+ * @param to - Last palette index to update (inclusive).
+ * @param offset - Value subtracted from a palette index to get the snapshot array index.
+ * @param t - Normalized progress in [0, 1].
+ * @param easedT - Eased progress factor.
+ */
+function applyFadeToRange(
+    palette: Palette,
+    snapshot: Color32[],
+    targets: Color32[],
+    from: number,
+    to: number,
+    offset: number,
+    t: number,
+    easedT: number,
+): void {
+    for (let i = from; i <= to; i++) {
+        const localIdx = i - offset;
+
+        // eslint-disable-next-line security/detect-object-injection -- localIdx derived from loop bounds
+        const snap = snapshot[localIdx];
+        // eslint-disable-next-line security/detect-object-injection -- localIdx derived from loop bounds
+        const tgt = targets[localIdx];
+
+        if (!snap || !tgt) {
+            continue;
+        }
+
+        applyFadeEntry(palette, i, snap, tgt, t, easedT);
+    }
+}
+
+// #endregion
+
 // #region FadeEffect
 
 /**
@@ -222,9 +355,16 @@ export class CycleEffect implements PaletteEffect {
  * Auto-removes when the fade completes.
  */
 export class FadeEffect implements PaletteEffect {
+    /** Accumulated elapsed time in milliseconds. */
     private elapsed = 0;
+
+    /** Snapshot of the starting palette colors. */
     private readonly snapshotColors: Color32[];
+
+    /** Target palette colors to fade toward. */
     private readonly targetColors: Color32[];
+
+    /** Number of palette entries being faded. */
     private readonly size: number;
 
     /**
@@ -243,48 +383,26 @@ export class FadeEffect implements PaletteEffect {
     ) {
         this.size = source.size;
 
-        // Snapshot source colors once (one-time allocation).
-        this.snapshotColors = [];
-
-        for (let i = 0; i < this.size; i++) {
-            this.snapshotColors.push(source.get(i));
-        }
-
-        // Cache target colors to avoid repeated cloning.
-        this.targetColors = [];
-
-        for (let i = 0; i < target.size; i++) {
-            this.targetColors.push(target.get(i));
-        }
+        this.snapshotColors = snapshotPaletteRange(source, 0, this.size - 1);
+        this.targetColors = snapshotPaletteRange(target, 0, target.size - 1);
     }
 
+    /**
+     * Advances the effect by one frame.
+     *
+     * @param palette - Active palette to modify.
+     * @param deltaMs - Wall-clock milliseconds since the last frame.
+     * @returns `true` to keep running, `false` to remove from the manager.
+     */
     update(palette: Palette, deltaMs: number): boolean {
         this.elapsed += deltaMs;
 
-        const rawT = this.durationMs <= 0 ? 1 : this.elapsed / this.durationMs;
-        const t = rawT < 0 ? 0 : rawT > 1 ? 1 : rawT;
-        const easedT = applyEasing(t, this.easing);
-
+        const { t, easedT, isRunning } = computeFadeProgress(this.elapsed, this.durationMs, this.easing);
         const count = Math.min(this.size, palette.size);
 
-        for (let i = 1; i < count; i++) {
-            // eslint-disable-next-line security/detect-object-injection -- Loop index within validated bounds
-            const snap = this.snapshotColors[i];
-            // eslint-disable-next-line security/detect-object-injection -- Loop index within validated bounds
-            const tgt = this.targetColors[i];
+        applyFadeToRange(palette, this.snapshotColors, this.targetColors, 1, count - 1, 0, t, easedT);
 
-            if (!snap || !tgt) {
-                continue;
-            }
-
-            if (t >= 1) {
-                palette.getRef(i).copyFrom(tgt);
-            } else {
-                palette.getRef(i).copyFrom(snap).lerpInPlace(tgt, easedT);
-            }
-        }
-
-        return t < 1;
+        return isRunning;
     }
 }
 
@@ -299,8 +417,13 @@ export class FadeEffect implements PaletteEffect {
  * Auto-removes when the fade completes.
  */
 export class FadeRangeEffect implements PaletteEffect {
+    /** Accumulated elapsed time in milliseconds. */
     private elapsed = 0;
+
+    /** Snapshot of the starting palette colors. */
     private readonly snapshotColors: Color32[];
+
+    /** Target palette colors to fade toward. */
     private readonly targetColors: Color32[];
 
     /**
@@ -321,47 +444,25 @@ export class FadeRangeEffect implements PaletteEffect {
         private readonly durationMs: number,
         private readonly easing: EasingFunction = 'linear',
     ) {
-        // Snapshot only the range we care about.
-        this.snapshotColors = [];
-
-        for (let i = start; i <= end; i++) {
-            this.snapshotColors.push(source.get(i));
-        }
-
-        this.targetColors = [];
-
-        for (let i = start; i <= end; i++) {
-            this.targetColors.push(target.get(i));
-        }
+        this.snapshotColors = snapshotPaletteRange(source, start, end);
+        this.targetColors = snapshotPaletteRange(target, start, end);
     }
 
+    /**
+     * Advances the effect by one frame.
+     *
+     * @param palette - Active palette to modify.
+     * @param deltaMs - Wall-clock milliseconds since the last frame.
+     * @returns `true` to keep running, `false` to remove from the manager.
+     */
     update(palette: Palette, deltaMs: number): boolean {
         this.elapsed += deltaMs;
 
-        const rawT = this.durationMs <= 0 ? 1 : this.elapsed / this.durationMs;
-        const t = rawT < 0 ? 0 : rawT > 1 ? 1 : rawT;
-        const easedT = applyEasing(t, this.easing);
+        const { t, easedT, isRunning } = computeFadeProgress(this.elapsed, this.durationMs, this.easing);
 
-        for (let i = this.start; i <= this.end; i++) {
-            const localIdx = i - this.start;
+        applyFadeToRange(palette, this.snapshotColors, this.targetColors, this.start, this.end, this.start, t, easedT);
 
-            // eslint-disable-next-line security/detect-object-injection -- localIdx derived from loop bounds
-            const snap = this.snapshotColors[localIdx];
-            // eslint-disable-next-line security/detect-object-injection -- localIdx derived from loop bounds
-            const tgt = this.targetColors[localIdx];
-
-            if (!snap || !tgt) {
-                continue;
-            }
-
-            if (t >= 1) {
-                palette.getRef(i).copyFrom(tgt);
-            } else {
-                palette.getRef(i).copyFrom(snap).lerpInPlace(tgt, easedT);
-            }
-        }
-
-        return t < 1;
+        return isRunning;
     }
 }
 
@@ -377,7 +478,10 @@ export class FadeRangeEffect implements PaletteEffect {
  * restores the snapshot and auto-removes.
  */
 export class FlashEffect implements PaletteEffect {
+    /** Accumulated elapsed time in milliseconds. */
     private elapsed = 0;
+
+    /** Snapshot of palette colors before flash. */
     private snapshotColors: Color32[] | null = null;
 
     /**
@@ -391,14 +495,17 @@ export class FlashEffect implements PaletteEffect {
         private readonly durationMs: number,
     ) {}
 
+    /**
+     * Advances the effect by one frame.
+     *
+     * @param palette - Active palette to modify.
+     * @param deltaMs - Wall-clock milliseconds since the last frame.
+     * @returns `true` to keep running, `false` to remove from the manager.
+     */
     update(palette: Palette, deltaMs: number): boolean {
         // First frame: snapshot and apply flash.
         if (this.snapshotColors === null) {
-            this.snapshotColors = [];
-
-            for (let i = 0; i < palette.size; i++) {
-                this.snapshotColors.push(palette.get(i));
-            }
+            this.snapshotColors = snapshotPaletteRange(palette, 0, palette.size - 1);
 
             for (let i = 1; i < palette.size; i++) {
                 palette.getRef(i).copyFrom(this.color);

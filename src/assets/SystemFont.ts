@@ -1,7 +1,7 @@
 /**
  * Built-in 6x14 system font for {@link BT.systemPrint}.
  *
- * Expands the embedded glyph bitmaps from {@link systemFontData} into a
+ * Expands the embedded glyph bitmaps from system font data into a
  * palette-indexed texture atlas and wraps the result in a {@link BitmapFont}.
  * The font is fully synchronous to create - no `fetch()`, no image decode.
  *
@@ -48,6 +48,27 @@ const ATLAS_HEIGHT = ATLAS_ROWS * SYSTEM_FONT_GLYPH_HEIGHT;
 // #region Atlas Builder
 
 /**
+ * Writes one glyph's pixel rows into the flat palette-indexed atlas array.
+ * Bit 7 of each bitmap byte is the leftmost pixel.
+ * A set bit maps to palette index 1 (foreground); a clear bit maps to 0 (transparent).
+ *
+ * @param bitmapOffset - Offset into the glyph bitmap data.
+ * @param baseX - X-coordinate of the glyph's top-left corner in the atlas.
+ * @param baseY - Y-coordinate of the glyph's top-left corner in the atlas.
+ * @param pixels - Output pixel buffer to write into.
+ */
+function writeGlyphPixels(bitmapOffset: number, baseX: number, baseY: number, pixels: Uint8Array<ArrayBuffer>): void {
+    for (let y = 0; y < SYSTEM_FONT_GLYPH_HEIGHT; y++) {
+        // Safe: length validated in buildAtlasPixels guarantees bitmapOffset + y is in bounds.
+        const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] as number;
+
+        for (let x = 0; x < SYSTEM_FONT_GLYPH_WIDTH; x++) {
+            pixels[(baseY + y) * ATLAS_WIDTH + (baseX + x)] = (rowByte >> (7 - x)) & 1;
+        }
+    }
+}
+
+/**
  * Expands bit-pattern glyph data into a flat palette-indexed pixel array.
  *
  * Each set bit becomes palette index `1` (foreground); each clear bit becomes
@@ -70,23 +91,13 @@ function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
     for (let i = 0; i < SYSTEM_FONT_GLYPH_COUNT; i++) {
         const col = i % ATLAS_COLUMNS;
         const row = Math.floor(i / ATLAS_COLUMNS);
-        const baseX = col * SYSTEM_FONT_GLYPH_WIDTH;
-        const baseY = row * SYSTEM_FONT_GLYPH_HEIGHT;
-        const bitmapOffset = i * SYSTEM_FONT_BYTES_PER_GLYPH;
 
-        for (let y = 0; y < SYSTEM_FONT_GLYPH_HEIGHT; y++) {
-            // Safe: length validated above guarantees bitmapOffset + y is in bounds.
-            const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] as number;
-
-            for (let x = 0; x < SYSTEM_FONT_GLYPH_WIDTH; x++) {
-                // Bit 7 is leftmost pixel.
-                const bit = (rowByte >> (7 - x)) & 1;
-                const px = baseX + x;
-                const py = baseY + y;
-
-                pixels[py * ATLAS_WIDTH + px] = bit;
-            }
-        }
+        writeGlyphPixels(
+            i * SYSTEM_FONT_BYTES_PER_GLYPH,
+            col * SYSTEM_FONT_GLYPH_WIDTH,
+            row * SYSTEM_FONT_GLYPH_HEIGHT,
+            pixels,
+        );
     }
 
     return pixels;
@@ -98,29 +109,26 @@ function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
  * @returns Map of single-character strings to their {@link Glyph} metadata.
  */
 function buildGlyphMap(): Map<string, Glyph> {
-    const glyphs = new Map<string, Glyph>();
+    return new Map(
+        Array.from({ length: SYSTEM_FONT_GLYPH_COUNT }, (_, i) => {
+            const col = i % ATLAS_COLUMNS;
+            const row = Math.floor(i / ATLAS_COLUMNS);
 
-    for (let i = 0; i < SYSTEM_FONT_GLYPH_COUNT; i++) {
-        const charCode = SYSTEM_FONT_FIRST_CHAR + i;
-        const col = i % ATLAS_COLUMNS;
-        const row = Math.floor(i / ATLAS_COLUMNS);
+            const glyph: Glyph = {
+                rect: new Rect2i(
+                    col * SYSTEM_FONT_GLYPH_WIDTH,
+                    row * SYSTEM_FONT_GLYPH_HEIGHT,
+                    SYSTEM_FONT_GLYPH_WIDTH,
+                    SYSTEM_FONT_GLYPH_HEIGHT,
+                ),
+                offsetX: 0,
+                offsetY: 0,
+                advance: SYSTEM_FONT_GLYPH_WIDTH,
+            };
 
-        const glyph: Glyph = {
-            rect: new Rect2i(
-                col * SYSTEM_FONT_GLYPH_WIDTH,
-                row * SYSTEM_FONT_GLYPH_HEIGHT,
-                SYSTEM_FONT_GLYPH_WIDTH,
-                SYSTEM_FONT_GLYPH_HEIGHT,
-            ),
-            offsetX: 0,
-            offsetY: 0,
-            advance: SYSTEM_FONT_GLYPH_WIDTH,
-        };
-
-        glyphs.set(String.fromCharCode(charCode), glyph);
-    }
-
-    return glyphs;
+            return [String.fromCharCode(SYSTEM_FONT_FIRST_CHAR + i), glyph] as [string, Glyph];
+        }),
+    );
 }
 
 // #endregion

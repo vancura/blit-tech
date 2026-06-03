@@ -7,8 +7,73 @@ import { Vector2i } from '../utils/Vector2i';
 import { AssetLoader } from './AssetLoader';
 import type { Palette } from './Palette';
 
+/** Number of slots in a palette; matches the 8-bit palette index range. */
+const PALETTE_SLOT_COUNT = 256;
+
 /** Reused per-call bitmask of sheet indices seen while scanning a source rect. */
-const markIndicesInRectScratch = new Uint8Array(256);
+const MARK_INDICES_IN_RECT_SCRATCH = new Uint8Array(PALETTE_SLOT_COUNT);
+
+/** RGBA byte stride per pixel when reading decoded image data. */
+const RGBA_BYTES_PER_PIXEL = 4;
+
+/** Depth or array-layer count for a 2-D GPU texture descriptor. */
+const TEXTURE_LAYER_COUNT = 1;
+
+/**
+ * Maps retained RGBA bytes to palette indices for one sprite sheet.
+ *
+ * @param w - Image width in pixels.
+ * @param h - Image height in pixels.
+ * @param rgba - RGBA byte buffer (`w * h * 4` bytes).
+ * @param palette - Active palette used for color lookup.
+ * @param imageSrc - Source label for error messages.
+ * @returns Palette index per pixel (`w * h` bytes).
+ */
+function mapRgbaPixelsToIndexed(
+    w: number,
+    h: number,
+    rgba: Uint8Array,
+    palette: Palette,
+    imageSrc: string,
+): Uint8Array<ArrayBuffer> {
+    const indexed = new Uint8Array(w * h);
+    const pixelCount = w * h;
+
+    for (let i = 0; i < pixelCount; i++) {
+        const base = i * RGBA_BYTES_PER_PIXEL;
+        const a = rgba[base + 3];
+
+        if (a === 0) {
+            // Index 0 is the transparent sentinel - the shader discards any pixel with rawIndex == 0.
+            // eslint-disable-next-line security/detect-object-injection
+            indexed[i] = 0;
+            continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection
+        const r = rgba[base] ?? 0;
+        const g = rgba[base + 1] ?? 0;
+        const b = rgba[base + 2] ?? 0;
+        const color = new Color32(r, g, b, 255);
+        const index = palette.findColor(color);
+
+        if (index === -1) {
+            const hex =
+                '#' +
+                r.toString(16).padStart(2, '0') +
+                g.toString(16).padStart(2, '0') +
+                b.toString(16).padStart(2, '0');
+            const x = i % w;
+            const y = Math.floor(i / w);
+            throw new Error(spriteColorNotInPaletteError(x, y, imageSrc, hex));
+        }
+
+        // eslint-disable-next-line security/detect-object-injection
+        indexed[i] = index;
+    }
+
+    return indexed;
+}
 
 /**
  * Result object returned by {@link SpriteSheet.loadIndexed}.
@@ -199,17 +264,12 @@ export class SpriteSheet {
         const w = image.width;
         const h = image.height;
 
-        const canvas = new OffscreenCanvas(w, h);
-        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(image, 0, 0);
-
-        const { data } = ctx.getImageData(0, 0, w, h);
+        const data = SpriteSheet.readRgbaPixels(image, w, h);
 
         const seen = new Set<number>();
         const collected: Color32[] = [];
 
-        for (let i = 0; i < data.length; i += 4) {
+        for (let i = 0; i < data.length; i += RGBA_BYTES_PER_PIXEL) {
             const a = data[i + 3] ?? 0;
 
             if (a === 0) {
@@ -235,9 +295,7 @@ export class SpriteSheet {
         const sortMode = options?.sort ?? 'luminance';
 
         if (sortMode === 'luminance') {
-            collected.sort((c1, c2) => {
-                return c1.luminance - c2.luminance;
-            });
+            collected.sort((c1, c2) => c1.luminance - c2.luminance);
         }
 
         // Validate the full destination range up front so a mid-loop palette.set()
@@ -317,61 +375,14 @@ export class SpriteSheet {
         }
 
         assertImageElementWithinLimits('sprite sheet', this.image);
+
         const w = this.size.x;
         const h = this.size.y;
 
-        const canvas = new OffscreenCanvas(w, h);
-        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.image, 0, 0);
+        this.rgbaPixels = SpriteSheet.readRgbaPixels(this.image, w, h);
+        this.indexedPixels = mapRgbaPixelsToIndexed(w, h, this.rgbaPixels, palette, this.sourceName);
 
-        const imageData = ctx.getImageData(0, 0, w, h);
-        this.rgbaPixels = new Uint8Array(imageData.data.buffer.slice(0));
-
-        const indexed = new Uint8Array(w * h);
-        const rgba = this.rgbaPixels;
-
-        for (let i = 0; i < w * h; i++) {
-            const base = i * 4;
-            const a = rgba[base + 3];
-
-            if (a === 0) {
-                // Index 0 is the transparent sentinel - the shader discards any pixel with rawIndex == 0.
-                // eslint-disable-next-line security/detect-object-injection
-                indexed[i] = 0;
-                continue;
-            }
-
-            // eslint-disable-next-line security/detect-object-injection
-            const r = rgba[base] ?? 0;
-            const g = rgba[base + 1] ?? 0;
-            const b = rgba[base + 2] ?? 0;
-            const color = new Color32(r, g, b, 255);
-            const index = palette.findColor(color);
-
-            if (index === -1) {
-                const hex =
-                    '#' +
-                    r.toString(16).padStart(2, '0') +
-                    g.toString(16).padStart(2, '0') +
-                    b.toString(16).padStart(2, '0');
-                const x = i % w;
-                const y = Math.floor(i / w);
-                const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
-                throw new Error(spriteColorNotInPaletteError(x, y, src, hex));
-            }
-
-            // eslint-disable-next-line security/detect-object-injection
-            indexed[i] = index;
-        }
-
-        this.indexedPixels = indexed;
-
-        // Invalidate any existing texture so getTexture() re-creates as r8uint.
-        if (this.texture) {
-            this.texture.destroy();
-            this.texture = null;
-        }
+        this.invalidateTexture();
     }
 
     /**
@@ -426,50 +437,9 @@ export class SpriteSheet {
 
         const w = this.size.x;
         const h = this.size.y;
-        const indexed = new Uint8Array(w * h);
-        const rgba = this.rgbaPixels;
+        this.indexedPixels = mapRgbaPixelsToIndexed(w, h, this.rgbaPixels, palette, this.sourceName);
 
-        for (let i = 0; i < w * h; i++) {
-            const base = i * 4;
-            const a = rgba[base + 3];
-
-            if (a === 0) {
-                // Index 0 is the transparent sentinel - the shader discards any pixel with rawIndex == 0.
-                // eslint-disable-next-line security/detect-object-injection
-                indexed[i] = 0;
-                continue;
-            }
-
-            // eslint-disable-next-line security/detect-object-injection
-            const r = rgba[base] ?? 0;
-            const g = rgba[base + 1] ?? 0;
-            const b = rgba[base + 2] ?? 0;
-            const color = new Color32(r, g, b, 255);
-            const index = palette.findColor(color);
-
-            if (index === -1) {
-                const hex =
-                    '#' +
-                    r.toString(16).padStart(2, '0') +
-                    g.toString(16).padStart(2, '0') +
-                    b.toString(16).padStart(2, '0');
-                const x = i % w;
-                const y = Math.floor(i / w);
-                const src = this.image.src ? `'${this.image.src}'` : '(unnamed)';
-                throw new Error(spriteColorNotInPaletteError(x, y, src, hex));
-            }
-
-            // eslint-disable-next-line security/detect-object-injection
-            indexed[i] = index;
-        }
-
-        this.indexedPixels = indexed;
-
-        // Invalidate GPU texture; it will be re-created as r8uint on next getTexture().
-        if (this.texture) {
-            this.texture.destroy();
-            this.texture = null;
-        }
+        this.invalidateTexture();
     }
 
     /**
@@ -529,7 +499,7 @@ export class SpriteSheet {
         const startY = Math.max(0, srcRect.y);
         const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
         const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
-        const seenSheetIndices = markIndicesInRectScratch;
+        const seenSheetIndices = MARK_INDICES_IN_RECT_SCRATCH;
 
         seenSheetIndices.fill(0);
 
@@ -612,10 +582,12 @@ export class SpriteSheet {
      * @returns GPU texture ready for rendering.
      */
     getTexture(device: GPUDevice): GPUTexture {
-        if (this.indexedPixels !== null && this.texture === null) {
-            this.createIndexedTexture(device);
-        } else if (this.texture === null) {
-            this.createTexture(device);
+        if (this.texture === null) {
+            if (this.indexedPixels !== null) {
+                this.createIndexedTexture(device);
+            } else {
+                this.createTexture(device);
+            }
         }
 
         // Safe assertion: createTexture / createIndexedTexture always initializes this.texture.
@@ -654,10 +626,7 @@ export class SpriteSheet {
      * the GPU texture from the original image.
      */
     destroy(): void {
-        if (this.texture) {
-            this.texture.destroy();
-            this.texture = null;
-        }
+        this.invalidateTexture();
 
         if (this.imageBitmap) {
             this.imageBitmap.close();
@@ -686,9 +655,10 @@ export class SpriteSheet {
         }
 
         assertDimensions('sprite sheet texture', this.size.x, this.size.y);
+
         this.texture = device.createTexture({
             label: 'Sprite Sheet Texture',
-            size: [this.size.x, this.size.y, 1],
+            size: [this.size.x, this.size.y, TEXTURE_LAYER_COUNT],
             format: 'rgba8unorm',
             usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
         });
@@ -715,9 +685,12 @@ export class SpriteSheet {
      */
     private createIndexedTexture(device: GPUDevice): void {
         assertDimensions('sprite sheet texture', this.size.x, this.size.y);
+
+        const extent = [this.size.x, this.size.y, TEXTURE_LAYER_COUNT];
+
         this.texture = device.createTexture({
             label: 'Sprite Sheet Indexed Texture',
-            size: [this.size.x, this.size.y, 1],
+            size: extent,
             format: 'r8uint',
             usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
         });
@@ -727,8 +700,54 @@ export class SpriteSheet {
             { texture: this.texture },
             this.indexedPixels as Uint8Array<ArrayBuffer>,
             { bytesPerRow: this.size.x },
-            [this.size.x, this.size.y, 1],
+            extent,
         );
+    }
+
+    // #endregion
+
+    // #region Private Helpers
+
+    /**
+     * Decodes an image's pixels via an off-screen canvas and returns a flat
+     * RGBA byte buffer. Shared by `indexize` and `loadColorsIntoPalette`.
+     *
+     * @param image - Source HTML image element.
+     * @param w - Image width in pixels.
+     * @param h - Image height in pixels.
+     * @returns Flat RGBA byte array (`w * h * RGBA_BYTES_PER_PIXEL` bytes).
+     */
+    private static readRgbaPixels(image: HTMLImageElement, w: number, h: number): Uint8Array<ArrayBuffer> {
+        const canvas = new OffscreenCanvas(w, h);
+        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image, 0, 0);
+
+        return new Uint8Array(ctx.getImageData(0, 0, w, h).data.buffer.slice(0)) as Uint8Array<ArrayBuffer>;
+    }
+
+    /**
+     * Returns a display label for the source image, used in error messages.
+     *
+     * @returns Quoted image `src` when available, or `(unnamed)` for sheets
+     *   created from raw indexed data.
+     */
+    private get sourceName(): string {
+        return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
+    }
+
+    /**
+     * Destroys and clears the cached GPU texture if one is currently held.
+     *
+     * Called before re-creating the texture with a different format (after
+     * `indexize` or `reindexize`) and by `destroy` during full teardown.
+     */
+    private invalidateTexture(): void {
+        if (this.texture) {
+            this.texture.destroy();
+            this.texture = null;
+        }
     }
 
     // #endregion

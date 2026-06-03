@@ -16,14 +16,19 @@ import {
 import { HUD_SLOTS } from './palettes/hudData';
 import { C64_HEX, CGA_HEX, GAMEBOY_HEX, NES_HEX, PICO8_HEX, VGA_HEX } from './palettes/presetData';
 
-/** Supported palette sizes exposed by the public API. */
-const VALID_SIZES = [2, 4, 16, 32, 64, 128, 256] as const;
-
 /** Uniform-buffer slot count used by the renderer regardless of active palette size. */
 const GPU_SIZE = 256;
 
 /** Number of normalized floats stored per palette color in GPU upload buffers. */
 const GPU_FLOATS_PER_COLOR = 4;
+
+/**
+ * Number of bytes per palette color in packed RGB byte arrays.
+ *
+ * Used by {@link Palette.fromUint8Array} and {@link Palette.toUint8Array}.
+ * Alpha is excluded from the packed format; it is always inferred as fully opaque.
+ */
+const RGB_BYTES_PER_COLOR = 3;
 
 /**
  * JSON-serializable palette payload.
@@ -44,7 +49,10 @@ type Serialized = {
  * @returns `true` when the size is supported.
  */
 function isValidSize(size: number): boolean {
-    return VALID_SIZES.includes(size as (typeof VALID_SIZES)[number]);
+    // Supported palette sizes exposed by the public API.
+    const validSizes = [2, 4, 16, 32, 64, 128, 256] as const;
+
+    return validSizes.includes(size as (typeof validSizes)[number]);
 }
 
 /**
@@ -163,13 +171,7 @@ export class Palette {
         validateSize(size);
 
         this.size = size;
-        this.colors = new Array<Color32>(size);
-        this.colors[0] = Color32.transparent;
-
-        for (let i = 1; i < size; i++) {
-            // eslint-disable-next-line security/detect-object-injection -- Constructor initializes all indices from 1 to size - 1
-            this.colors[i] = Color32.black.clone();
-        }
+        this.colors = [Color32.transparent, ...Array.from({ length: size - 1 }, () => Color32.black.clone())];
     }
 
     /**
@@ -216,23 +218,26 @@ export class Palette {
      * @throws Error if the byte length or palette size is invalid.
      */
     public static fromUint8Array(data: Uint8Array, size?: number): Palette {
-        if (data.length % 3 !== 0) {
+        if (data.length % RGB_BYTES_PER_COLOR !== 0) {
             throw new Error(`Palette byte array length ${data.length} is not divisible by 3`);
         }
 
-        const inferredSize = data.length / 3;
+        const inferredSize = data.length / RGB_BYTES_PER_COLOR;
         const resolvedSize = size ?? inferredSize;
 
         validateSize(resolvedSize);
 
-        if (data.length !== resolvedSize * 3) {
+        if (data.length !== resolvedSize * RGB_BYTES_PER_COLOR) {
             throw new Error(`Palette byte array length ${data.length} does not match palette size ${resolvedSize}`);
         }
 
         const palette = new Palette(resolvedSize);
 
         for (let i = 1; i < resolvedSize; i++) {
-            const offset = i * 3;
+            const offset = i * RGB_BYTES_PER_COLOR;
+
+            // Fully opaque alpha value applied when deserializing RGB-only byte arrays.
+            const opaqueAlpha = 255;
 
             palette.set(
                 i,
@@ -240,7 +245,7 @@ export class Palette {
                     readByte(data, offset),
                     readByte(data, offset + 1),
                     readByte(data, offset + 2),
-                    255,
+                    opaqueAlpha,
                 ),
             );
         }
@@ -333,10 +338,8 @@ export class Palette {
             throw new Error(hudRangeError(startSlot, HUD_SLOTS.length, this.size));
         }
 
-        let offset = 0;
-
-        for (const { hex, name } of HUD_SLOTS) {
-            const slot = startSlot + offset++;
+        for (const [i, { hex, name }] of HUD_SLOTS.entries()) {
+            const slot = startSlot + i;
 
             this.set(slot, Color32.fromHex(hex));
             this.setNamed(name, slot);
@@ -415,6 +418,7 @@ export class Palette {
      */
     public setNamed(name: string, index: number): void {
         this.assertIndexInRange(index);
+
         this.namedIndices.set(name, index);
     }
 
@@ -481,23 +485,12 @@ export class Palette {
 
         this.colors[0] = Color32.transparent;
 
-        for (let i = 1; i < copyCount; i++) {
+        for (let i = 1; i < this.size; i++) {
             // eslint-disable-next-line security/detect-object-injection -- Loop bounds restrict i to valid initialized source and destination indices
-            this.colors[i] = other.colorAt(i).clone();
+            this.colors[i] = i < copyCount ? other.colorAt(i).clone() : Color32.transparent.clone();
         }
 
-        for (let i = copyCount; i < this.size; i++) {
-            // eslint-disable-next-line security/detect-object-injection -- Loop bounds restrict i to valid destination indices
-            this.colors[i] = Color32.transparent.clone();
-        }
-
-        this.namedIndices.clear();
-
-        for (const [name, index] of other.namedIndices.entries()) {
-            if (index < this.size) {
-                this.namedIndices.set(name, index);
-            }
-        }
+        this.copyNamedIndices(other);
 
         this._isDirty = true;
     }
@@ -559,19 +552,7 @@ export class Palette {
      * @returns Byte array with `size * 3` entries.
      */
     public toUint8Array(): Uint8Array {
-        const bytes = new Uint8Array(this.size * 3);
-
-        for (let i = 0; i < this.size; i++) {
-            const color = this.colorAt(i);
-            const offset = i * 3;
-
-            // eslint-disable-next-line security/detect-object-injection -- Offset is computed within the allocated Uint8Array bounds
-            bytes[offset] = color.r;
-            bytes[offset + 1] = color.g;
-            bytes[offset + 2] = color.b;
-        }
-
-        return bytes;
+        return new Uint8Array(this.colors.flatMap((color) => [color.r, color.g, color.b]));
     }
 
     /**
@@ -611,13 +592,7 @@ export class Palette {
      * @returns Matching palette index, or `-1` when no exact match exists.
      */
     public findColor(color: Color32): number {
-        for (let i = 0; i < this.size; i++) {
-            if (this.colorAt(i).isEqual(color)) {
-                return i;
-            }
-        }
-
-        return -1;
+        return this.colors.findIndex((c) => c.isEqual(color));
     }
 
     /**
@@ -627,6 +602,24 @@ export class Palette {
      */
     public toString(): string {
         return `Palette(size=${this.size}, colors=${this.size}, names=${this.namedIndices.size})`;
+    }
+
+    /**
+     * Copies named index aliases from another palette into this one.
+     *
+     * Aliases that reference an index outside this palette's size are ignored.
+     * Clears the current named index map before copying.
+     *
+     * @param from - Source palette to copy named indices from.
+     */
+    private copyNamedIndices(from: Palette): void {
+        this.namedIndices.clear();
+
+        for (const [name, index] of from.namedIndices.entries()) {
+            if (index < this.size) {
+                this.namedIndices.set(name, index);
+            }
+        }
     }
 
     /**

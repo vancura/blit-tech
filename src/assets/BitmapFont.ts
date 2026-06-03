@@ -99,20 +99,50 @@ export interface TextSize {
 
 // #region Constants
 
-/**
- * Maximum number of cached string-width measurements retained at once.
- *
- * The cache uses insertion order and evicts the oldest entry when it reaches
- * this limit.
- */
-const MAX_MEASURE_CACHE_SIZE = 256;
-
-/**
- * Size of the direct lookup table used for ASCII glyphs (`0-127`).
- */
+/** Size of the direct lookup table used for ASCII glyphs (`0-127`). */
 const ASCII_CACHE_SIZE = 128;
 
 // #endregion
+
+/**
+ * Returns whether a value is a non-null plain object (not an array).
+ * Used to validate `FileData.glyphs` and individual glyph entries before reading their fields.
+ *
+ * @param value - The value to check.
+ * @returns `true` if the value is a non-null plain object, `false` otherwise.
+ */
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Creates an empty ASCII glyph lookup table pre-filled with `null`.
+ *
+ * @returns A new array of `Glyph | null` with `ASCII_CACHE_SIZE` elements, all initialized to `null`.
+ */
+function createAsciiGlyphTable(): (Glyph | null)[] {
+    return new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+}
+
+/**
+ * Writes a single-byte glyph into the ASCII fast-path table when the key is in range.
+ *
+ * @param asciiGlyphs - Pre-sized lookup table for codes `0-127`.
+ * @param char - Glyph map key from the `.btfont` file.
+ * @param glyph - Runtime glyph metadata to store.
+ */
+function populateAsciiGlyph(asciiGlyphs: (Glyph | null)[], char: string, glyph: Glyph): void {
+    if (char.length !== 1) {
+        return;
+    }
+
+    const code = char.charCodeAt(0);
+
+    if (code < ASCII_CACHE_SIZE) {
+        // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
+        asciiGlyphs[code] = glyph;
+    }
+}
 
 /**
  * Bitmap font backed by a sprite-sheet texture atlas.
@@ -228,17 +258,10 @@ export class BitmapFont {
         lineHeight: number,
         baseline: number,
     ): BitmapFont {
-        const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+        const asciiGlyphs = createAsciiGlyphTable();
 
         for (const [char, glyph] of glyphs) {
-            if (char.length === 1) {
-                const code = char.charCodeAt(0);
-
-                if (code < ASCII_CACHE_SIZE) {
-                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                    asciiGlyphs[code] = glyph;
-                }
-            }
+            populateAsciiGlyph(asciiGlyphs, char, glyph);
         }
 
         return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, name, size, lineHeight, baseline);
@@ -276,11 +299,24 @@ export class BitmapFont {
         const atlasHeight = spriteSheet.height;
 
         const { glyphs, asciiGlyphs } = BitmapFont.buildGlyphsFromEntries(glyphEntries, atlasWidth, atlasHeight);
-        const size = BitmapFont.resolvePositiveMetric(data.size, 12);
+
+        // Default font size in points when the `.btfont` descriptor omits or invalidates `size`.
+        const defaultFontSizePt = 12;
+
+        const size = BitmapFont.resolvePositiveMetric(data.size, defaultFontSizePt);
+
         const lineHeight = BitmapFont.resolvePositiveMetric(data.lineHeight, size);
         const baseline = BitmapFont.resolvePositiveMetric(data.baseline, size);
 
-        return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, data.name || 'Unknown', size, lineHeight, baseline);
+        return new BitmapFont(
+            spriteSheet,
+            glyphs,
+            asciiGlyphs,
+            data.name || 'Unknown', // display name used when the `.btfont` descriptor omits `name`
+            size,
+            lineHeight,
+            baseline,
+        );
     }
 
     // #region Loading Helpers
@@ -293,13 +329,31 @@ export class BitmapFont {
      * @returns Safe positive metric for {@link BitmapFont} construction.
      */
     private static resolvePositiveMetric(value: unknown, fallback: number): number {
-        const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN;
+        const parsed = BitmapFont.parseMetricValue(value);
 
         if (Number.isFinite(parsed) && parsed > 0) {
             return parsed;
         }
 
         return fallback;
+    }
+
+    /**
+     * Coerces a raw `.btfont` metric field to a number.
+     *
+     * @param value - Raw JSON value for `size`, `lineHeight`, or `baseline`.
+     * @returns Parsed number, or `NaN` when the value cannot be coerced.
+     */
+    private static parseMetricValue(value: unknown): number {
+        if (typeof value === 'number') {
+            return value;
+        }
+
+        if (typeof value === 'string') {
+            return Number(value);
+        }
+
+        return Number.NaN;
     }
 
     /**
@@ -325,23 +379,11 @@ export class BitmapFont {
         try {
             data = JSON.parse(jsonText) as FileData;
         } catch {
-            throw new Error(
-                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
-                    BitmapFont.buildExtensionHint(url, '.btfont'),
-            );
+            throw BitmapFont.buildBrokenFileError(url);
         }
 
-        if (
-            typeof data.texture !== 'string' ||
-            data.texture.length === 0 ||
-            data.glyphs === null ||
-            typeof data.glyphs !== 'object' ||
-            Array.isArray(data.glyphs)
-        ) {
-            throw new Error(
-                `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
-                    BitmapFont.buildExtensionHint(url, '.btfont'),
-            );
+        if (!BitmapFont.isValidFileData(data)) {
+            throw BitmapFont.buildBrokenFileError(url);
         }
 
         const glyphEntries = Object.entries(data.glyphs);
@@ -361,13 +403,53 @@ export class BitmapFont {
     }
 
     /**
+     * Returns a consistent "broken or invalid .btfont" error with an extension hint appended.
+     *
+     * Used by both the JSON parse failure and the structural validation failure paths in
+     * {@link parseBtfontFile} to ensure identical messaging.
+     *
+     * @param url - Path to the `.btfont` file (used in the error message and hint).
+     * @returns Error ready to throw.
+     */
+    private static buildBrokenFileError(url: string): Error {
+        return new Error(
+            `The font file '${url}' is broken or not a valid .btfont file. Check that it's the right file.` +
+                BitmapFont.buildExtensionHint(url, '.btfont'),
+        );
+    }
+
+    /**
+     * Returns whether parsed `.btfont` JSON has the required top-level fields.
+     *
+     * @param data - Parsed font descriptor.
+     * @returns Whether the data is valid.
+     */
+    private static isValidFileData(data: FileData): boolean {
+        if (typeof data.texture !== 'string' || data.texture.length === 0) {
+            return false;
+        }
+
+        return isPlainRecord(data.glyphs);
+    }
+
+    /**
+     * Returns whether a glyph entry is a plain object suitable for validation.
+     *
+     * @param glyphData - Raw glyph entry from the parsed font file.
+     * @returns Whether the glyph data is a valid object.
+     */
+    private static isGlyphEntryObject(glyphData: unknown): glyphData is GlyphData {
+        return isPlainRecord(glyphData);
+    }
+
+    /**
      * Validates glyph entries before the font atlas image is decoded.
      *
      * @param glyphEntries - Glyph map entries from the parsed font file.
      */
     private static validateGlyphEntriesPreAtlas(glyphEntries: Array<[string, GlyphData]>): void {
         for (const [char, glyphData] of glyphEntries) {
-            if (glyphData === null || typeof glyphData !== 'object' || Array.isArray(glyphData)) {
+            if (!BitmapFont.isGlyphEntryObject(glyphData)) {
                 throw new AssetLimitError(btfontGlyphEntryNotObjectError(BitmapFont.formatGlyphCharLabel(char)));
             }
 
@@ -393,7 +475,7 @@ export class BitmapFont {
         atlasHeight: number,
     ): { glyphs: Map<string, Glyph>; asciiGlyphs: (Glyph | null)[] } {
         const glyphs = new Map<string, Glyph>();
-        const asciiGlyphs: (Glyph | null)[] = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
+        const asciiGlyphs = createAsciiGlyphTable();
 
         for (const [char, glyphData] of glyphEntries) {
             const glyphError = validateBtfontGlyphAtlasBounds(
@@ -416,14 +498,7 @@ export class BitmapFont {
 
             glyphs.set(char, glyph);
 
-            if (char.length === 1) {
-                const code = char.charCodeAt(0);
-
-                if (code < ASCII_CACHE_SIZE) {
-                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                    asciiGlyphs[code] = glyph;
-                }
-            }
+            populateAsciiGlyph(asciiGlyphs, char, glyph);
         }
 
         return { glyphs, asciiGlyphs };
@@ -437,14 +512,11 @@ export class BitmapFont {
      * @returns Loaded texture image for the font atlas.
      */
     private static loadTexture(texture: string, url: string): Promise<HTMLImageElement> {
-        // Embedded PNG data URIs are validated in parseBtfontFile before decode.
-        if (texture.toLowerCase().startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)) {
-            return BitmapFont.loadImage(texture);
-        }
-
-        // Otherwise, resolve the path relative to the font file.
-        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
-        const textureUrl = baseUrl + texture;
+        // Embedded PNG data URIs are validated in parseBtfontFile before decode;
+        // relative paths are resolved against the .btfont file's directory.
+        const textureUrl = texture.toLowerCase().startsWith(BTFONT_EMBEDDED_TEXTURE_PREFIX)
+            ? texture
+            : url.substring(0, url.lastIndexOf('/') + 1) + texture;
 
         return BitmapFont.loadImage(textureUrl);
     }
@@ -485,7 +557,7 @@ export class BitmapFont {
      * @returns Hint text or an empty string.
      */
     private static buildPathHint(url: string, folderName: string): string {
-        if (BitmapFont.isExplicitUrl(url) || url.startsWith('/') || url.startsWith('./')) {
+        if (BitmapFont.hasExplicitLocation(url)) {
             return '';
         }
 
@@ -500,13 +572,7 @@ export class BitmapFont {
      * @returns Hint text or an empty string.
      */
     private static buildExtensionHint(url: string, expectedExtension: string): string {
-        const slashIndex = url.lastIndexOf('/');
-        const rawFileName = slashIndex >= 0 ? url.slice(slashIndex + 1) : url;
-        const queryIndex = rawFileName.indexOf('?');
-        const hashIndex = rawFileName.indexOf('#');
-        const cutIndex =
-            queryIndex === -1 ? hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
-        const fileName = cutIndex === -1 ? rawFileName : rawFileName.slice(0, cutIndex);
+        const fileName = url.slice(url.lastIndexOf('/') + 1).split(/[?#]/)[0] ?? url;
         const dotIndex = fileName.lastIndexOf('.');
         const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
 
@@ -527,7 +593,13 @@ export class BitmapFont {
         if (char.length === 1) {
             const code = char.charCodeAt(0);
 
-            if (code < 32 || code === 127) {
+            // Control character boundary codes used when formatting glyph validation error labels.
+            // Code points at or below `controlCharBoundary`, or equal to `asciiDelCode`,
+            // are rendered as `U+XXXX` escape sequences rather than literal characters.
+            const controlCharBoundary = 31;
+            const asciiDelCode = 127;
+
+            if (code <= controlCharBoundary || code === asciiDelCode) {
                 return `U+${code.toString(16).toUpperCase().padStart(4, '0')}`;
             }
         }
@@ -543,12 +615,23 @@ export class BitmapFont {
      */
     private static isExplicitUrl(url: string): boolean {
         const lowerUrl = url.toLowerCase();
-        return (
-            lowerUrl.startsWith('//') ||
-            lowerUrl.includes('://') ||
-            lowerUrl.startsWith('data:') ||
-            lowerUrl.startsWith('blob:')
-        );
+
+        if (lowerUrl.includes('://')) {
+            return true;
+        }
+
+        return ['//', 'data:', 'blob:'].some((prefix) => lowerUrl.startsWith(prefix));
+    }
+
+    /**
+     * Returns whether the URL already specifies an absolute or explicit location.
+     *
+     * @param url - URL to inspect.
+     * @returns True when the URL has an explicit location.
+     */
+    private static hasExplicitLocation(url: string): boolean {
+        // '/', './' = Relative path prefixes that do not need a folder hint during load errors.
+        return BitmapFont.isExplicitUrl(url) || (['/', './'] as const).some((prefix) => url.startsWith(prefix));
     }
 
     // #endregion
@@ -575,13 +658,17 @@ export class BitmapFont {
 
                 resolve(image);
             };
-            image.onerror = () =>
-                reject(
+            image.onerror = () => {
+                // Maximum characters shown from a texture source string in load-failure messages.
+                const maxErrorURLDisplayChars = 50;
+
+                return reject(
                     new Error(
-                        `Can't find the font texture image '${src.substring(0, 50)}'. ` +
+                        `Can't find the font texture image '${src.substring(0, maxErrorURLDisplayChars)}'. ` +
                             'Check for typos, wrong letter casing, or a missing file extension.',
                     ),
                 );
+            };
 
             image.src = src;
         });
@@ -689,7 +776,12 @@ export class BitmapFont {
         }
 
         // Cache the result with FIFO eviction when full.
-        if (this.measureCache.size >= MAX_MEASURE_CACHE_SIZE) {
+
+        // Maximum number of cached string-width measurements retained at once.
+        // The cache uses FIFO eviction (insertion order) when this limit is reached.
+        const measureCacheMaxSize = 256;
+
+        if (this.measureCache.size >= measureCacheMaxSize) {
             // Remove oldest inserted entry (first key in Map insertion order).
             const firstKey = this.measureCache.keys().next().value;
 
@@ -748,7 +840,7 @@ export class BitmapFont {
 
             if (code < ASCII_CACHE_SIZE) {
                 // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                return (this.asciiGlyphs[code] ?? null) !== null;
+                return this.asciiGlyphs[code] != null;
             }
         }
 
