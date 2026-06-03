@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { expect, test } from './coverage-fixture';
 
 const GPU_PRESENT_DELAY = Number(process.env.GPU_PRESENT_DELAY ?? 100);

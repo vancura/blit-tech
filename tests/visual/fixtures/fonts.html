@@ -1,80 +1,89 @@
+<!--suppress MagicNumberJS -->
+
 <!doctype html>
+
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <title>Visual Test: Bitmap Fonts</title>
-    <style>
-        body { margin: 0; background: #000; }
-        canvas { image-rendering: pixelated; }
-    </style>
-</head>
-
-<body>
-    <div id="canvas-container">
-        <canvas height="240" id="blit-tech-canvas" width="320"></canvas>
-    </div>
-
-    <script type="module">
-        import { bootstrap, BT, Color32, Palette, Vector2i } from 'blit-tech';
-
-        window.__RENDER_COMPLETE__ = false;
-        window.__INIT_FAILED__ = false;
-
-        // Palette indices.
-        const BLACK = 1;
-        const RED = 2;
-        const GREEN = 3;
-        const YELLOW = 5;
-        const CYAN = 6;
-        const WHITE = 8;
-
-        class FontsTest {
-            configure() {
-                return {
-                    displaySize: new Vector2i(320, 240),
-                    targetFPS: 60,
-                };
+    <head>
+        <meta charset="UTF-8" />
+        <title>Visual Test: Bitmap Fonts</title>
+        <style>
+            body {
+                margin: 0;
+                background: #000;
             }
 
-            async init() {
-                const palette = new Palette(16);
-                palette.set(BLACK, Color32.black);
-                palette.set(RED, Color32.red);
-                palette.set(GREEN, Color32.green);
-                palette.set(4, Color32.blue);
-                palette.set(YELLOW, Color32.yellow);
-                palette.set(CYAN, Color32.cyan);
-                palette.set(7, Color32.magenta);
-                palette.set(WHITE, Color32.white);
-                BT.paletteSet(palette);
+            canvas {
+                image-rendering: pixelated;
+            }
+        </style>
+    </head>
 
-                return true;
+    <body>
+        <div id="canvas-container">
+            <canvas height="240" id="blit-tech-canvas" width="320"></canvas>
+        </div>
+
+        <script type="module">
+            import { bootstrap, BT, Color32, Palette, Vector2i } from 'blit-tech';
+
+            window.__RENDER_COMPLETE__ = false;
+            window.__INIT_FAILED__ = false;
+
+            // Palette indices.
+            const colorBlack = 1;
+            const colorRed = 2;
+            const colorGreen = 3;
+            const colorYellow = 5;
+            const colorCyan = 6;
+            const colorWhite = 8;
+
+            class FontsTest {
+                configure() {
+                    return {
+                        displaySize: new Vector2i(320, 240),
+                        targetFPS: 60,
+                    };
+                }
+
+                async init() {
+                    const palette = new Palette(16);
+
+                    palette.set(colorBlack, Color32.black);
+                    palette.set(colorRed, Color32.red);
+                    palette.set(colorGreen, Color32.green);
+                    palette.set(4, Color32.blue);
+                    palette.set(colorYellow, Color32.yellow);
+                    palette.set(colorCyan, Color32.cyan);
+                    palette.set(7, Color32.magenta);
+                    palette.set(colorWhite, Color32.white);
+
+                    BT.paletteSet(palette);
+
+                    return true;
+                }
+
+                update() {}
+
+                render() {
+                    BT.clear(colorBlack);
+
+                    // Use placeholder text rendering (drawText via PrimitivePipeline).
+                    // Each character is rendered as a 6x8 colored block.
+                    BT.systemPrint(new Vector2i(10, 10), colorWhite, 'Hello World');
+                    BT.systemPrint(new Vector2i(10, 30), colorRed, 'Red Text');
+                    BT.systemPrint(new Vector2i(10, 50), colorGreen, 'Green Text');
+                    BT.systemPrint(new Vector2i(10, 70), colorCyan, 'ABCDEFGHIJ');
+                    BT.systemPrint(new Vector2i(10, 90), colorYellow, '0123456789');
+
+                    window.__RENDER_COMPLETE__ = true;
+                }
             }
 
-            update() {}
-
-            render() {
-                BT.clear(BLACK);
-
-                // Use placeholder text rendering (drawText via PrimitivePipeline).
-                // Each character is rendered as a 6x8 colored block.
-                BT.systemPrint(new Vector2i(10, 10), WHITE, 'Hello World');
-                BT.systemPrint(new Vector2i(10, 30), RED, 'Red Text');
-                BT.systemPrint(new Vector2i(10, 50), GREEN, 'Green Text');
-                BT.systemPrint(new Vector2i(10, 70), CYAN, 'ABCDEFGHIJ');
-                BT.systemPrint(new Vector2i(10, 90), YELLOW, '0123456789');
-
-                window.__RENDER_COMPLETE__ = true;
-            }
-        }
-
-        bootstrap(FontsTest, {
-            onError: () => {
-                window.__INIT_FAILED__ = true;
-            },
-        });
-    </script>
-</body>
-
+            bootstrap(FontsTest, {
+                onError: () => {
+                    window.__INIT_FAILED__ = true;
+                },
+            });
+        </script>
+    </body>
 </html>

@@ -1,190 +1,261 @@
+<!--suppress FunctionWithMultipleLoopsJS, MagicNumberJS, BlockStatementJS -->
+
 <!doctype html>
+
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <title>Visual Test: Post-Process</title>
-    <style>
-        body { margin: 0; background: #000; }
-        canvas { image-rendering: pixelated; }
-    </style>
-</head>
-
-<body>
-    <div id="canvas-container">
-        <canvas id="blit-tech-canvas"></canvas>
-    </div>
-
-    <script type="module">
-        import {
-            BarrelDistortion,
-            Bloom,
-            bootstrap,
-            BT,
-            ChromaticAberration,
-            Color32,
-            crtPipBoy,
-            Palette,
-            PixelGlitch,
-            Rect2i,
-            RGBMask,
-            Scanlines,
-            Vector2i,
-            Vignette,
-        } from 'blit-tech';
-
-        // Effect mode is selected via the URL hash so a single fixture covers
-        // many snapshot variants.
-        const mode = (window.location.hash || '#baseline').replace('#', '');
-
-        // Modes that need a display-tier output buffer - anything testing a
-        // display effect or the upscale pass needs drawingBufferSize set.
-        const NEEDS_DISPLAY = new Set([
-            'barrel',
-            'scanlines',
-            'mask',
-            'vignette',
-            'aberration',
-            'bloom',
-            'crt-pipboy',
-            'stacked',
-            'upscale-nearest',
-            'upscale-linear',
-        ]);
-
-        window.__RENDER_COMPLETE__ = false;
-        window.__INIT_FAILED__ = false;
-        window.__FIXTURE_MODE__ = mode;
-
-        // Palette indices for this test.
-        const BLACK = 1;
-        const RED = 2;
-        const GREEN = 3;
-        const BLUE = 4;
-        const YELLOW = 5;
-        const CYAN = 6;
-        const MAGENTA = 7;
-        const WHITE = 8;
-
-        class PostProcessTest {
-            configure() {
-                const cfg = {
-                    displaySize: new Vector2i(320, 240),
-                    targetFPS: 60,
-                };
-                if (NEEDS_DISPLAY.has(mode)) {
-                    cfg.drawingBufferSize = new Vector2i(1280, 960);
-                    cfg.outputUpscaleFilter = mode === 'upscale-linear' ? 'linear' : 'nearest';
-                }
-                return cfg;
+    <head>
+        <meta charset="UTF-8" />
+        <title>Visual Test: Post-Process</title>
+        <style>
+            body {
+                margin: 0;
+                background: #000;
             }
 
-            async init() {
-                const palette = new Palette(16);
-                palette.set(BLACK, Color32.black);
-                palette.set(RED, Color32.red);
-                palette.set(GREEN, Color32.green);
-                palette.set(BLUE, Color32.blue);
-                palette.set(YELLOW, Color32.yellow);
-                palette.set(CYAN, Color32.cyan);
-                palette.set(MAGENTA, Color32.magenta);
-                palette.set(WHITE, Color32.white);
-                BT.paletteSet(palette);
+            canvas {
+                image-rendering: pixelated;
+            }
+        </style>
+    </head>
 
-                switch (mode) {
-                    case 'pixel-glitch': {
-                        const fx = new PixelGlitch();
-                        fx.intensity = 0.5;
-                        fx.bandHeight = 6;
-                        fx.seed = 42;
-                        BT.effectAdd(fx);
-                        break;
+    <body>
+        <div id="canvas-container">
+            <canvas id="blit-tech-canvas"></canvas>
+        </div>
+
+        <script type="module">
+            import {
+                BarrelDistortion,
+                Bloom,
+                bootstrap,
+                BT,
+                ChromaticAberration,
+                Color32,
+                crtPipBoy,
+                Palette,
+                PixelGlitch,
+                Rect2i,
+                RGBMask,
+                Scanlines,
+                Vector2i,
+                Vignette,
+            } from 'blit-tech';
+
+            // Effect mode is selected via the URL hash so a single fixture covers
+            // many snapshot variants.
+            const mode = (window.location.hash || '#baseline').replace('#', '');
+
+            // Modes that need a display-tier output buffer - anything testing a
+            // display effect or the upscale pass needs drawingBufferSize set.
+            const needsDisplay = new Set([
+                'barrel',
+                'scanlines',
+                'mask',
+                'vignette',
+                'aberration',
+                'bloom',
+                'crt-pipboy',
+                'stacked',
+                'upscale-nearest',
+                'upscale-linear',
+            ]);
+
+            window.__RENDER_COMPLETE__ = false;
+            window.__INIT_FAILED__ = false;
+            window.__FIXTURE_MODE__ = mode;
+
+            // Palette indices for this test.
+            const colorBlack = 1;
+            const colorRed = 2;
+            const colorGreen = 3;
+            const colorBlue = 4;
+            const colorYellow = 5;
+            const colorCyan = 6;
+            const colorMagenta = 7;
+            const colorWhite = 8;
+
+            class PostProcessTest {
+                configure() {
+                    const cfg = {
+                        displaySize: new Vector2i(320, 240),
+                        targetFPS: 60,
+                    };
+
+                    if (needsDisplay.has(mode)) {
+                        cfg.drawingBufferSize = new Vector2i(1280, 960);
+                        cfg.outputUpscaleFilter = mode === 'upscale-linear' ? 'linear' : 'nearest';
                     }
-                    case 'barrel': {
-                        const fx = new BarrelDistortion();
-                        fx.curvature = 0.05;
-                        BT.effectAdd(fx);
-                        break;
-                    }
-                    case 'scanlines': {
-                        BT.effectAdd(new Scanlines());
-                        break;
-                    }
-                    case 'mask': {
-                        BT.effectAdd(new RGBMask());
-                        break;
-                    }
-                    case 'vignette': {
-                        BT.effectAdd(new Vignette());
-                        break;
-                    }
-                    case 'aberration': {
-                        const fx = new ChromaticAberration();
-                        fx.aberration = 2;
-                        BT.effectAdd(fx);
-                        break;
-                    }
-                    case 'bloom': {
-                        BT.effectAdd(new Bloom());
-                        break;
-                    }
-                    case 'crt-pipboy': {
-                        for (const fx of crtPipBoy()) {
-                            // Pin animation uniforms for determinism.
-                            if ('time' in fx) fx.time = 0;
-                            BT.effectAdd(fx);
-                        }
-                        break;
-                    }
-                    case 'stacked': {
-                        const glitch = new PixelGlitch();
-                        glitch.intensity = 0.4;
-                        glitch.bandHeight = 6;
-                        glitch.seed = 17;
-                        BT.effectAdd(glitch);
-                        for (const fx of crtPipBoy()) {
-                            if ('time' in fx) fx.time = 0;
-                            BT.effectAdd(fx);
-                        }
-                        break;
-                    }
-                    // baseline, upscale-nearest, upscale-linear: no effects
-                    default:
-                        break;
+
+                    return cfg;
                 }
 
-                return true;
+                async init() {
+                    const palette = new Palette(16);
+
+                    palette.set(colorBlack, Color32.black);
+                    palette.set(colorRed, Color32.red);
+                    palette.set(colorGreen, Color32.green);
+                    palette.set(colorBlue, Color32.blue);
+                    palette.set(colorYellow, Color32.yellow);
+                    palette.set(colorCyan, Color32.cyan);
+                    palette.set(colorMagenta, Color32.magenta);
+                    palette.set(colorWhite, Color32.white);
+
+                    BT.paletteSet(palette);
+
+                    switch (mode) {
+                        case 'pixel-glitch': {
+                            this.applyPixelGlitchEffect();
+                            break;
+                        }
+
+                        case 'barrel': {
+                            this.applyBarrelEffect();
+                            break;
+                        }
+
+                        case 'scanlines': {
+                            this.applyScanlinesEffect();
+                            break;
+                        }
+
+                        case 'mask': {
+                            this.applyMaskEffect();
+                            break;
+                        }
+
+                        case 'vignette': {
+                            this.applyVignetteEffect();
+                            break;
+                        }
+
+                        case 'aberration': {
+                            this.applyAberrationEffect();
+                            break;
+                        }
+
+                        case 'bloom': {
+                            this.applyBloomEffect();
+                            break;
+                        }
+
+                        case 'crt-pipboy': {
+                            this.applyCRTPipBoyEffect();
+                            break;
+                        }
+
+                        case 'stacked': {
+                            this.applyStackedEffect();
+                            break;
+                        }
+
+                        // Baseline, upscale-nearest, upscale-linear: no effects.
+                        default:
+                            break;
+                    }
+
+                    return true;
+                }
+
+                applyStackedEffect() {
+                    const glitch = new PixelGlitch();
+
+                    glitch.intensity = 0.4;
+                    glitch.bandHeight = 6;
+                    glitch.seed = 17;
+
+                    BT.effectAdd(glitch);
+
+                    for (const fx of crtPipBoy()) {
+                        if ('time' in fx) {
+                            fx.time = 0;
+                        }
+
+                        BT.effectAdd(fx);
+                    }
+                }
+
+                applyCRTPipBoyEffect() {
+                    for (const fx of crtPipBoy()) {
+                        // Pin animation uniforms for determinism.
+                        if ('time' in fx) {
+                            fx.time = 0;
+                        }
+
+                        BT.effectAdd(fx);
+                    }
+                }
+
+                applyPixelGlitchEffect() {
+                    const fx = new PixelGlitch();
+
+                    fx.intensity = 0.5;
+                    fx.bandHeight = 6;
+                    fx.seed = 42;
+
+                    BT.effectAdd(fx);
+                }
+
+                applyBarrelEffect() {
+                    const fx = new BarrelDistortion();
+
+                    fx.curvature = 0.05;
+
+                    BT.effectAdd(fx);
+                }
+
+                applyScanlinesEffect() {
+                    BT.effectAdd(new Scanlines());
+                }
+
+                applyMaskEffect() {
+                    BT.effectAdd(new RGBMask());
+                }
+
+                applyVignetteEffect() {
+                    BT.effectAdd(new Vignette());
+                }
+
+                applyAberrationEffect() {
+                    const fx = new ChromaticAberration();
+
+                    fx.aberration = 2;
+
+                    BT.effectAdd(fx);
+                }
+
+                applyBloomEffect() {
+                    BT.effectAdd(new Bloom());
+                }
+
+                update() {}
+
+                render() {
+                    BT.clear(colorBlack);
+
+                    // Wide bright bands stress scanlines, mask, and aberration.
+                    BT.drawRectFill(new Rect2i(20, 20, 280, 30), colorGreen);
+                    BT.drawRectFill(new Rect2i(20, 60, 280, 30), colorCyan);
+                    BT.drawRectFill(new Rect2i(20, 100, 280, 30), colorMagenta);
+                    BT.drawRectFill(new Rect2i(20, 140, 280, 30), colorYellow);
+                    BT.drawRectFill(new Rect2i(20, 180, 280, 30), colorWhite);
+
+                    // High-contrast outline highlights vignette and curvature.
+                    BT.drawRect(new Rect2i(5, 5, 310, 230), colorWhite);
+
+                    // Diagonal cross to expose chromatic aberration and barrel curve.
+                    BT.drawLine(new Vector2i(0, 0), new Vector2i(319, 239), colorRed);
+                    BT.drawLine(new Vector2i(319, 0), new Vector2i(0, 239), colorBlue);
+
+                    window.__RENDER_COMPLETE__ = true;
+                }
             }
 
-            update() {}
-
-            render() {
-                BT.clear(BLACK);
-
-                // Wide bright bands stress scanlines, mask, and aberration.
-                BT.drawRectFill(new Rect2i(20, 20, 280, 30), GREEN);
-                BT.drawRectFill(new Rect2i(20, 60, 280, 30), CYAN);
-                BT.drawRectFill(new Rect2i(20, 100, 280, 30), MAGENTA);
-                BT.drawRectFill(new Rect2i(20, 140, 280, 30), YELLOW);
-                BT.drawRectFill(new Rect2i(20, 180, 280, 30), WHITE);
-
-                // High-contrast outline highlights vignette and curvature.
-                BT.drawRect(new Rect2i(5, 5, 310, 230), WHITE);
-
-                // Diagonal cross to expose chromatic aberration and barrel curve.
-                BT.drawLine(new Vector2i(0, 0), new Vector2i(319, 239), RED);
-                BT.drawLine(new Vector2i(319, 0), new Vector2i(0, 239), BLUE);
-
-                window.__RENDER_COMPLETE__ = true;
-            }
-        }
-
-        bootstrap(PostProcessTest, {
-            onError: () => {
-                window.__INIT_FAILED__ = true;
-            },
-        });
-    </script>
-</body>
-
+            bootstrap(PostProcessTest, {
+                onError: () => {
+                    window.__INIT_FAILED__ = true;
+                },
+            });
+        </script>
+    </body>
 </html>
