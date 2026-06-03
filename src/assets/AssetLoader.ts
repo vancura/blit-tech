@@ -18,6 +18,12 @@ const loadedImages = new Map<string, HTMLImageElement>();
  */
 const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
 
+/**
+ * Raster image file extensions accepted by {@link AssetLoader.loadImage}.
+ * Allocated once at module load; checked inside {@link buildExtensionHint}.
+ */
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+
 // #endregion
 
 // #region URL Hint Helpers
@@ -83,12 +89,8 @@ function buildExtensionHint(extension: string): string | null {
         return "This looks like a font file. For images, use a file that ends with '.png'.";
     }
 
-    // Raster image file extensions that are valid targets for {@link AssetLoader.loadImage}.
-    // Constructed once at module load to avoid a per-call allocation in {@link buildExtensionHint}.
-    const imageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
-
     // File extensions recognized as raster image formats.
-    if (extension === '' || imageExtensions.has(extension)) {
+    if (extension === '' || IMAGE_EXTENSIONS.has(extension)) {
         return null;
     }
 
