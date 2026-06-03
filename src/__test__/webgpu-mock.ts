@@ -3,6 +3,86 @@
  * Provides stub objects that track calls without requiring a real GPU.
  */
 
+// #region Constants
+
+/** Default width and height for mock textures when a descriptor omits dimensions. */
+const DEFAULT_SIZE_PX = 256;
+
+/**
+ * Palette uniform byte size: 256 palette indices x vec4(f32) x 4 bytes.
+ * Matches {@link WebGpuRenderer} palette buffer layout.
+ */
+const INDEX_COUNT = 256;
+const RGBA_COMPONENT_COUNT = 4;
+const BYTES_PER_FLOAT32 = 4;
+const BUFFER_BYTE_SIZE = INDEX_COUNT * RGBA_COMPONENT_COUNT * BYTES_PER_FLOAT32;
+
+// #endregion
+
+// #region Helpers
+
+/** Options for creating a mock GPUBuffer stub. */
+type MockBufferOptions = {
+    /** Buffer size in bytes. */
+    size: number;
+
+    /** Buffer usage flags. */
+    usage: GPUBufferUsageFlags;
+
+    /** Buffer label. */
+    label: string;
+};
+
+/**
+ * Creates a mock GPUBuffer stub with the shared map/unmap shape used across mocks.
+ *
+ * @param options Buffer size, usage flags, and label.
+ * @param options.size Buffer size in bytes.
+ * @param options.usage Buffer usage flags.
+ * @param options.label Buffer label.
+ * @returns Mock GPUBuffer stub.
+ */
+function createMockGPUBufferStub({ size, usage, label }: MockBufferOptions): GPUBuffer {
+    return {
+        size,
+        usage,
+        label,
+        mapAsync: () => Promise.resolve(),
+        getMappedRange: () => new ArrayBuffer(size),
+        unmap: () => {},
+        destroy: () => {},
+    } as unknown as GPUBuffer;
+}
+
+/**
+ * Resolves mock texture width and height from a WebGPU texture descriptor size field.
+ *
+ * @param size Descriptor size (scalar, tuple, or extent dict).
+ * @returns Width and height in pixels.
+ */
+function resolveMockTextureSize(size: GPUTextureDescriptor['size']): { width: number; height: number } {
+    if (typeof size === 'number') {
+        return { width: size, height: size };
+    }
+
+    // Resolve array size as width/height, defaulting to DEFAULT_SIZE_PX if undefined.
+    if (Array.isArray(size)) {
+        return {
+            width: size[0] ?? DEFAULT_SIZE_PX,
+            height: size[1] ?? DEFAULT_SIZE_PX,
+        };
+    }
+
+    const extent = size as GPUExtent3DDict;
+
+    return {
+        width: extent.width,
+        height: extent.height ?? DEFAULT_SIZE_PX,
+    };
+}
+
+// #endregion
+
 // #region GPUTexture
 
 /**
@@ -13,7 +93,11 @@
  * @param label - Texture label.
  * @returns Mock GPUTexture stub.
  */
-export function createMockGPUTexture(width = 256, height = 256, label = 'MockTexture'): GPUTexture {
+export function createMockGPUTexture(
+    width = DEFAULT_SIZE_PX,
+    height = DEFAULT_SIZE_PX,
+    label = 'MockTexture',
+): GPUTexture {
     return {
         width,
         height,
@@ -65,42 +149,71 @@ export function createMockGPUDevice(): GPUDevice {
     } as unknown as GPURenderPipeline;
 
     return {
+        /**
+         * Creates a mock GPUShaderModule stub.
+         *
+         * @returns Mock GPUShaderModule stub.
+         */
         createShaderModule: () => ({ label: 'MockShaderModule' }) as unknown as GPUShaderModule,
+
+        /**
+         * Creates a mock GPURenderPipeline stub.
+         *
+         * @returns Mock GPURenderPipeline stub.
+         */
         createRenderPipeline: () => mockPipeline,
+
+        /**
+         * Creates a mock GPUBuffer stub.
+         *
+         * @param desc Buffer descriptor.
+         * @returns Mock GPUBuffer stub.
+         */
         createBuffer: (desc: GPUBufferDescriptor) =>
-            ({
+            createMockGPUBufferStub({
                 size: desc.size,
                 usage: desc.usage,
                 label: desc.label ?? 'MockBuffer',
-                mapAsync: () => Promise.resolve(),
-                getMappedRange: () => new ArrayBuffer(desc.size),
-                unmap: () => {},
-                destroy: () => {},
-            }) as unknown as GPUBuffer,
-        createBindGroup: () => ({ label: 'MockBindGroup' }) as unknown as GPUBindGroup,
-        createSampler: () => ({ label: 'MockSampler' }) as unknown as GPUSampler,
-        createTexture: (desc: GPUTextureDescriptor) => {
-            let width: number;
-            let height: number;
+            }),
 
-            if (typeof desc.size === 'number') {
-                width = desc.size;
-                height = desc.size;
-            } else if (Array.isArray(desc.size)) {
-                width = desc.size[0] ?? 256;
-                height = desc.size[1] ?? 256;
-            } else {
-                width = (desc.size as GPUExtent3DDict).width;
-                height = (desc.size as GPUExtent3DDict).height ?? 256;
-            }
+        /**
+         * Creates a mock GPUBindGroup stub.
+         *
+         * @returns Mock GPUBindGroup stub.
+         */
+        createBindGroup: () => ({ label: 'MockBindGroup' }) as unknown as GPUBindGroup,
+
+        /**
+         * Creates a mock GPUSampler stub.
+         *
+         * @returns Mock GPUSampler stub.
+         */
+        createSampler: () => ({ label: 'MockSampler' }) as unknown as GPUSampler,
+
+        /**
+         * Creates a mock GPUTexture stub.
+         *
+         * @param desc Texture descriptor.
+         * @returns Mock GPUTexture stub.
+         */
+        createTexture: (desc: GPUTextureDescriptor) => {
+            const { width, height } = resolveMockTextureSize(desc.size);
 
             return createMockGPUTexture(width, height, desc.label ?? 'MockTexture');
         },
+
+        /**
+         * Creates a mock GPUCommandEncoder stub.
+         *
+         * @returns Mock GPUCommandEncoder stub.
+         */
         createCommandEncoder: () => ({
             beginRenderPass: () => createMockRenderPassEncoder(),
             finish: () => ({ label: 'MockCommandBuffer' }) as unknown as GPUCommandBuffer,
             label: 'MockCommandEncoder',
         }),
+
+        /** Queue for submitting GPU commands. */
         queue: {
             writeBuffer: () => {}, // uniform/vertex buffer uploads
             writeTexture: () => {}, // r8uint indexed texture uploads
@@ -109,10 +222,20 @@ export function createMockGPUDevice(): GPUDevice {
             onSubmittedWorkDone: () => Promise.resolve(), // GPU work completion signal
             label: 'MockQueue',
         },
+
+        /** Set of supported features. */
         features: new Set(),
+
+        /** Supported limits. */
         limits: {} as GPUSupportedLimits,
+
+        /** Promise that resolves when the device is lost. */
         lost: Promise.resolve({ reason: undefined, message: '' } as unknown as GPUDeviceLostInfo),
+
+        /** Destroys the device. */
         destroy: () => {},
+
+        /** Label for the device. */
         label: 'MockDevice',
     } as unknown as GPUDevice;
 }
@@ -145,15 +268,11 @@ export function createMockGPUCanvasContext(): GPUCanvasContext {
  * @returns Mock GPUBuffer stub.
  */
 export function createMockPaletteBuffer(): GPUBuffer {
-    return {
-        size: 256 * 4 * 4,
+    return createMockGPUBufferStub({
+        size: BUFFER_BYTE_SIZE,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         label: 'Mock Palette Buffer',
-        mapAsync: () => Promise.resolve(),
-        getMappedRange: () => new ArrayBuffer(256 * 4 * 4),
-        unmap: () => {},
-        destroy: () => {},
-    } as unknown as GPUBuffer;
+    });
 }
 
 // #endregion
@@ -172,6 +291,7 @@ export function installMockNavigatorGPU(): void {
             limits: {} as GPUSupportedLimits,
             info: { vendor: 'mock', architecture: 'mock', device: 'mock', description: 'Mock GPU' },
         }),
+
         getPreferredCanvasFormat: () => 'bgra8unorm' as GPUTextureFormat,
     };
 
@@ -191,6 +311,7 @@ export function installMockNavigatorGPU(): void {
 export function uninstallMockNavigatorGPU(): void {
     if ('navigator' in globalThis) {
         const nav = globalThis.navigator as unknown as Record<string, unknown>;
+
         delete nav.gpu;
     }
 }

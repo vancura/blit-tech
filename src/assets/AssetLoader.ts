@@ -18,9 +18,15 @@ const loadedImages = new Map<string, HTMLImageElement>();
  */
 const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
 
+/**
+ * Raster image file extensions accepted by {@link AssetLoader.loadImage}.
+ * Allocated once at module load; checked inside {@link buildExtensionHint}.
+ */
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+
 // #endregion
 
-// #region Error Helpers
+// #region URL Hint Helpers
 
 /**
  * Returns whether a URL is absolute or uses a special browser scheme.
@@ -30,12 +36,65 @@ const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
  */
 function isExplicitUrl(url: string): boolean {
     const lowerUrl = url.toLowerCase();
-    return (
-        lowerUrl.startsWith('//') ||
-        lowerUrl.includes('://') ||
-        lowerUrl.startsWith('data:') ||
-        lowerUrl.startsWith('blob:')
-    );
+
+    // URL scheme prefixes that identify an absolute or special-scheme URL.
+    // Checked after the `://` shortcut in {@link isExplicitUrl}.
+    const specialSchemePrefixes = ['//', 'data:', 'blob:'] as const;
+
+    // Lowercase scheme prefixes treated as explicit browser locations (after `://` check).
+    return lowerUrl.includes('://') || specialSchemePrefixes.some((prefix) => lowerUrl.startsWith(prefix));
+}
+
+/**
+ * Returns whether a URL already points at an explicit location: an absolute URL,
+ * a special browser scheme, or a rooted/relative (`/`, `./`) path. When this is
+ * false, the caller suggests an `images/` location.
+ *
+ * @param url - Path or URL to inspect.
+ * @returns True when the URL needs no `images/` prefix hint.
+ */
+function hasExplicitLocation(url: string): boolean {
+    // Path prefixes that already point at an explicit location,
+    // so no `images/` directory hint is appended in error messages.
+    const rootedPathPrefixes = ['/', './'] as const;
+
+    // URL prefixes that already point at an explicit location, so no `images/` hint is needed.
+    return isExplicitUrl(url) || rootedPathPrefixes.some((prefix) => url.startsWith(prefix));
+}
+
+/**
+ * Extracts the lowercase file extension (including the dot) from a URL,
+ * ignoring any query string or fragment.
+ *
+ * @param url - Path or URL to inspect.
+ * @returns Extension like `.png`, or an empty string when none is present.
+ */
+function extractExtension(url: string): string {
+    const path = url.split(/[?#]/)[0] ?? url;
+    const fileName = path.slice(path.lastIndexOf('/') + 1);
+    const dotIndex = fileName.lastIndexOf('.');
+
+    return dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
+}
+
+/**
+ * Builds the extension-specific hint for a failing image URL.
+ *
+ * @param extension - Lowercase extension including the dot (or empty string).
+ * @returns Hint text, or null when the extension warrants no hint.
+ */
+function buildExtensionHint(extension: string): string | null {
+    // Extension that triggers a font-specific hint when used on an image load path.
+    if (extension === '.btfont') {
+        return "This looks like a font file. For images, use a file that ends with '.png'.";
+    }
+
+    // File extensions recognized as raster image formats.
+    if (extension === '' || IMAGE_EXTENSIONS.has(extension)) {
+        return null;
+    }
+
+    return `The extension '${extension}' does not look like an image file. Did you mean '.png'?`;
 }
 
 /**
@@ -45,34 +104,75 @@ function isExplicitUrl(url: string): boolean {
  * @returns Extra hint text (or empty string when no hint applies).
  */
 function buildImageHints(url: string): string {
-    const hints: string[] = [];
-
-    if (!isExplicitUrl(url) && !url.startsWith('/') && !url.startsWith('./')) {
-        hints.push(`Did you mean '/images/${url}' or './images/${url}'?`);
-    }
-
-    const queryIndex = url.indexOf('?');
-    const hashIndex = url.indexOf('#');
-    let cleanUrl = url;
-    const cutIndex = queryIndex === -1 ? hashIndex : hashIndex === -1 ? queryIndex : Math.min(queryIndex, hashIndex);
-
-    if (cutIndex !== -1) {
-        cleanUrl = url.slice(0, cutIndex);
-    }
-
-    const slashIndex = cleanUrl.lastIndexOf('/');
-    const fileName = slashIndex >= 0 ? cleanUrl.slice(slashIndex + 1) : cleanUrl;
-    const dotIndex = fileName.lastIndexOf('.');
-    const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
-    const knownImageExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
-
-    if (extension === '.btfont') {
-        hints.push("This looks like a font file. For images, use a file that ends with '.png'.");
-    } else if (extension !== '' && !knownImageExtensions.has(extension)) {
-        hints.push(`The extension '${extension}' does not look like an image file. Did you mean '.png'?`);
-    }
+    const pathHint = hasExplicitLocation(url) ? null : `Did you mean '/images/${url}' or './images/${url}'?`;
+    const hints = [pathHint, buildExtensionHint(extractExtension(url))].filter((hint): hint is string => hint !== null);
 
     return hints.length > 0 ? ` ${hints.join(' ')}` : '';
+}
+
+// #endregion
+
+// #region Load Pipeline
+
+/**
+ * Builds the rejection error for a failed browser image load.
+ *
+ * @param url - Path or URL that failed to load.
+ * @returns Error with path, extension, and location hints.
+ */
+function buildImageNotFoundError(url: string): Error {
+    return new Error(
+        `Can't find the image '${url}'. Make sure it's in your project folder and the path is correct. ` +
+            'Check for typos, wrong letter casing, or a missing file extension.' +
+            buildImageHints(url),
+    );
+}
+
+/**
+ * Removes an in-flight entry so a later request can retry the same URL.
+ *
+ * @param url - Path or URL whose pending load should be cleared.
+ */
+function clearInFlight(url: string): void {
+    loadingPromises.delete(url);
+}
+
+/**
+ * Starts a browser image load and registers the in-flight promise.
+ *
+ * @param url - Path or URL to load.
+ * @returns Promise that resolves to the loaded image element.
+ */
+function startLoading(url: string): Promise<HTMLImageElement> {
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+
+        img.onload = () => {
+            clearInFlight(url);
+
+            try {
+                assertImageElementWithinLimits('image', img);
+
+                loadedImages.set(url, img);
+
+                resolve(img);
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        img.onerror = () => {
+            clearInFlight(url);
+
+            reject(buildImageNotFoundError(url));
+        };
+
+        img.src = url;
+    });
+
+    loadingPromises.set(url, promise);
+
+    return promise;
 }
 
 // #endregion
@@ -100,55 +200,7 @@ export class AssetLoader {
      * @throws Error if the image cannot be loaded.
      */
     static async loadImage(url: string): Promise<HTMLImageElement> {
-        // Return cached image if available.
-        const cachedImage = loadedImages.get(url);
-
-        if (cachedImage) {
-            return cachedImage;
-        }
-
-        // Return existing promise if already loading.
-        const existingPromise = loadingPromises.get(url);
-
-        if (existingPromise) {
-            return existingPromise;
-        }
-
-        // Start loading.
-        const promise = new Promise<HTMLImageElement>((resolve, reject) => {
-            const img = new Image();
-
-            img.onload = () => {
-                try {
-                    assertImageElementWithinLimits('image', img);
-                } catch (error) {
-                    loadingPromises.delete(url);
-                    reject(error);
-                    return;
-                }
-
-                loadedImages.set(url, img);
-                loadingPromises.delete(url);
-                resolve(img);
-            };
-
-            img.onerror = () => {
-                loadingPromises.delete(url);
-                reject(
-                    new Error(
-                        `Can't find the image '${url}'. Make sure it's in your project folder and the path is correct. ` +
-                            'Check for typos, wrong letter casing, or a missing file extension.' +
-                            buildImageHints(url),
-                    ),
-                );
-            };
-
-            img.src = url;
-        });
-
-        loadingPromises.set(url, promise);
-
-        return promise;
+        return loadedImages.get(url) ?? loadingPromises.get(url) ?? (await startLoading(url));
     }
 
     /**

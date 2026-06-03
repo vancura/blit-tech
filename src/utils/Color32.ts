@@ -638,8 +638,7 @@ export class Color32 {
      * @returns New color blended between this and other.
      */
     lerp(other: Color32, t: number): Color32 {
-        // Clamp t to [0, 1] ranges using branchless-style ternary (avoids Math.max/min calls).
-        const tc = t < 0 ? 0 : t > 1 ? 1 : t;
+        const tc = clampUnit(t);
 
         // Optimized lerp: use formula a * (1-t) + b * t to reduce operations.
         const oneMinusT = 1 - tc;
@@ -661,7 +660,7 @@ export class Color32 {
      * @returns This color instance for chaining.
      */
     lerpInPlace(other: Color32, t: number): this {
-        const tc = t < 0 ? 0 : t > 1 ? 1 : t;
+        const tc = clampUnit(t);
 
         const oneMinusT = 1 - tc;
 
@@ -925,6 +924,16 @@ export function clampByte(n: number): number {
     // Bitwise operations: if n < 0, use 0; if n > 255, use 255; else truncate n.
     // This is faster than Math.max(0, Math.min(255, n)) | 0.
     return n < 0 ? 0 : n > 255 ? 255 : n | 0;
+}
+
+/**
+ * Clamps a unit interpolation factor to the closed interval [0, 1].
+ *
+ * @param t - Raw interpolation factor.
+ * @returns Clamped factor in range 0-1.
+ */
+export function clampUnit(t: number): number {
+    return t < 0 ? 0 : t > 1 ? 1 : t;
 }
 
 /**
