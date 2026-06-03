@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { expect, test } from './coverage-fixture';
 
 // Delay after render-complete signal before taking a screenshot, to allow the
