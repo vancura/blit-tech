@@ -17,9 +17,7 @@ function installGlobalIfMissing(name: string, value: unknown): void {
     /* eslint-enable security/detect-object-injection */
 }
 
-/**
- * Provide WebGPU constants that don't exist in Node.js.
- */
+/** Provide WebGPU constants that don't exist in Node.js. */
 installGlobalIfMissing('GPUBufferUsage', {
     MAP_READ: 0x0001,
     MAP_WRITE: 0x0002,
@@ -33,17 +31,13 @@ installGlobalIfMissing('GPUBufferUsage', {
     QUERY_RESOLVE: 0x0200,
 });
 
-/**
- * Provide GPUMapMode constants that don't exist in Node.js.
- */
+/** Provide GPUMapMode constants that don't exist in Node.js. */
 installGlobalIfMissing('GPUMapMode', {
     READ: 0x0001,
     WRITE: 0x0002,
 });
 
-/**
- * Provide GPUTextureUsage constants that don't exist in Node.js.
- */
+/** Provide GPUTextureUsage constants that don't exist in Node.js. */
 installGlobalIfMissing('GPUTextureUsage', {
     COPY_SRC: 0x01,
     COPY_DST: 0x02,

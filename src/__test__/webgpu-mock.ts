@@ -21,23 +21,15 @@ const BUFFER_BYTE_SIZE = INDEX_COUNT * RGBA_COMPONENT_COUNT * BYTES_PER_FLOAT32;
 
 // #region Helpers
 
-/**
- * Options for creating a mock GPUBuffer stub.
- */
+/** Options for creating a mock GPUBuffer stub. */
 type MockBufferOptions = {
-    /**
-     * Buffer size in bytes.
-     */
+    /** Buffer size in bytes. */
     size: number;
 
-    /**
-     * Buffer usage flags.
-     */
+    /** Buffer usage flags. */
     usage: GPUBufferUsageFlags;
 
-    /**
-     * Buffer label.
-     */
+    /** Buffer label. */
     label: string;
 };
 
@@ -221,9 +213,7 @@ export function createMockGPUDevice(): GPUDevice {
             label: 'MockCommandEncoder',
         }),
 
-        /**
-         * Queue for submitting GPU commands.
-         */
+        /** Queue for submitting GPU commands. */
         queue: {
             writeBuffer: () => {}, // uniform/vertex buffer uploads
             writeTexture: () => {}, // r8uint indexed texture uploads
@@ -233,29 +223,19 @@ export function createMockGPUDevice(): GPUDevice {
             label: 'MockQueue',
         },
 
-        /**
-         * Set of supported features.
-         */
+        /** Set of supported features. */
         features: new Set(),
 
-        /**
-         * Supported limits.
-         */
+        /** Supported limits. */
         limits: {} as GPUSupportedLimits,
 
-        /**
-         * Promise that resolves when the device is lost.
-         */
+        /** Promise that resolves when the device is lost. */
         lost: Promise.resolve({ reason: undefined, message: '' } as unknown as GPUDeviceLostInfo),
 
-        /**
-         * Destroys the device.
-         */
+        /** Destroys the device. */
         destroy: () => {},
 
-        /**
-         * Label for the device.
-         */
+        /** Label for the device. */
         label: 'MockDevice',
     } as unknown as GPUDevice;
 }
