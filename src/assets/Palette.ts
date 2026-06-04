@@ -154,15 +154,6 @@ export class Palette {
     private readonly namedIndices = new Map<string, number>();
 
     /**
-     * True when colors have been mutated since the last GPU upload.
-     *
-     * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
-     * the renderer has uploaded the updated palette uniform buffer. Not set by the
-     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
-     */
-    private _isDirty: boolean = false;
-
-    /**
      * Creates a new palette with the requested indexed size.
      *
      * @param size - Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
@@ -172,6 +163,29 @@ export class Palette {
 
         this.size = size;
         this.colors = [Color32.transparent, ...Array.from({ length: size - 1 }, () => Color32.black.clone())];
+    }
+
+    /**
+     * True when colors have been mutated since the last GPU upload.
+     *
+     * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
+     * the renderer has uploaded the updated palette uniform buffer. Not set by the
+     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
+     */
+    private _isDirty: boolean = false;
+
+    /**
+     * True when colors have been mutated since the last GPU upload.
+     *
+     * The renderer checks this flag each frame and re-uploads the palette uniform
+     * buffer when it is set, then calls {@link clearDirty} to reset it. Palette
+     * animation works automatically - no per-frame {@link BT.paletteSet} required.
+     *
+     * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
+     *   since the last call to {@link clearDirty}.
+     */
+    public get isDirty(): boolean {
+        return this._isDirty;
     }
 
     /**
@@ -185,27 +199,36 @@ export class Palette {
         const json = data as Partial<Serialized>;
         const { colors, names, size } = json;
 
-        if (!Array.isArray(colors) || typeof size !== 'number') {
-            throw new Error("This doesn't look like a valid palette file. It needs 'colors' and 'size' fields.");
-        }
+        if (Array.isArray(colors) && typeof size === 'number') {
+            if (colors.length === size) {
+                const palette = new Palette(size);
+                const nameEntries = names ? Object.entries(names) : [];
+                const colorSlotCount = colors.length - 1;
 
-        const palette = new Palette(size);
+                for (let step = 0; step < colorSlotCount + nameEntries.length; step++) {
+                    if (step < colorSlotCount) {
+                        const index = step + 1;
 
-        if (colors.length !== size) {
+                        palette.set(index, Color32.fromHex(readHexColor(colors, index, 'Palette JSON')));
+                    } else {
+                        const nameIndex = step - colorSlotCount;
+
+                        // eslint-disable-next-line security/detect-object-injection -- nameIndex is bounded by the combined loop length
+                        const nameEntry = nameEntries[nameIndex];
+
+                        if (nameEntry) {
+                            palette.setNamed(nameEntry[0], nameEntry[1]);
+                        }
+                    }
+                }
+
+                return palette;
+            }
+
             throw new Error(`Palette JSON color count ${colors.length} does not match size ${size}`);
         }
 
-        for (let i = 1; i < colors.length; i++) {
-            palette.set(i, Color32.fromHex(readHexColor(colors, i, 'Palette JSON')));
-        }
-
-        if (names) {
-            for (const [name, index] of Object.entries(names)) {
-                palette.setNamed(name, index);
-            }
-        }
-
-        return palette;
+        throw new Error("This doesn't look like a valid palette file. It needs 'colors' and 'size' fields.");
     }
 
     /**
@@ -362,13 +385,11 @@ export class Palette {
             }
 
             this.colors[0] = Color32.transparent;
-
-            return;
+        } else {
+            // eslint-disable-next-line security/detect-object-injection -- Index range is validated by assertIndexInRange above
+            this.colors[index] = color.clone();
+            this._isDirty = true;
         }
-
-        // eslint-disable-next-line security/detect-object-injection -- Index range is validated by assertIndexInRange above
-        this.colors[index] = color.clone();
-        this._isDirty = true;
     }
 
     /**
@@ -493,20 +514,6 @@ export class Palette {
         this.copyNamedIndices(other);
 
         this._isDirty = true;
-    }
-
-    /**
-     * True when colors have been mutated since the last GPU upload.
-     *
-     * The renderer checks this flag each frame and re-uploads the palette uniform
-     * buffer when it is set, then calls {@link clearDirty} to reset it. Palette
-     * animation works automatically - no per-frame {@link BT.paletteSet} required.
-     *
-     * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
-     *   since the last call to {@link clearDirty}.
-     */
-    public get isDirty(): boolean {
-        return this._isDirty;
     }
 
     /**
