@@ -310,7 +310,7 @@ export class BitmapFont {
             spriteSheet,
             glyphs,
             asciiGlyphs,
-            data.name || 'Unknown', // display name used when the `.btfont` descriptor omits `name`
+            BitmapFont.resolveDisplayName(data.name),
             size,
             lineHeight,
             baseline,
@@ -318,6 +318,22 @@ export class BitmapFont {
     }
 
     // #region Loading Helpers
+
+    /**
+     * Coerces a `.btfont` display `name` field to a non-empty string.
+     *
+     * @param value - Raw JSON value for `name`.
+     * @returns Trimmed name when `value` is a non-empty string; otherwise `'Unknown'`.
+     */
+    private static resolveDisplayName(value: unknown): string {
+        let name = 'Unknown';
+
+        if (typeof value === 'string' && value.length > 0) {
+            name = value;
+        }
+
+        return name;
+    }
 
     /**
      * Coerces a `.btfont` metadata field to a positive finite number.
