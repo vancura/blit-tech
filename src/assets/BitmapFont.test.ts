@@ -1,3 +1,5 @@
+// noinspection MagicNumberJS
+
 /**
  * Unit tests for {@link BitmapFont}.
  *
@@ -538,6 +540,23 @@ describe('BitmapFont', () => {
             expect(f.size).toBe(12);
             expect(f.lineHeight).toBe(12);
             expect(f.baseline).toBe(12);
+        });
+
+        it('should use Unknown when name is a non-string value', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue(
+                    mockFontFetchResponse({
+                        name: 42,
+                        texture: 'data:image/png;base64,aGVsbG8=',
+                        glyphs: { A: { x: 0, y: 0, w: 8, h: 12, ox: 0, oy: 0, adv: 9 } },
+                    }),
+                ),
+            );
+
+            const f = await BitmapFont.load('bad-name.btfont');
+
+            expect(f.name).toBe('Unknown');
         });
 
         it('should fall back when size, lineHeight, and baseline are invalid', async () => {

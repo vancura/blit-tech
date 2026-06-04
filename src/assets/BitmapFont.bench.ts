@@ -1,4 +1,5 @@
 // #region Imports
+// noinspection MagicNumberJS
 
 import { bench, describe } from 'vitest';
 
@@ -14,6 +15,9 @@ import { SpriteSheet } from './SpriteSheet';
 const ASCII_CACHE_SIZE = 128;
 const CACHE_HALF_FULL = 128;
 const CACHE_FULL = 256;
+const PRINTABLE_ASCII_START = 32;
+const PRINTABLE_ASCII_END = 126;
+const BENCH_UNICODE_CHARS = ['é', 'Ω', 'Ж', '中'] as const;
 const BENCH_OPTIONS = {
     iterations: 500,
     time: 100,
@@ -75,23 +79,38 @@ function createBenchmarkFont(): BitmapFont {
     const glyphs = new Map<string, Glyph>();
     const asciiGlyphs = new Array<Glyph | null>(ASCII_CACHE_SIZE).fill(null);
     const sheet = new SpriteSheet({ width: 256, height: 256 } as HTMLImageElement);
+    const printableCount = PRINTABLE_ASCII_END - PRINTABLE_ASCII_START + 1;
 
-    for (let code = 32; code <= 126; code++) {
-        const glyph = createGlyph(6 + (code % 4), (code - 32) * 2, 0);
-        const char = String.fromCharCode(code);
+    for (let index = 0; index < printableCount + BENCH_UNICODE_CHARS.length; index++) {
+        let char: string | undefined;
+        let glyph: Glyph;
+        let asciiCode: number | undefined;
 
-        glyphs.set(char, glyph);
-        // eslint-disable-next-line security/detect-object-injection -- Index is an integer constrained to the ASCII table bounds above
-        asciiGlyphs[code] = glyph;
+        if (index < printableCount) {
+            asciiCode = PRINTABLE_ASCII_START + index;
+            char = String.fromCharCode(asciiCode);
+            glyph = createGlyph(6 + (asciiCode % 4), index * 2, 0);
+        } else {
+            const unicodeIndex = index - printableCount;
+
+            // eslint-disable-next-line security/detect-object-injection -- unicodeIndex is bounded by BENCH_UNICODE_CHARS.length
+            char = BENCH_UNICODE_CHARS[unicodeIndex];
+            glyph = createGlyph(9 + unicodeIndex, unicodeIndex * 8, 16);
+        }
+
+        if (char !== undefined) {
+            glyphs.set(char, glyph);
+        }
+
+        if (asciiCode !== undefined) {
+            // eslint-disable-next-line security/detect-object-injection -- asciiCode is bounded to printable ASCII
+            asciiGlyphs[asciiCode] = glyph;
+        }
     }
 
-    for (const [index, char] of ['é', 'Ω', 'Ж', '中'].entries()) {
-        glyphs.set(char, createGlyph(9 + index, index * 8, 16));
-    }
+    const ctor = BitmapFont as unknown as BitmapFontCtor;
 
-    const Ctor = BitmapFont as unknown as BitmapFontCtor;
-
-    return new Ctor(sheet, glyphs, asciiGlyphs, 'BenchFont', 12, 14, 10);
+    return new ctor(sheet, glyphs, asciiGlyphs, 'BenchFont', 12, 14, 10);
 }
 
 /**
