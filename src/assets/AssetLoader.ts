@@ -84,17 +84,15 @@ function extractExtension(url: string): string {
  * @returns Hint text, or null when the extension warrants no hint.
  */
 function buildExtensionHint(extension: string): string | null {
-    // Extension that triggers a font-specific hint when used on an image load path.
+    let hint: string | null = null;
+
     if (extension === '.btfont') {
-        return "This looks like a font file. For images, use a file that ends with '.png'.";
+        hint = "This looks like a font file. For images, use a file that ends with '.png'.";
+    } else if (extension !== '' && !IMAGE_EXTENSIONS.has(extension)) {
+        hint = `The extension '${extension}' does not look like an image file. Did you mean '.png'?`;
     }
 
-    // File extensions recognized as raster image formats.
-    if (extension === '' || IMAGE_EXTENSIONS.has(extension)) {
-        return null;
-    }
-
-    return `The extension '${extension}' does not look like an image file. Did you mean '.png'?`;
+    return hint;
 }
 
 /**
