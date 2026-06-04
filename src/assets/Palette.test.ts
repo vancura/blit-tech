@@ -1,3 +1,5 @@
+// noinspection MagicNumberJS
+
 /**
  * Unit tests for {@link Palette}.
  *
