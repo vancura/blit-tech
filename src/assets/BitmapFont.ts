@@ -132,15 +132,13 @@ function createAsciiGlyphTable(): (Glyph | null)[] {
  * @param glyph - Runtime glyph metadata to store.
  */
 function populateAsciiGlyph(asciiGlyphs: (Glyph | null)[], char: string, glyph: Glyph): void {
-    if (char.length !== 1) {
-        return;
-    }
+    if (char.length === 1) {
+        const code = char.charCodeAt(0);
 
-    const code = char.charCodeAt(0);
-
-    if (code < ASCII_CACHE_SIZE) {
-        // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-        asciiGlyphs[code] = glyph;
+        if (code < ASCII_CACHE_SIZE) {
+            // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
+            asciiGlyphs[code] = glyph;
+        }
     }
 }
 
@@ -330,12 +328,13 @@ export class BitmapFont {
      */
     private static resolvePositiveMetric(value: unknown, fallback: number): number {
         const parsed = BitmapFont.parseMetricValue(value);
+        let metric = fallback;
 
         if (Number.isFinite(parsed) && parsed > 0) {
-            return parsed;
+            metric = parsed;
         }
 
-        return fallback;
+        return metric;
     }
 
     /**
@@ -345,15 +344,15 @@ export class BitmapFont {
      * @returns Parsed number, or `NaN` when the value cannot be coerced.
      */
     private static parseMetricValue(value: unknown): number {
+        let parsed = Number.NaN;
+
         if (typeof value === 'number') {
-            return value;
+            parsed = value;
+        } else if (typeof value === 'string') {
+            parsed = Number(value);
         }
 
-        if (typeof value === 'string') {
-            return Number(value);
-        }
-
-        return Number.NaN;
+        return parsed;
     }
 
     /**
@@ -374,18 +373,19 @@ export class BitmapFont {
             throw new AssetLimitError(jsonSizeError);
         }
 
-        let data: FileData;
+        let parsed: unknown;
 
         try {
-            data = JSON.parse(jsonText) as FileData;
+            parsed = JSON.parse(jsonText);
         } catch {
             throw BitmapFont.buildBrokenFileError(url);
         }
 
-        if (!BitmapFont.isValidFileData(data)) {
+        if (!BitmapFont.isValidFileData(parsed)) {
             throw BitmapFont.buildBrokenFileError(url);
         }
 
+        const data = parsed;
         const glyphEntries = Object.entries(data.glyphs);
         const glyphCountError = validateGlyphCount(glyphEntries.length);
 
@@ -424,12 +424,19 @@ export class BitmapFont {
      * @param data - Parsed font descriptor.
      * @returns Whether the data is valid.
      */
-    private static isValidFileData(data: FileData): boolean {
-        if (typeof data.texture !== 'string' || data.texture.length === 0) {
-            return false;
+    private static isValidFileData(data: unknown): data is FileData {
+        let valid = false;
+
+        if (typeof data === 'object' && data !== null) {
+            const record = data as Record<string, unknown>;
+            const texture = record.texture;
+
+            if (typeof texture === 'string' && texture.length > 0 && isPlainRecord(record.glyphs)) {
+                valid = true;
+            }
         }
 
-        return isPlainRecord(data.glyphs);
+        return valid;
     }
 
     /**
@@ -557,11 +564,13 @@ export class BitmapFont {
      * @returns Hint text or an empty string.
      */
     private static buildPathHint(url: string, folderName: string): string {
-        if (BitmapFont.hasExplicitLocation(url)) {
-            return '';
+        let hint = '';
+
+        if (!BitmapFont.hasExplicitLocation(url)) {
+            hint = `Did you mean '/${folderName}/${url}' or './${folderName}/${url}'?`;
         }
 
-        return `Did you mean '/${folderName}/${url}' or './${folderName}/${url}'?`;
+        return hint;
     }
 
     /**
@@ -575,12 +584,13 @@ export class BitmapFont {
         const fileName = url.slice(url.lastIndexOf('/') + 1).split(/[?#]/)[0] ?? url;
         const dotIndex = fileName.lastIndexOf('.');
         const extension = dotIndex >= 0 ? fileName.slice(dotIndex).toLowerCase() : '';
+        let hint = '';
 
-        if (extension === '' || extension === expectedExtension) {
-            return '';
+        if (extension !== '' && extension !== expectedExtension) {
+            hint = `The extension '${extension}' looks wrong for this file. Did you mean '${expectedExtension}'?`;
         }
 
-        return `The extension '${extension}' looks wrong for this file. Did you mean '${expectedExtension}'?`;
+        return hint;
     }
 
     /**
@@ -590,6 +600,8 @@ export class BitmapFont {
      * @returns Printable label or a Unicode code point for control characters.
      */
     private static formatGlyphCharLabel(char: string): string {
+        let label = char;
+
         if (char.length === 1) {
             const code = char.charCodeAt(0);
 
@@ -600,11 +612,11 @@ export class BitmapFont {
             const asciiDelCode = 127;
 
             if (code <= controlCharBoundary || code === asciiDelCode) {
-                return `U+${code.toString(16).toUpperCase().padStart(4, '0')}`;
+                label = `U+${code.toString(16).toUpperCase().padStart(4, '0')}`;
             }
         }
 
-        return char;
+        return label;
     }
 
     /**
@@ -615,12 +627,13 @@ export class BitmapFont {
      */
     private static isExplicitUrl(url: string): boolean {
         const lowerUrl = url.toLowerCase();
+        let explicit = lowerUrl.includes('://');
 
-        if (lowerUrl.includes('://')) {
-            return true;
+        if (!explicit) {
+            explicit = ['//', 'data:', 'blob:'].some((prefix) => lowerUrl.startsWith(prefix));
         }
 
-        return ['//', 'data:', 'blob:'].some((prefix) => lowerUrl.startsWith(prefix));
+        return explicit;
     }
 
     /**
@@ -649,14 +662,19 @@ export class BitmapFont {
             const image = new Image();
 
             image.onload = () => {
+                let loadError: unknown;
+
                 try {
                     assertImageElementWithinLimits('font texture', image);
                 } catch (error) {
-                    reject(error);
-                    return;
+                    loadError = error;
                 }
 
-                resolve(image);
+                if (loadError === undefined) {
+                    resolve(image);
+                } else {
+                    reject(loadError);
+                }
             };
             image.onerror = () => {
                 // Maximum characters shown from a texture source string in load-failure messages.
@@ -684,18 +702,23 @@ export class BitmapFont {
      * @returns Glyph metadata, or `null` when the font does not contain the character.
      */
     getGlyph(char: string): Glyph | null {
+        let glyph: Glyph | null = null;
+
         // Fast path for ASCII characters.
         if (char.length === 1) {
             const code = char.charCodeAt(0);
 
             if (code < ASCII_CACHE_SIZE) {
                 // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                return this.asciiGlyphs[code] ?? null;
+                glyph = this.asciiGlyphs[code] ?? null;
             }
         }
 
-        // Fallback for Unicode characters.
-        return this.glyphs.get(char) ?? null;
+        if (glyph === null) {
+            glyph = this.glyphs.get(char) ?? null;
+        }
+
+        return glyph;
     }
 
     /**
@@ -708,14 +731,16 @@ export class BitmapFont {
      * @returns Glyph metadata, or `null` when no glyph exists for the code.
      */
     getGlyphByCode(charCode: number): Glyph | null {
-        // Fast path for ASCII.
+        let glyph: Glyph | null;
+
         if (charCode < ASCII_CACHE_SIZE) {
             // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-            return this.asciiGlyphs[charCode] ?? null;
+            glyph = this.asciiGlyphs[charCode] ?? null;
+        } else {
+            glyph = this.glyphs.get(String.fromCharCode(charCode)) ?? null;
         }
 
-        // Fallback for Unicode - convert code to character.
-        return this.glyphs.get(String.fromCharCode(charCode)) ?? null;
+        return glyph;
     }
 
     /**
@@ -741,56 +766,52 @@ export class BitmapFont {
      * @returns Total width in pixels.
      */
     measureText(text: string): number {
-        // Check the cache first.
         const cached = this.measureCache.get(text);
+        let width = cached ?? 0;
 
-        if (cached !== undefined) {
-            return cached;
-        }
+        if (cached === undefined) {
+            const len = text.length;
 
-        // Calculate width using optimized loop.
-        let width = 0;
-        const len = text.length;
+            for (let i = 0; i < len; i++) {
+                const code = text.charCodeAt(i);
+                let glyph: Glyph | null = null;
 
-        for (let i = 0; i < len; i++) {
-            const code = text.charCodeAt(i);
-            let glyph: Glyph | null = null;
+                // Fast path for ASCII characters.
+                if (code < ASCII_CACHE_SIZE) {
+                    // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
+                    glyph = this.asciiGlyphs[code] ?? null;
+                } else {
+                    // Unicode fallback - index is guaranteed valid within loop bounds.
+                    // eslint-disable-next-line security/detect-object-injection -- Index is within loop bounds
+                    const char = text[i];
 
-            // Fast path for ASCII characters.
-            if (code < ASCII_CACHE_SIZE) {
-                // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                glyph = this.asciiGlyphs[code] ?? null;
-            } else {
-                // Unicode fallback - index is guaranteed valid within loop bounds.
-                // eslint-disable-next-line security/detect-object-injection -- Index is within loop bounds
-                const char = text[i];
+                    if (char !== undefined) {
+                        glyph = this.glyphs.get(char) ?? null;
+                    }
+                }
 
-                if (char !== undefined) {
-                    glyph = this.glyphs.get(char) ?? null;
+                if (glyph) {
+                    width += glyph.advance;
                 }
             }
 
-            if (glyph) {
-                width += glyph.advance;
+            // Cache the result with FIFO eviction when full.
+
+            // Maximum number of cached string-width measurements retained at once.
+            // The cache uses FIFO eviction (insertion order) when this limit is reached.
+            const measureCacheMaxSize = 256;
+
+            if (this.measureCache.size >= measureCacheMaxSize) {
+                // Remove oldest inserted entry (first key in Map insertion order).
+                const firstKey = this.measureCache.keys().next().value;
+
+                if (firstKey !== undefined) {
+                    this.measureCache.delete(firstKey);
+                }
             }
+
+            this.measureCache.set(text, width);
         }
-
-        // Cache the result with FIFO eviction when full.
-
-        // Maximum number of cached string-width measurements retained at once.
-        // The cache uses FIFO eviction (insertion order) when this limit is reached.
-        const measureCacheMaxSize = 256;
-
-        if (this.measureCache.size >= measureCacheMaxSize) {
-            // Remove oldest inserted entry (first key in Map insertion order).
-            const firstKey = this.measureCache.keys().next().value;
-
-            if (firstKey !== undefined) {
-                this.measureCache.delete(firstKey);
-            }
-        }
-
-        this.measureCache.set(text, width);
 
         return width;
     }
@@ -834,17 +855,22 @@ export class BitmapFont {
      * @returns `true` if the font can render the character.
      */
     hasGlyph(char: string): boolean {
-        // Fast path for ASCII.
+        let found: boolean;
+
         if (char.length === 1) {
             const code = char.charCodeAt(0);
 
             if (code < ASCII_CACHE_SIZE) {
                 // eslint-disable-next-line security/detect-object-injection -- Index is bounds-checked above
-                return this.asciiGlyphs[code] != null;
+                found = this.asciiGlyphs[code] != null;
+            } else {
+                found = this.glyphs.has(char);
             }
+        } else {
+            found = this.glyphs.has(char);
         }
 
-        return this.glyphs.has(char);
+        return found;
     }
 
     /**
