@@ -65,6 +65,15 @@ export class PaletteEffectManager {
     }
 
     /**
+     * Number of currently running effects.
+     *
+     * @returns Count of active effects in the manager.
+     */
+    get activeCount(): number {
+        return this.effects.length;
+    }
+
+    /**
      * Adds an effect to the active list.
      *
      * @param effect - Effect instance to run each frame.
@@ -93,40 +102,29 @@ export class PaletteEffectManager {
 
         this.lastTime = now;
 
-        if (this.effects.length === 0) {
-            return;
-        }
+        if (this.effects.length > 0) {
+            // In-place compaction: keep running effects, drop completed ones.
+            let writeIdx = 0;
 
-        // In-place compaction: keep running effects, drop completed ones.
-        let writeIdx = 0;
+            for (let i = 0; i < this.effects.length; i++) {
+                // eslint-disable-next-line security/detect-object-injection -- Safe: i is a controlled loop index within bounds
+                const effect = this.effects[i];
 
-        for (let i = 0; i < this.effects.length; i++) {
-            // eslint-disable-next-line security/detect-object-injection -- Safe: i is a controlled loop index within bounds
-            const effect = this.effects[i];
-
-            if (effect?.update(palette, deltaMs)) {
-                // eslint-disable-next-line security/detect-object-injection -- Safe: writeIdx <= i, always within bounds
-                this.effects[writeIdx] = effect;
-                writeIdx++;
+                if (effect?.update(palette, deltaMs)) {
+                    // eslint-disable-next-line security/detect-object-injection -- Safe: writeIdx <= i, always within bounds
+                    this.effects[writeIdx] = effect;
+                    writeIdx++;
+                }
             }
-        }
 
-        this.effects.length = writeIdx;
-        palette.markDirty();
+            this.effects.length = writeIdx;
+            palette.markDirty();
+        }
     }
 
     /** Removes all active effects immediately. The palette stays at its current state. */
     clear(): void {
         this.effects.length = 0;
-    }
-
-    /**
-     * Number of currently running effects.
-     *
-     * @returns Count of active effects in the manager.
-     */
-    get activeCount(): number {
-        return this.effects.length;
     }
 }
 
@@ -176,16 +174,14 @@ export class CycleEffect implements PaletteEffect {
      * @returns `true` to keep running, `false` to remove from the manager.
      */
     update(palette: Palette, deltaMs: number): boolean {
-        if (this.speed === 0 || this.start >= this.end) {
-            return true;
+        if (this.speed !== 0 && this.start < this.end) {
+            // Milliseconds per second for delta-to-rate conversion in time-based effects.
+            const msPerSecond = 1_000;
+
+            this.accumulator += (this.speed * deltaMs) / msPerSecond;
+            this.applyForwardSteps(palette);
+            this.applyBackwardSteps(palette);
         }
-
-        // Milliseconds per second for delta-to-rate conversion in time-based effects.
-        const msPerSecond = 1_000;
-
-        this.accumulator += (this.speed * deltaMs) / msPerSecond;
-        this.applyForwardSteps(palette);
-        this.applyBackwardSteps(palette);
 
         return true; // Runs indefinitely.
     }
@@ -468,6 +464,39 @@ export class FadeRangeEffect implements PaletteEffect {
 
 // #endregion
 
+// #region Flash Helpers
+
+/**
+ * Copies `color` into every palette slot except the transparent sentinel at index 0.
+ *
+ * @param palette - Active palette to modify.
+ * @param color - Flash color applied to all non-zero entries.
+ */
+function copyColorToNonZeroSlots(palette: Palette, color: Color32): void {
+    for (let i = 1; i < palette.size; i++) {
+        palette.getRef(i).copyFrom(color);
+    }
+}
+
+/**
+ * Restores palette slots 1..size-1 from a full-range snapshot array.
+ *
+ * @param palette - Active palette to modify.
+ * @param snapshot - Colors captured before the flash (index-aligned).
+ */
+function restoreNonZeroSlots(palette: Palette, snapshot: Color32[]): void {
+    for (let i = 1; i < palette.size; i++) {
+        // eslint-disable-next-line security/detect-object-injection -- Loop index within validated snapshot bounds
+        const saved = snapshot[i];
+
+        if (saved) {
+            palette.getRef(i).copyFrom(saved);
+        }
+    }
+}
+
+// #endregion
+
 // #region FlashEffect
 
 /**
@@ -503,35 +532,22 @@ export class FlashEffect implements PaletteEffect {
      * @returns `true` to keep running, `false` to remove from the manager.
      */
     update(palette: Palette, deltaMs: number): boolean {
-        // First frame: snapshot and apply flash.
+        let keepRunning = true;
+
         if (this.snapshotColors === null) {
+            // First frame: snapshot and apply flash.
             this.snapshotColors = snapshotPaletteRange(palette, 0, palette.size - 1);
+            copyColorToNonZeroSlots(palette, this.color);
+        } else {
+            this.elapsed += deltaMs;
 
-            for (let i = 1; i < palette.size; i++) {
-                palette.getRef(i).copyFrom(this.color);
+            if (this.elapsed >= this.durationMs) {
+                restoreNonZeroSlots(palette, this.snapshotColors);
+                keepRunning = false;
             }
-
-            return true;
         }
 
-        this.elapsed += deltaMs;
-
-        if (this.elapsed >= this.durationMs) {
-            // Restore from snapshot.
-            for (let i = 1; i < palette.size; i++) {
-                // eslint-disable-next-line security/detect-object-injection -- Loop index within validated snapshot bounds
-                const saved = this.snapshotColors[i];
-
-                if (saved) {
-                    palette.getRef(i).copyFrom(saved);
-                }
-            }
-
-            return false;
-        }
-
-        // Keep flashing.
-        return true;
+        return keepRunning;
     }
 }
 
@@ -550,22 +566,20 @@ export class FlashEffect implements PaletteEffect {
  * @param indexB - Second palette index.
  */
 export function paletteSwap(palette: Palette, indexA: number, indexB: number): void {
-    if (indexA === indexB) {
-        return;
+    if (indexA !== indexB) {
+        const refA = palette.getRef(indexA);
+        const refB = palette.getRef(indexB);
+
+        const tempR = refA.r;
+        const tempG = refA.g;
+        const tempB = refA.b;
+        const tempAlpha = refA.a;
+
+        refA.copyFrom(refB);
+        refB.setRGBA(tempR, tempG, tempB, tempAlpha);
+
+        palette.markDirty();
     }
-
-    const refA = palette.getRef(indexA);
-    const refB = palette.getRef(indexB);
-
-    const tempR = refA.r;
-    const tempG = refA.g;
-    const tempB = refA.b;
-    const tempAlpha = refA.a;
-
-    refA.copyFrom(refB);
-    refB.setRGBA(tempR, tempG, tempB, tempAlpha);
-
-    palette.markDirty();
 }
 
 // #endregion

@@ -24,6 +24,25 @@ function makeTestPalette(): Palette {
     return p;
 }
 
+/** Palette slot indices 1..15 (slot 0 is reserved for transparency). */
+const NON_TRANSPARENT_SLOTS = Array.from({ length: 15 }, (_, index) => index + 1);
+
+/** Fills every non-transparent slot in `palette` with `color`. */
+function fillNonTransparentSlots(palette: Palette, color: Color32): void {
+    NON_TRANSPARENT_SLOTS.forEach((slot) => {
+        palette.set(slot, color);
+    });
+}
+
+/** Asserts every non-transparent slot in `palette` matches the given RGB. */
+function expectNonTransparentSlotsRgb(palette: Palette, r: number, g: number, b: number): void {
+    NON_TRANSPARENT_SLOTS.forEach((slot) => {
+        expect(palette.getRef(slot).r).toBe(r);
+        expect(palette.getRef(slot).g).toBe(g);
+        expect(palette.getRef(slot).b).toBe(b);
+    });
+}
+
 /** Creates a controllable time provider for deterministic tests. */
 function makeTimeClock() {
     let now = 1000;
@@ -294,20 +313,14 @@ describe('FadeEffect', () => {
         const source = makeTestPalette();
         const target = new Palette(16);
 
-        for (let i = 1; i < 16; i++) {
-            target.set(i, new Color32(255, 0, 0));
-        }
+        fillNonTransparentSlots(target, new Color32(255, 0, 0));
 
         const effect = new FadeEffect(source, target, 1000);
 
         // Complete the fade.
         effect.update(source, 1000);
 
-        for (let i = 1; i < 16; i++) {
-            expect(source.getRef(i).r).toBe(255);
-            expect(source.getRef(i).g).toBe(0);
-            expect(source.getRef(i).b).toBe(0);
-        }
+        expectNonTransparentSlotsRgb(source, 255, 0, 0);
     });
 
     it('auto-removes when complete (returns false)', () => {
@@ -483,25 +496,21 @@ describe('FlashEffect', () => {
 
     it('restores palette after duration', () => {
         const palette = makeTestPalette();
-        const originalColors: Color32[] = [];
-
-        for (let i = 0; i < 16; i++) {
-            originalColors.push(palette.get(i));
-        }
+        const originalColors = Array.from({ length: 16 }, (_, index) => palette.get(index));
 
         const effect = new FlashEffect(new Color32(255, 0, 0), 200);
 
         effect.update(palette, 0); // Snapshot + flash.
         effect.update(palette, 200); // Restore.
 
-        for (let i = 1; i < 16; i++) {
-            // eslint-disable-next-line security/detect-object-injection -- Safe: i is a controlled loop index
-            const original = originalColors[i];
+        NON_TRANSPARENT_SLOTS.forEach((slot) => {
+            // eslint-disable-next-line security/detect-object-injection -- slot is a controlled palette index
+            const original = originalColors[slot];
 
             if (original) {
-                expect(palette.getRef(i).isEqual(original)).toBe(true);
+                expect(palette.getRef(slot).isEqual(original)).toBe(true);
             }
-        }
+        });
     });
 
     it('auto-removes after restore (returns false)', () => {
