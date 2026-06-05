@@ -276,34 +276,6 @@ export class SpriteSheet {
     // #region Static Factory
 
     /**
-     * Gets the sprite-sheet width in pixels.
-     *
-     * @returns Sheet width in pixels.
-     */
-    get width(): number {
-        return this.size.x;
-    }
-
-    /**
-     * Gets the sprite-sheet height in pixels.
-     *
-     * @returns Sheet height in pixels.
-     */
-    get height(): number {
-        return this.size.y;
-    }
-
-    /**
-     * Returns a display label for the source image, used in error messages.
-     *
-     * @returns Quoted image `src` when available, or `(unnamed)` for sheets
-     *   created from raw indexed data.
-     */
-    private get sourceName(): string {
-        return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
-    }
-
-    /**
      * Loads a sprite sheet from an image URL.
      *
      * Attempts to create an `ImageBitmap` with explicit alpha and color-space
@@ -576,6 +548,24 @@ export class SpriteSheet {
     // #region Accessors
 
     /**
+     * Gets the sprite-sheet width in pixels.
+     *
+     * @returns Sheet width in pixels.
+     */
+    get width(): number {
+        return this.size.x;
+    }
+
+    /**
+     * Gets the sprite-sheet height in pixels.
+     *
+     * @returns Sheet height in pixels.
+     */
+    get height(): number {
+        return this.size.y;
+    }
+
+    /**
      * Returns whether this sprite sheet has been converted to palette indices.
      *
      * @returns True if `indexize()` has been called successfully.
@@ -818,6 +808,16 @@ export class SpriteSheet {
             this.texture.destroy();
             this.texture = null;
         }
+    }
+
+    /**
+     * Returns a display label for the source image, used in error messages.
+     *
+     * @returns Quoted image `src` when available, or `(unnamed)` for sheets
+     *   created from raw indexed data.
+     */
+    private get sourceName(): string {
+        return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
     }
 
     // #endregion
