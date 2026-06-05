@@ -58,13 +58,16 @@ const ATLAS_HEIGHT = ATLAS_ROWS * SYSTEM_FONT_GLYPH_HEIGHT;
  * @param pixels - Output pixel buffer to write into.
  */
 function writeGlyphPixels(bitmapOffset: number, baseX: number, baseY: number, pixels: Uint8Array<ArrayBuffer>): void {
-    for (let y = 0; y < SYSTEM_FONT_GLYPH_HEIGHT; y++) {
+    const pixelCount = SYSTEM_FONT_GLYPH_HEIGHT * SYSTEM_FONT_GLYPH_WIDTH;
+
+    for (let flat = 0; flat < pixelCount; flat++) {
+        const y = Math.floor(flat / SYSTEM_FONT_GLYPH_WIDTH);
+        const x = flat % SYSTEM_FONT_GLYPH_WIDTH;
+
         // Safe: length validated in buildAtlasPixels guarantees bitmapOffset + y is in bounds.
         const rowByte = SYSTEM_FONT_BITMAPS[bitmapOffset + y] as number;
 
-        for (let x = 0; x < SYSTEM_FONT_GLYPH_WIDTH; x++) {
-            pixels[(baseY + y) * ATLAS_WIDTH + (baseX + x)] = (rowByte >> (7 - x)) & 1;
-        }
+        pixels[(baseY + y) * ATLAS_WIDTH + (baseX + x)] = (rowByte >> (7 - x)) & 1;
     }
 }
 
