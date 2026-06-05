@@ -76,6 +76,129 @@ function mapRgbaPixelsToIndexed(
 }
 
 /**
+ * Collects unique opaque RGB colors from a flat RGBA byte buffer.
+ *
+ * @param data - RGBA bytes in row-major order.
+ * @returns Deduped opaque colors with alpha forced to 255.
+ */
+function collectUniqueOpaqueColors(data: Uint8Array): Color32[] {
+    const seen = new Set<number>();
+    const collected: Color32[] = [];
+
+    for (let i = 0; i < data.length; i += RGBA_BYTES_PER_PIXEL) {
+        const a = data[i + 3] ?? 0;
+
+        if (a === 0) {
+            continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection
+        const r = data[i] ?? 0;
+        const g = data[i + 1] ?? 0;
+        const b = data[i + 2] ?? 0;
+
+        // Pack RGB into a single 24-bit integer for fast Set lookup.
+        const key = (r << 16) | (g << 8) | b;
+
+        if (seen.has(key)) {
+            continue;
+        }
+
+        seen.add(key);
+        collected.push(new Color32(r, g, b, 255));
+    }
+
+    return collected;
+}
+
+/**
+ * Validates that opaque colors can be written into consecutive palette slots.
+ *
+ * @param collected - Colors to register.
+ * @param palette - Target palette.
+ * @param startSlot - First destination slot.
+ * @throws RangeError when `startSlot` is invalid or the colors do not fit.
+ */
+function assertOpaqueColorsFitInPalette(collected: Color32[], palette: Palette, startSlot: number): void {
+    if (collected.length > 0) {
+        if (startSlot < 1) {
+            throw new RangeError(
+                `loadColorsIntoPalette: startSlot ${startSlot} is invalid (slot 0 is reserved for transparency).`,
+            );
+        }
+
+        const endSlot = startSlot + collected.length - 1;
+
+        if (endSlot >= palette.size) {
+            throw new RangeError(
+                `loadColorsIntoPalette: ${collected.length} colors do not fit in palette size ${palette.size} starting at slot ${startSlot}.`,
+            );
+        }
+    }
+}
+
+/**
+ * Writes collected colors into consecutive palette slots.
+ *
+ * @param collected - Colors in write order.
+ * @param palette - Target palette.
+ * @param startSlot - First destination slot.
+ */
+function writeCollectedColors(collected: Color32[], palette: Palette, startSlot: number): void {
+    collected.forEach((color, index) => {
+        palette.set(startSlot + index, color);
+    });
+}
+
+/**
+ * Marks palette indices referenced by non-zero pixels inside a bounded scan rect.
+ *
+ * @param pixels - Indexed pixel buffer for the full sheet.
+ * @param sheetWidth - Sheet width in pixels.
+ * @param startX - Inclusive left bound in sheet coordinates.
+ * @param startY - Inclusive top bound in sheet coordinates.
+ * @param endX - Exclusive right bound in sheet coordinates.
+ * @param endY - Exclusive bottom bound in sheet coordinates.
+ * @param paletteOffset - Palette offset applied at draw time.
+ * @param usedMask - Mutable usage mask indexed by resolved palette slot.
+ * @param seenSheetIndices - Per-call scratch mask for deduplicating sheet indices.
+ */
+function markUniqueIndicesInBounds(
+    pixels: Uint8Array,
+    sheetWidth: number,
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    paletteOffset: number,
+    usedMask: Uint8Array,
+    seenSheetIndices: Uint8Array,
+): void {
+    const rectWidth = endX - startX;
+    const pixelCount = (endY - startY) * rectWidth;
+
+    for (let flat = 0; flat < pixelCount; flat++) {
+        const y = startY + Math.floor(flat / rectWidth);
+        const x = startX + (flat % rectWidth);
+        const sheetIndex = pixels[y * sheetWidth + x] ?? 0;
+
+        if (sheetIndex === 0) {
+            continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
+        if (seenSheetIndices[sheetIndex] === 1) {
+            continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
+        seenSheetIndices[sheetIndex] = 1;
+
+        markIndexUsed(usedMask, sheetIndex + paletteOffset);
+    }
+}
+
+/**
  * Result object returned by {@link SpriteSheet.loadIndexed}.
  */
 export type IndexedSpriteLoadResult = {
@@ -185,6 +308,10 @@ export class SpriteSheet {
         return sheet;
     }
 
+    // #endregion
+
+    // #region Indexization
+
     /**
      * Convenience one-call path for palette-indexed sprite setup.
      *
@@ -260,38 +387,14 @@ export class SpriteSheet {
         options?: { sort?: 'luminance' | 'none' },
     ): Promise<Color32[]> {
         const image = await AssetLoader.loadImage(url);
+
         assertImageElementWithinLimits('sprite sheet', image);
+
         const w = image.width;
         const h = image.height;
 
         const data = SpriteSheet.readRgbaPixels(image, w, h);
-
-        const seen = new Set<number>();
-        const collected: Color32[] = [];
-
-        for (let i = 0; i < data.length; i += RGBA_BYTES_PER_PIXEL) {
-            const a = data[i + 3] ?? 0;
-
-            if (a === 0) {
-                continue;
-            }
-
-            // eslint-disable-next-line security/detect-object-injection
-            const r = data[i] ?? 0;
-            const g = data[i + 1] ?? 0;
-            const b = data[i + 2] ?? 0;
-
-            // Pack RGB into a single 24-bit integer for fast Set lookup.
-            const key = (r << 16) | (g << 8) | b;
-
-            if (seen.has(key)) {
-                continue;
-            }
-
-            seen.add(key);
-            collected.push(new Color32(r, g, b, 255));
-        }
-
+        const collected = collectUniqueOpaqueColors(data);
         const sortMode = options?.sort ?? 'luminance';
 
         if (sortMode === 'luminance') {
@@ -302,25 +405,8 @@ export class SpriteSheet {
         // throw (out-of-range slot, or opaque color at reserved slot 0) cannot
         // leave the palette partially mutated. All collected colors are opaque,
         // so startSlot must be at least 1.
-        if (collected.length > 0) {
-            if (startSlot < 1) {
-                throw new RangeError(
-                    `loadColorsIntoPalette: startSlot ${startSlot} is invalid (slot 0 is reserved for transparency).`,
-                );
-            }
-
-            const endSlot = startSlot + collected.length - 1;
-
-            if (endSlot >= palette.size) {
-                throw new RangeError(
-                    `loadColorsIntoPalette: ${collected.length} colors do not fit in palette size ${palette.size} starting at slot ${startSlot}.`,
-                );
-            }
-        }
-
-        collected.forEach((color, i) => {
-            palette.set(startSlot + i, color);
-        });
+        assertOpaqueColorsFitInPalette(collected, palette, startSlot);
+        writeCollectedColors(collected, palette, startSlot);
 
         return collected;
     }
@@ -351,9 +437,24 @@ export class SpriteSheet {
         return sheet;
     }
 
-    // #endregion
+    /**
+     * Decodes an image's pixels via an off-screen canvas and returns a flat
+     * RGBA byte buffer. Shared by `indexize` and `loadColorsIntoPalette`.
+     *
+     * @param image - Source HTML image element.
+     * @param w - Image width in pixels.
+     * @param h - Image height in pixels.
+     * @returns Flat RGBA byte array (`w * h * RGBA_BYTES_PER_PIXEL` bytes).
+     */
+    private static readRgbaPixels(image: HTMLImageElement, w: number, h: number): Uint8Array<ArrayBuffer> {
+        const canvas = new OffscreenCanvas(w, h);
+        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
 
-    // #region Indexization
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(image, 0, 0);
+
+        return new Uint8Array(ctx.getImageData(0, 0, w, h).data.buffer.slice(0)) as Uint8Array<ArrayBuffer>;
+    }
 
     /**
      * Converts the sprite sheet's RGBA pixels to palette indices.
@@ -442,6 +543,28 @@ export class SpriteSheet {
         this.invalidateTexture();
     }
 
+    // #endregion
+
+    // #region Accessors
+
+    /**
+     * Gets the sprite-sheet width in pixels.
+     *
+     * @returns Sheet width in pixels.
+     */
+    get width(): number {
+        return this.size.x;
+    }
+
+    /**
+     * Gets the sprite-sheet height in pixels.
+     *
+     * @returns Sheet height in pixels.
+     */
+    get height(): number {
+        return this.size.y;
+    }
+
     /**
      * Returns whether this sprite sheet has been converted to palette indices.
      *
@@ -489,46 +612,30 @@ export class SpriteSheet {
      * @param usedMask - Mutable usage mask indexed by resolved palette slot.
      */
     markPaletteIndicesInRect(srcRect: Rect2i, paletteOffset: number, usedMask: Uint8Array): void {
-        if (this.indexedPixels === null) {
-            return;
-        }
-
-        const sheetWidth = this.size.x;
         const pixels = this.indexedPixels;
-        const startX = Math.max(0, srcRect.x);
-        const startY = Math.max(0, srcRect.y);
-        const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
-        const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
-        const seenSheetIndices = MARK_INDICES_IN_RECT_SCRATCH;
 
-        seenSheetIndices.fill(0);
+        if (pixels !== null) {
+            const sheetWidth = this.size.x;
+            const startX = Math.max(0, srcRect.x);
+            const startY = Math.max(0, srcRect.y);
+            const endX = Math.min(this.size.x, srcRect.x + srcRect.width);
+            const endY = Math.min(this.size.y, srcRect.y + srcRect.height);
+            const seenSheetIndices = MARK_INDICES_IN_RECT_SCRATCH;
 
-        for (let y = startY; y < endY; y++) {
-            const rowOffset = y * sheetWidth;
-
-            for (let x = startX; x < endX; x++) {
-                const sheetIndex = pixels[rowOffset + x] ?? 0;
-
-                if (sheetIndex === 0) {
-                    continue;
-                }
-
-                // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
-                if (seenSheetIndices[sheetIndex] === 1) {
-                    continue;
-                }
-
-                // eslint-disable-next-line security/detect-object-injection -- sheet indices are 0-255
-                seenSheetIndices[sheetIndex] = 1;
-
-                markIndexUsed(usedMask, sheetIndex + paletteOffset);
-            }
+            seenSheetIndices.fill(0);
+            markUniqueIndicesInBounds(
+                pixels,
+                sheetWidth,
+                startX,
+                startY,
+                endX,
+                endY,
+                paletteOffset,
+                usedMask,
+                seenSheetIndices,
+            );
         }
     }
-
-    // #endregion
-
-    // #region Accessors
 
     /**
      * Gets the source HTMLImageElement.
@@ -544,23 +651,9 @@ export class SpriteSheet {
         return this.image;
     }
 
-    /**
-     * Gets the sprite-sheet width in pixels.
-     *
-     * @returns Sheet width in pixels.
-     */
-    get width(): number {
-        return this.size.x;
-    }
+    // #endregion
 
-    /**
-     * Gets the sprite-sheet height in pixels.
-     *
-     * @returns Sheet height in pixels.
-     */
-    get height(): number {
-        return this.size.y;
-    }
+    // #region UV Calculation
 
     /**
      * Returns a source rectangle that covers the entire sprite sheet.
@@ -570,6 +663,10 @@ export class SpriteSheet {
     fullRect(): Rect2i {
         return new Rect2i(0, 0, this.width, this.height);
     }
+
+    // #endregion
+
+    // #region Cleanup
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
@@ -583,10 +680,10 @@ export class SpriteSheet {
      */
     getTexture(device: GPUDevice): GPUTexture {
         if (this.texture === null) {
-            if (this.indexedPixels !== null) {
-                this.createIndexedTexture(device);
-            } else {
+            if (this.indexedPixels === null) {
                 this.createTexture(device);
+            } else {
+                this.createIndexedTexture(device);
             }
         }
 
@@ -596,7 +693,7 @@ export class SpriteSheet {
 
     // #endregion
 
-    // #region UV Calculation
+    // #region Texture Creation
 
     /**
      * Calculates normalized UV coordinates for a sprite region.
@@ -613,10 +710,6 @@ export class SpriteSheet {
             v1: (rect.y + rect.height) / this.size.y,
         };
     }
-
-    // #endregion
-
-    // #region Cleanup
 
     /**
      * Releases the GPU texture from memory and clears all retained pixel data.
@@ -639,7 +732,7 @@ export class SpriteSheet {
 
     // #endregion
 
-    // #region Texture Creation
+    // #region Private Helpers
 
     /**
      * Creates and uploads the GPU texture from the image.
@@ -704,39 +797,6 @@ export class SpriteSheet {
         );
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
-    /**
-     * Decodes an image's pixels via an off-screen canvas and returns a flat
-     * RGBA byte buffer. Shared by `indexize` and `loadColorsIntoPalette`.
-     *
-     * @param image - Source HTML image element.
-     * @param w - Image width in pixels.
-     * @param h - Image height in pixels.
-     * @returns Flat RGBA byte array (`w * h * RGBA_BYTES_PER_PIXEL` bytes).
-     */
-    private static readRgbaPixels(image: HTMLImageElement, w: number, h: number): Uint8Array<ArrayBuffer> {
-        const canvas = new OffscreenCanvas(w, h);
-        const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
-
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(image, 0, 0);
-
-        return new Uint8Array(ctx.getImageData(0, 0, w, h).data.buffer.slice(0)) as Uint8Array<ArrayBuffer>;
-    }
-
-    /**
-     * Returns a display label for the source image, used in error messages.
-     *
-     * @returns Quoted image `src` when available, or `(unnamed)` for sheets
-     *   created from raw indexed data.
-     */
-    private get sourceName(): string {
-        return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
-    }
-
     /**
      * Destroys and clears the cached GPU texture if one is currently held.
      *
@@ -748,6 +808,16 @@ export class SpriteSheet {
             this.texture.destroy();
             this.texture = null;
         }
+    }
+
+    /**
+     * Returns a display label for the source image, used in error messages.
+     *
+     * @returns Quoted image `src` when available, or `(unnamed)` for sheets
+     *   created from raw indexed data.
+     */
+    private get sourceName(): string {
+        return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
     }
 
     // #endregion

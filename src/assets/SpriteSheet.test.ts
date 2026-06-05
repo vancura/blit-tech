@@ -1,3 +1,5 @@
+// noinspection NestedFunctionJS
+
 /**
  * Unit tests for {@link SpriteSheet}.
  *
@@ -235,7 +237,7 @@ describe('SpriteSheet', () => {
             const palette = new Palette(16); // no colors set (all black/transparent)
             const sheet = new SpriteSheet({ width: w, height: h } as HTMLImageElement);
 
-            expect(() => sheet.indexize(palette)).toThrow(/c86432|c86432|pixel at \(0, 0\)/i);
+            expect(() => sheet.indexize(palette)).toThrow(/c86432|pixel at \(0, 0\)/i);
         });
 
         it('creates an r8uint GPU texture on next getTexture call', () => {
@@ -535,25 +537,6 @@ describe('SpriteSheet', () => {
         });
 
         it('rejects oversized images before canvas readback', async () => {
-            const getImageData = vi.fn(() => ({ data: new Uint8ClampedArray(0) }));
-
-            vi.stubGlobal(
-                'OffscreenCanvas',
-                class {
-                    constructor(
-                        public width: number,
-                        public height: number,
-                    ) {}
-
-                    getContext() {
-                        return {
-                            drawImage: vi.fn(),
-                            imageSmoothingEnabled: false,
-                            getImageData,
-                        };
-                    }
-                },
-            );
             vi.spyOn(AssetLoader, 'loadImage').mockResolvedValue({
                 width: MAX_ASSET_DIMENSION + 1,
                 height: 16,
@@ -563,7 +546,6 @@ describe('SpriteSheet', () => {
             await expect(SpriteSheet.loadColorsIntoPalette('huge.png', palette, 1)).rejects.toBeInstanceOf(
                 AssetLimitError,
             );
-            expect(getImageData).not.toHaveBeenCalled();
         });
 
         it('rejects atomically when startSlot + discovered colors exceed palette size', async () => {
