@@ -99,8 +99,6 @@ describe('PointerInput', () => {
         canvas.remove();
     });
 
-    // #region Construction
-
     describe('construction', () => {
         it('initializes all slots as inactive', () => {
             const fresh = new PointerInput();
@@ -112,10 +110,6 @@ describe('PointerInput', () => {
             expect(fresh.getScrollDelta()).toBe(0);
         });
     });
-
-    // #endregion
-
-    // #region Lifecycle
 
     describe('attach / detach', () => {
         it('sets canvas.style.touchAction to "none" on attach', () => {
@@ -260,10 +254,6 @@ describe('PointerInput', () => {
         });
     });
 
-    // #endregion
-
-    // #region Mouse Slot 0
-
     describe('mouse routing (slot 0)', () => {
         it('routes mouse pointerdown button 0 to slot 0 with BTN_POINTER_A held', () => {
             canvas.dispatchEvent(
@@ -404,10 +394,6 @@ describe('PointerInput', () => {
             expect(input.isActive(0)).toBe(false);
         });
     });
-
-    // #endregion
-
-    // #region Touch Slot Allocation
 
     describe('touch slot allocation', () => {
         it('routes three sequential touches to slots 1, 2, 3 in arrival order', () => {
@@ -638,10 +624,6 @@ describe('PointerInput', () => {
         });
     });
 
-    // #endregion
-
-    // #region Coordinate Conversion
-
     describe('coordinate conversion', () => {
         it('maps clientX/clientY to display coordinates via getBoundingClientRect', () => {
             // rect = { left:10, top:20, width:640, height:480 }
@@ -679,10 +661,6 @@ describe('PointerInput', () => {
             c.remove();
         });
     });
-
-    // #endregion
-
-    // #region Per-Frame State
 
     // The lifecycle model: each rAF tick is "events arrive (between ticks) ->
     // update / render read state -> endFrame snapshots current as prev". The
@@ -1044,10 +1022,6 @@ describe('PointerInput', () => {
         });
     });
 
-    // #endregion
-
-    // #region Wheel
-
     describe('wheel handling', () => {
         it('uses raw deltaY for deltaMode 0 (PIXEL)', () => {
             canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: 5, deltaMode: 0, bubbles: true, cancelable: true }));
@@ -1088,10 +1062,6 @@ describe('PointerInput', () => {
         });
     });
 
-    // #endregion
-
-    // #region Context Menu
-
     describe('context menu suppression', () => {
         it('calls preventDefault on contextmenu events', () => {
             const event = new Event('contextmenu', { bubbles: true, cancelable: true });
@@ -1102,10 +1072,6 @@ describe('PointerInput', () => {
             expect(preventDefault).toHaveBeenCalled();
         });
     });
-
-    // #endregion
-
-    // #region Safe Defaults
 
     describe('out-of-range slot index', () => {
         it.each([-1, POINTER_SLOT_COUNT, 99, 1.5, Number.NaN])('returns safe defaults for slot %s', (slot) => {
@@ -1138,6 +1104,4 @@ describe('PointerInput', () => {
             expect(input.isButtonReleased(99, 0)).toBe(false);
         });
     });
-
-    // #endregion
 });

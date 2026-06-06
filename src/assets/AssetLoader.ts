@@ -1,7 +1,5 @@
 import { assertImageElementWithinLimits } from '../utils/AssetLimits';
 
-// #region Module State
-
 /**
  * Successfully loaded images keyed by request URL.
  *
@@ -23,10 +21,6 @@ const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
  * Allocated once at module load; checked inside {@link buildExtensionHint}.
  */
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
-
-// #endregion
-
-// #region URL Hint Helpers
 
 /**
  * Returns whether a URL is absolute or uses a special browser scheme.
@@ -108,10 +102,6 @@ function buildImageHints(url: string): string {
     return hints.length > 0 ? ` ${hints.join(' ')}` : '';
 }
 
-// #endregion
-
-// #region Load Pipeline
-
 /**
  * Builds the rejection error for a failed browser image load.
  *
@@ -173,8 +163,6 @@ function startLoading(url: string): Promise<HTMLImageElement> {
     return promise;
 }
 
-// #endregion
-
 /**
  * Shared image-loading utility for runtime asset code.
  *
@@ -185,8 +173,6 @@ function startLoading(url: string): Promise<HTMLImageElement> {
  * - exposes cache inspection and reset helpers for engine code and tests
  */
 export class AssetLoader {
-    // #region Image loading
-
     /**
      * Loads an image and caches the resolved element by URL.
      *
@@ -211,10 +197,6 @@ export class AssetLoader {
     static async loadImages(urls: string[]): Promise<HTMLImageElement[]> {
         return Promise.all(urls.map((url) => AssetLoader.loadImage(url)));
     }
-
-    // #endregion
-
-    // #region Cache Management
 
     /**
      * Checks if an image is already loaded and cached.
@@ -246,6 +228,4 @@ export class AssetLoader {
         loadedImages.clear();
         loadingPromises.clear();
     }
-
-    // #endregion
 }

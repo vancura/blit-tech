@@ -1,12 +1,6 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { clampByte, Color32 } from './Color32';
-
-// #endregion
-
-// #region Constants
 
 const BASE_R = 64;
 const BASE_G = 128;
@@ -23,10 +17,6 @@ const BENCH_OPTIONS = {
     warmupIterations: 50,
 };
 
-// #endregion
-
-// #region Helper Functions
-
 /**
  * Restores a mutable color to a known baseline before in-place benchmarks.
  *
@@ -42,10 +32,6 @@ function resetColor(color: Color32, r: number, g: number, b: number, a: number):
     color.b = b;
     color.a = a;
 }
-
-// #endregion
-
-// #region Benchmark Suites
 
 describe('Color32 creation benchmarks', () => {
     bench(
@@ -284,5 +270,3 @@ describe('Color32 mutation benchmarks', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion

@@ -18,8 +18,6 @@
  * This font data is in the public domain.
  */
 
-// #region Bitmap Data
-
 // prettier-ignore
 export const SYSTEM_FONT_BITMAPS: readonly number[] = [
     // Space (32)
@@ -214,10 +212,6 @@ export const SYSTEM_FONT_BITMAPS: readonly number[] = [
     0x00, 0x00, 0x40, 0xa8, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
 
-// #endregion
-
-// #region Constants
-
 /** First character code in the bitmap array. */
 export const SYSTEM_FONT_FIRST_CHAR = 32;
 
@@ -235,5 +229,3 @@ export const SYSTEM_FONT_GLYPH_HEIGHT = 14;
 
 /** Number of bytes per glyph (one byte per row). */
 export const SYSTEM_FONT_BYTES_PER_GLYPH = 14;
-
-// #endregion

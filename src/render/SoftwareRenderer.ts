@@ -11,8 +11,6 @@ import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import type { IRenderer } from './IRenderer';
 
-// #region Type Definitions
-
 /** A queued filled-rectangle or outline-rectangle draw command. */
 type RectCommand = {
     kind: 'rectFill' | 'rect';
@@ -74,8 +72,6 @@ type Pending = {
 /** Alias for either the offscreen or on-screen 2D rendering context variant. */
 type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 
-// #endregion
-
 /**
  * Canvas-2D software fallback renderer implementing {@link IRenderer}.
  *
@@ -84,17 +80,11 @@ type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
  * target canvas with optional nearest-neighbor upscaling.
  */
 export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
-    // #region Constants
-
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
         "The software renderer doesn't support fullscreen effects. To use post-process effects, set backend to 'webgpu' in configure().";
 
     /** Vertices emitted for one filled rect or sprite quad (matches WebGPU batching). */
     private static readonly QUAD_VERTEX_COUNT = 6;
-
-    // #endregion
-
-    // #region State
 
     private readonly canvas: HTMLCanvasElement;
     private readonly displaySize: Vector2i;
@@ -114,10 +104,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private primitiveSubmittedVertices = 0;
     private spriteSubmittedVertices = 0;
 
-    // #endregion
-
-    // #region Constructor
-
     /**
      * Creates a software renderer bound to the given canvas.
      *
@@ -131,10 +117,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         this.outputSize = (outputSize ?? displaySize).clone();
         this.framePixels = new Uint8ClampedArray(this.displaySize.x * this.displaySize.y * 4);
     }
-
-    // #endregion
-
-    // #region Initialization
 
     /**
      * Initializes the 2D canvas contexts and backing image buffer.
@@ -171,10 +153,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         return true;
     }
 
-    // #endregion
-
-    // #region Palette
-
     /**
      * Sets the active palette used for all color lookups during rendering.
      *
@@ -196,10 +174,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     getPalette(): Palette | null {
         return this.palette?.clone() ?? null;
     }
-
-    // #endregion
-
-    // #region Frame Management
 
     /**
      * Marks the start of a new frame and clears the draw-command queue.
@@ -258,10 +232,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             spriteSubmittedVertices: this.spriteSubmittedVertices,
         };
     }
-
-    // #endregion
-
-    // #region Drawing - Primitives
 
     /**
      * Queues a filled rectangle draw command.
@@ -364,10 +334,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         this.drawRectFill(rect, paletteIndex);
     }
 
-    // #endregion
-
-    // #region Drawing - Sprites
-
     /**
      * Queues a sprite blit from a source sheet rectangle to a destination position.
      *
@@ -434,10 +400,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         this.drawLabel(font, pos, text, paletteOffset);
     }
 
-    // #endregion
-
-    // #region Frame Capture
-
     /**
      * Returns a promise that resolves with a PNG Blob on the next `endFrame` call.
      * Any previously pending capture is rejected before the new one is registered.
@@ -457,10 +419,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             this.pending = { resolve, reject };
         });
     }
-
-    // #endregion
-
-    // #region Camera
 
     /**
      * Sets the camera scroll offset applied to all subsequent draw commands.
@@ -485,10 +443,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         this.cameraOffset = Vector2i.zero();
     }
 
-    // #endregion
-
-    // #region Effects
-
     /**
      * Not supported - always throws.
      *
@@ -511,10 +465,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     clearEffects(): void {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
-
-    // #endregion
-
-    // #region Private Helpers
 
     /**
      * Creates an `OffscreenCanvas` when available, falling back to an off-DOM `<canvas>`.
@@ -928,10 +878,6 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
         }, 'image/png');
     }
 
-    // #endregion
-
-    // #region Diagnostic estimation
-
     /**
      * Estimates primitive vertices for a line using the same rules as {@link PrimitivePipeline.drawLine}.
      *
@@ -1030,6 +976,4 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
         return steps;
     }
-
-    // #endregion
 }

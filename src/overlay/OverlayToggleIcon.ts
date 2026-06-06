@@ -2,8 +2,6 @@
  * Draw helper for the inline overlay toggle hint bitmap icon.
  */
 
-// #region Imports and constants
-
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX } from './layout/constants';
@@ -15,10 +13,6 @@ const iconDrawScratch = {
     run: new Rect2i(),
     origin: new Vector2i(),
 };
-
-// #endregion
-
-// #region Layout helpers
 
 /**
  * Computes the icon top-left Y inside the hint bar without allocating.
@@ -82,10 +76,6 @@ export function hintIconExclusionRect(hintBarTopY: number): Rect2i {
 export function overlayToggleHintIconExclusionRect(hintBarTopY: number): Rect2i {
     return hintIconExclusionRect(hintBarTopY);
 }
-
-// #endregion
-
-// #region Drawing
 
 /**
  * Draws the toggle hint icon from {@link ICON_MASK} using on-top bar fills.
@@ -153,10 +143,6 @@ export function drawOverlayToggleIcon(
     toggleIcon(target, hintBarTopY, textPaletteIndex, inverted);
 }
 
-// #endregion
-
-// #region Utilities
-
 /**
  * Writes the toggle hint icon top-left origin into {@link target} without allocating.
  *
@@ -167,5 +153,3 @@ function writeHintIconOrigin(target: Vector2i, hintBarTopY: number): void {
     target.x = OVERLAY_EDGE_MARGIN_PX;
     target.y = hintIconY(hintBarTopY);
 }
-
-// #endregion

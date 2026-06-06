@@ -7,15 +7,9 @@
  * - Text measurement throughput
  */
 
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { createSystemFont } from './SystemFont';
-
-// #endregion
-
-// #region Constants
 
 const BENCH_OPTIONS = {
     iterations: 500,
@@ -27,10 +21,6 @@ const BENCH_OPTIONS = {
 const SHORT_TEXT = 'Hello, World!';
 const LONG_TEXT = 'The quick brown fox jumps over the lazy dog. 0123456789 ~!@#$%^&*()';
 
-// #endregion
-
-// #region Creation Benchmarks
-
 describe('SystemFont creation', () => {
     bench(
         'createSystemFont()',
@@ -40,10 +30,6 @@ describe('SystemFont creation', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion
-
-// #region Glyph Lookup Benchmarks
 
 describe('SystemFont glyph lookup', () => {
     const font = createSystemFont();
@@ -74,10 +60,6 @@ describe('SystemFont glyph lookup', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion
-
-// #region Text Measurement Benchmarks
 
 describe('SystemFont text measurement', () => {
     const font = createSystemFont();
@@ -116,5 +98,3 @@ describe('SystemFont text measurement', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion

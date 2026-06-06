@@ -6,8 +6,6 @@
  */
 /* eslint-disable security/detect-object-injection */
 
-// #region Constants
-
 /** Maximum supported local gamepad players. */
 export const GAMEPAD_PLAYER_COUNT = 4;
 
@@ -74,10 +72,6 @@ const VALID_AXIS_INDICES = [
     AXIS_TRIGGER_R,
 ] as const;
 
-// #endregion
-
-// #region Raw gamepad reads
-
 /**
  * Reads and clamps a raw stick axis to `[-1, 1]`.
  *
@@ -131,10 +125,6 @@ function isButtonDown(pad: Gamepad, index: number): boolean {
     return button.pressed || button.value >= 0.5;
 }
 
-// #endregion
-
-// #region Types
-
 /**
  * Per-player gamepad snapshot used for current and previous frame state.
  */
@@ -146,10 +136,6 @@ interface PlayerSnapshot {
     /** Snapshot axis values in `AXIS_*` order. */
     axes: readonly [number, number, number, number, number, number];
 }
-
-// #endregion
-
-// #region GamepadInput
 
 /**
  * Polling-based gamepad input tracker with per-frame previous-state snapshots.
@@ -456,8 +442,6 @@ export class GamepadInput {
         return count;
     }
 
-    // #region Private
-
     /**
      * Creates an empty disconnected player snapshot.
      *
@@ -720,8 +704,4 @@ export class GamepadInput {
             this.firstPressTick[i]?.clear();
         }
     }
-
-    // #endregion
 }
-
-// #endregion

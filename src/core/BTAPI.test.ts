@@ -46,8 +46,6 @@ import { BTAPI } from './BTAPI';
 import type { IBlitTechDemo, OverlayRow } from './IBlitTechDemo';
 import { collectUsedIndices } from './RenderPaletteUsage';
 
-// #region Helpers
-
 function resetSingleton(): void {
     // BTAPI._instance is private; the cast is intentional - there is no public
     // reset API, and this is the least-invasive way to isolate singleton state
@@ -129,8 +127,6 @@ function makeOffscreenCanvas2dContext(): OffscreenCanvas2DMock {
     };
 }
 
-// #endregion
-
 describe('BTAPI', () => {
     beforeEach(() => {
         resetSingleton();
@@ -148,8 +144,6 @@ describe('BTAPI', () => {
 
         vi.unstubAllGlobals();
     });
-
-    // #region Version constants
 
     describe('version constants', () => {
         it('should expose VERSION_MAJOR as a number', () => {
@@ -173,10 +167,6 @@ describe('BTAPI', () => {
         });
     });
 
-    // #endregion
-
-    // #region Singleton
-
     describe('singleton', () => {
         it('should return the same instance on multiple accesses', () => {
             const a = BTAPI.instance;
@@ -195,10 +185,6 @@ describe('BTAPI', () => {
             expect(a).not.toBe(b);
         });
     });
-
-    // #endregion
-
-    // #region Pre-init null-state accessors
 
     describe('pre-initialization accessors', () => {
         it('getTicks should return 0 before init', () => {
@@ -252,10 +238,6 @@ describe('BTAPI', () => {
             expect(offset.y).toBe(0);
         });
     });
-
-    // #endregion
-
-    // #region Pre-init no-ops
 
     describe('pre-initialization drawing no-ops', () => {
         it('stop should not throw before init', () => {
@@ -359,10 +341,6 @@ describe('BTAPI', () => {
             expect(BTAPI.instance.getPalette()).toBe(palette);
         });
     });
-
-    // #endregion
-
-    // #region init()
 
     describe('init', () => {
         it('should return false for NaN targetFPS', async () => {
@@ -1145,10 +1123,6 @@ describe('BTAPI', () => {
         });
     });
 
-    // #endregion
-
-    // #region Timing chart tags
-
     describe('assignTag', () => {
         it('forwards tags to Overlay when the timing chart is enabled', async () => {
             const assignSpy = vi.spyOn(Overlay.prototype, 'assignTag');
@@ -1189,10 +1163,6 @@ describe('BTAPI', () => {
             expect(assignSpy).not.toHaveBeenCalled();
         });
     });
-
-    // #endregion
-
-    // #region Renderer diagnostics
 
     describe('renderer diagnostics in overlay timing snapshot', () => {
         /**
@@ -1346,10 +1316,6 @@ describe('BTAPI', () => {
             expect(secondTiming).toMatchObject(mockDiagnostics);
         });
     });
-
-    // #endregion
-
-    // #region Palette usage tracking
 
     describe('palette usage tracking', () => {
         function getOverlay(): Overlay | null {
@@ -1752,10 +1718,6 @@ describe('BTAPI', () => {
         });
     });
 
-    // #endregion
-
-    // #region assertPaletteIndex
-
     describe('assertPaletteIndex', () => {
         it('throws when index is negative (no palette set)', () => {
             expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), -1)).toThrow('0 or higher');
@@ -1769,10 +1731,6 @@ describe('BTAPI', () => {
             expect(() => BTAPI.instance.drawPixel(new Vector2i(0, 0), 20)).toThrow('The color number 20 is too big');
         });
     });
-
-    // #endregion
-
-    // #region Post-Process Effects API
 
     describe('post-process effects', () => {
         function makeStubEffect(): Effect {
@@ -1829,6 +1787,4 @@ describe('BTAPI', () => {
             expect(removeSpy).toHaveBeenCalledWith(effect);
         });
     });
-
-    // #endregion
 });

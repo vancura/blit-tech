@@ -1,8 +1,6 @@
 import type { Vector2i } from '../utils/Vector2i';
 import { VS_WGSL } from './effects/fullscreenVS';
 
-// #region Configuration
-
 /**
  * Texture usage flags for the upscale pass output.
  *
@@ -11,8 +9,6 @@ import { VS_WGSL } from './effects/fullscreenVS';
  * texture-binding usages.
  */
 const OUTPUT_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-
-// #endregion
 
 /**
  * Upscale filter applied between the pixel chain (logical resolution) and the
@@ -37,8 +33,6 @@ export type UpscaleFilter = 'nearest' | 'linear';
  * supplies views every frame.
  */
 export class UpscalePass {
-    // #region GPU State
-
     private device: GPUDevice | null = null;
     private pipeline: GPURenderPipeline | null = null;
     private bindGroupLayout: GPUBindGroupLayout | null = null;
@@ -52,10 +46,6 @@ export class UpscalePass {
      * lifetime of the pixel chain, so a `WeakMap` is safe.
      */
     private readonly bindGroups = new WeakMap<GPUTextureView, GPUBindGroup>();
-
-    // #endregion
-
-    // #region Lifecycle
 
     /**
      * Returns the filter mode this pass was initialized with.
@@ -151,10 +141,6 @@ export class UpscalePass {
         this.device = null;
     }
 
-    // #endregion
-
-    // #region Helpers - texture allocation
-
     /**
      * Allocates a texture for the upscale pass output at the supplied size and
      * format.
@@ -182,10 +168,6 @@ export class UpscalePass {
             usage: OUTPUT_USAGE,
         });
     }
-
-    // #endregion
-
-    // #region Private Helpers
 
     /**
      * Returns the bind group for the supplied source view, creating one on
@@ -218,11 +200,7 @@ export class UpscalePass {
 
         return bindGroup;
     }
-
-    // #endregion
 }
-
-// #region WGSL fragment shader
 
 const FRAGMENT_WGSL = `
 @group(0) @binding(0) var src: texture_2d<f32>;
@@ -233,5 +211,3 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     return textureSample(src, samp, in.uv);
 }
 `;
-
-// #endregion

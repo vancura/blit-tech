@@ -6,8 +6,6 @@ import {
 } from './errorMessages';
 import type { Vector2i } from './Vector2i';
 
-// #region Constants
-
 /** Maximum render dimension accepted on either axis before renderer allocation. */
 export const MAX_RENDER_DIMENSION = 8192;
 
@@ -20,10 +18,6 @@ export const RENDER_DIMENSION_LIMITS = {
     maxHeight: MAX_RENDER_DIMENSION,
     maxPixels: MAX_RENDER_PIXELS,
 } as const;
-
-// #endregion
-
-// #region Types
 
 /** Hardware settings fields that carry render or canvas dimensions. */
 export type RenderDimensionField = 'displaySize' | 'drawingBufferSize' | 'maxCanvasSize';
@@ -50,10 +44,6 @@ export interface RenderDimensionSettings {
     /** Optional maximum on-screen canvas CSS size in pixels. */
     maxCanvasSize?: Vector2i;
 }
-
-// #endregion
-
-// #region Helpers
 
 /**
  * Formats a render dimension for error messages.
@@ -170,5 +160,3 @@ export function validateWebGPUTextureDimension(
 
     return null;
 }
-
-// #endregion

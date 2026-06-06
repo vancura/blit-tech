@@ -12,8 +12,6 @@ import { btfontGlyphEntryNotObjectError } from '../utils/errorMessages';
 import { Rect2i } from '../utils/Rect2i';
 import { SpriteSheet } from './SpriteSheet';
 
-// #region Type Definitions
-
 /**
  * Runtime glyph metadata used by the renderer.
  */
@@ -95,14 +93,8 @@ export interface TextSize {
     height: number;
 }
 
-// #endregion
-
-// #region Constants
-
 /** Size of the direct lookup table used for ASCII glyphs (`0-127`). */
 const ASCII_CACHE_SIZE = 128;
-
-// #endregion
 
 /**
  * Returns whether a value is a non-null plain object (not an array).
@@ -152,8 +144,6 @@ function populateAsciiGlyph(asciiGlyphs: (Glyph | null)[], char: string, glyph: 
  * - providing the underlying {@link SpriteSheet} used for rendering glyph quads
  */
 export class BitmapFont {
-    // #region Module State
-
     /** Font display name. */
     public readonly name: string;
 
@@ -180,10 +170,6 @@ export class BitmapFont {
 
     /** Reusable result object for measureTextSize to avoid allocations. */
     private readonly textSizeResult: TextSize = { width: 0, height: 0 };
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates a BitmapFont instance.
@@ -215,10 +201,6 @@ export class BitmapFont {
         this.baseline = baseline;
     }
 
-    // #endregion
-
-    // #region Metadata
-
     /**
      * Returns the total number of glyphs loaded into the font.
      *
@@ -227,10 +209,6 @@ export class BitmapFont {
     get glyphCount(): number {
         return this.glyphs.size;
     }
-
-    // #endregion
-
-    // #region Static Factories
 
     /**
      * Creates a bitmap font synchronously from pre-built glyph data.
@@ -264,10 +242,6 @@ export class BitmapFont {
 
         return new BitmapFont(spriteSheet, glyphs, asciiGlyphs, name, size, lineHeight, baseline);
     }
-
-    // #endregion
-
-    // #region Loading
 
     /**
      * Loads a bitmap font from a `.btfont` JSON file.
@@ -316,8 +290,6 @@ export class BitmapFont {
             baseline,
         );
     }
-
-    // #region Loading Helpers
 
     /**
      * Coerces a `.btfont` display `name` field to a non-empty string.
@@ -663,10 +635,6 @@ export class BitmapFont {
         return BitmapFont.isExplicitUrl(url) || (['/', './'] as const).some((prefix) => url.startsWith(prefix));
     }
 
-    // #endregion
-
-    // #region Glyph Access
-
     /**
      * Loads an image from a URL or data URI.
      *
@@ -767,10 +735,6 @@ export class BitmapFont {
     getSpriteSheet(): SpriteSheet {
         return this.spriteSheet;
     }
-
-    // #endregion
-
-    // #region Text Measurement
 
     /**
      * Measures the horizontal pixel width of a text string.
@@ -898,6 +862,4 @@ export class BitmapFont {
     clearMeasureCache(): void {
         this.measureCache.clear();
     }
-
-    // #endregion
 }

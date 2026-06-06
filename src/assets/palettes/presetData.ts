@@ -6,8 +6,6 @@
  * palette index `1`.
  */
 
-// #region Hex Conversion
-
 /** Masks an 8-bit channel before hex formatting. */
 const BYTE_MASK = 0xff;
 
@@ -22,10 +20,6 @@ const BYTE_MASK = 0xff;
 function rgbToHex(r: number, g: number, b: number): string {
     return [r, g, b].map((channel) => (channel & BYTE_MASK).toString(16).padStart(2, '0')).join('');
 }
-
-// #endregion
-
-// #region VGA Palette
 
 /** Classic VGA 16-color base entries (indices 0-15). */
 const VGA_BASE_HEX = [
@@ -67,10 +61,6 @@ const VGA_GRAYSCALE_HEX = Array.from({ length: VGA_GRAYSCALE_ENTRY_COUNT }, (_, 
 
 /** Default VGA 256-color preset data. */
 export const VGA_HEX = [...VGA_BASE_HEX, ...VGA_CUBE_HEX, ...VGA_GRAYSCALE_HEX];
-
-// #endregion
-
-// #region Static Presets
 
 /** Commodore 64 16-color preset data. */
 // cspell:disable
@@ -204,5 +194,3 @@ export const PICO8_HEX = [
     'ffccaa',
 ];
 // cspell:enable
-
-// #endregion

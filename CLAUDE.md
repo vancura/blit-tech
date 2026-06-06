@@ -256,7 +256,6 @@ or drive breaking changes through consumers for naming-only cleanup.
 - JSDoc required for public APIs
 - When implementing changes, always update JSDoc and inline comments alongside the code. Never leave stale comments that
   describe old behavior.
-- Use `// #region` / `// #endregion` for sections in files >100 lines
 
 ## Commands
 

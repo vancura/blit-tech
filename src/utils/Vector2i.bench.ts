@@ -1,12 +1,6 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { Vector2i } from './Vector2i';
-
-// #endregion
-
-// #region Constants
 
 const BASE_X = 17;
 const BASE_Y = 23;
@@ -24,10 +18,6 @@ const BENCH_OPTIONS = {
     warmupIterations: 50,
 };
 
-// #endregion
-
-// #region Helper Functions
-
 /**
  * Restores a mutable vector to a known baseline before in-place benchmarks.
  *
@@ -39,10 +29,6 @@ function resetVector(vector: Vector2i, x: number, y: number): void {
     vector.x = x;
     vector.y = y;
 }
-
-// #endregion
-
-// #region Benchmark Suites
 
 describe('Vector2i creation and copy benchmarks', () => {
     const source = Vector2i.fromXYUnchecked(BASE_X, BASE_Y);
@@ -312,5 +298,3 @@ describe('Vector2i comparison benchmarks', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion

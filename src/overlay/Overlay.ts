@@ -80,8 +80,6 @@ function createTimingChart(
  * {@link HardwareSettings.isOverlayEnabled} and {@link BT.activeBackend} instead.
  */
 export class Overlay {
-    // #region Fields
-
     readonly #layout: OverlayLayout;
 
     readonly #topLeftLabel: string;
@@ -125,10 +123,6 @@ export class Overlay {
     #idxText = DEFAULT_IDX_TEXT;
 
     #idxGap = DEFAULT_IDX_BG;
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates an overlay with fixed layout and text strings.
@@ -190,10 +184,6 @@ export class Overlay {
         this.#toggle = new Toggle(isOverlayVisibleAtStart, isOverlayToggleEnabled);
         this.#isToggleHintVisible = isOverlayToggleHintVisible;
     }
-
-    // #endregion
-
-    // #region Public API
 
     /**
      * Records a timing-chart event tag at the current tick.
@@ -345,10 +335,6 @@ export class Overlay {
             );
         });
     }
-
-    // #endregion
-
-    // #region Private helpers
 
     /**
      * Records timing samples when a snapshot is provided.
@@ -576,6 +562,4 @@ export class Overlay {
             );
         }
     }
-
-    // #endregion
 }

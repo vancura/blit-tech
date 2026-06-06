@@ -1,14 +1,8 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { Color32 } from '../utils/Color32';
 import { Palette } from './Palette';
 import { CycleEffect, FadeEffect, PaletteEffectManager, paletteSwap } from './PaletteEffect';
-
-// #endregion
-
-// #region Constants
 
 const BENCH_OPTIONS = {
     iterations: 500,
@@ -18,10 +12,6 @@ const BENCH_OPTIONS = {
 };
 
 const PALETTE_SIZE = 256;
-
-// #endregion
-
-// #region Helpers
 
 /**
  * Creates a palette with distinct colors for benchmarking.
@@ -54,10 +44,6 @@ function makeTimeClock(): { now: () => number; advance: (ms: number) => void } {
     };
 }
 
-// #endregion
-
-// #region CycleEffect Benchmarks
-
 describe('CycleEffect benchmarks', () => {
     const palette = makePalette();
     const effect = new CycleEffect(1, 31, 60);
@@ -84,10 +70,6 @@ describe('CycleEffect large range benchmarks', () => {
     );
 });
 
-// #endregion
-
-// #region FadeEffect Benchmarks
-
 describe('FadeEffect benchmarks', () => {
     const source = makePalette();
     const target = makePalette();
@@ -108,10 +90,6 @@ describe('FadeEffect benchmarks', () => {
     );
 });
 
-// #endregion
-
-// #region paletteSwap Benchmarks
-
 describe('paletteSwap benchmarks', () => {
     const palette = makePalette();
 
@@ -123,10 +101,6 @@ describe('paletteSwap benchmarks', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion
-
-// #region PaletteEffectManager Benchmarks
 
 describe('PaletteEffectManager benchmarks', () => {
     const clock = makeTimeClock();
@@ -162,5 +136,3 @@ describe('PaletteEffectManager empty benchmarks', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion

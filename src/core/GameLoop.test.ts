@@ -19,8 +19,6 @@ import type { FrameDropEvent } from './GameLoop';
 import { GameLoop } from './GameLoop';
 
 describe('GameLoop', () => {
-    // #region Constructor
-
     describe('constructor', () => {
         it('should accept a valid positive update interval', () => {
             const loop = new GameLoop(16.67, vi.fn(), vi.fn());
@@ -49,10 +47,6 @@ describe('GameLoop', () => {
         });
     });
 
-    // #endregion
-
-    // #region Public Methods
-
     describe('getTicks', () => {
         it('should return 0 initially', () => {
             const loop = new GameLoop(16.67, vi.fn(), vi.fn());
@@ -80,10 +74,6 @@ describe('GameLoop', () => {
             expect(() => loop.stop()).not.toThrow();
         });
     });
-
-    // #endregion
-
-    // #region start
 
     describe('start', () => {
         beforeEach(() => {
@@ -114,10 +104,6 @@ describe('GameLoop', () => {
             expect((requestAnimationFrame as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsBefore);
         });
     });
-
-    // #endregion
-
-    // #region start (RAF flush)
 
     describe('start (RAF flush)', () => {
         afterEach(() => {
@@ -151,10 +137,6 @@ describe('GameLoop', () => {
             expect(rafCallbacks).toHaveLength(3);
         });
     });
-
-    // #endregion
-
-    // #region tick (private)
 
     describe('tick (via type cast)', () => {
         type PrivateLoop = {
@@ -243,10 +225,6 @@ describe('GameLoop', () => {
             expect(requestAnimationFrame).toHaveBeenCalled();
         });
     });
-
-    // #endregion
-
-    // #region Frame-drop detection
 
     describe('frame-drop detection', () => {
         type PrivateLoop = {
@@ -455,6 +433,4 @@ describe('GameLoop', () => {
             expect(() => p.tick(100)).not.toThrow();
         });
     });
-
-    // #endregion
 });

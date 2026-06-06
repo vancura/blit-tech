@@ -12,8 +12,6 @@ import { describe, expect, it } from 'vitest';
 import { Color32 } from '../utils/Color32';
 import { Palette } from './Palette';
 
-// #region Palette
-
 describe('Palette', () => {
     /** Verifies that every supported indexed palette size constructs cleanly. */
     it('constructs all valid palette sizes', () => {
@@ -256,10 +254,6 @@ describe('Palette', () => {
     });
 });
 
-// #endregion
-
-// #region Palette dirty flag
-
 describe('Palette dirty flag', () => {
     it('starts clean after construction', () => {
         expect(new Palette(16).isDirty).toBe(false);
@@ -323,10 +317,6 @@ describe('Palette dirty flag', () => {
         expect(palette.isDirty).toBe(true);
     });
 });
-
-// #endregion
-
-// #region applyHUD
 
 describe('applyHUD', () => {
     it('fills slots 1-6 with canonical HUD colors at default startSlot', () => {
@@ -439,5 +429,3 @@ describe('applyHUD', () => {
         expect(palette.isDirty).toBe(true);
     });
 });
-
-// #endregion

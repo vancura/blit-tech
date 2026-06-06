@@ -17,8 +17,6 @@ import { BTAPI } from './core/BTAPI';
 import type { FaceButtonCode } from './input/defaultKeyboardMap';
 import { DEFAULT_CONTAINER_ID } from './utils/BootstrapHelpers';
 
-// #region Helpers
-
 const mockHardwareSettings = (displaySize = new Vector2i(320, 240), targetFPS = 60): HardwareSettings => ({
     displaySize,
     targetFPS,
@@ -53,10 +51,6 @@ async function withErrorContainer(callback: () => void | Promise<void>): Promise
         clearErrorContainer();
     }
 }
-
-// #endregion
-
-// #region BT.init
 
 describe('BT.init', () => {
     beforeEach(() => {
@@ -95,10 +89,6 @@ describe('BT.init', () => {
     });
 });
 
-// #endregion
-
-// #region BT.displaySize
-
 describe('BT.displaySize', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -122,10 +112,6 @@ describe('BT.displaySize', () => {
         expect(size.y).toBe(480);
     });
 });
-
-// #endregion
-
-// #region BT.drawingBufferSize / BT.outputSize
 
 describe('BT.drawingBufferSize', () => {
     beforeEach(() => {
@@ -219,10 +205,6 @@ describe('BT.outputSize', () => {
     });
 });
 
-// #endregion
-
-// #region BT.targetFPS
-
 describe('BT.targetFPS', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -242,10 +224,6 @@ describe('BT.targetFPS', () => {
         expect(BT.targetFPS).toBe(30);
     });
 });
-
-// #endregion
-
-// #region BT.deltaSeconds / BT.timeSeconds
 
 describe('BT.deltaSeconds', () => {
     beforeEach(() => {
@@ -322,10 +300,6 @@ describe('BT.timeSeconds', () => {
     });
 });
 
-// #endregion
-
-// #region BT.ticks / BT.ticksReset
-
 describe('BT.ticks', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -365,10 +339,6 @@ describe('BT.assignTag', () => {
         expect(spy).toHaveBeenCalledWith('Milestone');
     });
 });
-
-// #endregion
-
-// #region BT.paletteCreate / BT.paletteSet / BT.palette
 
 describe('BT.paletteCreate', () => {
     it('creates a palette with the requested size', () => {
@@ -432,10 +402,6 @@ describe('BT.palette', () => {
     });
 });
 
-// #endregion
-
-// #region BT.clear / BT.clearRect
-
 describe('BT.clear', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -466,10 +432,6 @@ describe('BT.clearRect', () => {
         expect(spy).toHaveBeenCalledWith(rect, 1);
     });
 });
-
-// #endregion
-
-// #region BT.drawPixel / BT.drawLine / BT.drawRect / BT.drawRectFill
 
 describe('BT.drawPixel', () => {
     beforeEach(() => {
@@ -553,10 +515,6 @@ describe('BT.drawRectFill', () => {
     });
 });
 
-// #endregion
-
-// #region BT.cameraSet / BT.camera / BT.cameraClamp / BT.cameraReset
-
 describe('BT.cameraSet', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -632,10 +590,6 @@ describe('BT.cameraReset', () => {
         expect(spy).toHaveBeenCalledOnce();
     });
 });
-
-// #endregion
-
-// #region BT.isDown / BT.isPressed / BT.isReleased
 
 describe('BT.isDown', () => {
     beforeEach(() => {
@@ -809,10 +763,6 @@ describe('BT.isReleased', () => {
     });
 });
 
-// #endregion
-
-// #region BT.inputMap / BT.inputMapReset
-
 describe('BT.inputMap / BT.inputMapReset', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -898,10 +848,6 @@ describe('BT.inputMap / BT.inputMapReset', () => {
         expect(isDown).toHaveBeenCalledWith([]);
     });
 });
-
-// #endregion
-
-// #region BT pointer queries
 
 describe('BT.pointerPos', () => {
     afterEach(() => {
@@ -1001,10 +947,6 @@ describe('BT.pointerScrollDelta', () => {
     });
 });
 
-// #endregion
-
-// #region Pointer button constants
-
 describe('Pointer button constants', () => {
     it('exposes BTN_POINTER_A..D as bit flags', () => {
         expect(BT.BTN_POINTER_A).toBe(1 << 12);
@@ -1013,10 +955,6 @@ describe('Pointer button constants', () => {
         expect(BT.BTN_POINTER_D).toBe(1 << 15);
     });
 });
-
-// #endregion
-
-// #region BT gamepad constants and APIs / BT.isKeyDown / BT.isKeyPressed / BT.isKeyReleased
 
 describe('BT gamepad constants and APIs', () => {
     afterEach(() => {
@@ -1096,10 +1034,6 @@ describe('BT.isKeyReleased', () => {
     });
 });
 
-// #endregion
-
-// #region BT.systemPrint / BT.systemPrintMeasure / BT.printFont
-
 describe('BT.systemPrint', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -1177,10 +1111,6 @@ describe('BT.printFont', () => {
     });
 });
 
-// #endregion
-
-// #region BT.captureFrame / BT.downloadFrame
-
 describe('BT.captureFrame', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -1245,10 +1175,6 @@ describe('BT.downloadFrame', () => {
         expect(mockAnchor.download).toBe('blit-tech-capture.png');
     });
 });
-
-// #endregion
-
-// #region BT.drawSprite
 
 describe('BT.drawSprite', () => {
     const mockImage = { width: 64, height: 64 } as HTMLImageElement;
@@ -1320,10 +1246,6 @@ describe('BT.drawSprite', () => {
         });
     });
 });
-
-// #endregion
-
-// #region BT.effectAdd / BT.effectRemove / BT.effectClear
 
 describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
     function makeStubEffect() {
@@ -1452,10 +1374,6 @@ describe('BT.effectAdd / BT.effectRemove / BT.effectClear', () => {
     });
 });
 
-// #endregion
-
-// #region BT.requestedBackend
-
 describe('BT.requestedBackend', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -1487,10 +1405,6 @@ describe('BT.requestedBackend', () => {
     });
 });
 
-// #endregion
-
-// #region BT.activeBackend
-
 describe('BT.activeBackend', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
@@ -1517,5 +1431,3 @@ describe('BT.activeBackend', () => {
         expect(BT.activeBackend).toBe('software');
     });
 });
-
-// #endregion

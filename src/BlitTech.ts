@@ -238,12 +238,8 @@ function pointerFlagToPointerCode(pointerFlag: number): number | null {
     }
 }
 
-// #region Public API
-
 /** Main Blit-Tech API namespace used by runtime demos. */
 export const BT = {
-    // #region Constants - Sprite Transform Flags
-
     /** Horizontal flip flag for sprite rendering. */
     FLIP_H: 1,
 
@@ -258,10 +254,6 @@ export const BT = {
 
     /** Rotate 270° clockwise flag for sprite rendering. */
     ROT_270_CW: 1 << 4,
-
-    // #endregion
-
-    // #region Constants - Button Codes
 
     /** Up button bit flag. */
     BTN_UP: 1 << 0,
@@ -381,10 +373,6 @@ export const BT = {
      */
     DEFAULT_KEYBOARD_PLAYER2,
 
-    // #endregion
-
-    // #region Initialization
-
     /**
      * Initializes the engine against a demo instance and target canvas.
      *
@@ -401,10 +389,6 @@ export const BT = {
     init: async (demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
         return await BTAPI.instance.init(demo, canvas);
     },
-
-    // #endregion
-
-    // #region Hardware Information
 
     /**
      * Active logical render resolution in pixels.
@@ -615,10 +599,6 @@ export const BT = {
         return palette;
     },
 
-    // #endregion
-
-    // #region Palette Effects API
-
     /**
      * Starts rotating a range of palette entries at a constant speed.
      *
@@ -711,10 +691,6 @@ export const BT = {
         BTAPI.instance.paletteClearEffects();
     },
 
-    // #endregion
-
-    // #region Post-Process Effects API
-
     /**
      * Appends a fullscreen post-processing effect to whichever chain matches
      * its declared {@link Effect.tier}.
@@ -778,10 +754,6 @@ export const BT = {
      */
     preset: { crtPipBoy, amber, green },
 
-    // #endregion
-
-    // #region Rendering API - Clear Operations
-
     /**
      * Sets the frame clear color using a palette index.
      *
@@ -807,10 +779,6 @@ export const BT = {
             BTAPI.instance.clearRect(rect, paletteIndex);
         });
     },
-
-    // #endregion
-
-    // #region Rendering API - Primitives
 
     /**
      * Draws a single pixel.
@@ -888,10 +856,6 @@ export const BT = {
         });
     },
 
-    // #endregion
-
-    // #region Camera API
-
     /**
      * Sets the global camera offset applied to subsequent draw calls.
      *
@@ -931,10 +895,6 @@ export const BT = {
     cameraReset: (): void => {
         BTAPI.instance.resetCamera();
     },
-
-    // #endregion
-
-    // #region Input API - Pointer
 
     /**
      * Returns the position of the pointer in the given slot, in display coordinates.
@@ -1025,10 +985,6 @@ export const BT = {
     showCursor: (): void => {
         BTAPI.instance.getPointer()?.showCursor();
     },
-
-    // #endregion
-
-    // #region Input API - Buttons
 
     /**
      * Checks whether a button is currently held.
@@ -1341,10 +1297,6 @@ export const BT = {
         return BTAPI.instance.getGamepad()?.connectedCount() ?? 0;
     },
 
-    // #endregion
-
-    // #region Input API - Keyboard
-
     /**
      * Checks whether a keyboard key is currently held.
      *
@@ -1429,10 +1381,6 @@ export const BT = {
         return BTAPI.instance.getKeyboard()?.getInputString() ?? '';
     },
 
-    // #endregion
-
-    // #region Text Rendering API
-
     /**
      * Draws text using the built-in 6x14 system font.
      *
@@ -1494,10 +1442,6 @@ export const BT = {
         });
     },
 
-    // #endregion
-
-    // #region Frame Capture API
-
     /**
      * Captures the next rendered frame as a PNG blob.
      *
@@ -1537,10 +1481,6 @@ export const BT = {
 
         URL.revokeObjectURL(url);
     },
-
-    // #endregion
-
-    // #region Rendering API - Sprites
 
     /**
      * Draws a sprite region from an indexed sprite sheet.
@@ -1618,13 +1558,7 @@ export const BT = {
     spritesRefresh: (): void => {
         BTAPI.instance.spritesRefresh();
     },
-
-    // #endregion
 };
-
-// #endregion
-
-// #region Exports
 
 export {
     amber,
@@ -1674,5 +1608,3 @@ export type {
     TextSize,
 };
 export type { IndexedSpriteLoadResult };
-
-// #endregion

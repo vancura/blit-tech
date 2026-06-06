@@ -136,7 +136,6 @@ describe('MyClass', () => {
 Conventions:
 
 - Use `describe`/`it` (not `test`)
-- Use `// #region` / `// #endregion` for files over ~100 lines
 - Follow source code style (4-space indent, single quotes, semicolons)
 - No emoji in test descriptions
 - No JSDoc required in test files

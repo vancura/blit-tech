@@ -27,8 +27,6 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { SpritePipeline } from './SpritePipeline';
 
-// #region Constructor
-
 describe('SpritePipeline constructor', () => {
     it('creates an instance without error', () => {
         const pipeline = new SpritePipeline();
@@ -37,10 +35,6 @@ describe('SpritePipeline constructor', () => {
         expect(pipeline).toBeInstanceOf(SpritePipeline);
     });
 });
-
-// #endregion
-
-// #region Pre-initialization Safety
 
 describe('pre-initialization safety', () => {
     it('reset() can be called multiple times safely', () => {
@@ -69,10 +63,6 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 });
-
-// #endregion
-
-// #region Initialized Pipeline
 
 describe('with initialized pipeline', () => {
     const device = createMockGPUDevice();
@@ -136,10 +126,6 @@ describe('with initialized pipeline', () => {
         pipeline.setCameraOffset(Vector2i.zero());
     });
 });
-
-// #endregion
-
-// #region Sprite Drawing
 
 describe('drawSprite', () => {
     const device = createMockGPUDevice();
@@ -398,10 +384,6 @@ describe('drawSprite', () => {
     });
 });
 
-// #endregion
-
-// #region drawBitmapText
-
 describe('drawBitmapText', () => {
     const device = createMockGPUDevice();
     const pipeline = new SpritePipeline();
@@ -535,5 +517,3 @@ describe('drawBitmapText', () => {
         }).not.toThrow();
     });
 });
-
-// #endregion

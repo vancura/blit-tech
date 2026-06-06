@@ -2,8 +2,6 @@ import type { Vector2i } from '../../utils/Vector2i';
 import type { Effect } from './Effect';
 import { VS_WGSL } from './fullscreenVS';
 
-// #region FullscreenPixelEffect
-
 /**
  * Base class for pixel-tier fullscreen effects supporting both RGBA (`texture_2d<f32>`)
  * and palette-native (`texture_2d<u32>` / `r8uint` attachments) chains.
@@ -199,5 +197,3 @@ export abstract class FullscreenPixelEffect implements Effect {
         return bindGroup;
     }
 }
-
-// #endregion

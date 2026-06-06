@@ -23,8 +23,6 @@ import {
 import { Palette } from './Palette';
 import { createSystemFont } from './SystemFont';
 
-// #region Factory
-
 describe('createSystemFont', () => {
     it('returns a BitmapFont instance', () => {
         const font = createSystemFont();
@@ -61,10 +59,6 @@ describe('createSystemFont', () => {
         }
     });
 });
-
-// #endregion
-
-// #region Glyph Access
 
 describe('system font glyph access', () => {
     it('returns glyph for space character', () => {
@@ -108,10 +102,6 @@ describe('system font glyph access', () => {
     });
 });
 
-// #endregion
-
-// #region Text Measurement
-
 describe('system font text measurement', () => {
     it('measures text width correctly', () => {
         const font = createSystemFont();
@@ -135,10 +125,6 @@ describe('system font text measurement', () => {
         expect(size.height).toBe(SYSTEM_FONT_GLYPH_HEIGHT);
     });
 });
-
-// #endregion
-
-// #region Sprite Sheet
 
 describe('system font sprite sheet', () => {
     it('produces an indexized sprite sheet', () => {
@@ -180,5 +166,3 @@ describe('system font sprite sheet', () => {
         expect(() => sheet.getImage()).toThrow('not available for sheets created from raw indexed data');
     });
 });
-
-// #endregion

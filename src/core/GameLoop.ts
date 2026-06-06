@@ -1,5 +1,3 @@
-// #region Types
-
 /**
  * Information passed to a {@link GameLoop} dropped-frame callback.
  *
@@ -38,10 +36,6 @@ export interface FrameDropEvent {
  */
 export type FrameDropCallback = (event: FrameDropEvent) => void;
 
-// #endregion
-
-// #region GameLoop Class
-
 /**
  * Fixed-timestep game loop with variable-rate rendering.
  *
@@ -61,8 +55,6 @@ export type FrameDropCallback = (event: FrameDropEvent) => void;
  * filter out tab-switch pauses), the supplied callback is invoked.
  */
 export class GameLoop {
-    // #region Constants
-
     /** Maximum update steps per frame to prevent spiral-of-death after long pauses. */
     private static readonly MAX_STEPS = 8;
 
@@ -87,10 +79,6 @@ export class GameLoop {
      * rAF callbacks may fire with unusual cadence.
      */
     private static readonly BASELINE_WARMUP_SAMPLES = 8;
-
-    // #endregion
-
-    // #region State
 
     /** Whether the loop is currently running. */
     private isRunning: boolean = false;
@@ -130,10 +118,6 @@ export class GameLoop {
     /** Number of valid samples in {@link recentDeltas}; saturates at BASELINE_WINDOW. */
     private deltaCount: number = 0;
 
-    // #endregion
-
-    // #region Constructor
-
     /**
      * Creates a new GameLoop.
      *
@@ -153,10 +137,6 @@ export class GameLoop {
         this.onRender = onRender;
         this.onFrameDrop = onFrameDrop ?? null;
     }
-
-    // #endregion
-
-    // #region Public Methods
 
     /**
      * Starts the loop.
@@ -204,10 +184,6 @@ export class GameLoop {
     public resetTicks(): void {
         this.ticks = 0;
     }
-
-    // #endregion
-
-    // #region Private Loop
 
     /**
      * Processes one animation frame.
@@ -324,8 +300,4 @@ export class GameLoop {
             expectedInterval: baseline,
         });
     }
-
-    // #endregion
 }
-
-// #endregion

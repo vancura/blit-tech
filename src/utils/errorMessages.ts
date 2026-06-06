@@ -52,8 +52,6 @@ export const WEBGPU_DEVICE_MESSAGE =
 export const OVERLAY_NO_BACKEND =
     "Couldn't start the overlay because the rendering backend isn't ready yet. Try initializing the engine before creating the overlay.";
 
-// #region Runtime - Render configuration
-
 /**
  * Returns the error message for a render dimension that is not a positive whole-number pixel size.
  *
@@ -109,10 +107,6 @@ export function renderDimensionGpuLimitError(field: string, size: string, maxTex
         `Use a width and height of ${maxTextureDimension2D} pixels or fewer`
     );
 }
-
-// #endregion
-
-// #region Runtime - Assets
 
 /**
  * Returns the error message for an asset whose width or height is not a positive whole number.
@@ -401,10 +395,6 @@ export function btfontGlyphAreaTooLargeError(charLabel: string): string {
     return `The '${charLabel}' glyph covers too many pixels to render safely. Use a smaller glyph rectangle`;
 }
 
-// #endregion
-
-// #region Runtime - Palette
-
 /**
  * Returns the "no active palette" error message used whenever a palette must
  * be set before an operation can proceed.
@@ -462,10 +452,6 @@ export function hudRangeError(startSlot: number, count: number, size: number): s
     );
 }
 
-// #endregion
-
-// #region Runtime - Sprites
-
 /**
  * Returns the error message for a sprite pixel whose color is absent from the
  * active palette.
@@ -495,5 +481,3 @@ export function spriteNotIndexizedError(): string {
         ' or call sheet.indexize(palette) after BT.paletteSet.'
     );
 }
-
-// #endregion

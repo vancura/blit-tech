@@ -9,8 +9,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 
-// #region Helper Functions
-
 /**
  * Extracts the value of a specified attribute from an XML tag.
  *
@@ -24,10 +22,6 @@ function parseXmlAttribute(tag, attr) {
 
     return match ? match[1] : null;
 }
-
-// #endregion
-
-// #region XML Parsing Functions
 
 /**
  * Parses the `<info>` XML tag from the provided font file data and extracts the font name and size.
@@ -94,10 +88,6 @@ function parseCommonTag(xmlData, fontSize) {
     return { lineHeight, baseline };
 }
 
-// #endregion
-
-// #region Asset Loading Functions
-
 /**
  * Parses the <page> tag in the provided XML data to extract the texture filename.
  * Multipage BMFonts aren't supported and will cause an error.
@@ -133,10 +123,6 @@ function parsePageTag(xmlData) {
 
     return textureFilename;
 }
-
-// #endregion
-
-// #region Texture Processing Functions
 
 /**
  * Generates and returns the appropriate texture value based on the specified options.
@@ -208,10 +194,6 @@ function getTextureValue(embedTexture, textureFilename, fntDir, outputPath) {
 
     return textureValue;
 }
-
-// #endregion
-
-// #region Glyph Parsing Functions
 
 /**
  * Parses glyph data from a given XML tag and updates the glyph object with the corresponding character's properties.
@@ -316,10 +298,6 @@ function parseGlyphs(xmlData) {
     return { glyphs, glyphCount };
 }
 
-// #endregion
-
-// #region Output Functions
-
 /**
  * Writes the given font data to a file and logs the conversion details.
  *
@@ -342,10 +320,6 @@ function writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baselin
     console.log(`  Baseline: ${baseline}px`);
     console.log(`  Glyphs: ${glyphCount}`);
 }
-
-// #endregion
-
-// #region Conversion Logic
 
 /**
  * Converts a BMFont `.fnt` file to a `.btfont` format file.
@@ -389,10 +363,6 @@ function convertBMFont(fntPath, outputPath, embedTexture = false) {
     // Write the output.
     writeOutput(outputPath, btfont, fontName, fontSize, lineHeight, baseline, glyphCount);
 }
-
-// #endregion
-
-// #region Main Entry Point
 
 /**
  * Main function that serves as the entry point for the BMFont to .btfont converter.
@@ -470,5 +440,3 @@ Examples:
 }
 
 main();
-
-// #endregion

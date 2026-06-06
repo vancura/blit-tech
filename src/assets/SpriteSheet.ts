@@ -226,8 +226,6 @@ export type IndexedSpriteLoadResult = {
  * reloading the image.
  */
 export class SpriteSheet {
-    // #region Module State
-
     /** Sprite sheet dimensions in pixels. */
     public readonly size: Vector2i;
 
@@ -245,10 +243,6 @@ export class SpriteSheet {
 
     /** Palette index per pixel (set by indexize, uploaded as r8uint texture). */
     private indexedPixels: Uint8Array<ArrayBuffer> | null = null;
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates a sprite sheet from a loaded image.
@@ -270,10 +264,6 @@ export class SpriteSheet {
             throw new Error('Either an image or explicit size must be provided.');
         }
     }
-
-    // #endregion
-
-    // #region Static Factory
 
     /**
      * Loads a sprite sheet from an image URL.
@@ -307,10 +297,6 @@ export class SpriteSheet {
 
         return sheet;
     }
-
-    // #endregion
-
-    // #region Indexization
 
     /**
      * Convenience one-call path for palette-indexed sprite setup.
@@ -543,10 +529,6 @@ export class SpriteSheet {
         this.invalidateTexture();
     }
 
-    // #endregion
-
-    // #region Accessors
-
     /**
      * Gets the sprite-sheet width in pixels.
      *
@@ -651,10 +633,6 @@ export class SpriteSheet {
         return this.image;
     }
 
-    // #endregion
-
-    // #region UV Calculation
-
     /**
      * Returns a source rectangle that covers the entire sprite sheet.
      *
@@ -663,10 +641,6 @@ export class SpriteSheet {
     fullRect(): Rect2i {
         return new Rect2i(0, 0, this.width, this.height);
     }
-
-    // #endregion
-
-    // #region Cleanup
 
     /**
      * Gets or lazily creates the GPU texture for this sprite sheet.
@@ -690,10 +664,6 @@ export class SpriteSheet {
         // Safe assertion: createTexture / createIndexedTexture always initializes this.texture.
         return this.texture as GPUTexture;
     }
-
-    // #endregion
-
-    // #region Texture Creation
 
     /**
      * Calculates normalized UV coordinates for a sprite region.
@@ -729,10 +699,6 @@ export class SpriteSheet {
         this.rgbaPixels = null;
         this.indexedPixels = null;
     }
-
-    // #endregion
-
-    // #region Private Helpers
 
     /**
      * Creates and uploads the GPU texture from the image.
@@ -819,6 +785,4 @@ export class SpriteSheet {
     private get sourceName(): string {
         return this.image?.src ? `'${this.image.src}'` : '(unnamed)';
     }
-
-    // #endregion
 }

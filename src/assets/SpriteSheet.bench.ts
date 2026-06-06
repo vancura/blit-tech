@@ -1,14 +1,8 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { resetUsage } from '../core/RenderPaletteUsage';
 import { Rect2i } from '../utils/Rect2i';
 import { SpriteSheet } from './SpriteSheet';
-
-// #endregion
-
-// #region Constants
 
 const BENCH_OPTIONS = {
     iterations: 200,
@@ -22,10 +16,6 @@ const GLYPH_RECT = new Rect2i(0, 0, 8, 8);
 
 /** 64x64 sprite rect. */
 const SPRITE_RECT = new Rect2i(0, 0, 64, 64);
-
-// #endregion
-
-// #region Fixtures
 
 /**
  * Builds an indexized sheet filled with cycling non-zero palette indices.
@@ -48,8 +38,6 @@ function makeBenchSheet(width: number, height: number): SpriteSheet {
 const glyphSheet = makeBenchSheet(8, 8);
 const spriteSheet = makeBenchSheet(64, 64);
 const usageMask = new Uint8Array(256);
-
-// #endregion
 
 describe('SpriteSheet.markPaletteIndicesInRect', () => {
     bench(

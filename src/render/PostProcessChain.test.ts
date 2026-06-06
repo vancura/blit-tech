@@ -25,8 +25,6 @@ import { Vector2i } from '../utils/Vector2i';
 import type { Effect, EffectTier } from './effects/Effect';
 import { PostProcessChain } from './PostProcessChain';
 
-// #region Test Helpers
-
 const FORMAT: GPUTextureFormat = 'bgra8unorm';
 const DISPLAY_SIZE = new Vector2i(320, 240);
 
@@ -61,10 +59,6 @@ function createStubEffect(tier: EffectTier = 'pixel'): Effect & { calls: CallLog
     return stub;
 }
 
-// #endregion
-
-// #region Mock setup
-
 beforeAll(() => {
     installMockNavigatorGPU();
 });
@@ -72,10 +66,6 @@ beforeAll(() => {
 afterAll(() => {
     uninstallMockNavigatorGPU();
 });
-
-// #endregion
-
-// #region Constructor
 
 describe('PostProcessChain constructor', () => {
     it('does not allocate GPU textures', () => {
@@ -102,10 +92,6 @@ describe('PostProcessChain constructor', () => {
         expect(display.tier).toBe('display');
     });
 });
-
-// #endregion
-
-// #region Add / Remove / Clear
 
 describe('add()', () => {
     it('initializes the effect with the chain device, format, and chain size', () => {
@@ -309,10 +295,6 @@ describe('clear()', () => {
     });
 });
 
-// #endregion
-
-// #region Input view
-
 describe('getInputView()', () => {
     it('throws before any effect has been added', () => {
         const chain = new PostProcessChain(createMockGPUDevice(), FORMAT, DISPLAY_SIZE, 'pixel');
@@ -331,10 +313,6 @@ describe('getInputView()', () => {
         expect(a).toBe(b);
     });
 });
-
-// #endregion
-
-// #region Encode
 
 describe('encode()', () => {
     function makeDestView(): GPUTextureView {
@@ -480,10 +458,6 @@ describe('encode()', () => {
     });
 });
 
-// #endregion
-
-// #region Dispose
-
 describe('dispose()', () => {
     it('destroys every effect and offscreen texture', () => {
         const device = createMockGPUDevice();
@@ -506,5 +480,3 @@ describe('dispose()', () => {
         expect(chain.isActive()).toBe(false);
     });
 });
-
-// #endregion

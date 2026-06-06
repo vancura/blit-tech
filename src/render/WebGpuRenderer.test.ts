@@ -33,8 +33,6 @@ import type { PrimitivePipeline } from './PrimitivePipeline';
 import type { SpritePipeline } from './SpritePipeline';
 import { WebGpuRenderer } from './WebGpuRenderer';
 
-// #region Test Helpers
-
 /** Internal pipeline batches on {@link WebGpuRenderer} (compile-time private, runtime-accessible). */
 type WebGpuRendererPipelineAccess = {
     primitives: PrimitivePipeline;
@@ -71,10 +69,6 @@ function createTestPalette(): Palette {
     return palette;
 }
 
-// #endregion
-
-// #region Constructor
-
 describe('WebGpuRenderer constructor', () => {
     it('creates an instance with mock objects', () => {
         const device = createMockGPUDevice();
@@ -86,10 +80,6 @@ describe('WebGpuRenderer constructor', () => {
         expect(renderer).toBeInstanceOf(WebGpuRenderer);
     });
 });
-
-// #endregion
-
-// #region Pre-initialization Methods
 
 describe('pre-initialization methods', () => {
     it('setClearColor does not throw', () => {
@@ -171,10 +161,6 @@ describe('pre-initialization methods', () => {
     });
 });
 
-// #endregion
-
-// #region Camera API
-
 describe('camera operations', () => {
     it('getCameraOffset returns a copy, not the internal reference', () => {
         const renderer = new WebGpuRenderer(
@@ -234,10 +220,6 @@ describe('camera operations', () => {
     });
 });
 
-// #endregion
-
-// #region Palette Enforcement
-
 describe('palette enforcement', () => {
     it('setPalette stores and returns palette', () => {
         const renderer = new WebGpuRenderer(
@@ -268,10 +250,6 @@ describe('palette enforcement', () => {
         expect(renderer.getPalette()).toBeNull();
     });
 });
-
-// #endregion
-
-// #region Initialized Renderer
 
 describe('with initialized renderer', () => {
     const device = createMockGPUDevice();
@@ -584,10 +562,6 @@ describe('with initialized renderer', () => {
     });
 });
 
-// #endregion
-
-// #region resolveClearColor Fallbacks
-
 describe('resolveClearColor fallbacks', () => {
     it('returns black (no throw) when no palette is set', async () => {
         const r = new WebGpuRenderer(createMockGPUDevice(), createMockGPUCanvasContext(), new Vector2i(320, 240));
@@ -622,10 +596,6 @@ describe('resolveClearColor fallbacks', () => {
         uninstallMockNavigatorGPU();
     });
 });
-
-// #endregion
-
-// #region Frame Capture API
 
 describe('frame capture', () => {
     it('captureFrame returns a promise', async () => {
@@ -778,10 +748,6 @@ describe('frame capture', () => {
     });
 });
 
-// #endregion
-
-// #region Error Paths
-
 describe('endFrame error paths', () => {
     it('recovers gracefully when getCurrentTexture throws', async () => {
         const device = createMockGPUDevice();
@@ -889,10 +855,6 @@ describe('init error paths', () => {
         }
     });
 });
-
-// #endregion
-
-// #region Palette dirty-flag auto-propagation
 
 describe('palette dirty-flag auto-propagation', () => {
     it('setPalette stores a reference, not a clone', () => {
@@ -1019,10 +981,6 @@ describe('palette dirty-flag auto-propagation', () => {
         uninstallMockNavigatorGPU();
     });
 });
-
-// #endregion
-
-// #region Post-Process Effects API
 
 describe('post-process effects', () => {
     // Install/uninstall via beforeEach/afterEach so an assertion failure in any
@@ -1259,5 +1217,3 @@ describe('post-process effects', () => {
         expect(beginRenderPassCalls).toHaveLength(2);
     });
 });
-
-// #endregion

@@ -27,8 +27,6 @@ import { Rect2i } from '../utils/Rect2i';
 import { BitmapFont } from './BitmapFont';
 import { SpriteSheet } from './SpriteSheet';
 
-// #region Test Fixtures
-
 type GlyphData = { x: number; y: number; w: number; h: number; ox: number; oy: number; adv: number };
 type FontData = {
     name: string;
@@ -118,10 +116,6 @@ const MOCK_FONT_DATA: FontData = {
     },
 };
 
-// #endregion
-
-// #region BitmapFont Tests
-
 describe('BitmapFont', () => {
     let font: BitmapFont;
 
@@ -206,8 +200,6 @@ describe('BitmapFont', () => {
         expect(font.measureText('A')).toBe(9);
     });
 
-    // #region Additional accessors
-
     it('should return the correct glyphCount', () => {
         expect(font.glyphCount).toBe(3);
     });
@@ -274,10 +266,6 @@ describe('BitmapFont', () => {
     it('should return 0 width for a character not in the font (measureText)', () => {
         expect(font.measureText('\u0100')).toBe(0);
     });
-
-    // #endregion
-
-    // #region load error cases
 
     describe('load error cases', () => {
         it('should throw when fetch returns a non-ok response', async () => {
@@ -518,10 +506,6 @@ describe('BitmapFont', () => {
         });
     });
 
-    // #endregion
-
-    // #region Default metadata fallbacks
-
     describe('default metadata fallbacks', () => {
         it('should use defaults when name, size, lineHeight, baseline are missing', async () => {
             vi.stubGlobal(
@@ -603,10 +587,6 @@ describe('BitmapFont', () => {
         });
     });
 
-    // #endregion
-
-    // #region Edge cases
-
     describe('edge cases', () => {
         it('should return 0 for measureText with empty string', () => {
             expect(font.measureText('')).toBe(0);
@@ -630,10 +610,6 @@ describe('BitmapFont', () => {
             expect(size2.width).toBe(17);
         });
     });
-
-    // #endregion
-
-    // #region createFromGlyphs
 
     describe('createFromGlyphs', () => {
         it('creates a font with correct metadata', () => {
@@ -683,8 +659,4 @@ describe('BitmapFont', () => {
             expect(font.measureText('Hi')).toBe(14); // 8 + 6
         });
     });
-
-    // #endregion
 });
-
-// #endregion

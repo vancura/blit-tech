@@ -40,8 +40,6 @@ function drawChart(
     chart.draw(renderer, chartRect, defaultStyle, mockFont, currentTick);
 }
 
-// #region computeTimingChartBarHeight tests
-
 describe('computeTimingChartBarHeight', () => {
     it('maps ms proportionally to chart height and clamps at band bounds', () => {
         expect(computeTimingChartBarHeight(0, 22, TIMING_CHART_FULL_SCALE_MS)).toBe(0);
@@ -50,10 +48,6 @@ describe('computeTimingChartBarHeight', () => {
         expect(computeTimingChartBarHeight(32, 22, TIMING_CHART_FULL_SCALE_MS)).toBe(22);
     });
 });
-
-// #endregion
-
-// #region TimingChart tests
 
 describe('TimingChart', () => {
     it('does not draw when disabled', () => {
@@ -687,5 +681,3 @@ describe('TimingChart', () => {
         expect(pressureDots.length).toBeGreaterThanOrEqual(2);
     });
 });
-
-// #endregion
