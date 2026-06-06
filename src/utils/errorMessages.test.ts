@@ -22,7 +22,7 @@ import {
     paletteIndexNegativeError,
     paletteIndexOutOfRangeError,
     renderDimensionAreaTooLargeError,
-    renderDimensionGpuLimitError,
+    renderDimensionGPULimitError,
     renderDimensionInvalidError,
     renderDimensionTooLargeError,
     spriteColorNotInPaletteError,
@@ -127,9 +127,9 @@ describe('errorMessages', () => {
         });
     });
 
-    describe('renderDimensionGpuLimitError', () => {
+    describe('renderDimensionGPULimitError', () => {
         it('includes the field name, size, and graphics-card limit', () => {
-            const message = renderDimensionGpuLimitError('drawingBufferSize', '2048x1024', 1024);
+            const message = renderDimensionGPULimitError('drawingBufferSize', '2048x1024', 1024);
 
             expect(message).toContain('drawingBufferSize');
             expect(message).toContain('2048x1024');

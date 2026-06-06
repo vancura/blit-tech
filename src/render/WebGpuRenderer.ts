@@ -34,7 +34,7 @@ const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
 /**
  * WebGPU renderer implementing {@link IRenderer}.
  *
- * `WebGpuRenderer` owns frame begin/end, clear color, camera state, palette
+ * `WebGPURenderer` owns frame begin/end, clear color, camera state, palette
  * buffer, frame capture, and the two-tier post-process pipeline. Actual draw
  * batching is delegated to {@link PrimitivePipeline} and {@link SpritePipeline}.
  *
@@ -51,9 +51,7 @@ const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
  * exists only after palette resolve/upscale, so display-tier effects remain
  * unchanged while the obsolete logical RGBA path is removed.
  */
-export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
-    // #region State
-
+export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /** WebGPU device for GPU operations. */
     private readonly device: GPUDevice;
 
@@ -251,7 +249,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
             return true;
         } catch (error) {
-            console.error('[WebGpuRenderer] Initialization failed:', error);
+            console.error('[WebGPURenderer] Initialization failed:', error);
 
             return false;
         }
@@ -304,12 +302,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
             throw new Error(noActivePaletteError());
         }
 
-        this.primitives.reset();
-        this.overlayPrimitives.reset();
-        this.overlayTopPrimitives.reset();
-        this.sprites.reset();
-        this.overlaySprites.reset();
-        this.overlayTopSprites.reset();
+        this.resetBatchPipelines();
     }
 
     /**
@@ -578,12 +571,12 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     addEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('WebGpuRenderer.addEffect: renderer not initialized.');
+            throw new Error('WebGPURenderer.addEffect: renderer not initialized.');
         }
 
         if (effect.tier === 'display' && !this.isDisplayTierEnabled) {
             throw new Error(
-                'WebGpuRenderer.addEffect: display-tier effects require drawingBufferSize to be set in configure().',
+                'WebGPURenderer.addEffect: display-tier effects require drawingBufferSize to be set in configure().',
             );
         }
 
@@ -605,7 +598,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     removeEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('WebGpuRenderer.removeEffect: renderer not initialized.');
+            throw new Error('WebGPURenderer.removeEffect: renderer not initialized.');
         }
 
         const [primary, fallback] =
@@ -623,7 +616,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     clearEffects(): void {
         if (!this.pixelChain || !this.displayChain) {
-            throw new Error('WebGpuRenderer.clearEffects: renderer not initialized.');
+            throw new Error('WebGPURenderer.clearEffects: renderer not initialized.');
         }
 
         this.pixelChain.clear();
@@ -642,27 +635,17 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         try {
             swapTexture = this.context.getCurrentTexture();
         } catch (error) {
-            console.error('[WebGpuRenderer] Failed to get current texture:', error);
+            console.error('[WebGPURenderer] Failed to get current texture:', error);
 
-            this.primitives.reset();
-            this.overlayPrimitives.reset();
-            this.overlayTopPrimitives.reset();
-            this.sprites.reset();
-            this.overlaySprites.reset();
-            this.overlayTopSprites.reset();
+            this.resetBatchPipelines();
 
             return null;
         }
 
         if (swapTexture.width === 0 || swapTexture.height === 0) {
-            console.warn('[WebGpuRenderer] Texture has zero dimensions, skipping frame');
+            console.warn('[WebGPURenderer] Texture has zero dimensions, skipping frame');
 
-            this.primitives.reset();
-            this.overlayPrimitives.reset();
-            this.overlayTopPrimitives.reset();
-            this.sprites.reset();
-            this.overlaySprites.reset();
-            this.overlayTopSprites.reset();
+            this.resetBatchPipelines();
 
             return null;
         }
@@ -781,6 +764,13 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         // Defensive reset so the pipeline state is clean even if beginFrame() is not
         // called next. beginFrame() also resets; this prevents stale data from
         // persisting across frames.
+        this.resetBatchPipelines();
+    }
+
+    /**
+     * Clears per-frame batch state on all scene and overlay draw pipelines.
+     */
+    private resetBatchPipelines(): void {
         this.primitives.reset();
         this.overlayPrimitives.reset();
         this.overlayTopPrimitives.reset();
@@ -845,7 +835,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         const chain = this.displayChain;
 
         if (!chain?.isActive()) {
-            throw new Error('WebGpuRenderer.requireDisplayChainInput: display chain inactive.');
+            throw new Error('WebGPURenderer.requireDisplayChainInput: display chain inactive.');
         }
 
         return chain.getInputView();
@@ -875,7 +865,7 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
         if (this.clearPaletteIndex < 0 || this.clearPaletteIndex >= this.palette.size) {
             console.warn(
-                '[WebGpuRenderer] resolveClearPaletteIndex: clearPaletteIndex out of range, falling back to 0.',
+                '[WebGPURenderer] resolveClearPaletteIndex: clearPaletteIndex out of range, falling back to 0.',
             );
             return 0;
         }

@@ -101,7 +101,7 @@ export function renderDimensionAreaTooLargeError(field: string, size: string, ma
  * @param maxTextureDimension2D - WebGPU adapter/device texture dimension limit.
  * @returns User-facing error string.
  */
-export function renderDimensionGpuLimitError(field: string, size: string, maxTextureDimension2D: number): string {
+export function renderDimensionGPULimitError(field: string, size: string, maxTextureDimension2D: number): string {
     return (
         `${field} is too large for this graphics card (got ${size}). ` +
         `Use a width and height of ${maxTextureDimension2D} pixels or fewer`
