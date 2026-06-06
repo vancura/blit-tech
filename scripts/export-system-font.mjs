@@ -20,8 +20,6 @@ import { fileURLToPath } from 'node:url';
 
 import { PNG } from 'pngjs';
 
-// #region Constants
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
 const FONT_DATA_PATH = join(PROJECT_ROOT, 'src/assets/fonts/systemFontData.ts');
@@ -36,10 +34,6 @@ const ATLAS_HEIGHT = ATLAS_ROWS * GLYPH_HEIGHT; // 84
 const FIRST_CHAR = 32;
 const LAST_CHAR = 126;
 const GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
-
-// #endregion
-
-// #region Bit-Pattern Extraction
 
 /**
  * Parses the SYSTEM_FONT_BITMAPS array from the TypeScript source file.
@@ -81,10 +75,6 @@ function parseBitmapData() {
 
     return matches.map((hex) => parseInt(hex, 16));
 }
-
-// #endregion
-
-// #region PNG Generation
 
 /**
  * Builds a 96x84 RGBA PNG from the bit-pattern data.
@@ -138,10 +128,6 @@ function buildPNG(bitmaps) {
     return PNG.sync.write(png);
 }
 
-// #endregion
-
-// #region Main
-
 function main() {
     const args = process.argv.slice(2);
 
@@ -178,5 +164,3 @@ Options:
 }
 
 main();
-
-// #endregion

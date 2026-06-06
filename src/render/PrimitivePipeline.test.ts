@@ -25,8 +25,6 @@ import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 import { PrimitivePipeline } from './PrimitivePipeline';
 
-// #region Constructor
-
 describe('PrimitivePipeline constructor', () => {
     it('creates an instance without error', () => {
         const pipeline = new PrimitivePipeline();
@@ -35,10 +33,6 @@ describe('PrimitivePipeline constructor', () => {
         expect(pipeline).toBeInstanceOf(PrimitivePipeline);
     });
 });
-
-// #endregion
-
-// #region Pre-initialization Safety
 
 describe('pre-initialization safety', () => {
     it('reset() can be called multiple times safely', () => {
@@ -141,10 +135,6 @@ describe('pre-initialization safety', () => {
         }).not.toThrow();
     });
 });
-
-// #endregion
-
-// #region Initialized Pipeline
 
 describe('with initialized pipeline', () => {
     const device = createMockGPUDevice();
@@ -253,10 +243,6 @@ describe('with initialized pipeline', () => {
         pipeline.setCameraOffset(Vector2i.zero());
     });
 });
-
-// #endregion
-
-// #region Vertex Count Verification
 
 describe('vertex count verification', () => {
     const device = createMockGPUDevice();
@@ -464,5 +450,3 @@ describe('vertex count verification', () => {
         expect(pipeline.getFrameSubmittedVertices()).toBe(6);
     });
 });
-
-// #endregion

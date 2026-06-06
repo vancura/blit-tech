@@ -19,8 +19,6 @@ import {
 import type { Rect2i } from './Rect2i';
 import { MAX_RENDER_DIMENSION, MAX_RENDER_PIXELS } from './RenderLimits';
 
-// #region Constants
-
 /** Maximum decoded asset width or height on either axis before CPU/GPU allocation. */
 export const MAX_ASSET_DIMENSION = MAX_RENDER_DIMENSION;
 
@@ -48,10 +46,6 @@ export const MAX_GLYPH_COUNT = 8192;
 
 /** Maximum pixels iterated for a single software sprite blit (`width * height`). */
 export const MAX_SPRITE_BLIT_PIXELS = MAX_ASSET_PIXELS;
-
-// #endregion
-
-// #region Types
 
 /** Error type for asset-dimension failures surfaced through public load APIs. */
 export class AssetLimitError extends Error {
@@ -83,10 +77,6 @@ export interface BtfontGlyphData {
     /** Horizontal advance width. */
     adv: number;
 }
-
-// #endregion
-
-// #region Helpers
 
 /**
  * Formats width and height for error messages.
@@ -155,10 +145,6 @@ function isPositiveIntegerDimension(value: number): boolean {
 function isIntegerMetric(value: number): boolean {
     return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value);
 }
-
-// #endregion
-
-// #region Validation
 
 /**
  * Validates decoded image or indexed-buffer dimensions before allocation.
@@ -523,5 +509,3 @@ export function clipSpriteSourceRect(
 
     return { x: x0, y: y0, width, height };
 }
-
-// #endregion

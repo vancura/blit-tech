@@ -27,8 +27,6 @@ import { AssetLoader } from './AssetLoader';
 import { Palette } from './Palette';
 import { SpriteSheet } from './SpriteSheet';
 
-// #region OffscreenCanvas Test Helpers
-
 /**
  * Returns a minimal OffscreenCanvas mock whose getImageData yields the supplied
  * pixel buffer. Use vi.stubGlobal to install it for a single test.
@@ -48,12 +46,8 @@ function makeOffscreenCanvasMock(pixelData: Uint8ClampedArray, w: number, h: num
     };
 }
 
-// #endregion
-
 describe('SpriteSheet', () => {
     const mockImage = { width: 256, height: 256 } as HTMLImageElement;
-
-    // #region UV Calculation
 
     describe('getUVs', () => {
         it('should return (0, 0, 1, 1) for a full-size rect', () => {
@@ -76,10 +70,6 @@ describe('SpriteSheet', () => {
             expect(uvs.v1).toBe(48 / 256);
         });
     });
-
-    // #endregion
-
-    // #region Size
 
     describe('size', () => {
         it('should reflect the image dimensions', () => {
@@ -105,10 +95,6 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region Texture Management
-
     describe('getTexture', () => {
         it('should return a texture object from a mock device', () => {
             const sheet = new SpriteSheet(mockImage);
@@ -128,10 +114,6 @@ describe('SpriteSheet', () => {
             expect(second).toBe(first);
         });
     });
-
-    // #endregion
-
-    // #region Destroy
 
     describe('destroy', () => {
         it('should allow creating a new texture after destroy', () => {
@@ -162,20 +144,12 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region getImage
-
     describe('getImage', () => {
         it('should return the source HTMLImageElement', () => {
             const sheet = new SpriteSheet(mockImage);
             expect(sheet.getImage()).toBe(mockImage);
         });
     });
-
-    // #endregion
-
-    // #region Indexization
 
     describe('isIndexed', () => {
         it('returns false before indexize is called', () => {
@@ -308,10 +282,6 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region load
-
     describe('load', () => {
         afterEach(() => {
             vi.restoreAllMocks();
@@ -382,10 +352,6 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region loadIndexed
-
     describe('loadIndexed', () => {
         afterEach(() => {
             vi.restoreAllMocks();
@@ -428,10 +394,6 @@ describe('SpriteSheet', () => {
             expect(loadColorsSpy).toHaveBeenCalledWith('hero.png', palette, 4, { sort: 'none' });
         });
     });
-
-    // #endregion
-
-    // #region loadColorsIntoPalette
 
     describe('loadColorsIntoPalette', () => {
         afterEach(() => {
@@ -573,10 +535,6 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region fromIndexedPixels
-
     describe('fromIndexedPixels', () => {
         it('creates a sheet with correct dimensions', () => {
             const pixels = new Uint8Array(16 * 16) as Uint8Array<ArrayBuffer>;
@@ -652,10 +610,6 @@ describe('SpriteSheet', () => {
         });
     });
 
-    // #endregion
-
-    // #region getIndexedPixels
-
     describe('getIndexedPixels', () => {
         it('returns contents equal to the pixels passed to fromIndexedPixels', () => {
             const pixels = new Uint8Array([
@@ -686,10 +640,6 @@ describe('SpriteSheet', () => {
             );
         });
     });
-
-    // #endregion
-
-    // #region Palette usage marking
 
     describe('markPaletteIndicesInRect', () => {
         it('marks resolved palette slots for unique non-zero sheet indices in the rect', () => {
@@ -753,6 +703,4 @@ describe('SpriteSheet', () => {
             expect(collectUsedIndices(mask, 16, scratch)).toEqual([]);
         });
     });
-
-    // #endregion
 });

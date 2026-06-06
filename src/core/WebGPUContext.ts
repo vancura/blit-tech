@@ -2,8 +2,6 @@ import { WEBGPU_ADAPTER_MESSAGE, WEBGPU_DEVICE_MESSAGE } from '../utils/errorMes
 import { RenderDimensionLimitError, validateWebGPUTextureDimension } from '../utils/RenderLimits';
 import type { Vector2i } from '../utils/Vector2i';
 
-// #region Types
-
 /**
  * Result returned when WebGPU canvas initialization succeeds.
  */
@@ -17,10 +15,6 @@ export interface Result {
     /** WebGPU drawing-buffer size in pixels (`configuredDrawingBufferSize ?? displaySize`). */
     drawingBufferSize: Vector2i;
 }
-
-// #endregion
-
-// #region WebGPU Initialization
 
 /**
  * Initializes the WebGPU adapter, device, and canvas context for a canvas.
@@ -145,5 +139,3 @@ export async function initWebGPU(
 
     return { device, context, drawingBufferSize: drawingBufferSize.clone() };
 }
-
-// #endregion

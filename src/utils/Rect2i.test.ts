@@ -11,8 +11,6 @@ import { describe, expect, it } from 'vitest';
 import { Rect2i } from './Rect2i';
 import { Vector2i } from './Vector2i';
 
-// #region Constructor
-
 describe('Rect2i', () => {
     describe('constructor', () => {
         it('should default to (0, 0, 0, 0)', () => {
@@ -51,10 +49,6 @@ describe('Rect2i', () => {
             expect(r.height).toBe(-4);
         });
     });
-
-    // #endregion
-
-    // #region Raw Value Getters
 
     describe('right', () => {
         it('should return x + width', () => {
@@ -123,10 +117,6 @@ describe('Rect2i', () => {
             expect(r.centerY).toBe(20);
         });
     });
-
-    // #endregion
-
-    // #region Computed Properties
 
     describe('min', () => {
         it('should return Vector2i(x, y)', () => {
@@ -268,10 +258,6 @@ describe('Rect2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Zero-Allocation Output Methods
-
     describe('minTo', () => {
         it('should write min to the output vector', () => {
             const r = new Rect2i(5, 10, 100, 200);
@@ -377,10 +363,6 @@ describe('Rect2i', () => {
             expect(r.sizeTo(out)).toBe(out);
         });
     });
-
-    // #endregion
-
-    // #region Intersection Tests
 
     describe('isContaining', () => {
         it('should return true for a point inside', () => {
@@ -570,10 +552,6 @@ describe('Rect2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Utility
-
     describe('isEqual', () => {
         it('should return true for identical rects', () => {
             const a = new Rect2i(10, 20, 30, 40);
@@ -652,10 +630,6 @@ describe('Rect2i', () => {
             expect(r.toString()).toBe('Rect2i(0, 0, 0, 0)');
         });
     });
-
-    // #endregion
-
-    // #region In-Place Mutation Methods
 
     describe('set', () => {
         it('should set all components', () => {
@@ -873,10 +847,6 @@ describe('Rect2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Static Constructors
-
     describe('zero', () => {
         it('should return a rect at (0, 0, 0, 0)', () => {
             const r = Rect2i.zero();
@@ -1032,6 +1002,4 @@ describe('Rect2i', () => {
             expect(r.bottom).toBe(60);
         });
     });
-
-    // #endregion
 });

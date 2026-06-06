@@ -1,5 +1,3 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
@@ -10,20 +8,12 @@ import { createOverlayLayout } from '../layout/layoutHelpers';
 import { hintBarY } from '../layout/layoutPlan';
 import { computeGrid, PaletteView } from './PaletteView';
 
-// #endregion
-
-// #region Constants
-
 const BENCH_OPTIONS = {
     iterations: 100,
     time: 100,
     warmupTime: 25,
     warmupIterations: 25,
 };
-
-// #endregion
-
-// #region Fixtures
 
 const layout16 = createOverlayLayout(320, 240, 14);
 const grid16 = computeGrid(320, undefined, 16);
@@ -44,8 +34,6 @@ const noopRenderer = {
     getCameraOffset: () => new Vector2i(0, 0),
     resetCamera: () => {},
 };
-
-// #endregion
 
 describe('PaletteView.draw', () => {
     bench(

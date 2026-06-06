@@ -5,14 +5,8 @@
  * Used by palette fade effects to control interpolation curves.
  */
 
-// #region Types
-
 /** Supported easing function identifiers. */
 export type EasingFunction = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-
-// #endregion
-
-// #region Public API
 
 /**
  * Applies an easing curve to a normalized time value.
@@ -37,5 +31,3 @@ export function applyEasing(t: number, easing: EasingFunction): number {
         }
     }
 }
-
-// #endregion

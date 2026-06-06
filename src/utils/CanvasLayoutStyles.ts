@@ -1,14 +1,8 @@
 import { DEFAULT_CONTAINER_ID } from './BootstrapHelpers';
 import type { Vector2i } from './Vector2i';
 
-// #region Constants
-
 /** Default cap for on-screen canvas CSS size (demos layout uses these as max bounds). */
 export const DEFAULT_MAX_CANVAS_SIZE = { x: 960, y: 720 } as const;
-
-// #endregion
-
-// #region Types
 
 /** Inputs for {@link applyCanvasLayoutStyles}. */
 export interface CanvasLayoutStyleOptions {
@@ -19,10 +13,6 @@ export interface CanvasLayoutStyleOptions {
     /** Maximum on-screen canvas size in CSS pixels (letterboxing still applies below this). */
     maxCanvasSize: Vector2i;
 }
-
-// #endregion
-
-// #region Exported Helpers
 
 /**
  * Resolves the layout root element for CSS custom property injection.
@@ -67,5 +57,3 @@ export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: Canv
     canvas.style.width = '';
     canvas.style.height = '';
 }
-
-// #endregion

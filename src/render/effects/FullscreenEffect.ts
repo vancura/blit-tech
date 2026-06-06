@@ -50,7 +50,6 @@ export abstract class FullscreenEffect implements Effect {
     protected abstract readonly fragmentShader: string;
     protected device: GPUDevice | null = null;
 
-    // #region GPU State
     protected pipeline: GPURenderPipeline | null = null;
     protected uniformBuffer: GPUBuffer | null = null;
     protected sampler: GPUSampler | null = null;
@@ -116,10 +115,6 @@ export abstract class FullscreenEffect implements Effect {
         });
     }
 
-    // #endregion
-
-    // #region Effect lifecycle
-
     /**
      * Calls {@link writeUniforms} then uploads the uniform block to the GPU.
      *
@@ -184,10 +179,6 @@ export abstract class FullscreenEffect implements Effect {
     /** Writes the per-frame uniform values into {@link uniformData}. */
     protected abstract writeUniforms(deltaMs: number, sourceSize: Vector2i): void;
 
-    // #endregion
-
-    // #region Private Helpers
-
     /**
      * Returns the bind group for the supplied source view, creating one on
      * first use and caching by view identity.
@@ -220,6 +211,4 @@ export abstract class FullscreenEffect implements Effect {
 
         return bindGroup;
     }
-
-    // #endregion
 }

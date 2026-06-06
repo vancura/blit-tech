@@ -11,8 +11,6 @@ import type { ErrorContent } from './BootstrapHelpers';
 import { DEFAULT_CANVAS_ID, DEFAULT_CONTAINER_ID, displayError, getCanvas } from './BootstrapHelpers';
 import { CANVAS_NOT_FOUND_MESSAGE, INIT_FAILED_MESSAGE } from './errorMessages';
 
-// #region Types
-
 /**
  * Options for the bootstrap function.
  */
@@ -69,10 +67,6 @@ interface Result {
     success: boolean;
     error?: Error;
 }
-
-// #endregion
-
-// #region Helper Functions
 
 /**
  * Waits for DOM to be ready if it's still loading.
@@ -205,10 +199,6 @@ async function initDemo(
     return result;
 }
 
-// #endregion
-
-// #region Bootstrap Function
-
 /**
  * One-liner bootstrap function for Blit-Tech demos.
  * Handles canvas retrieval and engine initialization. Backend selection
@@ -302,5 +292,3 @@ export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOp
 
     return success;
 }
-
-// #endregion

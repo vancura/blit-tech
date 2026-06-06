@@ -1,8 +1,6 @@
 import { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 
-// #region Configuration
-
 /**
  * Maximum number of primitive vertices retained for a frame.
  *
@@ -21,8 +19,6 @@ const VALUES_PER_VERTEX = 3;
  */
 const VERTEX_STRIDE = VALUES_PER_VERTEX * 4;
 
-// #endregion
-
 /**
  * Batched WebGPU pipeline for palette-indexed primitives.
  *
@@ -35,8 +31,6 @@ const VERTEX_STRIDE = VALUES_PER_VERTEX * 4;
  * prior RGBA behavior.
  */
 export class PrimitivePipeline {
-    // #region State
-
     /** WebGPU device, set during init(). */
     private device: GPUDevice | null = null;
 
@@ -70,10 +64,6 @@ export class PrimitivePipeline {
     /** Camera offset applied to all drawing operations. */
     private cameraOffset: Vector2i = Vector2i.zero();
 
-    // #endregion
-
-    // #region Batching State
-
     /** Primitive batches recorded after each early flush. */
     private batches: Array<{ vertexStart: number; vertexCount: number }> = [];
 
@@ -83,16 +73,8 @@ export class PrimitivePipeline {
     /** Overflow events recorded this frame (dropped pixels or vertices). */
     private overflowCount: number = 0;
 
-    // #endregion
-
-    // #region Reusable Objects
-
     /** Pre-allocated rect to avoid per-call allocations in hot paths. */
     private readonly tempRect: Rect2i = new Rect2i(0, 0, 0, 0);
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates an empty primitive pipeline.
@@ -103,10 +85,6 @@ export class PrimitivePipeline {
         this.vertexFloats = new Float32Array(this.vertexArrayBuffer);
         this.vertexIndices = new Uint32Array(this.vertexArrayBuffer);
     }
-
-    // #endregion
-
-    // #region Initialization
 
     /**
      * Initializes the GPU pipeline state and backing buffers.
@@ -126,10 +104,6 @@ export class PrimitivePipeline {
         await this.createPipeline(displaySize, paletteBuffer, targetFormat);
     }
 
-    // #endregion
-
-    // #region Camera
-
     /**
      * Sets the camera offset applied to all drawing operations.
      *
@@ -138,10 +112,6 @@ export class PrimitivePipeline {
     setCameraOffset(offset: Vector2i): void {
         this.cameraOffset = offset;
     }
-
-    // #endregion
-
-    // #region Drawing
 
     /**
      * Draws a filled rectangle using two triangles.
@@ -327,10 +297,6 @@ export class PrimitivePipeline {
         }
     }
 
-    // #endregion
-
-    // #region Frame Rendering
-
     /**
      * Clears per-frame batching state.
      */
@@ -481,10 +447,6 @@ export class PrimitivePipeline {
         });
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
     /**
      * Draws a diagonal line using Bresenham's line algorithm.
      * Produces pixel-perfect lines without antialiasing by emitting 1x1 quads
@@ -615,6 +577,4 @@ export class PrimitivePipeline {
         this.totalVertices += this.vertexCount;
         this.vertexCount = 0;
     }
-
-    // #endregion
 }

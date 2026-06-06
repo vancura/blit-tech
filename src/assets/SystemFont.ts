@@ -29,8 +29,6 @@ import {
 } from './fonts/systemFontData';
 import { SpriteSheet } from './SpriteSheet';
 
-// #region Constants
-
 /** Number of glyph columns in the texture atlas. */
 const ATLAS_COLUMNS = 16;
 
@@ -42,10 +40,6 @@ const ATLAS_WIDTH = ATLAS_COLUMNS * SYSTEM_FONT_GLYPH_WIDTH;
 
 /** Atlas height in pixels. */
 const ATLAS_HEIGHT = ATLAS_ROWS * SYSTEM_FONT_GLYPH_HEIGHT;
-
-// #endregion
-
-// #region Atlas Builder
 
 /**
  * Writes one glyph's pixel rows into the flat palette-indexed atlas array.
@@ -134,10 +128,6 @@ function buildGlyphMap(): Map<string, Glyph> {
     );
 }
 
-// #endregion
-
-// #region Public API
-
 /**
  * Creates the built-in 6x14 system font.
  *
@@ -162,5 +152,3 @@ export function createSystemFont(): BitmapFont {
         SYSTEM_FONT_GLYPH_HEIGHT,
     );
 }
-
-// #endregion

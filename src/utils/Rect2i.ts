@@ -9,14 +9,8 @@ import { Vector2i } from './Vector2i';
  * hot-path efficiency.
  */
 export class Rect2i {
-    // #region Cached Static Rectangles
-
     /** The cached singleton for zero rectangle. */
     private static readonly _zero: Rect2i = Object.freeze(Rect2i.fromValuesUnchecked(0, 0, 0, 0));
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates an integer rectangle, truncating all inputs toward zero.
@@ -45,10 +39,6 @@ export class Rect2i {
         this.width = width | 0;
         this.height = height | 0;
     }
-
-    // #endregion
-
-    // #region Raw Value Getters (Zero Allocation)
 
     /**
      * Gets the exclusive right edge (`x + width`).
@@ -81,10 +71,6 @@ export class Rect2i {
     get centerY(): number {
         return (this.y + this.height / 2) | 0;
     }
-
-    // #endregion
-
-    // #region Computed Properties
 
     /**
      * Gets the top-left corner as a new vector.
@@ -145,10 +131,6 @@ export class Rect2i {
         this.width = value.x | 0;
         this.height = value.y | 0;
     }
-
-    // #endregion
-
-    // #region Static Factory Methods
 
     /**
      * Returns a zero-sized rectangle at origin.
@@ -255,10 +237,6 @@ export class Rect2i {
         return r;
     }
 
-    // #endregion
-
-    // #region Zero-Allocation Output Methods
-
     /**
      * Writes the top-left corner (min) to an existing vector.
      * Zero allocation alternative to the min getter.
@@ -328,10 +306,6 @@ export class Rect2i {
 
         return out;
     }
-
-    // #endregion
-
-    // #region Intersection Tests
 
     /**
      * Tests if a point lies within this rectangle.
@@ -514,10 +488,6 @@ export class Rect2i {
         return out;
     }
 
-    // #endregion
-
-    // #region Utility Methods
-
     /**
      * Checks if this rectangle equals another (all components match).
      *
@@ -573,10 +543,6 @@ export class Rect2i {
     toString(): string {
         return `Rect2i(${this.x}, ${this.y}, ${this.width}, ${this.height})`;
     }
-
-    // #endregion
-
-    // #region In-Place Mutation Methods
 
     /**
      * Sets all components of this rectangle.
@@ -709,6 +675,4 @@ export class Rect2i {
 
         return this;
     }
-
-    // #endregion
 }

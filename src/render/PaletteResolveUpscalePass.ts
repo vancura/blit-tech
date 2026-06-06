@@ -9,8 +9,10 @@ import type { UpscaleFilter } from './UpscalePass';
  * Replaces {@link UpscalePass} for logical-index framebuffers: palette lookup happens here,
  * after the pixel-tier chain.
  */
-// #region PaletteResolveUpscalePass
 
+/**
+ *
+ */
 export class PaletteResolveUpscalePass {
     private device: GPUDevice | null = null;
     private pipeline: GPURenderPipeline | null = null;
@@ -168,10 +170,6 @@ export class PaletteResolveUpscalePass {
     }
 }
 
-// #endregion
-
-// #region FRAGMENT_WGSL
-
 const FRAGMENT_WGSL = `
 struct Params {
     logicalSize: vec2<f32>,
@@ -238,5 +236,3 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     return vec4<f32>(pm.rgb / pm.a, pm.a);
 }
 `;
-
-// #endregion

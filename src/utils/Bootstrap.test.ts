@@ -22,8 +22,6 @@ import type { IBlitTechDemo } from '../core/IBlitTechDemo';
 import { bootstrap } from './Bootstrap';
 import { DEFAULT_CANVAS_ID, DEFAULT_CONTAINER_ID } from './BootstrapHelpers';
 
-// #region Test Demo
-
 class MockDemo implements IBlitTechDemo {
     async init() {
         return true;
@@ -33,10 +31,6 @@ class MockDemo implements IBlitTechDemo {
 
     render() {}
 }
-
-// #endregion
-
-// #region Helpers
 
 function setupDOM(): { canvas: HTMLCanvasElement; container: HTMLDivElement } {
     const container = document.createElement('div');
@@ -60,8 +54,6 @@ function teardownDOM(): void {
     }
 }
 
-// #endregion
-
 describe('bootstrap', () => {
     beforeEach(() => {
         vi.spyOn(BTAPI.instance, 'init').mockResolvedValue(true);
@@ -72,8 +64,6 @@ describe('bootstrap', () => {
         vi.restoreAllMocks();
         teardownDOM();
     });
-
-    // #region isWaitingForDOMReady
 
     describe('isWaitingForDOMReady', () => {
         it('should skip DOM waiting when isWaitingForDOMReady is false', async () => {
@@ -109,10 +99,6 @@ describe('bootstrap', () => {
         });
     });
 
-    // #endregion
-
-    // #region Backend fallback
-
     describe('backend fallback', () => {
         it('should proceed to engine init when WebGPU is not supported, letting BTAPI handle fallback', async () => {
             setupDOM();
@@ -126,10 +112,6 @@ describe('bootstrap', () => {
             expect(onError).not.toHaveBeenCalled();
         });
     });
-
-    // #endregion
-
-    // #region Canvas validation
 
     describe('canvas validation', () => {
         it('should return false and call onError when canvas is not found', async () => {
@@ -152,10 +134,6 @@ describe('bootstrap', () => {
             expect(onError).toHaveBeenCalledOnce();
         });
     });
-
-    // #endregion
-
-    // #region Engine initialization
 
     describe('engine initialization', () => {
         it('should return false and call onError when demo is missing render/update', async () => {
@@ -266,10 +244,6 @@ describe('bootstrap', () => {
         });
     });
 
-    // #endregion
-
-    // #region Unexpected errors
-
     describe('unexpected errors', () => {
         it('should return false when BTAPI.init throws synchronously', async () => {
             setupDOM();
@@ -285,6 +259,4 @@ describe('bootstrap', () => {
             expect(onError).toHaveBeenCalledOnce();
         });
     });
-
-    // #endregion
 });

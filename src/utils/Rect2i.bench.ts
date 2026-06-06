@@ -1,13 +1,7 @@
-// #region Imports
-
 import { bench, describe } from 'vitest';
 
 import { Rect2i } from './Rect2i';
 import { Vector2i } from './Vector2i';
-
-// #endregion
-
-// #region Constants
 
 const BASE_X = 10;
 const BASE_Y = 20;
@@ -20,10 +14,6 @@ const BENCH_OPTIONS = {
     warmupTime: 25,
     warmupIterations: 50,
 };
-
-// #endregion
-
-// #region Benchmark Suites
 
 describe('Rect2i creation benchmarks', () => {
     const source = Rect2i.fromValuesUnchecked(BASE_X, BASE_Y, BASE_WIDTH, BASE_HEIGHT);
@@ -108,5 +98,3 @@ describe('Rect2i property access benchmarks', () => {
         BENCH_OPTIONS,
     );
 });
-
-// #endregion

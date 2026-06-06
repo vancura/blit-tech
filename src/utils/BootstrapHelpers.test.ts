@@ -4,8 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DEFAULT_CANVAS_ID, DEFAULT_CONTAINER_ID, displayError, getCanvas } from './BootstrapHelpers';
 
-// #region Constants
-
 describe('BootstrapHelpers', () => {
     describe('Constants', () => {
         it('should have DEFAULT_CANVAS_ID equal to blit-tech-canvas', () => {
@@ -16,10 +14,6 @@ describe('BootstrapHelpers', () => {
             expect(DEFAULT_CONTAINER_ID).toBe('canvas-container');
         });
     });
-
-    // #endregion
-
-    // #region getCanvas
 
     describe('getCanvas', () => {
         it('should return null for a missing element', () => {
@@ -54,10 +48,6 @@ describe('BootstrapHelpers', () => {
             }
         });
     });
-
-    // #endregion
-
-    // #region displayError
 
     describe('displayError', () => {
         beforeEach(() => {
@@ -101,6 +91,4 @@ describe('BootstrapHelpers', () => {
             consoleSpy.mockRestore();
         });
     });
-
-    // #endregion
 });

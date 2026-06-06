@@ -1,5 +1,3 @@
-// #region Imports
-
 import type { BitmapFont } from '../../assets/BitmapFont';
 import type { OverlayRow } from '../../core/IBlitTechDemo';
 import { Rect2i } from '../../utils/Rect2i';
@@ -9,33 +7,21 @@ import { overlayBitmapTextPaletteOffset, overlayRightAlignedTextX } from '../lay
 import type { OverlayLayoutPlan } from '../layout/types';
 import type { OverlayDrawTarget } from '../OverlayDrawTarget';
 
-// #endregion
-
-// #region Types
-
 /** Default bar and text palette indices for overlay drawing. */
 export interface OverlayBarStyle {
     readonly barIndex: number;
     readonly textIndex: number;
 }
 
-// #endregion
-
 /**
  * Draws fixed and custom overlay bars and labels from a layout plan.
  */
 export class OverlayBars {
-    // #region Private fields
-
     readonly #customLeftPos: Vector2i[] = [];
 
     readonly #customRightPos: Vector2i[] = [];
 
     readonly #hintSeparatorRect = new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX);
-
-    // #endregion
-
-    // #region Private helpers
 
     /**
      * Ensures the custom-row scratch pool has at least `count` entries.
@@ -48,10 +34,6 @@ export class OverlayBars {
             this.#customRightPos.push(new Vector2i(0, 0));
         }
     }
-
-    // #endregion
-
-    // #region Draw methods
 
     /**
      * Draws 1 px row gaps between stacked overlay bands.
@@ -274,6 +256,4 @@ export class OverlayBars {
         }
         /* eslint-enable security/detect-object-injection */
     }
-
-    // #endregion
 }

@@ -5,8 +5,6 @@
  * and a mix of allocation-free and convenience APIs for renderer code.
  */
 
-// #region Constants
-
 /** Reciprocal of 255 used for fast byte-to-float normalization. */
 export const INV_255 = 1 / 255;
 
@@ -21,14 +19,8 @@ for (let i = 0; i < 256; i++) {
     HEX_TABLE[i] = i.toString(16).padStart(2, '0');
 }
 
-// #endregion
-
-// #region Color32 Class
-
 /** Mutable 32-bit RGBA color value with 8-bit channels. */
 export class Color32 {
-    // #region Static Color Constants
-
     /** The cached singleton for white color. */
     private static readonly _white: Color32 = Object.freeze(Color32.fromRGBAUnchecked(255, 255, 255, 255));
 
@@ -59,10 +51,6 @@ export class Color32 {
     /** Internal named-color registry used by string color resolution. */
     private static readonly namedColors: Map<string, Color32> = Color32.createNamedMap();
 
-    // #endregion
-
-    // #region Instance Properties
-
     /** Red channel (0-255). */
     public r: number;
 
@@ -74,10 +62,6 @@ export class Color32 {
 
     /** Alpha channel (0-255). */
     public a: number;
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates a clamped 8-bit RGBA color.
@@ -94,10 +78,6 @@ export class Color32 {
         this.b = clampByte(b);
         this.a = clampByte(a);
     }
-
-    // #endregion
-
-    // #region Static Color Getters
 
     /**
      * Pure white color (255, 255, 255, 255).
@@ -288,10 +268,6 @@ export class Color32 {
         return Color32.namedColors.get(normalizedName);
     }
 
-    // #endregion
-
-    // #region Static Factory Methods
-
     /**
      * Creates a color without clamping or validation.
      *
@@ -450,10 +426,6 @@ export class Color32 {
         return new Color32(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255), a);
     }
 
-    // #endregion
-
-    // #region Conversion Methods
-
     /**
      * Converts color to Float32Array for WebGPU uniform buffers.
      * Values are normalized to the 0.0-1.0 range.
@@ -545,10 +517,6 @@ export class Color32 {
         return `Color32(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
     }
 
-    // #endregion
-
-    // #region Comparison Methods
-
     /**
      * Checks if this color equals another (all channels match).
      *
@@ -578,10 +546,6 @@ export class Color32 {
     equals(other: Color32): boolean {
         return this.isEqual(other);
     }
-
-    // #endregion
-
-    // #region Modification Methods
 
     /**
      * Creates an independent copy of this color.
@@ -624,10 +588,6 @@ export class Color32 {
     invert(): Color32 {
         return Color32.fromRGBAUnchecked(255 - this.r, 255 - this.g, 255 - this.b, this.a);
     }
-
-    // #endregion
-
-    // #region Blending Methods
 
     /**
      * Linearly interpolates between this color and another.
@@ -748,10 +708,6 @@ export class Color32 {
         );
     }
 
-    // #endregion
-
-    // #region Mutation Methods
-
     /**
      * Sets all RGBA channels at once, with validation.
      * Use this to reuse a Color32 instance instead of creating a new one.
@@ -807,10 +763,6 @@ export class Color32 {
 
         return this;
     }
-
-    // #endregion
-
-    // #region Utility Methods
 
     /**
      * Perceived (Rec. 601) luminance of this color, ignoring alpha.
@@ -902,15 +854,7 @@ export class Color32 {
     private static freezeSingleton(color: Color32): Color32 {
         return Object.freeze(Color32.fromRGBAUnchecked(color.r, color.g, color.b, color.a));
     }
-
-    // #endregion
-
-    // #endregion
 }
-
-// #endregion
-
-// #region Helper Functions
 
 /**
  * Clamps a number to the 0-255 byte range and truncates to integer.
@@ -964,5 +908,3 @@ function parseHexToken(hex: string, start: number, length: number): number {
 
     return parseInt(token, 16);
 }
-
-// #endregion

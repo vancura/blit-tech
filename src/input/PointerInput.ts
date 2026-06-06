@@ -18,8 +18,6 @@
 import type { Vector2i } from '../utils/Vector2i';
 import { Vector2i as Vector2iImpl } from '../utils/Vector2i';
 
-// #region Constants
-
 /** Maximum number of simultaneously tracked pointers (slot 0 = mouse, 1-3 = touch / pen). */
 export const POINTER_SLOT_COUNT = 4;
 
@@ -37,10 +35,6 @@ const BTN_C = 22;
 
 /** Auxiliary pointer button code (mouse back / forward). Maps to `BT.BTN_POINTER_D`. */
 const BTN_D = 23;
-
-// #endregion
-
-// #region Types
 
 /**
  * Internal per-slot pointer state.
@@ -89,10 +83,6 @@ interface Slot {
     prevD: boolean;
 }
 
-// #endregion
-
-// #region PointerInput Class
-
 /**
  * DOM-backed pointer input tracker.
  *
@@ -106,8 +96,6 @@ interface Slot {
  * out-of-range queries return safe defaults rather than throwing.
  */
 export class PointerInput {
-    // #region State
-
     /**
      * Per-slot pointer state. Fixed-length tuple of {@link POINTER_SLOT_COUNT}
      * entries (0 = mouse, 1-3 = touch / pen).
@@ -132,10 +120,6 @@ export class PointerInput {
     /** Captured `canvas.style.cursor` value, restored by {@link detach}. */
     private originalCursor: string | null = null;
 
-    // #endregion
-
-    // #region Bound Listeners
-
     private readonly onMove: (event: PointerEvent) => void;
     private readonly onDown: (event: PointerEvent) => void;
     private readonly onUp: (event: PointerEvent) => void;
@@ -143,10 +127,6 @@ export class PointerInput {
     private readonly onPointerLeave: (event: PointerEvent) => void;
     private readonly onWheel: (event: WheelEvent) => void;
     private readonly onContextMenu: (event: Event) => void;
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates a `PointerInput` with all slots inactive.
@@ -165,10 +145,6 @@ export class PointerInput {
         this.onWheel = (event) => this.handleWheel(event);
         this.onContextMenu = (event) => event.preventDefault();
     }
-
-    // #endregion
-
-    // #region Lifecycle
 
     /**
      * Attaches DOM listeners to the canvas and stores the logical display size.
@@ -283,10 +259,6 @@ export class PointerInput {
 
         this.scrollDeltaY = 0;
     }
-
-    // #endregion
-
-    // #region Public Queries
 
     /**
      * Returns the position of the pointer in slot `slot` in display coordinates.
@@ -454,10 +426,6 @@ export class PointerInput {
         }
     }
 
-    // #endregion
-
-    // #region Cursor
-
     /**
      * Hides the native OS cursor while the pointer is over the canvas.
      *
@@ -479,10 +447,6 @@ export class PointerInput {
             this.canvas.style.cursor = this.originalCursor ?? '';
         }
     }
-
-    // #endregion
-
-    // #region Event Handlers
 
     /**
      * Routes a `pointermove` event: updates slot 0 for mouse, or the slot
@@ -690,10 +654,6 @@ export class PointerInput {
 
         this.scrollDeltaY += pixels;
     }
-
-    // #endregion
-
-    // #region Slot Helpers
 
     /**
      * Builds a fresh `Slot` with newly allocated `Vector2i` instances
@@ -925,8 +885,4 @@ export class PointerInput {
         // eslint-disable-next-line security/detect-object-injection -- index originated from idToSlot, always in [0, POINTER_SLOT_COUNT)
         return this.slots[index] ?? null;
     }
-
-    // #endregion
 }
-
-// #endregion

@@ -23,8 +23,6 @@ import { fileURLToPath } from 'node:url';
 
 import { PNG } from 'pngjs';
 
-// #region Constants
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
 const DEFAULT_INPUT = join(PROJECT_ROOT, 'assets/system-font.png');
@@ -40,10 +38,6 @@ const FIRST_CHAR = 32;
 const LAST_CHAR = 126;
 const GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
 const ON_THRESHOLD = 128; // Red channel >= this means "on".
-
-// #endregion
-
-// #region PNG Reading
 
 /**
  * Reads the PNG and extracts bit patterns for all 95 glyphs.
@@ -90,10 +84,6 @@ function extractBitmaps(inputPath) {
 
     return bitmaps;
 }
-
-// #endregion
-
-// #region TypeScript Generation
 
 /**
  * Returns the printable label for a character code.
@@ -148,8 +138,6 @@ function generateTypeScript(bitmaps) {
     lines.push(' * This font data is in the public domain.');
     lines.push(' */');
     lines.push('');
-    lines.push('// #region Bitmap Data');
-    lines.push('');
     lines.push('// prettier-ignore');
     lines.push('export const SYSTEM_FONT_BITMAPS: readonly number[] = [');
 
@@ -164,10 +152,6 @@ function generateTypeScript(bitmaps) {
     }
 
     lines.push('];');
-    lines.push('');
-    lines.push('// #endregion');
-    lines.push('');
-    lines.push('// #region Constants');
     lines.push('');
     lines.push('/** First character code in the bitmap array. */');
 
@@ -187,15 +171,9 @@ function generateTypeScript(bitmaps) {
     lines.push('');
     lines.push('/** Number of bytes per glyph (one byte per row). */');
     lines.push('export const SYSTEM_FONT_BYTES_PER_GLYPH = 14;');
-    lines.push('');
-    lines.push('// #endregion');
 
     return lines.join('\n');
 }
-
-// #endregion
-
-// #region Main
 
 function main() {
     const args = process.argv.slice(2);
@@ -233,5 +211,3 @@ Options:
 }
 
 main();
-
-// #endregion

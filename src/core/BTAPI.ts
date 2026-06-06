@@ -51,8 +51,6 @@ import { initWebGPU } from './WebGPUContext';
  * It is a singleton; access it through `BTAPI.instance`.
  */
 export class BTAPI {
-    // #region Version Constants
-
     /**
      * Major semantic-version component.
      */
@@ -64,26 +62,14 @@ export class BTAPI {
     /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
 
-    // #endregion
-
-    // #region Module State - Demo Instance
-
     /** Current demo instance implementing IBlitTechDemo. */
     private demo: IBlitTechDemo | null = null;
-
-    // #endregion
-
-    // #region Module State - Hardware Settings
 
     /** Hardware configuration settings from the demo. */
     private hwSettings: HardwareSettings | null = null;
 
     /** WebGPU device for GPU operations. */
     private device: GPUDevice | null = null;
-
-    // #endregion
-
-    // #region Module State - WebGPU Resources
 
     /** WebGPU canvas context for presenting frames. */
     private context: GPUCanvasContext | null = null;
@@ -108,10 +94,6 @@ export class BTAPI {
 
     /** Registry of all sprite sheets that have been passed to drawSprite, for spritesRefresh. */
     private readonly spriteSheets: Set<SpriteSheet> = new Set();
-
-    // #endregion
-
-    // #region Module State - Subsystems
 
     /** Game loop managing fixed-timestep updates and variable-rate rendering. */
     private loop: GameLoop | null = null;
@@ -187,10 +169,6 @@ export class BTAPI {
     // TODO: Additional subsystems for future implementation:
     // AudioManager, AssetManager
 
-    // #endregion
-
-    // #region Singleton / Constructor
-
     /**
      * Private constructor to enforce singleton access via `BTAPI.instance`.
      */
@@ -198,10 +176,6 @@ export class BTAPI {
 
     /** Singleton instance of BTAPI. */
     private static _instance: BTAPI | null = null;
-
-    // #endregion
-
-    // #region Singleton Access
 
     /**
      * Gets the lazily created singleton instance.
@@ -215,10 +189,6 @@ export class BTAPI {
 
         return BTAPI._instance;
     }
-
-    // #endregion
-
-    // #region Initialization
 
     /**
      * Initializes the engine for a demo and starts the main loop on success.
@@ -536,10 +506,6 @@ export class BTAPI {
         this.overlay?.assignTag(label, this.getTicks());
     }
 
-    // #endregion
-
-    // #region Demo State Accessors
-
     /**
      * Gets the hardware settings used for the active demo (from `configure()` or
      * {@link defaultConfig}).
@@ -567,10 +533,6 @@ export class BTAPI {
     public getContext(): GPUCanvasContext | null {
         return this.context;
     }
-
-    // #endregion
-
-    // #region WebGPU Resource Accessors
 
     /**
      * Gets the canvas bound during initialization.
@@ -646,10 +608,6 @@ export class BTAPI {
         return this.gamepad;
     }
 
-    // #endregion
-
-    // #region Rendering API - Palette
-
     /**
      * Gets the active engine palette.
      *
@@ -679,10 +637,6 @@ export class BTAPI {
         this.palette = palette;
         this.renderer?.setPalette(palette);
     }
-
-    // #endregion
-
-    // #region Rendering API - Clear Operations
 
     /**
      * Sets the background clear color for each frame using a palette index.
@@ -742,10 +696,6 @@ export class BTAPI {
 
         this.renderer?.drawLine(p0, p1, paletteIndex);
     }
-
-    // #endregion
-
-    // #region Rendering API - Primitives
 
     /**
      * Draws a rectangle outline (unfilled).
@@ -861,10 +811,6 @@ export class BTAPI {
         this.renderer?.drawBitmapText(font, pos, text, paletteOffset);
     }
 
-    // #endregion
-
-    // #region Rendering API - Sprites
-
     /**
      * Re-indexizes all tracked sprite sheets against the current active palette.
      *
@@ -898,10 +844,6 @@ export class BTAPI {
         console.log(`[BT] Refreshed ${refreshed} sprite sheet(s) against current palette`);
     }
 
-    // #endregion
-
-    // #region Frame Capture API
-
     /**
      * Captures the next rendered frame as a PNG blob.
      * The capture occurs on the next completed render cycle.
@@ -916,10 +858,6 @@ export class BTAPI {
 
         return this.renderer.captureFrame();
     }
-
-    // #endregion
-
-    // #region Camera API
 
     /**
      * Sets the camera offset for scrolling effects.
@@ -946,10 +884,6 @@ export class BTAPI {
     public resetCamera(): void {
         this.renderer?.resetCamera();
     }
-
-    // #endregion
-
-    // #region Palette Effects API
 
     /**
      * Starts rotating a range of palette entries at a constant speed.
@@ -1057,10 +991,6 @@ export class BTAPI {
         this.paletteEffects.clear();
     }
 
-    // #endregion
-
-    // #region Post-Process Effects API
-
     /**
      * Appends a fullscreen post-processing effect to the chain.
      *
@@ -1108,10 +1038,6 @@ export class BTAPI {
 
         this.renderer.clearEffects();
     }
-
-    // #endregion
-
-    // #region Private - Initialization Helpers
 
     /**
      * Constructs and initializes the renderer for the active hardware settings.
@@ -1305,10 +1231,6 @@ export class BTAPI {
         }
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
     /**
      * Records dropped-frame severity for the timing chart and optionally logs a warning.
      *
@@ -1478,6 +1400,4 @@ export class BTAPI {
             throw new Error(paletteIndexOutOfRangeError(index, this.palette.size));
         }
     }
-
-    // #endregion
 }

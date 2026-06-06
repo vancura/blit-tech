@@ -1,8 +1,6 @@
 import { DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
 import { Vector2i } from '../utils/Vector2i';
 
-// #region Type Definitions
-
 /**
  * Magnification filter used by the upscale pass between the pixel chain
  * (logical resolution) and the display chain (output resolution).
@@ -409,10 +407,6 @@ export interface IBlitTechDemo {
      */
     overlayRows?(): readonly OverlayRow[] | undefined;
 }
-
-// #endregion
-
-// #region Helper Functions
 
 /**
  * Creates a fresh default hardware configuration for quick demos.
@@ -949,5 +943,3 @@ export function needsOverlayRendererDiagnostics(settings: HardwareSettings): boo
         settings.isOverlayRendererDiagnosticsBarEnabled === true
     );
 }
-
-// #endregion

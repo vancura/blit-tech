@@ -5,27 +5,17 @@
  * browser-side PNG encoding.
  */
 
-// #region Constants
-
 /** WebGPU row alignment requirement (bytes per row must be a multiple of 256). */
 const BYTES_PER_ROW_ALIGNMENT = 256;
 
 /** Bytes per pixel for RGBA/BGRA pixel data. */
 const BYTES_PER_PIXEL = 4;
 
-// #endregion
-
-// #region Pending Capture State
-
 /** Promise resolve callback for a pending frame capture. */
 type Resolve = (blob: Blob) => void;
 
 /** Promise reject callback for a pending frame capture. */
 type Reject = (reason: Error) => void;
-
-// #endregion
-
-// #region Helper Functions
 
 /**
  * Calculates the WebGPU-aligned byte size per row for a given image width.
@@ -101,10 +91,6 @@ export async function pixelBufferToPNG(
 
     return await offscreen.convertToBlob({ type: 'image/png' });
 }
-
-// #endregion
-
-// #region FrameCapture Class
 
 /**
  * Manages single-frame capture from the WebGPU rendering pipeline.
@@ -238,5 +224,3 @@ export class FrameCapture {
         }
     }
 }
-
-// #endregion

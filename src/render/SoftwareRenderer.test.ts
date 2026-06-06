@@ -9,8 +9,6 @@ import { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';
 import { SoftwareRenderer } from './SoftwareRenderer';
 
-// #region Types and helpers
-
 type MockContext = {
     imageSmoothingEnabled: boolean;
     createImageData: (w: number, h: number) => ImageData;
@@ -85,11 +83,7 @@ function hashPixels(imageData: ImageData): number {
     return hash >>> 0;
 }
 
-// #endregion
-
 describe('SoftwareRenderer', () => {
-    // #region Setup
-
     beforeEach(() => {
         vi.clearAllMocks();
         context.lastImageData = null;
@@ -111,10 +105,6 @@ describe('SoftwareRenderer', () => {
         vi.unstubAllGlobals();
     });
 
-    // #endregion
-
-    // #region Basic lifecycle
-
     it('requires palette before beginFrame', async () => {
         const canvas = {
             width: 0,
@@ -128,10 +118,6 @@ describe('SoftwareRenderer', () => {
 
         expect(() => renderer.beginFrame()).toThrow('No palette set yet. Call BT.paletteSet');
     });
-
-    // #endregion
-
-    // #region Rendering behaviors
 
     it('renders primitives with camera offset applied', async () => {
         const canvas = {
@@ -330,10 +316,6 @@ describe('SoftwareRenderer', () => {
         expect(() => renderer.clearEffects()).toThrow("doesn't support fullscreen effects");
     });
 
-    // #endregion
-
-    // #region Capture behavior
-
     it('resolves captureFrame on next endFrame', async () => {
         const toBlob = vi.fn((callback: (blob: Blob | null) => void) =>
             callback(new Blob(['png'], { type: 'image/png' })),
@@ -422,10 +404,6 @@ describe('SoftwareRenderer', () => {
         await expect(capture).rejects.toThrow('something went wrong exporting the canvas image');
     });
 
-    // #endregion
-
-    // #region Determinism
-
     it('produces deterministic output for the same command sequence', async () => {
         const canvas = {
             width: 0,
@@ -487,6 +465,4 @@ describe('SoftwareRenderer', () => {
 
         renderer.endFrame();
     });
-
-    // #endregion
 });

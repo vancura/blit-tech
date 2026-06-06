@@ -11,8 +11,6 @@ import {
     paletteSwap,
 } from './PaletteEffect';
 
-// #region Helpers
-
 /** Creates a 16-entry palette with distinct colors for testing. */
 function makeTestPalette(): Palette {
     const p = new Palette(16);
@@ -54,10 +52,6 @@ function makeTimeClock() {
         },
     };
 }
-
-// #endregion
-
-// #region PaletteEffectManager
 
 describe('PaletteEffectManager', () => {
     it('starts with zero active effects', () => {
@@ -206,10 +200,6 @@ describe('PaletteEffectManager', () => {
     });
 });
 
-// #endregion
-
-// #region CycleEffect
-
 describe('CycleEffect', () => {
     it('rotates entries forward', () => {
         const palette = makeTestPalette();
@@ -303,10 +293,6 @@ describe('CycleEffect', () => {
         expect(palette.getRef(5).isEqual(original5)).toBe(true);
     });
 });
-
-// #endregion
-
-// #region FadeEffect
 
 describe('FadeEffect', () => {
     it('reaches exact target values at completion', () => {
@@ -406,10 +392,6 @@ describe('FadeEffect', () => {
     });
 });
 
-// #endregion
-
-// #region FadeRangeEffect
-
 describe('FadeRangeEffect', () => {
     it('only affects specified range', () => {
         const source = makeTestPalette();
@@ -466,10 +448,6 @@ describe('FadeRangeEffect', () => {
     });
 });
 
-// #endregion
-
-// #region FlashEffect
-
 describe('FlashEffect', () => {
     it('sets all non-zero entries to flash color', () => {
         const palette = makeTestPalette();
@@ -523,10 +501,6 @@ describe('FlashEffect', () => {
     });
 });
 
-// #endregion
-
-// #region paletteSwap
-
 describe('paletteSwap', () => {
     it('exchanges two palette entries', () => {
         const palette = makeTestPalette();
@@ -559,5 +533,3 @@ describe('paletteSwap', () => {
         expect(palette.isDirty).toBe(false);
     });
 });
-
-// #endregion

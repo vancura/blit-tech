@@ -10,8 +10,6 @@ import { describe, expect, it } from 'vitest';
 
 import { clampByte, Color32, INV_255 } from './Color32';
 
-// #region clampByte
-
 describe('clampByte', () => {
     it('passes through values in valid range', () => {
         expect(clampByte(0)).toBe(0);
@@ -35,10 +33,6 @@ describe('clampByte', () => {
         expect(clampByte(254.999)).toBe(254);
     });
 });
-
-// #endregion
-
-// #region Constructor
 
 describe('Color32 constructor', () => {
     it('defaults to white (255, 255, 255, 255)', () => {
@@ -68,10 +62,6 @@ describe('Color32 constructor', () => {
         expect(c.a).toBe(128);
     });
 });
-
-// #endregion
-
-// #region Static Color Getters
 
 describe('static color getters', () => {
     it('white returns (255, 255, 255, 255)', () => {
@@ -336,10 +326,6 @@ describe('named color registry', () => {
     });
 });
 
-// #endregion
-
-// #region Static Factory Methods
-
 describe('fromRGBAUnchecked', () => {
     it('creates color without clamping', () => {
         const c = Color32.fromRGBAUnchecked(100, 150, 200, 250);
@@ -521,10 +507,6 @@ describe('fromHSL', () => {
     });
 });
 
-// #endregion
-
-// #region Conversion Methods
-
 describe('toFloat32Array', () => {
     it('returns 4-element Float32Array with values in [0, 1]', () => {
         const c = new Color32(255, 0, 128, 255);
@@ -672,10 +654,6 @@ describe('toString', () => {
     });
 });
 
-// #endregion
-
-// #region Comparison
-
 describe('isEqual', () => {
     it('returns true for identical colors', () => {
         const a = new Color32(10, 20, 30, 40);
@@ -698,10 +676,6 @@ describe('isEqual', () => {
         expect(a.isEqual(undefined as unknown as Color32)).toBe(false);
     });
 });
-
-// #endregion
-
-// #region Modification
 
 describe('clone', () => {
     it('creates an independent copy', () => {
@@ -792,10 +766,6 @@ describe('invert', () => {
         expect(doubleInv.a).toBe(180);
     });
 });
-
-// #endregion
-
-// #region Blending
 
 describe('lerp', () => {
     it('returns this color at t=0', () => {
@@ -1028,10 +998,6 @@ describe('premultiplyAlpha', () => {
     });
 });
 
-// #endregion
-
-// #region Mutation
-
 describe('setRGBA', () => {
     it('sets all channels with clamping and returns this', () => {
         const c = new Color32(0, 0, 0, 0);
@@ -1103,10 +1069,6 @@ describe('copyFrom', () => {
     });
 });
 
-// #endregion
-
-// #region Utility
-
 describe('luminance', () => {
     it('returns 255 for white', () => {
         const c = new Color32(255, 255, 255, 255);
@@ -1143,5 +1105,3 @@ describe('INV_255 constant', () => {
         expect(INV_255).toBeCloseTo(1 / 255, 10);
     });
 });
-
-// #endregion

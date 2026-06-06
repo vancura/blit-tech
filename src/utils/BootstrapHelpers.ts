@@ -4,17 +4,11 @@
  * Canvas lookup and error display utilities used by the bootstrap function.
  */
 
-// #region Constants
-
 /** Default canvas element ID. */
 export const DEFAULT_CANVAS_ID = 'blit-tech-canvas';
 
 /** Default container element ID for error display. */
 export const DEFAULT_CONTAINER_ID = 'canvas-container';
-
-// #endregion
-
-// #region Types
 
 /**
  * Content that can be displayed in an error message.
@@ -26,10 +20,6 @@ export type ErrorContent =
           text: string;
           code?: string;
       };
-
-// #endregion
-
-// #region Internal Helpers
 
 /**
  * Appends text to an element, converting newline characters to `<br>` elements.
@@ -49,10 +39,6 @@ function appendTextWithLineBreaks(element: HTMLElement, text: string): void {
         }
     });
 }
-
-// #endregion
-
-// #region Exported Helpers
 
 /**
  * Displays an error message in the page UI.
@@ -173,4 +159,3 @@ export function getCanvas(canvasID: string = DEFAULT_CANVAS_ID): HTMLCanvasEleme
     return canvas;
 }
 
-// #endregion

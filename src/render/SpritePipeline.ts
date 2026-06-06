@@ -3,8 +3,6 @@ import type { SpriteSheet } from '../assets/SpriteSheet';
 import type { Rect2i } from '../utils/Rect2i';
 import { Vector2i } from '../utils/Vector2i';
 
-// #region Configuration
-
 /**
  * Maximum number of sprite vertices retained for a frame.
  */
@@ -20,8 +18,6 @@ const VALUES_PER_VERTEX = 5;
  */
 const VERTEX_STRIDE = 20;
 
-// #endregion
-
 /**
  * Batched WebGPU pipeline for indexed-palette sprite rendering.
  *
@@ -35,8 +31,6 @@ const VERTEX_STRIDE = 20;
  * draw call per texture batch in `encodePass()`.
  */
 export class SpritePipeline {
-    // #region State
-
     /** WebGPU device, set during init(). */
     private device: GPUDevice | null = null;
 
@@ -70,10 +64,6 @@ export class SpritePipeline {
     /** Camera offset applied to all drawing operations. */
     private cameraOffset: Vector2i = Vector2i.zero();
 
-    // #endregion
-
-    // #region Batching State
-
     /** Currently bound texture for sprite rendering. */
     private currentTexture: GPUTexture | null = null;
 
@@ -92,19 +82,11 @@ export class SpritePipeline {
     /** Overflow events recorded this frame (dropped quads). */
     private overflowCount: number = 0;
 
-    // #endregion
-
-    // #region Reusable Objects
-
     /** Pre-allocated vector for character positions in drawBitmapText. */
     private readonly tempVec: Vector2i = new Vector2i(0, 0);
 
     /** Pre-allocated vector for sprite size in drawSprite. */
     private readonly tempSize: Vector2i = new Vector2i(0, 0);
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates an empty sprite pipeline.
@@ -115,10 +97,6 @@ export class SpritePipeline {
         this.vertexFloats = new Float32Array(this.vertexArrayBuffer);
         this.vertexUints = new Uint32Array(this.vertexArrayBuffer);
     }
-
-    // #endregion
-
-    // #region Initialization
 
     /**
      * Initializes the GPU pipeline state and vertex buffer.
@@ -140,10 +118,6 @@ export class SpritePipeline {
         await this.createPipeline(displaySize, targetFormat);
     }
 
-    // #endregion
-
-    // #region Camera
-
     /**
      * Sets the camera offset applied to all drawing operations.
      *
@@ -152,10 +126,6 @@ export class SpritePipeline {
     setCameraOffset(offset: Vector2i): void {
         this.cameraOffset = offset;
     }
-
-    // #endregion
-
-    // #region Drawing
 
     /**
      * Draws a sprite region from an indexed sprite sheet.
@@ -238,10 +208,6 @@ export class SpritePipeline {
             renderPass.draw(batch.vertexCount, 1, batch.vertexStart, 0);
         }
     }
-
-    // #endregion
-
-    // #region Frame Rendering
 
     /**
      * Clears all per-frame batching state.
@@ -401,10 +367,6 @@ export class SpritePipeline {
         });
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
     /**
      * Draws a textured quad (two triangles) to the screen.
      * Handles texture switching and keeps quad emission atomic so partial quads
@@ -553,6 +515,4 @@ export class SpritePipeline {
 
         return bindGroup;
     }
-
-    // #endregion
 }

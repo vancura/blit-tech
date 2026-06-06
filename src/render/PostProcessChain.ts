@@ -1,8 +1,6 @@
 import type { Vector2i } from '../utils/Vector2i';
 import type { Effect, EffectTier } from './effects/Effect';
 
-// #region Configuration
-
 /**
  * Texture usage flags for offscreen color targets.
  *
@@ -10,8 +8,6 @@ import type { Effect, EffectTier } from './effects/Effect';
  * `TEXTURE_BINDING` allows post-process effects to sample from it.
  */
 const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-
-// #endregion
 
 /**
  * Stackable post-processing effect chain that runs at a single resolution tier.
@@ -37,8 +33,6 @@ const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXT
  * Effect ordering is the order of {@link add} calls.
  */
 export class PostProcessChain {
-    // #region State
-
     /** WebGPU device used for resource creation. */
     private readonly device: GPUDevice;
 
@@ -69,10 +63,6 @@ export class PostProcessChain {
     /** Cached view for {@link texB}, regenerated when the texture is recreated. */
     private texBView: GPUTextureView | null = null;
 
-    // #endregion
-
-    // #region Constructor
-
     /**
      * Creates a chain bound to a device, swap-chain format, render resolution,
      * and tier.
@@ -91,10 +81,6 @@ export class PostProcessChain {
         this.size = chainSize.clone();
         this.tier = tier;
     }
-
-    // #endregion
-
-    // #region Public API
 
     /**
      * Returns `true` when at least one effect is registered.
@@ -272,10 +258,6 @@ export class PostProcessChain {
         this.clear();
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
     /** Allocates {@link texA}. */
     private allocatePrimary(): void {
         this.texA = this.device.createTexture({
@@ -323,6 +305,4 @@ export class PostProcessChain {
         this.texAView = null;
         this.texBView = null;
     }
-
-    // #endregion
 }

@@ -15,8 +15,6 @@ import { PrimitivePipeline } from './PrimitivePipeline';
 import { SpritePipeline } from './SpritePipeline';
 import type { UpscaleFilter } from './UpscalePass';
 
-// #region Configuration
-
 /**
  * GPU palette uniform buffer size: 256 entries x 4 floats x 4 bytes = 4096 bytes.
  */
@@ -32,8 +30,6 @@ const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.T
 
 /** Logical scene + pixel chain format (palette index in the red channel). */
 const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
-
-// #endregion
 
 /**
  * WebGPU renderer implementing {@link IRenderer}.
@@ -89,10 +85,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     /** Frame capture manager for PNG export. */
     private readonly frameCapture = new FrameCapture();
 
-    // #endregion
-
-    // #region Palette State
-
     /** Active palette for color lookups and GPU upload. */
     private palette: Palette | null = null;
 
@@ -108,10 +100,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      * Per-frame mutations are detected separately via {@link Palette.isDirty}.
      */
     private isPaletteDirty: boolean = false;
-
-    // #endregion
-
-    // #region Pipelines
 
     /** Pipeline for palette-indexed geometry (pixels, lines, rectangles). */
     private readonly primitives: PrimitivePipeline;
@@ -164,10 +152,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
      */
     private lastFrameMs: number = 0;
 
-    // #endregion
-
-    // #region Constructor
-
     /**
      * Creates a renderer bound to an initialized device and canvas context.
      *
@@ -200,10 +184,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.overlaySprites = new SpritePipeline();
         this.overlayTopSprites = new SpritePipeline();
     }
-
-    // #endregion
-
-    // #region Initialization
 
     /**
      * Initializes the underlying render pipelines and GPU resources.
@@ -277,10 +257,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         }
     }
 
-    // #endregion
-
-    // #region Palette
-
     /**
      * Sets the active palette used for rendering.
      *
@@ -317,10 +293,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     getPalette(): Palette | null {
         return this.palette?.clone() ?? null;
     }
-
-    // #endregion
-
-    // #region Frame Management
 
     /**
      * Begins a new frame by clearing all per-frame batching state.
@@ -418,10 +390,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         };
     }
 
-    // #endregion
-
-    // #region Rendering API - Primitives
-
     /**
      * Draws a filled rectangle using two triangles.
      *
@@ -494,10 +462,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.primitives.clearRect(rect, paletteIndex);
     }
 
-    // #endregion
-
-    // #region Rendering API - Sprites
-
     /**
      * Draws a sprite region from an indexed sprite sheet.
      *
@@ -547,10 +511,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.overlayTopSprites.drawBitmapText(font, pos, text, paletteOffset);
     }
 
-    // #endregion
-
-    // #region Frame Capture API
-
     /**
      * Captures the next rendered frame as a PNG blob.
      * The capture happens on the next `endFrame()` call.
@@ -561,10 +521,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
     captureFrame(): Promise<Blob> {
         return this.frameCapture.request();
     }
-
-    // #endregion
-
-    // #region Camera API
 
     /**
      * Sets the camera offset for scrolling.
@@ -606,10 +562,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.overlaySprites.setCameraOffset(this.cameraOffset);
         this.overlayTopSprites.setCameraOffset(this.cameraOffset);
     }
-
-    // #endregion
-
-    // #region Post-Process Effects API
 
     /**
      * Appends a fullscreen post-processing effect to the chain matching its
@@ -677,10 +629,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.pixelChain.clear();
         this.displayChain.clear();
     }
-
-    // #endregion
-
-    // #region Private - frame encoding
 
     /**
      * Tries to acquire the swap-chain texture and validate its dimensions.
@@ -841,10 +789,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         this.overlayTopSprites.reset();
     }
 
-    // #endregion
-
-    // #region Private Helpers
-
     /**
      * Picks the texture view the scene render pass should target this frame.
      *
@@ -907,10 +851,6 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
         return chain.getInputView();
     }
 
-    // #endregion
-
-    // #region Private - drawing
-
     /**
      * Fast-path pixel draw using raw integer coordinates.
      * Avoids Vector2i unpacking overhead when coordinates are already available as numbers.
@@ -942,6 +882,4 @@ export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
 
         return this.clearPaletteIndex;
     }
-
-    // #endregion
 }

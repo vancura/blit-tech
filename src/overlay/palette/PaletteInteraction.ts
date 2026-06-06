@@ -23,8 +23,6 @@ import {
     writeSwatchTopLeft,
 } from './PaletteView';
 
-// #region Constants and types
-
 /** Reserved width on the right edge of the palette band excluded from swatch hits (scrollbar). */
 export const PALETTE_SCROLLBAR_TRACK_WIDTH_PX = 4;
 
@@ -50,10 +48,6 @@ const tooltipScratch = {
     outlineEdge: new Rect2i(),
     textPos: new Vector2i(),
 };
-
-// #endregion
-
-// #region Helpers
 
 /**
  * Returns whether a palette slot at the given swatch origin overlaps the hint exclusion rect.
@@ -330,10 +324,6 @@ export function resolveScrollRowOffsetFromTrackPointerY(
     return clampScrollRowOffset(offset, grid);
 }
 
-// #endregion
-
-// #region Tooltip
-
 /** Layout output for a docked palette swatch tooltip. */
 export interface PaletteTooltipLayout {
     /** Tooltip label body in display coordinates. */
@@ -446,10 +436,6 @@ export function drawTooltipLabel(
     target.drawLabelOnTop(font, layout.textPos, label, textPaletteOffset);
 }
 
-// #endregion
-
-// #region Clipboard
-
 /**
  * Writes palette index text to the clipboard when the API is available.
  *
@@ -465,10 +451,6 @@ export async function writeIndexToClipboard(index: number): Promise<void> {
 
     await clipboard.writeText(String(index));
 }
-
-// #endregion
-
-// #region Interaction
 
 /**
  * Handles palette swatch hover, copy-on-press, and tooltip rendering for the overlay.
@@ -1007,5 +989,3 @@ export class PaletteInteraction {
         return this.#tooltipLabel;
     }
 }
-
-// #endregion

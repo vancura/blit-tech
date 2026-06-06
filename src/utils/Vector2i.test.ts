@@ -10,8 +10,6 @@ import { describe, expect, it } from 'vitest';
 
 import { Vector2i } from './Vector2i';
 
-// #region Constructor
-
 describe('Vector2i', () => {
     describe('Constructor', () => {
         it('should default to (0, 0)', () => {
@@ -57,10 +55,6 @@ describe('Vector2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Property Aliases
-
     describe('Property Aliases', () => {
         it('should return x as width', () => {
             const v = new Vector2i(42, 99);
@@ -104,10 +98,6 @@ describe('Vector2i', () => {
             expect(v.y).toBe(200);
         });
     });
-
-    // #endregion
-
-    // #region Static Singletons
 
     describe('Static Singletons', () => {
         it('should return (0, 0) for zero()', () => {
@@ -183,10 +173,6 @@ describe('Vector2i', () => {
             expect(Object.isFrozen(Vector2i.right())).toBe(true);
         });
     });
-
-    // #endregion
-
-    // #region Arithmetic
 
     describe('Arithmetic', () => {
         describe('add', () => {
@@ -667,10 +653,6 @@ describe('Vector2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Zero-Allocation Output ("To" methods)
-
     describe('Zero-Allocation Output ("To" methods)', () => {
         describe('addTo', () => {
             it('should write the sum to the output vector', () => {
@@ -911,10 +893,6 @@ describe('Vector2i', () => {
             });
         });
     });
-
-    // #endregion
-
-    // #region In-Place Mutations
 
     describe('In-Place Mutations', () => {
         describe('addInPlace', () => {
@@ -1274,10 +1252,6 @@ describe('Vector2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Distance
-
     describe('Distance', () => {
         describe('magnitude', () => {
             it('should return 5 for (3, 4)', () => {
@@ -1489,10 +1463,6 @@ describe('Vector2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Normalization
-
     describe('Normalization', () => {
         describe('normalized', () => {
             it('should return zero vector for zero input', () => {
@@ -1536,10 +1506,6 @@ describe('Vector2i', () => {
             });
         });
     });
-
-    // #endregion
-
-    // #region Comparison
 
     describe('Comparison', () => {
         describe('isEqual', () => {
@@ -1625,10 +1591,6 @@ describe('Vector2i', () => {
         });
     });
 
-    // #endregion
-
-    // #region Utility
-
     describe('Utility', () => {
         describe('clone', () => {
             it('should create an independent copy', () => {
@@ -1676,10 +1638,6 @@ describe('Vector2i', () => {
             });
         });
     });
-
-    // #endregion
-
-    // #region Static Factories
 
     describe('Static Factories', () => {
         describe('fromXYUnchecked', () => {
@@ -1894,6 +1852,4 @@ describe('Vector2i', () => {
             });
         });
     });
-
-    // #endregion
 });

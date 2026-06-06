@@ -6,8 +6,6 @@
  * convenience methods that return new vectors.
  */
 export class Vector2i {
-    // #region Cached Static Vectors
-
     /** The cached singleton for zero vector. */
     private static readonly _zero: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(0, 0));
 
@@ -25,10 +23,6 @@ export class Vector2i {
 
     /** The cached singleton for the right direction. */
     private static readonly _right: Vector2i = Object.freeze(Vector2i.fromXYUnchecked(1, 0));
-
-    // #endregion
-
-    // #region Constructor
 
     /**
      * Creates an integer 2D vector, truncating inputs toward zero.
@@ -48,10 +42,6 @@ export class Vector2i {
         this.x = x | 0;
         this.y = y | 0;
     }
-
-    // #endregion
-
-    // #region Property Aliases
 
     /**
      * Alias for `x` when treating the vector as a size.
@@ -86,10 +76,6 @@ export class Vector2i {
     set height(value: number) {
         this.y = value | 0;
     }
-
-    // #endregion
-
-    // #region Vector Operations
 
     /**
      * Returns a zero vector (0, 0).
@@ -304,10 +290,6 @@ export class Vector2i {
         return Vector2i.fromXYUnchecked(this.x - (x | 0), this.y - (y | 0));
     }
 
-    // #endregion
-
-    // #region Instance Arithmetic Methods
-
     /**
      * Multiplies both components by a scalar and returns a new vector.
      *
@@ -419,10 +401,6 @@ export class Vector2i {
     dot(other: Vector2i): number {
         return this.x * other.x + this.y * other.y;
     }
-
-    // #endregion
-
-    // #region Geometric Operations and Write-To-Out Methods
 
     /**
      * Calculates the 2D cross-product (perpendicular dot product).
@@ -609,10 +587,6 @@ export class Vector2i {
 
         return out;
     }
-
-    // #endregion
-
-    // #region In-Place Mutation Methods
 
     /**
      * Adds another vector to this one in place.
@@ -832,10 +806,6 @@ export class Vector2i {
         return this;
     }
 
-    // #endregion
-
-    // #region Setters and Scalar Geometry
-
     /**
      * Sets both components of this vector.
      * Modifies this vector directly for maximum performance.
@@ -877,10 +847,6 @@ export class Vector2i {
     magnitude(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
-
-    // #endregion
-
-    // #region Distance Methods
 
     /**
      * Calculates the squared magnitude (avoids the sqrt for performance).
@@ -995,10 +961,6 @@ export class Vector2i {
         return Math.max(Math.abs((x | 0) - this.x), Math.abs((y | 0) - this.y));
     }
 
-    // #endregion
-
-    // #region Comparison and Utility
-
     /**
      * Returns a direction vector pointing in the same direction.
      * Components are rounded to the nearest integer, producing one of 8 cardinal/diagonal
@@ -1085,6 +1047,4 @@ export class Vector2i {
     toString(): string {
         return `(${this.x}, ${this.y})`;
     }
-
-    // #endregion
 }

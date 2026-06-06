@@ -2,8 +2,6 @@
  * Allocation regression tests for {@link PaletteView} draw hot path.
  */
 
-// #region Imports
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Palette } from '../../assets/Palette';
@@ -13,10 +11,6 @@ import { Rect2i } from '../../utils/Rect2i';
 import { createOverlayLayout } from '../layout/layoutHelpers';
 import { hintBarY, paletteBandY } from '../layout/layoutPlan';
 import { computeGrid, DEFAULT_PALETTE_SWATCH_SIZE, PaletteView } from './PaletteView';
-
-// #endregion
-
-// #region Mock setup
 
 const { rect2iAllocStats } = vi.hoisted(() => ({ rect2iAllocStats: { count: 0 } }));
 
@@ -33,10 +27,6 @@ vi.mock('../../utils/Rect2i', async (importOriginal) => {
     return { ...mod, Rect2i: CountingRect2i };
 });
 
-// #endregion
-
-// #region Helpers
-
 /** Builds a usage mask from palette slot indices for tests. */
 function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
     const mask = new Uint8Array(size);
@@ -47,10 +37,6 @@ function buildUsageMask(indices: readonly number[], size = 256): Uint8Array {
 
     return mask;
 }
-
-// #endregion
-
-// #region Tests
 
 describe('PaletteView allocation', () => {
     beforeEach(() => {
@@ -137,5 +123,3 @@ describe('PaletteView allocation', () => {
         expect(rect2iAllocStats.count).toBe(afterWarmup);
     });
 });
-
-// #endregion

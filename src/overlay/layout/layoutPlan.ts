@@ -13,8 +13,6 @@ import { OVERLAY_BAR_HEIGHT, OVERLAY_EDGE_MARGIN_PX, OVERLAY_ROW_GAP_PX, OVERLAY
 import { overlayRightAlignedTextX } from './layoutHelpers';
 import type { OverlayLayoutConfig, OverlayLayoutPlan } from './types';
 
-// #region Scratch type
-
 /** Mutable scratch object reused by {@link buildOverlayLayoutPlan}. */
 export interface OverlayLayoutPlanScratch {
     titleBar: Rect2i;
@@ -62,10 +60,6 @@ export function createOverlayLayoutPlanScratch(): OverlayLayoutPlanScratch {
         bottomClusterSeparator: new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX),
     };
 }
-
-// #endregion
-
-// #region Geometry helpers
 
 /**
  * Top Y of the bottom hint bar (13 px strip at the display bottom edge).
@@ -257,10 +251,6 @@ function populateGapLayout(scratch: OverlayLayoutPlanScratch, config: OverlayLay
     scratch.bottomClusterSeparator.height = OVERLAY_ROW_GAP_PX;
 }
 
-// #endregion
-
-// #region Layout planner
-
 /**
  * Builds or updates a layout plan from configuration (top-down stack).
  *
@@ -382,10 +372,6 @@ export function buildOverlayLayoutPlan(
     return scratch;
 }
 
-// #endregion
-
-// #region Config factory
-
 /**
  * Default layout config with chart and palette features disabled.
  *
@@ -412,5 +398,3 @@ export function createDefaultLayoutConfig(
         isOverlayPaletteEnabled: false,
     };
 }
-
-// #endregion

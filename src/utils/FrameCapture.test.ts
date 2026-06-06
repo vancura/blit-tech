@@ -11,8 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockGPUDevice, createMockGPUTexture } from '../__test__/webgpu-mock';
 import { alignedBytesPerRow, FrameCapture, swizzleBGRAtoRGBA } from './FrameCapture';
 
-// #region Browser API Mocks
-
 /**
  * Installs browser-only globals (ImageData, OffscreenCanvas) that don't exist in Node.js.
  * Call in beforeEach for tests that exercise the full capture-to-PNG flow.
@@ -49,10 +47,6 @@ function installBrowserMocks(): void {
     );
 }
 
-// #endregion
-
-// #region alignedBytesPerRow
-
 describe('alignedBytesPerRow', () => {
     it('should return 256 for widths up to 64 pixels', () => {
         // 64 * 4 = 256, which is already aligned.
@@ -79,10 +73,6 @@ describe('alignedBytesPerRow', () => {
         expect(alignedBytesPerRow(256)).toBe(1024);
     });
 });
-
-// #endregion
-
-// #region swizzleBGRAtoRGBA
 
 describe('swizzleBGRAtoRGBA', () => {
     it('should swap B and R channels', () => {
@@ -130,10 +120,6 @@ describe('swizzleBGRAtoRGBA', () => {
         expect(data.length).toBe(0);
     });
 });
-
-// #endregion
-
-// #region FrameCapture
 
 describe('FrameCapture', () => {
     beforeEach(() => {
@@ -335,5 +321,3 @@ describe('FrameCapture', () => {
         await expect(capture.resolve(device)).resolves.toBeUndefined();
     });
 });
-
-// #endregion

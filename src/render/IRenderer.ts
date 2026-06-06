@@ -20,18 +20,12 @@ import type { Effect } from './effects/Effect';
  * 3. Palette must be set via {@link setPalette} before the first {@link beginFrame}.
  */
 export interface IRenderer {
-    // #region Initialization
-
     /**
      * Initializes GPU or canvas resources for rendering.
      *
      * @returns `true` when resources are ready; `false` on failure.
      */
     init(): Promise<boolean>;
-
-    // #endregion
-
-    // #region Palette
 
     /**
      * Sets the active palette used for all color lookups this frame and beyond.
@@ -46,10 +40,6 @@ export interface IRenderer {
      * @returns Clone of the active palette, or `null`.
      */
     getPalette(): Palette | null;
-
-    // #endregion
-
-    // #region Frame Management
 
     /**
      * Begins a new frame. Resets per-frame draw batches.
@@ -79,10 +69,6 @@ export interface IRenderer {
      * @returns Diagnostic counters for the current frame.
      */
     getFrameDiagnostics(): OverlayRendererDiagnostics;
-
-    // #endregion
-
-    // #region Drawing - Primitives
 
     /**
      * Draws a filled rectangle.
@@ -125,10 +111,6 @@ export interface IRenderer {
      */
     clearRect(rect: Rect2i, paletteIndex: number): void;
 
-    // #endregion
-
-    // #region Drawing - Sprites
-
     /**
      * Draws a sprite region from an indexed sprite sheet.
      *
@@ -149,20 +131,12 @@ export interface IRenderer {
      */
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
 
-    // #endregion
-
-    // #region Frame Capture
-
     /**
      * Captures the next rendered frame as a PNG blob.
      *
      * @returns Promise resolving to a PNG Blob after the next {@link endFrame}.
      */
     captureFrame(): Promise<Blob>;
-
-    // #endregion
-
-    // #region Camera
 
     /**
      * Sets the camera offset for scrolling.
@@ -182,10 +156,6 @@ export interface IRenderer {
      * Resets the camera offset to the origin (0, 0).
      */
     resetCamera(): void;
-
-    // #endregion
-
-    // #region Post-Process Effects
 
     /**
      * Appends a fullscreen post-processing effect.
@@ -207,6 +177,4 @@ export interface IRenderer {
      * Removes every registered post-processing effect.
      */
     clearEffects(): void;
-
-    // #endregion
 }

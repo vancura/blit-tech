@@ -3,8 +3,6 @@
  * and text accumulation via `beforeinput` (`inputString`).
  */
 
-// #region Types
-
 /** Options supplied when attaching to the canvas. */
 export interface KeyboardAttachOptions {
     /**
@@ -13,10 +11,6 @@ export interface KeyboardAttachOptions {
      */
     getTicks: () => number;
 }
-
-// #endregion
-
-// #region KeyboardInput
 
 /**
  * Tracks held keys using `KeyboardEvent.code`, snapshots once per frame for
@@ -257,8 +251,6 @@ export class KeyboardInput {
         return codes.some((c) => this.prevHeld.has(c));
     }
 
-    // #region Private
-
     /**
      * Minimum `firstPressTick` among codes that are still held (OR-button repeat).
      *
@@ -368,8 +360,4 @@ export class KeyboardInput {
             return;
         }
     }
-
-    // #endregion
 }
-
-// #endregion

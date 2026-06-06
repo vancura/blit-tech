@@ -24,8 +24,6 @@ afterEach(() => {
 });
 
 describe('AssetLoader', () => {
-    // #region Cache Management
-
     describe('cache management', () => {
         it('should report isLoaded as false for an unloaded URL', () => {
             expect(AssetLoader.isLoaded('never-loaded.png')).toBe(false);
@@ -70,10 +68,6 @@ describe('AssetLoader', () => {
             }
         });
     });
-
-    // #endregion
-
-    // #region Image Loading
 
     describe('image loading', () => {
         let createCount = 0;
@@ -143,10 +137,6 @@ describe('AssetLoader', () => {
             expect(createCount).toBe(1);
         });
     });
-
-    // #endregion
-
-    // #region Error Handling
 
     describe('error handling', () => {
         beforeEach(() => {
@@ -240,6 +230,4 @@ describe('AssetLoader', () => {
             );
         });
     });
-
-    // #endregion
 });

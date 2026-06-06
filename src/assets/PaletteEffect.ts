@@ -14,8 +14,6 @@ import type { EasingFunction } from '../utils/Easing';
 import { applyEasing } from '../utils/Easing';
 import type { Palette } from './Palette';
 
-// #region Types
-
 /**
  * A single palette effect that runs over time.
  *
@@ -33,10 +31,6 @@ export interface PaletteEffect {
      */
     update(palette: Palette, deltaMs: number): boolean;
 }
-
-// #endregion
-
-// #region PaletteEffectManager
 
 /**
  * Manages active palette effects and updates them each frame.
@@ -127,10 +121,6 @@ export class PaletteEffectManager {
         this.effects.length = 0;
     }
 }
-
-// #endregion
-
-// #region CycleEffect
 
 /**
  * Rotates a range of palette entries at a constant speed.
@@ -241,10 +231,6 @@ export class CycleEffect implements PaletteEffect {
     }
 }
 
-// #endregion
-
-// #region Fade Helpers
-
 /**
  * Snapshots a contiguous palette index range into a new array.
  *
@@ -337,10 +323,6 @@ function applyFadeToRange(
     }
 }
 
-// #endregion
-
-// #region FadeEffect
-
 /**
  * Smoothly interpolates all palette entries toward a target palette over time.
  *
@@ -402,10 +384,6 @@ export class FadeEffect implements PaletteEffect {
     }
 }
 
-// #endregion
-
-// #region FadeRangeEffect
-
 /**
  * Fades only a subset of palette indices toward a target palette.
  *
@@ -462,10 +440,6 @@ export class FadeRangeEffect implements PaletteEffect {
     }
 }
 
-// #endregion
-
-// #region Flash Helpers
-
 /**
  * Copies `color` into every palette slot except the transparent sentinel at index 0.
  *
@@ -494,10 +468,6 @@ function restoreNonZeroSlots(palette: Palette, snapshot: Color32[]): void {
         }
     }
 }
-
-// #endregion
-
-// #region FlashEffect
 
 /**
  * Temporarily sets all palette entries to a single color, then restores.
@@ -551,10 +521,6 @@ export class FlashEffect implements PaletteEffect {
     }
 }
 
-// #endregion
-
-// #region Standalone Functions
-
 /**
  * Instantly exchanges two palette entries.
  *
@@ -581,5 +547,3 @@ export function paletteSwap(palette: Palette, indexA: number, indexB: number): v
         palette.markDirty();
     }
 }
-
-// #endregion

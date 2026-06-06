@@ -3,8 +3,6 @@
  * Provides stub objects that track calls without requiring a real GPU.
  */
 
-// #region Constants
-
 /** Default width and height for mock textures when a descriptor omits dimensions. */
 const DEFAULT_SIZE_PX = 256;
 
@@ -16,10 +14,6 @@ const INDEX_COUNT = 256;
 const RGBA_COMPONENT_COUNT = 4;
 const BYTES_PER_FLOAT32 = 4;
 const BUFFER_BYTE_SIZE = INDEX_COUNT * RGBA_COMPONENT_COUNT * BYTES_PER_FLOAT32;
-
-// #endregion
-
-// #region Helpers
 
 /** Options for creating a mock GPUBuffer stub. */
 type MockBufferOptions = {
@@ -81,10 +75,6 @@ function resolveMockTextureSize(size: GPUTextureDescriptor['size']): { width: nu
     };
 }
 
-// #endregion
-
-// #region GPUTexture
-
 /**
  * Creates a mock GPUTexture.
  *
@@ -113,10 +103,6 @@ export function createMockGPUTexture(
     } as unknown as GPUTexture;
 }
 
-// #endregion
-
-// #region GPURenderPassEncoder
-
 /**
  * Creates a mock GPURenderPassEncoder that records calls.
  *
@@ -132,10 +118,6 @@ export function createMockRenderPassEncoder(): GPURenderPassEncoder {
         label: 'MockRenderPass',
     } as unknown as GPURenderPassEncoder;
 }
-
-// #endregion
-
-// #region GPUDevice
 
 /**
  * Creates a mock GPUDevice with stub methods.
@@ -240,10 +222,6 @@ export function createMockGPUDevice(): GPUDevice {
     } as unknown as GPUDevice;
 }
 
-// #endregion
-
-// #region GPUCanvasContext
-
 /**
  * Creates a mock GPUCanvasContext.
  *
@@ -256,10 +234,6 @@ export function createMockGPUCanvasContext(): GPUCanvasContext {
         canvas: {} as HTMLCanvasElement,
     } as unknown as GPUCanvasContext;
 }
-
-// #endregion
-
-// #region Palette Buffer
 
 /**
  * Creates a mock GPUBuffer matching the real 4096-byte palette uniform layout.
@@ -274,10 +248,6 @@ export function createMockPaletteBuffer(): GPUBuffer {
         label: 'Mock Palette Buffer',
     });
 }
-
-// #endregion
-
-// #region Navigator GPU
 
 /**
  * Installs a mock navigator.gpu on globalThis for tests.
@@ -315,5 +285,3 @@ export function uninstallMockNavigatorGPU(): void {
         delete nav.gpu;
     }
 }
-
-// #endregion

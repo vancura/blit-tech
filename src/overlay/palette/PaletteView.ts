@@ -6,8 +6,6 @@
  * transparent corner pixels.
  */
 
-// #region Imports and constants
-
 import type { Palette } from '../../assets/Palette';
 import { Rect2i } from '../../utils/Rect2i';
 import { OVERLAY_EDGE_MARGIN_PX } from '../layout/constants';
@@ -41,10 +39,6 @@ export const DEFAULT_PALETTE_GRID: PaletteGridLayout = {
     gap: 0,
     totalHeight: 0,
 };
-
-// #endregion
-
-// #region Grid math
 
 /**
  * Computes the horizontal span of one grid row.
@@ -214,10 +208,6 @@ export function computeGrid(
  */
 export const computePaletteGrid = computeGrid;
 
-// #endregion
-
-// #region Rect helpers
-
 /**
  * Returns whether two axis-aligned rects overlap (zero allocation).
  *
@@ -293,10 +283,6 @@ export function resolveHintExclusionRect(hintBarTopY: number, displayWidth: numb
  * @returns Exclusion rect for swatch placement and hit testing.
  */
 export const resolvePaletteHintExclusionRect = resolveHintExclusionRect;
-
-// #endregion
-
-// #region Marker and draw helpers
 
 /** Preferred side length for the filled marker drawn inside unused swatches. */
 const UNUSED_SWATCH_MARKER_SIZE = 3;
@@ -626,10 +612,6 @@ function drawScrollbar(
     target.drawBarFill(thumbScratch, thumbIndex);
 }
 
-// #endregion
-
-// #region PaletteView
-
 /**
  * Live palette swatch renderer for the overlay bottom band.
  */
@@ -702,5 +684,3 @@ export class PaletteView {
         drawScrollbar(target, paletteBand, grid, scrollRowOffset, scrollbarTrackWidth, scrollbarThumbIndex);
     }
 }
-
-// #endregion

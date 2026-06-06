@@ -12,8 +12,6 @@ import {
 } from './RenderLimits';
 import { Vector2i } from './Vector2i';
 
-// #region Helpers
-
 function rawSize(x: number, y: number): Vector2i {
     return { x, y } as Vector2i;
 }
@@ -40,8 +38,6 @@ function makeSettings(field: RenderDimensionField, size: Vector2i): RenderDimens
             };
     }
 }
-
-// #endregion
 
 describe('RenderLimits', () => {
     describe('validateDimensions', () => {

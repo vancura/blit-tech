@@ -11,8 +11,6 @@ import { createMockGPUDevice, installMockNavigatorGPU, uninstallMockNavigatorGPU
 import { Vector2i } from '../utils/Vector2i';
 import { UpscalePass } from './UpscalePass';
 
-// #region Test Helpers
-
 const FORMAT: GPUTextureFormat = 'bgra8unorm';
 
 beforeAll(() => {
@@ -22,10 +20,6 @@ beforeAll(() => {
 afterAll(() => {
     uninstallMockNavigatorGPU();
 });
-
-// #endregion
-
-// #region init()
 
 describe('UpscalePass.init', () => {
     it('creates a render pipeline and a sampler', () => {
@@ -71,10 +65,6 @@ describe('UpscalePass.init', () => {
         expect(desc?.addressModeV).toBe('clamp-to-edge');
     });
 });
-
-// #endregion
-
-// #region encode()
 
 describe('UpscalePass.encode', () => {
     it('throws when called before init', () => {
@@ -143,10 +133,6 @@ describe('UpscalePass.encode', () => {
     });
 });
 
-// #endregion
-
-// #region createOutputTexture()
-
 describe('UpscalePass.createOutputTexture', () => {
     it('creates a texture with the requested size and format', () => {
         const device = createMockGPUDevice();
@@ -175,10 +161,6 @@ describe('UpscalePass.createOutputTexture', () => {
     });
 });
 
-// #endregion
-
-// #region dispose()
-
 describe('UpscalePass.dispose', () => {
     it('clears references and is safe to call without init', () => {
         const pass = new UpscalePass();
@@ -200,5 +182,3 @@ describe('UpscalePass.dispose', () => {
         ).toThrow(/not initialized/);
     });
 });
-
-// #endregion

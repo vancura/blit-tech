@@ -24,8 +24,6 @@ import { RenderDimensionLimitError } from '../utils/RenderLimits';
 import { Vector2i } from '../utils/Vector2i';
 import { initWebGPU } from './WebGPUContext';
 
-// #region Helpers
-
 function createMockCanvas(webgpuContext: unknown = createMockGPUCanvasContext()): HTMLCanvasElement {
     return {
         width: 0,
@@ -35,16 +33,12 @@ function createMockCanvas(webgpuContext: unknown = createMockGPUCanvasContext())
     } as unknown as HTMLCanvasElement;
 }
 
-// #endregion
-
 describe('initWebGPU', () => {
     const displaySize = new Vector2i(320, 240);
 
     afterEach(() => {
         uninstallMockNavigatorGPU();
     });
-
-    // #region No WebGPU support
 
     it('should return null when navigator.gpu is absent', async () => {
         // Use Object.defineProperty to install a navigator without .gpu - direct
@@ -60,10 +54,6 @@ describe('initWebGPU', () => {
 
         expect(result).toBeNull();
     });
-
-    // #endregion
-
-    // #region Adapter failures
 
     it('should throw with WEBGPU_ADAPTER_MESSAGE when requestAdapter returns null', async () => {
         Object.defineProperty(globalThis, 'navigator', {
@@ -105,10 +95,6 @@ describe('initWebGPU', () => {
         await expect(initWebGPU(canvas, displaySize)).rejects.toThrow(WEBGPU_DEVICE_MESSAGE);
     });
 
-    // #endregion
-
-    // #region Context failures
-
     it('should return null when canvas.getContext returns null', async () => {
         installMockNavigatorGPU();
 
@@ -117,10 +103,6 @@ describe('initWebGPU', () => {
 
         expect(result).toBeNull();
     });
-
-    // #endregion
-
-    // #region Dimension limits
 
     it('throws RenderDimensionLimitError when displaySize exceeds adapter texture limit', async () => {
         const requestDevice = vi.fn(async () => createMockGPUDevice());
@@ -207,10 +189,6 @@ describe('initWebGPU', () => {
         expect(canvas.height).toBe(1024);
     });
 
-    // #endregion
-
-    // #region Success paths
-
     it('should return device and context on success', async () => {
         installMockNavigatorGPU();
 
@@ -245,6 +223,4 @@ describe('initWebGPU', () => {
         expect(canvas.width).toBe(640);
         expect(canvas.height).toBe(480);
     });
-
-    // #endregion
 });
