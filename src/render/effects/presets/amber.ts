@@ -10,7 +10,7 @@ import type { Effect } from '../Effect';
  * Amber monochrome PC monitor look (think IBM 5151 / Hercules).
  *
  * Ships as a parameter-only set - the underlying colors stay full-RGB until
- * the planned {@link MonochromeQuantize} effect lands.
+ * the planned MonochromeQuantize effect lands.
  * For now this preset gives you the *feel* (CRT curvature + scanlines +
  * vignette + warm-tinted bloom) without the actual amber re-quantization.
  *
