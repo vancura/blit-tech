@@ -38,6 +38,9 @@ soon as the browser reports decoded dimensions.
 ```ts
 import { AssetLoader } from 'blit-tech';
 
+// Load a single image (cached by URL)
+const image = await AssetLoader.loadImage('sprites.png');
+
 // Load multiple images in parallel
 const images = await AssetLoader.loadImages(['sprites.png', 'tiles.png']);
 
@@ -121,18 +124,26 @@ BT.drawSprite(sheet, srcRect, pos, 16); // render in "blue team" color range
 
 ## Bitmap Fonts
 
-Load `.btfont` files for proportional, palette-indexed bitmap fonts.
+Load `.btfont` files for proportional, palette-indexed bitmap fonts. After loading, register colors in the palette and
+indexize the font's internal sprite sheet before drawing (same pattern as manual sprite setup).
 
 ```ts
-import { BitmapFont } from 'blit-tech';
+import { BitmapFont, Palette } from 'blit-tech';
 
+const palette = new Palette(256);
 const font = await BitmapFont.load('fonts/MyFont.btfont');
+font.getSpriteSheet().indexize(palette);
+BT.paletteSet(palette);
+
 BT.printFont(font, new Vector2i(10, 10), 'Hello!');
-BT.printFont(font, new Vector2i(10, 10), 'Hello!', paletteOffset); // tinted variant
+BT.printFont(font, new Vector2i(10, 10), 'Hello!', paletteOffset); // per-draw index shift
 ```
 
-The font's internal sprite sheet is indexized automatically when loaded. Font rendering goes through the same sprite
-pipeline as `BT.drawSprite()` and is auto-batched.
+Font rendering goes through the same sprite pipeline as `BT.drawSprite()` and is auto-batched.
+
+**SpriteSheet helpers** (after indexize): `isIndexed()`, `getIndexedPixels()` (defensive copy for software renderer),
+`reindexize(palette)` when palette layout changes. `SpriteSheet.loadIndexed()` returns `IndexedSpriteLoadResult`
+(`{ sheet, srcRect, colors }`).
 
 See [Bitmap Fonts Guide](bitmap-fonts.md) for the `.btfont` format specification and the BMFont conversion workflow
 (`pnpm run convert-font`).
@@ -148,10 +159,11 @@ BT.systemPrint(new Vector2i(10, 10), paletteIndex, 'Score: 100');
 BT.systemPrintMeasure('Score: 100'); // → Vector2i (pixel width, height)
 ```
 
-Use `BT.systemPrint()` for demo-specific HUD panels and labels. The engine draws a default overlay (present FPS, target
-FPS, draw calls, frame/update()/render() timings, backend, resolution, demo title) after each `render()` when
-`isOverlayEnabled` is true; see [API: Core - Overlay](api-core.md#overlay). For styled variable-width text, use a bitmap
-font instead.
+Use `BT.systemPrint()` for demo-specific HUD panels and labels. Call `palette.applyHUD()` at init so overlay and demo
+HUD share the same label/header/dim slot conventions — see [API: Palette](api-palette.md) and
+[Palette Presets — HUD](palette-presets.md#hud-preset-paletteapplyhud). The engine draws its own overlay (present FPS,
+target FPS, draw calls, frame/update()/render() timings, backend, resolution, demo title) after each `render()` when
+`isOverlayEnabled` is true; see [Overlay Guide](overlay.md). For styled variable-width text, use a bitmap font instead.
 
 ---
 

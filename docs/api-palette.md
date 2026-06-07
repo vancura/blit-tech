@@ -145,6 +145,8 @@ const restored = Palette.fromJSON(json);
 
 // Raw byte arrays (RGB triplets, no alpha channel)
 const bytes = palette.toUint8Array(); // Uint8Array, 3 bytes per slot
+const floats = palette.toFloat32Array(); // Float32Array, 4 floats per slot (RGBA 0..1)
+palette.toFloat32ArrayInto(out); // zero-allocation variant into existing buffer
 const p = Palette.fromUint8Array(bytes); // auto-detect size
 const p = Palette.fromUint8Array(bytes, 16); // explicit size
 
@@ -160,8 +162,9 @@ const slot = palette.findColor(color); // → index, or -1 if not found
 ## Palette Effects
 
 Animated effects run automatically each frame in the engine's end-of-frame pass (after `demo.render()`, before the GPU
-upload). Multiple effects can run simultaneously on different palette ranges and will not conflict. Effects process via
-the `isDirty` flag - no polling needed.
+upload). Multiple effects can run simultaneously on different palette ranges and will not conflict. The public
+`Palette.isDirty` getter reflects whether slots changed since the last GPU upload — effects set this flag; no polling
+needed.
 
 ```ts
 // Cycle a range of slots (water, fire, plasma)

@@ -132,11 +132,13 @@ pnpm run security:mcp-preflight -- \
   --allow-fallback
 
 pnpm run security:audit
-pnpm run security:audit:prod
 pnpm audit --dev --audit-level=moderate
 pnpm run preflight
 pnpm run build
 ```
+
+Note: **`blit-tech-demos` has no `security:audit:prod` script** — use `pnpm run security:audit` only for production-deps
+coverage in that repo, or run `pnpm audit --prod --audit-level=moderate` directly.
 
 After toolchain or dependency upgrades, always run `pnpm run build` as a smoke test.
 

@@ -23,40 +23,42 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full contributor workflow. Key
 These commands apply when building or maintaining **blit-tech** from a repository checkout (not when consuming the npm
 package).
 
-| Command                            | Description                                                                          |
-| ---------------------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm run build`                   | Build the library for npm distribution                                               |
-| `pnpm run lint`                    | Run ESLint                                                                           |
-| `pnpm run lint:fix`                | Run ESLint with auto-fix                                                             |
-| `pnpm run format`                  | Format all code (Biome + Prettier)                                                   |
-| `pnpm run format:check`            | Check all formatting without changes                                                 |
-| `pnpm run format:biome`            | Format TS/JS/JSON/CSS only (Biome)                                                   |
-| `pnpm run format:prettier`         | Format Markdown/YAML/HTML/HBS (Prettier)                                             |
-| `pnpm run typecheck`               | Run TypeScript type checking                                                         |
-| `pnpm run spellcheck`              | Check spelling in source files                                                       |
-| `pnpm run test`                    | Run all unit tests (alias for `test:unit`)                                           |
-| `pnpm run test:unit`               | Run all unit tests                                                                   |
-| `pnpm run test:unit:watch`         | Run unit tests in watch mode                                                         |
-| `pnpm run test:unit:coverage`      | Run unit tests with coverage report (80% threshold)                                  |
-| `pnpm run test:visual`             | Playwright visual regression tests (requires Chrome with WebGPU)                     |
-| `pnpm run test:visual:update`      | Update visual test baseline screenshots                                              |
-| `pnpm run test:visual:coverage`    | Run visual tests with Istanbul coverage report                                       |
-| `pnpm run bench`                   | Run Tier 1 CPU benchmarks (Vitest bench)                                             |
-| `pnpm run bench:json`              | Run Tier 1 benchmarks and write `benchmark-results.json`                             |
-| `pnpm run preflight`               | Run all quality checks (format, lint, typecheck, spellcheck, knip, docs:links, test) |
-| `pnpm run docs:links`              | Check Markdown links in README, docs/, and `.claude/` skills                         |
-| `pnpm run knip`                    | Find unused exports and dependencies                                                 |
-| `pnpm run knip:fix`                | Auto-fix unused exports and dependencies                                             |
-| `pnpm run clean`                   | Remove dist and cache directories                                                    |
-| `pnpm run release`                 | Build library and publish to npm                                                     |
-| `pnpm run convert-font`            | Convert BMFont to .btfont format                                                     |
-| `pnpm run system-font:export`      | Export system font data to PNG atlas (`assets/system-font.png`)                      |
-| `pnpm run system-font:convert`     | Regenerate `systemFontData.ts` from edited PNG atlas                                 |
-| `pnpm run security:audit`          | Run dependency security audit (all deps, moderate+; matches CI)                      |
-| `pnpm run security:audit:prod`     | Run production-only dependency audit (moderate+)                                     |
-| `pnpm run security:audit:fix`      | Run dependency security audit and auto-fix                                           |
-| `pnpm run security:mcp-preflight`  | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`)             |
-| `pnpm run test:security-preflight` | Unit tests for MCP preflight script                                                  |
+| Command                             | Description                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm run build`                    | Build the library for npm distribution                                                          |
+| `pnpm run lint`                     | Run ESLint                                                                                      |
+| `pnpm run lint:fix`                 | Run ESLint with auto-fix                                                                        |
+| `pnpm run format`                   | Format all code (Biome + Prettier)                                                              |
+| `pnpm run format:check`             | Check all formatting without changes                                                            |
+| `pnpm run format:biome`             | Format TS/JS/JSON/CSS only (Biome)                                                              |
+| `pnpm run format:prettier`          | Format Markdown/YAML/HTML/HBS (Prettier)                                                        |
+| `pnpm run typecheck`                | Run TypeScript type checking                                                                    |
+| `pnpm run spellcheck`               | Check spelling in source files                                                                  |
+| `pnpm run test`                     | Run all unit tests (alias for `test:unit`)                                                      |
+| `pnpm run test:unit`                | Run all unit tests                                                                              |
+| `pnpm run test:unit:watch`          | Run unit tests in watch mode                                                                    |
+| `pnpm run test:unit:coverage`       | Run unit tests with coverage report (80% threshold)                                             |
+| `pnpm run test:declarations`        | Declaration tooling log checker (Node test)                                                     |
+| `pnpm run build:check-declarations` | Build and run declaration tooling check on build log                                            |
+| `pnpm run test:visual`              | Playwright visual regression tests (requires Chrome with WebGPU)                                |
+| `pnpm run test:visual:update`       | Update visual test baseline screenshots                                                         |
+| `pnpm run test:visual:coverage`     | Run visual tests with Istanbul coverage report                                                  |
+| `pnpm run bench`                    | Run CPU benchmarks — Tier 4 (Vitest bench; see [Testing](testing.md))                           |
+| `pnpm run bench:json`               | Run Tier 4 benchmarks and write `benchmark-results.json`                                        |
+| `pnpm run preflight`                | All checks: format, lint, typecheck, spellcheck, knip, docs:links, test:unit, test:declarations |
+| `pnpm run docs:links`               | Check Markdown links in all repo-root `*.md` / `*.mdx` files                                    |
+| `pnpm run knip`                     | Find unused exports and dependencies                                                            |
+| `pnpm run knip:fix`                 | Auto-fix unused exports and dependencies                                                        |
+| `pnpm run clean`                    | Remove dist and cache directories                                                               |
+| `pnpm run release`                  | Build library and publish to npm                                                                |
+| `pnpm run convert-font`             | Convert BMFont to .btfont format                                                                |
+| `pnpm run system-font:export`       | Export system font data to PNG atlas (`assets/system-font.png`)                                 |
+| `pnpm run system-font:convert`      | Regenerate `systemFontData.ts` from edited PNG atlas                                            |
+| `pnpm run security:audit`           | Run dependency security audit (all deps, moderate+; matches CI)                                 |
+| `pnpm run security:audit:prod`      | Run production-only dependency audit (moderate+)                                                |
+| `pnpm run security:audit:fix`       | Run dependency security audit and auto-fix                                                      |
+| `pnpm run security:mcp-preflight`   | MCP health/auth preflight and governance scan (requires `-- --mcps-dir`)                        |
+| `pnpm run test:security-preflight`  | Unit tests for MCP preflight script                                                             |
 
 Dependency audit severity policy and CI gate: [dependency-policy.md](security/dependency-policy.md). Temporary
 exceptions: [audit-exceptions.md](security/audit-exceptions.md).
@@ -68,6 +70,7 @@ exceptions: [audit-exceptions.md](security/audit-exceptions.md).
 | Guide                                                       | What it covers                                         |
 | ----------------------------------------------------------- | ------------------------------------------------------ |
 | [API: Core](api-core.md)                                    | bootstrap, init, game loop, camera, Timer, core types  |
+| [Overlay Guide](overlay.md)                                 | engine HUD subsystem, toggle, custom rows, layout      |
 | [API: Rendering](api-rendering.md)                          | primitives, sprites, text, post-process, frame capture |
 | [API: Palette](api-palette.md)                              | palette setup, presets, effects, serialization         |
 | [Palette Guide](palette-guide.md)                           | palette-first workflow, offsets, effects, performance  |
@@ -105,8 +108,11 @@ Format: `<type>(<scope>): <description>`
 | `chore`    | Build, config, tooling                      |
 | `perf`     | Performance improvement                     |
 | `ci`       | CI / workflow changes                       |
+| `style`    | Formatting, no code change                  |
+| `build`    | Build system or external dependencies       |
+| `revert`   | Revert a previous commit                    |
 
-**Scopes:** `renderer`, `camera`, `assets`, `api`, `utils`, `examples`, `ci`, `docs`
+**Scopes:** `renderer`, `camera`, `assets`, `api`, `utils`, `examples`, `ci`, `docs` (convention only; not enforced)
 
 AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.com>`
 
@@ -118,7 +124,7 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 
 - 4-space indent, 120-character line width
 - Single quotes, always semicolons, always trailing commas
-- Biome formats TypeScript/JavaScript; Prettier formats Markdown/YAML
+- Biome formats TypeScript/JavaScript; Prettier formats Markdown/YAML/**`.mdc`** Cursor rules
 - Run `pnpm run format` to auto-format; `pnpm run format:check` to verify
 
 **Linting:**
@@ -215,6 +221,24 @@ automatically in VS Code.
 }
 ```
 
+### Cursor
+
+Cursor reads agent policy from this repo's `.cursor/` directory (VS Code/Cursor share the same workspace settings in
+`.vscode/`).
+
+| Path                                | Purpose                                                                                                                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `.cursor/rules/*.mdc`               | Agent rules — `alwaysApply: true` for global policy; glob-scoped rules (for example `ts-file-structure.mdc` on `src/**/*.ts`) |
+| `.cursor/hooks.json`                | Hooks: `preToolUse` → RTK shell rewrite; `afterFileEdit` → format + spellcheck; `beforeShellExecution` → git safety           |
+| `.cursor/hooks/format-and-check.sh` | Post-edit Biome (TS/JS/JSON/CSS) + Prettier (MD/MDX/MDC/YAML) + cspell on touched files                                       |
+| `.cursor/hooks/shell-safety.sh`     | Blocks destructive git commands; asks before force-push                                                                       |
+| `.claude/rules/*.md`                | Condensed mirrors of key `.cursor/rules` topics for Claude Code                                                               |
+| `.claude/skills/*/SKILL.md`         | Reusable command workflows (`bt-preflight`, `bt-format`, …); Zed symlinks under `.agents/skills/`                             |
+
+When changing `package.json` scripts or preflight steps, update matching `.claude/skills/*/SKILL.md` files and any
+`.cursor/rules/*.mdc` that reference those commands. Pair `.cursor/rules/*.mdc` edits with `.claude/rules/*.md`
+summaries when the topic has a mirror (API getters, internal naming, file structure).
+
 ---
 
 ## Dependency Management
@@ -251,7 +275,7 @@ matches `package.json`. Locally: `pnpm run build` then `node scripts/check-decla
 
 ### Weekly
 
-- [ ] Review and merge Dependabot/Renovate PRs
+- [ ] Review and merge Renovate PRs
 - [ ] Check open issues and respond
 - [ ] Review open PRs
 - [ ] Update the project board (if using)

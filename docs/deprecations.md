@@ -54,3 +54,6 @@ These aliases were introduced to preserve backward compatibility after the API n
 
 - Search for `@deprecated Deprecated since 2026-05-31` in `src/`.
 - Remove aliases only after confirming downstream demos/apps have migrated.
+
+**Scope:** This tracker lists **public** compatibility aliases only. Internal deprecated helpers (overlay layout
+functions, `RenderPaletteUsage` re-exports, etc.) are omitted — search `@deprecated` in `src/` for the full set.

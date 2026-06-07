@@ -18,8 +18,7 @@ The engine tracks up to four simultaneous pointers:
 | 2    | Second touch / pen contact                   |
 | 3    | Third touch / pen contact                    |
 
-Overflow contacts beyond slot 3 are dropped silently. The constant `POINTER_SLOT_COUNT` (exported from the library)
-equals `4`.
+Overflow contacts beyond slot 3 are dropped silently. The engine tracks **four** pointer slots (indices `0`–`3`).
 
 ### Mouse slot (slot 0)
 
@@ -75,6 +74,11 @@ BT.isDown(BT.BTN_POINTER_A, 1); // touch slot 1 in contact
 BT.isPressed(BT.BTN_POINTER_A); // left button just pressed
 BT.isReleased(BT.BTN_POINTER_A); // left button just released
 BT.isPressed(BT.BTN_POINTER_A, 2); // touch slot 2 just touched down
+
+// Composite masks (ANY-match semantics, same as multi-button masks)
+BT.isDown(BT.BTN_POINTER_ANY); // any pointer button on slot 0
+BT.isDown(BT.BTN_ABXY, 0); // face buttons A/B/X/Y for player 0
+BT.isDown(BT.BTN_SHOULDER, 1); // L/R shoulder for player 1
 ```
 
 ### Mouse button mapping
@@ -183,7 +187,7 @@ Player constants:
 - `PLAYER_THREE` (`2`)
 - `PLAYER_FOUR` (`3`)
 
-Default dead zone for analog sticks is `0.75` (`GamepadInput.DEFAULT_GAMEPAD_DEAD_ZONE`).
+Default dead zone for analog sticks is **`0.75`** (internal default in `GamepadInput`; not a public export).
 
 ### Text input buffer
 
@@ -264,7 +268,8 @@ Coordinates are clamped to `[0, displaySize - 1]` on each axis. The conversion i
   methods.
 - Default keyboard tables live in `defaultKeyboardMap.ts`; runtime remaps are stored in the `BT` facade and reset with
   `BT.inputMapReset()`.
-- The `POINTER_SLOT_COUNT` constant (value `4`) is exported for demos that iterate over slots.
+- Pointer slot count is **4** (indices `0`–`3`); iterate with a literal loop or constant in demo code — there is no
+  public `POINTER_SLOT_COUNT` export.
 - `PointerInput`, `KeyboardInput`, and `GamepadInput` are created and attached inside `BTAPI.init()`, so they are ready
   before `demo.init()` runs.
 - `stop()` calls `detach()` on all three input subsystems and clears references to prevent listener leaks.
