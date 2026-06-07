@@ -28,11 +28,9 @@ import type { BitmapFont } from '../assets/BitmapFont';
 import { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
 import { BT } from '../BlitTech';
-import { Overlay } from '../overlay';
-import { DEFAULT_IDX_TEXT } from '../overlay/constants';
+import type { OverlayDrawTarget } from '../overlay';
+import { DEFAULT_IDX_TEXT, Overlay, paletteBandY } from '../overlay';
 import { OVERLAY_EDGE_MARGIN_PX } from '../overlay/layout/constants';
-import { paletteBandY } from '../overlay/layout/layoutPlan';
-import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
 import {
     computeGrid,
     DEFAULT_PALETTE_SWATCH_SIZE,

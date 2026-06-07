@@ -1,8 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
-import type { OverlayDrawTarget } from '../overlay/OverlayDrawTarget';
-import type { OverlayRendererDiagnostics } from '../overlay/types';
+import type { OverlayDrawTarget, OverlayRendererDiagnostics } from '../overlay';
 import { clipSpriteSourceRect } from '../utils/AssetLimits';
 import { Color32 } from '../utils/Color32';
 import { noActivePaletteError } from '../utils/errorMessages';
