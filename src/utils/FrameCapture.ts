@@ -38,10 +38,9 @@ export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
     for (let i = 0; i < data.length; i += BYTES_PER_PIXEL) {
         // eslint-disable-next-line security/detect-object-injection -- typed array indexed by loop counter
         const b = data[i] ?? 0;
-        const r = data[i + 2] ?? 0;
 
         // eslint-disable-next-line security/detect-object-injection -- typed array indexed by loop counter
-        data[i] = r;
+        data[i] = data[i + 2] ?? 0;
         data[i + 2] = b;
     }
 }
