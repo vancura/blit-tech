@@ -68,7 +68,7 @@ case "$NORMALIZED_TARGET" in
 esac
 
 case "$NORMALIZED_TARGET" in
-*.md | *.mdx | *.yml | *.yaml)
+*.md | *.mdx | *.mdc | *.yml | *.yaml)
     (cd "$REPO_ROOT" && $RUNNER prettier --write "$NORMALIZED_TARGET" >/dev/null 2>&1) || true
     ;;
 esac
