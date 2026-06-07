@@ -881,11 +881,19 @@ describe('BTAPI', () => {
                 | undefined;
 
             expect(getCustomRows).toBeDefined();
-            if (!getCustomRows) return;
+
+            if (!getCustomRows) {
+                return;
+            }
+
             expect(getCustomRows()).toBe(customRows);
 
             expect(timing).toBeDefined();
-            if (!timing) return;
+
+            if (!timing) {
+                return;
+            }
+
             expect(timing.frameMs).toBeGreaterThanOrEqual(0);
             expect(timing.updateMs).toBeGreaterThanOrEqual(0);
             expect(timing.renderMs).toBeGreaterThanOrEqual(0);
