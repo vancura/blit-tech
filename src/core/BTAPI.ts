@@ -968,7 +968,7 @@ export class BTAPI {
      * Reads and validates demo `configure()` output into {@link hwSettings}.
      *
      * @param demo - Demo implementing {@link IBlitTechDemo}.
-     * @returns `false` when configure throws or hardware settings are invalid.
+     * @returns `false` when hardware settings are invalid (bad dimensions or targetFPS).
      */
     private loadHardwareSettings(demo: IBlitTechDemo): boolean {
         try {
@@ -977,8 +977,6 @@ export class BTAPI {
             console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
 
             this.hwSettings = defaultConfig();
-
-            return false;
         }
 
         this.applyBackendQueryOverride();
