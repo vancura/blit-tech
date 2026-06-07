@@ -76,6 +76,59 @@ export default [
             'simple-import-sort/imports': 'error',
             'simple-import-sort/exports': 'error',
 
+            // Class member ordering (matches docs/developer-experience-guide.md "File structure and
+            // member order" and CLAUDE.md "TypeScript file structure"). type: 'unsorted' enforces the
+            // group order only and preserves the hand-tuned order within each group.
+            'perfectionist/sort-classes': [
+                'error',
+                {
+                    type: 'unsorted',
+                    groups: [
+                        'index-signature',
+                        // 1. Static fields (cached singletons, registries)
+                        [
+                            'static-property',
+                            'protected-static-property',
+                            'private-static-property',
+                            'static-accessor-property',
+                        ],
+                        'static-block',
+                        // 2. Instance fields: public -> protected -> private
+                        ['property', 'accessor-property'],
+                        ['protected-property', 'protected-accessor-property'],
+                        ['private-property', 'private-accessor-property'],
+                        // 3. Constructor
+                        'constructor',
+                        // 4. Accessors: static getters/setters, then instance getters/setters
+                        [
+                            'static-get-method',
+                            'static-set-method',
+                            'protected-static-get-method',
+                            'protected-static-set-method',
+                            'private-static-get-method',
+                            'private-static-set-method',
+                        ],
+                        [
+                            'get-method',
+                            'set-method',
+                            'protected-get-method',
+                            'protected-set-method',
+                            'private-get-method',
+                            'private-set-method',
+                        ],
+                        // 5. Static methods: public -> protected -> private
+                        ['static-method', 'static-function-property'],
+                        ['protected-static-method', 'protected-static-function-property'],
+                        ['private-static-method', 'private-static-function-property'],
+                        // 6. Instance methods: public -> protected -> private
+                        ['method', 'function-property'],
+                        ['protected-method', 'protected-function-property'],
+                        ['private-method', 'private-function-property'],
+                        'unknown',
+                    ],
+                },
+            ],
+
             // JSDoc rules
             'jsdoc/check-alignment': 'warn',
             'jsdoc/check-param-names': 'warn',
