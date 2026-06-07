@@ -34,7 +34,7 @@ import type { SpritePipeline } from './SpritePipeline';
 import { WebGPURenderer } from './WebGPURenderer';
 
 /** Internal pipeline batches on {@link WebGPURenderer} (compile-time private, runtime-accessible). */
-type WebGPURendererPipelineAccess = {
+type PipelineAccess = {
     primitives: PrimitivePipeline;
     overlayPrimitives: PrimitivePipeline;
     overlayTopPrimitives: PrimitivePipeline;
@@ -49,8 +49,8 @@ type WebGPURendererPipelineAccess = {
  * @param renderer - Initialized {@link WebGPURenderer}.
  * @returns Primitive, sprite, overlay, and overlay-top pipeline instances.
  */
-function getRendererPipelines(renderer: WebGPURenderer): WebGPURendererPipelineAccess {
-    return renderer as unknown as WebGPURendererPipelineAccess;
+function getRendererPipelines(renderer: WebGPURenderer): PipelineAccess {
+    return renderer as unknown as PipelineAccess;
 }
 
 /** Creates a small 16-color test palette with known color assignments. */
