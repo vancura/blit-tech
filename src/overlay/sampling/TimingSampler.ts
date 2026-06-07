@@ -116,15 +116,15 @@ export class TimingSampler {
         const updateMs = Math.max(0, sample.updateMs);
         const renderMs = Math.max(0, sample.renderMs);
 
-        if (!this.#hasSample) {
+        if (this.#hasSample) {
+            this.#smoothedFrameMs += (frameMs - this.#smoothedFrameMs) * FPS_SMOOTHING;
+            this.#smoothedUpdateMs += (updateMs - this.#smoothedUpdateMs) * FPS_SMOOTHING;
+            this.#smoothedRenderMs += (renderMs - this.#smoothedRenderMs) * FPS_SMOOTHING;
+        } else {
             this.#smoothedFrameMs = frameMs;
             this.#smoothedUpdateMs = updateMs;
             this.#smoothedRenderMs = renderMs;
             this.#hasSample = true;
-        } else {
-            this.#smoothedFrameMs += (frameMs - this.#smoothedFrameMs) * FPS_SMOOTHING;
-            this.#smoothedUpdateMs += (updateMs - this.#smoothedUpdateMs) * FPS_SMOOTHING;
-            this.#smoothedRenderMs += (renderMs - this.#smoothedRenderMs) * FPS_SMOOTHING;
         }
 
         this.#updateSteps = Math.max(0, Math.floor(sample.updateSteps));

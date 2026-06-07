@@ -133,7 +133,7 @@ export function computeSafePixelArea(width: number, height: number): number | nu
  * @returns True when the value is a positive whole number.
  */
 function isPositiveIntegerDimension(value: number): boolean {
-    return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value) && value > 0;
+    return Number.isFinite(value) && Number.isInteger(value) && value > 0;
 }
 
 /**
@@ -143,7 +143,7 @@ function isPositiveIntegerDimension(value: number): boolean {
  * @returns True when the value is a finite whole number.
  */
 function isIntegerMetric(value: number): boolean {
-    return typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value);
+    return Number.isFinite(value) && Number.isInteger(value);
 }
 
 /**

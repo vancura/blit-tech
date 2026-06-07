@@ -645,7 +645,7 @@ function resolveMergedOptionalVector(
         return picked;
     }
 
-    return fallback !== undefined ? cloneVector2i(fallback) : undefined;
+    return fallback === undefined ? undefined : cloneVector2i(fallback);
 }
 
 /**

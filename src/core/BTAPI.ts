@@ -199,9 +199,9 @@ export class BTAPI {
         const search =
             typeof globalThis.location?.search === 'string'
                 ? globalThis.location.search
-                : typeof window !== 'undefined'
-                  ? window.location?.search
-                  : '';
+                : typeof window === 'undefined'
+                  ? ''
+                  : window.location?.search;
 
         if (!search) {
             return null;
@@ -1016,7 +1016,7 @@ export class BTAPI {
 
         const lineHeight = this.systemFont.measureTextSize('A').height;
         const layout = createOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
-        const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
+        const pageTitle = typeof globalThis.document === 'undefined' ? undefined : globalThis.document.title;
 
         if (!this.activeBackend) {
             throw new Error(errorMessages.OVERLAY_NO_BACKEND);
@@ -1083,7 +1083,7 @@ export class BTAPI {
         applyCanvasLayoutStyles(canvas, {
             displaySize: hw.displaySize,
             maxCanvasSize: hw.maxCanvasSize ?? new Vector2i(DEFAULT_MAX_CANVAS_SIZE.x, DEFAULT_MAX_CANVAS_SIZE.y),
-            ...(hw.drawingBufferSize !== undefined ? { drawingBufferSize: hw.drawingBufferSize } : {}),
+            ...(hw.drawingBufferSize === undefined ? {} : { drawingBufferSize: hw.drawingBufferSize }),
         });
 
         const requestedBackend = hw.backend ?? 'webgpu';
@@ -1121,7 +1121,7 @@ export class BTAPI {
 
                     // Only forward an explicit outputSize when drawingBufferSize was
                     // provided; that is the signal that unlocks the display tier.
-                    hw.drawingBufferSize !== undefined ? webGPUResult.drawingBufferSize : undefined,
+                    hw.drawingBufferSize === undefined ? undefined : webGPUResult.drawingBufferSize,
                     hw.outputUpscaleFilter ?? 'nearest',
                 );
 

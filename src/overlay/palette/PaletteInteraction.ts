@@ -577,10 +577,10 @@ export class PaletteInteraction {
             }
         }
 
-        if (!isSwatchPressConsumed) {
-            isTogglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || isTogglePressConsumed;
-        } else {
+        if (isSwatchPressConsumed) {
             this.#scrollDragSlot = null;
+        } else {
+            isTogglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || isTogglePressConsumed;
         }
 
         isTogglePressConsumed = this.#applyScrollWheel(pointer, plan, grid) || isTogglePressConsumed;
@@ -934,7 +934,7 @@ export class PaletteInteraction {
             return null;
         }
 
-        const index = this.#copyStatus !== 'idle' ? this.#copyStatusIndex : this.#hoveredIndex;
+        const index = this.#copyStatus === 'idle' ? this.#hoveredIndex : this.#copyStatusIndex;
 
         if (index === null || index < 0) {
             return null;

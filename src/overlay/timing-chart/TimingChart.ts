@@ -269,7 +269,10 @@ export class TimingChart {
             const x = chartRect.x + column;
             const tintIndex = this.#severityPaletteIndex(severity, style);
 
-            if (tintIndex !== null) {
+            if (tintIndex === null) {
+                this.#drawDot(target, x, renderMs, chartRect, style.renderBarIndex);
+                this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
+            } else {
                 const renderOffset = computeTimingChartBarHeight(
                     renderMs,
                     chartRect.height,
@@ -288,9 +291,6 @@ export class TimingChart {
                 if (renderOffset <= 0 && updateOffset <= 0) {
                     this.#drawBaselineMarker(target, x, baselineY, tintIndex);
                 }
-            } else {
-                this.#drawDot(target, x, renderMs, chartRect, style.renderBarIndex);
-                this.#drawDot(target, x, updateMs, chartRect, style.updateBarIndex);
             }
 
             if (hasOverflow) {
