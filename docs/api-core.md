@@ -44,6 +44,9 @@ const canvas = getCanvas('my-canvas'); // returns null on missing element
 displayError('Init Failed', 'WebGPU unavailable.', 'my-container');
 ```
 
+`bootstrap()` applies canvas layout CSS custom properties via `CanvasLayoutStyles` (logical size, CSS cap, pixelated
+scaling). Custom hosts can reuse the same helper when not using `bootstrap()`.
+
 ---
 
 ## Initialization
@@ -430,6 +433,41 @@ BT.cameraReset(); // set back to (0, 0)
 const clamped = BT.cameraClamp(desired, worldSize);
 // Optional third argument overrides the viewport size (default: BT.displaySize):
 const clamped = BT.cameraClamp(desired, worldSize, new Vector2i(160, 120));
+```
+
+Standalone helper (same math as `BT.cameraClamp`):
+
+```ts
+import { clampCameraToWorld } from 'blit-tech';
+
+const clamped = clampCameraToWorld(desired, worldSize, viewSize);
+```
+
+---
+
+## Default configuration
+
+Import `defaultConfig` and `mergeHardwareSettings` when building custom configure flows outside `bootstrap()`:
+
+```ts
+import { defaultConfig, mergeHardwareSettings } from 'blit-tech';
+
+const settings = mergeHardwareSettings(defaultConfig(), { targetFPS: 30 });
+```
+
+`defaultConfig()` returns a full `HardwareSettings` object (`320×240` logical, `640×480` drawing buffer, overlay
+enabled, WebGPU backend, and other defaults documented in the table above).
+
+---
+
+## Easing helper
+
+Palette fade effects accept an `EasingFunction`. Use `applyEasing` to evaluate named curves:
+
+```ts
+import { applyEasing } from 'blit-tech';
+
+const t = applyEasing('ease-in-out', 0.5); // 0..1 progress → eased value
 ```
 
 ---

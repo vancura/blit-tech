@@ -137,6 +137,10 @@ BT.effectClear(); // remove all from both chains
 for (const fx of BT.preset.crtPipBoy()) BT.effectAdd(fx);
 for (const fx of BT.preset.amber()) BT.effectAdd(fx);
 for (const fx of BT.preset.green()) BT.effectAdd(fx);
+
+// Equivalent standalone imports also work:
+import { crtPipBoy, amber, green } from 'blit-tech';
+for (const fx of crtPipBoy()) BT.effectAdd(fx);
 ```
 
 **Built-in effects:**
@@ -168,20 +172,10 @@ await BT.downloadFrame();
 await BT.downloadFrame('screenshot-001.png'); // custom filename
 ```
 
-### Internal `FrameCapture` flow reference
+### Internal implementation note
 
-`BT.captureFrame()` uses `FrameCapture` internally. The capture lifecycle is:
-
-1. `FrameCapture.request()` - queue one capture
-2. `FrameCapture.executeInEncoder(device, texture, commandEncoder)` - record GPU copy in the frame encoder
-3. `FrameCapture.resolve(device)` - wait for submit completion, map readback, encode PNG
-
-Reference methods:
-
-- `FrameCapture.hasPending()`
-- `FrameCapture.request()`
-- `FrameCapture.executeInEncoder(device, texture, commandEncoder)`
-- `FrameCapture.resolve(device)`
+`BT.captureFrame()` uses the internal `FrameCapture` class (`src/utils/FrameCapture.ts`), which is **not** exported from
+`'blit-tech'`. Demos should use `BT.captureFrame()` and `BT.downloadFrame()` only.
 
 ---
 

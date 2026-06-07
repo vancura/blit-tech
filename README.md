@@ -161,6 +161,7 @@ See [API: Core](docs/api-core.md) for `bootstrap()` options.
 | Guide                                                | What it covers                                         |
 | ---------------------------------------------------- | ------------------------------------------------------ |
 | [API: Core](docs/api-core.md)                        | bootstrap, game loop, camera, Timer, core types        |
+| [Overlay Guide](docs/overlay.md)                     | engine HUD subsystem, toggle, custom rows, layout      |
 | [API: Rendering](docs/api-rendering.md)              | primitives, sprites, text, post-process, frame capture |
 | [API: Palette](docs/api-palette.md)                  | palette setup, presets, effects, serialization         |
 | [API: Assets](docs/api-assets.md)                    | sprite sheets, bitmap fonts, asset loading             |

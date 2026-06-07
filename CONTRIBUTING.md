@@ -88,6 +88,9 @@ Signed-off-by: Your Name <your.email@example.com>
 - `build` - Build system or dependencies
 - `ci` - CI configuration
 - `chore` - Other changes
+- `revert` - Revert a previous commit
+
+Suggested scopes are **conventions only** — commitlint does not enforce a scope enum.
 
 ### Suggested Scopes
 
@@ -147,12 +150,14 @@ pnpm run preflight
 
 This runs:
 
-- Code formatting checks
+- Code formatting checks (`format:check`)
 - Linting
 - TypeScript type checks
 - Spell checking
 - Unused export and dependency checks (knip)
-- Unit tests
+- Markdown link check (`docs:links`)
+- Unit tests (`test:unit`)
+- Declaration tooling tests (`test:declarations`)
 
 ### Available Commands
 
@@ -165,6 +170,11 @@ pnpm run format:check     # Check formatting
 pnpm run typecheck        # Run TypeScript checks
 pnpm run spellcheck       # Check spelling
 pnpm run knip             # Find unused exports and dependencies
+pnpm run docs:links       # Check Markdown links
+pnpm run test:unit        # Run unit tests
+pnpm run test:declarations # Declaration tooling checker tests
+pnpm run test:visual      # Playwright visual regression (local; not in preflight)
+pnpm run bench            # CPU benchmarks (Vitest bench)
 pnpm run preflight        # Run all quality checks
 ```
 

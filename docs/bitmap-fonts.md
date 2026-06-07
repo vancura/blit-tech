@@ -36,16 +36,21 @@ For proportional fonts, Unicode support, or custom aesthetics, load a `.btfont` 
 ## Quick Start
 
 ```ts
-import { BitmapFont, BT, Color32, Vector2i } from 'blit-tech';
+import { BitmapFont, BT, Palette, Vector2i } from 'blit-tech';
 
-// Load a font
+// Load a font and register its colors in the palette
+const palette = new Palette(256);
 const font = await BitmapFont.load('fonts/MyFont.btfont');
+font.getSpriteSheet().indexize(palette); // required before draw
+BT.paletteSet(palette);
 
-// Render text
-BT.printFont(font, new Vector2i(10, 10), 'Hello World!', Color32.white);
+// Render text (optional 4th arg is paletteOffset, not a Color32)
+BT.printFont(font, new Vector2i(10, 10), 'Hello World!');
+BT.printFont(font, new Vector2i(10, 30), 'Team B', 16); // shift glyph indices by 16
 
 // Measure text width
 const width = font.measureText('Hello');
+const size = font.measureTextSize('Hello'); // { width, height } (TextSize)
 
 // Access font properties
 console.log(font.name); // "MyFont"
@@ -243,7 +248,8 @@ If you prefer to convert manually:
 
 3. **Export with padding** between characters to prevent bleeding artifacts.
 
-4. **Use white glyphs** on a transparent background - colors are applied at render time via tinting.
+4. **Use white glyphs** on a transparent background — palette slots are assigned at indexize time; recolor at draw time
+   via `paletteOffset` on `BT.printFont()`, not RGBA tinting.
 
 5. **Include common symbols** beyond ASCII: `×`, `÷`, `·`, `-`, `…`, etc.
 
@@ -267,19 +273,22 @@ class BitmapFont {
   getGlyph(char: string): Glyph | null;
   measureText(text: string): number;
   measureTextSize(text: string): { width: number; height: number };
+  measureTextSizeInto(text: string, out: { width: number; height: number }): void;
   hasGlyph(char: string): boolean;
   getSpriteSheet(): SpriteSheet;
 }
 ```
 
+Exported type `TextSize` is `{ width: number; height: number }`.
+
 ### BT.printFont()
 
 ```ts
 BT.printFont(
-  font: BitmapFont,    // The loaded font
-  pos: Vector2i,       // Position (top-left corner)
-  text: string,        // Text to render
-  color?: Color32      // Tint color (default: white)
+  font: BitmapFont,       // The loaded font (sprite sheet must be indexized)
+  pos: Vector2i,          // Position (top-left corner)
+  text: string,           // Text to render
+  paletteOffset?: number // Per-draw index shift (default 0); not a Color32
 ): void;
 ```
 
@@ -292,7 +301,7 @@ const lines = ['Line 1', 'Line 2', 'Line 3'];
 let y = 10;
 
 for (const line of lines) {
-  BT.printFont(font, new Vector2i(10, y), line, Color32.white);
+  BT.printFont(font, new Vector2i(10, y), line);
   y += font.lineHeight;
 }
 ```
@@ -305,19 +314,18 @@ const textWidth = font.measureText(text);
 const screenWidth = BT.displaySize.x;
 const x = Math.floor((screenWidth - textWidth) / 2);
 
-BT.printFont(font, new Vector2i(x, 10), text, Color32.white);
+BT.printFont(font, new Vector2i(x, 10), text);
 ```
 
-### Rainbow Text Effect
+### Per-character palette offsets
 
 ```ts
 let x = 10;
 for (let i = 0; i < text.length; i++) {
-  const hue = (i * 30 + animTime * 100) % 360;
-  const color = hslToRgb(hue, 100, 60);
   const char = text[i];
+  const offset = i % 2 === 0 ? 0 : 16; // alternate palette ranges
 
-  BT.printFont(font, new Vector2i(x, 10), char, color);
+  BT.printFont(font, new Vector2i(x, 10), char, offset);
 
   const glyph = font.getGlyph(char);
   x += glyph ? glyph.advance : font.size;

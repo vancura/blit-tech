@@ -51,10 +51,11 @@ patterns for managing allocations:
 **When to use:** UI code, one-time operations, and anywhere readability matters more than performance.
 
 ```ts
-// Clear and readable
-BT.drawPixel(new Vector2i(x, y), color);
-BT.drawRect(new Rect2i(10, 10, 50, 50), Color32.white);
-BT.printFont(font, new Vector2i(10, 20), 'Hello', Color32.white);
+// Clear and readable — palette indices, not Color32
+const WHITE = 1;
+BT.drawPixel(new Vector2i(x, y), WHITE);
+BT.drawRect(new Rect2i(10, 10, 50, 50), WHITE);
+BT.printFont(font, new Vector2i(10, 20), 'Hello');
 ```
 
 **Pros:**
@@ -129,7 +130,7 @@ Blit-Tech automatically batches draw calls for optimal GPU performance:
 ```ts
 // Good: All sprites from same sheet
 for (const enemy of enemies) {
-  BT.drawSprite(enemySheet, enemy.sprite, enemy.pos, enemy.tint);
+  BT.drawSprite(enemySheet, enemy.sprite, enemy.pos, enemy.paletteOffset);
 }
 
 // Less optimal: Switching between sheets
@@ -152,17 +153,18 @@ Less optimal:
 - enemy1.png, enemy2.png, enemy3.png (separate files)
 ```
 
-### Tinting Performance
+### Palette offset performance
 
-**Tinting is essentially free!** All color multiplication happens in the GPU shader, so:
+**Changing `paletteOffset` per draw is cheap** — it shifts stored texel indices before palette lookup, not RGBA tint
+multiplication:
 
 ```ts
-// Both have the same performance
-BT.drawSprite(sheet, sprite, pos, Color32.white);
-BT.drawSprite(sheet, sprite, pos, new Color32(255, 100, 100, 200));
+// Same performance — offset is a uniform add, not per-pixel color math
+BT.drawSprite(sheet, sprite, pos);
+BT.drawSprite(sheet, sprite, pos, 16); // team-color range
 ```
 
-Use tinting liberally for visual effects - it doesn't impact performance.
+Use palette offsets liberally for team colors and damage flashes — batching cost dominates, not the offset itself.
 
 ### Line Rendering Costs
 
@@ -282,15 +284,16 @@ Don't guess what's slow - **measure it**. Use:
 ### 3. Allocating in Hot Paths
 
 ```ts
-// BAD: Creating colors in tight loop
+// BAD: Allocating Vector2i in a tight loop (see pre-allocation section)
 for (let i = 0; i < 1000; i++) {
-  BT.drawPixel(pos, new Color32(255, 0, 0)); // 60,000 allocations/sec!
+  BT.drawPixel(new Vector2i(i, 0), 1); // 60,000 Vector2i allocations/sec!
 }
 
-// GOOD: Reuse color
-const red = new Color32(255, 0, 0);
+// GOOD: Reuse a pre-allocated vector
+const pos = new Vector2i(0, 0);
 for (let i = 0; i < 1000; i++) {
-  BT.drawPixel(pos, red);
+  pos.set(i, 0);
+  BT.drawPixel(pos, 1);
 }
 ```
 
@@ -352,28 +355,30 @@ render(): void {
 
 ## Example References
 
-The Blit-Tech examples demonstrate both approaches:
+Demos live in the sibling **`blit-tech-demos`** repo (`src/NNN-topic.js` files). The examples below demonstrate both
+approaches:
 
 ### Clarity-First Examples (Inline Allocation)
 
-- **`basics.ts`** - Entry-level example teaching core concepts
-- **`fonts.ts`** - Font rendering demonstrations
-- **`primitives.ts`** - Drawing primitive shapes
-- **`sprites.ts`** - Sprite rendering and tinting
+- **`001-basics.js`** - Entry-level example teaching core concepts
+- **`022-bitmap-font.js`** - Bitmap font loading and palette indexize workflow
+- **`002-primitives.js`** - Drawing primitive shapes
+- **`008-sprites.js`** - Sprite rendering and palette offsets
+- **`004-fonts.js`** - System font and text rendering
 
 These prioritize **readability and learning** over micro-optimizations.
 
 ### Performance-Optimized Examples (Pre-allocation)
 
-- **`patterns.ts`** - Complex animations with 200+ operations/frame
-- **`camera.ts`** - Scrolling world with many buildings
+- **`006-patterns.js`** - Complex animations with 200+ operations/frame
+- **`007-camera.js`** - Scrolling world with many buildings
 
 These demonstrate **when and how to optimize** for performance-critical scenarios.
 
-### New Examples
+### Effect and Animation Examples
 
-- **`animation.ts`** - Tick-based timing (inline allocation, focus on clarity)
-- **`sprite-effects.ts`** - Tinting effects (inline allocation, effects are GPU-free)
+- **`009-animation.js`** - Tick-based timing (inline allocation, focus on clarity)
+- **`010-sprite-effects.js`** - Palette offset effects for team colors and flashes
 
 ---
 

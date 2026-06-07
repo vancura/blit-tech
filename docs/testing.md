@@ -7,7 +7,8 @@ regression tracking.
 
 ### Tier 1: Unit Tests (Vitest, Node.js)
 
-Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
+Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed. The list below is **illustrative** — see
+`src/**/*.test.ts` for the full set (~60+ files).
 
 - **Vector2i** - all arithmetic, distance, comparison, factory methods
 - **Rect2i** - intersection, containment, computed properties
@@ -22,9 +23,9 @@ Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed.
 
 Code that requires WebGPU objects or DOM APIs. Most tests run in Node with `src/__test__/webgpu-mock.ts` for GPU stubs
 and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, BootstrapHelpers) opt into `happy-dom` via the
-`// @vitest-environment happy-dom` directive.
+`// @vitest-environment happy-dom` directive. Inventory is **illustrative** — not exhaustive.
 
-- **AssetLoader** - image caching and deduplication (Node + vi stubs)
+- **AssetLoader** - image caching and deduplication (Node + vi stubs for `Image`)
 - **SpriteSheet** - UV calculation, lazy texture creation, indexization, `loadIndexed()` convenience flow, and
   `getIndexedPixels()` defensive-copy semantics (Node + GPU mocks)
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
@@ -45,15 +46,17 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
   `RenderPaletteUsage` mask helpers (`markIndexUsed`, `collectUsedIndices`), toggle hit-testing, and `updateAndRender`
   integration (Node)
 - **FrameCapture** - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
+- **consumer-doc-imports** - `src/docs/consumer-doc-imports.test.ts` guards README/docs import paths against
+  `BlitTech.ts` exports
 
 ### Tier 3: Visual Regression (Playwright, Chromium)
 
 Actual GPU rendering verified via screenshot comparison. Requires Chrome with WebGPU flags enabled.
 
-Each spec covers both the default WebGPU backend and the `?backend=software` software backend, producing separate
-baseline screenshots for each.
+Most specs cover both the default WebGPU backend and the `?backend=software` software backend, producing separate
+baseline screenshots for each. **`post-process.spec.ts` is WebGPU-only** (software backend throws on effects).
 
-- **Primitives** - pixel, line, and rectangle rendering
+- **Primitives** - pixel, line, and rectangle rendering (WebGPU + software)
 - **Sprites** - palette-indexed sprite rendering, palette offsets, batching
 - **Camera** - camera offset transforms applied to all geometry
 - **Fonts** - placeholder text rendering at known positions
@@ -255,30 +258,44 @@ GitHub Actions runs unit tests and quality gates in CI. Visual regression is loc
 Triggers on push to `main` and on pull requests targeting `main`. `labeled` / `unlabeled` PR events skip the `quality`,
 `build-library`, and `test` jobs unless the added label is `perf` (which enables the benchmark job).
 
-| Job             | What it runs                                                                                       |
-| --------------- | -------------------------------------------------------------------------------------------------- |
-| `quality`       | `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run spellcheck`              |
-| `build-library` | `pnpm run build`, declaration tooling check, uploads `dist/` artifact                              |
-| `test`          | `pnpm run test:unit:coverage`, Codecov upload                                                      |
-| `benchmark`     | On `main` push or PRs labeled `perf`: `pnpm run bench:json`, PR regression compare (25% threshold) |
+| Job              | What it runs                                                                                       |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| `quality`        | `format:check`, `lint`, `typecheck`, `spellcheck`, **`docs:links`**                                |
+| `build-library`  | `pnpm run build`, declaration tooling check, uploads `dist/` artifact                              |
+| `test`           | `pnpm run test:unit:coverage`, Codecov upload                                                      |
+| `security-audit` | `pnpm run security:audit`, `pnpm run security:audit:prod` (dependency policy gate)                 |
+| `benchmark`      | On `main` push or PRs labeled `perf`: `pnpm run bench:json`, PR regression compare (25% threshold) |
+
+On pull requests, **`ci.yml` and `pr-checks.yml` overlap** on format/lint/typecheck/spellcheck/docs:links; `pr-checks`
+adds knip and bundle-size gates.
 
 ### `pr-checks.yml` (`PR Checks` workflow)
 
 Runs only on pull requests to `main`. Complements `ci.yml` with commit linting, bundle size limits, knip, and doc link
-checks. It does **not** run unit or visual tests.
+checks. It does **not** run unit or visual tests. There is **no separate `docs-links` job** — link checking runs inside
+the `quality` job.
 
-| Job           | What it runs                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| `quality`     | `pnpm run format:check`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run spellcheck`, knip |
-| `commitlint`  | Conventional Commits validation for PR commits                                              |
-| `bundle-size` | `pnpm run build`, declaration tooling check, gzipped ESM size gate                          |
-| `docs-links`  | Markdown link check for `docs/` and `README.md`                                             |
+| Job           | What it runs                                                              |
+| ------------- | ------------------------------------------------------------------------- |
+| `quality`     | `format:check`, `lint`, `typecheck`, `spellcheck`, **`docs:links`**, knip |
+| `commitlint`  | Conventional Commits validation for PR commits                            |
+| `bundle-size` | `pnpm run build`, declaration tooling check, gzipped ESM size gate        |
 
 ### Visual regression (not in CI)
 
 `pnpm run test:visual` requires Chrome with WebGPU and is **not** executed in GitHub Actions. Run it locally before
 merging renderer, palette, or post-process changes; use `pnpm run test:visual:update` when baselines change
 intentionally. `pnpm run preflight` does not include visual tests.
+
+### Known quirks
+
+See also [CLAUDE.md](../CLAUDE.md) (**Known Testing Quirks**):
+
+- **`// @vitest-environment happy-dom`** — required at the top of test files that touch DOM APIs without GPU mocks.
+- **AssetLoader** — tests stub `Image` with `vi`; do not rely on happy-dom data-URI `onload` behavior.
+- **`Vector2i -0` vs `0`** — use `result.x + 0` in assertions when sign is meaningless.
+- **`docs:links` scope** — `scripts/check-markdown-links.mjs` walks all repo-root `*.md` / `*.mdx` files (excluding
+  ignored dirs), not only `docs/` and README.
 
 ---
 
