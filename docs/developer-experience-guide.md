@@ -124,6 +124,8 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
 **Linting:**
 
 - ESLint with perfectionist, jsdoc, security, and promise plugins
+- `perfectionist/sort-classes` enforces class member order (see **File structure and member order**);
+  `simple-import-sort` enforces import/export order
 - `pnpm run lint` to check; `pnpm run lint:fix` to auto-fix
 
 **Naming conventions:**
@@ -163,6 +165,26 @@ AI-assisted commits add a trailer: `Co-Authored-By: Claude <noreply@anthropic.co
   `KeyboardInput.isKeyDown`, `GamepadInput.isButtonDown`). Do **not** embed a second `Is` in the identifier
   (`isKeyPressed` — grep: `\bis[A-Za-z]+Is[A-Z]`).
 - Identifier acronyms use both capitals: `canvasID`, `containerID` (not `canvasId`).
+
+**File structure and member order:**
+
+Class member order is enforced by `perfectionist/sort-classes` (and import order by `simple-import-sort`); run
+`pnpm run lint:fix` to auto-fix. The rule uses `type: 'unsorted'`, so it enforces only the **group order** below and
+preserves the hand-tuned order **within** each group (logical method families stay as written). Match this layout when
+adding or moving code. **Never use `// #region` / `// #endregion`** — region markers are banned.
+
+- **File layout (top to bottom):** module JSDoc → imports (`import type`, sorted) → leading module members (config/input
+  constants, validators, lookup tables, type aliases) → the primary class/interface/function → trailing module members
+  (WGSL / template-literal constants such as `FRAGMENT_WGSL`, and pure helper functions placed after the class; exported
+  helpers before private ones).
+- **Class member order:** (1) static fields (cached singletons, registries); (2) instance fields, public → protected →
+  private, `readonly` grouped, one JSDoc + blank line per field; (3) constructor (parameter-properties carry inline
+  JSDoc); (4) accessors — static getters, then instance getters/setters; (5) static methods, public before private; (6)
+  instance methods, public → protected → private, private helpers last.
+- **Cross-cutting:** keep a deprecated alias next to its canonical member (`equals` after `isEqual`); cluster method
+  families (new-allocating → `*To` zero-alloc → `*InPlace` → queries → `clone`/`toString`); one blank line between
+  members and before `return`; JSDoc on every member including private. See [CLAUDE.md](../CLAUDE.md) (**TypeScript file
+  structure**).
 
 ---
 

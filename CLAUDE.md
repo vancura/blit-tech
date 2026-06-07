@@ -38,6 +38,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | What test mock do I need for GPU code?                     | `src/__test__/webgpu-mock.ts`                                                                                                                                                                                                |
 | Declaration tooling / TS version alignment?                | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                                             |
 | Should this private name repeat the class/file?            | **Internal scoped naming** below; `docs/developer-experience-guide.md` (Naming conventions)                                                                                                                                  |
+| Where do I put a new field/method in a `.ts` file?         | **TypeScript file structure** below; `.cursor/rules/ts-file-structure.mdc`; `docs/developer-experience-guide.md` (File structure and member order)                                                                           |
 | What agent skills are available for this project?          | `.agents/skills/` (Zed) and `.claude/skills/` (Claude Code) — `bt-preflight`, `bt-review`, `bt-pr`, `bt-format`, `bt-perf`, `bt-test`, `bt-release`, `bt-spellcheck`, `bt-security-run`, `bt-deep-review`, `bt-quick-format` |
 
 ## Architecture
@@ -256,6 +257,50 @@ or drive breaking changes through consumers for naming-only cleanup.
 - JSDoc required for public APIs
 - When implementing changes, always update JSDoc and inline comments alongside the code. Never leave stale comments that
   describe old behavior.
+
+## TypeScript file structure
+
+Applies to library TypeScript in `src/`. **Class member order is enforced by `perfectionist/sort-classes`** (and import
+order by `simple-import-sort`); the rule is auto-fixable with `pnpm run lint:fix`. It uses `type: 'unsorted'`, so it
+enforces only the **group order** below and preserves the hand-tuned order **within** each group (e.g. logical method
+families stay as written). Match this layout when adding or moving code. **Never use `// #region` / `// #endregion`** —
+region markers are banned everywhere.
+
+### File layout (top to bottom)
+
+1. **Module JSDoc** — a `/** … */` block describing the file's purpose.
+2. **Imports** — `import type` for type-only imports; inline `type` modifiers inside mixed imports
+   (`import { type Backend, defaultConfig } from …`). Ordering is auto-fixed by `pnpm run lint:fix`
+   (`simple-import-sort`).
+3. **Leading module members** — constants that act as configuration or inputs (`MAX_VERTICES`, `INV_255`),
+   validators/lookup tables (`HEX_TOKEN_PATTERN`, `HEX_TABLE`), and type aliases (`type EffectTier`, `type Resolve`).
+   Module-level init loops (e.g. filling a lookup table) live here too.
+4. **Primary export** — the class / interface / function the file is named for.
+5. **Trailing module members** — large WGSL/template-literal constants (`const FRAGMENT_WGSL`) and pure helper functions
+   placed **after** the class. Exported helpers come before private ones.
+
+### Class member order
+
+1. **Static fields** — cached singletons (`_zero`, `_white`), registries (`namedColors`).
+2. **Instance fields** — public, then protected, then private (`#field` or `private`). Group `readonly` together. Each
+   field gets its own JSDoc and is separated by a blank line (no packed field blocks).
+3. **Constructor** — parameter-properties carry inline `/** … */` JSDoc.
+4. **Accessors** — static getters first, then instance getters/setters.
+5. **Static methods** — public before private.
+6. **Instance methods** — public, then protected, then private. Private helpers (`cleanup`, `getOrCreateBindGroup`) come
+   last.
+
+### Cross-cutting
+
+- Keep a **deprecated alias next to its canonical member** (`equals` after `isEqual`; `handleToggle` after
+  `handleInput`).
+- Cluster related instance-method families in a deliberate sub-order: new-allocating methods (`add`, `sub`) → `*To`
+  zero-alloc variants → `*InPlace` variants → queries (`isEqual`, `isZero`) → `clone` / `toString` last.
+- One blank line between members; a blank line before `return` and between logical blocks inside method bodies.
+- JSDoc on every member, including private fields and methods.
+- Named exports only; no default exports.
+
+See `docs/developer-experience-guide.md` (File structure and member order) and `.cursor/rules/ts-file-structure.mdc`.
 
 ## Commands
 
