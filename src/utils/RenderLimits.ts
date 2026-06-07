@@ -1,6 +1,6 @@
 import {
     renderDimensionAreaTooLargeError,
-    renderDimensionGpuLimitError,
+    renderDimensionGPULimitError,
     renderDimensionInvalidError,
     renderDimensionTooLargeError,
 } from './errorMessages';
@@ -155,7 +155,7 @@ export function validateWebGPUTextureDimension(
     }
 
     if (size.x > maxTextureDimension2D || size.y > maxTextureDimension2D) {
-        return renderDimensionGpuLimitError(field, formatSize(size), maxTextureDimension2D);
+        return renderDimensionGPULimitError(field, formatSize(size), maxTextureDimension2D);
     }
 
     return null;

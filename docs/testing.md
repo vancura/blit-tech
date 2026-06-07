@@ -30,13 +30,13 @@ and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, Bootstrap
 - **BitmapFont** - glyph lookup, text measurement (Node + vi stubs)
 - **BootstrapHelpers** - WebGPU support detection, canvas lookup (happy-dom)
 - **Bootstrap** - full bootstrap lifecycle, including `?backend=software` WebGPU-skip path (happy-dom)
-- **WebGpuRenderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
+- **WebGPURenderer** - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
 - **SoftwareRenderer** - frame lifecycle, palette enforcement, camera offsets, indexed sprite blits, bitmap text,
   `captureFrame()` semantics, and unsupported-effects assertions (Node + 2D canvas mocks)
 - **PrimitivePipeline** - vertex buffer math, line algorithm (Node + GPU mocks)
 - **SpritePipeline** - texture batching, UV coordinates (Node + GPU mocks)
 - **WebGPUContext** - initialization with mock adapter/device (Node + GPU mocks)
-- **BTAPI** - singleton coordinator; lazy-loads `WebGpuRenderer` after WebGPU init succeeds; includes software-mode
+- **BTAPI** - singleton coordinator; lazy-loads `WebGPURenderer` after WebGPU init succeeds; includes software-mode
   init, `?backend=software` URL override, `BT.requestedBackend` vs `BT.activeBackend` after WebGPU fallback,
   `captureFrame()` in software mode, and overlay render path (Node + GPU mocks + 2D canvas mocks)
 - **Overlay** - colocated tests under `src/overlay/*.test.ts`: label parsing, layout helpers, `layoutPlan` golden Y

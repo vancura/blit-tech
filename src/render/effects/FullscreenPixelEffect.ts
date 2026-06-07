@@ -45,7 +45,7 @@ export abstract class FullscreenPixelEffect implements Effect {
             );
         }
 
-        this.disposeGpuState();
+        this.disposeGPUState();
 
         this.device = device;
         this.attachmentFormat = format;
@@ -134,7 +134,7 @@ export abstract class FullscreenPixelEffect implements Effect {
      * Destroys GPU buffers and pipelines owned by this effect.
      */
     dispose(): void {
-        this.disposeGpuState();
+        this.disposeGPUState();
     }
 
     /** Populates {@link uniformData} before GPU upload. */
@@ -143,7 +143,7 @@ export abstract class FullscreenPixelEffect implements Effect {
     /**
      * Drops GPU handles so the effect can be re-initialized with a different chain format.
      */
-    private disposeGpuState(): void {
+    private disposeGPUState(): void {
         this.uniformBuffer?.destroy();
         this.uniformBuffer = null;
         this.pipeline = null;

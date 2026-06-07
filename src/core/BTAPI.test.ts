@@ -1223,7 +1223,7 @@ describe('BTAPI', () => {
 
         it('calls getFrameDiagnostics when isOverlayTimingChartEnabled is enabled', async () => {
             const diagnosticsSpy = vi.spyOn(
-                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                (await import('../render/WebGPURenderer')).WebGPURenderer.prototype,
                 'getFrameDiagnostics',
             );
             const demo: IBlitTechDemo = {
@@ -1244,7 +1244,7 @@ describe('BTAPI', () => {
 
         it('does not call getFrameDiagnostics when isOverlayTimingChartEnabled is disabled', async () => {
             const diagnosticsSpy = vi.spyOn(
-                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                (await import('../render/WebGPURenderer')).WebGPURenderer.prototype,
                 'getFrameDiagnostics',
             );
             const demo: IBlitTechDemo = {
@@ -1266,7 +1266,7 @@ describe('BTAPI', () => {
 
         it('calls getFrameDiagnostics when isOverlayRendererDiagnosticsBarEnabled is enabled without chart', async () => {
             const diagnosticsSpy = vi.spyOn(
-                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                (await import('../render/WebGPURenderer')).WebGPURenderer.prototype,
                 'getFrameDiagnostics',
             );
             const demo: IBlitTechDemo = {
@@ -1295,7 +1295,7 @@ describe('BTAPI', () => {
             };
 
             vi.spyOn(
-                (await import('../render/WebGpuRenderer')).WebGpuRenderer.prototype,
+                (await import('../render/WebGPURenderer')).WebGPURenderer.prototype,
                 'getFrameDiagnostics',
             ).mockReturnValue(mockDiagnostics);
 

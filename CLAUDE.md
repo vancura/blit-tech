@@ -51,7 +51,7 @@ sprites, and bitmap text resolve color through the active `Palette` before final
 src/
   BlitTech.ts              # Public API (BT namespace exports)
   core/
-    BTAPI.ts               # Internal singleton managing subsystems (lazy-loads WebGpuRenderer on WebGPU init)
+    BTAPI.ts               # Internal singleton managing subsystems (lazy-loads WebGPURenderer on WebGPU init)
     IBlitTechDemo.ts       # Demo interface + HardwareSettings
     GameLoop.ts            # Fixed-timestep game loop
     WebGPUContext.ts       # WebGPU adapter/device/context setup
@@ -70,7 +70,7 @@ src/
     input/                 # Toggle
   render/
     IRenderer.ts           # Backend-agnostic renderer contract (interface)
-    WebGpuRenderer.ts      # WebGPU concrete renderer implementing IRenderer
+    WebGPURenderer.ts      # WebGPU concrete renderer implementing IRenderer
     SoftwareRenderer.ts    # Canvas 2D software fallback implementing IRenderer
     PrimitivePipeline.ts   # Batched geometry writing palette indices (pixels, lines, rects)
     SpritePipeline.ts      # Batched textured quads (sprites, bitmap text)

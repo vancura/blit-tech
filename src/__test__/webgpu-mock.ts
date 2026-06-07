@@ -8,7 +8,7 @@ const DEFAULT_SIZE_PX = 256;
 
 /**
  * Palette uniform byte size: 256 palette indices x vec4(f32) x 4 bytes.
- * Matches {@link WebGpuRenderer} palette buffer layout.
+ * Matches {@link WebGPURenderer} palette buffer layout.
  */
 const INDEX_COUNT = 256;
 const RGBA_COMPONENT_COUNT = 4;
