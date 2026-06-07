@@ -18,7 +18,7 @@ The engine tracks up to four simultaneous pointers:
 | 2    | Second touch / pen contact                   |
 | 3    | Third touch / pen contact                    |
 
-Overflow contacts beyond slot 3 are dropped silently. The engine tracks **four** pointer slots (indices `0`–`3`).
+The engine tracks **four** pointer slots (indices `0`–`3`). Overflow contacts beyond slot 3 are dropped silently.
 
 ### Mouse slot (slot 0)
 
@@ -75,10 +75,9 @@ BT.isPressed(BT.BTN_POINTER_A); // left button just pressed
 BT.isReleased(BT.BTN_POINTER_A); // left button just released
 BT.isPressed(BT.BTN_POINTER_A, 2); // touch slot 2 just touched down
 
-// Composite masks (ANY-match semantics, same as multi-button masks)
+// Composite pointer mask (ANY-match semantics)
 BT.isDown(BT.BTN_POINTER_ANY); // any pointer button on slot 0
-BT.isDown(BT.BTN_ABXY, 0); // face buttons A/B/X/Y for player 0
-BT.isDown(BT.BTN_SHOULDER, 1); // L/R shoulder for player 1
+BT.isDown(BT.BTN_POINTER_A | BT.BTN_POINTER_B); // left or right mouse button held
 ```
 
 ### Mouse button mapping
@@ -137,6 +136,10 @@ BT.isPressed(BT.BTN_A, 0, 6); // edge + repeat every 6 ticks while held
 
 // Player 1 (default: arrow keys + alternate bindings)
 BT.isDown(BT.BTN_LEFT, 1);
+
+// Composite face-button masks (ANY-match semantics)
+BT.isDown(BT.BTN_ABXY, 0); // A, B, X, or Y for player 0
+BT.isDown(BT.BTN_SHOULDER, 1); // L or R shoulder for player 1
 ```
 
 Built-in defaults are exposed as read-only tables (same values the engine starts with):
@@ -187,7 +190,11 @@ Player constants:
 - `PLAYER_THREE` (`2`)
 - `PLAYER_FOUR` (`3`)
 
-Default dead zone for analog sticks is **`0.75`** (internal default in `GamepadInput`; not a public export).
+Default stick dead zone is **`0.75`** (`GamepadInput.DEFAULT_GAMEPAD_DEAD_ZONE` internally; not a public export).
+Filtering is **per axis**, not radial: each stick axis is zeroed when `Math.abs(axis) <= deadZone`, then the remaining
+range is re-normalized with `(abs - deadZone) / (1 - deadZone)`. At the default `0.75`, a stick axis must exceed ~75%
+deflection before movement registers — much larger than typical `0.1`–`0.2` dead zones. There is no public `BT` API to
+change this value today.
 
 ### Text input buffer
 
