@@ -81,7 +81,7 @@ function isSwatchOverlappingWithHintExclusion(
  * @param pointerY - Pointer Y in display coordinates.
  * @param paletteBand - Palette band rect from the layout plan.
  * @param bandRight - Right edge of the hittable band (excludes scrollbar track).
- * @returns `true` when the pointer lies outside the palette band (including scrollbar track).
+ * @returns `true` when the pointer is outside the swatch hit region (including over the scrollbar track).
  */
 function isPointerOutsideBand(pointerX: number, pointerY: number, paletteBand: Rect2i, bandRight: number): boolean {
     return (

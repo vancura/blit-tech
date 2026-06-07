@@ -36,10 +36,12 @@ export interface HardwareSettings {
     displaySize: Vector2i;
 
     /**
-     * Output drawing-buffer size in pixels. When set, this drives both the
-     * WebGPU drawing buffer and the canvas CSS size, and enables the
-     * `'display'` tier of the post-process effect chain (CRT scanlines, barrel
-     * distortion, etc.). Leave undefined to render at logical `displaySize`
+     * Output drawing-buffer size in pixels. When set, this drives the WebGPU
+     * drawing buffer resolution and enables the `'display'` tier of the
+     * post-process effect chain (CRT scanlines, barrel distortion, etc.). CSS
+     * layout uses {@link applyCanvasLayoutStyles} custom properties
+     * (`--canvas-aspect-*`, `--canvas-max-*`) derived from this and
+     * {@link displaySize}; leave undefined to render at logical `displaySize`
      * with no display-tier effects.
      *
      * Display-tier effects need this to be larger than `displaySize` to express
@@ -290,7 +292,7 @@ export interface OverlayTimingChartStyle {
      */
     gridPaletteIndex?: number;
 
-    /** Overflow marker tint for {@link overlayTimingChartDiagnostics} minimal/rich modes. Defaults to {@link warningPaletteIndex}. */
+    /** Overflow marker tint for {@link HardwareSettings.overlayTimingChartDiagnostics} minimal/rich modes. Defaults to {@link warningPaletteIndex}. */
     overflowPaletteIndex?: number;
 }
 
@@ -337,8 +339,8 @@ export interface IBlitTechDemo {
      * Optional hook to declare display size, optional output drawing-buffer size,
      * upscale filter, target fixed-update rate, rendering backend, and overlay.
      *
-     * When omitted, the engine uses {@link defaultConfig} (`320x240` at
-     * `60` FPS).
+     * When omitted, the engine uses {@link defaultConfig} (`320x240` logical,
+     * `640x480` drawing buffer, `60` FPS, overlay enabled).
      *
      * When present, you may return only the fields you want to change; the
      * engine merges them with {@link defaultConfig} via
@@ -627,7 +629,7 @@ function normalizeDeprecatedHardwareSettings(partial: Partial<HardwareSettings>)
 /**
  * Resolves an optional vector from picked configure values or defaults.
  *
- * @param partialValue
+ * @param partialValue - Raw value from `configure()` for this optional vector field.
  * @param picked - Value from `configure()`, if any.
  * @param fallback - Default vector when picked is omitted.
  * @returns Cloned vector or `undefined` when neither side provides a size.
@@ -679,8 +681,8 @@ function shallowCloneOptional<T extends object>(value: T | undefined): T | undef
 /**
  * Merged optional vectors for the full-default configure path.
  *
- * @param optionals - Partial settings object being built.
- * @param partial
+ * @param optionals
+ * @param partial - Raw `configure()` return value being merged.
  * @param picked - Defined fields from `configure()`.
  * @param defaults - Baseline hardware settings.
  */
@@ -779,7 +781,7 @@ function assignFullDefaultMergeScalars(
 /**
  * Collects optional hardware fields for the full-default merge path.
  *
- * @param partial
+ * @param partial - Raw `configure()` return value being merged.
  * @param picked - Defined fields from `configure()`.
  * @param defaults - Baseline hardware settings.
  * @returns Partial settings to spread into the resolved profile.
@@ -798,7 +800,7 @@ function buildFullDefaultMergeOptionals(
 /**
  * Optional fields explicitly set in `configure()` when the demo provided `displaySize`.
  *
- * @param partial
+ * @param partial - Raw `configure()` return value with explicit `displaySize`.
  * @param picked - Defined fields with vectors cloned.
  * @returns Partial settings to spread into the resolved profile.
  */
@@ -834,7 +836,7 @@ function buildExplicitDisplayOptionals(
  * Merges partial settings with {@link defaultConfig} when the demo did not set
  * `displaySize` (for example only `{ targetFPS: 30 }`).
  *
- * @param partial
+ * @param partial - Raw `configure()` return value being merged.
  * @param picked - Defined fields from `configure()`.
  * @param defaults - Baseline hardware settings.
  * @returns Resolved settings with full default resolution and output buffer.
@@ -859,7 +861,7 @@ function mergePartialWithFullDefaults(
 /**
  * Applies only fields present in `configure()` when the demo set `displaySize`.
  *
- * @param partial
+ * @param partial - Raw `configure()` return value with explicit `displaySize`.
  * @param picked - Defined fields with vectors cloned.
  * @param defaults - Baseline hardware settings for required fallbacks.
  * @returns Resolved settings; omitted optionals such as `drawingBufferSize` stay unset.

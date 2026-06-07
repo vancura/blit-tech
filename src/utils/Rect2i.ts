@@ -150,7 +150,7 @@ export class Rect2i {
      * which may cause unexpected behavior in intersection/containment tests.
      *
      * @param min - Top-left corner.
-     * @param max - Bottom-right corner.
+     * @param max - Bottom-right corner (exclusive; same half-open interval as {@link isContaining}).
      * @returns New rectangle spanning from min to max.
      */
     static fromMinMax(min: Vector2i, max: Vector2i): Rect2i {
@@ -252,7 +252,7 @@ export class Rect2i {
     }
 
     /**
-     * Writes the bottom-right corner (max) to an existing vector.
+     * Writes the bottom-right corner (exclusive max) to an existing vector.
      * Zero allocation alternative to the max getter.
      *
      * @param out - Vector to write to.

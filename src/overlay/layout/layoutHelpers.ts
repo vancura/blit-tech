@@ -46,7 +46,7 @@ export function isPointerInOverlayToggleCorner(pos: Vector2i, toggleRect: Rect2i
  *
  * @param text - Text to place flush right with {@link OVERLAY_EDGE_MARGIN_PX} inset.
  * @param displayWidth - Logical display width in pixels.
- * @returns Left edge X for `drawBitmapText` (never less than the margin).
+ * @returns Left edge X for {@link OverlayDrawTarget.drawLabel} (never less than the margin).
  */
 export function overlayRightAlignedTextX(text: string, displayWidth: number): number {
     const width = text.length * SYSTEM_CHAR_ADVANCE;
@@ -69,7 +69,7 @@ export function overlayToggleHintIconX(): number {
  * Palette offset for system-font overlay text (foreground glyphs stored as index 1).
  *
  * @param paletteIndex - Palette color index for overlay text.
- * @returns Offset passed to `drawBitmapText`, or `0` when index 0 (transparent).
+ * @returns Offset passed to {@link OverlayDrawTarget.drawLabel}, or `0` when index 0 (transparent).
  */
 export function overlayBitmapTextPaletteOffset(paletteIndex: number): number {
     return paletteIndex > 0 ? paletteIndex - 1 : 0;

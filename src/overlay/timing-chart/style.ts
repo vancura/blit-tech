@@ -62,7 +62,7 @@ export function resolveTimingChartStyle(
 /**
  * Maps a timing sample in milliseconds to a vertical dot offset in pixels above the baseline.
  *
- * Scales linearly so {@link fullScaleMs} fills the chart band. Any non-zero sample draws at
+ * Scales linearly so `fullScaleMs` fills the chart band. Any non-zero sample draws at
  * least one pixel so lightweight demos (sub-millisecond `update()` / `render()`) stay visible.
  *
  * @param ms - Sample value in milliseconds.

@@ -44,7 +44,9 @@ export interface Effect {
     readonly tier: EffectTier;
 
     /**
-     * Creates GPU resources (pipeline, layout, uniform buffer, sampler binding).
+     * Creates GPU resources (pipeline, layout, uniform buffer, and sampler when
+     * the chain format requires texture sampling). The `r8uint` pixel-tier path
+     * uses `textureLoad` only and does not bind a sampler.
      *
      * Idempotent: calling twice on the same instance is undefined behavior; the
      * chain guarantees it is only invoked once per effect instance.
@@ -53,8 +55,8 @@ export interface Effect {
      * @param format - Color attachment format for this chain (`r8uint` for the pixel
      *   tier, swap-chain format for the display tier) so ping-pong textures match the
      *   effect pipelines.
-     * @param displaySize - Source render target resolution in pixels. Effects use
-     *   this for resolution-aware uniforms (e.g. CRT mask scale, bloom texel size).
+     * @param displaySize - Chain attachment dimensions in pixels for this pass
+     *   (logical size for the pixel tier, output size for the display tier).
      */
     init(device: GPUDevice, format: GPUTextureFormat, displaySize: Vector2i): void;
 
@@ -73,7 +75,7 @@ export interface Effect {
      *
      * The pass must begin with `colorAttachments[0].view = destView` and load
      * with `clear` (any clearColor; the shader overwrites the entire surface).
-     * The pass binds {@link sourceView} as its sampled input texture.
+     * The pass binds the source texture view as its sampled input.
      *
      * @param encoder - Active command encoder owned by the renderer.
      * @param sourceView - View of the texture to sample from.

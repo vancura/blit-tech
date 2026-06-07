@@ -22,8 +22,9 @@ const VERTEX_STRIDE = VALUES_PER_VERTEX * 4;
 /**
  * Batched WebGPU pipeline for palette-indexed primitives.
  *
- * The pipeline collects CPU-side vertices for pixels, lines, rectangles, and
- * placeholder text during a frame, then uploads and draws them in `encodePass()`.
+ * The pipeline collects CPU-side vertices for pixels, lines, and rectangles
+ * during a frame, then uploads and draws them in `encodePass()`. Bitmap text
+ * is handled by {@link SpritePipeline}.
  *
  * Each vertex stores a palette index. The fragment shader writes that index into
  * an `r8uint` logical target (palette lookup happens later during resolve/upscale).

@@ -150,7 +150,8 @@ export class FrameCapture {
 
     /**
      * Records the texture-to-buffer copy needed for a pending frame capture.
-     * Call after the render pass ends but before submitting the command buffer.
+     * Call only when {@link hasPending} is true, after the render pass ends but
+     * before submitting the command buffer.
      *
      * @param device - WebGPU device for buffer creation.
      * @param texture - The rendered canvas texture to capture.

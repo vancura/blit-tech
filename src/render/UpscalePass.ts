@@ -20,13 +20,12 @@ const OUTPUT_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE
 export type UpscaleFilter = 'nearest' | 'linear';
 
 /**
- * Fullscreen pass that copies the logical-resolution framebuffer onto a
- * display-resolution texture, applying a configurable magnification filter.
+ * Legacy/test utility: fullscreen pass that copies a logical-resolution texture
+ * onto a display-resolution texture with a configurable magnification filter.
  *
- * Insertion point: between the pixel chain and the display chain in the
- * renderer's per-frame command sequence. When neither chain has effects but
- * `drawingBufferSize` is set, the renderer can also use this pass on its own
- * to upscale the scene into the swap chain.
+ * Production rendering uses {@link PaletteResolveUpscalePass} (palette-index
+ * resolve + upscale) between the pixel and display chains. This class remains
+ * for unit tests and standalone upscale scenarios.
  *
  * The pass owns its render pipeline, sampler, and a per-source-view bind-group
  * cache. It does **not** own the source or destination textures - the caller

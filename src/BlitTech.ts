@@ -2,7 +2,7 @@
  * Public Blit-Tech entrypoint.
  *
  * This module re-exports the main runtime types and exposes the `BT` facade
- * used by demos for rendering, timing, bootstrap, and future input helpers.
+ * used by demos for rendering, timing, bootstrap, and input (pointer, keyboard, gamepad).
  *
  * Rendering is palette-first: every color on screen is identified by a numeric
  * palette index rather than a direct RGBA value. Set an active palette with
@@ -364,12 +364,12 @@ export const BT = {
     BTN_POINTER_ANY: (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15),
 
     /**
-     * Default `KeyboardEvent.code` values for player 1 face buttons.
+     * Default `KeyboardEvent.code` values for player index 0 (first keyboard player).
      */
     DEFAULT_KEYBOARD_PLAYER1,
 
     /**
-     * Default `KeyboardEvent.code` values for player 2 face buttons.
+     * Default `KeyboardEvent.code` values for player index 1 (second keyboard player).
      */
     DEFAULT_KEYBOARD_PLAYER2,
 
@@ -557,10 +557,10 @@ export const BT = {
      * theme). After this call the renderer uploads the new palette uniform on the
      * next frame.
      *
-     * **Palette-value swap (change what a slot looks like):** mutate the current
-     * palette with `palette.set(slot, newColor)` and then call `paletteSet()`. The
-     * sprite sheets' stored indices are unchanged - no {@link BT.spritesRefresh}
-     * needed.
+     * **Palette-value swap (change what a slot looks like):** mutate the live
+     * {@link BT.palette} in place with `palette.set(slot, newColor)`. The renderer
+     * uploads dirty slots on the next frame; no `paletteSet()` or
+     * {@link BT.spritesRefresh} needed.
      *
      * **Palette-layout swap (same colors, different slot positions):** build a new
      * palette with the same colors at new indices, call `paletteSet()`, then call
@@ -706,8 +706,7 @@ export const BT = {
      * each frame from demo code.
      *
      * @param effect - Effect instance to append.
-     * @throws If the engine has not been initialized.
-     * @throws If a `'display'` effect is added without `drawingBufferSize`.
+     * When the engine is not ready, shows a canvas error instead of throwing.
      */
     effectAdd: (effect: Effect): void => {
         executeDrawCall('effectAdd', () => {
@@ -722,7 +721,7 @@ export const BT = {
      * it. Removing an effect that was never added is a no-op.
      *
      * @param effect - Effect instance to remove.
-     * @throws If the engine has not been initialized.
+     * When the engine is not ready, shows a canvas error instead of throwing.
      */
     effectRemove: (effect: Effect): void => {
         executeDrawCall('effectRemove', () => {
@@ -733,7 +732,7 @@ export const BT = {
     /**
      * Removes every registered post-processing effect across both tiers.
      *
-     * @throws If the engine has not been initialized.
+     * When the engine is not ready, shows a canvas error instead of throwing.
      */
     effectClear: (): void => {
         executeDrawCall('effectClear', () => {

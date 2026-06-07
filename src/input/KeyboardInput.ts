@@ -53,7 +53,8 @@ export class KeyboardInput {
     }
 
     /**
-     * Attaches listeners to the canvas and window.
+     * Attaches listeners to the canvas and window. Also listens for `window`
+     * `blur` to clear held keys and the text buffer when focus leaves the page.
      *
      * @param canvas - Canvas that receives keyboard events when focused.
      * @param options - Supplies {@link KeyboardAttachOptions.getTicks} for repeat timing.
@@ -166,7 +167,8 @@ export class KeyboardInput {
     }
 
     /**
-     * Text accumulated since the last {@link endFrame} from `beforeinput`, filtered.
+     * Text accumulated since the last {@link endFrame} from `beforeinput`.
+     * Accepts printable ASCII (32-127) plus Tab, Escape, Backspace, and Enter.
      *
      * @returns Buffered characters for the current frame.
      */
@@ -195,7 +197,8 @@ export class KeyboardInput {
     }
 
     /**
-     * OR semantics: pressed if any key became active this frame without any held last frame.
+     * OR semantics: pressed when logical button transitions from no mapped keys
+     * held to at least one held, or on repeat ticks when configured.
      *
      * @param codes - `KeyboardEvent.code` values for one logical button.
      * @param repeatRate - Optional tick repeat interval for held buttons.

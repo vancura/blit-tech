@@ -431,7 +431,7 @@ export class TimingChart {
     /**
      * Resolves semantic tint palette index for a severity level.
      *
-     * @param severity - {@link TIMING_CHART_SEVERITY_NONE} | WARNING | ERROR.
+     * @param severity - {@link TIMING_CHART_SEVERITY_NONE}, {@link TIMING_CHART_SEVERITY_WARNING}, or {@link TIMING_CHART_SEVERITY_ERROR}.
      * @param style - Resolved chart palette indices.
      * @returns Palette index, or `null` to use per-bar update/render colors.
      */

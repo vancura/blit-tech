@@ -35,7 +35,7 @@ export interface OverlayDrawTarget {
      *
      * On WebGPU, batched in `overlaySprites` after overlay bar fills.
      *
-     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexed via {@link SpriteSheet.isIndexed}).
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
@@ -47,7 +47,7 @@ export interface OverlayDrawTarget {
      *
      * On WebGPU, batched in `overlayTopSprites` after `overlayTopPrimitives`.
      *
-     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexed via {@link SpriteSheet.isIndexed}).
      * @param pos - Text position (top-left corner).
      * @param text - String to render.
      * @param paletteOffset - Palette index offset applied to all glyphs (default 0).

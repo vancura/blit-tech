@@ -37,7 +37,7 @@ function resolveLayoutRoot(canvas: HTMLCanvasElement): HTMLElement {
  * `--canvas-max-w/h` for the largest allowed display size.
  *
  * @param canvas - Target canvas element.
- * @param options - Logical, buffer, and CSS cap sizes from {@link HardwareSettings}.
+ * @param options - Layout fields mirroring relevant {@link HardwareSettings} members.
  */
 export function applyCanvasLayoutStyles(canvas: HTMLCanvasElement, options: CanvasLayoutStyleOptions): void {
     const aspectSource = options.drawingBufferSize ?? options.displaySize;

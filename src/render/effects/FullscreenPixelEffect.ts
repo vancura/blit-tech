@@ -3,8 +3,9 @@ import type { Effect } from './Effect';
 import { VS_WGSL } from './fullscreenVS';
 
 /**
- * Base class for pixel-tier fullscreen effects supporting both RGBA (`texture_2d<f32>`)
- * and palette-native (`texture_2d<u32>` / `r8uint` attachments) chains.
+ * Base class for pixel-tier fullscreen effects on the logical `r8uint` chain.
+ * Includes an RGBA fragment path for compatibility; production wiring always
+ * uses the `r8uint` attachment format.
  */
 export abstract class FullscreenPixelEffect implements Effect {
     readonly tier = 'pixel' as const;

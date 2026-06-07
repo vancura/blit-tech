@@ -74,9 +74,10 @@ type Canvas2D = OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D;
 /**
  * Canvas-2D software fallback renderer implementing {@link IRenderer}.
  *
- * This backend keeps rendering palette-first by rasterizing draw commands into a
- * logical-resolution RGBA buffer every frame, then presenting that buffer to the
- * target canvas with optional nearest-neighbor upscaling.
+ * This backend rasterizes draw commands into a logical-resolution RGBA buffer
+ * every frame (CPU-side palette lookup), then presents that buffer to the
+ * target canvas with optional nearest-neighbor upscaling. Unlike the WebGPU
+ * path, it does not use an `r8uint` index framebuffer.
  */
 export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private static readonly EFFECTS_UNSUPPORTED_MESSAGE =
@@ -275,7 +276,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
     /**
      * Marks the start of a new frame and clears the draw-command queue.
-     * Throws when no palette has been set yet.
+     *
+     * @throws When no palette has been set yet.
      */
     beginFrame(): void {
         if (!this.palette) {
@@ -352,7 +354,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
-     * Queues a overlay bar fill (same FIFO queue as {@link drawRectFill}).
+     * Queues an overlay bar fill (same FIFO queue as {@link drawRectFill}).
      *
      * @param rect - Rectangle to fill in logical pixels.
      * @param paletteIndex - Palette entry index for the fill color.
@@ -362,7 +364,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
-     * Queues an overlay bar fill above prior overlay labels (same FIFO queue as {@link drawRectFill}).
+     * Queues an overlay bar fill (same FIFO draw queue as {@link drawBarFill}).
+     * The software backend does not layer overlay draws above demo content;
+     * `OnTop` variants are equivalent to their base methods.
      *
      * @param rect - Rectangle to fill in logical pixels.
      * @param paletteIndex - Palette entry index for the fill color.
@@ -475,7 +479,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
-     * Queues a overlay label (same FIFO queue as {@link drawBitmapText}).
+     * Queues an overlay label (same FIFO queue as {@link drawBitmapText}).
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text origin in logical pixels.
@@ -487,7 +491,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
-     * Queues an overlay label above prior overlay bar fills (same FIFO queue as {@link drawBitmapText}).
+     * Queues an overlay label (same FIFO draw queue as {@link drawLabel}).
+     * The software backend does not layer overlay draws above demo content;
+     * `OnTop` variants are equivalent to their base methods.
      *
      * @param font - Bitmap font with character glyphs.
      * @param pos - Text origin in logical pixels.

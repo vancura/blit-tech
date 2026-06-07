@@ -1,8 +1,10 @@
 /**
  * Gamepad input subsystem.
  *
- * Uses the browser Gamepad API and snapshots previous-state at end-of-frame for
- * edge detection (`pressed`/`released`) and optional repeat timing.
+ * Uses the browser Gamepad API. Each public query re-polls
+ * `navigator.getGamepads()` before reading state. Previous-state is snapshotted
+ * at end-of-frame for edge detection ({@link isButtonPressed} /
+ * {@link isButtonReleased}) and optional repeat timing.
  */
 /* eslint-disable security/detect-object-injection */
 
@@ -216,7 +218,7 @@ export class GamepadInput {
     }
 
     /**
-     * Sets the analog stick dead zone used by {@link getAxis} for stick axes.
+     * Sets the analog stick dead zone used by {@link GamepadInput.getAxis} for stick axes.
      *
      * @param deadZone - New dead-zone threshold.
      */
@@ -234,7 +236,8 @@ export class GamepadInput {
     }
 
     /**
-     * Snapshots current state into previous-state storage for next frame's edge detection.
+     * Polls gamepads, then snapshots current state into previous-state storage
+     * for next frame's edge detection.
      *
      * @param _currentTick - Current engine tick (unused; kept for BTAPI parity).
      */
@@ -345,7 +348,8 @@ export class GamepadInput {
     }
 
     /**
-     * Reports whether any button in `buttonMask` was released this frame.
+     * Reports whether any button in `buttonMask` was released this frame, including
+     * when the gamepad disconnects while buttons were held.
      *
      * @param buttonMask - One or more `BTN_*` bit flags.
      * @param player - Zero-based player index.

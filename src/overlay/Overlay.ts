@@ -271,6 +271,8 @@ export class Overlay {
     /**
      * Handles toggle input (Backquote and bottom-left corner press).
      *
+     * @deprecated Deprecated since 2026-05-31. Use {@link handleFrameInput} instead.
+     *
      * @param pointer - Pointer subsystem, or `null` when unavailable.
      * @param keyboard - Keyboard subsystem, or `null` when unavailable.
      * @param currentTick - Current fixed-update tick for keyboard edge detection.
@@ -429,8 +431,10 @@ export class Overlay {
     /**
      * Draws overlay content for one frame.
      *
-     * Body panels and the footer hint bar draw only when {@link isBodyVisible} is true.
-     * The toggle hint icon always draws when this method runs (symbol only while hidden).
+     * Body panels and the footer hint bar draw only when the `isBodyVisible`
+     * parameter is true. The toggle hint icon draws whenever this method runs;
+     * when the body is visible it renders inverted (cutout) against the hint bar,
+     * otherwise as a solid glyph.
      *
      * @param renderer - Active renderer.
      * @param font - System bitmap font.

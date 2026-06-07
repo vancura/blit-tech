@@ -27,7 +27,7 @@ export const FACE_BUTTON_FLAGS = [
 export type FaceButtonCode = (typeof FACE_BUTTON_FLAGS)[number];
 
 /**
- * Player 1 default keyboard map (WASD, Space/KeyB, etc.).
+ * Player index 0 default keyboard map (WASD, Space/KeyB, etc.).
  */
 export const DEFAULT_KEYBOARD_PLAYER1: Readonly<Record<FaceButtonCode, readonly string[]>> = {
     [1 << 0]: ['KeyW'],
@@ -45,7 +45,7 @@ export const DEFAULT_KEYBOARD_PLAYER1: Readonly<Record<FaceButtonCode, readonly 
 };
 
 /**
- * Player 2 default keyboard map (arrows, numpad alternates).
+ * Player index 1 default keyboard map (arrows, numpad alternates).
  */
 export const DEFAULT_KEYBOARD_PLAYER2: Readonly<Record<FaceButtonCode, readonly string[]>> = {
     [1 << 0]: ['ArrowUp'],

@@ -1,7 +1,8 @@
 /**
  * Per-frame WebGPU pipeline diagnostic counters for overlay timing/chart internals.
  *
- * Populated by {@link BTAPI} when overlay renderer diagnostics collection is enabled.
+ * Populated by {@link BTAPI} when timing-chart diagnostics mode or
+ * {@link HardwareSettings.isOverlayRendererDiagnosticsBarEnabled} needs pipeline counters.
  * Overflow counts are WebGPU-only; software reports zero overflow with comparable vertex totals.
  */
 export interface OverlayRendererDiagnostics {
@@ -22,7 +23,8 @@ export interface OverlayRendererDiagnostics {
  * Per-frame timing snapshot fed into {@link Overlay.updateAndRender}.
  *
  * Values are wall-clock CPU timings from `performance.now()` measured by
- * {@link BTAPI} and smoothed inside the overlay before display.
+ * {@link BTAPI}. The overlay smooths `frameMs`, `updateMs`, and `renderMs`
+ * via {@link TimingSampler} and FPS via {@link FpsSampler} before display.
  */
 export interface OverlayTimingSnapshot {
     /** Total frame CPU time in milliseconds (update + render callback work). */
