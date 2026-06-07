@@ -6,7 +6,6 @@ src/
 .github/
 .vscode/
 .zed/
-.idea/
 
 # AI assistant configs (development only)
 ai-rules/
