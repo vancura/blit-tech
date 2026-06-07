@@ -19,14 +19,6 @@ import type { UpscaleFilter } from './UpscalePass';
  */
 const PALETTE_BUFFER_SIZE = 256 * 4 * 4;
 
-/**
- * Texture usage flags for the offscreen scene framebuffer.
- *
- * `RENDER_ATTACHMENT` so primitive/sprite pipelines can draw into it,
- * `TEXTURE_BINDING` so the pixel chain (or upscale pass) can sample it.
- */
-const SCENE_TARGET_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-
 /** Logical scene + pixel chain format (palette index in the red channel). */
 const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
 
@@ -823,7 +815,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
                 label: 'Renderer Scene Framebuffer',
                 size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
                 format: LOGICAL_TARGET_FORMAT,
-                usage: SCENE_TARGET_USAGE,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
             });
 
             this.sceneTexView = this.sceneTex.createView();

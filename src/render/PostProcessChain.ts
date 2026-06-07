@@ -2,14 +2,6 @@ import type { Vector2i } from '../utils/Vector2i';
 import type { Effect, EffectTier } from './effects/Effect';
 
 /**
- * Texture usage flags for offscreen color targets.
- *
- * `RENDER_ATTACHMENT` allows the scene to draw into the texture.
- * `TEXTURE_BINDING` allows post-process effects to sample from it.
- */
-const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-
-/**
  * Stackable post-processing effect chain that runs at a single resolution tier.
  *
  * The renderer owns one chain per tier:
@@ -264,7 +256,7 @@ export class PostProcessChain {
             label: `PostProcessChain[${this.tier}] texA`,
             size: { width: this.size.x, height: this.size.y, depthOrArrayLayers: 1 },
             format: this.format,
-            usage: OFFSCREEN_USAGE,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         });
         this.texAView = this.texA.createView();
     }
@@ -275,7 +267,7 @@ export class PostProcessChain {
             label: `PostProcessChain[${this.tier}] texB`,
             size: { width: this.size.x, height: this.size.y, depthOrArrayLayers: 1 },
             format: this.format,
-            usage: OFFSCREEN_USAGE,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         });
         this.texBView = this.texB.createView();
     }

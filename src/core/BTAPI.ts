@@ -18,6 +18,7 @@ import { createOverlayLayout, Overlay, resolveOverlayTopLeftLabel } from '../ove
 import type { Effect } from '../render/effects/Effect';
 import type { IRenderer } from '../render/IRenderer';
 import { SoftwareRenderer } from '../render/SoftwareRenderer';
+import { WebGPURenderer } from '../render/WebGPURenderer';
 import { applyCanvasLayoutStyles, DEFAULT_MAX_CANVAS_SIZE } from '../utils/CanvasLayoutStyles';
 import type { Color32 } from '../utils/Color32';
 import type { EasingFunction } from '../utils/Easing';
@@ -1112,10 +1113,6 @@ export class BTAPI {
                 this.context = webGPUResult.context;
 
                 console.log('[BT] Initializing renderer (backend: webgpu)');
-
-                // Lazy-load WebGPU renderer code so browsers without WebGPU globals
-                // (e.g. Firefox on Linux) can still start with the software backend.
-                const { WebGPURenderer } = await import('../render/WebGPURenderer');
 
                 this.renderer = new WebGPURenderer(
                     webGPUResult.device,

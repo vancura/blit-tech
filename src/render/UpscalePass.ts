@@ -2,15 +2,6 @@ import type { Vector2i } from '../utils/Vector2i';
 import { VS_WGSL } from './effects/fullscreenVS';
 
 /**
- * Texture usage flags for the upscale pass output.
- *
- * The upscaled texture is sampled by the display chain (or read by frame
- * capture / blit-to-swap-chain), so it needs both render-attachment and
- * texture-binding usages.
- */
-const OUTPUT_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
-
-/**
  * Upscale filter applied between the pixel chain (logical resolution) and the
  * display chain (canvas output resolution).
  *
@@ -79,7 +70,7 @@ export class UpscalePass {
             label,
             size: { width: size.x, height: size.y, depthOrArrayLayers: 1 },
             format,
-            usage: OUTPUT_USAGE,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         });
     }
 
