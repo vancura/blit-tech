@@ -1110,9 +1110,9 @@ export class BTAPI {
 
                 // Lazy-load WebGPU renderer code so browsers without WebGPU globals
                 // (e.g. Firefox on Linux) can still start with the software backend.
-                const { WebGpuRenderer } = await import('../render/WebGpuRenderer');
+                const { WebGPURenderer } = await import('../render/WebGPURenderer');
 
-                this.renderer = new WebGpuRenderer(
+                this.renderer = new WebGPURenderer(
                     webGPUResult.device,
                     webGPUResult.context,
                     hw.displaySize,

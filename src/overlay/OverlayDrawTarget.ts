@@ -6,7 +6,7 @@ import type { Vector2i } from '../utils/Vector2i';
 /**
  * Internal draw port for the engine overlay HUD.
  *
- * Not part of the public {@link BT} API. {@link WebGpuRenderer} and
+ * Not part of the public {@link BT} API. {@link WebGPURenderer} and
  * {@link SoftwareRenderer} implement this alongside {@link IRenderer}.
  */
 export interface OverlayDrawTarget {
