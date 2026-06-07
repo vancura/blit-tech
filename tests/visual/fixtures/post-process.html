@@ -101,50 +101,41 @@
                     BT.paletteSet(palette);
 
                     switch (mode) {
-                        case 'pixel-glitch': {
+                        case 'pixel-glitch':
                             this.applyPixelGlitchEffect();
                             break;
-                        }
 
-                        case 'barrel': {
+                        case 'barrel':
                             this.applyBarrelEffect();
                             break;
-                        }
 
-                        case 'scanlines': {
+                        case 'scanlines':
                             this.applyScanlinesEffect();
                             break;
-                        }
 
-                        case 'mask': {
+                        case 'mask':
                             this.applyMaskEffect();
                             break;
-                        }
 
-                        case 'vignette': {
+                        case 'vignette':
                             this.applyVignetteEffect();
                             break;
-                        }
 
-                        case 'aberration': {
+                        case 'aberration':
                             this.applyAberrationEffect();
                             break;
-                        }
 
-                        case 'bloom': {
+                        case 'bloom':
                             this.applyBloomEffect();
                             break;
-                        }
 
-                        case 'crt-pipboy': {
+                        case 'crt-pipboy':
                             this.applyCRTPipBoyEffect();
                             break;
-                        }
 
-                        case 'stacked': {
+                        case 'stacked':
                             this.applyStackedEffect();
                             break;
-                        }
 
                         // Baseline, upscale-nearest, upscale-linear: no effects.
                         default:
