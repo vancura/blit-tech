@@ -57,18 +57,26 @@ no emoji.
      the summary but do not invent a "changed" verdict for them unless the user asks for a first-time audit.
 
 2. **Find what changed in the code since the last audit.**
-   - Establish the cutoff (the most recent audit date across issues, usually shared).
-   - `git log --since=<audit-date> --pretty=format:'%h %ad %s' --date=short`
+   - Record each issue's own last-audit date from step 1 (`lastAuditDate` per issue). Audit dates differ between
+     issues - never collapse them into a single "most recent across issues" cutoff, or commits that landed between an
+     earlier-audited issue's date and that global latest date get missed, yielding false "unchanged" verdicts.
+   - For the broad prefilter, use the **earliest** `lastAuditDate` across all issues as the baseline so no relevant
+     commit is excluded: `git log --since=<earliest-lastAuditDate> --pretty=format:'%h %ad %s' --date=short`
    - Filter to behavior-changing work: `... | grep -E '(feat|fix)\('`. Ignore `docs`, `chore`, `refactor`, `test`, `ci`,
      and `style` commits - renames and formatting do not change an audit verdict. A breaking rename (`feat(...)!`) can
      matter if it adds or removes public surface.
+   - The earliest-baseline log is only a prefilter. Each candidate is judged per issue against its own `lastAuditDate`
+     in step 4, not against the global baseline.
 
 3. **Map changed feature areas to issues.**
    - Group the `feat`/`fix` commits by area (overlay, renderer, api, assets, input, etc.) and match them to the open
      issues those areas would affect. Only those issues are candidates for a changed verdict; everything else is
      unchanged by definition.
 
-4. **Verify each candidate against the codebase.**
+4. **Verify each candidate against the codebase, per issue.**
+   - Compare commits against that issue's own `lastAuditDate`, not the global baseline: a commit only counts toward a
+     changed verdict if it landed strictly after the issue was last audited
+     (`git log --since=<issue.lastAuditDate> -- <relevant paths>`).
    - Do not trust commit subjects alone. Confirm the actual public surface with `rg` / `git grep` and by reading the
      relevant `src/` files (e.g. confirm an API exists in `src/BlitTech.ts`, a type field in
      `src/core/IBlitTechDemo.ts`, a metric in `src/overlay/`).
