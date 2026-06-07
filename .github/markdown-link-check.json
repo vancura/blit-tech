@@ -38,6 +38,9 @@
     },
     {
       "pattern": "^https?://www\\.conventionalcommits\\.org(/|$)"
+    },
+    {
+      "pattern": "^https?://github\\.com/[^/]+/[^/]+/compare/"
     }
   ],
   "replacementPatterns": [
