@@ -16,31 +16,31 @@ pushing significant changes or creating pull requests.
 
 ## Steps
 
-0. **Security MCP preflight (when security tooling is in scope)**
+1. **Security MCP preflight (when security tooling is in scope)**
 
 - Run `/bt-security-run` or `pnpm run security:mcp-preflight` with the session MCP descriptor path and
   `--allow-fallback`
 - See [docs/security/security-runbook.md](../../../docs/security/security-runbook.md)
 - Do not skip scans when Opsera/JFrog/Semgrep MCP is degraded; use documented fallbacks
 
-1. **Run preflight checks**
+2. **Run preflight checks**
 
 - Execute `pnpm run preflight` (format, lint, typecheck, spellcheck, knip, test:unit)
 - If any check fails, report issues and stop
 - All automated checks must pass before AI review
 
-2. **Run security audit**
+3. **Run security audit**
 
 - Execute `pnpm run security:audit` (pnpm audit)
 - Report any vulnerabilities found (moderate and above)
 
-3. **Gather change context**
+4. **Gather change context**
 
 - Run `git diff origin/main...HEAD` to see all changes vs. main
 - Run `git log origin/main..HEAD --oneline` to see commit history
 - Identify which files changed and their purpose
 
-4. **Perform comprehensive code review**
+5. **Perform comprehensive code review**
 
 - Analyze the diff for:
   - Bugs and logic errors
@@ -52,7 +52,7 @@ pushing significant changes or creating pull requests.
 - Focus only on high-confidence, high-priority issues
 - Verify each issue by reading the actual file contents
 
-5. **Check project-specific rules**
+6. **Check project-specific rules**
 
 - No emoji anywhere (code, comments, docs, commits)
 - Integer coordinates (Vector2i, Rect2i) for all rendering
@@ -61,7 +61,7 @@ pushing significant changes or creating pull requests.
 - Internal scoped naming: private/protected/module-local names must not repeat class or file; public `BT.*` and exports
   unchanged (`CLAUDE.md` **Internal scoped naming**)
 
-6. **Generate PR-ready summary**
+7. **Generate PR-ready summary**
 
 - Create a summary suitable for PR description
 
