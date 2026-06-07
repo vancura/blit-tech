@@ -1,6 +1,6 @@
 ---
 description: Require docs updates for API and behavior changes
-globs: { src/**/*.ts, docs/**/*.md, README.md, CLAUDE.md }
+globs: { src/**/*.ts, docs/**/*.md, README.md, CLAUDE.md, .claude/skills/**/SKILL.md, .cursor/rules/*.mdc }
 alwaysApply: false
 ---
 
@@ -8,7 +8,11 @@ alwaysApply: false
 
 - Documentation is part of the implementation, not a follow-up task.
 - When public API changes, update relevant `docs/api-*.md` and related examples in the same change.
-- When runtime behavior changes, update affected guides under `docs/`.
-- When architecture or subsystem structure changes, update `CLAUDE.md` architecture sections.
+- When runtime behavior changes, update affected guides under `docs/` (including `docs/overlay.md` for overlay subsystem
+  changes).
+- When architecture or subsystem structure changes, update `CLAUDE.md` architecture sections and the **Where to Find
+  Information** table when paths change.
+- When `pnpm run` scripts or preflight steps change, update `.claude/skills/*/SKILL.md` and any affected
+  `.cursor/rules/*.mdc` cross-references.
 - Update `README.md` only when quick start, prerequisites, feature list, or compatibility is affected.
 - If no docs update is needed, state why explicitly in the final response.
