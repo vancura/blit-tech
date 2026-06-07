@@ -569,10 +569,9 @@ export class Color32 {
     }
 
     /**
-     * Packs color into a 32-bit unsigned integer (ABGR format).
-     * Little-endian format compatible with typed array views.
+     * Packs color into a 32-bit unsigned integer (ABGR layout).
      *
-     * @returns 32-bit color value as (A << 24 | B << 16 | G << 8 | R).
+     * @returns 32-bit color value as `(A << 24 | B << 16 | G << 8 | R)`.
      */
     toUint32(): number {
         return (this.a << 24) | (this.b << 16) | (this.g << 8) | this.r;

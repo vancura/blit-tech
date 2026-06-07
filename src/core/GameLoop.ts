@@ -50,9 +50,10 @@ export type FrameDropCallback = (event: FrameDropEvent) => void;
  * rolling window of recent frames, which tracks the browser's actual vsync
  * interval (so detection works for any display refresh rate, including the
  * common Firefox case where rAF fires at the display's native rate rather
- * than at `targetFPS`). When the delta exceeds {@link DROP_THRESHOLD_MULTIPLIER}
- * times the baseline (and is shorter than {@link BACKGROUND_THRESHOLD_MS} to
- * filter out tab-switch pauses), the supplied callback is invoked.
+ * than at `targetFPS`). When the delta exceeds 1.5x the auto-calibrated
+ * baseline (see `DROP_THRESHOLD_MULTIPLIER`) and is shorter than 1000 ms
+ * (see `BACKGROUND_THRESHOLD_MS`) to filter out tab-switch pauses, the
+ * supplied callback is invoked.
  */
 export class GameLoop {
     /** Maximum update steps per frame to prevent spiral-of-death after long pauses. */
@@ -205,7 +206,6 @@ export class GameLoop {
 
         this.accumulator += deltaTime;
 
-        // Clamp accumulator to prevent spiral-of-death after long pauses.
         const maxAccumulator = this.updateInterval * GameLoop.MAX_STEPS;
 
         if (this.accumulator > maxAccumulator) {
@@ -222,7 +222,6 @@ export class GameLoop {
 
         this.accumulator -= steps * this.updateInterval;
 
-        // Variable render.
         this.onRender();
 
         requestAnimationFrame((t) => this.tick(t));

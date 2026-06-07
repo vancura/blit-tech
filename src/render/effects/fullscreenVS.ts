@@ -10,8 +10,8 @@
  * maps correctly under the WebGPU clip-space convention (origin bottom-left).
  *
  * Effects compose this string into their full shader module alongside their
- * fragment stage. Bind group 0 is reserved for effect uniforms; effects may
- * declare additional bindings as needed.
+ * fragment stage. Bind group 0 holds at minimum a uniform block; RGBA paths
+ * add texture and sampler bindings as needed.
  *
  * Draw with `pass.draw(3, 1, 0, 0)`.
  */

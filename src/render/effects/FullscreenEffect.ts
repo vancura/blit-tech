@@ -71,7 +71,8 @@ export abstract class FullscreenEffect implements Effect {
      * Creates the GPU pipeline, uniform buffer, sampler, and bind-group layout.
      *
      * @param device - WebGPU device used for resource creation.
-     * @param format - Color attachment format (matches the chain swap chain).
+     * @param format - Color attachment format. Pixel chain: `r8uint`; display
+     *   chain: swap-chain RGBA format.
      * @param _displaySize - Source render target resolution. Most effects ignore
      *   this and use the per-frame `sourceSize` from {@link updateUniforms}.
      */
@@ -131,8 +132,8 @@ export abstract class FullscreenEffect implements Effect {
     }
 
     /**
-     * Encodes the fullscreen pass that samples {@link sourceView} and writes
-     * the result into {@link destView}.
+     * Encodes the fullscreen pass that samples the source texture and writes
+     * the result into the destination view.
      *
      * @param encoder - Active command encoder owned by the renderer.
      * @param sourceView - View of the texture to sample from.

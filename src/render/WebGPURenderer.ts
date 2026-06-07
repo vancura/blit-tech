@@ -156,8 +156,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * @param context - WebGPU canvas context for presenting frames.
      * @param displaySize - Logical render resolution in pixels.
      * @param outputSize - Output drawing-buffer resolution in pixels (matches the
-     *   swap chain). Defaults to `displaySize` (no upscaling, no display-tier
-     *   effects).
+     *   swap chain). When omitted, display-tier effects are disabled and the
+     *   renderer operates at logical `displaySize` only.
      * @param upscaleFilter - Magnification filter for the upscale pass. Defaults to
      *   `'nearest'`.
      */
@@ -260,7 +260,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Stores a reference to the supplied palette - no clone is made. Subsequent
      * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
      * will be detected via {@link Palette.isDirty} and uploaded automatically at the
-     * start of the next frame. {@link isPaletteDirty} is set to guarantee the initial
+     * start of the next frame. The internal dirty flag guarantees the initial
      * upload even when the palette has never been mutated through {@link Palette.set}.
      *
      * @param palette - Palette to use for color lookups and GPU upload.
@@ -270,7 +270,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
         this.isPaletteDirty = true;
 
         // If the new palette is smaller than the current clear index, reset to 0
-        // (transparent) so resolveClearColor does not warn on every endFrame().
+        // (transparent) so resolveClearPaletteIndex does not warn on every endFrame().
         if (this.clearPaletteIndex >= this.palette.size) {
             this.clearPaletteIndex = 0;
         }
@@ -570,8 +570,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      *
      * @param effect - Effect instance to append.
      * @throws If the renderer has not been initialized.
-     * @throws If a `'display'` effect is added while the output drawing buffer
-     *   matches the logical display size (no drawingBufferSize was set).
+     * @throws If a `'display'` effect is added without `drawingBufferSize`
+     *   set in `configure()`.
      */
     addEffect(effect: Effect): void {
         if (!this.pixelChain || !this.displayChain) {

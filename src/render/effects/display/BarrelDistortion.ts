@@ -2,7 +2,7 @@ import type { Vector2i } from '../../../utils/Vector2i';
 import { FullscreenEffect } from '../FullscreenEffect';
 
 /**
- * Pincushion barrel distortion that warps UVs toward the center of the screen.
+ * Barrel distortion that warps UVs outward from the screen center.
  *
  * Display-tier: operates on the upscaled output. Applying this in the pixel
  * tier (logical 320x240) discretizes the curve onto the source texel grid,
@@ -34,8 +34,8 @@ export class BarrelDistortion extends FullscreenEffect {
 
     /**
      * Writes resolution and curvature into the uniform block.
-     * @param _deltaMs
-     * @param sourceSize
+     * @param _deltaMs - Unused; effect reads public fields updated by demo code.
+     * @param sourceSize - Chain attachment dimensions in pixels for this pass.
      */
     protected writeUniforms(_deltaMs: number, sourceSize: Vector2i): void {
         const u = this.uniformData;

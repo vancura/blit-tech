@@ -1,12 +1,12 @@
 /**
  * Palette effect system for animated color manipulation.
  *
- * Effects operate on palette entries ({@link Color32} arrays) in place. The visual
+ * Effects mutate {@link Palette} entries in place via {@link Palette.getRef}. The visual
  * change happens automatically on the next frame when the renderer detects the
  * dirty flag and re-uploads the palette uniform buffer.
  *
  * The {@link PaletteEffectManager} is called once per frame from the render
- * callback, after `demo.render()` but before `Renderer.endFrame()`.
+ * callback, after `demo.render()` but before {@link IRenderer.endFrame}.
  */
 
 import { clampUnit, Color32 } from '../utils/Color32';
@@ -444,7 +444,7 @@ export class FadeRangeEffect implements PaletteEffect {
  * Copies `color` into every palette slot except the transparent sentinel at index 0.
  *
  * @param palette - Active palette to modify.
- * @param color - Flash color applied to all non-zero entries.
+ * @param color - Flash color applied to all palette slots except index 0 (transparent sentinel).
  */
 function copyColorToNonZeroSlots(palette: Palette, color: Color32): void {
     for (let i = 1; i < palette.size; i++) {
@@ -486,7 +486,7 @@ export class FlashEffect implements PaletteEffect {
     /**
      * Creates a palette flash effect.
      *
-     * @param color - Flash color applied to all non-zero entries.
+     * @param color - Flash color applied to all palette slots except index 0 (transparent sentinel).
      * @param durationMs - How long the flash lasts in milliseconds.
      */
     constructor(

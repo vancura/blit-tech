@@ -2,8 +2,8 @@
  * Live palette swatch grid for the overlay bottom band.
  *
  * {@link computeGrid} picks adaptive column counts from the active palette
- * size; {@link PaletteView.draw} renders indexed swatches with gaps and
- * transparent corner pixels.
+ * size; {@link PaletteView.draw} renders indexed swatches with gaps, unused-slot
+ * markers, and toggle-icon exclusion.
  */
 
 import type { Palette } from '../../assets/Palette';

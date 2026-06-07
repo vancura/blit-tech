@@ -13,7 +13,7 @@ export class ChromaticAberration extends FullscreenEffect {
     public readonly tier = 'display' as const;
 
     /**
-     * Channel offset in source pixels. Reasonable values are `0.5` to `3.0`.
+     * Channel offset in display-chain (output) pixels. Reasonable values are `0.5` to `3.0`.
      * Set to `0` to disable.
      */
     public aberration: number = 1.0;
@@ -27,8 +27,8 @@ export class ChromaticAberration extends FullscreenEffect {
 
     /**
      * Writes resolution and aberration offset into the uniform block.
-     * @param _deltaMs
-     * @param sourceSize
+     * @param _deltaMs - Unused; effect reads public fields updated by demo code.
+     * @param sourceSize - Chain attachment dimensions in pixels for this pass.
      */
     protected writeUniforms(_deltaMs: number, sourceSize: Vector2i): void {
         const u = this.uniformData;

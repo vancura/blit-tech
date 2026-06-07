@@ -15,9 +15,9 @@ import type { Effect } from './effects/Effect';
  * to swap backends at initialization time based on {@link HardwareSettings.backend}.
  *
  * Lifecycle:
- * 1. Call {@link init} once after construction.
- * 2. Per frame: {@link beginFrame} -> draw calls -> {@link endFrame}.
- * 3. Palette must be set via {@link setPalette} before the first {@link beginFrame}.
+ * 1. Call {@link IRenderer.init} once after construction.
+ * 2. Per frame: {@link IRenderer.beginFrame} -> draw calls -> {@link IRenderer.endFrame}.
+ * 3. Palette must be set via {@link IRenderer.setPalette} before the first {@link IRenderer.beginFrame}.
  */
 export interface IRenderer {
     /**
@@ -132,9 +132,10 @@ export interface IRenderer {
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void;
 
     /**
-     * Captures the next rendered frame as a PNG blob.
+     * Captures the next rendered frame as a PNG blob. A second call while a
+     * capture is pending rejects the prior pending promise.
      *
-     * @returns Promise resolving to a PNG Blob after the next {@link endFrame}.
+     * @returns Promise resolving to a PNG Blob after the next {@link IRenderer.endFrame}.
      */
     captureFrame(): Promise<Blob>;
 

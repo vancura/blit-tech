@@ -9,10 +9,6 @@ import type { UpscaleFilter } from './UpscalePass';
  * Replaces {@link UpscalePass} for logical-index framebuffers: palette lookup happens here,
  * after the pixel-tier chain.
  */
-
-/**
- *
- */
 export class PaletteResolveUpscalePass {
     private device: GPUDevice | null = null;
     private pipeline: GPURenderPipeline | null = null;
@@ -142,7 +138,7 @@ export class PaletteResolveUpscalePass {
      * Creates or returns a cached bind group wired to the supplied index texture view.
      *
      * @param sourceView - Logical-resolution `r8uint` texture view.
-     * @returns Bind group for resolve pass sampling {@link sourceView}.
+     * @returns Bind group for resolve pass sampling the index texture view.
      */
     private getOrCreateBindGroup(sourceView: GPUTextureView): GPUBindGroup {
         const cached = this.bindGroups.get(sourceView);

@@ -46,8 +46,9 @@ import { initWebGPU } from './WebGPUContext';
 /**
  * Central runtime facade for Blit-Tech engine services.
  *
- * `BTAPI` owns engine initialization, keeps references to the active WebGPU
- * objects and renderer, and exposes the drawing/camera methods used by demos.
+ * `BTAPI` owns engine initialization, keeps references to the active renderer
+ * and optional WebGPU device/context (null on the software backend), and exposes
+ * the drawing/camera methods used by demos.
  * It is a singleton; access it through `BTAPI.instance`.
  */
 export class BTAPI {
@@ -231,7 +232,7 @@ export class BTAPI {
      * - start the fixed-timestep game loop
      *
      * @param demo - Demo implementing the IBlitTechDemo interface.
-     * @param canvas - HTML canvas element for WebGPU rendering.
+     * @param canvas - Render target canvas (WebGPU or software backend).
      * @returns `true` when initialization succeeds; otherwise `false`.
      */
     public async init(demo: IBlitTechDemo, canvas: HTMLCanvasElement): Promise<boolean> {
@@ -240,7 +241,7 @@ export class BTAPI {
         this.demo = demo;
         this.canvas = canvas;
 
-        // Hardware settings: demo hook or defaults (320x240 @ 60 FPS).
+        // Hardware settings: demo hook or defaults from defaultConfig() (320x240 logical, 640x480 buffer, 60 FPS).
         console.log('[BT] Reading hardware configuration');
 
         if (!this.loadHardwareSettings(demo)) {
@@ -268,9 +269,8 @@ export class BTAPI {
         this.setupOverlay();
         this.attachInputSubsystems(canvas);
 
-        // TODO: Initialize audio.
+        // TODO: Initialize audio subsystem when implemented.
 
-        // Initialize the demo.
         console.log('[BT] Initializing demo');
 
         if (!(await this.runDemoInit(demo))) {
@@ -442,7 +442,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the initialized WebGPU device.
+     * Gets the initialized WebGPU device, or `null` on the software backend.
      *
      * @returns GPU device, or null if not initialized.
      */
@@ -451,7 +451,7 @@ export class BTAPI {
     }
 
     /**
-     * Gets the configured WebGPU canvas context.
+     * Gets the configured WebGPU canvas context, or `null` on the software backend.
      *
      * @returns Canvas context, or null if not initialized.
      */
@@ -545,8 +545,10 @@ export class BTAPI {
     /**
      * Sets the active engine palette and propagates it to the renderer.
      *
-     * If sprite sheets have already been indexized, emits a warning: the indexed
-     * pixel data will be stale until `spritesRefresh()` is called.
+     * If sprite sheets have already been indexized, emits a warning when
+     * **replacing** the palette object (layout/index remapping may require
+     * {@link BTAPI.spritesRefresh}). In-place slot value changes on the active
+     * palette do not go through this method and need no refresh.
      *
      * @param palette - Palette to store as the active engine palette.
      */
@@ -739,8 +741,9 @@ export class BTAPI {
     /**
      * Re-indexizes all tracked sprite sheets against the current active palette.
      *
-     * Call this after swapping or modifying the active palette to keep all loaded
-     * sprite sheets in sync with the new color-to-index mapping.
+     * Call this after a **palette-layout swap** (same colors at new slot indices)
+     * so every sprite sheet re-maps its original RGBA pixels against the new
+     * layout. Not needed for in-place palette value changes.
      *
      * @throws If no active palette has been set.
      */
@@ -917,10 +920,12 @@ export class BTAPI {
     }
 
     /**
-     * Appends a fullscreen post-processing effect to the chain.
+     * Appends a fullscreen post-processing effect to the appropriate tier chain.
      *
-     * The first registered effect causes the scene to render into an offscreen
-     * texture starting on the next frame. Effects run in registration order.
+     * `'pixel'` effects run on the logical `r8uint` index buffer at
+     * `displaySize`. `'display'` effects run on the RGBA upscale output and
+     * require `drawingBufferSize` in hardware settings. Effects run in
+     * registration order within each tier.
      *
      * @param effect - Effect instance to append.
      * @throws Error if the renderer has not been initialized.
@@ -965,7 +970,7 @@ export class BTAPI {
     }
 
     /**
-     * Reads and validates demo `configure()` output into {@link hwSettings}.
+     * Reads and validates demo `configure()` output into resolved hardware settings.
      *
      * @param demo - Demo implementing {@link IBlitTechDemo}.
      * @returns `false` when hardware settings are invalid (bad dimensions or targetFPS).
@@ -1232,9 +1237,8 @@ export class BTAPI {
     /**
      * Records dropped-frame severity for the timing chart and optionally logs a warning.
      *
-     * When {@link logToConsole} is true, emits one line per event. The {@link GameLoop}
-     * auto-calibrates its baseline to the actual rAF cadence, so sustained slowness
-     * re-baselines instead of generating sustained log spam.
+     * The {@link GameLoop} auto-calibrates its baseline to the actual rAF cadence,
+     * so sustained slowness re-baselines instead of generating sustained log spam.
      *
      * @param event - Dropped-frame event from {@link GameLoop}.
      * @param logToConsole - When true, emits a one-line console warning.

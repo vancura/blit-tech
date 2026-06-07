@@ -6,7 +6,7 @@ import { FullscreenEffect } from '../FullscreenEffect';
  * cell borders, simulating the phosphor grille of an aperture-grille CRT.
  *
  * Display-tier: at output resolution there are enough output pixels per
- * mask cell to read as colored stripes. The cell pitch (in source pixels) is
+ * mask cell to read as colored stripes. The cell pitch (in output pixels) is
  * the {@link size} parameter.
  *
  * Math is a direct WGSL port of the libretro `crt-lottes.glsl` mask code.
@@ -17,7 +17,7 @@ export class RGBMask extends FullscreenEffect {
     /** Mask brightness mix amount in `[0, 1]`. 0 hides the mask. */
     public intensity: number = 0.18;
 
-    /** Mask cell pitch in source pixels. Smaller = denser mask. */
+    /** Mask cell pitch in output (display-chain) pixels. Smaller = denser mask. */
     public size: number = 6.0;
 
     /** Border darkening within each mask cell. 0 disables, 1 strong. */
@@ -32,8 +32,8 @@ export class RGBMask extends FullscreenEffect {
 
     /**
      * Writes resolution, intensity, size, and border into the uniform block.
-     * @param _deltaMs
-     * @param sourceSize
+     * @param _deltaMs - Unused; effect reads public fields updated by demo code.
+     * @param sourceSize - Chain attachment dimensions in pixels for this pass.
      */
     protected writeUniforms(_deltaMs: number, sourceSize: Vector2i): void {
         const u = this.uniformData;

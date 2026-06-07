@@ -1,10 +1,8 @@
 /**
  * Shared user-facing error message strings for the Blit-Tech bootstrap and runtime paths.
  *
- * Both the production bootstrap (Bootstrap.ts) and the error-preview demo
- * (BootstrapHelpers.ts) import from here, guaranteeing they can never drift
- * apart. Runtime message helpers (palette, sprite) are also centralized here
- * so every site uses identical wording.
+ * Imported by {@link Bootstrap} and runtime/asset code so user-facing strings
+ * stay centralized and consistent.
  */
 
 /**

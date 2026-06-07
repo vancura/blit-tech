@@ -695,8 +695,9 @@ export class SpriteSheet {
      * Releases the GPU texture from memory and clears all retained pixel data.
      *
      * Also closes any retained `ImageBitmap` that has not yet been uploaded.
-     * After calling this method, a subsequent `getTexture()` call will recreate
-     * the GPU texture from the original image.
+     * Clears CPU-side `rgbaPixels` and `indexedPixels`; only image-backed sheets
+     * that have not been destroyed can recreate a GPU texture via a new load or
+     * {@link indexize} call.
      */
     destroy(): void {
         this.invalidateTexture();

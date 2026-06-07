@@ -314,7 +314,8 @@ export function validateGlyphCount(count: number): string | null {
  * Validates an embedded `.btfont` texture URI before image decode.
  *
  * Relative PNG paths are accepted without additional checks. Embedded textures must
- * use {@link BTFONT_EMBEDDED_TEXTURE_PREFIX} and stay within {@link MAX_BTFONT_EMBEDDED_TEXTURE_BYTES}.
+ * use {@link BTFONT_EMBEDDED_TEXTURE_PREFIX} and stay within
+ * {@link MAX_BTFONT_EMBEDDED_TEXTURE_BYTES} base64 character count (after the prefix).
  *
  * @param texture - Texture field from a `.btfont` file.
  * @returns A user-facing error message when invalid, otherwise `null`.

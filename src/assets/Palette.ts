@@ -3,7 +3,8 @@
  *
  * The class stores mutable indexed {@link Color32} entries, supports named
  * index aliases, handles serialization, and exposes fixed-layout conversion
- * helpers used by the upcoming GPU palette uniform pipeline.
+ * helpers used by the GPU palette uniform upload path ({@link Palette.toFloat32Array},
+ * {@link Palette.isDirty}).
  */
 
 import { Color32 } from '../utils/Color32';
@@ -581,8 +582,9 @@ export class Palette {
     /**
      * Writes the palette into an existing Float32Array in the fixed-size GPU uniform layout.
      *
-     * The target must be at least `256 * 4` floats long. Entries beyond the active
-     * palette size are left unchanged.
+     * The target must be at least `256 * 4` floats long. Slots beyond the active
+     * palette size are left unchanged in the target buffer. {@link toFloat32Array}
+     * zero-initializes a fresh 256-slot buffer before calling this method.
      *
      * @param target - Pre-allocated float buffer to write normalized RGBA values into.
      */

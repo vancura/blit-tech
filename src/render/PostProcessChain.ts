@@ -16,9 +16,9 @@ const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXT
  * - A `'pixel'` chain at the logical render resolution (e.g. 320x240).
  * - A `'display'` chain at the canvas output resolution (e.g. 1280x960).
  *
- * Each chain owns its own offscreen color texture(s) and a shared sampler that
- * effects sample from. Resources are allocated lazily: nothing is touched on
- * the GPU until an effect is added, and everything is destroyed when the chain
+ * Each chain owns its own offscreen color texture(s). Individual effects own
+ * their samplers and pipelines. Resources are allocated lazily: nothing is
+ * allocated on the GPU until an effect is added, and everything is destroyed when the chain
  * empties via {@link clear} or the last {@link remove}.
  *
  * Texture model:

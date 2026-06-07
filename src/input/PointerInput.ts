@@ -233,8 +233,8 @@ export class PointerInput {
     /**
      * Snapshots per-frame state at the END of each rAF tick.
      *
-     * Must be called once per tick AFTER the demo's `update()` and `render()`
-     * have read the current input state. Snapshots `pos -> prevPos` so the
+     * Must be called once per tick after demo `update()` and `render()`, overlay
+     * draws, and renderer submit. Snapshots `pos -> prevPos` so the
      * next frame's `getDelta` reflects movement during the inter-frame gap,
      * snapshots `a..d -> prevA..prevD` so the next frame's `isButtonPressed`
      * / `isButtonReleased` see the transition, and clears the accumulated
@@ -264,7 +264,8 @@ export class PointerInput {
      * Returns the position of the pointer in slot `slot` in display coordinates.
      *
      * Returns `Vector2i.zero()` when the slot index is out of `[0, POINTER_SLOT_COUNT - 1]`.
-     * The returned value is a clone; callers may mutate it without affecting internal state.
+     * Valid slots return a clone; invalid slots return the shared zero singleton
+     * (do not mutate the return value when the slot is invalid).
      *
      * @param slot - Pointer slot index (0 = mouse, 1-3 = touch / pen).
      * @returns Pointer position in display coordinates, or `Vector2i.zero()` for invalid slots.
@@ -347,7 +348,7 @@ export class PointerInput {
      *
      * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
-     * @returns `true` while the button remains pressed.
+     * @returns `true` while the button remains pressed and the slot is active.
      */
     public isButtonDown(button: number, slot: number): boolean {
         const s = this.getSlotOrNull(slot);
@@ -372,6 +373,8 @@ export class PointerInput {
 
     /**
      * Reports whether the given pointer button transitioned to down on the current frame.
+     * Unlike {@link isButtonDown}, does not require the slot to be active, so press
+     * edges remain visible after deactivation.
      *
      * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
@@ -400,6 +403,7 @@ export class PointerInput {
 
     /**
      * Reports whether the given pointer button transitioned to up on the current frame.
+     * Unlike {@link isButtonDown}, does not require the slot to be active.
      *
      * @param button - One of `BTN_A..D`.
      * @param slot - Pointer slot index.
@@ -718,7 +722,7 @@ export class PointerInput {
     }
 
     /**
-     * Marks a touch / pen slot inactive: clears pointerId, valid flag, button
+     * Marks a touch / pen slot inactive: clears pointerId, `isActive`, button
      * state, and the pointerId -> slot mapping. Called on `pointerup`,
      * `pointercancel`, and `pointerleave` for touch / pen events.
      *
@@ -757,7 +761,7 @@ export class PointerInput {
     /**
      * Deactivates slot 0 (mouse) on `pointerleave` / `pointercancel`.
      *
-     * Clears all four buttons and marks the slot invalid, but leaves `pos`
+     * Clears all four buttons and sets `isActive = false`, but leaves `pos`
      * intact so a subsequent `pointermove` can pick up where it left off.
      */
     private deactivateMouseSlot(): void {

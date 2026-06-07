@@ -10,8 +10,9 @@ import { FullscreenPixelEffect } from '../FullscreenPixelEffect';
  */
 export class PixelGlitch extends FullscreenPixelEffect {
     /**
-     * Glitch strength in `[0, 1]`. Drives both the per-band shift magnitude
-     * and the probability that a band is shifted at all. `0` disables.
+     * Glitch strength in `[0, 1]`. Scales the per-band horizontal shift
+     * magnitude. Bands are shifted when their hash exceeds ~0.85 (~15% of
+     * bands). `0` disables.
      */
     public intensity: number = 0;
 

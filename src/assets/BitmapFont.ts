@@ -173,7 +173,7 @@ export class BitmapFont {
 
     /**
      * Creates a BitmapFont instance.
-     * Use the static `load()` method to load from a .btfont file.
+     * Use {@link BitmapFont.load} or {@link BitmapFont.createFromGlyphs} to construct instances.
      *
      * @param spriteSheet - Texture atlas containing all font glyphs.
      * @param glyphs - Map of character strings to glyph metadata.

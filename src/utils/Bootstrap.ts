@@ -1,8 +1,9 @@
 /**
  * Bootstrap Utilities for Blit-Tech
  *
- * Provides a one-liner demo bootstrap that handles WebGPU detection,
- * canvas retrieval, and engine initialization with error display.
+ * Provides a one-liner demo bootstrap that resolves the canvas, calls
+ * {@link BTAPI.init}, and displays initialization errors on failure. Backend
+ * selection and WebGPU fallback are handled inside BTAPI.
  */
 
 import { BTAPI } from '../core/BTAPI';
