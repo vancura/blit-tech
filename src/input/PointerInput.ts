@@ -373,7 +373,7 @@ export class PointerInput {
 
     /**
      * Reports whether the given pointer button transitioned to down on the current frame.
-     * Unlike {@link isButtonDown}, does not require the slot to be active, so release
+     * Unlike {@link isButtonDown}, does not require the slot to be active, so press
      * edges remain visible after deactivation.
      *
      * @param button - One of `BTN_A..D`.

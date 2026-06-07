@@ -168,7 +168,7 @@ export class KeyboardInput {
 
     /**
      * Text accumulated since the last {@link endFrame} from `beforeinput`.
-     * Accepts printable ASCII (32-127) plus Tab, Escape, Backspace, and Enter.
+     * Accepts printable ASCII (32-126) plus Tab, Escape, Backspace, and Enter.
      *
      * @returns Buffered characters for the current frame.
      */

@@ -18,7 +18,7 @@ const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXT
  *
  * Each chain owns its own offscreen color texture(s). Individual effects own
  * their samplers and pipelines. Resources are allocated lazily: nothing is
- * the GPU until an effect is added, and everything is destroyed when the chain
+ * allocated on the GPU until an effect is added, and everything is destroyed when the chain
  * empties via {@link clear} or the last {@link remove}.
  *
  * Texture model:

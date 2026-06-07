@@ -681,7 +681,8 @@ function shallowCloneOptional<T extends object>(value: T | undefined): T | undef
 /**
  * Merged optional vectors for the full-default configure path.
  *
- * @param optionals
+ * @param optionals - Partial {@link HardwareSettings} object being built; optional
+ *   vector fields are written here via {@link assignIfDefined} when resolved.
  * @param partial - Raw `configure()` return value being merged.
  * @param picked - Defined fields from `configure()`.
  * @param defaults - Baseline hardware settings.
