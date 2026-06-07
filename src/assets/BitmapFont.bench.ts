@@ -1,5 +1,3 @@
-// noinspection MagicNumberJS
-
 import { bench, describe } from 'vitest';
 
 import { Rect2i } from '../utils/Rect2i';

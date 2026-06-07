@@ -297,7 +297,9 @@ describe('FrameCapture', () => {
         expect(capturedPixels).not.toBeNull();
 
         // After swizzle, first pixel of each row should be RGBA = [30, 20, 10, 255].
-        if (capturedPixels === null) throw new Error('capturedPixels should not be null');
+        if (capturedPixels === null) {
+            throw new Error('capturedPixels should not be null');
+        }
 
         const pixels = capturedPixels;
 

@@ -25,9 +25,7 @@ export function applyEasing(t: number, easing: EasingFunction): number {
             return t * (2 - t);
         case 'ease-in-out':
             return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        default: {
-            const exhaustive: never = easing;
-            throw new Error(`Unsupported easing: ${exhaustive}`);
-        }
+        default:
+            throw new Error(`Unsupported easing: ${easing}`);
     }
 }

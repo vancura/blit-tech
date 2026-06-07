@@ -793,12 +793,12 @@ export const BT = {
      */
     drawPixel: (posOrX: Vector2i | number, yOrColor: number, maybeColor?: number): void => {
         executeDrawCall('drawPixel', () => {
-            if (posOrX instanceof Vector2i && typeof yOrColor === 'number' && maybeColor === undefined) {
+            if (posOrX instanceof Vector2i && maybeColor === undefined) {
                 BTAPI.instance.drawPixel(new Vector2i(posOrX.x, posOrX.y), yOrColor);
                 return;
             }
 
-            if (typeof posOrX === 'number' && typeof yOrColor === 'number' && typeof maybeColor === 'number') {
+            if (typeof posOrX === 'number' && typeof maybeColor === 'number') {
                 BTAPI.instance.drawPixel(new Vector2i(posOrX, yOrColor), maybeColor);
                 return;
             }

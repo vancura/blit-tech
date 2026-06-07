@@ -9,6 +9,12 @@ import { FullscreenPixelEffect } from '../FullscreenPixelEffect';
  * Pixel-tier: runs on the logical `r8uint` framebuffer (palette indices).
  */
 export class PixelMosaic extends FullscreenPixelEffect {
+    /**
+     * Block side length in source pixels. `1` is a no-op; `2` halves
+     * effective resolution; `8` produces very chunky blocks.
+     */
+    public blockSize: number = 4;
+
     protected readonly label = 'PixelMosaic';
 
     /** vec2 resolution + blockSize + 1 pad = 16 bytes. */
@@ -17,12 +23,6 @@ export class PixelMosaic extends FullscreenPixelEffect {
     protected readonly fragmentShaderRgba = UNSUPPORTED_WGSL;
 
     protected readonly fragmentShaderUint = FRAGMENT_UINT_WGSL;
-
-    /**
-     * Block side length in source pixels. `1` is a no-op; `2` halves
-     * effective resolution; `8` produces very chunky blocks.
-     */
-    public blockSize: number = 4;
 
     /**
      * Writes resolution and blockSize into the uniform block.

@@ -9,15 +9,6 @@ import { FullscreenPixelEffect } from '../FullscreenPixelEffect';
  * Pixel-tier: runs on the logical `r8uint` framebuffer (palette indices).
  */
 export class PixelGlitch extends FullscreenPixelEffect {
-    protected readonly label = 'PixelGlitch';
-
-    /** vec2 resolution + intensity + bandHeight + seed + 3 pads = 32 bytes. */
-    protected readonly uniformBytes = 32;
-
-    protected readonly fragmentShaderRgba = UNSUPPORTED_WGSL;
-
-    protected readonly fragmentShaderUint = FRAGMENT_UINT_WGSL;
-
     /**
      * Glitch strength in `[0, 1]`. Drives both the per-band shift magnitude
      * and the probability that a band is shifted at all. `0` disables.
@@ -35,6 +26,15 @@ export class PixelGlitch extends FullscreenPixelEffect {
      * pattern.
      */
     public seed: number = 0;
+
+    protected readonly label = 'PixelGlitch';
+
+    /** vec2 resolution + intensity + bandHeight + seed + 3 pads = 32 bytes. */
+    protected readonly uniformBytes = 32;
+
+    protected readonly fragmentShaderRgba = UNSUPPORTED_WGSL;
+
+    protected readonly fragmentShaderUint = FRAGMENT_UINT_WGSL;
 
     /**
      * Writes resolution, intensity, bandHeight, and seed into the uniform block.

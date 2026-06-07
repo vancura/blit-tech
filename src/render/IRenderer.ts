@@ -1,7 +1,7 @@
 import type { BitmapFont } from '../assets/BitmapFont';
 import type { Palette } from '../assets/Palette';
 import type { SpriteSheet } from '../assets/SpriteSheet';
-import type { OverlayRendererDiagnostics } from '../overlay/types';
+import type { OverlayRendererDiagnostics } from '../overlay';
 import type { Rect2i } from '../utils/Rect2i';
 import type { Vector2i } from '../utils/Vector2i';
 import type { Effect } from './effects/Effect';

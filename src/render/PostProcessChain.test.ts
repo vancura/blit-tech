@@ -39,7 +39,7 @@ interface CallLog {
 function createStubEffect(tier: EffectTier = 'pixel'): Effect & { calls: CallLog } {
     const calls: CallLog = { init: 0, update: 0, encode: 0, dispose: 0 };
 
-    const stub: Effect & { calls: CallLog } = {
+    return {
         calls,
         tier,
         init: () => {
@@ -55,8 +55,6 @@ function createStubEffect(tier: EffectTier = 'pixel'): Effect & { calls: CallLog
             calls.dispose++;
         },
     };
-
-    return stub;
 }
 
 beforeAll(() => {

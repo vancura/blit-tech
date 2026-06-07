@@ -1,5 +1,3 @@
-// noinspection MagicNumberJS
-
 /**
  * Unit tests for {@link AssetLoader}.
  *

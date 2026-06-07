@@ -154,6 +154,15 @@ export class Palette {
     private readonly namedIndices = new Map<string, number>();
 
     /**
+     * True when colors have been mutated since the last GPU upload.
+     *
+     * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
+     * the renderer has uploaded the updated palette uniform buffer. Not set by the
+     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
+     */
+    private _isDirty: boolean = false;
+
+    /**
      * Creates a new palette with the requested indexed size.
      *
      * @param size - Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
@@ -164,15 +173,6 @@ export class Palette {
         this.size = size;
         this.colors = [Color32.transparent, ...Array.from({ length: size - 1 }, () => Color32.black.clone())];
     }
-
-    /**
-     * True when colors have been mutated since the last GPU upload.
-     *
-     * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
-     * the renderer has uploaded the updated palette uniform buffer. Not set by the
-     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
-     */
-    private _isDirty: boolean = false;
 
     /**
      * True when colors have been mutated since the last GPU upload.

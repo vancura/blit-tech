@@ -17,13 +17,15 @@ verification steps for maximum speed.
 ## Steps
 
 1. **Run formatters**
-   - Execute `pnpm run format` which runs:
-     - Biome for TypeScript/JavaScript/JSON/CSS
-     - Prettier for Markdown/YAML
+
+- Execute `pnpm run format` which runs:
+  - Biome for TypeScript/JavaScript/JSON/CSS
+  - Prettier for Markdown/YAML
 
 2. **Brief confirmation**
-   - Report completion
-   - Note any files that couldn't be formatted (usually indicate syntax errors)
+
+- Report completion
+- Note any files that couldn't be formatted (usually indicate syntax errors)
 
 ## When to Use
 

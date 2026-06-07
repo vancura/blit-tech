@@ -1,5 +1,3 @@
-<!--suppress FunctionWithMultipleLoopsJS, MagicNumberJS, BlockStatementJS -->
-
 <!doctype html>
 
 <html lang="en">
@@ -9,7 +7,7 @@
         <style>
             body {
                 margin: 0;
-                background: #000;
+                background: black;
             }
 
             canvas {
@@ -64,7 +62,6 @@
             window.__INIT_FAILED__ = false;
             window.__FIXTURE_MODE__ = mode;
 
-            // Palette indices for this test.
             const colorBlack = 1;
             const colorRed = 2;
             const colorGreen = 3;
@@ -104,50 +101,41 @@
                     BT.paletteSet(palette);
 
                     switch (mode) {
-                        case 'pixel-glitch': {
+                        case 'pixel-glitch':
                             this.applyPixelGlitchEffect();
                             break;
-                        }
 
-                        case 'barrel': {
+                        case 'barrel':
                             this.applyBarrelEffect();
                             break;
-                        }
 
-                        case 'scanlines': {
+                        case 'scanlines':
                             this.applyScanlinesEffect();
                             break;
-                        }
 
-                        case 'mask': {
+                        case 'mask':
                             this.applyMaskEffect();
                             break;
-                        }
 
-                        case 'vignette': {
+                        case 'vignette':
                             this.applyVignetteEffect();
                             break;
-                        }
 
-                        case 'aberration': {
+                        case 'aberration':
                             this.applyAberrationEffect();
                             break;
-                        }
 
-                        case 'bloom': {
+                        case 'bloom':
                             this.applyBloomEffect();
                             break;
-                        }
 
-                        case 'crt-pipboy': {
+                        case 'crt-pipboy':
                             this.applyCRTPipBoyEffect();
                             break;
-                        }
 
-                        case 'stacked': {
+                        case 'stacked':
                             this.applyStackedEffect();
                             break;
-                        }
 
                         // Baseline, upscale-nearest, upscale-linear: no effects.
                         default:

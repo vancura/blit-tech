@@ -577,137 +577,13 @@ export class PaletteInteraction {
             }
         }
 
-        if (!isSwatchPressConsumed) {
-            isTogglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || isTogglePressConsumed;
-        } else {
+        if (isSwatchPressConsumed) {
             this.#scrollDragSlot = null;
+        } else {
+            isTogglePressConsumed = this.#applyScrollDrag(pointer, plan, grid) || isTogglePressConsumed;
         }
 
         isTogglePressConsumed = this.#applyScrollWheel(pointer, plan, grid) || isTogglePressConsumed;
-
-        return isTogglePressConsumed;
-    }
-
-    /**
-     * Applies wheel scrolling when the pointer is over the palette footer region.
-     *
-     * @param pointer - Pointer subsystem.
-     * @param plan - Layout plan for this frame.
-     * @param grid - Palette grid layout.
-     * @returns `true` when wheel delta was consumed.
-     */
-    #applyScrollWheel(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
-        const scrollDelta = pointer.getScrollDelta();
-
-        if (scrollDelta === 0) {
-            return false;
-        }
-
-        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isActive(slot)) {
-                continue;
-            }
-
-            const pos = pointer.getPos(slot);
-
-            if (!isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand)) {
-                continue;
-            }
-
-            const rowStep = Math.max(1, Math.trunc(Math.abs(scrollDelta) / SCROLL_WHEEL_ROW_PX));
-            const nextOffset = this.#scrollRowOffset + (scrollDelta > 0 ? rowStep : -rowStep);
-
-            this.#scrollRowOffset = clampScrollRowOffset(nextOffset, grid);
-            pointer.consumeScrollDelta();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Applies primary-button drag scrolling over the palette grid or scrollbar track.
-     *
-     * @param pointer - Pointer subsystem.
-     * @param plan - Layout plan for this frame.
-     * @param grid - Palette grid layout.
-     * @returns `true` when drag scrolling consumed a toggle-corner press.
-     */
-    #applyScrollDrag(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
-        let isTogglePressConsumed = false;
-
-        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
-            if (!pointer.isButtonDown(POINTER_PRIMARY_BUTTON, slot) || !pointer.isActive(slot)) {
-                if (this.#scrollDragSlot === slot) {
-                    this.#scrollDragSlot = null;
-                }
-
-                continue;
-            }
-
-            const pos = pointer.getPos(slot);
-            const isInScrollRegion = isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand);
-
-            if (!isInScrollRegion && this.#scrollDragSlot !== slot) {
-                continue;
-            }
-
-            if (
-                isPointerInScrollbarTrack(
-                    pos.x,
-                    pos.y,
-                    plan.paletteBand,
-                    grid,
-                    this.#scrollRowOffset,
-                    this.#scrollbarTrackWidth,
-                )
-            ) {
-                isTogglePressConsumed = true;
-            }
-
-            if (this.#scrollDragSlot === slot) {
-                if (
-                    isPointerInScrollbarTrack(
-                        pos.x,
-                        pos.y,
-                        plan.paletteBand,
-                        grid,
-                        this.#scrollRowOffset,
-                        this.#scrollbarTrackWidth,
-                    )
-                ) {
-                    this.#scrollRowOffset = resolveScrollRowOffsetFromTrackPointerY(
-                        pos.y,
-                        plan.paletteBand,
-                        grid,
-                        this.#scrollbarTrackWidth,
-                    );
-                } else {
-                    const deltaY = pos.y - this.#scrollDragStartY;
-                    const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
-
-                    this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
-                }
-
-                continue;
-            }
-
-            if (!isInScrollRegion) {
-                continue;
-            }
-
-            this.#scrollDragSlot = slot;
-            this.#scrollDragStartY = pos.y;
-            this.#scrollDragStartOffset = this.#scrollRowOffset;
-
-            const deltaY = pos.y - this.#scrollDragStartY;
-            const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
-
-            if (rowStep !== 0) {
-                this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
-            }
-        }
 
         return isTogglePressConsumed;
     }
@@ -856,40 +732,6 @@ export class PaletteInteraction {
     }
 
     /**
-     * Lays out the active hover or copy-status tooltip, or returns `null` when none applies.
-     *
-     * @param plan - Layout plan for this frame.
-     * @param grid - Palette grid layout.
-     * @param displayWidth - Logical display width.
-     * @param displayHeight - Logical display height.
-     * @returns Tooltip layout and label, or `null`.
-     */
-    #layoutActiveTooltip(
-        plan: OverlayLayoutPlan,
-        grid: PaletteGridLayout,
-        displayWidth: number,
-        displayHeight: number,
-    ): { layout: PaletteTooltipLayout; label: string } | null {
-        const label = this.#resolveTooltipLabel();
-
-        if (label.length === 0) {
-            return null;
-        }
-
-        const index = this.#copyStatus !== 'idle' ? this.#copyStatusIndex : this.#hoveredIndex;
-
-        if (index === null || index < 0) {
-            return null;
-        }
-
-        writeSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
-
-        const layout = layoutTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
-
-        return { layout, label };
-    }
-
-    /**
      * Draws tooltip body and border during the overlay fill phase.
      *
      * @param target - Overlay draw target.
@@ -945,6 +787,164 @@ export class PaletteInteraction {
         }
 
         drawTooltipLabel(target, font, active.layout, active.label, textIndex);
+    }
+
+    /**
+     * Applies wheel scrolling when the pointer is over the palette footer region.
+     *
+     * @param pointer - Pointer subsystem.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @returns `true` when wheel delta was consumed.
+     */
+    #applyScrollWheel(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
+        const scrollDelta = pointer.getScrollDelta();
+
+        if (scrollDelta === 0) {
+            return false;
+        }
+
+        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
+            if (!pointer.isActive(slot)) {
+                continue;
+            }
+
+            const pos = pointer.getPos(slot);
+
+            if (!isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand)) {
+                continue;
+            }
+
+            const rowStep = Math.max(1, Math.trunc(Math.abs(scrollDelta) / SCROLL_WHEEL_ROW_PX));
+            const nextOffset = this.#scrollRowOffset + (scrollDelta > 0 ? rowStep : -rowStep);
+
+            this.#scrollRowOffset = clampScrollRowOffset(nextOffset, grid);
+            pointer.consumeScrollDelta();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Applies primary-button drag scrolling over the palette grid or scrollbar track.
+     *
+     * @param pointer - Pointer subsystem.
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @returns `true` when drag scrolling consumed a toggle-corner press.
+     */
+    #applyScrollDrag(pointer: PointerInput, plan: OverlayLayoutPlan, grid: PaletteGridLayout): boolean {
+        let isTogglePressConsumed = false;
+
+        for (let slot = 0; slot < POINTER_SLOT_COUNT; slot++) {
+            if (!pointer.isButtonDown(POINTER_PRIMARY_BUTTON, slot) || !pointer.isActive(slot)) {
+                if (this.#scrollDragSlot === slot) {
+                    this.#scrollDragSlot = null;
+                }
+
+                continue;
+            }
+
+            const pos = pointer.getPos(slot);
+            const isInScrollRegion = isPointerInScrollRegion(pos.x, pos.y, plan.paletteBand);
+
+            if (!isInScrollRegion && this.#scrollDragSlot !== slot) {
+                continue;
+            }
+
+            if (
+                isPointerInScrollbarTrack(
+                    pos.x,
+                    pos.y,
+                    plan.paletteBand,
+                    grid,
+                    this.#scrollRowOffset,
+                    this.#scrollbarTrackWidth,
+                )
+            ) {
+                isTogglePressConsumed = true;
+            }
+
+            if (this.#scrollDragSlot === slot) {
+                if (
+                    isPointerInScrollbarTrack(
+                        pos.x,
+                        pos.y,
+                        plan.paletteBand,
+                        grid,
+                        this.#scrollRowOffset,
+                        this.#scrollbarTrackWidth,
+                    )
+                ) {
+                    this.#scrollRowOffset = resolveScrollRowOffsetFromTrackPointerY(
+                        pos.y,
+                        plan.paletteBand,
+                        grid,
+                        this.#scrollbarTrackWidth,
+                    );
+                } else {
+                    const deltaY = pos.y - this.#scrollDragStartY;
+                    const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
+
+                    this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
+                }
+
+                continue;
+            }
+
+            if (!isInScrollRegion) {
+                continue;
+            }
+
+            this.#scrollDragSlot = slot;
+            this.#scrollDragStartY = pos.y;
+            this.#scrollDragStartOffset = this.#scrollRowOffset;
+
+            const deltaY = pos.y - this.#scrollDragStartY;
+            const rowStep = Math.trunc(deltaY / SCROLL_DRAG_ROW_PX);
+
+            if (rowStep !== 0) {
+                this.#scrollRowOffset = clampScrollRowOffset(this.#scrollDragStartOffset - rowStep, grid);
+            }
+        }
+
+        return isTogglePressConsumed;
+    }
+
+    /**
+     * Lays out the active hover or copy-status tooltip, or returns `null` when none applies.
+     *
+     * @param plan - Layout plan for this frame.
+     * @param grid - Palette grid layout.
+     * @param displayWidth - Logical display width.
+     * @param displayHeight - Logical display height.
+     * @returns Tooltip layout and label, or `null`.
+     */
+    #layoutActiveTooltip(
+        plan: OverlayLayoutPlan,
+        grid: PaletteGridLayout,
+        displayWidth: number,
+        displayHeight: number,
+    ): { layout: PaletteTooltipLayout; label: string } | null {
+        const label = this.#resolveTooltipLabel();
+
+        if (label.length === 0) {
+            return null;
+        }
+
+        const index = this.#copyStatus === 'idle' ? this.#hoveredIndex : this.#copyStatusIndex;
+
+        if (index === null || index < 0) {
+            return null;
+        }
+
+        writeSwatchTopLeft(tooltipScratch.swatch, index, plan.paletteBand, grid, this.#scrollRowOffset);
+
+        const layout = layoutTooltip(tooltipScratch, tooltipScratch.swatch, label, displayWidth, displayHeight);
+
+        return { layout, label };
     }
 
     /**

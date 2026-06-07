@@ -1,5 +1,3 @@
-<!--suppress MagicNumberJS -->
-
 <!doctype html>
 
 <html lang="en">
@@ -9,7 +7,7 @@
         <style>
             body {
                 margin: 0;
-                background: #000;
+                background: black;
             }
 
             canvas {
@@ -30,7 +28,6 @@
             window.__RENDER_COMPLETE__ = false;
             window.__INIT_FAILED__ = false;
 
-            // Palette indices for this test.
             const colorBlack = 1;
             const colorRed = 2;
             const colorGreen = 3;
@@ -48,7 +45,6 @@
                 }
 
                 async init() {
-                    // Create and activate a test palette.
                     const palette = new Palette(16);
 
                     palette.set(colorBlack, Color32.black);

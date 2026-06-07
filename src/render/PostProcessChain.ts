@@ -33,6 +33,9 @@ const OFFSCREEN_USAGE = GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXT
  * Effect ordering is the order of {@link add} calls.
  */
 export class PostProcessChain {
+    /** Tier this chain serves. Effects added to it must declare the same tier. */
+    readonly tier: EffectTier;
+
     /** WebGPU device used for resource creation. */
     private readonly device: GPUDevice;
 
@@ -41,9 +44,6 @@ export class PostProcessChain {
 
     /** Resolution of this chain's render targets in pixels. */
     private readonly size: Vector2i;
-
-    /** Tier this chain serves. Effects added to it must declare the same tier. */
-    readonly tier: EffectTier;
 
     /** Effects in execution order. */
     private effects: Effect[] = [];

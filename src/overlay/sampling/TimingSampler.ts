@@ -26,35 +26,6 @@ export class TimingSampler {
     #spriteSubmittedVertices = 0;
 
     /**
-     * Ingests one frame-timing snapshot.
-     *
-     * @param sample - Current-frame timing values from BTAPI.
-     */
-    sample(sample: OverlayTimingSnapshot): void {
-        const frameMs = Math.max(0, sample.frameMs);
-        const updateMs = Math.max(0, sample.updateMs);
-        const renderMs = Math.max(0, sample.renderMs);
-
-        if (!this.#hasSample) {
-            this.#smoothedFrameMs = frameMs;
-            this.#smoothedUpdateMs = updateMs;
-            this.#smoothedRenderMs = renderMs;
-            this.#hasSample = true;
-        } else {
-            this.#smoothedFrameMs += (frameMs - this.#smoothedFrameMs) * FPS_SMOOTHING;
-            this.#smoothedUpdateMs += (updateMs - this.#smoothedUpdateMs) * FPS_SMOOTHING;
-            this.#smoothedRenderMs += (renderMs - this.#smoothedRenderMs) * FPS_SMOOTHING;
-        }
-
-        this.#updateSteps = Math.max(0, Math.floor(sample.updateSteps));
-        this.#drawCalls = Math.max(0, Math.floor(sample.drawCalls));
-        this.#primitiveOverflowCount = Math.max(0, Math.floor(sample.primitiveOverflowCount));
-        this.#spriteOverflowCount = Math.max(0, Math.floor(sample.spriteOverflowCount));
-        this.#primitiveSubmittedVertices = Math.max(0, Math.floor(sample.primitiveSubmittedVertices));
-        this.#spriteSubmittedVertices = Math.max(0, Math.floor(sample.spriteSubmittedVertices));
-    }
-
-    /**
      * Smoothed full-frame CPU time in milliseconds.
      *
      * @returns Smoothed frame time.
@@ -133,6 +104,35 @@ export class TimingSampler {
      */
     get spriteSubmittedVertices(): number {
         return this.#spriteSubmittedVertices;
+    }
+
+    /**
+     * Ingests one frame-timing snapshot.
+     *
+     * @param sample - Current-frame timing values from BTAPI.
+     */
+    sample(sample: OverlayTimingSnapshot): void {
+        const frameMs = Math.max(0, sample.frameMs);
+        const updateMs = Math.max(0, sample.updateMs);
+        const renderMs = Math.max(0, sample.renderMs);
+
+        if (this.#hasSample) {
+            this.#smoothedFrameMs += (frameMs - this.#smoothedFrameMs) * FPS_SMOOTHING;
+            this.#smoothedUpdateMs += (updateMs - this.#smoothedUpdateMs) * FPS_SMOOTHING;
+            this.#smoothedRenderMs += (renderMs - this.#smoothedRenderMs) * FPS_SMOOTHING;
+        } else {
+            this.#smoothedFrameMs = frameMs;
+            this.#smoothedUpdateMs = updateMs;
+            this.#smoothedRenderMs = renderMs;
+            this.#hasSample = true;
+        }
+
+        this.#updateSteps = Math.max(0, Math.floor(sample.updateSteps));
+        this.#drawCalls = Math.max(0, Math.floor(sample.drawCalls));
+        this.#primitiveOverflowCount = Math.max(0, Math.floor(sample.primitiveOverflowCount));
+        this.#spriteOverflowCount = Math.max(0, Math.floor(sample.spriteOverflowCount));
+        this.#primitiveSubmittedVertices = Math.max(0, Math.floor(sample.primitiveSubmittedVertices));
+        this.#spriteSubmittedVertices = Math.max(0, Math.floor(sample.spriteSubmittedVertices));
     }
 
     /**

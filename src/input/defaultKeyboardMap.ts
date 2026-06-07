@@ -1,10 +1,11 @@
+/* eslint-disable security/detect-object-injection */
+
 /**
  * Default keyboard bindings for face buttons (key mapping).
  *
  * Values are `KeyboardEvent.code` strings. Logical button state is the OR of
  * all listed keys for that button.
  */
-/* eslint-disable security/detect-object-injection */
 
 /** Face-button bit flags matching `BT.BTN_UP` … `BT.BTN_SELECT`. */
 export const FACE_BUTTON_FLAGS = [
