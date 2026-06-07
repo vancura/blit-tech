@@ -24,18 +24,6 @@ export class OverlayBars {
     readonly #hintSeparatorRect = new Rect2i(0, 0, 0, OVERLAY_ROW_GAP_PX);
 
     /**
-     * Ensures the custom-row scratch pool has at least `count` entries.
-     *
-     * @param count - Number of demo rows to draw this frame.
-     */
-    #ensureCustomRowPool(count: number): void {
-        while (this.#customLeftPos.length < count) {
-            this.#customLeftPos.push(new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0));
-            this.#customRightPos.push(new Vector2i(0, 0));
-        }
-    }
-
-    /**
      * Draws 1 px row gaps between stacked overlay bands.
      *
      * @param target - Overlay draw target.
@@ -255,5 +243,17 @@ export class OverlayBars {
             }
         }
         /* eslint-enable security/detect-object-injection */
+    }
+
+    /**
+     * Ensures the custom-row scratch pool has at least `count` entries.
+     *
+     * @param count - Number of demo rows to draw this frame.
+     */
+    #ensureCustomRowPool(count: number): void {
+        while (this.#customLeftPos.length < count) {
+            this.#customLeftPos.push(new Vector2i(OVERLAY_EDGE_MARGIN_PX, 0));
+            this.#customRightPos.push(new Vector2i(0, 0));
+        }
     }
 }

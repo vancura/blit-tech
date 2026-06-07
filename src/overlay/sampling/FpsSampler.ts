@@ -20,6 +20,15 @@ export class FpsSampler {
         this.#targetFps = targetFps;
     }
 
+    /**
+     * Rounded smoothed render-frame rate from recent samples.
+     *
+     * @returns Smoothed frames per second.
+     */
+    get measuredFps(): number {
+        return Math.round(this.#smoothedFps ?? this.#targetFps);
+    }
+
     /** Ingests one render-frame timing sample. */
     sample(): void {
         const now = performance.now();
@@ -43,14 +52,5 @@ export class FpsSampler {
 
         const instantFps = 1 / deltaSeconds;
         this.#smoothedFps += (instantFps - this.#smoothedFps) * FPS_SMOOTHING;
-    }
-
-    /**
-     * Rounded smoothed render-frame rate from recent samples.
-     *
-     * @returns Smoothed frames per second.
-     */
-    get measuredFps(): number {
-        return Math.round(this.#smoothedFps ?? this.#targetFps);
     }
 }

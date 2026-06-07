@@ -158,4 +158,3 @@ export function getCanvas(canvasID: string = DEFAULT_CANVAS_ID): HTMLCanvasEleme
 
     return canvas;
 }
-

@@ -57,6 +57,34 @@ export class UpscalePass {
     }
 
     /**
+     * Allocates a texture for the upscale pass output at the supplied size and
+     * format.
+     *
+     * The renderer typically owns this texture and recreates it whenever the
+     * canvas resizes; the pass itself only encodes the draw and is unaware of
+     * lifecycle.
+     *
+     * @param device - WebGPU device used for resource creation.
+     * @param size - Target texture dimensions in pixels.
+     * @param format - Color format (match the swap chain).
+     * @param label - Optional debug label.
+     * @returns Newly created texture with usage flags suitable for upscale output.
+     */
+    static createOutputTexture(
+        device: GPUDevice,
+        size: Vector2i,
+        format: GPUTextureFormat,
+        label = 'UpscalePass Output',
+    ): GPUTexture {
+        return device.createTexture({
+            label,
+            size: { width: size.x, height: size.y, depthOrArrayLayers: 1 },
+            format,
+            usage: OUTPUT_USAGE,
+        });
+    }
+
+    /**
      * Creates the GPU pipeline and the magnification sampler.
      *
      * Idempotent only on a freshly disposed instance: calling `init` twice
@@ -139,34 +167,6 @@ export class UpscalePass {
         this.bindGroupLayout = null;
         this.sampler = null;
         this.device = null;
-    }
-
-    /**
-     * Allocates a texture for the upscale pass output at the supplied size and
-     * format.
-     *
-     * The renderer typically owns this texture and recreates it whenever the
-     * canvas resizes; the pass itself only encodes the draw and is unaware of
-     * lifecycle.
-     *
-     * @param device - WebGPU device used for resource creation.
-     * @param size - Target texture dimensions in pixels.
-     * @param format - Color format (match the swap chain).
-     * @param label - Optional debug label.
-     * @returns Newly created texture with usage flags suitable for upscale output.
-     */
-    static createOutputTexture(
-        device: GPUDevice,
-        size: Vector2i,
-        format: GPUTextureFormat,
-        label = 'UpscalePass Output',
-    ): GPUTexture {
-        return device.createTexture({
-            label,
-            size: { width: size.x, height: size.y, depthOrArrayLayers: 1 },
-            format,
-            usage: OUTPUT_USAGE,
-        });
     }
 
     /**

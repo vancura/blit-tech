@@ -186,22 +186,6 @@ export class Overlay {
     }
 
     /**
-     * Records a timing-chart event tag at the current tick.
-     *
-     * No-op when the timing chart is disabled.
-     *
-     * @param label - Tag text; empty becomes `"Untitled"`.
-     * @param currentTick - Current fixed-update tick (`BT.ticks`).
-     */
-    assignTag(label: string | undefined, currentTick: number): void {
-        if (!this.#timingChart.isEnabled) {
-            return;
-        }
-
-        this.#timingChart.assignTag(label, currentTick);
-    }
-
-    /**
      * Whether the overlay body is currently drawn (runtime toggle).
      *
      * @returns `true` while metrics bars and palette grid are rendered.
@@ -220,6 +204,22 @@ export class Overlay {
      */
     get isTrackingPaletteUsage(): boolean {
         return this.#paletteView.isEnabled && this.#toggle.isBodyVisible;
+    }
+
+    /**
+     * Records a timing-chart event tag at the current tick.
+     *
+     * No-op when the timing chart is disabled.
+     *
+     * @param label - Tag text; empty becomes `"Untitled"`.
+     * @param currentTick - Current fixed-update tick (`BT.ticks`).
+     */
+    assignTag(label: string | undefined, currentTick: number): void {
+        if (!this.#timingChart.isEnabled) {
+            return;
+        }
+
+        this.#timingChart.assignTag(label, currentTick);
     }
 
     /**

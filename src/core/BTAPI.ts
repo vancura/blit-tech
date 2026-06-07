@@ -62,6 +62,9 @@ export class BTAPI {
     /** Patch version number. */
     public static readonly VERSION_PATCH = 0;
 
+    /** Singleton instance of BTAPI. */
+    private static _instance: BTAPI | null = null;
+
     /** Current demo instance implementing IBlitTechDemo. */
     private demo: IBlitTechDemo | null = null;
 
@@ -163,19 +166,16 @@ export class BTAPI {
     /** Keyboard input. Created during {@link init}. */
     private keyboard: KeyboardInput | null = null;
 
-    /** Gamepad input. Created during {@link init}. */
-    private gamepad: GamepadInput | null = null;
-
     // TODO: Additional subsystems for future implementation:
     // AudioManager, AssetManager
+
+    /** Gamepad input. Created during {@link init}. */
+    private gamepad: GamepadInput | null = null;
 
     /**
      * Private constructor to enforce singleton access via `BTAPI.instance`.
      */
     private constructor() {}
-
-    /** Singleton instance of BTAPI. */
-    private static _instance: BTAPI | null = null;
 
     /**
      * Gets the lazily created singleton instance.
@@ -188,6 +188,36 @@ export class BTAPI {
         }
 
         return BTAPI._instance;
+    }
+
+    /**
+     * Reads backend override from the current URL query string.
+     *
+     * @returns Supported backend override, or null when absent/invalid.
+     */
+    private static getBackendQueryOverride(): Backend | null {
+        const search =
+            typeof globalThis.location?.search === 'string'
+                ? globalThis.location.search
+                : typeof window !== 'undefined'
+                  ? window.location?.search
+                  : '';
+
+        if (!search) {
+            return null;
+        }
+
+        try {
+            const backend = new URLSearchParams(search).get('backend');
+
+            if (backend === 'software') {
+                return 'software';
+            }
+        } catch (error) {
+            console.warn('[BT] Failed to parse backend query override:', error);
+        }
+
+        return null;
     }
 
     /**
@@ -358,111 +388,6 @@ export class BTAPI {
         console.log('[BT] Initialization complete');
 
         return true;
-    }
-
-    /**
-     * Reads and validates demo `configure()` output into {@link hwSettings}.
-     *
-     * @param demo - Demo implementing {@link IBlitTechDemo}.
-     * @returns `false` when configure throws or hardware settings are invalid.
-     */
-    private loadHardwareSettings(demo: IBlitTechDemo): boolean {
-        try {
-            this.hwSettings = mergeHardwareSettings(demo.configure?.());
-        } catch (error) {
-            console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
-
-            this.hwSettings = defaultConfig();
-
-            return false;
-        }
-
-        this.applyBackendQueryOverride();
-
-        const renderDimensionError = validateDimensions(this.hwSettings);
-
-        if (renderDimensionError) {
-            console.error(`[BT] ${renderDimensionError}`);
-
-            return false;
-        }
-
-        const { targetFPS } = this.hwSettings;
-
-        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
-            console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates the engine overlay when enabled in hardware settings.
-     */
-    private setupOverlay(): void {
-        this.overlay = null;
-
-        const hw = this.hwSettings;
-
-        if (!hw || hw.isOverlayEnabled === false || !this.systemFont) {
-            return;
-        }
-
-        const lineHeight = this.systemFont.measureTextSize('A').height;
-        const layout = createOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
-        const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
-
-        if (!this.activeBackend) {
-            throw new Error(errorMessages.OVERLAY_NO_BACKEND);
-        }
-
-        this.overlay = new Overlay(
-            layout,
-            resolveOverlayTopLeftLabel(pageTitle),
-            hw.targetFPS,
-            this.activeBackend,
-            hw.overlayStyle,
-            hw.isOverlayPaletteEnabled === true,
-            hw.overlayPaletteColumns,
-            hw.overlayPaletteRowsVisible,
-            hw.isOverlayTimingChartEnabled === true,
-            hw.overlayTimingChartStyle,
-            hw.overlayTimingChartHeight,
-            resolveOverlayTimingChartDiagnostics(hw),
-            hw.isOverlayRendererDiagnosticsBarEnabled === true,
-            hw.isOverlayVisibleAtStart === true,
-            hw.isOverlayToggleHintVisible !== false,
-            hw.isOverlayToggleEnabled !== false,
-        );
-    }
-
-    /**
-     * Attaches pointer, keyboard, and gamepad input to the canvas.
-     *
-     * @param canvas - Render target canvas.
-     */
-    private attachInputSubsystems(canvas: HTMLCanvasElement): void {
-        const hw = this.hwSettings;
-
-        if (!hw) {
-            return;
-        }
-
-        this.pointer?.detach();
-        this.pointer = new PointerInput();
-        this.pointer.attach(canvas, hw.displaySize);
-
-        this.keyboard?.detach();
-        this.keyboard = new KeyboardInput();
-        this.keyboard.attach(canvas, {
-            getTicks: () => this.loop?.getTicks() ?? 0,
-        });
-
-        this.gamepad?.detach();
-        this.gamepad = new GamepadInput();
-        this.gamepad.attach();
     }
 
     /**
@@ -1040,6 +965,111 @@ export class BTAPI {
     }
 
     /**
+     * Reads and validates demo `configure()` output into {@link hwSettings}.
+     *
+     * @param demo - Demo implementing {@link IBlitTechDemo}.
+     * @returns `false` when configure throws or hardware settings are invalid.
+     */
+    private loadHardwareSettings(demo: IBlitTechDemo): boolean {
+        try {
+            this.hwSettings = mergeHardwareSettings(demo.configure?.());
+        } catch (error) {
+            console.error('[BT] demo.configure() threw; falling back to defaultConfig()', error);
+
+            this.hwSettings = defaultConfig();
+
+            return false;
+        }
+
+        this.applyBackendQueryOverride();
+
+        const renderDimensionError = validateDimensions(this.hwSettings);
+
+        if (renderDimensionError) {
+            console.error(`[BT] ${renderDimensionError}`);
+
+            return false;
+        }
+
+        const { targetFPS } = this.hwSettings;
+
+        if (!Number.isFinite(targetFPS) || targetFPS <= 0) {
+            console.error(`[BT] Invalid targetFPS: ${targetFPS}. Must be a finite number > 0.`);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates the engine overlay when enabled in hardware settings.
+     */
+    private setupOverlay(): void {
+        this.overlay = null;
+
+        const hw = this.hwSettings;
+
+        if (!hw || hw.isOverlayEnabled === false || !this.systemFont) {
+            return;
+        }
+
+        const lineHeight = this.systemFont.measureTextSize('A').height;
+        const layout = createOverlayLayout(hw.displaySize.x, hw.displaySize.y, lineHeight);
+        const pageTitle = typeof globalThis.document !== 'undefined' ? globalThis.document.title : undefined;
+
+        if (!this.activeBackend) {
+            throw new Error(errorMessages.OVERLAY_NO_BACKEND);
+        }
+
+        this.overlay = new Overlay(
+            layout,
+            resolveOverlayTopLeftLabel(pageTitle),
+            hw.targetFPS,
+            this.activeBackend,
+            hw.overlayStyle,
+            hw.isOverlayPaletteEnabled === true,
+            hw.overlayPaletteColumns,
+            hw.overlayPaletteRowsVisible,
+            hw.isOverlayTimingChartEnabled === true,
+            hw.overlayTimingChartStyle,
+            hw.overlayTimingChartHeight,
+            resolveOverlayTimingChartDiagnostics(hw),
+            hw.isOverlayRendererDiagnosticsBarEnabled === true,
+            hw.isOverlayVisibleAtStart === true,
+            hw.isOverlayToggleHintVisible !== false,
+            hw.isOverlayToggleEnabled !== false,
+        );
+    }
+
+    /**
+     * Attaches pointer, keyboard, and gamepad input to the canvas.
+     *
+     * @param canvas - Render target canvas.
+     */
+    private attachInputSubsystems(canvas: HTMLCanvasElement): void {
+        const hw = this.hwSettings;
+
+        if (!hw) {
+            return;
+        }
+
+        this.pointer?.detach();
+        this.pointer = new PointerInput();
+        this.pointer.attach(canvas, hw.displaySize);
+
+        this.keyboard?.detach();
+        this.keyboard = new KeyboardInput();
+        this.keyboard.attach(canvas, {
+            getTicks: () => this.loop?.getTicks() ?? 0,
+        });
+
+        this.gamepad?.detach();
+        this.gamepad = new GamepadInput();
+        this.gamepad.attach();
+    }
+
+    /**
      * Constructs and initializes the renderer for the active hardware settings.
      *
      * Logs the selected backend name, constructs the matching {@link IRenderer},
@@ -1152,36 +1182,6 @@ export class BTAPI {
         this.hwSettings.backend = override;
 
         console.info(`[BT] URL override selected backend: ${override}`);
-    }
-
-    /**
-     * Reads backend override from the current URL query string.
-     *
-     * @returns Supported backend override, or null when absent/invalid.
-     */
-    private static getBackendQueryOverride(): Backend | null {
-        const search =
-            typeof globalThis.location?.search === 'string'
-                ? globalThis.location.search
-                : typeof window !== 'undefined'
-                  ? window.location?.search
-                  : '';
-
-        if (!search) {
-            return null;
-        }
-
-        try {
-            const backend = new URLSearchParams(search).get('backend');
-
-            if (backend === 'software') {
-                return 'software';
-            }
-        } catch (error) {
-            console.warn('[BT] Failed to parse backend query override:', error);
-        }
-
-        return null;
     }
 
     /**
