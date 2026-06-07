@@ -1,5 +1,3 @@
-// noinspection DuplicatedCode
-
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './coverage-fixture';

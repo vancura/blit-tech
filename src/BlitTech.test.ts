@@ -1,4 +1,3 @@
-// noinspection DuplicatedCode
 // @vitest-environment happy-dom
 
 /**

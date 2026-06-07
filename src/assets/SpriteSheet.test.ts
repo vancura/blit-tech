@@ -1,5 +1,3 @@
-// noinspection NestedFunctionJS
-
 /**
  * Unit tests for {@link SpriteSheet}.
  *
