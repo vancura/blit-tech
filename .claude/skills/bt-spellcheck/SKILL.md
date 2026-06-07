@@ -17,7 +17,7 @@ Run the project-wide spellcheck, then fix all reported errors.
 
 1. **Run spellcheck**
 
-- Execute `pnpm run spellcheck` to check all `*.{ts,md,mdx}` files
+- Execute `pnpm run spellcheck` to check `src/**/*.{ts,md,mdx}`, `docs/**/*.{ts,md,mdx}`, and `README.md`
 - Capture the full error output
 
 2. **Analyze each error** For every word flagged by cspell, determine if it is:
@@ -53,5 +53,5 @@ Run the project-wide spellcheck, then fix all reported errors.
 
 ## Notes
 
-- Files checked: `*.{ts,md,mdx}`
+- Files checked: `src/**/*.{ts,md,mdx}`, `docs/**/*.{ts,md,mdx}`, `README.md` (see `package.json` `spellcheck` script)
 - Compound words are allowed (`allowCompoundWords: true`)

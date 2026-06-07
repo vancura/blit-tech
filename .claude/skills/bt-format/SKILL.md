@@ -18,8 +18,9 @@ Format all code files using the project's formatters and verify results.
 1. **Run formatters**
 
 - Execute `pnpm run format` which runs:
-  - Biome for TypeScript/JavaScript/JSON/CSS
-  - Prettier for Markdown/YAML
+  - Biome for TypeScript/JavaScript/JSON/JSONC/CSS (`.ts`, `.tsx`, `.js`, `.jsx`, `.cjs`, `.mjs`, `.json`, `.jsonc`,
+    `.css`)
+  - Prettier for Markdown/YAML/Cursor rules (`.md`, `.mdx`, `.mdc`, `.yml`, `.yaml`)
 
 2. **Show what changed**
 
@@ -33,11 +34,11 @@ Format all code files using the project's formatters and verify results.
 
 ## Formatter Configuration
 
-| File Types                             | Tool     | Config               |
-| -------------------------------------- | -------- | -------------------- |
-| `.ts`, `.tsx`, `.js`, `.json`          | Biome    | `biome.json`         |
-| `.css`                                 | Biome    | `biome.json`         |
-| `.md`, `.mdx`, `.mdc`, `.yml`, `.yaml` | Prettier | `prettier.config.js` |
+| File Types                                                      | Tool     | Config               |
+| --------------------------------------------------------------- | -------- | -------------------- |
+| `.ts`, `.tsx`, `.js`, `.jsx`, `.cjs`, `.mjs`, `.json`, `.jsonc` | Biome    | `biome.json`         |
+| `.css`                                                          | Biome    | `biome.json`         |
+| `.md`, `.mdx`, `.mdc`, `.yml`, `.yaml`                          | Prettier | `prettier.config.js` |
 
 ## Formatting Rules
 

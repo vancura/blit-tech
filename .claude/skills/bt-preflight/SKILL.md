@@ -1,6 +1,8 @@
 ---
 name: bt-preflight
-description: Run all quality checks (format, lint, typecheck, spellcheck, knip) before committing.
+description:
+  Run all quality checks (format, lint, typecheck, spellcheck, knip, docs:links, test:unit, test:declarations) before
+  committing.
 ---
 
 # Preflight Checks
@@ -28,8 +30,9 @@ Run comprehensive quality checks before committing or pushing code.
   - `typecheck` - Validate TypeScript types
   - `spellcheck` - Check spelling in code and docs
   - `knip` - Find unused exports and dependencies
-  - `docs:links` - Verify Markdown links (README, docs/, skills)
+  - `docs:links` - Verify Markdown links (all repo-root `*.md` / `*.mdx`)
   - `test:unit` - Run all unit tests
+  - `test:declarations` - Declaration tooling log checker tests
 
 2. **Report results**
 

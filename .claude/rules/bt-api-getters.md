@@ -10,14 +10,14 @@ Quick rules when changing `src/BlitTech.ts` or demos:
 
 ## Getter lists
 
-| Category                                         | Members                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------ |
-| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS`                                |
-| Derived                                          | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field) |
-| Configure-time (backend)                         | `requestedBackend` (mirrors `HardwareSettings.backend`)                        |
-| Loop timing                                      | `deltaSeconds`, `timeSeconds`, `ticks`                                         |
-| Runtime state                                    | `activeBackend`, `camera`, `palette`                                           |
-| Per-frame input                                  | `pointerScrollDelta`, `inputString`, `gamepadCount`                            |
+| Category                                         | Members                                                                         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Configure-time (mirror `HardwareSettings` names) | `displaySize`, `drawingBufferSize`, `targetFPS`                                 |
+| Derived                                          | `outputSize` (`drawingBufferSize ?? displaySize`; no `HardwareSettings` field)  |
+| Configure-time (backend)                         | `requestedBackend` (mirrors `HardwareSettings.backend`; **`null` before init**) |
+| Loop timing                                      | `deltaSeconds`, `timeSeconds`, `ticks`                                          |
+| Runtime state                                    | `activeBackend`, `camera`, `palette` (`activeBackend` **`null` before init**)   |
+| Per-frame input                                  | `pointerScrollDelta`, `inputString`, `gamepadCount`                             |
 
 `Vector2i` getters return a clone per read. `activeBackend` is what actually started after fallback, not
 `configure().backend`. `palette` is a live reference - mutating slots affects rendering on the next frame.
@@ -45,4 +45,4 @@ Not `is*`: `Timer.fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolea
 - Use a derived getter when the value is computed from configure fields (`outputSize`); do not add a matching field
 - Use a runtime-descriptive name when no configure field exists (`activeBackend`, not `renderer`)
 
-Cursor: `.cursor/rules/bt-api-getters.mdc` and `.cursor/rules/internal-scoped-naming.mdc` (always applied in this repo).
+Cursor: `.cursor/rules/bt-api-getters.mdc` (always applied in this repo).

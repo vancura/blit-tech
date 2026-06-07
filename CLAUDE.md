@@ -25,7 +25,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | How does a subsystem work internally?                      | The relevant `src/core/` or `src/render/` file                                                                                                                                                                               |
 | What does a demo implement?                                | `src/core/IBlitTechDemo.ts` (interface + HardwareSettings)                                                                                                                                                                   |
 | How does palette usage tracking work for the overlay grid? | `src/core/RenderPaletteUsage.ts`, `src/overlay/palette/PaletteView.ts`                                                                                                                                                       |
-| How does the overlay work?                                 | `src/overlay/` (orchestrator + `layout/layoutPlan.ts`), `docs/api-core.md` (Overlay), `HardwareSettings.isOverlayEnabled`                                                                                                    |
+| How does the overlay work?                                 | `docs/overlay.md`, `src/overlay/` (orchestrator + `layout/layoutPlan.ts`), `docs/api-core.md` (HardwareSettings overlay flags), `HardwareSettings.isOverlayEnabled`                                                          |
 | What palette/sprite setup pattern is correct?              | `docs/palette-guide.md`, then `docs/api-assets.md`                                                                                                                                                                           |
 | What are the render/asset dimension limits?                | `src/utils/RenderLimits.ts` (constants), `src/utils/AssetLimits.ts` (asset + glyph limits), `docs/api-assets.md` (asset size limits table), `docs/api-core.md` (HardwareSettings dimension constraints)                      |
 | Which preset has which exact color values?                 | `docs/palette-presets.md`                                                                                                                                                                                                    |
@@ -34,7 +34,7 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | Dependency security policy / CI audit gate?                | `docs/security/dependency-policy.md`, `docs/security/audit-exceptions.md`                                                                                                                                                    |
 | What is the benchmark threshold?                           | `ci.yml` benchmark job (`--threshold 25` flag), not docs                                                                                                                                                                     |
 | What error message style should I use?                     | `docs/voice.md`, then `src/utils/errorMessages.ts`                                                                                                                                                                           |
-| Is this API exported publicly?                             | `src/BlitTech.ts` export block (lines 1460-1501)                                                                                                                                                                             |
+| Is this API exported publicly?                             | `src/BlitTech.ts` export block (lines 1563-1610)                                                                                                                                                                             |
 | What test mock do I need for GPU code?                     | `src/__test__/webgpu-mock.ts`                                                                                                                                                                                                |
 | Declaration tooling / TS version alignment?                | `docs/tooling.md`, `docs/developer-experience-guide.md`, `scripts/check-declaration-tooling.mjs`                                                                                                                             |
 | Should this private name repeat the class/file?            | **Internal scoped naming** below; `docs/developer-experience-guide.md` (Naming conventions)                                                                                                                                  |
@@ -45,11 +45,16 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 
 All engine functionality is accessed through the static `BT` namespace. The architecture is palette-first: primitives,
 sprites, and bitmap text resolve color through the active `Palette` before final RGBA output. Demos implement the
-`IBlitTechDemo` interface (`configure?`, `init`, `update`, `render`).
+`IBlitTechDemo` interface (`configure?`, `init`, `update`, `render`, optional `overlayRows?`).
+
+The file tree below is **illustrative, not exhaustive** — it highlights notable subsystems and entry points. Colocated
+`*.test.ts` / `*.bench.ts` files and small module-local `constants.ts` / `types.ts` helpers are omitted for readability.
 
 ```text
 src/
-  BlitTech.ts              # Public API (BT namespace exports)
+  BlitTech.ts              # Public API (BT namespace + export block for classes, helpers, presets)
+  docs/
+    consumer-doc-imports.test.ts # Guards README/docs import paths against BlitTech.ts exports
   core/
     BTAPI.ts               # Internal singleton managing subsystems (lazy-loads WebGPURenderer on WebGPU init)
     IBlitTechDemo.ts       # Demo interface + HardwareSettings
@@ -61,10 +66,13 @@ src/
     OverlayDrawTarget.ts   # Internal draw port (drawBarFill / drawLabel); not on IRenderer or BT
     OverlayToggleIcon.ts   # Bottom-left bitmap toggle hint icon draw + anchor/exclusion helpers
     toggleIconData.ts      # Inline row-major mask data for the toggle hint icon
-    index.ts               # Barrel exports for BTAPI and unit tests
+    constants.ts           # Overlay layout and style constants
+    labels.ts              # Overlay label strings and formatting helpers
+    types.ts               # OverlayRow and related types
+    index.ts               # Overlay subsystem public exports for BTAPI and unit tests
     layout/                # layoutPlan, layoutHelpers, layout types/constants
     bars/                  # OverlayBars (Bars.ts)
-    timing-chart/          # TimingChart, style, constants
+    timing-chart/          # TimingChart, severity, style, tags, constants
     palette/               # PaletteView, PaletteInteraction (swatch hover tooltip, clipboard copy, scroll)
     sampling/              # FpsSampler, TimingSampler
     input/                 # Toggle
@@ -81,16 +89,20 @@ src/
       Effect.ts            # Effect interface + EffectTier
       FullscreenEffect.ts  # Base class for typical fullscreen effects
       FullscreenPixelEffect.ts # Pixel-tier base (logical r8uint chain)
+      fullscreenVS.ts      # Shared fullscreen vertex shader module
       pixel/               # Pixel-tier effects (PixelGlitch, PixelMosaic)
-      display/             # Display-tier effects (BarrelDistortion, Scanlines, ...)
-      presets/             # Pre-configured stacks (crtPipBoy, amber, green)
+      display/             # Display-tier effects (BarrelDistortion, Bloom, ChromaticAberration, Flicker,
+                             # Interference, Noise, RGBMask, RollLine, Scanlines, Vignette)
+      presets/             # Pre-configured stacks (crtPipBoy, amber, green) + index.ts barrel
   assets/
     AssetLoader.ts         # Image loading with caching
     SpriteSheet.ts         # GPU texture wrapper (+ loadIndexed convenience path)
     BitmapFont.ts          # Bitmap font system (.btfont)
+    SystemFont.ts          # Built-in system font factory (createSystemFont; used by BT.systemPrint)
+    fonts/systemFontData.ts # Glyph bitmap data backing SystemFont
     Palette.ts             # 256-entry indexed color palette
     PaletteEffect.ts       # Palette effect system (cycle, fade, flash, swap)
-    palettes/              # Built-in preset palette data (VGA, CGA, C64, etc.) + HUD UI preset (hudData.ts)
+    palettes/              # Built-in preset palette data (presetData.ts, hudData.ts)
   input/
     PointerInput.ts        # DOM-backed pointer / mouse / touch / pen tracker (4 slots)
     KeyboardInput.ts       # KeyboardEvent.code state, edges, tick repeat, beforeinput text
@@ -101,13 +113,14 @@ src/
     BootstrapHelpers.ts    # Canvas lookup and error display utilities
     CameraUtils.ts         # Camera clamp helper (world/view bounds)
     CanvasLayoutStyles.ts  # Canvas layout CSS custom properties helper
-    RenderLimits.ts        # Render dimension validation and max-size constants (8192px / 16M px)
+    RenderLimits.ts        # Render dimension validation (8192 px per axis; 16,777,216 total pixels)
     AssetLimits.ts         # Asset dimension validation, btfont/glyph limits, sprite-blit clipping
     Vector2i.ts            # Integer 2D vector
     Rect2i.ts              # Integer rectangle
     Color32.ts             # 32-bit RGBA color
     Easing.ts              # Easing functions for palette effects
     FrameCapture.ts        # GPU readback + PNG export
+    Timer.ts               # Elapsed-time helper (exported; Timer.fireIfElapsed)
   __test__/
     webgpu-mock.ts         # WebGPU mock factories for tests
     setup.ts               # Vitest global setup (GPU constants)
@@ -171,25 +184,39 @@ and async work. Do not add new zero-argument `BT.foo()` functions when a getter 
 
 ### Use getters (property access, no `()`)
 
-| Category                                                         | Members                                             | Notes                                                                                                       |
-| ---------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `drawingBufferSize`, `targetFPS`     | Clone per read for `Vector2i` getters.                                                                      |
-| **Derived**                                                      | `outputSize`                                        | Effective drawing buffer (`drawingBufferSize ?? displaySize`). No `HardwareSettings` field; clone per read. |
-| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`              | `targetFPS` is configured rate, not measured FPS.                                                           |
-| **Configure-time (backend)**                                     | `requestedBackend`                                  | Mirrors resolved `HardwareSettings.backend` after merge and `?backend=software`; defaults to `'webgpu'`.    |
-| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                | `activeBackend` is what actually started (after fallback). `palette` is a live reference.                   |
-| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount` | Read once per frame when needed.                                                                            |
+| Category                                                         | Members                                             | Notes                                                                                                                       |
+| ---------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Configure-time** (mirror {@link HardwareSettings} field names) | `displaySize`, `drawingBufferSize`, `targetFPS`     | Clone per read for `Vector2i` getters.                                                                                      |
+| **Derived**                                                      | `outputSize`                                        | Effective drawing buffer (`drawingBufferSize ?? displaySize`). No `HardwareSettings` field; clone per read.                 |
+| **Loop timing**                                                  | `deltaSeconds`, `timeSeconds`, `ticks`              | `targetFPS` is configured rate, not measured FPS.                                                                           |
+| **Configure-time (backend)**                                     | `requestedBackend`                                  | Mirrors resolved `HardwareSettings.backend` after merge and `?backend=software`; `null` before init.                        |
+| **Runtime state**                                                | `activeBackend`, `camera`, `palette`                | `activeBackend` is what actually started (after fallback); `null` before init or on failure. `palette` is a live reference. |
+| **Per-frame input**                                              | `pointerScrollDelta`, `inputString`, `gamepadCount` | Read once per frame when needed.                                                                                            |
 
 Examples: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 60`, `if (BT.activeBackend === 'software')`.
 
 ### Use methods (call with `()`)
 
-- **Lifecycle / mutations:** `init`, `ticksReset`, `cameraSet`, `cameraReset`, `paletteSet`, `hideCursor`, all
-  draw/clear/effect APIs.
+- **Lifecycle / mutations:** `init`, `ticksReset`, `cameraSet`, `cameraReset`, `paletteSet`, `paletteCreate`,
+  `showCursor`, `hideCursor`, `spritesRefresh`, `assignTag`, `inputMap`, `inputMapReset`.
+- **Palette effects:** `paletteCycle`, `paletteFade`, `paletteFadeRange`, `paletteFlash`, `paletteSwap`,
+  `paletteClearEffects`.
+- **Post-process:** `effectAdd`, `effectRemove`, `effectClear`; preset namespace `BT.preset` (`crtPipBoy`, `amber`,
+  `green`).
+- **Drawing / clearing:** `clear`, `clearRect`, `drawPixel`, `drawLine`, `drawRect`, `drawRectFill`, `drawSprite`,
+  `systemPrint`, `printFont`.
 - **Parameterized queries:** `pointerPos(index?)`, `pointerDelta`, `isPointerActive`, `isDown`, `isPressed`,
   `isReleased`, `getAxis`, `isGamepadConnected`, `isKeyDown`, `isKeyPressed`, `isKeyReleased`.
 - **Utilities with arguments:** `cameraClamp(camera, worldSize, viewSize?)`, `systemPrintMeasure(text)`.
 - **Async:** `captureFrame`, `downloadFrame`.
+
+**Deprecated aliases still on `BT` (see `docs/deprecations.md`):** `pointerPosValid`, `buttonDown`, `buttonPressed`,
+`buttonReleased`, `gamepadConnected`, `keyDown`, `keyPressed`, `keyReleased`.
+
+**Top-level package exports** (outside the `BT` namespace): `bootstrap`, `defaultConfig`, `mergeHardwareSettings`,
+`applyEasing`, `clampCameraToWorld`, `displayError`, `getCanvas`, `Timer`, effect classes (`BarrelDistortion`, `Bloom`,
+…), preset functions (`crtPipBoy`, `amber`, `green`), core types (`Vector2i`, `Rect2i`, `Color32`, `Palette`, …), and
+`IndexedSpriteLoadResult`.
 
 ### Naming when adding getters
 
@@ -313,7 +340,7 @@ pnpm run format:check       # Check formatting (Biome + Prettier)
 pnpm run typecheck          # TypeScript type checking
 pnpm run spellcheck         # cspell check
 pnpm run knip               # Find unused exports/deps
-pnpm run docs:links         # Check Markdown links (README, docs/, skills)
+pnpm run docs:links         # Check Markdown links (all repo-root *.md / *.mdx)
 pnpm run preflight          # All checks (format + lint + typecheck + spellcheck + knip + docs:links + test:unit + test:declarations)
 ```
 
@@ -360,8 +387,9 @@ Use it when implementing or changing:
 Run `pnpm run test:visual:update` to regenerate baselines after an intentional visual change. Snapshots live in
 `tests/visual/__snapshots__/`.
 
-The suite covers: camera, fonts, mixed (primitives + sprites), post-process (baseline/CRT/CRT+bloom), primitives, and
-sprites.
+The suite covers: camera, fonts, mixed (primitives + sprites), primitives, sprites, and post-process (baseline, CRT,
+CRT+bloom, and individual display/pixel effects such as Vignette, Scanlines, Bloom, PixelGlitch, ChromaticAberration,
+BarrelDistortion, upscale passes, and more).
 
 **WebGPU mocks:** Use `src/__test__/webgpu-mock.ts` for tests needing GPUDevice, GPUTexture, etc. See
 [docs/testing.md](docs/testing.md) for full details.
@@ -370,8 +398,8 @@ sprites.
 
 - **DOM environment directive**: Add `// @vitest-environment happy-dom` at the top of any test file that touches DOM
   APIs. Without it, the test runs in Node and DOM APIs are undefined.
-- **happy-dom Image.onload does not fire for data URIs**: AssetLoader image-loading tests are marked `.todo` for this
-  reason. Do not attempt to unit-test asset loading via data URIs in happy-dom.
+- **AssetLoader image tests**: The suite stubs `Image` with `vi` rather than relying on happy-dom data-URI `onload`
+  behavior (which is unreliable in happy-dom).
 - **Vector2i `-0` vs `0`**: JavaScript can produce `-0` when negating vectors. Use `result.x + 0` to coerce in
   assertions where sign is meaningless.
 
@@ -406,8 +434,9 @@ Claude Code reusable skill:
 - Conventional Commits format: `<type>(<scope>): <description>`
 - All commits require DCO sign-off (`git commit -s`)
 - AI-assisted commits include `Co-Authored-By: Claude <noreply@anthropic.com>` trailer
-- Types: feat, fix, refactor, docs, test, chore, perf, ci
-- Scopes: renderer, camera, assets, api, utils, examples, ci, docs
+- Types: feat, fix, refactor, docs, test, chore, perf, ci, style, build, revert (commitlint-enforced)
+- Scopes: renderer, camera, assets, api, utils, examples, ci, docs (convention only; commitlint does not enforce a scope
+  enum)
 
 ## Working with Claude
 
