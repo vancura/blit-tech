@@ -797,8 +797,6 @@ export class Color32 {
         );
     }
 
-    // #region Named Color Helpers
-
     /**
      * Sets all RGBA channels at once, with validation.
      * Use this to reuse a Color32 instance instead of creating a new one.

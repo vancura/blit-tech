@@ -52,8 +52,6 @@ const LOGICAL_TARGET_FORMAT: GPUTextureFormat = 'r8uint';
  * unchanged while the obsolete logical RGBA path is removed.
  */
 export class WebGpuRenderer implements IRenderer, OverlayDrawTarget {
-    // #region State
-
     /** WebGPU device for GPU operations. */
     private readonly device: GPUDevice;
 
