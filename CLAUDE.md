@@ -41,6 +41,23 @@ Before writing new code, reviewing existing code, or preflighting, check here fi
 | Where do I put a new field/method in a `.ts` file?         | **TypeScript file structure** below; `.cursor/rules/ts-file-structure.mdc`; `docs/developer-experience-guide.md` (File structure and member order)                                                                           |
 | Where are Cursor agent rules and hooks?                    | `.cursor/rules/*.mdc` (always-applied + glob-scoped); `.cursor/hooks.json`; condensed mirrors in `.claude/rules/`; see [Developer Experience](docs/developer-experience-guide.md#cursor)                                     |
 | What agent skills are available for this project?          | `.agents/skills/` (Zed) and `.claude/skills/` (Claude Code) — `bt-preflight`, `bt-review`, `bt-pr`, `bt-format`, `bt-perf`, `bt-test`, `bt-release`, `bt-spellcheck`, `bt-security-run`, `bt-deep-review`, `bt-quick-format` |
+| How do users start a new project with the engine?          | `npm create blit-tech@latest` — the scaffolder lives in the sibling `create-blit-tech` repo; see **Onboarding and the scaffolder** below                                                                                     |
+
+## Onboarding and the scaffolder
+
+The recommended way for users to start a new game on top of this engine is the scaffolder:
+
+```bash
+npm create blit-tech@latest my-game
+```
+
+It lives in the sibling repo `create-blit-tech` (`packages/create-blit-tech`), generates a Vite + JavaScript project,
+installs `blit-tech`, and copies the canonical `AGENTS.md` + `docs/` from `@blit-tech/kit`. The generated `package.json`
+pins a `blit-tech` version range (`BLIT_TECH_RANGE` in `packages/create-blit-tech/src/scaffold.ts`).
+
+When you change the engine's onboarding surface here (the `README.md` Quick Start, `bootstrap()` signature/defaults, or
+the minimal demo shape), check whether the `create-blit-tech` templates, kit docs, and pinned version range need a
+matching update. That repo has its own git history and is not part of this repo's pnpm workspace.
 
 ## Architecture
 

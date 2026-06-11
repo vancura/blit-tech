@@ -2,6 +2,11 @@
 
 Bootstrap, initialization, game loop timing, camera, and core types.
 
+> **Starting a new project?** The quickest path is the scaffolder: `npm create blit-tech@latest my-game` (works with
+> npm, pnpm, yarn, or bun). It generates a ready-to-run Vite project with the engine installed, a starter game, and
+> local docs. See [create-blit-tech](https://github.com/vancura/create-blit-tech). The rest of this page documents the
+> `bootstrap()` API for hand-wired or existing projects.
+
 ---
 
 ## Bootstrap
