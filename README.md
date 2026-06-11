@@ -65,49 +65,35 @@ complex frameworks, just sprites, primitives, and fonts.
 - **Node.js** >=22.18.0 (LTS)
 - An **ESM bundler** (Vite, webpack, esbuild, and similar) to load the published package in the browser
 
-## Installation
+## Quick Start
 
-Install **blit-tech** from npm:
+The fastest way to start is the **scaffolder**. It writes a ready-to-run Vite project, installs the engine, and includes
+a starter game and local docs:
+
+```bash
+npm create blit-tech@latest my-game
+cd my-game
+npm run dev
+```
+
+Works with npm, pnpm, yarn, or bun (it uses whichever you ran it with). See
+[create-blit-tech](https://github.com/vancura/create-blit-tech) for options and what the project contains.
+
+### Add to an existing project
+
+Install **blit-tech** from npm ([npmjs.com/package/blit-tech](https://www.npmjs.com/package/blit-tech)):
 
 ```bash
 pnpm add blit-tech
 ```
 
-Or with npm:
-
-```bash
-npm install blit-tech
-```
-
-Package page: [npmjs.com/package/blit-tech](https://www.npmjs.com/package/blit-tech)
-
-## Examples & Demos
-
-For interactive examples and demos, visit the [Blit-Tech Demos repository](https://github.com/vancura/blit-tech-demos).
-
-## Quick Start
-
 `bootstrap()` expects a canvas inside `#canvas-container` (defaults: canvas id `blit-tech-canvas`, container id
-`canvas-container`). Pair the HTML below with a TypeScript entry module in any ESM bundler setup.
-
-**`index.html`**
+`canvas-container`):
 
 ```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Blit-Tech Demo</title>
-  </head>
-  <body>
-    <div id="canvas-container"><canvas id="blit-tech-canvas"></canvas></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<div id="canvas-container"><canvas id="blit-tech-canvas"></canvas></div>
+<script type="module" src="/src/main.ts"></script>
 ```
-
-**`src/main.ts`**
 
 ```ts
 import { bootstrap, BT, Color32, Palette, Rect2i, type IBlitTechDemo } from 'blit-tech';
@@ -125,9 +111,6 @@ class MyDemo implements IBlitTechDemo {
     // Animate every pixel that uses slots 9..12 (water/lava style cycling).
     BT.paletteCycle(WATER_A, WATER_B, 6);
 
-    // Quick full-screen impact flash via palette manipulation.
-    BT.paletteFlash(Color32.white, 120);
-
     return true;
   }
 
@@ -144,15 +127,11 @@ class MyDemo implements IBlitTechDemo {
 bootstrap(MyDemo);
 ```
 
-**Scaffold and run** (Vite + TypeScript):
+See [API: Core](docs/api-core.md) for full `bootstrap()` options.
 
-```bash
-pnpm create vite my-demo --template vanilla-ts
-cd my-demo
-pnpm add blit-tech
-# Add the HTML and main.ts snippets above, then:
-pnpm run dev
-```
+## Examples & Demos
+
+For interactive examples and demos, visit the [Blit-Tech Demos repository](https://github.com/vancura/blit-tech-demos).
 
 ## Documentation
 
