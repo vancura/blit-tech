@@ -110,7 +110,6 @@ export const OG_CAPTURE_OVERRIDES = {
     // Stars need time to spread across the field.
     starfield: { settle: 6 },
     'audio-basics': { settle: 5 },
-    'filip-test-02': { settle: 5 },
 };
 
 const NUMERIC_OPTIONS = {

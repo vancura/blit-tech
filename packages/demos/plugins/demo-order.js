@@ -48,7 +48,6 @@ export const DEMO_ORDER = [
     'music',
     'audio-buses',
     'synth-toy',
-    'filip-test-02',
     'hypercube',
     'random-basics',
     'seeded-worlds',

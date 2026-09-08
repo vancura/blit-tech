@@ -14,7 +14,7 @@
  * Current-style slugs that vintage keys may target even though no `src/<slug>.js` exists.
  * Keep in sync with retired rows in `VINTAGE_URLS` (and never with a live demo file).
  */
-export const RETIRED_SLUGS = new Set(['error-preview']);
+export const RETIRED_SLUGS = new Set(['error-preview', 'filip-test-02']);
 
 export const VINTAGE_URLS = {
     '00a-barebones': 'hello-world',
@@ -60,5 +60,7 @@ export const VINTAGE_URLS = {
     '037-music': 'music',
     '038-audio-buses': 'audio-buses',
     '041-synth-toy': 'synth-toy',
+    // Retired – src/filip-test-02.js was removed; techniques covered by pointer-basics,
+    // palette-animation, and primitives.
     '042-filip-test-02': 'filip-test-02',
 };

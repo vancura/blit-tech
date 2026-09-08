@@ -62,8 +62,6 @@ to these URLs via `VINTAGE_URLS`.
 - [colors](https://demos.blit386.dev/colors) – Color32 deep dive: named, HSL, alpha, lerp
 - [named-colors](https://demos.blit386.dev/named-colors) – Color32 named registry APIs: resolve, register, update,
   unregister
-- [filip-test-02](https://demos.blit386.dev/filip-test-02) – Pointer-centered rectangle, animated palette colors driven
-  by the cursor, and a pixel-drawn circle
 - [hypercube](https://demos.blit386.dev/hypercube) – Fez-style rotating tesseract wireframe on a 256×256 PICO-8 canvas
 
 ### Text and Visual Art
@@ -167,10 +165,10 @@ to these URLs via `VINTAGE_URLS`.
 ## Shared UI kit
 
 All on-screen demo UI – panels, labels, key-value rows, checkboxes, pips, buttons, sliders, meters, a virtual touch
-D-pad, swipes, and tap zones – comes from a small shared kit in `src/shared/`. It is imported by 41 of the 45 demos.
+D-pad, swipes, and tap zones – comes from a small shared kit in `src/shared/`. It is imported by 42 of the 46 demos.
 Four demos are deliberate exceptions: `flurry` (an immersive screensaver with no demo HUD, only the engine overlay),
-`filip-test-02` (a bare-bones starter kept close to the getting-started example, with no demo UI at all), `hypercube` (a
-full-canvas tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with no demo HUD):
+`hello-world` (a bare-bones starter kept as a minimal reference, with no demo UI at all), `hypercube` (a full-canvas
+tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with no demo HUD):
 
 | File | What it provides |
 | --- | --- |
