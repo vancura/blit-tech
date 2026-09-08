@@ -1,7 +1,6 @@
 import eslint from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
-import perfectionistPlugin from 'eslint-plugin-perfectionist';
 import promisePlugin from 'eslint-plugin-promise';
 import securityPlugin from 'eslint-plugin-security';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
@@ -39,7 +38,6 @@ export default [
         },
         plugins: {
             jsdoc: jsdocPlugin,
-            perfectionist: perfectionistPlugin,
             promise: promisePlugin,
             security: securityPlugin,
         },
@@ -78,7 +76,6 @@ export default [
         },
         plugins: {
             jsdoc: jsdocPlugin,
-            perfectionist: perfectionistPlugin,
             promise: promisePlugin,
             security: securityPlugin,
             'simple-import-sort': simpleImportSort,
