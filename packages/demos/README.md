@@ -165,10 +165,10 @@ to these URLs via `VINTAGE_URLS`.
 ## Shared UI kit
 
 All on-screen demo UI – panels, labels, key-value rows, checkboxes, pips, buttons, sliders, meters, a virtual touch
-D-pad, swipes, and tap zones – comes from a small shared kit in `src/shared/`. It is imported by 41 of the 44 demos.
-Three demos are deliberate exceptions: `flurry` (an immersive screensaver with no demo HUD, only the engine overlay),
-`hypercube` (a full-canvas tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with no demo
-HUD):
+D-pad, swipes, and tap zones – comes from a small shared kit in `src/shared/`. It is imported by 42 of the 46 demos.
+Four demos are deliberate exceptions: `flurry` (an immersive screensaver with no demo HUD, only the engine overlay),
+`hello-world` (a bare-bones starter kept as a minimal reference, with no demo UI at all), `hypercube` (a full-canvas
+tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with no demo HUD):
 
 | File | What it provides |
 | --- | --- |
