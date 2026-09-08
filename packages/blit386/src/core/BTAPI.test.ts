@@ -3191,6 +3191,17 @@ describe('BTAPI', () => {
             return keydownHandler as (event: { code: string }) => void;
         }
 
+        function findKeyupHandler(canvas: HTMLCanvasElement): (event: { code: string }) => void {
+            const keyupCall = (canvas.addEventListener as ReturnType<typeof vi.fn>).mock.calls.find(
+                ([type]) => type === 'keyup',
+            );
+            const keyupHandler = keyupCall?.[1] as ((event: { code: string }) => void) | undefined;
+
+            expect(keyupHandler).toBeDefined();
+
+            return keyupHandler as (event: { code: string }) => void;
+        }
+
         function getLoop(): { tick: (currentTime: number) => void } | null {
             return (BTAPI.instance as unknown as { loop: { tick: (currentTime: number) => void } | null }).loop;
         }
@@ -3200,7 +3211,15 @@ describe('BTAPI', () => {
         }
 
         function installMockClipboard(): { write: ReturnType<typeof vi.fn> } {
-            const mockClipboard = { write: vi.fn().mockResolvedValue(undefined) };
+            // Mirrors the real navigator.clipboard.write(): it does not resolve until every
+            // ClipboardItem's data promise resolves, so a still-pending capture keeps the
+            // write (and therefore isFrameCaptureShortcutInFlight) pending too – matching
+            // real browser behavior instead of resolving eagerly regardless of capture state.
+            const mockClipboard = {
+                write: vi.fn(async (items: readonly MockClipboardItem[]) => {
+                    await Promise.all(items.flatMap((item) => Object.values(item.data)));
+                }),
+            };
 
             Object.defineProperty(globalThis, 'navigator', {
                 value: { ...globalThis.navigator, clipboard: mockClipboard },
@@ -3399,6 +3418,120 @@ describe('BTAPI', () => {
             await Promise.resolve();
 
             expect(captureFrameAtDisplaySizeSpy).toHaveBeenCalledOnce();
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+        });
+
+        it('does not start a clipboard copy while a Shift+F9 capture is already in flight', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+
+            // Both shortcuts route through the renderer's single-slot capture queue
+            // (IRenderer.captureFrameAtDisplaySize), so a bare-F9 copy must not start while
+            // a Shift+F9 capture is still pending – starting one would supersede the other's
+            // request instead of queuing behind it.
+            let resolveCapture: ((blob: Blob) => void) | undefined;
+            const pendingCapture = new Promise<Blob>((resolve) => {
+                resolveCapture = resolve;
+            });
+
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameAtDisplaySizeSpy = vi
+                .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
+                .mockReturnValue(pendingCapture);
+
+            const keydownHandler = findKeydownHandler(canvas);
+            const keyupHandler = findKeyupHandler(canvas);
+            const loop = getLoop();
+
+            keydownHandler({ code: 'ShiftLeft' });
+            keydownHandler({ code: 'F9' });
+            loop?.tick(20);
+            await Promise.resolve();
+
+            // Release Shift and F9, then press bare F9 again while the Shift+F9 capture
+            // above is still pending.
+            keyupHandler({ code: 'ShiftLeft' });
+            keyupHandler({ code: 'F9' });
+            keydownHandler({ code: 'F9' });
+            loop?.tick(40);
+            await Promise.resolve();
+
+            resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameAtDisplaySizeSpy).toHaveBeenCalledOnce();
+            expect(mockClipboard.write).not.toHaveBeenCalled();
+            expect(downloadBlob).toHaveBeenCalledOnce();
+        });
+
+        it('does not start a Shift+F9 capture while a bare-F9 copy is already in flight', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+
+            // Mirror of the previous test: a Shift+F9 save must not start while a bare-F9
+            // copy is still pending on the same renderer capture slot.
+            let resolveCapture: ((blob: Blob) => void) | undefined;
+            const pendingCapture = new Promise<Blob>((resolve) => {
+                resolveCapture = resolve;
+            });
+
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameAtDisplaySizeSpy = vi
+                .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
+                .mockReturnValue(pendingCapture);
+
+            const keydownHandler = findKeydownHandler(canvas);
+            const keyupHandler = findKeyupHandler(canvas);
+            const loop = getLoop();
+
+            keydownHandler({ code: 'F9' });
+            loop?.tick(20);
+            await Promise.resolve();
+
+            // Release F9, then press Shift+F9 while the bare-F9 copy above is still pending.
+            keyupHandler({ code: 'F9' });
+            keydownHandler({ code: 'ShiftLeft' });
+            keydownHandler({ code: 'F9' });
+            loop?.tick(40);
+            await Promise.resolve();
+
+            resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameAtDisplaySizeSpy).toHaveBeenCalledOnce();
+            expect(downloadBlob).not.toHaveBeenCalled();
             expect(mockClipboard.write).toHaveBeenCalledOnce();
         });
 

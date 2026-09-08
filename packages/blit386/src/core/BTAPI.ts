@@ -191,19 +191,17 @@ export class BTAPI {
     private pendingOverlayTogglePress = false;
 
     /**
-     * True while a Shift+F9 dev-mode frame capture is in flight (see
-     * {@link HardwareSettings.isFrameCaptureShortcutEnabled}), so holding or repeatedly
-     * tapping the shortcut cannot queue overlapping captures.
+     * True while a Shift+F9 save or bare-F9 clipboard-copy dev-mode frame capture is in
+     * flight (see {@link HardwareSettings.isFrameCaptureShortcutEnabled}). Shared by both
+     * shortcuts rather than one guard each: both ultimately call
+     * `IRenderer.captureFrameAtDisplaySize()`, which is backed by a single-slot
+     * `FrameCapture` request queue on the renderer – a second call while the first is still
+     * pending rejects the first with "Capture superseded by a new request" instead of
+     * queuing it. Independent guards would let one shortcut silently fail the other's
+     * capture instead of preventing the overlap, so holding or rapidly alternating between
+     * F9 and Shift+F9 must block on this one flag.
      */
-    private isCapturingFrameViaShortcut = false;
-
-    /**
-     * True while a bare-F9 dev-mode frame-to-clipboard copy is in flight (see
-     * {@link HardwareSettings.isFrameCaptureShortcutEnabled}), so holding or repeatedly
-     * tapping the shortcut cannot queue overlapping clipboard writes. Independent of
-     * {@link isCapturingFrameViaShortcut} – the two shortcuts never block each other.
-     */
-    private isCopyingFrameViaShortcut = false;
+    private isFrameCaptureShortcutInFlight = false;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
     private readonly framePaletteUsageMask = new Uint8Array(USAGE_CAPACITY);
@@ -469,8 +467,10 @@ export class BTAPI {
                 // code needed. Unlike the overlay toggle above, this doesn't need to wait
                 // for the render phase – it just kicks off an async capture-and-download.
                 // Shift held selects this download path; bare F9 (no Shift) selects the
-                // clipboard-copy path below instead.
-                if (!this.isCapturingFrameViaShortcut && this.isShiftF9ShortcutPressed(tick)) {
+                // clipboard-copy path below instead. Both share isFrameCaptureShortcutInFlight
+                // (not one guard each) since both ultimately queue on the renderer's single
+                // pending-capture slot – see that field's doc comment.
+                if (!this.isFrameCaptureShortcutInFlight && this.isShiftF9ShortcutPressed(tick)) {
                     void this.captureFrameViaShortcut();
                 }
 
@@ -479,7 +479,7 @@ export class BTAPI {
                 // captureFrameAtDisplaySize() before calling navigator.clipboard.write() – some
                 // browsers treat the triggering keypress's user-activation as stale once an await
                 // has elapsed, and reject the write. See copyFrameViaShortcut() below.
-                if (!this.isCopyingFrameViaShortcut && this.isBareF9ShortcutPressed(tick)) {
+                if (!this.isFrameCaptureShortcutInFlight && this.isBareF9ShortcutPressed(tick)) {
                     this.copyFrameViaShortcut();
                 }
 
@@ -595,13 +595,12 @@ export class BTAPI {
      * wake lock sentinel, and the orientation/reduced-motion change listeners do not leak
      * across engine restarts (relevant in tests where the same DOM persists).
      *
-     * Also clears {@link isCapturingFrameViaShortcut} and {@link isCopyingFrameViaShortcut}. A
-     * Shift+F9 capture or bare-F9 copy in flight when `stop()` runs is waiting on a render pass
-     * that will now never happen, so its `captureFrameViaShortcut()`/`copyFrameViaShortcut()`
-     * promise chain never settles and its cleanup step never clears the guard; without this,
-     * every F9/Shift+F9 press after the next `init()` would silently no-op forever. The stale
-     * promise itself is left to be garbage-collected – it has no other observers, so there is
-     * nothing further to cancel.
+     * Also clears {@link isFrameCaptureShortcutInFlight}. A Shift+F9 capture or bare-F9 copy in
+     * flight when `stop()` runs is waiting on a render pass that will now never happen, so its
+     * `captureFrameViaShortcut()`/`copyFrameViaShortcut()` promise chain never settles and its
+     * cleanup step never clears the guard; without this, every F9/Shift+F9 press after the next
+     * `init()` would silently no-op forever. The stale promise itself is left to be
+     * garbage-collected – it has no other observers, so there is nothing further to cancel.
      */
     public stop(): void {
         this.loop?.stop();
@@ -616,8 +615,7 @@ export class BTAPI {
         this.reducedMotion?.detach();
         this.reducedMotion = null;
 
-        this.isCapturingFrameViaShortcut = false;
-        this.isCopyingFrameViaShortcut = false;
+        this.isFrameCaptureShortcutInFlight = false;
     }
 
     /**
@@ -1748,7 +1746,7 @@ export class BTAPI {
      * so a failed capture never crashes the game loop.
      */
     private async captureFrameViaShortcut(): Promise<void> {
-        this.isCapturingFrameViaShortcut = true;
+        this.isFrameCaptureShortcutInFlight = true;
 
         try {
             if (!this.renderer) {
@@ -1763,7 +1761,7 @@ export class BTAPI {
         } catch (error) {
             console.error('[BT] Frame capture (Shift+F9) failed:', error);
         } finally {
-            this.isCapturingFrameViaShortcut = false;
+            this.isFrameCaptureShortcutInFlight = false;
         }
     }
 
@@ -1803,7 +1801,7 @@ export class BTAPI {
             return;
         }
 
-        this.isCopyingFrameViaShortcut = true;
+        this.isFrameCaptureShortcutInFlight = true;
 
         // The clipboard.write() call inside writeBlobToClipboard() has already started
         // synchronously by this point; awaiting its result is handled separately so this
@@ -1812,9 +1810,10 @@ export class BTAPI {
     }
 
     /**
-     * Awaits an in-flight bare-F9 clipboard write and clears {@link isCopyingFrameViaShortcut}
-     * once it settles. Split out of {@link copyFrameViaShortcut} so that method's own body can
-     * stay synchronous up to the `navigator.clipboard.write()` call – see its doc comment.
+     * Awaits an in-flight bare-F9 clipboard write and clears
+     * {@link isFrameCaptureShortcutInFlight} once it settles. Split out of
+     * {@link copyFrameViaShortcut} so that method's own body can stay synchronous up to the
+     * `navigator.clipboard.write()` call – see its doc comment.
      *
      * @param writePromise – Promise returned by `writeBlobToClipboard`, already in flight.
      */
@@ -1825,7 +1824,7 @@ export class BTAPI {
         } catch (error) {
             console.error('[BT] Frame copy (F9) failed:', error);
         } finally {
-            this.isCopyingFrameViaShortcut = false;
+            this.isFrameCaptureShortcutInFlight = false;
         }
     }
 
