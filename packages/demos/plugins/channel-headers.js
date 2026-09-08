@@ -8,6 +8,28 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const rootDir = resolve(__dirname, '..');
 
 /**
+ * Build the `robots.txt` body for either channel. Pure and exported so it can be
+ * unit-tested without touching disk.
+ * @param {boolean} isNextChannel – True on the `next.demos.blit386.dev` preview channel.
+ * @param {string} siteUrl – Production origin, used to point crawlers at the sitemap.
+ * @returns {string} A complete `robots.txt` document.
+ */
+export function buildRobotsTxt(isNextChannel, siteUrl) {
+    return isNextChannel
+        ? 'User-agent: *\nDisallow: /\n'
+        : `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`;
+}
+
+/**
+ * Build the `X-Robots-Tag: noindex` block appended to `dist/_headers` on the next channel.
+ * Pure and exported so it can be unit-tested without touching disk.
+ * @returns {string}
+ */
+export function buildNoindexHeadersBlock() {
+    return '\n# BT-406: next.demos.blit386.dev preview channel — never index.\n/*\n  X-Robots-Tag: noindex\n';
+}
+
+/**
  * On the `next.demos.blit386.dev` preview channel (`BLIT386_CHANNEL=next`, set only in the
  * `deploy-demos-next` CI job – see `.github/workflows/deploy.yml`), appends an
  * `X-Robots-Tag: noindex` block to `dist/_headers` and writes a disallow-all `dist/robots.txt`.
@@ -26,18 +48,15 @@ export function channelHeadersPlugin() {
         apply: 'build',
         closeBundle() {
             const distDir = resolve(rootDir, 'dist');
+            const isNextChannel = process.env.BLIT386_CHANNEL === 'next';
 
-            if (process.env.BLIT386_CHANNEL !== 'next') {
-                writeFileSync(
-                    join(distDir, 'robots.txt'),
-                    `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
-                );
+            if (!isNextChannel) {
+                writeFileSync(join(distDir, 'robots.txt'), buildRobotsTxt(false, SITE_URL));
                 return;
             }
 
             const headersPath = join(distDir, '_headers');
-            const noindexBlock =
-                '\n# BT-406: next.demos.blit386.dev preview channel — never index.\n/*\n  X-Robots-Tag: noindex\n';
+            const noindexBlock = buildNoindexHeadersBlock();
 
             if (existsSync(headersPath)) {
                 appendFileSync(headersPath, noindexBlock);
@@ -45,7 +64,7 @@ export function channelHeadersPlugin() {
                 writeFileSync(headersPath, noindexBlock.trimStart());
             }
 
-            writeFileSync(join(distDir, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+            writeFileSync(join(distDir, 'robots.txt'), buildRobotsTxt(true, SITE_URL));
         },
     };
 }
