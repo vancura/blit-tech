@@ -1,5 +1,6 @@
 /**
- * Shift+F9 dev-mode frame-capture shortcut: gating and the default timestamped filename.
+ * F9 / Shift+F9 dev-mode frame-capture shortcuts: shared gating, plus the default timestamped
+ * filename used by the Shift+F9 save-to-file path.
  *
  * Split into a pure resolver ({@link resolveFrameCaptureShortcutEnabled}) and a thin
  * reader ({@link isFrameCaptureShortcutEnabled}), mirroring `globalExpose.ts`'s
@@ -19,10 +20,11 @@ export interface FrameCaptureShortcutSignals {
 }
 
 /**
- * Resolves whether the Shift+F9 frame-capture shortcut is active, from already-gathered signals.
+ * Resolves whether the F9 / Shift+F9 frame-capture shortcuts are active, from already-gathered
+ * signals. Both shortcuts share this one gate; only the key combo and capture destination differ.
  *
  * @param signals – See {@link FrameCaptureShortcutSignals}.
- * @returns `true` when Shift+F9 should capture and download the current frame.
+ * @returns `true` when F9 should copy, and Shift+F9 should download, the current frame.
  */
 export function resolveFrameCaptureShortcutEnabled(signals: FrameCaptureShortcutSignals): boolean {
     if (signals.configureFlag !== undefined) {
@@ -33,10 +35,10 @@ export function resolveFrameCaptureShortcutEnabled(signals: FrameCaptureShortcut
 }
 
 /**
- * Gathers the frame-capture shortcut's gating signal and resolves it.
+ * Gathers the frame-capture shortcuts' gating signal and resolves it.
  *
  * @param configureFlag – Explicit `HardwareSettings.isFrameCaptureShortcutEnabled`, if the demo set one.
- * @returns `true` when Shift+F9 should capture and download the current frame.
+ * @returns `true` when F9 should copy, and Shift+F9 should download, the current frame.
  */
 export function isFrameCaptureShortcutEnabled(configureFlag?: boolean): boolean {
     return resolveFrameCaptureShortcutEnabled({ configureFlag, devMode: isDevMode() });

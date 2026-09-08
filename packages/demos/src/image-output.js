@@ -9,16 +9,15 @@
 //
 // Dev-mode extras, built into the engine itself (every demo gets these for free,
 // not just this one): while BT.isDevMode is true (running from `pnpm run dev`, not
-// a production build), pressing Shift+F9 saves a timestamped frame too, without
-// needing to click a button first – see HardwareSettings.isFrameCaptureShortcutEnabled.
-// Shift, not bare F9: a future shortcut reuses bare F9 for a copy-to-clipboard
-// action instead of a file download.
-// Note for demos other than this one: Shift+F9 saves at the logical BT.displaySize,
-// not BT.outputSize, so it stays pixel-for-pixel even when a demo sets a larger
-// drawingBufferSize for display-tier post-process effects (CRT, vignette, and the
-// like) – those effects are not included in the Shift+F9 file. This demo has no
-// drawingBufferSize, so its own Shift+F9 output is unaffected and still matches
-// the Save PNG button above.
+// a production build), pressing F9 copies the current frame to the OS clipboard, and
+// Shift+F9 saves it as a timestamped file – neither needs a button click first. See
+// HardwareSettings.isFrameCaptureShortcutEnabled.
+// Note for demos other than this one: both shortcuts save at the logical
+// BT.displaySize, not BT.outputSize, so they stay pixel-for-pixel even when a demo
+// sets a larger drawingBufferSize for display-tier post-process effects (CRT,
+// vignette, and the like) – those effects are not included in either shortcut's
+// output. This demo has no drawingBufferSize, so its own shortcut output is
+// unaffected and still matches the Save PNG button above.
 // The engine also exposes the whole BT namespace as window.BT in dev mode
 // (BootstrapOptions.exposeGlobal, on by default), so you can run
 // window.BT.downloadFrame('my-file.png') straight from the browser console at any time.
@@ -274,13 +273,13 @@ class Demo {
             ui.label(this.lastCaptureMessage, { color: this.lastCaptureColor });
         } else {
             // Nothing happening – a quiet hint in dim gray. In dev mode (running from
-            // `pnpm run dev`, not a production build) we also mention the Shift+F9
-            // shortcut – an engine default (every demo gets it, see
+            // `pnpm run dev`, not a production build) we also mention the F9/Shift+F9
+            // shortcuts – engine defaults (every demo gets them, see
             // HardwareSettings.isFrameCaptureShortcutEnabled), not something this demo
-            // wires up itself. It has no visible button of its own to advertise it, so
-            // this is the most relevant place to mention it.
+            // wires up itself. It has no visible button of its own to advertise them, so
+            // this is the most relevant place to mention them.
             const hint = BT.isDevMode
-                ? 'Saves the current frame (dev: Shift+F9 also works)'
+                ? 'Saves the current frame (dev: F9 copies, Shift+F9 saves)'
                 : 'Saves the current frame';
             ui.label(hint, { color: 'dim' });
         }

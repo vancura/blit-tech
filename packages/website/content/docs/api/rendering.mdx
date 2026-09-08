@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Rendering"
 description: "Primitives, sprites, text, post-process effects, and frame capture."
-lastModified: "2026-09-08T08:14:40+02:00"
+lastModified: "2026-09-08T12:26:07+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/api-rendering.md"
 ---
 
@@ -293,9 +293,9 @@ await BT.downloadFrame('screenshot-001.png'); // custom filename
 </Callout>
 
 Both `BT.captureFrame()` and `BT.downloadFrame()` capture at `BT.outputSize` (`drawingBufferSize ?? displaySize`). The
-Shift+F9 dev-mode capture shortcut is a separate, internal path that instead captures at logical `BT.displaySize`,
-without display-tier post-process effects – see the resolution model in [Core](/docs/api/core#resolution-model) for
-details.
+F9 / Shift+F9 dev-mode capture shortcuts are a separate, internal path that instead captures at logical
+`BT.displaySize`, without display-tier post-process effects – see the resolution model in
+[Core](/docs/api/core#resolution-model) for details.
 
 ## API history
 

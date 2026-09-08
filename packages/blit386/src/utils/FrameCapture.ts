@@ -111,6 +111,24 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
+ * Writes an in-flight PNG capture to the OS clipboard, for `BT`'s bare-F9 dev-mode
+ * frame-copy shortcut. Takes the still-pending `Promise<Blob>` rather than an
+ * already-resolved `Blob` – passing an unresolved promise into `ClipboardItem` is the
+ * Safari-safe pattern for a deferred clipboard write, and it also keeps the call to
+ * `navigator.clipboard.write()` itself synchronous relative to the caller, which some
+ * browsers require to treat the write as still tied to the triggering user gesture.
+ *
+ * @param capturePromise – In-flight PNG capture (not yet resolved).
+ * @param mimeType – MIME type key for the `ClipboardItem` payload; defaults to `image/png`.
+ * @returns Resolves once the clipboard write completes; rejects on denial or API failure.
+ */
+export function writeBlobToClipboard(capturePromise: Promise<Blob>, mimeType = 'image/png'): Promise<void> {
+    const item = new ClipboardItem({ [mimeType]: capturePromise });
+
+    return navigator.clipboard.write([item]);
+}
+
+/**
  * Manages single-frame capture from the WebGPU rendering pipeline.
  *
  * A capture request is queued via {@link request}, executed during the

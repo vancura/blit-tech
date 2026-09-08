@@ -40,7 +40,7 @@ import {
     paletteIndexOutOfRangeError,
     spriteNotIndexizedError,
 } from '../utils/errorMessages';
-import { downloadBlob } from '../utils/FrameCapture';
+import { downloadBlob, writeBlobToClipboard } from '../utils/FrameCapture';
 import { defaultFrameCaptureFilename, isFrameCaptureShortcutEnabled } from '../utils/FrameCaptureShortcut';
 import { Random } from '../utils/Random';
 import type { Rect2i } from '../utils/Rect2i';
@@ -65,12 +65,16 @@ import { initWebGPU } from './WebGPUContext';
 type Writable<T> = { -readonly [K in keyof T]: T[K] };
 
 /**
- * `KeyboardEvent.code` for the Shift+F9 dev-mode frame-capture shortcut; see
+ * `KeyboardEvent.code` for the dev-mode frame-capture shortcuts: bare F9 copies the frame to
+ * the OS clipboard, Shift+F9 downloads it as a PNG file; see
  * {@link HardwareSettings.isFrameCaptureShortcutEnabled}. Combined with {@link SHIFT_KEY_CODES}.
  */
 const FRAME_CAPTURE_SHORTCUT_KEY_CODE = 'F9';
 
-/** `KeyboardEvent.code` values for either Shift key, held alongside F9 to trigger the frame-capture shortcut. */
+/**
+ * `KeyboardEvent.code` values for either Shift key. Held alongside F9 selects the save-to-file
+ * shortcut below; F9 alone (neither held) selects the copy-to-clipboard shortcut instead.
+ */
 const SHIFT_KEY_CODES = ['ShiftLeft', 'ShiftRight'] as const;
 
 /**
@@ -187,11 +191,29 @@ export class BTAPI {
     private pendingOverlayTogglePress = false;
 
     /**
-     * True while a Shift+F9 dev-mode frame capture is in flight (see
-     * {@link HardwareSettings.isFrameCaptureShortcutEnabled}), so holding or repeatedly
-     * tapping the shortcut cannot queue overlapping captures.
+     * True while a Shift+F9 save or bare-F9 clipboard-copy dev-mode frame capture is in
+     * flight (see {@link HardwareSettings.isFrameCaptureShortcutEnabled}). Shared by both
+     * shortcuts rather than one guard each: both ultimately call
+     * `IRenderer.captureFrameAtDisplaySize()`, which is backed by a single-slot
+     * `FrameCapture` request queue on the renderer – a second call while the first is still
+     * pending rejects the first with "Capture superseded by a new request" instead of
+     * queuing it. Independent guards would let one shortcut silently fail the other's
+     * capture instead of preventing the overlap, so holding or rapidly alternating between
+     * F9 and Shift+F9 must block on this one flag.
      */
-    private isCapturingFrameViaShortcut = false;
+    private isFrameCaptureShortcutInFlight = false;
+
+    /**
+     * Incremented by {@link stop}; both shortcut methods capture the current value before
+     * starting and only clear {@link isFrameCaptureShortcutInFlight} in their completion
+     * handler if it still matches. `FrameCapture.resolve()` captures its pending
+     * resolve/reject callbacks into locals before its own `await`s, so a capture already
+     * mid-readback when `stop()` runs keeps running independently of the game loop and can
+     * still settle after a subsequent `init()` has created a new renderer and started its
+     * own capture; without this check that stale completion would clear the new capture's
+     * guard early.
+     */
+    private frameCaptureShortcutGeneration = 0;
 
     /** Bitmask of palette indices referenced by demo draw calls this frame. */
     private readonly framePaletteUsageMask = new Uint8Array(USAGE_CAPACITY);
@@ -456,14 +478,10 @@ export class BTAPI {
                 // Dev-mode default: Shift+F9 saves a screenshot in every demo, no demo
                 // code needed. Unlike the overlay toggle above, this doesn't need to wait
                 // for the render phase – it just kicks off an async capture-and-download.
-                // Shift, not bare F9: a future shortcut reuses bare F9 for a
-                // copy-to-clipboard action instead of a file download.
-                if (
-                    !this.isCapturingFrameViaShortcut &&
-                    isFrameCaptureShortcutEnabled(hwSettings.isFrameCaptureShortcutEnabled) &&
-                    SHIFT_KEY_CODES.some((code) => this.keyboard?.isKeyDown(code)) &&
-                    this.keyboard?.isKeyPressed(FRAME_CAPTURE_SHORTCUT_KEY_CODE, undefined, tick)
-                ) {
+                // Bare F9 (no Shift) instead copies to the OS clipboard, but that path is
+                // NOT handled here – see handleClipboardShortcutKeydown's doc comment for
+                // why it runs from a dedicated keydown listener instead of this tick.
+                if (!this.isFrameCaptureShortcutInFlight && this.isShiftF9ShortcutPressed(tick)) {
                     void this.captureFrameViaShortcut();
                 }
 
@@ -579,12 +597,15 @@ export class BTAPI {
      * wake lock sentinel, and the orientation/reduced-motion change listeners do not leak
      * across engine restarts (relevant in tests where the same DOM persists).
      *
-     * Also clears {@link isCapturingFrameViaShortcut}. A Shift+F9 capture in flight when
-     * `stop()` runs is waiting on a render pass that will now never happen, so its
-     * `captureFrameViaShortcut()` promise never settles and its `finally` block never
-     * clears the guard; without this, every Shift+F9 press after the next `init()` would
-     * silently no-op forever. The stale promise itself is left to be garbage-collected –
-     * it has no other observers, so there is nothing further to cancel.
+     * Also clears {@link isFrameCaptureShortcutInFlight} and bumps
+     * {@link frameCaptureShortcutGeneration}. A Shift+F9 capture or bare-F9 copy in flight
+     * when `stop()` runs usually never settles (its render pass will now never happen), so
+     * without the clear, every F9/Shift+F9 press after the next `init()` would silently
+     * no-op forever. The generation bump additionally covers the rarer case where that
+     * capture *was* already mid-GPU-readback (past `FrameCapture.executeInEncoder`) when
+     * `stop()` ran – `FrameCapture.resolve()` keeps running independently of the game loop
+     * once started, and can settle after a subsequent `init()` starts a new capture on a new
+     * renderer; the bump stops that stale completion from clearing the new capture's guard.
      */
     public stop(): void {
         this.loop?.stop();
@@ -599,7 +620,8 @@ export class BTAPI {
         this.reducedMotion?.detach();
         this.reducedMotion = null;
 
-        this.isCapturingFrameViaShortcut = false;
+        this.isFrameCaptureShortcutInFlight = false;
+        this.frameCaptureShortcutGeneration++;
     }
 
     /**
@@ -1690,6 +1712,52 @@ export class BTAPI {
     }
 
     /**
+     * Whether Shift+F9 was pressed this tick, per {@link HardwareSettings.isFrameCaptureShortcutEnabled}
+     * gating and both Shift key codes. Extracted from the fixed-update tick closure to keep
+     * its cyclomatic complexity within lint limits.
+     *
+     * @param tick – Current fixed-update tick, for the keyboard's edge-detection window.
+     * @returns `true` when Shift+F9 was pressed this tick and the shortcut is enabled.
+     */
+    private isShiftF9ShortcutPressed(tick: number): boolean {
+        return (
+            isFrameCaptureShortcutEnabled(this.hwSettings?.isFrameCaptureShortcutEnabled) &&
+            SHIFT_KEY_CODES.some((code) => this.keyboard?.isKeyDown(code)) &&
+            this.keyboard?.isKeyPressed(FRAME_CAPTURE_SHORTCUT_KEY_CODE, undefined, tick) === true
+        );
+    }
+
+    /**
+     * Bound `keydown` listener for the bare-F9 clipboard-copy shortcut, attached directly to
+     * the canvas by {@link attachInputSubsystems} alongside {@link KeyboardInput} rather than
+     * polled from the fixed-update tick. `navigator.clipboard.write()` needs to run inside
+     * the browser's synchronous `keydown` dispatch to reliably count as tied to the
+     * triggering user gesture in Firefox and Safari, which can reject the call once a task
+     * boundary – not just a microtask/await boundary – has passed since the keypress; a
+     * `GameLoop` tick is always scheduled via `requestAnimationFrame`, a later task than the
+     * `keydown` event that triggers it. Reads `event.shiftKey` and `event.repeat` directly
+     * instead of {@link KeyboardInput}'s tracked state, so this needs no coordination with
+     * that tracker. Shift+F9 (the file-download path, see {@link isShiftF9ShortcutPressed})
+     * stays on the tick-based check – its `downloadBlob` call has no equivalent
+     * user-activation staleness constraint, so there is nothing to gain by moving it too.
+     *
+     * @param event – Native `keydown` event dispatched to the canvas.
+     */
+    private readonly handleClipboardShortcutKeydown = (event: KeyboardEvent): void => {
+        if (
+            event.code !== FRAME_CAPTURE_SHORTCUT_KEY_CODE ||
+            event.shiftKey ||
+            event.repeat ||
+            this.isFrameCaptureShortcutInFlight ||
+            !isFrameCaptureShortcutEnabled(this.hwSettings?.isFrameCaptureShortcutEnabled)
+        ) {
+            return;
+        }
+
+        this.copyFrameViaShortcut();
+    };
+
+    /**
      * Captures the current frame and downloads it under a timestamped filename, for the
      * Shift+F9 dev-mode shortcut. Captures at logical `BT.displaySize`, not `BT.outputSize`
      * (unlike the public {@link captureFrame}/`downloadFrame`), so the saved file stays
@@ -1699,7 +1767,9 @@ export class BTAPI {
      * so a failed capture never crashes the game loop.
      */
     private async captureFrameViaShortcut(): Promise<void> {
-        this.isCapturingFrameViaShortcut = true;
+        const generation = this.frameCaptureShortcutGeneration;
+
+        this.isFrameCaptureShortcutInFlight = true;
 
         try {
             if (!this.renderer) {
@@ -1714,7 +1784,83 @@ export class BTAPI {
         } catch (error) {
             console.error('[BT] Frame capture (Shift+F9) failed:', error);
         } finally {
-            this.isCapturingFrameViaShortcut = false;
+            // Only clear the guard if stop() hasn't bumped the generation since this
+            // capture started – see frameCaptureShortcutGeneration's doc comment.
+            if (generation === this.frameCaptureShortcutGeneration) {
+                this.isFrameCaptureShortcutInFlight = false;
+            }
+        }
+    }
+
+    /**
+     * Copies the current frame to the OS clipboard as a PNG, for the bare-F9 dev-mode
+     * shortcut. Called synchronously from {@link handleClipboardShortcutKeydown}'s DOM
+     * keydown handler, not polled from the update tick – see that field's doc comment for
+     * why. Errors are logged, not thrown, so a failed copy never crashes the caller.
+     *
+     * Deliberately not `async`/`await`: this method's own body must stay synchronous up to
+     * the `navigator.clipboard.write()` call inside {@link writeBlobToClipboard}, so the
+     * call happens within the same synchronous call stack as the triggering `keydown`
+     * event – some browsers invalidate sticky user activation once a task boundary (not
+     * just a microtask/await) has passed, and reject `clipboard.write()` as not
+     * user-initiated if it runs after one. Passing the still-pending
+     * `captureFrameAtDisplaySize()` promise straight into `writeBlobToClipboard` (rather
+     * than awaiting it here first) is what keeps the write call itself synchronous; the
+     * capture completing is unavoidably async (it waits on the next render pass's GPU
+     * readback), so this is the most that can be done to keep the write attempt tied to the
+     * gesture. Captures at logical `BT.displaySize`, matching the Shift+F9 save shortcut,
+     * not `BT.outputSize`.
+     */
+    private copyFrameViaShortcut(): void {
+        if (!this.renderer) {
+            console.error('[BT] Frame copy (F9) failed: renderer not initialized');
+
+            return;
+        }
+
+        const clipboard = globalThis.navigator?.clipboard;
+
+        if (!clipboard?.write || typeof ClipboardItem === 'undefined') {
+            // Expected in a same-origin iframe missing an explicit allow="clipboard-write"
+            // attribute, and in insecure (non-HTTPS/non-localhost) contexts – surfaced clearly
+            // so it reads as "your embed/host is missing a permissions grant", not an engine bug.
+            console.error(
+                '[BT] Frame copy (F9) failed: Clipboard API unavailable (missing HTTPS/localhost, or a hosting iframe is missing allow="clipboard-write")',
+            );
+
+            return;
+        }
+
+        const generation = this.frameCaptureShortcutGeneration;
+
+        this.isFrameCaptureShortcutInFlight = true;
+
+        // The clipboard.write() call inside writeBlobToClipboard() has already started
+        // synchronously by this point; awaiting its result is handled separately so this
+        // method itself never becomes `async` (see the class doc above).
+        void this.settleFrameCopy(writeBlobToClipboard(this.renderer.captureFrameAtDisplaySize()), generation);
+    }
+
+    /**
+     * Awaits an in-flight bare-F9 clipboard write and clears
+     * {@link isFrameCaptureShortcutInFlight} once it settles. Split out of
+     * {@link copyFrameViaShortcut} so that method's own body can stay synchronous up to the
+     * `navigator.clipboard.write()` call – see its doc comment.
+     *
+     * @param writePromise – Promise returned by `writeBlobToClipboard`, already in flight.
+     * @param generation – {@link frameCaptureShortcutGeneration} at the moment this copy
+     *   started; the guard clears only if it still matches once `writePromise` settles.
+     */
+    private async settleFrameCopy(writePromise: Promise<void>, generation: number): Promise<void> {
+        try {
+            await writePromise;
+            console.log('[BT] Frame copied to clipboard');
+        } catch (error) {
+            console.error('[BT] Frame copy (F9) failed:', error);
+        } finally {
+            if (generation === this.frameCaptureShortcutGeneration) {
+                this.isFrameCaptureShortcutInFlight = false;
+            }
         }
     }
 
@@ -1839,6 +1985,12 @@ export class BTAPI {
             getTicks: () => this.loop?.getTicks() ?? 0,
         });
         this.keyboard.setIsCapturingScroll(hw.isCapturingKeyboardScroll === true);
+
+        // Own listener, separate from KeyboardInput – see handleClipboardShortcutKeydown's
+        // doc comment. Remove-before-add guards against a duplicate registration if this
+        // method ever runs twice against the same canvas.
+        canvas.removeEventListener('keydown', this.handleClipboardShortcutKeydown);
+        canvas.addEventListener('keydown', this.handleClipboardShortcutKeydown);
 
         this.gamepad?.detach();
         this.gamepad = new GamepadInput();
@@ -1999,7 +2151,9 @@ export class BTAPI {
      *
      * Pointer/keyboard detach DOM listeners; gamepad detaches polling state; audio
      * detaches unlock listeners and closes the audio context. All subsystem
-     * references are cleared so listeners/contexts do not leak across restarts.
+     * references are cleared so listeners/contexts do not leak across restarts. Also
+     * removes {@link handleClipboardShortcutKeydown}, the bare-F9 listener attached
+     * directly to the canvas outside `KeyboardInput`.
      */
     private clearInputSubsystems(): void {
         this.pointer?.detach();
@@ -2007,6 +2161,8 @@ export class BTAPI {
 
         this.keyboard?.detach();
         this.keyboard = null;
+
+        this.canvas?.removeEventListener('keydown', this.handleClipboardShortcutKeydown);
 
         this.gamepad?.detach();
         this.gamepad = null;
