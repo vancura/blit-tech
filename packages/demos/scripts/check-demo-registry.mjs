@@ -246,25 +246,22 @@ function findHeaderTagFailures(registry) {
 }
 
 /**
- * Report (but never fail on) demos with no OpenGraph card: `buildSocialMeta` falls back to
- * og-default.png, so a missing card degrades gracefully – while capturing one needs a built
- * site, a preview server, a browser, and ffmpeg. Blocking every preflight on that would make
- * adding a demo far more expensive than the graceful fallback justifies.
+ * Validate that every demo has a committed OpenGraph card. `buildSocialMeta` would fall back to
+ * og-default.png for any slug missing here, so this is not needed for the page to render – it is
+ * needed so a new demo does not silently ship without a real card. Capturing one needs a built
+ * site, a preview server, a browser, and ffmpeg, so this stays manual (`pnpm run capture:og`, see
+ * README) rather than something preflight runs itself.
  * @param {Array<{ slug: string }>} registry
- * @returns {void}
+ * @returns {string[]} Failure messages, empty when every demo has a card.
  */
-function warnAboutMissingOgCards(registry) {
-    const missingCards = registry
+function findMissingOgCardFailures(registry) {
+    return registry
         .map((entry) => entry.slug)
-        .filter((slug) => !existsSync(join(ROOT, 'public', OG_IMAGE_DIR, `og-${slug}.png`)));
-
-    if (missingCards.length > 0) {
-        console.warn(
-            `Note: ${missingCards.length} demo(s) have no OpenGraph card and will use the shared ` +
-                `fallback: ${missingCards.join(', ')}\n` +
-                'Capture them with `pnpm run capture:og -- <slug>` (see README).\n',
+        .filter((slug) => !existsSync(join(ROOT, 'public', OG_IMAGE_DIR, `og-${slug}.png`)))
+        .map(
+            (slug) =>
+                `public/${OG_IMAGE_DIR}/og-${slug}.png is missing – capture it with \`pnpm run capture:og -- ${slug}\``,
         );
-    }
 }
 
 /**
@@ -300,9 +297,8 @@ function main() {
             .filter((slug) => !diskSlugSet.has(slug))
             .map((slug) => `NAV_HIDDEN_SLUGS lists "${slug}" but src/${slug}.js is missing (stale entry)`),
         ...findHeaderTagFailures(registry),
+        ...findMissingOgCardFailures(registry),
     ];
-
-    warnAboutMissingOgCards(registry);
 
     if (errors.length > 0) {
         console.error('Demo registry check failed:\n');
