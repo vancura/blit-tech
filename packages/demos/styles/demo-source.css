@@ -37,7 +37,7 @@
      * lower than the single-compound `.shiki` selector (with its #demo-source ID
      * contribution) below, so they must sort ahead of it.
      */
-    & .shiki span {
+    & .shiki .line > span {
         color: var(--shiki-dark, inherit);
     }
 

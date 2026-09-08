@@ -470,6 +470,7 @@ html[data-embed='true'] {
 
     & #canvas-container {
         --canvas-view-h: calc(100dvh - var(--banner-height));
+
         height: var(--canvas-view-h);
         padding-top: 0;
         align-items: center;
