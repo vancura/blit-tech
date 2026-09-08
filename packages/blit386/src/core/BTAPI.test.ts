@@ -1395,6 +1395,34 @@ describe('BTAPI', () => {
             expect(height).toBe(480);
         });
 
+        it('captureFrameAtDisplaySize decodes to displaySize, not outputSize (drawingBufferSize), on the WebGPU path', async () => {
+            installRealPNGOffscreenCanvasMock();
+
+            // Same mock demo as the outputSize test above (displaySize 320x240,
+            // drawingBufferSize 640x480), but captureFrameAtDisplaySize backs the Shift+F9
+            // dev-mode shortcut (BT-490): it must decode to the smaller logical displaySize,
+            // the opposite of the public captureFrame()/outputSize contract BT-488 confirmed.
+            await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const renderer = BTAPI.instance.getRenderer();
+
+            expect(renderer).not.toBeNull();
+
+            const capturePromise = (renderer as NonNullable<typeof renderer>).captureFrameAtDisplaySize();
+
+            renderer?.beginFrame();
+            renderer?.endFrame();
+
+            const blob = await capturePromise;
+            const { width, height } = await decodedPngSize(blob);
+
+            expect(width).toBe(BT.displaySize.x);
+            expect(height).toBe(BT.displaySize.y);
+            expect(width).toBe(320);
+            expect(height).toBe(240);
+        });
+
         it('captureFrame works in software mode after a rendered frame', async () => {
             vi.stubGlobal('location', { search: '?backend=software' });
             vi.stubGlobal(
@@ -1447,6 +1475,95 @@ describe('BTAPI', () => {
             expect(height).toBe(BT.outputSize.y);
             expect(width).toBe(640);
             expect(height).toBe(480);
+        });
+
+        it('captureFrameAtDisplaySize decodes to displaySize, not outputSize (drawingBufferSize), in software mode', async () => {
+            vi.stubGlobal('location', { search: '?backend=software' });
+
+            // Unlike makeOffscreenCanvas2dContext()'s stub above, this mock also implements
+            // convertToBlob() so SoftwareRenderer's displaySize capture path (which exports
+            // from the pre-upscale `logicalCanvas`, not the output `canvas`) can be decoded
+            // and verified, mirroring installRealPNGOffscreenCanvasMock()'s WebGPU-path mock.
+            class MockOffscreenCanvasWithBlob {
+                private putData: { data: Uint8ClampedArray; width: number; height: number } | null = null;
+
+                constructor(
+                    public width: number,
+                    public height: number,
+                ) {}
+
+                getContext(contextType?: string): OffscreenCanvas2DMock | null {
+                    if (contextType !== '2d') {
+                        return null;
+                    }
+
+                    return {
+                        imageSmoothingEnabled: false,
+                        createImageData: (w: number, h: number) =>
+                            ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }) as ImageData,
+                        putImageData: vi.fn((imageData: ImageData) => {
+                            this.putData = {
+                                data: imageData.data as Uint8ClampedArray,
+                                width: imageData.width,
+                                height: imageData.height,
+                            };
+                        }),
+                    };
+                }
+
+                async convertToBlob(): Promise<Blob> {
+                    if (!this.putData) {
+                        throw new Error('putImageData was not called before convertToBlob');
+                    }
+
+                    const png = new PNG({ width: this.putData.width, height: this.putData.height });
+
+                    png.data = Buffer.from(this.putData.data);
+
+                    return new Blob([new Uint8Array(PNG.sync.write(png))], { type: 'image/png' });
+                }
+            }
+
+            vi.stubGlobal('OffscreenCanvas', MockOffscreenCanvasWithBlob);
+            uninstallMockNavigatorGPU();
+
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    drawingBufferSize: new Vector2i(640, 480),
+                    targetFPS: 60,
+                    backend: 'software',
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const canvas = makeMock2DCanvas();
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const renderer = BTAPI.instance.getRenderer();
+
+            expect(renderer).not.toBeNull();
+
+            const capturePromise = (renderer as NonNullable<typeof renderer>).captureFrameAtDisplaySize();
+
+            renderer?.beginFrame();
+            renderer?.endFrame();
+
+            const blob = await capturePromise;
+
+            expect(blob.type).toBe('image/png');
+
+            const { width, height } = await decodedPngSize(blob);
+
+            expect(width).toBe(BT.displaySize.x);
+            expect(height).toBe(BT.displaySize.y);
+            expect(width).toBe(320);
+            expect(height).toBe(240);
         });
 
         it('auto-falls back to software when WebGPU is unavailable and 2D canvas is available', async () => {
@@ -2866,8 +2983,9 @@ describe('BTAPI', () => {
             BTAPI.instance.setPalette(new Palette(16));
 
             const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+            const renderer = BTAPI.instance.getRenderer();
 
-            vi.spyOn(BTAPI.instance, 'captureFrame').mockResolvedValue(mockBlob);
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
 
             const keydownHandler = findKeydownHandler(canvas);
 
@@ -2876,7 +2994,8 @@ describe('BTAPI', () => {
             getLoop()?.tick(20);
 
             // The capture-and-download runs fire-and-forget from the update tick;
-            // flush pending microtasks so the awaited captureFrame/downloadBlob chain settles.
+            // flush pending microtasks so the awaited captureFrameAtDisplaySize/downloadBlob
+            // chain settles.
             await Promise.resolve();
             await Promise.resolve();
 
@@ -2903,7 +3022,8 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(demo, canvas);
             BTAPI.instance.setPalette(new Palette(16));
 
-            const captureFrameSpy = vi.spyOn(BTAPI.instance, 'captureFrame');
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
 
             findKeydownHandler(canvas)({ code: 'F9' });
             getLoop()?.tick(20);
@@ -2932,7 +3052,8 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(demo, canvas);
             BTAPI.instance.setPalette(new Palette(16));
 
-            const captureFrameSpy = vi.spyOn(BTAPI.instance, 'captureFrame');
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
             const keydownHandler = findKeydownHandler(canvas);
 
             keydownHandler({ code: 'ShiftLeft' });
@@ -2968,7 +3089,10 @@ describe('BTAPI', () => {
                 resolveCapture = resolve;
             });
 
-            vi.spyOn(BTAPI.instance, 'captureFrame').mockReturnValue(pendingCapture);
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameAtDisplaySizeSpy = vi
+                .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
+                .mockReturnValue(pendingCapture);
 
             const keydownHandler = findKeydownHandler(canvas);
             const loop = getLoop();
@@ -2986,7 +3110,7 @@ describe('BTAPI', () => {
             await Promise.resolve();
             await Promise.resolve();
 
-            expect(BTAPI.instance.captureFrame).toHaveBeenCalledOnce();
+            expect(captureFrameAtDisplaySizeSpy).toHaveBeenCalledOnce();
             expect(downloadBlob).toHaveBeenCalledOnce();
         });
 
@@ -3013,7 +3137,11 @@ describe('BTAPI', () => {
             // interrupting an in-flight Shift+F9 capture.
             const neverSettles = new Promise<Blob>(() => {});
 
-            vi.spyOn(BTAPI.instance, 'captureFrame').mockReturnValue(neverSettles);
+            const firstRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(firstRenderer as NonNullable<typeof firstRenderer>, 'captureFrameAtDisplaySize').mockReturnValue(
+                neverSettles,
+            );
 
             const firstKeydownHandler = findKeydownHandler(firstCanvas);
 
@@ -3033,7 +3161,13 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(demo, secondCanvas);
             BTAPI.instance.setPalette(new Palette(16));
             vi.mocked(downloadBlob).mockClear();
-            vi.spyOn(BTAPI.instance, 'captureFrame').mockResolvedValue(mockBlob);
+
+            const secondRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(
+                secondRenderer as NonNullable<typeof secondRenderer>,
+                'captureFrameAtDisplaySize',
+            ).mockResolvedValue(mockBlob);
 
             findKeydownHandler(secondCanvas)({ code: 'ShiftLeft' });
             findKeydownHandler(secondCanvas)({ code: 'F9' });

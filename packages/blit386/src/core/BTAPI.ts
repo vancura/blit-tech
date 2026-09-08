@@ -1691,14 +1691,22 @@ export class BTAPI {
 
     /**
      * Captures the current frame and downloads it under a timestamped filename, for the
-     * Shift+F9 dev-mode shortcut. Fire-and-forget from the update tick: errors are logged,
-     * not thrown, so a failed capture never crashes the game loop.
+     * Shift+F9 dev-mode shortcut. Captures at logical `BT.displaySize`, not `BT.outputSize`
+     * (unlike the public {@link captureFrame}/`downloadFrame`), so the saved file stays
+     * pixel-for-pixel with the logical canvas even when `drawingBufferSize` is set for
+     * display-tier post-process effects; the shortcut's capture excludes those effects for
+     * the same reason. Fire-and-forget from the update tick: errors are logged, not thrown,
+     * so a failed capture never crashes the game loop.
      */
     private async captureFrameViaShortcut(): Promise<void> {
         this.isCapturingFrameViaShortcut = true;
 
         try {
-            const blob = await this.captureFrame();
+            if (!this.renderer) {
+                throw new Error("Can't capture frame: renderer not initialized");
+            }
+
+            const blob = await this.renderer.captureFrameAtDisplaySize();
             const filename = defaultFrameCaptureFilename();
 
             downloadBlob(blob, filename);

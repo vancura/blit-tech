@@ -297,6 +297,11 @@ await BT.downloadFrame('screenshot-001.png'); // custom filename
 
 </Callout>
 
+Both `BT.captureFrame()` and `BT.downloadFrame()` capture at `BT.outputSize` (`drawingBufferSize ?? displaySize`). The
+Shift+F9 dev-mode capture shortcut is a separate, internal path that instead captures at logical `BT.displaySize`,
+without display-tier post-process effects – see the resolution model in [Core](api-core.md#resolution-model) for
+details.
+
 ## API history
 
 <ApiAvailability page="api/rendering" />
