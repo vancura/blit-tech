@@ -3,16 +3,7 @@
   "root": false,
   "extends": ["../../biome.json"],
   "files": {
-    "includes": [
-      "**/*.ts",
-      "**/*.js",
-      "**/*.mjs",
-      "**/*.cjs",
-      "**/*.json",
-      "**/*.jsonc",
-      "**/*.css",
-      "!styles/twoslash-rich.css"
-    ]
+    "includes": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.json", "**/*.jsonc", "**/*.css", "!styles/twoslash-rich.css"]
   },
   "css": {
     "parser": {
@@ -32,9 +23,6 @@
     "rules": {
       "style": {
         "noParameterAssign": "warn"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn"
       }
     }
   }

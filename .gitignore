@@ -48,6 +48,14 @@ benchmark-comparison.md
 mcp.json
 !/.mcp.json
 
+# Other AI assistants (local only)
+.codex/
+.aider*
+.continue/
+.windsurf/
+ai-rules/
+.rules
+
 # IDE and editor files
 .vscode/
 .idea/
