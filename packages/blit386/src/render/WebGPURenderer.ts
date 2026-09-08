@@ -77,8 +77,16 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      */
     private readonly cameraOffset: Vector2i = new Vector2i(0, 0);
 
-    /** Frame capture manager for PNG export. */
+    /** Frame capture manager for PNG export at `outputSize` (public `captureFrame()`). */
     private readonly frameCapture = new FrameCapture();
+
+    /**
+     * Frame capture manager for the Shift+F9 dev-mode shortcut, which captures at
+     * logical `displaySize` rather than `outputSize`. Kept separate from
+     * {@link frameCapture} so the two capture paths never contend for the same
+     * pending-request slot.
+     */
+    private readonly shortcutFrameCapture = new FrameCapture();
 
     /** Active palette for color lookups and GPU upload. */
     private palette: Palette | null = null;
@@ -182,6 +190,16 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /** Stable view of the scene framebuffer. */
     private sceneTexView: GPUTextureView | null = null;
 
+    /**
+     * Display-size (logical) RGBA capture target for the Shift+F9 shortcut; allocated
+     * lazily. Resolved directly from the `r8uint` scene texture, bypassing the drawing-
+     * buffer upscale and any display-tier post-process effects.
+     */
+    private displayCaptureTex: GPUTexture | null = null;
+
+    /** Stable view of {@link displayCaptureTex}. */
+    private displayCaptureTexView: GPUTextureView | null = null;
+
     /** Cached swap-chain format used by lazy texture creation. */
     private swapFormat: GPUTextureFormat | null = null;
 
@@ -246,6 +264,9 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
             this.sceneTex?.destroy();
             this.sceneTex = null;
             this.sceneTexView = null;
+            this.displayCaptureTex?.destroy();
+            this.displayCaptureTex = null;
+            this.displayCaptureTexView = null;
             this.lastFrameMs = 0;
 
             // Create shared palette uniform buffer (MAX_PALETTE_SIZE entries x vec4f).
@@ -584,6 +605,20 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      */
     captureFrame(): Promise<Blob> {
         return this.frameCapture.request();
+    }
+
+    /**
+     * Captures the next rendered frame at logical `displaySize`, resolved directly
+     * from the palette-indexed scene texture and bypassing the drawing-buffer upscale
+     * and any display-tier post-process effects. Backs the Shift+F9 dev-mode capture
+     * shortcut; unlike {@link captureFrame}, this does not match `outputSize` when
+     * `drawingBufferSize` is set. The capture happens on the next `endFrame()` call.
+     * If a capture is already pending, the previous one is rejected.
+     *
+     * @returns Promise resolving to a PNG Blob of the rendered frame at `displaySize`.
+     */
+    captureFrameAtDisplaySize(): Promise<Blob> {
+        return this.shortcutFrameCapture.request();
     }
 
     /**
@@ -1009,10 +1044,26 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
             this.frameCapture.executeInEncoder(this.device, swapTexture, encoder);
         }
 
+        const isCapturingDisplaySize = this.resolvePass !== null && this.shortcutFrameCapture.hasPending();
+
+        if (isCapturingDisplaySize && this.resolvePass) {
+            const destView = this.requireDisplayCaptureTexView();
+
+            this.resolvePass.encode(encoder, this.requireSceneTexView(), destView, this.displaySize);
+
+            if (this.displayCaptureTex) {
+                this.shortcutFrameCapture.executeInEncoder(this.device, this.displayCaptureTex, encoder);
+            }
+        }
+
         this.device.queue.submit([encoder.finish()]);
 
         if (isCapturing) {
             void this.frameCapture.resolve(this.device);
+        }
+
+        if (isCapturingDisplaySize) {
+            void this.shortcutFrameCapture.resolve(this.device);
         }
 
         // Defensive reset so the pipeline state is clean even if beginFrame() is not
@@ -1070,6 +1121,31 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
         }
 
         return this.sceneTexView;
+    }
+
+    /**
+     * Lazily allocates the display-size (logical) RGBA capture target used by
+     * {@link captureFrameAtDisplaySize} and returns its view.
+     *
+     * @returns Stable view of the display-size capture target.
+     */
+    private requireDisplayCaptureTexView(): GPUTextureView {
+        if (!this.displayCaptureTexView) {
+            if (!this.swapFormat) {
+                throw new Error('WebGPURenderer.requireDisplayCaptureTexView: swap format not initialized.');
+            }
+
+            this.displayCaptureTex = this.device.createTexture({
+                label: 'Renderer Display-Size Capture Target',
+                size: { width: this.displaySize.x, height: this.displaySize.y, depthOrArrayLayers: 1 },
+                format: this.swapFormat,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+            });
+
+            this.displayCaptureTexView = this.displayCaptureTex.createView();
+        }
+
+        return this.displayCaptureTexView;
     }
 
     /**

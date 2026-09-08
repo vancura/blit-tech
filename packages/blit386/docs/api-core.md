@@ -204,6 +204,17 @@ See [Post-Process Effects](guide-post-process-effects.md) for tier routing and p
 
 </Callout>
 
+<Callout title="Shift+F9 dev-mode capture: displaySize, not outputSize">
+
+`BT.captureFrame()` and `BT.downloadFrame()` always match `BT.outputSize`, as described above. The Shift+F9 dev-mode
+capture shortcut (`HardwareSettings.isFrameCaptureShortcutEnabled`) is a separate, internal capture path that instead
+saves at logical `BT.displaySize`, resolved directly from the palette-indexed scene buffer. That keeps every logical
+pixel a single file pixel for pixel-alignment and palette debugging, but it also means the saved file excludes
+display-tier post-process effects (scanlines, vignette, bloom, and similar) even when `drawingBufferSize` is set – those
+effects only exist in the post-upscale buffer the shortcut bypasses.
+
+</Callout>
+
 ### Hardware settings
 
 <Since symbol="HardwareSettings" />
@@ -233,7 +244,7 @@ Resolved after `configure()`; the hook may return a partial object.
 | `isSplashEnabled` | `boolean` | _unset_ | Play the BLIT386 splash before the game starts. Unset means shown in release builds, hidden in development. See [the splash guide](guide-splash.md) |
 | `splashColorDark` | `Color32` | `Color32.black` | Dark endpoint of the splash's 16-step gray ramp |
 | `splashColorLight` | `Color32` | `Color32.white` | Light endpoint of the splash's 16-step gray ramp |
-| `isFrameCaptureShortcutEnabled` | `boolean` | _unset_ | Pressing Shift+F9 captures the current frame and downloads it as a timestamped PNG. Unset means enabled in development builds, disabled in release. Set `true` to keep it in a production build, or `false` to free up Shift+F9 |
+| `isFrameCaptureShortcutEnabled` | `boolean` | _unset_ | Pressing Shift+F9 captures the current frame and downloads it as a timestamped PNG, at logical `BT.displaySize` rather than `BT.outputSize` (unlike `BT.captureFrame()`/`downloadFrame()`) and without display-tier post-process effects – see the callout above. Unset means enabled in development builds, disabled in release. Set `true` to keep it in a production build, or `false` to free up Shift+F9 |
 | `isOverlayEnabled` | `boolean` | `true` | Engine overlay HUD after each `render()` |
 | `isOverlayVisibleAtStart` | `boolean` | `false` | Show overlay body (metrics/palette/custom rows) on first frame |
 | `isOverlayToggleHintVisible` | `boolean` | `true` | Draw toggle hint icon while overlay body is hidden |

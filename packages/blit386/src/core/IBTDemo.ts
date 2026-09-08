@@ -255,6 +255,9 @@ export interface HardwareSettings {
      * `true` to keep the shortcut in a production build, or `false` to free up Shift+F9
      * (for example if the game binds it to something else).
      *
+     * Captures at logical `BT.displaySize`, not `BT.outputSize`, unlike `BT.captureFrame()` /
+     * `BT.downloadFrame()` – see the resolution model in `docs/api-core.md` for why.
+     *
      * @since 1.7.0
      */
     isFrameCaptureShortcutEnabled?: boolean;

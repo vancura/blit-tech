@@ -151,6 +151,17 @@ export interface IRenderer {
     captureFrame(): Promise<Blob>;
 
     /**
+     * Captures the next rendered frame at logical `BT.displaySize`, bypassing any
+     * drawing-buffer upscale and display-tier post-process effects. Backs the
+     * Shift+F9 dev-mode capture shortcut; unlike {@link captureFrame}, this does not
+     * match `BT.outputSize` when `drawingBufferSize` is set. A second call while a
+     * capture is pending rejects the prior pending promise.
+     *
+     * @returns Promise resolving to a PNG Blob after the next {@link IRenderer.endFrame}.
+     */
+    captureFrameAtDisplaySize(): Promise<Blob>;
+
+    /**
      * Sets the camera offset for scrolling.
      *
      * @param offset – Camera position in pixels.

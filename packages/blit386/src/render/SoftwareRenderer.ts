@@ -113,6 +113,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     private frameWordView: Uint32Array | null = null;
     private imageData: ImageData | null = null;
     private pending: Pending | null = null;
+    private pendingDisplaySize: Pending | null = null;
     private primitiveSubmittedVertices = 0;
     private spriteSubmittedVertices = 0;
 
@@ -240,6 +241,18 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
+     * Narrows {@link logicalCanvas} to `OffscreenCanvas`, guarding the `typeof` check first so
+     * the `instanceof` test never throws in a browser where the global does not exist (see
+     * {@link createLogicalCanvas}'s own fallback).
+     *
+     * @param canvas – Candidate logical canvas.
+     * @returns True when `canvas` is an `OffscreenCanvas`.
+     */
+    private static isOffscreenCanvas(canvas: OffscreenCanvas | HTMLCanvasElement): canvas is OffscreenCanvas {
+        return typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas;
+    }
+
+    /**
      * Initializes the 2D canvas contexts and backing image buffer.
      *
      * @returns `true` when contexts are ready; otherwise `false`.
@@ -324,7 +337,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
     /**
      * Replays all queued draw commands into the pixel buffer and presents the frame.
-     * Also resolves any pending `captureFrame` promise.
+     * Also resolves any pending `captureFrame` / `captureFrameAtDisplaySize` promise.
      */
     endFrame(): void {
         if (!this.imageData) {
@@ -335,6 +348,13 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
                     new Error("Can't save this frame - the renderer hasn't finished initializing yet."),
                 );
                 this.pending = null;
+            }
+
+            if (this.pendingDisplaySize) {
+                this.pendingDisplaySize.reject(
+                    new Error("Can't save this frame - the renderer hasn't finished initializing yet."),
+                );
+                this.pendingDisplaySize = null;
             }
 
             return;
@@ -350,6 +370,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
         this.presentFrame();
         this.resolvePending();
+        this.resolvePendingDisplaySize();
         this.commands.length = 0;
     }
 
@@ -583,6 +604,28 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
         return new Promise<Blob>((resolve, reject) => {
             this.pending = { resolve, reject };
+        });
+    }
+
+    /**
+     * Returns a promise that resolves with a PNG Blob of the logical (pre-upscale)
+     * frame on the next `endFrame` call, bypassing the output canvas upscale.
+     * Backs the Shift+F9 dev-mode capture shortcut. Any previously pending
+     * `captureFrameAtDisplaySize` capture is rejected before the new one is registered.
+     *
+     * @returns Promise that resolves with the captured logical frame as a PNG `Blob`.
+     */
+    captureFrameAtDisplaySize(): Promise<Blob> {
+        if (this.pendingDisplaySize) {
+            this.pendingDisplaySize.reject(
+                new Error(
+                    'A capture is already in progress. Wait for the first captureFrameAtDisplaySize() to finish before requesting another.',
+                ),
+            );
+        }
+
+        return new Promise<Blob>((resolve, reject) => {
+            this.pendingDisplaySize = { resolve, reject };
         });
     }
 
@@ -1157,6 +1200,65 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
                 );
                 return;
             }
+            request.resolve(blob);
+        }, 'image/png');
+    }
+
+    /**
+     * Resolves or rejects the pending `captureFrameAtDisplaySize` promise by exporting
+     * `logicalCanvas` (the pre-upscale, logical-resolution buffer) instead of the output
+     * `canvas`. Handles both `OffscreenCanvas.convertToBlob` and the plain-canvas
+     * `HTMLCanvasElement.toBlob` fallback, since `logicalCanvas` may be either. Clears
+     * `pendingDisplaySize` after handling.
+     */
+    private resolvePendingDisplaySize(): void {
+        if (!this.pendingDisplaySize) {
+            return;
+        }
+
+        const request = this.pendingDisplaySize;
+        const canvas = this.logicalCanvas;
+
+        this.pendingDisplaySize = null;
+
+        if (!canvas) {
+            request.reject(new Error("Can't save this frame - the renderer hasn't finished initializing yet."));
+
+            return;
+        }
+
+        if (SoftwareRenderer.isOffscreenCanvas(canvas)) {
+            canvas
+                .convertToBlob({ type: 'image/png' })
+                .then((blob) => request.resolve(blob))
+                .catch((error: unknown) => {
+                    request.reject(error instanceof Error ? error : new Error(String(error)));
+                });
+
+            return;
+        }
+
+        if (typeof canvas.toBlob !== 'function') {
+            request.reject(
+                new Error(
+                    "Can't save this frame - your browser doesn't support canvas image export. Try Chrome or Edge.",
+                ),
+            );
+
+            return;
+        }
+
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                request.reject(
+                    new Error(
+                        "Can't save this frame - something went wrong exporting the canvas image. Try again on the next frame.",
+                    ),
+                );
+
+                return;
+            }
+
             request.resolve(blob);
         }, 'image/png');
     }

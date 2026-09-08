@@ -404,6 +404,45 @@ describe('SoftwareRenderer', () => {
         await expect(capture).rejects.toThrow('something went wrong exporting the canvas image');
     });
 
+    it('captureFrameAtDisplaySize falls back to HTMLCanvasElement.toBlob when OffscreenCanvas is unavailable', async () => {
+        vi.stubGlobal('OffscreenCanvas', undefined);
+
+        const logicalToBlob = vi.fn((callback: (blob: Blob | null) => void) =>
+            callback(new Blob(['logical-png'], { type: 'image/png' })),
+        );
+        const fakeLogicalCanvas = {
+            width: 0,
+            height: 0,
+            getContext: canvasGet2d(logicalContext),
+            toBlob: logicalToBlob,
+        } as unknown as HTMLCanvasElement;
+
+        vi.stubGlobal('document', { createElement: vi.fn(() => fakeLogicalCanvas) });
+
+        const canvas = {
+            width: 0,
+            height: 0,
+            style: { width: '', height: '' },
+            getContext: canvasGet2d(context),
+            toBlob: (callback: (blob: Blob | null) => void) => callback(new Blob(['png'], { type: 'image/png' })),
+        } as unknown as HTMLCanvasElement;
+
+        const renderer = new SoftwareRenderer(canvas, new Vector2i(4, 4));
+
+        await renderer.init();
+        renderer.setPalette(makePalette());
+
+        const capture = renderer.captureFrameAtDisplaySize();
+
+        renderer.beginFrame();
+        renderer.endFrame();
+
+        const blob = await capture;
+
+        expect(blob.type).toBe('image/png');
+        expect(logicalToBlob).toHaveBeenCalledOnce();
+    });
+
     it('produces deterministic output for the same command sequence', async () => {
         const canvas = {
             width: 0,

@@ -13,6 +13,12 @@
 // needing to click a button first – see HardwareSettings.isFrameCaptureShortcutEnabled.
 // Shift, not bare F9: a future shortcut reuses bare F9 for a copy-to-clipboard
 // action instead of a file download.
+// Note for demos other than this one: Shift+F9 saves at the logical BT.displaySize,
+// not BT.outputSize, so it stays pixel-for-pixel even when a demo sets a larger
+// drawingBufferSize for display-tier post-process effects (CRT, vignette, and the
+// like) – those effects are not included in the Shift+F9 file. This demo has no
+// drawingBufferSize, so its own Shift+F9 output is unaffected and still matches
+// the Save PNG button above.
 // The engine also exposes the whole BT namespace as window.BT in dev mode
 // (BootstrapOptions.exposeGlobal, on by default), so you can run
 // window.BT.downloadFrame('my-file.png') straight from the browser console at any time.
