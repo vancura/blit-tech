@@ -3191,19 +3191,37 @@ describe('BTAPI', () => {
             return keydownHandler as (event: { code: string }) => void;
         }
 
-        function findKeyupHandler(canvas: HTMLCanvasElement): (event: { code: string }) => void {
-            const keyupCall = (canvas.addEventListener as ReturnType<typeof vi.fn>).mock.calls.find(
-                ([type]) => type === 'keyup',
+        /**
+         * Finds `handleClipboardShortcutKeydown` – the bare-F9 listener attached directly to
+         * the canvas (separately from `KeyboardInput`'s own listener, which
+         * {@link findKeydownHandler} finds). `attachInputSubsystems` registers
+         * `KeyboardInput`'s listener first and this one second, so it is the second
+         * `'keydown'` registration on the mock canvas.
+         */
+        function findClipboardShortcutKeydownHandler(canvas: HTMLCanvasElement): (event: KeyboardEvent) => void {
+            const keydownCalls = (canvas.addEventListener as ReturnType<typeof vi.fn>).mock.calls.filter(
+                ([type]) => type === 'keydown',
             );
-            const keyupHandler = keyupCall?.[1] as ((event: { code: string }) => void) | undefined;
+            const handler = keydownCalls[1]?.[1] as ((event: KeyboardEvent) => void) | undefined;
 
-            expect(keyupHandler).toBeDefined();
+            expect(handler).toBeDefined();
 
-            return keyupHandler as (event: { code: string }) => void;
+            return handler as (event: KeyboardEvent) => void;
+        }
+
+        /** A `KeyboardEvent`-shaped object for `handleClipboardShortcutKeydown`, defaulting to a genuine bare-F9 press. */
+        function f9Event(overrides: Partial<Pick<KeyboardEvent, 'shiftKey' | 'repeat'>> = {}): KeyboardEvent {
+            return { code: 'F9', shiftKey: false, repeat: false, ...overrides } as KeyboardEvent;
         }
 
         function getLoop(): { tick: (currentTime: number) => void } | null {
             return (BTAPI.instance as unknown as { loop: { tick: (currentTime: number) => void } | null }).loop;
+        }
+
+        /** Reads the private shared in-flight guard for the generation-guard regression test. */
+        function isShortcutInFlight(): boolean {
+            return (BTAPI.instance as unknown as { isFrameCaptureShortcutInFlight: boolean })
+                .isFrameCaptureShortcutInFlight;
         }
 
         class MockClipboardItem {
@@ -3261,8 +3279,7 @@ describe('BTAPI', () => {
 
             vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
 
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
             await Promise.resolve();
             await Promise.resolve();
@@ -3272,7 +3289,7 @@ describe('BTAPI', () => {
             expect(mockClipboard.write.mock.calls[0]?.[0]).toEqual([expect.any(MockClipboardItem)]);
         });
 
-        it('downloads instead of copying when Shift is held with F9', async () => {
+        it('does not copy when the keydown event has shiftKey set (Shift+F9 downloads instead)', async () => {
             const canvas = makeMockCanvas();
             const demo: IBTDemo = {
                 configure: () => ({
@@ -3295,10 +3312,14 @@ describe('BTAPI', () => {
 
             vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
 
+            // A real Shift+F9 press delivers one keydown event, with shiftKey true, to both
+            // listeners: KeyboardInput's (driving the tick-based Shift+F9 download check) and
+            // ours (which must no-op on shiftKey).
             const keydownHandler = findKeydownHandler(canvas);
 
             keydownHandler({ code: 'ShiftLeft' });
             keydownHandler({ code: 'F9' });
+            findClipboardShortcutKeydownHandler(canvas)(f9Event({ shiftKey: true }));
             getLoop()?.tick(20);
 
             await Promise.resolve();
@@ -3306,39 +3327,6 @@ describe('BTAPI', () => {
 
             expect(mockClipboard.write).not.toHaveBeenCalled();
             expect(downloadBlob).toHaveBeenCalledOnce();
-        });
-
-        it('copies instead of downloading when F9 is pressed without Shift held', async () => {
-            const canvas = makeMockCanvas();
-            const demo: IBTDemo = {
-                configure: () => ({
-                    isSplashEnabled: false,
-                    displaySize: new Vector2i(320, 240),
-                    targetFPS: 60,
-                    isFrameCaptureShortcutEnabled: true,
-                }),
-                init: vi.fn().mockResolvedValue(true),
-                update: vi.fn(),
-                render: vi.fn(),
-            };
-
-            await BTAPI.instance.init(demo, canvas);
-            BTAPI.instance.setPalette(new Palette(16));
-
-            const mockClipboard = installMockClipboard();
-            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
-            const renderer = BTAPI.instance.getRenderer();
-
-            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
-
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
-
-            await Promise.resolve();
-            await Promise.resolve();
-
-            expect(mockClipboard.write).toHaveBeenCalledOnce();
-            expect(downloadBlob).not.toHaveBeenCalled();
         });
 
         it('does nothing when isFrameCaptureShortcutEnabled is explicitly false', async () => {
@@ -3362,8 +3350,7 @@ describe('BTAPI', () => {
             const renderer = BTAPI.instance.getRenderer();
             const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
 
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
             await Promise.resolve();
             await Promise.resolve();
@@ -3371,6 +3358,41 @@ describe('BTAPI', () => {
             expect(captureFrameSpy).not.toHaveBeenCalled();
             expect(mockClipboard.write).not.toHaveBeenCalled();
             expect(downloadBlob).not.toHaveBeenCalled();
+        });
+
+        it('ignores a repeat keydown while F9 is held (event.repeat)', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+            const renderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
+
+            const handler = findClipboardShortcutKeydownHandler(canvas);
+
+            handler(f9Event());
+            handler(f9Event({ repeat: true }));
+            handler(f9Event({ repeat: true }));
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
         });
 
         it('ignores a second bare-F9 press while a copy is already in flight', async () => {
@@ -3402,15 +3424,13 @@ describe('BTAPI', () => {
                 .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
                 .mockReturnValue(pendingCapture);
 
-            const keydownHandler = findKeydownHandler(canvas);
-            const loop = getLoop();
+            const handler = findClipboardShortcutKeydownHandler(canvas);
 
-            keydownHandler({ code: 'F9' });
-            loop?.tick(20);
+            handler(f9Event());
             await Promise.resolve();
 
-            keydownHandler({ code: 'F9' });
-            loop?.tick(40);
+            // A second, distinct press (not a repeat) while the first copy is still pending.
+            handler(f9Event());
             await Promise.resolve();
 
             resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
@@ -3455,20 +3475,15 @@ describe('BTAPI', () => {
                 .mockReturnValue(pendingCapture);
 
             const keydownHandler = findKeydownHandler(canvas);
-            const keyupHandler = findKeyupHandler(canvas);
-            const loop = getLoop();
 
             keydownHandler({ code: 'ShiftLeft' });
             keydownHandler({ code: 'F9' });
-            loop?.tick(20);
+            getLoop()?.tick(20);
             await Promise.resolve();
 
-            // Release Shift and F9, then press bare F9 again while the Shift+F9 capture
-            // above is still pending.
-            keyupHandler({ code: 'ShiftLeft' });
-            keyupHandler({ code: 'F9' });
-            keydownHandler({ code: 'F9' });
-            loop?.tick(40);
+            // The shared guard, not KeyboardInput's tracked Shift state, is what blocks this –
+            // no need to release Shift first.
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
             await Promise.resolve();
 
             resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
@@ -3511,19 +3526,14 @@ describe('BTAPI', () => {
                 .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
                 .mockReturnValue(pendingCapture);
 
-            const keydownHandler = findKeydownHandler(canvas);
-            const keyupHandler = findKeyupHandler(canvas);
-            const loop = getLoop();
-
-            keydownHandler({ code: 'F9' });
-            loop?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
             await Promise.resolve();
 
-            // Release F9, then press Shift+F9 while the bare-F9 copy above is still pending.
-            keyupHandler({ code: 'F9' });
+            const keydownHandler = findKeydownHandler(canvas);
+
             keydownHandler({ code: 'ShiftLeft' });
             keydownHandler({ code: 'F9' });
-            loop?.tick(40);
+            getLoop()?.tick(20);
             await Promise.resolve();
 
             resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
@@ -3566,8 +3576,7 @@ describe('BTAPI', () => {
                 neverSettles,
             );
 
-            findKeydownHandler(firstCanvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(firstCanvas)(f9Event());
             await Promise.resolve();
 
             // stop() must clear the in-flight guard even though the copy above never
@@ -3589,13 +3598,89 @@ describe('BTAPI', () => {
                 'captureFrameAtDisplaySize',
             ).mockResolvedValue(mockBlob);
 
-            findKeydownHandler(secondCanvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(secondCanvas)(f9Event());
 
             await Promise.resolve();
             await Promise.resolve();
 
             expect(mockClipboard.write).toHaveBeenCalledOnce();
+        });
+
+        it('does not let a copy that settles after stop() clear a later capture guard', async () => {
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const firstCanvas = makeMockCanvas();
+
+            await BTAPI.instance.init(demo, firstCanvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            installMockClipboard();
+
+            // Simulates FrameCapture.resolve() completing asynchronously after stop() – it
+            // captures its resolve/reject callbacks into locals before its own awaits, so a
+            // capture already mid-GPU-readback when stop() runs keeps running independently
+            // of the game loop and can settle later, after a new init()/capture cycle.
+            let resolveStaleCapture: ((blob: Blob) => void) | undefined;
+            const staleCapture = new Promise<Blob>((resolve) => {
+                resolveStaleCapture = resolve;
+            });
+
+            const firstRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(firstRenderer as NonNullable<typeof firstRenderer>, 'captureFrameAtDisplaySize').mockReturnValue(
+                staleCapture,
+            );
+
+            findClipboardShortcutKeydownHandler(firstCanvas)(f9Event());
+            await Promise.resolve();
+
+            BTAPI.instance.stop();
+
+            const secondCanvas = makeMockCanvas();
+
+            await BTAPI.instance.init(demo, secondCanvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            let resolveCurrentCapture: ((blob: Blob) => void) | undefined;
+            const currentCapture = new Promise<Blob>((resolve) => {
+                resolveCurrentCapture = resolve;
+            });
+
+            const secondRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(secondRenderer as NonNullable<typeof secondRenderer>, 'captureFrameAtDisplaySize').mockReturnValue(
+                currentCapture,
+            );
+
+            findClipboardShortcutKeydownHandler(secondCanvas)(f9Event());
+            await Promise.resolve();
+
+            expect(isShortcutInFlight()).toBe(true);
+
+            // The stale, pre-stop() capture settles now – its completion handler must see
+            // that frameCaptureShortcutGeneration moved on since stop() and leave the
+            // current capture's guard alone.
+            resolveStaleCapture?.(new Blob(['stale-png-data'], { type: 'image/png' }));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(isShortcutInFlight()).toBe(true);
+
+            resolveCurrentCapture?.(new Blob(['png-data'], { type: 'image/png' }));
+
+            await vi.waitFor(() => {
+                expect(isShortcutInFlight()).toBe(false);
+            });
         });
 
         it('keeps the clipboard write synchronous relative to the triggering keydown', async () => {
@@ -3628,8 +3713,7 @@ describe('BTAPI', () => {
                 neverSettles,
             );
 
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
             // Flush exactly one microtask – if a future refactor introduces an `await`
             // before the clipboard.write() call, this assertion catches it: write() would
@@ -3669,8 +3753,7 @@ describe('BTAPI', () => {
             const renderer = BTAPI.instance.getRenderer();
             const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
 
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
             await Promise.resolve();
             await Promise.resolve();
@@ -3709,8 +3792,7 @@ describe('BTAPI', () => {
             const renderer = BTAPI.instance.getRenderer();
             const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
 
-            findKeydownHandler(canvas)({ code: 'F9' });
-            getLoop()?.tick(20);
+            findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
             await Promise.resolve();
             await Promise.resolve();
