@@ -28,6 +28,77 @@ const CHANNEL_BANNER_HTML =
     '</div>';
 
 /**
+ * Substitute a demo entry's rendered content into the shared layout template. Pure and
+ * exported so it can be unit-tested without touching disk, a Vite server, or the highlighter.
+ *
+ * `pageSuffix` is what the shell appends when it builds navigation targets: dev serves only
+ * /demos/<slug>.html (see URL_PATTERN), while the production build flattens pages to
+ * dist/<slug>.html, which Cloudflare Pages serves at the extensionless /<slug>.
+ * @param {object} options
+ * @param {string} options.layoutTemplate – Raw contents of `_partials/layout.html`.
+ * @param {{ title: string, scriptFile: string, slug: string }} options.entry – Registry entry.
+ * @param {boolean} options.isDevMode – True under `vite dev`, false for a production build.
+ * @param {string} options.demoListJson – JSON array of nav-visible demos.
+ * @param {string} options.sourceHtml – Pre-rendered Twoslash/Shiki source panel markup.
+ * @param {string} options.sourcePanelScript – Dev-only `<script>` tag, or '' in a build.
+ * @param {string} options.robotsMeta – `<meta name="robots">` tag on the next channel, else ''.
+ * @param {string} options.channelBanner – Unreleased-work banner HTML on the next channel, else ''.
+ * @param {string} options.socialMeta – The full social/SEO head block from `buildSocialMeta`.
+ * @returns {string} The rendered dual-mode demo page.
+ */
+export function renderDemoHtml({
+    layoutTemplate,
+    entry,
+    isDevMode,
+    demoListJson,
+    sourceHtml,
+    sourcePanelScript,
+    robotsMeta,
+    channelBanner,
+    socialMeta,
+}) {
+    return (
+        layoutTemplate
+            .replaceAll('{{title}}', escapeHtml(entry.title))
+            .replaceAll('{{scriptFile}}', entry.scriptFile)
+            .replaceAll('{{slug}}', entry.slug)
+            .replaceAll('{{pageSuffix}}', isDevMode ? '.html' : '')
+            .replace('{{demoList}}', () => demoListJson)
+            .replace('{{sourceHtml}}', () => sourceHtml)
+            .replace('{{sourcePanelScript}}', () => sourcePanelScript)
+            .replace('{{robotsMeta}}', () => robotsMeta)
+            .replace('{{channelBanner}}', () => channelBanner)
+            // Last in the chain on purpose. The function replacer keeps `$&` / `$1` in a demo's
+            // description from being interpreted, and substituting after every other placeholder
+            // means a description containing the literal text of one cannot trigger a second pass.
+            .replace('{{socialMeta}}', () => socialMeta)
+    );
+}
+
+/**
+ * Resolve a requested `/demos/<slug>.html` dev URL against VINTAGE_URLS: if the slug is a
+ * vintage key whose target demo is still live in the registry, return that demo's canonical
+ * urlPath for a 301 redirect. Pure and exported so it can be unit-tested without a real dev
+ * server request/response pair.
+ * @param {string} requestedSlug – The slug segment of the requested URL.
+ * @param {Record<string, string>} vintageUrls – Vintage slug -> current slug map.
+ * @param {Array<{ slug: string, urlPath: string }>} registry – Live demo registry entries.
+ * @returns {string | null} The live entry's urlPath, or null when no redirect applies.
+ */
+export function resolveVintageRedirect(requestedSlug, vintageUrls, registry) {
+    const vintageMapping = Object.entries(vintageUrls).find(([vintageSlug]) => vintageSlug === requestedSlug);
+
+    if (!vintageMapping) {
+        return null;
+    }
+
+    const currentSlug = vintageMapping[1];
+    const liveEntry = registry.find((entry) => entry.slug === currentSlug);
+
+    return liveEntry ? liveEntry.urlPath : null;
+}
+
+/**
  * Vite plugin that serves/generates demo HTML pages virtually from src/*.js demo files.
  * No per-demo HTML file is needed on disk; the template lives in _partials/layout.html
  * and is rendered via simple string substitution.
@@ -147,25 +218,17 @@ export function virtualDemos() {
         const hasOgImage = existsSync(resolve(rootDir, 'public', OG_IMAGE_DIR, `og-${entry.slug}.png`));
         const socialMeta = buildSocialMeta({ entry, isNextChannel: IS_NEXT_CHANNEL, hasOgImage });
 
-        // `pageSuffix` is what the shell appends when it builds navigation targets: dev serves
-        // only /demos/<slug>.html (see URL_PATTERN), while the production build flattens pages
-        // to dist/<slug>.html, which Cloudflare Pages serves at the extensionless /<slug>.
-        return (
-            layoutTemplate
-                .replaceAll('{{title}}', escapeHtml(entry.title))
-                .replaceAll('{{scriptFile}}', entry.scriptFile)
-                .replaceAll('{{slug}}', entry.slug)
-                .replaceAll('{{pageSuffix}}', isDevMode ? '.html' : '')
-                .replace('{{demoList}}', () => demoListJson)
-                .replace('{{sourceHtml}}', () => sourceHtml)
-                .replace('{{sourcePanelScript}}', () => sourcePanelScript)
-                .replace('{{robotsMeta}}', () => (IS_NEXT_CHANNEL ? ROBOTS_NOINDEX_META : ''))
-                .replace('{{channelBanner}}', () => (IS_NEXT_CHANNEL ? CHANNEL_BANNER_HTML : ''))
-                // Last in the chain on purpose. The function replacer keeps `$&` / `$1` in a demo's
-                // description from being interpreted, and substituting after every other placeholder
-                // means a description containing the literal text of one cannot trigger a second pass.
-                .replace('{{socialMeta}}', () => socialMeta)
-        );
+        return renderDemoHtml({
+            layoutTemplate,
+            entry,
+            isDevMode,
+            demoListJson,
+            sourceHtml,
+            sourcePanelScript,
+            robotsMeta: IS_NEXT_CHANNEL ? ROBOTS_NOINDEX_META : '',
+            channelBanner: IS_NEXT_CHANNEL ? CHANNEL_BANNER_HTML : '',
+            socialMeta,
+        });
     }
 
     return {
@@ -336,19 +399,13 @@ export function virtualDemos() {
                 }
 
                 const requestedSlug = demoMatch[1];
-                const vintageMapping = Object.entries(VINTAGE_URLS).find(
-                    ([vintageSlug]) => vintageSlug === requestedSlug,
-                );
+                const vintageRedirect = resolveVintageRedirect(requestedSlug, VINTAGE_URLS, registry);
 
-                if (vintageMapping) {
-                    const vintageEntry = findEntryBySlug(vintageMapping[1]);
-
-                    if (vintageEntry) {
-                        res.statusCode = 301;
-                        res.setHeader('Location', vintageEntry.urlPath);
-                        res.end();
-                        return;
-                    }
+                if (vintageRedirect) {
+                    res.statusCode = 301;
+                    res.setHeader('Location', vintageRedirect);
+                    res.end();
+                    return;
                 }
 
                 const entry = findEntryBySlug(requestedSlug);

@@ -18,6 +18,26 @@ export const SITE_URL = 'https://demos.blit386.dev';
 export const NEXT_SITE_URL = 'https://next.demos.blit386.dev';
 
 /**
+ * Build the sitemap XML body for the live demo registry: the site root plus every demo's
+ * canonical, extensionless URL, in registry order. Pure and exported so it can be
+ * unit-tested without touching disk.
+ * @param {Array<{ slug: string }>} registry – Live demo registry entries.
+ * @param {string} siteUrl – Absolute origin to build URLs from (SITE_URL or NEXT_SITE_URL).
+ * @returns {string} A complete `sitemap.xml` document.
+ */
+export function buildSitemapXml(registry, siteUrl) {
+    const urls = [`${siteUrl}/`, ...registry.map((entry) => `${siteUrl}/${entry.slug}`)];
+    const body = urls.map((url) => `    <url>\n        <loc>${url}</loc>\n    </url>`).join('\n');
+
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+        `${body}\n` +
+        '</urlset>\n'
+    );
+}
+
+/**
  * Writes `dist/sitemap.xml` from the live demo registry: the site root plus every demo's
  * canonical, extensionless URL. Cloudflare Pages serves `/<slug>` and 308s `/<slug>.html` to
  * it, so only the extensionless form belongs here – same rule `demoRedirectsPlugin` follows
@@ -38,14 +58,7 @@ export function sitemapPlugin() {
             }
 
             const registry = buildRegistry(rootDir);
-            const urls = [`${SITE_URL}/`, ...registry.map((entry) => `${SITE_URL}/${entry.slug}`)];
-            const body = urls.map((url) => `    <url>\n        <loc>${url}</loc>\n    </url>`).join('\n');
-
-            const xml =
-                '<?xml version="1.0" encoding="UTF-8"?>\n' +
-                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-                `${body}\n` +
-                '</urlset>\n';
+            const xml = buildSitemapXml(registry, SITE_URL);
 
             writeFileSync(join(resolve(rootDir, 'dist'), 'sitemap.xml'), xml);
         },
