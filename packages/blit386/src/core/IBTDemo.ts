@@ -248,15 +248,15 @@ export interface HardwareSettings {
     splashColorLight?: Color32;
 
     /**
-     * Whether pressing Shift+F9 captures the current frame and downloads it as a PNG.
-     *
-     * Leave unset for the default: enabled in development builds, disabled in release,
-     * per {@link BT.isDevMode}. Setting it explicitly wins over dev-mode detection – set
-     * `true` to keep the shortcut in a production build, or `false` to free up Shift+F9
-     * (for example if the game binds it to something else).
-     *
-     * Captures at logical `BT.displaySize`, not `BT.outputSize`, unlike `BT.captureFrame()` /
+     * Whether the dev-mode frame-capture shortcuts are active: F9 copies the current frame to
+     * the OS clipboard as a PNG, and Shift+F9 downloads it as a timestamped PNG file. Both
+     * capture at logical `BT.displaySize`, not `BT.outputSize`, unlike `BT.captureFrame()` /
      * `BT.downloadFrame()` – see the resolution model in `docs/api-core.md` for why.
+     *
+     * Leave unset for the default: enabled in development builds, disabled in release, per
+     * {@link BT.isDevMode}. Setting it explicitly wins over dev-mode detection – set `true` to
+     * keep both shortcuts in a production build, or `false` to free up F9 and Shift+F9 (for
+     * example if the game binds them to something else).
      *
      * @since 1.7.0
      */

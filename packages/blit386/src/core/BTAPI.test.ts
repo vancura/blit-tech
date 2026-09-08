@@ -3005,7 +3005,7 @@ describe('BTAPI', () => {
             );
         });
 
-        it('does nothing when F9 is pressed without Shift held', async () => {
+        it('does not download when F9 is pressed without Shift held', async () => {
             const canvas = makeMockCanvas();
             const demo: IBTDemo = {
                 configure: () => ({
@@ -3022,16 +3022,12 @@ describe('BTAPI', () => {
             await BTAPI.instance.init(demo, canvas);
             BTAPI.instance.setPalette(new Palette(16));
 
-            const renderer = BTAPI.instance.getRenderer();
-            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
-
             findKeydownHandler(canvas)({ code: 'F9' });
             getLoop()?.tick(20);
 
             await Promise.resolve();
             await Promise.resolve();
 
-            expect(captureFrameSpy).not.toHaveBeenCalled();
             expect(downloadBlob).not.toHaveBeenCalled();
         });
 
@@ -3180,6 +3176,418 @@ describe('BTAPI', () => {
                 mockBlob,
                 expect.stringMatching(/^blit386-capture-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.png$/),
             );
+        });
+    });
+
+    describe('bare F9 frame-copy-to-clipboard shortcut', () => {
+        function findKeydownHandler(canvas: HTMLCanvasElement): (event: { code: string }) => void {
+            const keydownCall = (canvas.addEventListener as ReturnType<typeof vi.fn>).mock.calls.find(
+                ([type]) => type === 'keydown',
+            );
+            const keydownHandler = keydownCall?.[1] as ((event: { code: string }) => void) | undefined;
+
+            expect(keydownHandler).toBeDefined();
+
+            return keydownHandler as (event: { code: string }) => void;
+        }
+
+        function getLoop(): { tick: (currentTime: number) => void } | null {
+            return (BTAPI.instance as unknown as { loop: { tick: (currentTime: number) => void } | null }).loop;
+        }
+
+        class MockClipboardItem {
+            public constructor(public readonly data: Record<string, unknown>) {}
+        }
+
+        function installMockClipboard(): { write: ReturnType<typeof vi.fn> } {
+            const mockClipboard = { write: vi.fn().mockResolvedValue(undefined) };
+
+            Object.defineProperty(globalThis, 'navigator', {
+                value: { ...globalThis.navigator, clipboard: mockClipboard },
+                configurable: true,
+            });
+            vi.stubGlobal('ClipboardItem', MockClipboardItem);
+
+            return mockClipboard;
+        }
+
+        beforeEach(() => {
+            vi.mocked(downloadBlob).mockClear();
+        });
+
+        afterEach(() => {
+            Reflect.deleteProperty(globalThis.navigator, 'clipboard');
+        });
+
+        it('copies to clipboard when enabled and bare F9 is pressed', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+            const renderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(downloadBlob).not.toHaveBeenCalled();
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+            expect(mockClipboard.write.mock.calls[0]?.[0]).toEqual([expect.any(MockClipboardItem)]);
+        });
+
+        it('downloads instead of copying when Shift is held with F9', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+            const renderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
+
+            const keydownHandler = findKeydownHandler(canvas);
+
+            keydownHandler({ code: 'ShiftLeft' });
+            keydownHandler({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockClipboard.write).not.toHaveBeenCalled();
+            expect(downloadBlob).toHaveBeenCalledOnce();
+        });
+
+        it('copies instead of downloading when F9 is pressed without Shift held', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+            const renderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockResolvedValue(mockBlob);
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+            expect(downloadBlob).not.toHaveBeenCalled();
+        });
+
+        it('does nothing when isFrameCaptureShortcutEnabled is explicitly false', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: false,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameSpy).not.toHaveBeenCalled();
+            expect(mockClipboard.write).not.toHaveBeenCalled();
+            expect(downloadBlob).not.toHaveBeenCalled();
+        });
+
+        it('ignores a second bare-F9 press while a copy is already in flight', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+
+            let resolveCapture: ((blob: Blob) => void) | undefined;
+            const pendingCapture = new Promise<Blob>((resolve) => {
+                resolveCapture = resolve;
+            });
+
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameAtDisplaySizeSpy = vi
+                .spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize')
+                .mockReturnValue(pendingCapture);
+
+            const keydownHandler = findKeydownHandler(canvas);
+            const loop = getLoop();
+
+            keydownHandler({ code: 'F9' });
+            loop?.tick(20);
+            await Promise.resolve();
+
+            keydownHandler({ code: 'F9' });
+            loop?.tick(40);
+            await Promise.resolve();
+
+            resolveCapture?.(new Blob(['png-data'], { type: 'image/png' }));
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameAtDisplaySizeSpy).toHaveBeenCalledOnce();
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+        });
+
+        it('recovers after stop() interrupts a copy that never settled', async () => {
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            const firstCanvas = makeMockCanvas();
+
+            await BTAPI.instance.init(demo, firstCanvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+
+            // A capture that never resolves, standing in for a render pass that never
+            // happens because stop() runs first – the same shape as a page navigation
+            // interrupting an in-flight bare-F9 copy.
+            const neverSettles = new Promise<Blob>(() => {});
+
+            const firstRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(firstRenderer as NonNullable<typeof firstRenderer>, 'captureFrameAtDisplaySize').mockReturnValue(
+                neverSettles,
+            );
+
+            findKeydownHandler(firstCanvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+            await Promise.resolve();
+
+            // stop() must clear the in-flight guard even though the copy above never
+            // settled – otherwise every F9 press after the next init() would silently
+            // no-op forever.
+            BTAPI.instance.stop();
+
+            const secondCanvas = makeMockCanvas();
+            const mockBlob = new Blob(['png-data'], { type: 'image/png' });
+
+            await BTAPI.instance.init(demo, secondCanvas);
+            BTAPI.instance.setPalette(new Palette(16));
+            mockClipboard.write.mockClear();
+
+            const secondRenderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(
+                secondRenderer as NonNullable<typeof secondRenderer>,
+                'captureFrameAtDisplaySize',
+            ).mockResolvedValue(mockBlob);
+
+            findKeydownHandler(secondCanvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+        });
+
+        it('keeps the clipboard write synchronous relative to the triggering keydown', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            const mockClipboard = installMockClipboard();
+
+            // Never resolves – proves clipboard.write() is called with the still-pending
+            // capture promise, not after awaiting it, since the write call is asserted
+            // before this promise ever settles.
+            const neverSettles = new Promise<Blob>(() => {});
+
+            const renderer = BTAPI.instance.getRenderer();
+
+            vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize').mockReturnValue(
+                neverSettles,
+            );
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            // Flush exactly one microtask – if a future refactor introduces an `await`
+            // before the clipboard.write() call, this assertion catches it: write() would
+            // not yet have been called at this point since the capture never resolves.
+            await Promise.resolve();
+
+            expect(mockClipboard.write).toHaveBeenCalledOnce();
+        });
+
+        it.each([
+            ['navigator.clipboard is undefined', undefined],
+            ['navigator.clipboard.write is missing', {}],
+        ])('does nothing and logs when %s', async (_label, clipboardValue) => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            Object.defineProperty(globalThis, 'navigator', {
+                value: { ...globalThis.navigator, clipboard: clipboardValue },
+                configurable: true,
+            });
+            vi.stubGlobal('ClipboardItem', MockClipboardItem);
+
+            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledExactlyOnceWith(
+                expect.stringContaining('Clipboard API unavailable'),
+            );
+
+            consoleErrorSpy.mockRestore();
+        });
+
+        it('does nothing and logs when ClipboardItem is undefined', async () => {
+            const canvas = makeMockCanvas();
+            const demo: IBTDemo = {
+                configure: () => ({
+                    isSplashEnabled: false,
+                    displaySize: new Vector2i(320, 240),
+                    targetFPS: 60,
+                    isFrameCaptureShortcutEnabled: true,
+                }),
+                init: vi.fn().mockResolvedValue(true),
+                update: vi.fn(),
+                render: vi.fn(),
+            };
+
+            await BTAPI.instance.init(demo, canvas);
+            BTAPI.instance.setPalette(new Palette(16));
+
+            Object.defineProperty(globalThis, 'navigator', {
+                value: { ...globalThis.navigator, clipboard: { write: vi.fn() } },
+                configurable: true,
+            });
+
+            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const renderer = BTAPI.instance.getRenderer();
+            const captureFrameSpy = vi.spyOn(renderer as NonNullable<typeof renderer>, 'captureFrameAtDisplaySize');
+
+            findKeydownHandler(canvas)({ code: 'F9' });
+            getLoop()?.tick(20);
+
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(captureFrameSpy).not.toHaveBeenCalled();
+            expect(consoleErrorSpy).toHaveBeenCalledExactlyOnceWith(
+                expect.stringContaining('Clipboard API unavailable'),
+            );
+
+            consoleErrorSpy.mockRestore();
         });
     });
 
