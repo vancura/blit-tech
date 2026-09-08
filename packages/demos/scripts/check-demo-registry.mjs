@@ -207,25 +207,19 @@ for (const entry of registry) {
     }
 }
 
-// --- OG cards: reported, never fatal ----------------------------------------------------
+// --- OG cards: every demo must have one --------------------------------------------------
 
-// Deliberately a warning rather than a `fail()`. `buildSocialMeta` falls back to og-default.png,
-// so a missing card degrades gracefully – while capturing one needs a built site, a preview
-// server, a browser, and ffmpeg. Blocking every preflight on that would make adding a demo far
-// more expensive than the graceful fallback justifies.
-const missingCards = registry
-    .map((entry) => entry.slug)
-    .filter((slug) => !existsSync(join(ROOT, 'public', OG_IMAGE_DIR, `og-${slug}.png`)));
+// `buildSocialMeta` would fall back to og-default.png for any slug missing here, so this is not
+// needed for the page to render – it is needed so a new demo does not silently ship without a
+// real card. Capturing one needs a built site, a preview server, a browser, and ffmpeg, so this
+// stays manual (`pnpm run capture:og`, see README) rather than something preflight runs itself.
+for (const slug of registry.map((entry) => entry.slug)) {
+    if (!existsSync(join(ROOT, 'public', OG_IMAGE_DIR, `og-${slug}.png`))) {
+        fail(`public/${OG_IMAGE_DIR}/og-${slug}.png is missing – capture it with \`pnpm run capture:og -- ${slug}\``);
+    }
+}
 
 // --- Report ----------------------------------------------------------------------------
-
-if (missingCards.length > 0) {
-    console.warn(
-        `Note: ${missingCards.length} demo(s) have no OpenGraph card and will use the shared ` +
-            `fallback: ${missingCards.join(', ')}\n` +
-            'Capture them with `pnpm run capture:og -- <slug>` (see README).\n',
-    );
-}
 
 if (errors.length > 0) {
     console.error('Demo registry check failed:\n');
