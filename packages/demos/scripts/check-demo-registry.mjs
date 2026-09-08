@@ -146,7 +146,7 @@ export function findVintageUrlFailures(vintageUrls, diskSlugSet, retiredSlugs) {
 
         if (isLive && isRetired) {
             failures.push(
-                `Slug "${currentSlug}" is both live on disk and listed in RETIRED_SLUGS — remove it from RETIRED_SLUGS`,
+                `Slug "${currentSlug}" is both live on disk and listed in RETIRED_SLUGS – remove it from RETIRED_SLUGS`,
             );
         }
     }

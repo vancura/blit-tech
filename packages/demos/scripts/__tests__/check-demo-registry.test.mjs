@@ -47,10 +47,14 @@ describe('findDescriptionFailures', () => {
     });
 
     it('counts code points, not UTF-16 units, so an astral character counts once', () => {
-        // U+1F600 is a surrogate pair (2 UTF-16 units) but a single code point. 59 code points
-        // plus one astral emoji plus the trailing period is exactly the 60-char floor.
-        const description = `${'a'.repeat(59)}\u{1F600}.`;
-        assert.equal([...description].length, 61);
+        // U+20000 (a CJK Extension B ideograph) is a surrogate pair (2 UTF-16 units) but a
+        // single code point. 102 code points plus one astral character plus the trailing period
+        // is exactly the 104-char ceiling – 104 code points, but 105 UTF-16 units. A buggy
+        // UTF-16-based implementation would reject this as over the ceiling; the code-point-based
+        // implementation must accept it.
+        const description = `${'a'.repeat(102)}\u{20000}.`;
+        assert.equal([...description].length, 104);
+        assert.equal(description.length, 105);
         assert.deepEqual(findDescriptionFailures('basics', description), []);
     });
 
