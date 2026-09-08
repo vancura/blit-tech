@@ -1,5 +1,5 @@
 # Cloudflare Pages response headers for static demo assets.
-# Copied to dist/ via vite-plugin-static-copy (see vite.config.js).
+# Copied to dist/ via Vite's default publicDir copy.
 # Rationale and compatibility: docs/SECURITY-HEADERS.md
 
 /*

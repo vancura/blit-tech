@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 
 import { blit386 } from 'blit386/vite';
 import { defineConfig } from 'vite';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 import { buildRegistry } from './plugins/demo-registry.js';
 import { channelHeadersPlugin } from './plugins/channel-headers.js';
@@ -158,18 +157,6 @@ export default defineConfig(({ command }) => {
             // everything). blit386() from 'blit386/vite' wires per-demo hot reload: it injects the
             // registerHotReload snippet into demo entry modules and watches public/ for asset changes.
             ...(isServe ? [blit386WatchReload(), blit386()] : []),
-            viteStaticCopy({
-                targets: [
-                    {
-                        src: 'public/fonts/*',
-                        dest: 'fonts',
-                    },
-                    {
-                        src: 'public/_headers',
-                        dest: '.',
-                    },
-                ],
-            }),
             flattenDemosPlugin(),
             demoRedirectsPlugin(),
             sitemapPlugin(),
