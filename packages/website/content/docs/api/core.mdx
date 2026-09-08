@@ -378,7 +378,7 @@ resolution:
 
 - `demo.configure()` may return a partial object; the engine merges it with `defaultConfig()`.
 - `?backend=software` mutates the resolved `HardwareSettings.backend` before `initRenderer()` runs (during
-  `loadHardwareSettings()`). A page opened as `/demos/023-crt-pipboy.html?backend=software` therefore reports
+  `loadHardwareSettings()`). A page opened as `/demos/crt-pipboy.html?backend=software` therefore reports
   `BT.requestedBackend === 'software'` even when `configure()` asked for WebGPU.
 
 Fallback: When `requestedBackend` is `'webgpu'` (explicit or default) and WebGPU init fails, the engine logs a warning
