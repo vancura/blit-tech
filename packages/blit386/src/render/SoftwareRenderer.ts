@@ -241,6 +241,18 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
+     * Narrows {@link logicalCanvas} to `OffscreenCanvas`, guarding the `typeof` check first so
+     * the `instanceof` test never throws in a browser where the global does not exist (see
+     * {@link createLogicalCanvas}'s own fallback).
+     *
+     * @param canvas – Candidate logical canvas.
+     * @returns True when `canvas` is an `OffscreenCanvas`.
+     */
+    private static isOffscreenCanvas(canvas: OffscreenCanvas | HTMLCanvasElement): canvas is OffscreenCanvas {
+        return typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas;
+    }
+
+    /**
      * Initializes the 2D canvas contexts and backing image buffer.
      *
      * @returns `true` when contexts are ready; otherwise `false`.
@@ -1215,7 +1227,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
             return;
         }
 
-        if (canvas instanceof OffscreenCanvas) {
+        if (SoftwareRenderer.isOffscreenCanvas(canvas)) {
             canvas
                 .convertToBlob({ type: 'image/png' })
                 .then((blob) => request.resolve(blob))
