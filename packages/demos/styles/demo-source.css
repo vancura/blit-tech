@@ -27,6 +27,25 @@
     margin: 0 auto;
     padding: 23px 0 0;
 
+    /*
+     * Prefer dark tokens on the black panel; keep token span backgrounds clear.
+     * Do not target .twoslash-popup-container / .twoslash-hover – those are also
+     * spans inside .shiki and must keep their own background.
+     *
+     * Placed first, alongside the .twoslash-popup-code override below: both are
+     * two-class-deep descendant selectors that Biome's specificity check scores
+     * lower than the single-compound `.shiki` selector (with its #demo-source ID
+     * contribution) below, so they must sort ahead of it.
+     */
+    & .shiki span {
+        color: var(--shiki-dark, inherit);
+    }
+
+    & .twoslash-popup-code .shiki,
+    & .twoslash-popup-code .shiki span {
+        background-color: transparent;
+    }
+
     & .demo-source-code {
         background: #000;
         overflow: hidden;
@@ -41,6 +60,7 @@
         line-height: 1.65;
         tab-size: 4;
         background-color: #000;
+        color: var(--shiki-dark, inherit);
 
         /*
          * Shiki emits a plain <pre>, which defaults to white-space: pre (no
@@ -61,16 +81,6 @@
         font-family: inherit;
         font-size: inherit;
         line-height: inherit;
-    }
-
-    /*
-     * Prefer dark tokens on the black panel; keep token span backgrounds clear.
-     * Do not target .twoslash-popup-container / .twoslash-hover – those are also
-     * spans inside .shiki and must keep their own background.
-     */
-    & .shiki,
-    & .shiki span {
-        color: var(--shiki-dark, inherit);
     }
 
     & .shiki .line > span:not(.twoslash-hover) {
@@ -129,11 +139,6 @@
     & .twoslash-popup-code * {
         white-space: normal;
         overflow-wrap: anywhere;
-    }
-
-    & .twoslash-popup-code .shiki,
-    & .twoslash-popup-code .shiki span {
-        background-color: transparent;
     }
 
     & .twoslash-popup-docs,

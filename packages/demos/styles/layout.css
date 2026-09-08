@@ -43,92 +43,14 @@ body {
 }
 
 /*
- * Shell mode (default): persistent banner + content iframe. The demo runs inside
- * the iframe (?embed) so swapping demos tears down the engine with the frame.
+ * Base component styles, placed before the shell/embed mode blocks below: each
+ * of those blocks targets #demo-source / #canvas-container / #demo-banner via
+ * an attribute-qualified ancestor (e.g. html[data-shell='true'] #canvas-container),
+ * which is always more specific than the plain ID selector here. Biome's
+ * specificity check flags a more-specific selector appearing before a less
+ * specific one that can match the same element, so the less specific,
+ * general-purpose rules sort first.
  */
-html[data-shell='true'] {
-    &,
-    & body {
-        height: 100%;
-        overflow: hidden;
-    }
-
-    /* Hide embed-only hosts until JS removes them (avoids a flash of canvas chrome). */
-    & #canvas-container,
-    & #demo-source {
-        display: none;
-    }
-
-    & #demo-frame {
-        display: block;
-        width: 100%;
-        height: calc(100dvh - var(--banner-height));
-        border: 0;
-        background: black;
-    }
-}
-
-/*
- * Embed mode (?embed): lock to the viewport and hide the source panel so docs
- * embeds on blit386.dev stay a pure canvas view. --banner-height is 0 here;
- * the parent shell (when used) already reserved the banner.
- *
- * Shell iframe uses ?embed&source (data-source): same canvas sizing, but the
- * Twoslash panel is visible below and the document scrolls inside the frame.
- */
-html[data-embed='true'] {
-    &,
-    & body {
-        height: 100%;
-        overflow: hidden;
-    }
-
-    /* Hide shell chrome until JS removes it. */
-    & #demo-banner,
-    & #demo-frame,
-    & #channel-banner {
-        display: none;
-    }
-
-    & #demo-source {
-        display: none;
-    }
-
-    & #canvas-container {
-        --canvas-view-h: calc(100dvh - var(--banner-height));
-        height: var(--canvas-view-h);
-        padding-top: 0;
-        align-items: center;
-    }
-}
-
-html[data-embed='true'][data-source='true'] {
-    &,
-    & body {
-        height: auto;
-        min-height: 100%;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    & #demo-source {
-        display: block;
-    }
-
-    /*
-     * Match the old shell page: canvas top-aligned under the toolbar.
-     * height:auto so the container hugs the canvas – the viewport-tall
-     * embed height would leave a gap above the source panel.
-     */
-    & #canvas-container {
-        --canvas-view-h: calc(100dvh - var(--banner-height) - var(--canvas-top-pad));
-
-        height: auto;
-        padding-top: var(--canvas-top-pad);
-        align-items: flex-start;
-    }
-}
-
 #demo-source {
     & .shiki {
         -webkit-user-select: text;
@@ -397,11 +319,6 @@ html[data-embed='true'][data-source='true'] {
         }
     }
 
-    & .demo-banner-match {
-        color: var(--color-accent);
-        text-decoration: underline;
-    }
-
     & .demo-banner-option.is-active .demo-banner-match,
     & .demo-banner-option:hover .demo-banner-match {
         color: #9ec5f8;
@@ -485,5 +402,103 @@ html[data-embed='true'][data-source='true'] {
         & .demo-banner-option:hover .demo-banner-match {
             color: #1a5fb4;
         }
+    }
+
+    /*
+     * Placed last: this single-class selector carries #demo-banner's ID
+     * contribution in Biome's specificity check, scoring higher than the
+     * two-class .demo-banner-option(.is-active|:hover) .demo-banner-match
+     * overrides above, so it must sort after them.
+     */
+    & .demo-banner-match {
+        color: var(--color-accent);
+        text-decoration: underline;
+    }
+}
+
+/*
+ * Shell mode (default): persistent banner + content iframe. The demo runs inside
+ * the iframe (?embed) so swapping demos tears down the engine with the frame.
+ */
+html[data-shell='true'] {
+    &,
+    & body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    /* Hide embed-only hosts until JS removes them (avoids a flash of canvas chrome). */
+    & #canvas-container,
+    & #demo-source {
+        display: none;
+    }
+
+    & #demo-frame {
+        display: block;
+        width: 100%;
+        height: calc(100dvh - var(--banner-height));
+        border: 0;
+        background: black;
+    }
+}
+
+/*
+ * Embed mode (?embed): lock to the viewport and hide the source panel so docs
+ * embeds on blit386.dev stay a pure canvas view. --banner-height is 0 here;
+ * the parent shell (when used) already reserved the banner.
+ *
+ * Shell iframe uses ?embed&source (data-source): same canvas sizing, but the
+ * Twoslash panel is visible below and the document scrolls inside the frame.
+ */
+html[data-embed='true'] {
+    &,
+    & body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    /* Hide shell chrome until JS removes it. */
+    & #demo-banner,
+    & #demo-frame,
+    & #channel-banner {
+        display: none;
+    }
+
+    & #demo-source {
+        display: none;
+    }
+
+    & #canvas-container {
+        --canvas-view-h: calc(100dvh - var(--banner-height));
+        height: var(--canvas-view-h);
+        padding-top: 0;
+        align-items: center;
+    }
+}
+
+html[data-embed='true'][data-source='true'] {
+    &,
+    & body {
+        height: auto;
+        min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    & #demo-source {
+        display: block;
+    }
+
+    /*
+     * Match the old shell page: canvas top-aligned under the toolbar.
+     * height:auto so the container hugs the canvas – the viewport-tall
+     * embed height would leave a gap above the source panel.
+     */
+    & #canvas-container {
+        --canvas-view-h: calc(100dvh - var(--banner-height) - var(--canvas-top-pad));
+
+        height: auto;
+        padding-top: var(--canvas-top-pad);
+        align-items: flex-start;
     }
 }
