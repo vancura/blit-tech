@@ -16,7 +16,7 @@
     "packages/demos/node_modules/.bin/eslint --fix --max-warnings 0",
     "sh -c 'cspell --no-progress --no-must-find-files --gitignore-root \"$(git rev-parse --show-toplevel)\" \"$@\"' --"
   ],
-  "packages/demos/{src/*.js,plugins/demo-order.js,plugins/demo-vintage-urls.js,plugins/demo-registry.js}": [
+  "packages/demos/{src/*.js,plugins/demo-order.js,plugins/demo-vintage-urls.js,plugins/demo-registry.js,README.md}": [
     "node packages/demos/scripts/check-demo-registry.mjs"
   ],
   "packages/{website,kit,create-blit386}/**/*.{ts,tsx,js,cjs,mjs}": [

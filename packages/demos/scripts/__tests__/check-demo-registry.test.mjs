@@ -6,7 +6,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { findDescriptionFailures, findOgScaleFailure, findVintageUrlFailures } from '../check-demo-registry.mjs';
+import {
+    extractReadmeDemoSlugs,
+    findDescriptionFailures,
+    findOgScaleFailure,
+    findReadmeListFailures,
+    findVintageUrlFailures,
+} from '../check-demo-registry.mjs';
 
 describe('findDescriptionFailures', () => {
     it('fails on a missing tag, and only that failure', () => {
@@ -147,5 +153,109 @@ describe('findVintageUrlFailures', () => {
 
         assert.equal(failures.length, 1);
         assert.match(failures[0], /no VINTAGE_URLS entry targets it/);
+    });
+});
+
+describe('extractReadmeDemoSlugs', () => {
+    it('reads entries out of the ## Demos section', () => {
+        const readme = [
+            '# Title',
+            '',
+            'Hosted site: [demos.blit386.dev](https://demos.blit386.dev/).',
+            '',
+            '## Demos',
+            '',
+            '### Drawing Basics',
+            '',
+            '- [basics](https://demos.blit386.dev/basics) - Engine basics',
+            '- [colors](https://demos.blit386.dev/colors) - Color32 deep dive',
+            '',
+            '## Shared UI kit',
+            '',
+            'Text mentioning [demos.blit386.dev](https://demos.blit386.dev) again.',
+        ].join('\n');
+
+        assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics', 'colors']);
+    });
+
+    it('ignores a bare-domain link in the intro before the heading', () => {
+        const readme = [
+            'Hosted site: [demos.blit386.dev](https://demos.blit386.dev/). Live URLs use a slug.',
+            '',
+            '## Demos',
+            '',
+            '- [basics](https://demos.blit386.dev/basics) - Engine basics',
+            '',
+            '## Shared UI kit',
+        ].join('\n');
+
+        assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics']);
+    });
+
+    it('ignores a bare-domain link after the ## Demos section ends', () => {
+        const readme = [
+            '## Demos',
+            '',
+            '- [basics](https://demos.blit386.dev/basics) - Engine basics',
+            '',
+            '## Browser and Renderer',
+            '',
+            'The splash plays on [demos.blit386.dev](https://demos.blit386.dev) too.',
+        ].join('\n');
+
+        assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics']);
+    });
+
+    it('returns an empty array when there is no ## Demos heading', () => {
+        assert.deepEqual(extractReadmeDemoSlugs('# Title\n\nNo demos section here.'), []);
+    });
+
+    it('preserves list order, including duplicates', () => {
+        const readme = [
+            '## Demos',
+            '',
+            '- [basics](https://demos.blit386.dev/basics) - Engine basics',
+            '- [basics](https://demos.blit386.dev/basics) - Engine basics again',
+        ].join('\n');
+
+        assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics', 'basics']);
+    });
+});
+
+describe('findReadmeListFailures', () => {
+    it('passes when disk and README agree exactly', () => {
+        const failures = findReadmeListFailures(['basics', 'colors'], ['basics', 'colors']);
+        assert.deepEqual(failures, []);
+    });
+
+    it('fails a disk slug missing from the README list', () => {
+        const failures = findReadmeListFailures(['basics', 'colors'], ['basics']);
+
+        assert.equal(failures.length, 1);
+        assert.match(failures[0], /src\/colors\.js is missing from the README\.md demo list/);
+    });
+
+    it('fails a README entry for a slug that does not exist on disk', () => {
+        const failures = findReadmeListFailures(['basics'], ['basics', 'ghost-demo']);
+
+        assert.equal(failures.length, 1);
+        assert.match(failures[0], /links to "ghost-demo" but src\/ghost-demo\.js is missing/);
+    });
+
+    it('fails a duplicated README entry for a live slug', () => {
+        const failures = findReadmeListFailures(['basics'], ['basics', 'basics']);
+
+        assert.equal(failures.length, 1);
+        assert.match(failures[0], /links to "basics" 2 times, expected exactly once/);
+    });
+
+    it('reports all three failure kinds together without cross-contamination', () => {
+        const failures = findReadmeListFailures(['basics', 'colors', 'sprites'], ['basics', 'basics', 'ghost-demo']);
+
+        assert.equal(failures.length, 4);
+        assert.ok(failures.some((message) => /src\/colors\.js is missing/.test(message)));
+        assert.ok(failures.some((message) => /src\/sprites\.js is missing/.test(message)));
+        assert.ok(failures.some((message) => /ghost-demo" but src\/ghost-demo\.js is missing/.test(message)));
+        assert.ok(failures.some((message) => /"basics" 2 times/.test(message)));
     });
 });
