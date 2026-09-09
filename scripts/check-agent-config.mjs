@@ -251,11 +251,11 @@ function readRuleNames(dir, extension) {
 
 /**
  * Verifies `.cursor/rules/*.mdc` and `.claude/rules/*.md` define the same set of rule names.
- * Mirrors are condensed summaries, not identical content – Cursor's `.mdc` frontmatter
- * (`description`/`globs`/`alwaysApply`) differs from Claude's `paths:` key – so this checks
+ * Mirrors are condensed summaries, not identical content - Cursor's `.mdc` frontmatter
+ * (`description`/`globs`/`alwaysApply`) differs from Claude's `paths:` key - so this checks
  * basename parity rather than file contents, matching the policy this check had before PR #434
  * removed it (it is intentionally scoped to whatever rule files exist on either side today,
- * not a fixed list – `.claude/rules/` has shrunk from 12 files to 2 since 2026-07 as most rule
+ * not a fixed list - `.claude/rules/` has shrunk from 12 files to 2 since 2026-07 as most rule
  * content migrated into CLAUDE.md, and this check tracks that count automatically).
  *
  * @param {string[]} cursorRuleNames Basenames (no extension) of `.cursor/rules/*.mdc`.
@@ -404,11 +404,11 @@ export function findProjectMcpFailures(mcpConfigContent, serverCardContent, root
 
 /**
  * Verifies `.cursor/mcp.json` declares the pinned `blit386-docs` server, using Cursor's own
- * schema for a remote server – which is not Claude's schema. `packages/kit/src/adapters.ts`
+ * schema for a remote server - which is not Claude's schema. `packages/kit/src/adapters.ts`
  * (`buildMcpConfig`) documents why: for Cursor a `type` field marks a *local stdio* server, so
  * a remote HTTP entry must omit it entirely, unlike the root `.mcp.json` (Claude Code), which
  * requires `"type": "http"`. This is why `.cursor/mcp.json` cannot be a symlink to the root
- * `.mcp.json` the way `.agents/skills/*` symlinks into `.claude/skills/*` – the two files are
+ * `.mcp.json` the way `.agents/skills/*` symlinks into `.claude/skills/*` - the two files are
  * shaped differently on purpose and would misconfigure one assistant or the other if unified.
  *
  * @param {string | null} cursorMcpContent Contents of `.cursor/mcp.json`, or `null` when missing.
