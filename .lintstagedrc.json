@@ -30,5 +30,6 @@
     "prettier --write",
     "sh -c 'cspell --no-progress --no-must-find-files --gitignore-root \"$(git rev-parse --show-toplevel)\" \"$@\"' --"
   ],
-  "*.{yaml,yml}": ["prettier --write"]
+  "*.{yaml,yml}": ["prettier --write"],
+  ".claude/skills/**/SKILL.md": ["node scripts/sync-cursor-commands.mjs"]
 }

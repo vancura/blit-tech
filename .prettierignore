@@ -44,3 +44,10 @@ vite.config.*.timestamp-*
 # Artifacts: not subject to this repo's format gate. The hand-authored hub
 # (content/docs/index.mdx) and root meta stay formatted.
 packages/website/content/docs/*/**
+
+# Cursor slash-command mirror (produced verbatim, minus frontmatter, from
+# .claude/skills/*/SKILL.md by scripts/sync-cursor-commands.mjs). The generator is the
+# single owner of this content; it does not re-wrap prose after re-relativizing links, so
+# Prettier's proseWrap can disagree with it on wrap points and make sync:cursor-commands:check
+# report drift on files nobody hand-edited.
+.cursor/commands/
