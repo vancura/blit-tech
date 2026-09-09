@@ -43,7 +43,7 @@ async init() {
 }
 ```
 
-Turn it off again (guard the same way – `this.crt` is never set on the software fallback):
+Turn it off again (guard the same way - `this.crt` is never set on the software fallback):
 
 ```js
 if (this.crt) {
@@ -55,8 +55,8 @@ BT.effectClear();
 
 ## Key calls
 
-- `BT.effectAdd(effect)` / `BT.effectRemove(effect)` / `BT.effectClear()` – methods.
-- Presets (functions on `BT.preset`): `BT.preset.crtPipBoy()`, `BT.preset.amber()`, `BT.preset.green()` – each returns a
+- `BT.effectAdd(effect)` / `BT.effectRemove(effect)` / `BT.effectClear()` - methods.
+- Presets (functions on `BT.preset`): `BT.preset.crtPipBoy()`, `BT.preset.amber()`, `BT.preset.green()` - each returns a
   fresh array of effects.
 - Effect classes you can construct, tweak, then `effectAdd`: display-tier `Scanlines`, `BarrelDistortion`, `Bloom`,
   `Vignette`, `RGBMask`, `ChromaticAberration`, `Noise`, `Flicker`, `Interference`, `RollLine`; pixel-tier
@@ -74,8 +74,8 @@ BT.effectAdd(lines);
 - Always gate effects behind `BT.activeBackend === 'webgpu'` so the game still runs on the software fallback. Keep
   starter games effect-free.
 - Gate on `BT.activeBackend`, **never** on `BT.requestedBackend`. `requestedBackend` is the backend you asked for, and
-  it still says `'webgpu'` even after the engine has quietly fallen back to Canvas 2D – so a guard built on it passes on
+  it still says `'webgpu'` even after the engine has quietly fallen back to Canvas 2D - so a guard built on it passes on
   exactly the machines it was meant to protect, and `BT.effectAdd` throws there.
-- Some effects animate from a `time` field – set `fx.time = BT.timeSeconds` each frame.
+- Some effects animate from a `time` field - set `fx.time = BT.timeSeconds` each frame.
 - Hold onto effect instances and reuse them; rebuilding every toggle re-allocates GPU pipelines.
 - Full effect reference lives in the engine repo (linked from `AGENTS.md`); the local docs do not cover every effect.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build the BLIT386 engine automatically when `packages/blit386/dist` is missing – the case for
+ * Build the BLIT386 engine automatically when `packages/blit386/dist` is missing - the case for
  * every freshly created checkout or git worktree, since `dist/` is gitignored and only a build
  * produces it. Shared by `packages/demos` and `packages/website`, which hit this in different
  * ways: `packages/demos/vite.config.js` imports `blit386/vite` at the top of the file,
@@ -11,18 +11,18 @@
  * self-heals instead of surfacing as a confusing "Cannot find module" error partway through
  * `git push`.
  *
- * Also rebuilds when `dist/` exists but is stale – newer than the checked-in build, but older than
+ * Also rebuilds when `dist/` exists but is stale - newer than the checked-in build, but older than
  * `packages/blit386/src`. The engine bundles from roughly 250 source files under `src/`, any one of
- * which can change the public API, so – unlike a single-entry proxy that could miss a change to a
- * file it doesn't happen to re-export through – the whole tree is walked for its newest mtime. That
+ * which can change the public API, so - unlike a single-entry proxy that could miss a change to a
+ * file it doesn't happen to re-export through - the whole tree is walked for its newest mtime. That
  * walk is still one `readdirSync` plus one `statSync` per file, not a build: on this codebase's
  * source tree it costs low single-digit milliseconds, negligible next to the seconds a real rebuild
  * takes, so it stays a fast no-op on every normal `demos`/`website` dev, build, test, or `knip` run.
  *
- * A no-op once the engine is built and fresh – one existsSync plus one small directory walk is the
+ * A no-op once the engine is built and fresh - one existsSync plus one small directory walk is the
  * only cost on every normal run.
  *
- * Concurrency-safe via `build-lock.mjs` – see that file's header for why (two processes racing this
+ * Concurrency-safe via `build-lock.mjs` - see that file's header for why (two processes racing this
  * script's TOCTOU check-then-build against a shared `dist/` intermittently corrupted each other's
  * output) and how (an exclusive, pid-backed lock directory).
  *
@@ -87,7 +87,7 @@ const main = () => {
             return;
         }
 
-        console.log('packages/blit386/dist is missing or stale – building the engine first...');
+        console.log('packages/blit386/dist is missing or stale - building the engine first...');
 
         const { command, args, cwd } = buildEngineBuildCommand();
         const result = spawnSync(command, args, { stdio: 'inherit', cwd });

@@ -1,6 +1,6 @@
 /**
  * Unit tests for the pure validation helpers behind `check-demo-registry.mjs`. This is a
- * CI / lint-staged gate, so it fails open if a rule stops actually rejecting bad input – these
+ * CI / lint-staged gate, so it fails open if a rule stops actually rejecting bad input - these
  * tests exist to prove each rule still rejects what it claims to.
  */
 import assert from 'node:assert/strict';
@@ -49,7 +49,7 @@ describe('findDescriptionFailures', () => {
     it('counts code points, not UTF-16 units, so an astral character counts once', () => {
         // U+20000 (a CJK Extension B ideograph) is a surrogate pair (2 UTF-16 units) but a
         // single code point. 102 code points plus one astral character plus the trailing period
-        // is exactly the 104-char ceiling – 104 code points, but 105 UTF-16 units. A buggy
+        // is exactly the 104-char ceiling - 104 code points, but 105 UTF-16 units. A buggy
         // UTF-16-based implementation would reject this as over the ceiling; the code-point-based
         // implementation must accept it.
         const description = `${'a'.repeat(102)}\u{20000}.`;
@@ -126,7 +126,7 @@ describe('findVintageUrlFailures', () => {
 
     it('fails a target that is both live and retired', () => {
         // Also trips "still exists on disk" from the RETIRED_SLUGS pass, since the same slug is
-        // both live and retired here – two failures are expected.
+        // both live and retired here - two failures are expected.
         const failures = findVintageUrlFailures({ 'old-demo': 'basics' }, new Set(['basics']), new Set(['basics']));
 
         assert.ok(failures.some((message) => /is both live on disk and listed in RETIRED_SLUGS/.test(message)));

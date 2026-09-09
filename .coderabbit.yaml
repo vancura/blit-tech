@@ -28,7 +28,7 @@
 # Banner blocks inside published engine docs (`<!-- blit386.dev-banner:start -->`
 # … `<!-- blit386.dev-banner:end -->`, owned by
 # `packages/blit386/scripts/sync-doc-banners.mjs`) are in-file regions, not whole
-# files — excluded via path_instructions below, not path_filters.
+# files - excluded via path_instructions below, not path_filters.
 #
 # Auto review is disabled by default. To enable it, add the `cr` label to the PR.
 reviews:
@@ -124,18 +124,18 @@ reviews:
         category; keep in sync with `plugins/demo-order.js` (`DEMO_ORDER`).
     - path: 'packages/website/src/**/*.{ts,tsx}'
       instructions: >-
-        Site TypeScript for the Fumapress/Waku docs site (React components, ServerPlugins, data loaders) – not the
+        Site TypeScript for the Fumapress/Waku docs site (React components, ServerPlugins, data loaders) - not the
         blit386 engine. Prefer `import type` for type-only imports; American English spelling (per root `CLAUDE.md`
         Shared conventions); no emoji anywhere. Lint/format with Biome (this package has no ESLint). Do not apply
         blit386-engine-only rules here (BTAPI access bans, Vector2i rendering coords, internal scoped naming) unless the
         change is documenting those APIs. Version-history UI (`Since`, `ApiAvailability`, `PageChangelog`) reads
-        `src/data/api-history.ts` over generated JSON – never invent symbols in the generated file; fix the engine and
+        `src/data/api-history.ts` over generated JSON - never invent symbols in the generated file; fix the engine and
         re-sync. Canonical detail: `packages/website/CLAUDE.md`.
     - path: 'packages/website/scripts/**'
       instructions: >-
         Build/CI helpers (`sync-docs-from-engine.mjs`, `watch-engine-docs.mjs`, `patch-wrangler.mjs`,
         `patch-html-title.mjs`, `encode-video.mjs`, `twoslash-config.mjs`) plus `scripts/__tests__`. The sync script is
-        MDX-aware and owns the Documentation mirror – it must not gain a hard-coded per-page list (publish set lives in
+        MDX-aware and owns the Documentation mirror - it must not gain a hard-coded per-page list (publish set lives in
         `packages/blit386/docs/_sitemap.json`). American English; no emoji; keep `pnpm run <script>` command forms
         accurate. Tests use `node --test` via `pnpm run test`.
     - path: 'packages/website/{press.config.tsx,source.config.ts,waku.config.ts}'
@@ -143,7 +143,7 @@ reviews:
         Site wiring: Fumapress plugins/layouts/`GLOBAL_HEAD` (`press.config.tsx`), fumadocs-mdx collections and Twoslash
         (`source.config.ts`), Waku/Vite plugins (`waku.config.ts`). MDX components used in engine docs must be
         registered in `fumadocsMdx({ getMdxComponents })`. The Twoslash gate lives in `isTwoslashEnabled()`
-        (`scripts/twoslash-config.mjs`) and covers `CLOUDFLARE`, `WORKERS_CI`, and `BLIT386_TWOSLASH` – do not re-inline
+        (`scripts/twoslash-config.mjs`) and covers `CLOUDFLARE`, `WORKERS_CI`, and `BLIT386_TWOSLASH` - do not re-inline
         an env check in `source.config.ts`, and do not "simplify" the adapter-var truthiness, which deliberately mirrors
         Waku's own `getDefaultAdapter()`. Dev stays off by default (`pnpm run dev:twoslash` is the opt-in); do not turn
         it on in `dev`, for the measured reasons in `packages/website/CLAUDE.md`, Twoslash. American English; no emoji.
@@ -153,7 +153,7 @@ reviews:
       instructions: >-
         Hand-authored MDX and meta (landing, showcase, community, mcp-server, blog, and docs hub pages such as
         `content/docs/index.mdx`, `getting-started.mdx`, `faq.mdx`, plus root/docs `meta.json`). Generated engine-mirror
-        pages under `content/docs/{api,guides,performance,reference}/` are path-filtered out – if they appear anyway, do
+        pages under `content/docs/{api,guides,performance,reference}/` are path-filtered out - if they appear anyway, do
         not suggest hand-edits; point at `packages/blit386/docs/` + `pnpm run sync:docs`. Required frontmatter includes
         `title`; American English; no emoji. After link changes, `pnpm run docs:links`. Custom MDX components must be
         registered in `press.config.tsx`. Canonical detail: `packages/website/CLAUDE.md` "What is hand-authored and what
@@ -186,19 +186,19 @@ reviews:
       instructions: >-
         Scaffold output for end-user games. Keep beginner-friendly comments (explain what and why). Integer coordinates
         via `Vector2i` / `Rect2i`; use the `BT` namespace, never `BTAPI`. Do NOT apply library-only TypeScript
-        conventions (no `any` bans, named-export rules, etc.) to generated game files – JS is the default; the TS
+        conventions (no `any` bans, named-export rules, etc.) to generated game files - JS is the default; the TS
         Catcher layer is intentionally approachable. Placeholders are `{{entryFile}}`, `{{gameFile}}`, `{{kitVersion}}`,
         `{{packageName}}`, `{{pmInstall}}`, `{{pmRunBuild}}`, `{{pmRunDev}}`, and `{{projectName}}` tokens; unknown
         tokens must stay visible if mis-typed. Kit `AGENTS.md` / `docs/` are copied verbatim elsewhere (no placeholder
-        substitution) – do not introduce `{{gameFile}}` into those kit files from a template-only change. Canonical
+        substitution) - do not introduce `{{gameFile}}` into those kit files from a template-only change. Canonical
         detail: `packages/create-blit386/.claude/rules/template-structure.md`.
     - path: 'packages/kit/content/**'
       instructions: >-
         Canonical kit IR shipped into every scaffolded game (`AGENTS.md`, `docs/`, `rules/`, `skills/`, hooks,
         `hooks.manifest.json`). American English; no emoji; beginner-friendly prose. Self-contained: reference only
-        `blit386` and other local kit files – never `blit386-demos` slugs or URLs. `AGENTS.md` and `docs/` are copied
+        `blit386` and other local kit files - never `blit386-demos` slugs or URLs. `AGENTS.md` and `docs/` are copied
         byte-for-byte (no `{{placeholder}}` substitution), so spell out both `src/game.js` and `src/game.ts`. Skills and
-        rules are discovered by directory scan – adding a skill folder is enough; nothing registers a skill by name.
+        rules are discovered by directory scan - adding a skill folder is enough; nothing registers a skill by name.
         Keep public `BT` / `configure()` names aligned with the sibling blit386 engine. Canonical detail:
         `packages/kit/CLAUDE.md` "Kit content vs engine docs" and root `.claude/rules/docs-sync-required.md`.
     - path: 'packages/{create-blit386,kit}/CLAUDE.md'

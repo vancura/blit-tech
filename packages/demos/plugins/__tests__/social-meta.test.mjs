@@ -1,7 +1,7 @@
 /**
  * Unit tests for the social/SEO head block builder.
  *
- * `buildSocialMeta` is pure (no fs, no process.env – channel state is passed in), so every
+ * `buildSocialMeta` is pure (no fs, no process.env - channel state is passed in), so every
  * case here is a plain string assertion.
  */
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ import { buildSocialMeta, OG_IMAGE_FALLBACK, OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } f
 
 const ENTRY = {
     slug: 'palette-cycling',
-    title: 'BLIT386 Demo – Palette Cycling',
+    title: 'BLIT386 Demo - Palette Cycling',
     navLabel: 'Palette Cycling',
     description: 'Classic retro color rotation with BT.paletteCycle: rotate palette slots to make a still image flow.',
 };
@@ -70,7 +70,7 @@ describe('buildSocialMeta', () => {
         assert.match(html, /&#39;s &lt;em&gt;bold&lt;\/em&gt; &amp; &quot;quoted&quot;/);
 
         // No raw markup may survive into any content= attribute. The JSON-LD block is exempt
-        // and checked separately below – escaping it would break every parser.
+        // and checked separately below - escaping it would break every parser.
         const attributeValues = [...html.matchAll(/content="([^"]*)"/g)].map((match) => match[1]);
         assert.ok(attributeValues.length > 0);
 
@@ -161,14 +161,14 @@ describe('buildSocialMeta', () => {
 
     it('builds the image alt from the title, so a branded navLabel cannot garble it', () => {
         // navLabel is derived and its shape has moved before: it used to keep the "BLIT386
-        // Demo – " prefix on the four demos with a @pageTitle override, until #516 (BT-465).
+        // Demo - " prefix on the four demos with a @pageTitle override, until #516 (BT-465).
         // The alt text should not care either way.
         const html = buildSocialMeta({
-            entry: { ...ENTRY, title: 'BLIT386 Demo – PipBoy CRT', navLabel: 'BLIT386 Demo – PipBoy CRT' },
+            entry: { ...ENTRY, title: 'BLIT386 Demo - PipBoy CRT', navLabel: 'BLIT386 Demo - PipBoy CRT' },
             hasOgImage: true,
         });
 
-        assert.ok(html.includes('content="Screenshot of BLIT386 Demo – PipBoy CRT."'));
+        assert.ok(html.includes('content="Screenshot of BLIT386 Demo - PipBoy CRT."'));
         assert.ok(!html.includes('demo running in BLIT386'));
     });
 

@@ -6,7 +6,7 @@ interface ChannelBannerProps {
 
 /**
  * Shown only on the `next.blit386.dev` preview channel (see `IS_NEXT_CHANNEL` in
- * `press.config.tsx`) – this build tracks unreleased work and may document features that
+ * `press.config.tsx`) - this build tracks unreleased work and may document features that
  * have not shipped to npm yet.
  */
 export function ChannelBanner({ productionUrl }: ChannelBannerProps) {

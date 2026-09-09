@@ -19,7 +19,7 @@ import { classifyFile, generateClaudeAdapter, generateCursorAdapter, kitRoot } f
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** The website's published server card – the canonical definition these adapters mirror. */
+/** The website's published server card - the canonical definition these adapters mirror. */
 const SERVER_CARD_PATH = join(here, '..', '..', 'website', 'public', '.well-known', 'mcp', 'server-card.json');
 
 /** `packages/website` is not part of the published kit tarball, so skip rather than throw outside the monorepo. */
@@ -57,7 +57,7 @@ test('the emitted MCP configs match the website server card', { skip: !hasServer
 
     // The two entries differ by one key on purpose. Claude Code skips a remote entry that has a `url`
     // but no `type`; for Cursor a `type` marks a local stdio server and would misread this one. Do not
-    // "harmonize" the shapes to make this test pass – fix the adapter instead.
+    // "harmonize" the shapes to make this test pass - fix the adapter instead.
     assert.equal(card.transport.type, 'streamable-http');
     assert.equal(claude.mcpServers[name].type, 'http', 'Claude Code needs the http alias of streamable-http');
     assert.ok(!('type' in cursor.mcpServers[name]), 'Cursor infers the transport from url; a type would mark stdio');

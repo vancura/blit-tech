@@ -113,7 +113,7 @@ describe('computeTimingChartTagTickY and computeTimingChartTagLabelY', () => {
  * Live groups from a {@link TimingChartTagGroupScratch}: `groups[0..groupCount)`, the same slice
  * consumers must respect (the pool beyond `groupCount` still holds prior calls' descriptors).
  *
- * @param scratch – Scratch mutated by {@link groupTimingChartTagsByColumn}.
+ * @param scratch - Scratch mutated by {@link groupTimingChartTagsByColumn}.
  * @returns The live group prefix.
  */
 function liveGroups(scratch: TimingChartTagGroupScratch): TimingChartTagColumnGroup[] {
@@ -201,7 +201,7 @@ describe('groupTimingChartTagsByColumn', () => {
 
         const pooledDescriptors = [...scratch.groups];
 
-        // A quieter frame with a single tag, then an empty frame – both shorter than the pool's
+        // A quieter frame with a single tag, then an empty frame - both shorter than the pool's
         // current capacity.
         groupTimingChartTagsByColumn([{ label: 'D', tick: 4, sampleIndex: 4 }], 10, 100, scratch);
         groupTimingChartTagsByColumn([], 10, 100, scratch);

@@ -10,13 +10,13 @@ description:
 # Use random
 
 `BT.random` is the engine's random number generator. It does everything `Math.random()` does, plus the things games
-actually need – pick from a list, shuffle, weighted drops, a random direction – and it can be seeded so a run plays out
+actually need - pick from a list, shuffle, weighted drops, a random direction - and it can be seeded so a run plays out
 identically every time.
 
 ## When to use
 
 Use for spawn positions, enemy choice, loot drops, damage rolls, screen shake, shuffling a deck, scattering stars, or
-any "pick something at random". Also use when the user wants a daily challenge, a shareable level code, or a replay –
+any "pick something at random". Also use when the user wants a daily challenge, a shareable level code, or a replay -
 anything where the same seed must produce the same game.
 
 For terrain, caves, clouds, or procedural textures, use the `use-noise` skill instead. That is a different tool: `noise`
@@ -48,7 +48,7 @@ update() {
 ```
 
 `int` and `intInclusive` give you whole numbers already, so they are safe to use as screen coordinates directly. `float`
-is not – round it with `Math.floor` before drawing.
+is not - round it with `Math.floor` before drawing.
 
 ## Picking and shuffling
 
@@ -75,7 +75,7 @@ const heading = BT.random.angle(); // 0..2*PI radians
 const shake = BT.random.gaussian(0, 2); // clustered near 0, occasionally far
 ```
 
-`gaussian` is the one to reach for when "mostly small, sometimes big" looks better than an even spread – screen shake,
+`gaussian` is the one to reach for when "mostly small, sometimes big" looks better than an even spread - screen shake,
 scatter, enemy speed variation.
 
 ## Same seed, same game
@@ -119,13 +119,13 @@ A `Random` instance has exactly the same methods as `BT.random`. Useful extras w
 
 ## Notes
 
-- Prefer `BT.random` over `Math.random()` everywhere. Same convenience, plus seeding – there is no reason to keep the
+- Prefer `BT.random` over `Math.random()` everywhere. Same convenience, plus seeding - there is no reason to keep the
   built-in one.
 - `BT.random` is a getter with no parentheses; `BT.randomSeed(n)` is a method with them.
 - Draw random values in `update()`, not `render()`. `render()` can run a different number of times per update, so
   rolling there makes things flicker and breaks reproducibility.
 - In a per-frame loop over many items, `insideRectTo(rect, out)` and `pointInRangeTo(min, max, out)` write into a
-  `Vector2i` you already own instead of making a new one each call – see the `keep-it-fast` skill.
+  `Vector2i` you already own instead of making a new one each call - see the `keep-it-fast` skill.
 - Ranges are half-open where you would expect: `int(1, 5)` never returns `5`. Use `intInclusive(1, 5)` when you want it
   to. Inverted or empty ranges throw rather than returning nonsense.
 - Needs blit386 `^1.5.0`.

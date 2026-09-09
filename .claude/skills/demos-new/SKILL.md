@@ -23,18 +23,18 @@ The text after `/demos-new` is the topic. It becomes the kebab-cased slug (`spri
 ### 1. Pick the slug
 
 Number-free kebab-case, derived from the topic: `sprite-trails`, `audio-buses`, `basics`. The first path segment must
-start with a letter – numeric prefixes such as `001-sprite-trails` are rejected by the registry check. Confirm the slug
+start with a letter - numeric prefixes such as `001-sprite-trails` are rejected by the registry check. Confirm the slug
 is free with `ls packages/demos/src/*.js` and check it does not collide with a retired or vintage path in
 `packages/demos/plugins/demo-vintage-urls.js`.
 
 ### 2. Create packages/demos/src/<slug>.js
 
 Every demo except `flurry` (the immersive screensaver with no demo HUD) uses the shared UI kit for on-screen panels and
-touch controls – `packages/demos/CLAUDE.md` forbids hand-rolling panels, buttons, or HUD text colors, and requires the
+touch controls - `packages/demos/CLAUDE.md` forbids hand-rolling panels, buttons, or HUD text colors, and requires the
 demo to be usable on touch. Start from this shape:
 
 ```js
-// Demo Topic – one-sentence summary of what this shows.
+// Demo Topic - one-sentence summary of what this shows.
 //
 // What you will see:
 //   - ...
@@ -94,7 +94,7 @@ class Demo {
     ui.kv('Ticks', BT.ticks);
     ui.end();
 
-    // Optional – only when this demo's input model includes directional controls
+    // Optional - only when this demo's input model includes directional controls
     // (movement, aim, menu navigation). Keep the call outside begin/end so the
     // touch D-pad sits as its own overlay; it appears after the first touch contact.
     // ui.dpadWidget();
@@ -114,11 +114,11 @@ bootstrap(Demo);
   dragging that would land on a widget). Read `packages/demos/src/shared/ui.js` and a recent demo such as
   `packages/demos/src/synth-toy.js` for the full pattern.
 - Widget identity is the label; pass `{ id }` when two widgets in one frame share a label.
-- Keyboard `{ key }` bindings are edge-safe because `ui.tick()` runs in `update()` – never read `BT.isKeyPressed` from
+- Keyboard `{ key }` bindings are edge-safe because `ui.tick()` runs in `update()` - never read `BT.isKeyPressed` from
   `render()`.
-- The page title defaults to `BLIT386 Demo – Title Cased Topic`. Only add a `// @pageTitle Custom Title` comment (in the
+- The page title defaults to `BLIT386 Demo - Title Cased Topic`. Only add a `// @pageTitle Custom Title` comment (in the
   first ~20 lines) when that default is wrong for the demo.
-- **Required:** a `@description` tag in the header – one line, 60–104 characters, ending in a period, within the first
+- **Required:** a `@description` tag in the header - one line, 60-104 characters, ending in a period, within the first
   ~20 lines. It becomes the page's meta description and `og:description`, so write the sentence you would want to read
   under a shared link, not a restatement of the title. `check:demo-registry` fails without it and enforces every one of
   those rules, the 60-character floor included, so a short placeholder will not pass:
@@ -129,7 +129,7 @@ bootstrap(Demo);
 
 - Optional: `// @ogScale fit` or `// @ogScale integer` overrides how this demo's OpenGraph card is framed. The default
   (`auto`) scales by a whole number when that already fills the card and fills the frame otherwise, which suits nearly
-  every demo – only add the tag after looking at the captured card.
+  every demo - only add the tag after looking at the captured card.
 - If the demo builds on earlier ones, list them as prerequisites in the header comment the way existing demos do (slug
   plus hosted URL).
 
@@ -140,7 +140,7 @@ that array, not from disk order or the filename, and `check:demo-registry` fails
 only soft-appended after the ordered entries.
 
 No `vite.config.js` edit, HTML file, or vintage-map entry is needed for a brand-new slug. Only a **rename** needs
-`plugins/demo-vintage-urls.js` updated – repoint the vacated slug and add a mapping for the old public path so bookmarks
+`plugins/demo-vintage-urls.js` updated - repoint the vacated slug and add a mapping for the old public path so bookmarks
 keep working.
 
 ### 4. Write beginner-friendly comments
@@ -152,8 +152,8 @@ see `packages/demos/CLAUDE.md` (Documentation Style) for the full rules.
 
 ### 5. Verify it runs
 
-- `pnpm run check:demo-registry` (from `packages/demos`) – confirms disk, order, vintage, and nav-hidden sets agree.
-- `pnpm run check:demo-comment-links` (from `packages/demos`) – catches a dead `vancura.dev` link, or a
+- `pnpm run check:demo-registry` (from `packages/demos`) - confirms disk, order, vintage, and nav-hidden sets agree.
+- `pnpm run check:demo-comment-links` (from `packages/demos`) - catches a dead `vancura.dev` link, or a
   `Prerequisites:`/`Guide:` link to a docs page or demo slug that does not actually exist.
 - `pnpm run dev`, then open `/demos/<slug>.html` and exercise the demo by hand. Demo content has no automated tests;
   `scripts/*.mjs` tooling does (see `/test demos`).
@@ -162,7 +162,7 @@ see `packages/demos/CLAUDE.md` (Documentation Style) for the full rules.
 ### 6. Update the docs
 
 Add the demo to the `## Demos` list in `packages/demos/README.md` under the right category (Drawing Basics, Input,
-Audio, Palette System, …), matching the existing `- [slug](https://demos.blit386.dev/slug) – description` format. Hosted
+Audio, Palette System, …), matching the existing `- [slug](https://demos.blit386.dev/slug) - description` format. Hosted
 URLs are flat: no `/demos/` prefix, no `.html`. `blit386-demos.vancura.dev` is a dead host and must never appear in a
 link.
 
@@ -176,7 +176,7 @@ emoji, per project rules.
 - Plain JavaScript only (ES2022, no TypeScript).
 - Number-free kebab-case slug; numeric prefixes are rejected.
 - Every new demo must be appended to `DEMO_ORDER`.
-- Use the shared UI kit – never hand-roll panels, buttons, or HUD text colors (`flurry` is the only intentional
+- Use the shared UI kit - never hand-roll panels, buttons, or HUD text colors (`flurry` is the only intentional
   exception: no demo HUD).
 - Every demo must be usable on touch: key-triggered actions also get a `ui.button` with a `{ key }` binding, and
   directional input also gets `ui.dpadWidget()` / `ui.swipe()`.

@@ -1,7 +1,7 @@
 /**
  * Minimal ambient module declaration for `pngjs`, which ships no types of its own and has no
  * `@types` package in this monorepo. Covers only the small surface tests use (real PNG
- * encode/decode for pixel-dimension regression tests) – not a full API surface.
+ * encode/decode for pixel-dimension regression tests) - not a full API surface.
  */
 declare module 'pngjs' {
     /** Options accepted by the `PNG` constructor. */
@@ -20,7 +20,7 @@ declare module 'pngjs' {
             /**
              * Decodes a PNG file buffer.
              *
-             * @param buffer – Raw PNG file bytes.
+             * @param buffer - Raw PNG file bytes.
              * @returns Decoded image with `width`, `height`, and RGBA `data`.
              */
             read: (buffer: Buffer) => PNG;
@@ -28,7 +28,7 @@ declare module 'pngjs' {
             /**
              * Encodes a `PNG` instance to PNG file bytes.
              *
-             * @param png – Image with `width`, `height`, and RGBA `data` set.
+             * @param png - Image with `width`, `height`, and RGBA `data` set.
              * @returns Encoded PNG file bytes.
              */
             write: (png: PNG) => Buffer;

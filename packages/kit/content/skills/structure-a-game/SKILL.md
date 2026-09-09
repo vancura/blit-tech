@@ -8,7 +8,7 @@ description:
 
 # Structure a game
 
-BLIT386 draws pixels, reads input, and plays sound. It does NOT include physics, collision, enemies, or a scene system –
+BLIT386 draws pixels, reads input, and plays sound. It does NOT include physics, collision, enemies, or a scene system -
 you write that game logic yourself. This skill shows the shape to put it in.
 
 ## When to use
@@ -64,6 +64,6 @@ if (this.player.isIntersecting(this.coin)) {
 - The engine runs on WebGPU and falls back to plain Canvas 2D, so a game always renders. Only fullscreen post-process
   effects need WebGPU (see the add-crt-effect skill); sound works on both.
 - Optional `onHotReload(context)` can restore fields after an `init()` edit while the Vite plugin keeps the session
-  alive – see the use-hot-reload skill and `docs/hot-reload.md`.
+  alive - see the use-hot-reload skill and `docs/hot-reload.md`.
 
 See `docs/basics.md`.

@@ -77,15 +77,15 @@ export type ReadManifestEntry = LegacyOptional<ManifestEntry, 'kitVersion'>;
  * `BlitManifest` as read back from disk.
  *
  * The reader must accept manifests written by any released scaffolder, so fields that arrived after
- * the format did are optional here. Deriving that from the written shape – rather than declaring a
- * second, hand-maintained interface – is what keeps the two halves honest: a field added to
+ * the format did are optional here. Deriving that from the written shape - rather than declaring a
+ * second, hand-maintained interface - is what keeps the two halves honest: a field added to
  * `BlitManifest` is required of every writer and simultaneously visible to the reader.
  *
  * This is also the shape `sync` and `add` write, not just read, and the two widened root fields are
  * treated differently on the way out. `createdAt` is copied across only when the manifest they read
  * had it, so a legacy manifest never gains a fabricated creation timestamp. `vars` is copied across
  * when present but *backfilled* when absent: `sync` resolves it from `fallbackVars` and writes it
- * back, so a legacy manifest gains `vars` on its first sync – deliberately, so the package manager
+ * back, so a legacy manifest gains `vars` on its first sync - deliberately, so the package manager
  * is detected once rather than re-detected on every run. `add` backfills the same way, but only on
  * the path where it completes: a generated file colliding with an untracked user file aborts it
  * before the manifest is touched at all.

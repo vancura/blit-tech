@@ -33,17 +33,17 @@
 // WHY FADING UP LOOKS DIFFERENT FROM FADING DOWN
 //
 // The two directions are not simple reverses of each other, and that is on
-// purpose. Every color's start time is set by how bright its LIT end is – but
+// purpose. Every color's start time is set by how bright its LIT end is - but
 // which end counts as "lit" depends on which way the fade is going:
 //
-//   Fading up   – timed by where each color is headed. A color heading toward
+//   Fading up   - timed by where each color is headed. A color heading toward
 //                 white starts rising almost at once and arrives early. A color
 //                 heading toward near-black waits, then rushes to catch up.
-//   Fading down – timed by where each color started. A color that started bright
+//   Fading down - timed by where each color started. A color that started bright
 //                 keeps its brightness for a while before it begins to dim. A
 //                 color that started dark begins dropping right away.
 //
-// Same rule both times – "the brightest end of the trip gets the head start" –
+// Same rule both times - "the brightest end of the trip gets the head start" -
 // just pointed at a different end of the trip. That is why, on the way up, the
 // shadows are the ones that wait; on the way down, the fireball is the one that
 // waits instead.
@@ -54,8 +54,8 @@
 // moment, and take the SAME two seconds. The only thing that differs is which
 // fade drives them:
 //
-//   Left  – BT.paletteFadeRange(), the plain "mix the numbers" fade
-//   Right – BT.paletteFadeExposure(), the camera-style fade
+//   Left  - BT.paletteFadeRange(), the plain "mix the numbers" fade
+//   Right - BT.paletteFadeExposure(), the camera-style fade
 //
 // So anything you see differing between the halves comes from the curve alone.
 //
@@ -63,7 +63,7 @@
 //
 // The picture is a real image file: public/sprites/mushroom-cloud.png, a 231x240
 // painting of an explosion lighting up a canyon. It is drawn with exactly twelve
-// different colors, and it happens to hold both extremes this demo needs – a
+// different colors, and it happens to hold both extremes this demo needs - a
 // blazing white-hot cloud at the top and near-black rock in the shadows.
 //
 // Getting it onto the screen takes three steps:
@@ -78,7 +78,7 @@
 //
 // After that, one BT.drawSprite() call draws the image as it is, reading slots
 // 1..12. A second call draws the very same image with a palette offset of 15,
-// which adds 15 to every pixel's slot number as it is drawn – so the identical
+// which adds 15 to every pixel's slot number as it is drawn - so the identical
 // pixels read slots 16..27 instead. Same picture, second set of colors, and no
 // second copy of the image in memory. We met that trick in the Sprite Effects
 // demo: https://demos.blit386.dev/sprite-effects
@@ -89,9 +89,9 @@
 // list. If both fades wrote into the same slots they would fight over them, and
 // the last one to run each frame would win. So each half owns its own slots:
 //
-//   Slots 1..12   – the right half's picture (the exposure fade)
-//   Slots 16..27  – the left half's picture (the plain fade)
-//   Slots 240..251 – the shared UI panel colors (neither fade touches these)
+//   Slots 1..12   - the right half's picture (the exposure fade)
+//   Slots 16..27  - the left half's picture (the plain fade)
+//   Slots 240..251 - the shared UI panel colors (neither fade touches these)
 //
 // BT.paletteFadeRange(start, end, ...) already takes a slot range, so the left
 // half is easy. For the right half we use a trick the engine supports on
@@ -107,17 +107,17 @@
 // holds the exposure fade's slots 1..12 and the second row holds the plain fade's
 // 16..27, one group directly above the other, so during a fade you can see the
 // first group's bright slots run ahead of the second group while its dark slots
-// lag behind – the whole point of the effect, as raw numbers.
+// lag behind - the whole point of the effect, as raw numbers.
 //
 // Press ~ (or tap the symbol in the bottom-left corner) to close the overlay and
 // watch just the pictures.
 //
 // WHAT YOU WILL SEE:
 //   An explosion over a canyon, drawn twice. The cycle repeats forever:
-//   1. Fade up from black – 2 seconds
-//   2. Hold, fully lit    – 1.5 seconds
-//   3. Fade down to black – 2 seconds
-//   4. Hold, dark         – 1 second
+//   1. Fade up from black - 2 seconds
+//   2. Hold, fully lit    - 1.5 seconds
+//   3. Fade down to black - 2 seconds
+//   4. Hold, dark         - 1 second
 //   On the way up, the right fireball lights before the left one and the right
 //   shadows stay black longer. On the way down, the right fireball is still
 //   glowing after the left one has gone gray, and the right shadows die first.
@@ -166,7 +166,7 @@ const SPRITE_URL = '/sprites/mushroom-cloud.png';
 // The right half's slots. Slot 0 is always transparent, so scene colors start at 1.
 const EXP_FIRST_SLOT = 1;
 
-// The left half's slots. Just above the exposure target's 16 slots – the exposure
+// The left half's slots. Just above the exposure target's 16 slots - the exposure
 // fade's own reach stops at slot 15, so this is out of its way.
 const PLAIN_FIRST_SLOT = 16;
 
@@ -193,7 +193,7 @@ const HALF_WIDTH = 240;
 const TITLE_Y = 44;
 const SCENE_TOP = 62;
 
-// The picture's own height in pixels – mushroom-cloud.png is 231x240, and the rows
+// The picture's own height in pixels - mushroom-cloud.png is 231x240, and the rows
 // below it are stacked from this number. init() checks the loaded image against it
 // and complains in the console if the art is ever swapped for a different size.
 const SCENE_HEIGHT = 240;
@@ -210,9 +210,9 @@ const PANEL_Y = RAMP_TOP + RAMP_HEIGHT + 6;
 /**
  * Copies a list of colors into a palette, starting at `firstSlot`.
  *
- * @param {Palette} palette – Palette to fill.
- * @param {number} firstSlot – Slot that receives the first color of the list.
- * @param {readonly Color32[]} colors – Colors to write, in order.
+ * @param {Palette} palette - Palette to fill.
+ * @param {number} firstSlot - Slot that receives the first color of the list.
+ * @param {readonly Color32[]} colors - Colors to write, in order.
  */
 function fillColors(palette, firstSlot, colors) {
     for (let i = 0; i < colors.length; i++) {
@@ -223,9 +223,9 @@ function fillColors(palette, firstSlot, colors) {
 /**
  * Writes plain black into a run of slots, for the "faded out" target.
  *
- * @param {Palette} palette – Palette to fill.
- * @param {number} firstSlot – First slot of the run.
- * @param {number} count – How many slots to blacken.
+ * @param {Palette} palette - Palette to fill.
+ * @param {number} firstSlot - First slot of the run.
+ * @param {number} count - How many slots to blacken.
  */
 function fillBlack(palette, firstSlot, count) {
     for (let i = 0; i < count; i++) {
@@ -316,7 +316,7 @@ class Demo {
             overlayPaletteRowsVisible: 2,
             overlayPaletteColumns: 15,
 
-            // The overlay defaults to drawing itself with slots 1 and 2 – which in
+            // The overlay defaults to drawing itself with slots 1 and 2 - which in
             // this demo are two of the picture's colors, and fade to black along with
             // everything else. So point it at the shared UI theme colors instead,
             // which neither fade can reach. configure() runs before init(), so the
@@ -344,7 +344,7 @@ class Demo {
         // the whole way through.
         this.theme = applyTheme(this.palette);
 
-        // The exposure fade's targets are small on purpose – see the header comment.
+        // The exposure fade's targets are small on purpose - see the header comment.
         // Reading the PNG's colors straight into this one kills two birds: it becomes
         // the "fully lit" target for the right half, AND the palette we hand to
         // indexize() below, which is what decides that pixel colors become slots
@@ -444,7 +444,7 @@ class Demo {
         BT.clear(this.theme.shadow);
 
         // Left half: the plain fade. Right half: the exposure fade. The same sprite
-        // both times – only the run of palette slots it reads differs.
+        // both times - only the run of palette slots it reads differs.
         this.renderScene(0, PLAIN_FIRST_SLOT);
         this.renderScene(HALF_WIDTH, EXP_FIRST_SLOT);
 
@@ -457,7 +457,7 @@ class Demo {
         ui.begin(UI_ANCHORS.TOP_LEFT, { y: PANEL_Y });
         ui.panel('Exposure Fade');
 
-        // Dragging this changes the next fade, not the one already running – a fade
+        // Dragging this changes the next fade, not the one already running - a fade
         // captures its settings the moment it starts.
         this.highlightLead = ui.slider('Highlight lead', this.highlightLead, { min: 0, max: 0.95, width: 456 });
 
@@ -508,8 +508,8 @@ class Demo {
     /**
      * Starts both fades on the same frame with the same duration and easing.
      *
-     * @param {Palette} plainTarget – Where the left half's colors should end up.
-     * @param {Palette} exposureTarget – Where the right half's colors should end up.
+     * @param {Palette} plainTarget - Where the left half's colors should end up.
+     * @param {Palette} exposureTarget - Where the right half's colors should end up.
      */
     startFades(plainTarget, exposureTarget) {
         // Left half: the plain fade, limited to the slots the left picture uses.
@@ -525,8 +525,8 @@ class Demo {
     /**
      * Moves to the next step of the cycle once the current one has run long enough.
      *
-     * @param {number} elapsed – Ticks since this step started.
-     * @param {number} tick – The current tick.
+     * @param {number} elapsed - Ticks since this step started.
+     * @param {number} tick - The current tick.
      */
     advancePhaseIfExpired(elapsed, tick) {
         const current = PHASE_TRANSITIONS[this.phase];
@@ -562,8 +562,8 @@ class Demo {
     /**
      * Draws one copy of the picture, plus the swatch strip under it.
      *
-     * @param {number} originX – Left edge of this half of the screen.
-     * @param {number} firstSlot – Slot holding the picture's first (darkest) color.
+     * @param {number} originX - Left edge of this half of the screen.
+     * @param {number} firstSlot - Slot holding the picture's first (darkest) color.
      */
     renderScene(originX, firstSlot) {
         // Every pixel of the image stores a slot number counted from EXP_FIRST_SLOT.
@@ -586,8 +586,8 @@ class Demo {
      * gaps by the same share at once, while the exposure fade lets the right-hand
      * swatches lead and the left-hand ones lag.
      *
-     * @param {number} originX – Left edge of this half of the screen.
-     * @param {number} firstSlot – Slot holding the picture's first (darkest) color.
+     * @param {number} originX - Left edge of this half of the screen.
+     * @param {number} firstSlot - Slot holding the picture's first (darkest) color.
      */
     renderRamp(originX, firstSlot) {
         // Share the width evenly between the swatches, then center the whole strip.

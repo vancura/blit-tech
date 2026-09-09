@@ -29,7 +29,7 @@ const noopTarget = {
     drawLabelOnTop: () => {},
 };
 
-/** Minimal bitmap font stand-in – benchmarked helpers only read `lineHeight`. */
+/** Minimal bitmap font stand-in - benchmarked helpers only read `lineHeight`. */
 const noopFont = { lineHeight: 14 } as BitmapFont;
 
 const displayWidth = 480;

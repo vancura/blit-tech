@@ -15,8 +15,8 @@ BLIT386 Demos depends on BLIT386 via a pnpm workspace dependency:
 ```
 
 BLIT386 is published to npm, but this package intentionally depends on `blit386` via `workspace:*` so the demos can
-track the local engine source during development. Both packages live in this same `blit386` monorepo –
-`packages/blit386` and `packages/demos` – wired together by the root `pnpm-workspace.yaml`, so a single clone and
+track the local engine source during development. Both packages live in this same `blit386` monorepo -
+`packages/blit386` and `packages/demos` - wired together by the root `pnpm-workspace.yaml`, so a single clone and
 `pnpm install` gets you both, already linked.
 
 ## Browser and Renderer
@@ -49,7 +49,7 @@ cd blit386
 pnpm install
 ```
 
-That single install resolves every package in the workspace, including the `demos` -> `blit386` `workspace:*` link – no
+That single install resolves every package in the workspace, including the `demos` -> `blit386` `workspace:*` link - no
 manual `pnpm-workspace.yaml` or second clone needed.
 
 ## Directory Structure
@@ -83,7 +83,7 @@ Prerequisite: Node.js >= 22.18.0 (`engines` in the root `package.json`).
 
 The first `pnpm run dev`, `build`, `preview`, or `knip` in a fresh checkout or worktree builds the BLIT386 engine
 automatically if `packages/blit386/dist` is missing, so that first run may take a little longer than usual. There is no
-need to run `pnpm --filter blit386 run build` by hand first – the commands below already handle it.
+need to run `pnpm --filter blit386 run build` by hand first - the commands below already handle it.
 
 ### Standard Development
 
@@ -112,7 +112,7 @@ This runs two processes concurrently:
   run `pnpm run build` in `packages/blit386` again
 - Runs the Vite dev server; a method-only edit to a demo's own `src/<slug>.js` hot-swaps in place (state kept), while an
   edit to `init()`/the constructor re-initializes instead, and a `configure()` hardware-setting change still forces a
-  full reload – see [CLAUDE.md](../CLAUDE.md#hot-reload) for the full tier breakdown
+  full reload - see [CLAUDE.md](../CLAUDE.md#hot-reload) for the full tier breakdown
 
 ## Building from Scratch
 
@@ -131,12 +131,12 @@ Then the demos will use the newly built version.
 
 Cause: dependencies were not installed from the workspace root.
 
-Fix: run `pnpm install` from the repo root (`blit386/`), not from inside `packages/demos` alone – pnpm resolves
+Fix: run `pnpm install` from the repo root (`blit386/`), not from inside `packages/demos` alone - pnpm resolves
 `workspace:*` dependencies only when installed at the workspace root.
 
 ### `vite` / `knip` fails with "Cannot find module '.../blit386/dist/vite.js'"
 
-Cause: the BLIT386 engine has never been built in this checkout – common right after `git clone` or `git worktree add`.
+Cause: the BLIT386 engine has never been built in this checkout - common right after `git clone` or `git worktree add`.
 
 Fix: `pnpm run dev`, `build`, `preview`, and `knip` in `packages/demos` detect this automatically and build the engine
 first, so simply re-running the command that failed is usually enough. To force a fresh rebuild yourself (for example
@@ -153,7 +153,7 @@ pnpm run dev
 
 The setup above is only needed to hack on the demos in this repo against the local engine source. If you just want to
 build your own game with the published engine, use the
-[create-blit386](https://github.com/blit386/blit386/tree/main/packages/create-blit386) scaffolder instead – it writes a
+[create-blit386](https://github.com/blit386/blit386/tree/main/packages/create-blit386) scaffolder instead - it writes a
 ready-to-run project (starter game, Vite config, `index.html`, docs, and an optional AI-assistant config) that already
 depends on `blit386` from npm:
 

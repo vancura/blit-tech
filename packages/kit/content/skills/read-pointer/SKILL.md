@@ -40,18 +40,18 @@ update() {
 
 ## Key calls
 
-- `BT.pointerPos(slot?)` / `BT.pointerDelta(slot?)` – methods, return `Vector2i`.
-- `BT.isPointerActive(slot?)` – method; is a pointer present in that slot.
-- `BT.pointerScrollDelta` – getter; vertical wheel delta this frame (requires `isCapturingPointerScroll: true`).
+- `BT.pointerPos(slot?)` / `BT.pointerDelta(slot?)` - methods, return `Vector2i`.
+- `BT.isPointerActive(slot?)` - method; is a pointer present in that slot.
+- `BT.pointerScrollDelta` - getter; vertical wheel delta this frame (requires `isCapturingPointerScroll: true`).
 - Buttons: `BT.BTN_POINTER_A` (primary), `BTN_POINTER_B/C/D`, `BTN_POINTER_ANY`, used with
   `BT.isDown/isPressed/isReleased`.
-- `BT.hideCursor()` / `BT.showCursor()` – methods; hide or restore the OS cursor over the canvas.
+- `BT.hideCursor()` / `BT.showCursor()` - methods; hide or restore the OS cursor over the canvas.
 
 ## Notes
 
-- Slots: 0 = mouse or first touch; 1–3 = extra touches or pens (multi-touch).
+- Slots: 0 = mouse or first touch; 1-3 = extra touches or pens (multi-touch).
 - Read in `update()`. Positions are already in your screen's pixel coordinates.
-- `pointerDelta` makes a good drag velocity – release while moving to "flick".
+- `pointerDelta` makes a good drag velocity - release while moving to "flick".
 - Wheel capture is opt-in: set `isCapturingPointerScroll: true` in `configure()` when you map the mouse wheel. Without
   it the host page scrolls normally and `BT.pointerScrollDelta` stays `0`.
 - The same flag gates touch scrolling past the canvas: off means `touch-action: pan-y` (phones can tap-hold-scroll the

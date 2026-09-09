@@ -51,23 +51,23 @@ Keeping them apart keeps games predictable. Decide things in `update()`, draw th
 
 The engine gives you a few read-only values (they are properties, so no parentheses):
 
-- `BT.ticks` – how many update steps have happened since the start (a steadily rising whole number). Great for timers:
+- `BT.ticks` - how many update steps have happened since the start (a steadily rising whole number). Great for timers:
   `if (BT.ticks % 30 === 0) { ... }` does something twice a second.
-- `BT.targetFPS` – the frames-per-second you asked for (default 60).
-- `BT.deltaSeconds` – how much time one step represents, in seconds. Use it for smooth motion if you prefer
+- `BT.targetFPS` - the frames-per-second you asked for (default 60).
+- `BT.deltaSeconds` - how much time one step represents, in seconds. Use it for smooth motion if you prefer
   speed-per-second over speed-per-step.
 
 ## Phones and screen orientation
 
 `BT.screenOrientation` is the current orientation type from the browser (for example `'landscape-primary'`), or `null`
 when the browser does not report one. Set `preferredOrientation: 'landscape'` or `'portrait'` in `configure()` if your
-game assumes one layout – the engine asks the browser to lock after start when it can (often Android Chrome; not iOS
+game assumes one layout - the engine asks the browser to lock after start when it can (often Android Chrome; not iOS
 Safari). Optional `onOrientationChange(type)` on your game class runs when the player rotates the device. Drawing a
 "please rotate" message is still your code; the engine only tells you the orientation.
 
 ## Drawing between two steps
 
-`update()` runs at a fixed speed (60 times a second), but the screen often draws faster than that – 120 or 144 times a
+`update()` runs at a fixed speed (60 times a second), but the screen often draws faster than that - 120 or 144 times a
 second on a modern monitor. That means some drawn frames land _in between_ two thinking steps.
 
 `BT.renderAlpha` tells you where you landed: `0` is "exactly on the previous step", `1` is "exactly on the current
@@ -90,7 +90,7 @@ render() {
 }
 ```
 
-Do this for things that move. Do not do it for the HUD or the score – those should sit still.
+Do this for things that move. Do not do it for the HUD or the score - those should sit still.
 
 ## init returns a promise
 
@@ -120,7 +120,7 @@ if (BT.loadingAssetsCount > 0) {
 }
 ```
 
-If you `await` every load inside `init()`, the loop has not started yet, so there is nothing to draw on – that is fine
+If you `await` every load inside `init()`, the loop has not started yet, so there is nothing to draw on - that is fine
 for small games. Per-sheet hot-reload replacements also expose `sheet.status` (`'loading' | 'ready' | 'failed'`) and a
 coarse `sheet.progress` (`0` or `1.0`). Prefer `BT.loadingAssetsCount` for one engine-wide signal.
 
@@ -134,7 +134,7 @@ npm run build
 npm run preview
 ```
 
-While the splash is up, your `init()` is already running – the splash doubles as a loading screen and holds until
+While the splash is up, your `init()` is already running - the splash doubles as a loading screen and holds until
 `init()` finishes, however long that takes. So if the splash is playing, awaiting your loads inside `init()` costs the
 player nothing. Any key, click, or tap skips the fade-in and the waiting, but it still waits for your `init()` to
 finish, and the fade into your game's colors always plays in full. That press is swallowed, so your first `update()`

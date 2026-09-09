@@ -9,7 +9,7 @@ description:
 
 # Quick Format
 
-Rapidly format code files using the project's formatters – a streamlined version of `/format` that skips verification
+Rapidly format code files using the project's formatters - a streamlined version of `/format` that skips verification
 for maximum speed.
 
 ## Usage
@@ -26,7 +26,7 @@ format the whole repo tree from root.
 1. Run formatters
 
 - Whole repo (no argument, or `root`): `pnpm run format` from the repository root.
-- A single package: `pnpm --filter <name> run format`, or `cd packages/<dir> && pnpm run format` – see `/format` for the
+- A single package: `pnpm --filter <name> run format`, or `cd packages/<dir> && pnpm run format` - see `/format` for the
   full file-type table and the `kit` / `create-blit386` root-coverage note.
 
 2. Brief confirmation

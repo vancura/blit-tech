@@ -2,14 +2,14 @@
  * Covers the WebMCP bridge script served at `/webmcp.js`.
  *
  * It is a browser-side IIFE with no exports and is deliberately outside `tsconfig.json`'s
- * `include` – it targets `document.modelContext` / `navigator.modelContext`, an experimental
+ * `include` - it targets `document.modelContext` / `navigator.modelContext`, an experimental
  * WebMCP API with no `lib.dom.d.ts` types, and typechecking it would mean either widening the
  * ambient globals or sprinkling `any`. Statically or dynamically `import`-ing it from a test would
- * pull it back into the TypeScript program (and TS refuses anyway – a script with no
+ * pull it back into the TypeScript program (and TS refuses anyway - a script with no
  * `import`/`export` statements of its own is not a module); `press.config.tsx` also loads it as a
  * plain `<script defer src="/webmcp.js">`, not `type="module"`, so an ESM import would not even
  * match how the browser runs it. Each test instead reads the file as text once (`WEBMCP_SOURCE`,
- * from a hardcoded relative path to this repo's own file – never interpolated with external
+ * from a hardcoded relative path to this repo's own file - never interpolated with external
  * input) and runs it with `vm.runInThisContext`, Node's primitive for evaluating trusted source
  * against the current global scope, so it sees that test's stubbed `document` / `navigator` /
  * `window` / `fetch` exactly as a real `<script>` load would.
@@ -19,7 +19,7 @@
  * parser treats a backslash the same as a forward slash for the `https:` scheme, so
  * `new URL('/\\evil.com', 'https://blit386.dev')` resolves to `https://evil.com` even though the
  * string never contains `//`. The `resolved.origin !== window.location.origin` check after
- * resolution is what actually blocks it – the "backslash bypass" case below exercises that string
+ * resolution is what actually blocks it - the "backslash bypass" case below exercises that string
  * to prove the origin check, not the prefix check, is carrying the guarantee.
  */
 
@@ -91,7 +91,7 @@ function stubBrowserGlobals(
 
 function loadWebmcp(): void {
     // The `filename` here is what lets @vitest/coverage-v8 attribute execution back to the real
-    // source file – without it, V8 reports coverage against an anonymous "evalmachine" script and
+    // source file - without it, V8 reports coverage against an anonymous "evalmachine" script and
     // `public/webmcp.js` shows 0% despite every test exercising it.
     runInThisContext(WEBMCP_SOURCE, { filename: WEBMCP_PATH });
 }

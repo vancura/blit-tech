@@ -1,16 +1,16 @@
-# blit386-website (docs site) – agent quick start
+# blit386-website (docs site) - agent quick start
 
 Documentation site for [blit386.dev](https://blit386.dev): Fumapress on Waku (React 19 RSC), MDX via Fumadocs MDX,
 Tailwind v4, TypeScript strict, deployed to Cloudflare Workers with Wrangler.
 
 This file is a standalone quick start for tools that read `AGENTS.md` and not `CLAUDE.md`. For the documentation mirror,
-Twoslash internals, and the full command routing table, [`CLAUDE.md`](CLAUDE.md) is canonical – read it before
+Twoslash internals, and the full command routing table, [`CLAUDE.md`](CLAUDE.md) is canonical - read it before
 non-trivial work. Shared monorepo conventions live in the repo root [`CLAUDE.md`](../../CLAUDE.md) and
 [`AGENTS.md`](../../AGENTS.md).
 
 ## Tech stack
 
-TypeScript strict. Biome owns `.ts` / `.tsx` / `.json` / `.css`, Prettier owns `.md` / `.mdx` / YAML – no ESLint here.
+TypeScript strict. Biome owns `.ts` / `.tsx` / `.json` / `.css`, Prettier owns `.md` / `.mdx` / YAML - no ESLint here.
 Package manager is pnpm 11.20.0; Node >= 22.18.0.
 
 ## Quick start
@@ -35,18 +35,18 @@ Use `pnpm run <script>` (not bare `pnpm <script>`) so RTK hooks can rewrite shel
   rewrites it to `{/_ ... _/}`, which renders as visible italic text on the page. Delete the note or make it real prose.
 - Twoslash type-on-hover popups are gated by `isTwoslashEnabled()` in `scripts/twoslash-config.mjs`, which is true for
   `CLOUDFLARE` or `WORKERS_CI` and can be forced either way with `BLIT386_TWOSLASH`. Popups are absent from a plain
-  `pnpm run dev`; `pnpm run dev:twoslash` turns them on for one page at a time (browsing many pages OOMs – see
+  `pnpm run dev`; `pnpm run dev:twoslash` turns them on for one page at a time (browsing many pages OOMs - see
   `CLAUDE.md`, Twoslash), and `pnpm run build && pnpm run start` is the faithful full-site preview. Build the engine
-  first (`pnpm --filter blit386 run build`) for any of those – Twoslash reads `packages/blit386/dist`, and
+  first (`pnpm --filter blit386 run build`) for any of those - Twoslash reads `packages/blit386/dist`, and
   `throws: false` turns a missing build into silently plain code blocks rather than an error.
-- Documentation ships with the change – update `content/` and run `pnpm run docs:links` from the repo root when adding
+- Documentation ships with the change - update `content/` and run `pnpm run docs:links` from the repo root when adding
   links.
 
 ## What is hand-authored vs. generated
 
 Hand-authored: `content/index.mdx`, `content/blog/**`, and a handful of top-level `content/docs/` pages (`index.mdx`,
 `getting-started.mdx`, `faq.mdx`). Everything under `content/docs/<section>/<topic>.mdx` (flat files, not folder
-`index.mdx`) is generated from `packages/blit386/docs/` – see the rule above.
+`index.mdx`) is generated from `packages/blit386/docs/` - see the rule above.
 
 ## Where to go next
 

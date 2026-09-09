@@ -2,8 +2,8 @@
  * Shared agent-browser plumbing for the demo capture scripts.
  *
  * `capture-demo-clip.mjs` (video) and `capture-og-image.mjs` (social cards) drive the same
- * browser the same way – open a demo in `?embed` mode, wait for the engine to finish async
- * WebGPU init, then read from the canvas – but produce completely different output. Only that
+ * browser the same way - open a demo in `?embed` mode, wait for the engine to finish async
+ * WebGPU init, then read from the canvas - but produce completely different output. Only that
  * shared skeleton lives here; neither script's pipeline does.
  *
  * The session name is a parameter rather than a constant so the two scripts never share a

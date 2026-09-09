@@ -63,7 +63,7 @@ export default [
         },
     },
 
-    // Demo source files (src/*.js) – browser environment, relaxed rules
+    // Demo source files (src/*.js) - browser environment, relaxed rules
     {
         files: ['src/**/*.js'],
         languageOptions: {
@@ -122,7 +122,7 @@ export default [
     },
 
     // Browser-context client scripts served directly to the page (_partials/*.js). Not demo source
-    // (no beginner-comment requirement – see CLAUDE.md), but not Node either, so it needs DOM globals.
+    // (no beginner-comment requirement - see CLAUDE.md), but not Node either, so it needs DOM globals.
     // Inherits the Node/tooling block above except where overridden: shell chrome indexes the
     // build-time demo list and DOM nodes (same false-positive class as src/** demos).
     {
@@ -141,7 +141,7 @@ export default [
         },
     },
 
-    // Config files – relaxed JSDoc
+    // Config files - relaxed JSDoc
     {
         files: ['*.config.js', '*.config.mjs'],
         rules: {

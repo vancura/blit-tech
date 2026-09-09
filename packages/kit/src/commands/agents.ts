@@ -58,14 +58,14 @@ interface McpConfigLike {
     [key: string]: unknown;
 }
 
-/** True for a plain JSON object – the only shape `mcpServers` is allowed to have. */
+/** True for a plain JSON object - the only shape `mcpServers` is allowed to have. */
 function isMcpServerMap(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
  * Merge the kit's generated MCP config into a pre-existing hand-written one. Adds the kit's server(s)
- * under `mcpServers` next to whatever the user already registered. Returns null – not a crash – when
+ * under `mcpServers` next to whatever the user already registered. Returns null - not a crash - when
  * the existing file isn't a mergeable JSON object, its `mcpServers` isn't a plain object, or a server
  * key the kit wants to add already exists with different content: all three cases fall back to the
  * existing collision (`.new` + abort) path.
@@ -197,7 +197,7 @@ export function checkSyncDrift(root: string, out: (line: string) => void): numbe
 /**
  * Default template vars when an older manifest did not record them.
  *
- * Only the package-manager commands, which is exactly the set `content/` substitutes – so a manifest
+ * Only the package-manager commands, which is exactly the set `content/` substitutes - so a manifest
  * predating `vars` still regenerates byte-identical kit files once the package manager is detected.
  */
 function fallbackVars(root: string): TemplateVars {
@@ -268,7 +268,7 @@ function regenerate(manifest: ReadBlitManifest, root: string): Map<string, strin
 
 /**
  * Write `content` to a project-relative path, creating parent directories as needed. Returns false
- * without writing anything if `relPath` is reached through a symlinked segment – the final path (not
+ * without writing anything if `relPath` is reached through a symlinked segment - the final path (not
  * just the `relPath` a caller may have validated earlier) is what matters, since a `.new` sidecar path
  * is never checked anywhere else before reaching here.
  */
@@ -287,7 +287,7 @@ function writeRel(root: string, relPath: string, content: string): boolean {
 
 /**
  * Update (or create) the pristine base copy used as the merge ancestor. Skips the write (and warns)
- * if `.blit/base/<relPath>` is reached through a symlink – `relPath` itself was already validated by
+ * if `.blit/base/<relPath>` is reached through a symlink - `relPath` itself was already validated by
  * the caller, but the base copy lives at a different path and needs its own check.
  */
 function writeBase(root: string, relPath: string, content: string, out: (line: string) => void): void {

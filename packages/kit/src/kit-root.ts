@@ -1,15 +1,15 @@
 /**
- * Finding the kit's package root – the only place either answer is implemented.
+ * Finding the kit's package root - the only place either answer is implemented.
  *
  * There are two of them because there are two genuinely different questions, and code that asks the
  * wrong one is silently wrong rather than broken:
  *
- *   - `kitRoot()` – "the kit containing me". For code that ships inside the kit and must find
+ *   - `kitRoot()` - "the kit containing me". For code that ships inside the kit and must find
  *     itself: the `blit` CLI running from a generated game's `node_modules`, and the kit's own
  *     `package.json` readers in `./env`. Node resolution would be wrong here, because a hoisted
  *     sibling copy could answer instead of the kit actually executing.
  *
- *   - `resolveKitRoot(fromUrl)` – "the kit this package depends on". For code outside the kit acting
+ *   - `resolveKitRoot(fromUrl)` - "the kit this package depends on". For code outside the kit acting
  *     on the kit npm installed beside it: `create-blit386`, which copies that kit's `content/` into
  *     a new game and pins its version in the generated `package.json`. Bundle-relative would be
  *     wrong here, because if `@blit386/kit` were ever inlined into the caller's bundle it would
@@ -36,11 +36,11 @@ export const KIT_PACKAGE_NAME = '@blit386/kit';
  *
  * Deliberately not `new URL('../package.json', import.meta.url)`: that assumes the emitted file sits
  * exactly one level below the package root, which holds for `dist/adapters.js` and `dist/cli.js` but
- * not for `dist/migrations/registry.js` – and tsup folds this module into whichever entries import
+ * not for `dist/migrations/registry.js` - and tsup folds this module into whichever entries import
  * it. A wrong nesting level would return `dist/` and read a package.json that is not there, so the
  * walk looks for the kit by name instead and throws when it runs out of parents.
  *
- * @param startFile – Absolute path of the module doing the asking.
+ * @param startFile - Absolute path of the module doing the asking.
  * @returns Absolute path of the kit package root.
  * @throws If no `@blit386/kit` package.json is found on the way up.
  */
@@ -66,7 +66,7 @@ function findKitRootFrom(startFile: string): string {
 
         if (parent === dir) {
             throw new Error(
-                `kitRoot(): no ${KIT_PACKAGE_NAME} package.json above ${startFile} – this module was ` +
+                `kitRoot(): no ${KIT_PACKAGE_NAME} package.json above ${startFile} - this module was ` +
                     'bundled into another package. Callers outside the kit want resolveKitRoot(import.meta.url).',
             );
         }
@@ -75,7 +75,7 @@ function findKitRootFrom(startFile: string): string {
     }
 }
 
-/** Memoized answer for `kitRoot()` – the walk cannot change within a process. */
+/** Memoized answer for `kitRoot()` - the walk cannot change within a process. */
 let selfRoot: string | undefined;
 
 /**
@@ -93,10 +93,10 @@ export function kitRoot(): string {
  * The package root of the kit that `fromUrl`'s package depends on, via Node resolution.
  *
  * Pass `import.meta.url`. Because resolution starts from the caller, the answer is the same kit any
- * `import … from '@blit386/kit/adapters'` in that same file already loaded – so a caller's content
+ * `import … from '@blit386/kit/adapters'` in that same file already loaded - so a caller's content
  * root cannot disagree with the adapters module it is calling into.
  *
- * @param fromUrl – The calling module's URL (`import.meta.url`).
+ * @param fromUrl - The calling module's URL (`import.meta.url`).
  * @returns Absolute path of the resolved kit package root.
  * @throws `MODULE_NOT_FOUND` if the caller has no resolvable `@blit386/kit` dependency.
  */

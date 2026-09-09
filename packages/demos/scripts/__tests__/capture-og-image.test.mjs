@@ -34,7 +34,7 @@ describe('parseArgs', () => {
         assert.equal(options.out, '');
         assert.equal(options.baseUrl, DEFAULTS.baseUrl);
         assert.equal(options.settle, DEFAULTS.settle);
-        // Empty means "no CLI override" – each demo's own @ogScale tag gets to decide.
+        // Empty means "no CLI override" - each demo's own @ogScale tag gets to decide.
         assert.equal(options.scaleMode, '');
     });
 

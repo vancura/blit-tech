@@ -5,10 +5,10 @@
  * per-symbol `since` / `changes` history, since the kit's `blit386.docsReviewedAt` marker
  * (`packages/kit/package.json`) was last bumped.
  *
- * `docsReviewedAt` is hand-set only – see `packages/kit/CLAUDE.md` critical rule 5. This script
+ * `docsReviewedAt` is hand-set only - see `packages/kit/CLAUDE.md` critical rule 5. This script
  * never writes it; it only reads and reports. `KIT_DOC_TRIGGER_PAGES` duplicates, at page
  * granularity, what `packages/kit/CLAUDE.md`'s "Kit content vs engine docs" table says at symbol
- * granularity – deliberate, see `.claude/rules/named-constants.md` ("document the duplication").
+ * granularity - deliberate, see `.claude/rules/named-constants.md` ("document the duplication").
  * If you add/rename an `_api-history.json` page or a `content/docs/*.md` file, update both.
  *
  * Usage:
@@ -33,7 +33,7 @@ export const KIT_PACKAGE_JSON_PATH = 'packages/kit/package.json';
  * failure mode here is "ask a human to spend five minutes reading," not "block a merge," so an
  * over-inclusive false positive is cheap and a false negative is not.
  *
- * `getting-started.md` and `when-something-breaks.md` have no entry – neither maps to one API
+ * `getting-started.md` and `when-something-breaks.md` have no entry - neither maps to one API
  * surface. They stay covered by the manual `/kit-audit` checklist, not this script.
  */
 export const KIT_DOC_TRIGGER_PAGES = {

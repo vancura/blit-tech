@@ -31,8 +31,8 @@ v.width;
 v.height; // aliases for x / y (useful when treating the vector as a size)
 
 // Static factories
-Vector2i.zero(); // (0, 0) – cached frozen singleton
-Vector2i.one(); // (1, 1) – cached frozen singleton
+Vector2i.zero(); // (0, 0) - cached frozen singleton
+Vector2i.one(); // (1, 1) - cached frozen singleton
 Vector2i.up(); // (0, -1)
 Vector2i.down(); // (0, 1)
 Vector2i.left(); // (-1, 0)
@@ -83,19 +83,19 @@ declare const out: Rect2i;
 const r = new Rect2i(x, y, width, height);
 
 // Static factories
-Rect2i.zero(); // (0,0,0,0) – cached frozen singleton
+Rect2i.zero(); // (0,0,0,0) - cached frozen singleton
 Rect2i.fromMinMax(min, max); // from corner vectors
 Rect2i.fromMinMaxXY(minX, minY, maxX, maxY); // zero-allocation variant
 Rect2i.fromCenterSize(center, size); // centered rectangle
 Rect2i.fromCenterSizeXY(cx, cy, w, h); // zero-allocation variant
 
 // Instance methods
-r.isContaining(point); // boolean – point inside rect
-r.isContainingXY(px, py); // boolean – raw coordinates, no Vector2i alloc
-r.isIntersecting(other); // boolean – rects overlap
-r.isEqual(other); // boolean – same position and size
-r.intersection(other); // Rect2i | null – overlap area
-r.intersectTo(other, out); // boolean – write overlap into out when it exists
+r.isContaining(point); // boolean - point inside rect
+r.isContainingXY(px, py); // boolean - raw coordinates, no Vector2i alloc
+r.isIntersecting(other); // boolean - rects overlap
+r.isEqual(other); // boolean - same position and size
+r.intersection(other); // Rect2i | null - overlap area
+r.intersectTo(other, out); // boolean - write overlap into out when it exists
 r.center; // Vector2i getter
 r.min; // Vector2i getter (top-left)
 r.max; // Vector2i getter (bottom-right)
@@ -107,7 +107,7 @@ r.max; // Vector2i getter (bottom-right)
 
 <Since symbol="Color32" />
 
-32-bit RGBA color (channels 0–255).
+32-bit RGBA color (channels 0-255).
 
 ```ts twoslash
 import { Color32 } from 'blit386';
@@ -153,7 +153,7 @@ c.lerp(other, t); // same semantics as static helper
 c.toFloat32Array(); // [r/255, g/255, b/255, a/255]
 c.luminance; // perceived brightness: 0.299r + 0.587g + 0.114b
 c.toHex(); // '#rrggbb' string
-c.isEqual(other); // boolean – all RGBA channels match
+c.isEqual(other); // boolean - all RGBA channels match
 
 // Linear light (real sRGB piecewise transfer, not a 2.2 power)
 c.toLinear(); // encoded sRGB → linear light; alpha untouched
@@ -164,7 +164,7 @@ c.toSrgbInPlace();
 
 ### Linear light
 
-Color math that models light – exposure, additive glow, physically sensible blending – belongs in linear space, not in
+Color math that models light - exposure, additive glow, physically sensible blending - belongs in linear space, not in
 the encoded values a palette stores. `toLinear` and `toSrgb` convert between the two using the real sRGB piecewise
 transfer function, including the straight toe below the 0.04045 breakpoint. A bare 2.2 power is close enough in the
 midtones and an order of magnitude wrong near black, which is exactly where a fade spends its most visible frames.
@@ -172,7 +172,7 @@ midtones and an order of magnitude wrong near black, which is exactly where a fa
 <Callout title="8-bit precision">
 
 Channels stay 8-bit, so a round trip through linear light is exact in the upper half of the range and drifts by up to
-about eight levels near black. Convert, do the math, convert back – do not use linear light as a storage format.
+about eight levels near black. Convert, do the math, convert back - do not use linear light as a storage format.
 
 </Callout>
 

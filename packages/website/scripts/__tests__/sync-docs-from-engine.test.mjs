@@ -426,7 +426,7 @@ describe('renderPage frontmatter (lastModified, editUrl)', () => {
 
     test('omits lastModified by default when the fixture path has no history', () => {
         // FIXTURE_DIR (scripts/__fixtures__/sync-docs) *is* inside this repo, so git
-        // runs fine here – it just has no commit matching the "docs/api/with-components.md"
+        // runs fine here - it just has no commit matching the "docs/api/with-components.md"
         // pathspec relative to that directory. The real (non-injected) getLastModified
         // must therefore return undefined on empty output rather than throwing.
         const { contents } = renderPage(FIXTURE_PAGE);
@@ -446,7 +446,7 @@ describe('renderPage twoslash fragment blocks (BT-427)', () => {
 
     test('preserves the preamble before // ---cut--- so Twoslash can compile the fragment', () => {
         // Twoslash type-checks the whole fenced block, including everything above
-        // `// ---cut---`, and only hides that part from the rendered output – it
+        // `// ---cut---`, and only hides that part from the rendered output - it
         // never sees the mirror's own markdown, only what this generator writes.
         // Deleting the preamble here removes the imports/declarations the visible
         // code depends on, so the block fails to compile (see BT-427).

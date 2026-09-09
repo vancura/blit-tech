@@ -1,12 +1,12 @@
 # create-blit386
 
-`pnpm create blit386@latest` – the BLIT386 game scaffolder CLI and templates. Depends on `@blit386/kit` for
+`pnpm create blit386@latest` - the BLIT386 game scaffolder CLI and templates. Depends on `@blit386/kit` for
 generated-game content and the `blit` CLI; this package, the kit, and the `blit386` engine release in lockstep (one
-shared `x.y.z`, anchored to the engine's semver) – see [`packages/kit/CLAUDE.md`](../kit/CLAUDE.md) for the kit's own
+shared `x.y.z`, anchored to the engine's semver) - see [`packages/kit/CLAUDE.md`](../kit/CLAUDE.md) for the kit's own
 detail.
 
 Shared monorepo conventions (no emoji, dash typography, American English, commit format, DCO, `main` protection, compact
-tables, …) live in the root [`CLAUDE.md`](../../CLAUDE.md) – read together with this file.
+tables, …) live in the root [`CLAUDE.md`](../../CLAUDE.md) - read together with this file.
 
 TypeScript strict, built with tsup, Biome for lint and format (no ESLint here), pnpm, Node >= 22.18.0. Scripts are
 `pnpm run <script>` from this package's directory (or `pnpm --filter create-blit386 run <script>` from the repo root).
@@ -21,19 +21,19 @@ TypeScript strict, built with tsup, Biome for lint and format (no ESLint here), 
    `generateCursorAdapter` in `@blit386/kit/adapters`), rendering `{{placeholders}}` as it goes, and the scaffolder
    writes those `{ path, content }` pairs to disk. Claude gets `CLAUDE.md`, `.claude/rules/` (from `content/rules/`),
    `.claude/skills/<name>/SKILL.md` (from `content/skills/`), `.claude/settings.json` (hooks from
-   `content/hooks.manifest.json`), and `.claude/hooks/` (from `content/hooks/`) – including a SessionStart hook
+   `content/hooks.manifest.json`), and `.claude/hooks/` (from `content/hooks/`) - including a SessionStart hook
    (`.claude/hooks/session-start.sh`) that installs dependencies and runs `blit doctor` when a fresh remote/web session
    starts. Cursor gets `.cursor/rules/*.mdc`, `.cursor/commands/<name>.md` (the same skills with frontmatter stripped),
-   `.cursor/hooks.json`, and `.cursor/hooks/shell-safety.sh` – Cursor has no SessionStart-equivalent event, so it does
+   `.cursor/hooks.json`, and `.cursor/hooks/shell-safety.sh` - Cursor has no SessionStart-equivalent event, so it does
    not get the bootstrap hook. Each adapter also emits a documentation-MCP config registering the `blit386-docs` server
    at `https://blit386.dev/mcp`: Claude gets `.mcp.json` and Cursor gets `.cursor/mcp.json`. The two entries differ by
-   one key on purpose – Claude Code skips a remote entry that has a `url` but no `type`, while for Cursor a `type` marks
+   one key on purpose - Claude Code skips a remote entry that has a `url` but no `type`, while for Cursor a `type` marks
    a local stdio server. Every path an adapter emits is built from `packages/kit/src/ownership.ts`, the single source
    both packages classify against. Within `.claude/hooks/` / `.cursor/hooks/`, which specific scripts land in a given
-   project is decided by `content/hooks.manifest.json` – only a script one of that adapter's own hook entries actually
+   project is decided by `content/hooks.manifest.json` - only a script one of that adapter's own hook entries actually
    references gets copied (all under `packages/kit/`).
-5. Kit content comes from `resolveKitRoot(import.meta.url)` (`@blit386/kit/adapters`) – the kit npm installed beside
-   this package – and never from the kit's own `kitRoot()`, which answers "the kit containing me" and is the `blit`
+5. Kit content comes from `resolveKitRoot(import.meta.url)` (`@blit386/kit/adapters`) - the kit npm installed beside
+   this package - and never from the kit's own `kitRoot()`, which answers "the kit containing me" and is the `blit`
    CLI's question, not the scaffolder's. That same resolved root supplies the `^x.y.z` pinned into every generated
    `package.json` and the exact version stamped into `.blit/manifest.json`. Full reasoning: `packages/kit/CLAUDE.md`.
    `AGENTS.md` and `docs/` are then emitted **verbatim**: `scaffold()` writes the `GeneratedFile` values that
@@ -42,9 +42,9 @@ TypeScript strict, built with tsup, Biome for lint and format (no ESLint here), 
    ("`src/game.js` (or `src/game.ts`)"), never `{{gameFile}}`.
 6. `scaffold()` writes the ownership manifest `.blit/manifest.json` (path, class, kit version, sha256, plus the
    scaffold-time template `vars`) and pristine `.blit/base/` copies, so `blit agents sync` can update kit files later
-   without clobbering user edits. The `class` values come from `classifyFile()` in `@blit386/kit/adapters` – the same
+   without clobbering user edits. The `class` values come from `classifyFile()` in `@blit386/kit/adapters` - the same
    function `blit agents sync` / `add` use, not a local table. The manifest's own shape is `BlitManifest` from
-   `@blit386/kit/adapters` as well – this package declares no local copy, so a field it stops emitting is a compile
+   `@blit386/kit/adapters` as well - this package declares no local copy, so a field it stops emitting is a compile
    error rather than a manifest the kit silently reads as legacy.
 7. Optional git init, dependency install, next-steps output.
 
@@ -54,15 +54,15 @@ are in [`.claude/rules/template-structure.md`](.claude/rules/template-structure.
 
 ## Critical rules
 
-1. JavaScript by default in scaffolds – generated games are plain JS unless the user picks TypeScript (`--ts`)
-2. Beginner-friendly – scaffold output assumes no prior coding experience
-3. Integer coordinates – generated games use `Vector2i` / `Rect2i` via blit386
+1. JavaScript by default in scaffolds - generated games are plain JS unless the user picks TypeScript (`--ts`)
+2. Beginner-friendly - scaffold output assumes no prior coding experience
+3. Integer coordinates - generated games use `Vector2i` / `Rect2i` via blit386
 4. Use the `BT` namespace in generated game code, never `BTAPI`
 5. Named exports only in this package's own TypeScript; no default exports
-6. Literals that describe another package are derived or documented, never copied – `BLIT386_RANGE` in `src/scaffold.ts`
+6. Literals that describe another package are derived or documented, never copied - `BLIT386_RANGE` in `src/scaffold.ts`
    is written by `scripts/bump-lockstep.mjs` (repo root) alongside `packages/kit`'s `blit386.engineRange`, verified by
    `pnpm run bump:check`, and `PUBLISHING.md` records the coupling. File classes and the generated-project paths
-   (`CLAUDE.md`, `.claude/`, `.cursor/`, `docs/`) are not re-typed here at all – they are imported from
+   (`CLAUDE.md`, `.claude/`, `.cursor/`, `docs/`) are not re-typed here at all - they are imported from
    `@blit386/kit/adapters`, as is the kit-root resolution itself (`resolveKitRoot`, not a local `createRequire` copy).
    Shared policy: root `.claude/rules/named-constants.md`
 

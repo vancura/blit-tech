@@ -4,7 +4,7 @@
  * Three layers, resolved in order: an explicit `configure()` flag, then the
  * valueless `?splash` / `?nosplash` URL flags, then `BT.isDevMode`. The URL and
  * configure layers deliberately sit *above* `src/utils/devMode.ts` and are
- * resolved here, not inside it – `devMode.ts` answers exactly one question and
+ * resolved here, not inside it - `devMode.ts` answers exactly one question and
  * must not grow feature-specific overrides (BT-419's layering rule).
  *
  * Split into a pure resolver ({@link resolveSplashEnabled}) and thin readers so
@@ -50,7 +50,7 @@ export interface SplashUrlFlags {
  * An off switch should be unambiguous, so `?nosplash` beats `?splash` when both
  * are present.
  *
- * @param signals – See {@link SplashGatingSignals}.
+ * @param signals - See {@link SplashGatingSignals}.
  * @returns `true` when the splash should play.
  */
 export function resolveSplashEnabled(signals: SplashGatingSignals): boolean {
@@ -98,7 +98,7 @@ export function readUrlFlags(): SplashUrlFlags {
 /**
  * Gathers every gating signal and resolves them.
  *
- * @param configureFlag – Explicit `HardwareSettings.isSplashEnabled`, if the demo set one.
+ * @param configureFlag - Explicit `HardwareSettings.isSplashEnabled`, if the demo set one.
  * @returns `true` when the splash should play on this page load.
  */
 export function isSplashEnabled(configureFlag?: boolean): boolean {

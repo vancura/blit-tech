@@ -1,7 +1,7 @@
 ---
-title: BLIT386 1.4.0 – edit the game while it is still running
+title: BLIT386 1.4.0 - edit the game while it is still running
 description:
-  The hot reload release – a three-tier swap runtime, a blit386/vite dev plugin, in-place asset replacement, and an
+  The hot reload release - a three-tier swap runtime, a blit386/vite dev plugin, in-place asset replacement, and an
   asset loading count.
 date: 2026-07-28
 tags: [release, hot-reload]
@@ -13,14 +13,14 @@ screen with a fresh palette, a camera at the origin, and a character standing ex
 the bug. So you walk them back. Twelve seconds, maybe fifteen, and you do it four hundred times a day. Nobody complains
 about that out loud because it has always been that way, which is the most reliable sign that something is worth fixing.
 
-1.4.0 fixes it. You edit, you save, and the game keeps running – same tick count, same camera, same palette, the sprite
+1.4.0 fixes it. You edit, you save, and the game keeps running - same tick count, same camera, same palette, the sprite
 still mid-jump where you left it.
 
 <VideoEmbed
   src="/media/blog/hot-reload-release-1-4-0/hot-reload-release-1-4-0"
   width={1010}
   height={1530}
-  caption="Editing size of canvas, value in render() and update(), saving, and watching the loop carry on – same tick count, same camera, no reload."
+  caption="Editing size of canvas, value in render() and update(), saving, and watching the loop carry on - same tick count, same camera, no reload."
 />
 
 ## Three tiers, and you do not get to pick
@@ -33,14 +33,14 @@ has to go. There are three answers:
 <Step>
   If only method bodies changed, the running instance keeps all of its fields and just gets a new prototype. `init()`
   never re-runs, music keeps playing, the loop does not skip. Module-level constants count as method bodies here, which
-  surprised me the first time – change a `SPEED` at the top of the file and the next tick picks it up, because the new
+  surprised me the first time - change a `SPEED` at the top of the file and the next tick picks it up, because the new
   `update` closes over the new module scope.
 </Step>
 
 <Step>
   If `init()`, the constructor, or a field initializer changed, none of that is safe, so a fresh instance gets built and
   its `init()` runs while the old instance is still driving the loop. Only when it succeeds does the engine swap it in.
-  A broken save leaves the previous instance running, which is the whole point – the thing you are editing is a game you
+  A broken save leaves the previous instance running, which is the whole point - the thing you are editing is a game you
   are also playing, and it should not die every time you leave a bracket open.
 </Step>
 
@@ -99,7 +99,7 @@ export default defineConfig({
 ```
 
 The plugin appends a small registration snippet to any served module that imports `blit386` and calls `bootstrap(...)`,
-and it watches your asset directories. It is dev-server only – `apply: 'serve'`, so a production build never sees it,
+and it watches your asset directories. It is dev-server only - `apply: 'serve'`, so a production build never sees it,
 and it has no runtime dependency on `vite` itself. If you scaffolded with `npm create blit386`, it is already wired up
 and you can skip this section entirely.
 
@@ -108,7 +108,7 @@ and you can skip this section entirely.
 Editing a sprite sheet in Aseprite and having the browser throw away your game state was, if anything, more annoying
 than editing code, because the whole reason you were in Aseprite was to see the sprite in context. So images, audio, and
 `.btfont` files now replace themselves in place: the sheet re-decodes, the font re-parses, and music restarts if the
-buffer under the current track is the one that changed. A broken asset cannot take the game loop down with it – you get
+buffer under the current track is the one that changed. A broken asset cannot take the game loop down with it - you get
 the error, the old asset stays, and you fix the file.
 
 ## Other changes
@@ -117,14 +117,14 @@ the error, the old asset stays, and you fix the file.
 
 Hot reload removes most of the waiting in development, and precisely none of the waiting your players do on first load.
 So `BT.loadingAssetsCount` is there now: the combined count of images and audio clips still in flight, which is exactly
-what a loading screen wants to poll. Per-sheet there is `SpriteSheet.status` – `'loading'`, `'ready'`, or `'failed'` –
+what a loading screen wants to poll. Per-sheet there is `SpriteSheet.status` - `'loading'`, `'ready'`, or `'failed'` -
 and a coarse `progress`. Details in [API: Assets](/docs/api/assets).
 
 ### Touch scrolling stopped fighting the page
 
 Small, but it was a real bug in disguise. The canvas used to pin `touch-action: none` on attach, which meant that on a
 phone the page under your demo refused to scroll, whether or not the demo had asked for scroll capture. It now follows
-`HardwareSettings.isCapturingPointerScroll` – `none` while capturing, `pan-y` otherwise, updated live. Default is
+`HardwareSettings.isCapturingPointerScroll` - `none` while capturing, `pan-y` otherwise, updated live. Default is
 `false`, so a demo embedded halfway down a page behaves like the rest of the page again. See
 [Input Guide](/docs/guides/input).
 
@@ -138,7 +138,7 @@ disagreeing. Post-process effects grew their own 80 percent coverage floor. Reno
 doing nothing for months, was repaired and now signs off its own commits.
 
 And `CLAUDE.md` went from a monolith that ate half a session's context to a set of short summaries pointing at rule
-files, with a drift checker – `agents:check` – that fails the build when the Claude and Copilot copies disagree. If you
+files, with a drift checker - `agents:check` - that fails the build when the Claude and Copilot copies disagree. If you
 are running an agent against this repo, that is the change you will feel.
 
 The full list, in the usual Keep a Changelog shape, is at [the changelog](/docs/reference/changelog).

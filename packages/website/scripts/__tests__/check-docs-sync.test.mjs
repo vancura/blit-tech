@@ -93,7 +93,7 @@ describe('classifyDocsDiff', () => {
     test('does not mistake a removed frontmatter delimiter line for a diff file header', () => {
         // A removed "---" content line renders as "----" (the diff marker plus the
         // three literal dashes), which must NOT be swallowed by the `--- ` /
-        // `+++ ` file-header exclusion – only real header lines carry the trailing
+        // `+++ ` file-header exclusion - only real header lines carry the trailing
         // space before the path.
         const diff = [FILE_HEADER, '@@ -1,3 +1,2 @@', '-title: "Page"', '----'].join('\n');
 
@@ -117,7 +117,7 @@ describe('classifyDocsDiff', () => {
     test('returns drift for a body addition that happens to start with "lastModified:"', () => {
         // A code example demonstrating frontmatter, deep in the body, must not be
         // trusted just because the added line is lexically shaped like the real
-        // field – only a hunk starting near the file's top counts as frontmatter.
+        // field - only a hunk starting near the file's top counts as frontmatter.
         const diff = [
             FILE_HEADER,
             '@@ -42,3 +42,4 @@',

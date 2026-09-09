@@ -10,7 +10,7 @@ import dts from 'vite-plugin-dts';
  * Vite's CLI registers the flag as `-w, --watch`, so both spellings have to count: reading only
  * `--watch` leaves `vite build -w` running every production-only setting while the CLI watches.
  *
- * @param argv – The process argv to check for a watch flag.
+ * @param argv - The process argv to check for a watch flag.
  * @returns `true` under `--watch` or `-w`, `false` otherwise.
  */
 export const resolveIsWatch = (argv: readonly string[]): boolean => argv.includes('--watch') || argv.includes('-w');
@@ -19,14 +19,14 @@ export const resolveIsWatch = (argv: readonly string[]): boolean => argv.include
  * The declaration-emit plugins for a build, empty under watch.
  *
  * Api-extractor's rollup crashes on every rebuild after the first in a watch session, throwing an
- * internal error while re-reading the previous cycle's `dist/*.d.ts` output – see BT-426. Emitting
+ * internal error while re-reading the previous cycle's `dist/*.d.ts` output - see BT-426. Emitting
  * per-file declarations instead only trades that crash for a `dist/blit386.d.ts` overwritten with
  * un-rolled output plus a growing tree of stale per-file declarations beside it. Nothing consumes
  * declarations mid-watch (`packages/demos` aliases the JS bundle and types `blit386` from `src/`),
  * so a watch build skips declaration emit entirely and leaves the preceding full build's rolled-up
  * `dist/blit386.d.ts` in place.
  *
- * @param isWatch – Whether this is a watch build.
+ * @param isWatch - Whether this is a watch build.
  * @returns The dts plugin for a production build, or no plugins under watch.
  */
 export const createDeclarationPlugins = (isWatch: boolean): PluginOption[] =>

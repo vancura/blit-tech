@@ -3,14 +3,14 @@
 Games need surprise: which enemy appears, where the coin lands, how the ground is shaped. BLIT386 gives you two tools
 for that, and picking the right one saves a lot of trouble.
 
-- `BT.random` – a getter that returns a shared generator. Reading `BT.random` alone does nothing; call a method on it
+- `BT.random` - a getter that returns a shared generator. Reading `BT.random` alone does nothing; call a method on it
   (`BT.random.int()`, `BT.random.float()`, ...) to draw the next value. Use it for dice rolls, picks, and shuffles.
-- Noise and hashing – lookups by coordinate. Ask about the same spot twice, get the same answer twice. Use them for
+- Noise and hashing - lookups by coordinate. Ask about the same spot twice, get the same answer twice. Use them for
   terrain, caves, and anything the player can walk away from and come back to.
 
 ## Rolling and picking
 
-`BT.random` is a property, not a call – no parentheses on `BT.random` itself, only on the method after it.
+`BT.random` is a property, not a call - no parentheses on `BT.random` itself, only on the method after it.
 
 ```js
 update() {
@@ -31,7 +31,7 @@ update() {
 `int` and `intInclusive` give whole numbers, so you can use them as screen coordinates directly. `float` gives decimals,
 so round it with `Math.floor` before drawing anything with it.
 
-Use `BT.random` instead of `Math.random()`. It does more, and unlike the built-in one it can be seeded – which is the
+Use `BT.random` instead of `Math.random()`. It does more, and unlike the built-in one it can be seeded - which is the
 next section.
 
 ## Making a run repeat exactly
@@ -75,7 +75,7 @@ for (let x = 0; x < 320; x++) {
 }
 ```
 
-The `0.02` controls the size of the features – smaller means broader, smoother hills. `ValueNoise` and `SimplexNoise`
+The `0.02` controls the size of the features - smaller means broader, smoother hills. `ValueNoise` and `SimplexNoise`
 are alternatives with slightly different looks.
 
 When you want an unrelated yes-or-no answer per tile instead of a smooth slope, use a hash:
@@ -88,7 +88,7 @@ hasTreeAt(tileX, tileY) {
 }
 ```
 
-Because the answer depends only on the coordinates and the seed, the trees are still there when the player walks back –
+Because the answer depends only on the coordinates and the seed, the trees are still there when the player walks back -
 without you storing a single one of them.
 
 Generate this kind of thing once, into an array, in `init()` or when the player enters a new area. Sampling noise for

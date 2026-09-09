@@ -41,7 +41,7 @@ const packageRoot = join(here, '..');
 const cli = join(packageRoot, 'dist', 'index.js');
 const blitCli = join(here, '..', '..', 'kit', 'dist', 'cli.js');
 
-// The kit the scaffolder resolves at runtime – the source of the `^x.y.z` every generated game pins
+// The kit the scaffolder resolves at runtime - the source of the `^x.y.z` every generated game pins
 // and of the exact version stamped into `.blit/manifest.json`. Read it the same way scaffold.ts does
 // rather than hardcoding a literal, so a lockstep bump never needs this file edited.
 const installedKit = JSON.parse(readFileSync(join(resolveKitRoot(import.meta.url), 'package.json'), 'utf8'));
@@ -92,7 +92,7 @@ test('scaffolds a runnable game project', () => {
         assert.equal(
             blitManifest.kitVersion,
             installedKit.version,
-            'the manifest records the exact resolved kit version with no caret – blit agents sync reads it back',
+            'the manifest records the exact resolved kit version with no caret - blit agents sync reads it back',
         );
         const agentsEntry = blitManifest.files.find((f) => f.path === 'AGENTS.md');
         assert.ok(agentsEntry, 'manifest should have an AGENTS.md entry');
@@ -489,7 +489,7 @@ test('blit agents sync --check exits 0 when no files have drifted', () => {
             pmRunLint: 'npm run lint',
         });
 
-        // Nothing has been modified – check should pass with exit code 0.
+        // Nothing has been modified - check should pass with exit code 0.
         const result = execFileSync(process.execPath, [blitCli, 'agents', 'sync', '--check'], {
             cwd: project,
             encoding: 'utf8',
@@ -561,7 +561,7 @@ function runBlit(project, args) {
 /**
  * The scaffolder asks "which kit does this package depend on" (`resolveKitRoot`); the kit CLI asks
  * "which kit contains me" (`kitRoot`). They are different questions with different answers under
- * bundling and linking – see `packages/kit/src/kit-root.ts`. In a normal install they coincide, and
+ * bundling and linking - see `packages/kit/src/kit-root.ts`. In a normal install they coincide, and
  * every drift guard below silently assumes so. Assert it once, here, so a packaging change fails with
  * this message instead of as an inscrutable byte mismatch further down.
  */
@@ -1251,7 +1251,7 @@ test('blit agents sync keeps a user-added MCP server in .mcp.json', { skip: !has
     }
 });
 
-// Shared pmInstall/pmRunDev/pmRunBuild/pmRunFormat/pmRunLint fixture for the MCP-config tests below – they
+// Shared pmInstall/pmRunDev/pmRunBuild/pmRunFormat/pmRunLint fixture for the MCP-config tests below - they
 // only care about the .mcp.json merge behavior, not which package manager the scaffold fixture records.
 const PNPM_SCAFFOLD_COMMANDS = {
     pmInstall: 'pnpm install',
@@ -1374,7 +1374,7 @@ test('blit agents add claude aborts safely on a non-object .mcp.json mcpServers 
             ...PNPM_SCAFFOLD_COMMANDS,
         });
 
-        // Valid JSON, but `mcpServers` is an array instead of an object – not a shape the merge can
+        // Valid JSON, but `mcpServers` is an array instead of an object - not a shape the merge can
         // reason about, so it must fall back to the collision path rather than silently coercing it.
         const mcpPath = join(project, '.mcp.json');
         const userContent = `${JSON.stringify({ mcpServers: [] }, null, 2)}\n`;
@@ -1485,7 +1485,7 @@ test('blit agents add claude does not write through a pre-planted symlinked .new
         });
 
         // The user hand-wrote their own CLAUDE.md (an ordinary collision), but also has CLAUDE.md.new
-        // pre-planted as a symlink pointing outside the project – the sidecar `writeRel` writes when a
+        // pre-planted as a symlink pointing outside the project - the sidecar `writeRel` writes when a
         // collision (or an unmerged conflict) needs saving alongside the original. Nothing before that
         // write ever validated the `.new` path itself.
         const claudePath = join(project, 'CLAUDE.md');

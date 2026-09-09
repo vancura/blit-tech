@@ -2,7 +2,7 @@
  * Enable the blit386 Vite hot-reload plugin in a project's vite.config source.
  *
  * Pure string rewrite aimed at the scaffolder template and the same shape of a single
- * `defineConfig({...})` object. Plugin detection and rewriting are scoped to that object – an
+ * `defineConfig({...})` object. Plugin detection and rewriting are scoped to that object - an
  * import from `blit386/vite` alone is not enough. Odd or hand-rolled configs (no unique
  * defineConfig object, CommonJS, etc.) are reported as unsupported so a human (or the
  * use-hot-reload skill) can finish the job.
@@ -23,7 +23,7 @@ export interface HotReloadViteResult {
     status: HotReloadViteStatus;
 }
 
-/** Filenames we look for at the project root, in preference order (ESM only – no .cjs). */
+/** Filenames we look for at the project root, in preference order (ESM only - no .cjs). */
 export const VITE_CONFIG_NAMES = ['vite.config.js', 'vite.config.ts', 'vite.config.mjs', 'vite.config.mts'] as const;
 
 /** Engine version that first shipped `blit386/vite`. */
@@ -37,7 +37,7 @@ const PLUGIN_CALL = /(?<![.\w$])blit386\s*\(/;
 /**
  * Whether the source already mentions the hot-reload plugin (import or factory call).
  *
- * Prefer {@link enableHotReloadInViteConfig} for migrate decisions – import alone is not "wired up".
+ * Prefer {@link enableHotReloadInViteConfig} for migrate decisions - import alone is not "wired up".
  */
 export function hasBlit386VitePlugin(source: string): boolean {
     if (/from\s+['"]blit386\/vite['"]/.test(source)) {

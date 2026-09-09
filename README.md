@@ -4,7 +4,7 @@
 [![npm version](https://img.shields.io/npm/v/blit386.svg)](https://www.npmjs.com/package/blit386)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
-BLIT386 is a palette-first retro game engine for the web, and this repository is the whole project – the engine, the
+BLIT386 is a palette-first retro game engine for the web, and this repository is the whole project - the engine, the
 scaffolder that writes you a running game in one command, a few dozen commented demos, and the site that documents them.
 Palette-first means you draw with numbered colors rather than RGBA pixels, so changing what color 3 _means_ recolors
 everything drawn in it at once: a few bytes of palette upload, and water flows or the sky goes dark without a single
@@ -23,7 +23,7 @@ cd my-game
 npm run dev
 ```
 
-It works with npm, pnpm, yarn, or bun – whichever you ran it with. Open the address it prints, edit `src/game.js`, and
+It works with npm, pnpm, yarn, or bun - whichever you ran it with. Open the address it prints, edit `src/game.js`, and
 the page updates as you type. The generated project comes with a starter game, local documentation, and the `blit` CLI.
 
 Already have a project and just want the engine in it? That path starts at
@@ -44,10 +44,10 @@ gets a kit that matches the engine it pins.
 
 ## Where to go next
 
-- [blit386.dev](https://blit386.dev) – the project site
-- [blit386.dev/docs](https://blit386.dev/docs) – the full documentation, typeset and searchable
-- [demos.blit386.dev](https://demos.blit386.dev) – dozens of small examples, running in your browser
-- [awesome-blit386](https://github.com/blit386/awesome-blit386) – a curated list of games, tools, and resources
+- [blit386.dev](https://blit386.dev) - the project site
+- [blit386.dev/docs](https://blit386.dev/docs) - the full documentation, typeset and searchable
+- [demos.blit386.dev](https://demos.blit386.dev) - dozens of small examples, running in your browser
+- [awesome-blit386](https://github.com/blit386/awesome-blit386) - a curated list of games, tools, and resources
 
 ## Community
 
@@ -60,11 +60,11 @@ gets a kit that matches the engine it pins.
 
 BLIT386 is built by Václav Vančura ([@vancura](https://github.com/vancura)), and help is welcome. Start with
 [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the checks, and the commit conventions, and read
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before taking part. Security reports have their own channel –
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before taking part. Security reports have their own channel -
 [SECURITY.md](SECURITY.md).
 
 Working inside a single package? Each one has its own `README.md` covering what only it does.
 
 ## License
 
-ISC – see [LICENSE](LICENSE).
+ISC - see [LICENSE](LICENSE).

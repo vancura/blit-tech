@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Verify the agent-facing config surface has not drifted. There is one `.claude/`
- * (hooks, skills, settings) for the whole monorepo, at the repo root only – a
+ * (hooks, skills, settings) for the whole monorepo, at the repo root only - a
  * package never carries its own `.claude/skills`, `.agents/skills`, or
  * `.zed/settings.json`. A package may still carry its own `.claude/rules/` for
  * package-scoped rules, and every package carries its own AGENTS.md / CLAUDE.md.
  *
  * Repo root only:
- *   - `.agents/skills/*` symlink integrity – every entry must be a working
+ *   - `.agents/skills/*` symlink integrity - every entry must be a working
  *     symlink into `.claude/skills/<same-name>`, and every `.claude/skills/*`
  *     directory must have a matching symlink.
  *   - `.zed/settings.json` is present, parseable as JSON, and consistent with
@@ -22,7 +22,7 @@
  * Repo root and every package that carries an AGENTS.md or CLAUDE.md:
  *   - AGENTS.md still points at an existing CLAUDE.md.
  *
- * This is read-only – unlike `sync-doc-banners.mjs` it never writes fixes,
+ * This is read-only - unlike `sync-doc-banners.mjs` it never writes fixes,
  * it only reports drift for a human (or `pnpm run rules:sync`-style script)
  * to resolve.
  *
@@ -200,11 +200,11 @@ export function findZedSettingsFailures(zedSettingsContent, agentsSkillsLayoutEx
 /**
  * The one MCP server the repo declares for contributors. `packages/website` both serves
  * this endpoint and publishes the discovery card, so the URL exists as two JSON copies
- * neither of which can import a constant – this file is what keeps them honest.
+ * neither of which can import a constant - this file is what keeps them honest.
  *
  * The name and classification also live in `ACCEPTED_SHADOW_MCP_ENTRIES` in
  * `packages/blit386/scripts/security/mcp-preflight.mjs` (the monthly governance audit's
- * allowlist) – two files independently comparing against the same literal with no clean
+ * allowlist) - two files independently comparing against the same literal with no clean
  * import path between them, so keep both in sync by hand.
  */
 const PROJECT_MCP_SERVER_NAME = 'blit386-docs';
@@ -215,7 +215,7 @@ const PROJECT_MCP_SERVER_TYPE = 'http';
 /**
  * The pinned endpoint, asserted literally rather than by comparing the two JSON copies to
  * each other. Parity alone would accept a coordinated edit that aims both files at some
- * other host, and every contributor's agent queries whatever this names – with the responses
+ * other host, and every contributor's agent queries whatever this names - with the responses
  * landing in agent context. Changing it therefore has to touch this file too, where the
  * diff reads as what it is.
  *
@@ -232,7 +232,7 @@ const PROJECT_MCP_SERVER_URL = 'https://blit386.dev/mcp';
  * later `*.json` or a second bare `.mcp.json` line re-ignores the file while the negation is
  * still sitting there in the text. Both cases were verified to slip past a text-based check.
  *
- * `--no-index` is what makes the question meaningful for a file that is already tracked –
+ * `--no-index` is what makes the question meaningful for a file that is already tracked -
  * without it git short-circuits on the index and always answers "not ignored".
  *
  * @param {string} repoRoot Absolute path to the repository root.
@@ -275,7 +275,7 @@ export function findProjectMcpFailures(mcpConfigContent, serverCardContent, root
 
     if (rootMcpIsIgnored === true) {
         failures.push(
-            '.mcp.json is ignored by git – check .gitignore for a rule matching it after the `!/.mcp.json` negation',
+            '.mcp.json is ignored by git - check .gitignore for a rule matching it after the `!/.mcp.json` negation',
         );
     }
 
@@ -403,7 +403,7 @@ function readClaudeSkillDirNames(claudeSkillsDir) {
 }
 
 /**
- * Runs the symlink and Zed-settings checks against the repo root – the only place
+ * Runs the symlink and Zed-settings checks against the repo root - the only place
  * `.claude/skills`, `.agents/skills`, and `.zed/settings.json` live in this monorepo.
  *
  * @param {string} root Absolute path to the repo root.
@@ -447,10 +447,10 @@ function checkAgentsPointer(root) {
 }
 
 /**
- * A package counts as its own agent-config root if it carries either marker – not just
+ * A package counts as its own agent-config root if it carries either marker - not just
  * CLAUDE.md, so a package with AGENTS.md but a missing CLAUDE.md still gets checked (that
  * missing-pointer-target case is exactly what findAgentsPointerFailures exists to catch).
- * `.claude/rules` alone (no CLAUDE.md/AGENTS.md) does not make a package its own root – only
+ * `.claude/rules` alone (no CLAUDE.md/AGENTS.md) does not make a package its own root - only
  * the AGENTS.md <-> CLAUDE.md pointer is package-level in this monorepo.
  */
 const AGENT_CONFIG_MARKERS = ['CLAUDE.md', 'AGENTS.md'];

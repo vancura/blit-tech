@@ -76,7 +76,7 @@ function demoRedirectsPlugin() {
             const firstVisible = registry.find((entry) => !entry.isNavHidden);
 
             const lines = [
-                '# Generated at build time — do not edit dist/_redirects by hand.',
+                '# Generated at build time - do not edit dist/_redirects by hand.',
                 '# Sources: plugins/demo-vintage-urls.js + first nav-visible demo from the registry.',
                 '# Cloudflare Pages: first match wins; static/index rules before vintage 301s.',
                 '',

@@ -27,7 +27,7 @@ Do not use exceptions for low-severity findings (CI does not gate on them).
 
 4. Record the exception in the table below (one row per GHSA).
 5. Set a review-by date (default: 30 days; extend only with written rationale in the issue).
-6. Remove on expiry – remove the `--ignore <GHSA>` flag from the `security:audit` script, clear the table row, and close
+6. Remove on expiry - remove the `--ignore <GHSA>` flag from the `security:audit` script, clear the table row, and close
    the acceptance issue.
 
 ## Active exceptions
@@ -43,10 +43,10 @@ Do not use exceptions for low-severity findings (CI does not gate on them).
   package to `minimumReleaseAgeExclude` in the same PR as the override and document why.
 - `package.json`'s `pnpm` field is not read at all under pnpm 11. Use the `--ignore <GHSA>` flag in the `security:audit`
   script for a temporary exception, or `audit.ignore` in `pnpm-workspace.yaml` for a permanent one.
-- After any exception, still run `pnpm run security:audit:prod` – production dependencies must remain clean unless
+- After any exception, still run `pnpm run security:audit:prod` - production dependencies must remain clean unless
   explicitly documented otherwise.
 
 ## Related docs
 
-- [dependency-policy.md](./dependency-policy.md) – when an exception is allowed and the CI audit gate
-- [security-runbook.md](./security-runbook.md) – monthly security runs and incident triage
+- [dependency-policy.md](./dependency-policy.md) - when an exception is allowed and the CI audit gate
+- [security-runbook.md](./security-runbook.md) - monthly security runs and incident triage

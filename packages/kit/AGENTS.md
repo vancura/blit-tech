@@ -1,11 +1,11 @@
-# @blit386/kit – agent quick start
+# @blit386/kit - agent quick start
 
 Canonical kit content (the IR) and the `blit` CLI, shipped into every scaffolded game. Depends on nothing published by
-`create-blit386`, but this package, `create-blit386`, and the `blit386` engine release in lockstep – see
+`create-blit386`, but this package, `create-blit386`, and the `blit386` engine release in lockstep - see
 [`packages/create-blit386/AGENTS.md`](../create-blit386/AGENTS.md) for the scaffolder's own quick start.
 
 This file is a standalone quick start for tools that read `AGENTS.md` and not `CLAUDE.md`. For kit content vs engine
-docs, the drift checklist, and the routing table, [`CLAUDE.md`](CLAUDE.md) is canonical – read it before non-trivial
+docs, the drift checklist, and the routing table, [`CLAUDE.md`](CLAUDE.md) is canonical - read it before non-trivial
 work. Shared monorepo conventions live in the repo root [`CLAUDE.md`](../../CLAUDE.md) and
 [`AGENTS.md`](../../AGENTS.md).
 
@@ -27,10 +27,10 @@ current state of the quality gate.
 
 ## Rules that matter most
 
-- Beginner-friendly – kit docs and skills assume no prior coding experience.
-- Integer coordinates in generated games – `Vector2i` / `Rect2i` via blit386; use the `BT` namespace, never `BTAPI`.
+- Beginner-friendly - kit docs and skills assume no prior coding experience.
+- Integer coordinates in generated games - `Vector2i` / `Rect2i` via blit386; use the `BT` namespace, never `BTAPI`.
 - Named exports only in this package's own TypeScript; no default exports.
-- Kit content must be self-contained – reference only `packages/blit386` and other local kit files, never
+- Kit content must be self-contained - reference only `packages/blit386` and other local kit files, never
   `packages/demos`.
 
 ## Two different AGENTS.md files
@@ -41,9 +41,9 @@ is about this package's own contributor docs.
 
 ## Where to go next
 
-- [`CLAUDE.md`](CLAUDE.md) – kit content vs engine docs, the drift checklist, and the routing table.
-- Root `CONTRIBUTING.md` – DCO and contribution guidelines.
-- `packages/create-blit386/PUBLISHING.md` – pnpm publish procedure for all three lockstep packages
+- [`CLAUDE.md`](CLAUDE.md) - kit content vs engine docs, the drift checklist, and the routing table.
+- Root `CONTRIBUTING.md` - DCO and contribution guidelines.
+- `packages/create-blit386/PUBLISHING.md` - pnpm publish procedure for all three lockstep packages
   (`pnpm run bump -- 1.5.0` from the repo root, replacing `1.5.0` with the target version).
 
 Condensed, always-applicable agent rules also live in the root `.claude/rules/*.md`.

@@ -2,7 +2,7 @@
  * Persistent mapping from every historical demo slug to its current slug.
  *
  * Keys are never removed. On a future rename, update the target (and add a new entry for
- * the slug being vacated). Structurally separate from `DEMO_ORDER` in `demo-order.js` –
+ * the slug being vacated). Structurally separate from `DEMO_ORDER` in `demo-order.js` -
  * order is navigation; this file is permanent URL compatibility.
  *
  * Targets that no longer exist on disk (retired demos) stay listed for history and must
@@ -18,7 +18,7 @@ export const RETIRED_SLUGS = new Set(['error-preview', 'filip-test-02']);
 
 export const VINTAGE_URLS = {
     '00a-barebones': 'hello-world',
-    // Retired – src/barebones.js was removed; hello-world now occupies its nav slot.
+    // Retired - src/barebones.js was removed; hello-world now occupies its nav slot.
     barebones: 'hello-world',
     '001-basics': 'basics',
     '002-primitives': 'primitives',
@@ -40,7 +40,7 @@ export const VINTAGE_URLS = {
     '018-flurry': 'flurry',
     '019-palette-cycling': 'palette-cycling',
     '020-palette-fade': 'palette-fade',
-    // Retired – number stays unused; no `src/error-preview.js` on disk.
+    // Retired - number stays unused; no `src/error-preview.js` on disk.
     '021-error-preview': 'error-preview',
     '022-bitmap-font': 'bitmap-font',
     '023-crt-pipboy': 'crt-pipboy',
@@ -60,7 +60,7 @@ export const VINTAGE_URLS = {
     '037-music': 'music',
     '038-audio-buses': 'audio-buses',
     '041-synth-toy': 'synth-toy',
-    // Retired – src/filip-test-02.js was removed; techniques covered by pointer-basics,
+    // Retired - src/filip-test-02.js was removed; techniques covered by pointer-basics,
     // palette-animation, and primitives.
     '042-filip-test-02': 'filip-test-02',
 };

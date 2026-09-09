@@ -1,7 +1,7 @@
 ---
 title: Introducing BLIT386
 description:
-  BLIT386 is a palette-first WebGPU retro engine for the browser – here is what it does, how it works, and where it is
+  BLIT386 is a palette-first WebGPU retro engine for the browser - here is what it does, how it works, and where it is
   heading.
 date: 2026-06-25
 tags: [announcement]
@@ -9,13 +9,13 @@ author: vancura
 ---
 
 BLIT386 is a pixel-art rendering engine for TypeScript. Palette-indexed by default, WebGPU first, and when WebGPU is not
-there it quietly drops down to a Canvas 2D software renderer instead of falling over. It all runs in the browser – no
+there it quietly drops down to a Canvas 2D software renderer instead of falling over. It all runs in the browser - no
 server, nothing to deploy but static files.
 
 ## What BLIT386 gives you
 
 A fixed 256-entry color palette and integer coordinates throughout. Sprites are loaded as `SpriteSheet` instances, fonts
-as `.btfont` bitmaps, and all draw calls go through the static `BT` namespace – `BT.drawSprite`, `BT.systemPrint`,
+as `.btfont` bitmaps, and all draw calls go through the static `BT` namespace - `BT.drawSprite`, `BT.systemPrint`,
 `BT.drawRectFill`, and so on.
 
 The dual-backend design means the same demo code runs on WebGPU hardware and on older or locked-down devices without any
@@ -55,8 +55,8 @@ bootstrap(MyDemo);
 ## What is next
 
 The interactive demos at [demos.blit386.dev](https://demos.blit386.dev) cover primitives, sprites, palette effects,
-tilemap rendering, pointer and keyboard input, and a small Snake game. Each one is a single JavaScript file – open it,
+tilemap rendering, pointer and keyboard input, and a small Snake game. Each one is a single JavaScript file - open it,
 read it, change a number, see what breaks.
 
 The docs on this site are generated straight from the engine source, so they do not drift. If something here is missing
-or wrong, the fix goes into the engine repo and shows up on the next sync – I am not hand-copying anything.
+or wrong, the fix goes into the engine repo and shows up on the next sync - I am not hand-copying anything.

@@ -39,9 +39,9 @@ export interface ReducedMotionUrlFlags {
  * Resolves whether reduced motion is preferred, from already-gathered signals.
  *
  * An off switch should be unambiguous, so `?noreducedmotion` beats `?reducedmotion` when both
- * are present – the same rule `resolveSplashEnabled` follows for `?nosplash` / `?splash`.
+ * are present - the same rule `resolveSplashEnabled` follows for `?nosplash` / `?splash`.
  *
- * @param signals – See {@link ReducedMotionSignals}.
+ * @param signals - See {@link ReducedMotionSignals}.
  * @returns `true` when reduced motion should be preferred.
  */
 export function resolveReducedMotionPreferred(signals: ReducedMotionSignals): boolean {
@@ -118,7 +118,7 @@ export class ReducedMotion {
 
     /**
      * Resolved preference last reported to {@link onChange} (or read at {@link attach} time).
-     * Guards against notifying with a value the demo has already observed – see {@link handleChange}.
+     * Guards against notifying with a value the demo has already observed - see {@link handleChange}.
      */
     private lastNotified = false;
 
@@ -137,7 +137,7 @@ export class ReducedMotion {
 
             if (prefersReduced === this.lastNotified) {
                 // The URL override already resolved to this value, or the resolved preference
-                // otherwise didn't actually change – notifying would disagree with what
+                // otherwise didn't actually change - notifying would disagree with what
                 // BT.isReducedMotionPreferred already reports, or repeat a stale event.
                 return;
             }
@@ -170,7 +170,7 @@ export class ReducedMotion {
      *
      * No-ops when `matchMedia` is unavailable.
      *
-     * @param onChange – Optional demo callback for subsequent preference changes.
+     * @param onChange - Optional demo callback for subsequent preference changes.
      */
     public attach(onChange: ChangeHandler | null): void {
         if (typeof globalThis.matchMedia !== 'function') {
@@ -186,11 +186,11 @@ export class ReducedMotion {
     /**
      * Rebinds the demo callback for subsequent changes, without touching the live listener.
      *
-     * Used when a hot reload swaps in a new demo instance ({@link BTAPI.hotReplaceDemo}) – the
+     * Used when a hot reload swaps in a new demo instance ({@link BTAPI.hotReplaceDemo}) - the
      * `change` listener installed by {@link attach} closes over `this.onChange`, so without
      * this, preference changes would keep reaching the *previous* demo's bound handler.
      *
-     * @param onChange – Replacement demo callback, or `null` to stop forwarding events.
+     * @param onChange - Replacement demo callback, or `null` to stop forwarding events.
      */
     public setOnChange(onChange: ChangeHandler | null): void {
         this.onChange = onChange;

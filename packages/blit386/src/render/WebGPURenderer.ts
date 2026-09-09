@@ -70,7 +70,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     private clearPaletteIndex: number = 0;
 
     /**
-     * Camera offset for scrolling effects. A persistent mutable scratch object – its
+     * Camera offset for scrolling effects. A persistent mutable scratch object - its
      * identity never changes after construction, only its contents (see {@link setCameraOffset}
      * / {@link resetCamera}), so it must never be initialized to the frozen {@link Vector2i.zero}
      * singleton.
@@ -134,7 +134,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Primitives encoded after the sprite pass (overlay bars, etc.).
      *
      * Lazily allocated: stays `null` until {@link isOverlayEnabled} is true at {@link init}
-     * time, or the first call to {@link drawBarFill} – whichever comes first. Every consumer
+     * time, or the first call to {@link drawBarFill} - whichever comes first. Every consumer
      * of this field (reset, encode, camera offset) must handle `null`.
      */
     private overlayPrimitives: PrimitivePipeline | null = null;
@@ -146,7 +146,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Sprites encoded after overlay bar primitives (overlay labels, etc.).
      *
      * Lazily allocated: stays `null` until {@link isOverlayEnabled} is true at {@link init}
-     * time, or the first call to {@link drawLabel} – whichever comes first. Every consumer
+     * time, or the first call to {@link drawLabel} - whichever comes first. Every consumer
      * of this field (reset, encode, camera offset) must handle `null`.
      */
     private overlaySprites: SpritePipeline | null = null;
@@ -155,7 +155,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Primitives encoded after overlay label sprites (tooltip chrome, etc.).
      *
      * Lazily allocated: stays `null` until {@link isOverlayEnabled} is true at {@link init}
-     * time, or the first call to {@link drawBarFillOnTop} – whichever comes first. Every
+     * time, or the first call to {@link drawBarFillOnTop} - whichever comes first. Every
      * consumer of this field (reset, encode, camera offset) must handle `null`.
      */
     private overlayTopPrimitives: PrimitivePipeline | null = null;
@@ -164,7 +164,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Sprites encoded after overlay top primitives (tooltip labels, etc.).
      *
      * Lazily allocated: stays `null` until {@link isOverlayEnabled} is true at {@link init}
-     * time, or the first call to {@link drawLabelOnTop} – whichever comes first. Every
+     * time, or the first call to {@link drawLabelOnTop} - whichever comes first. Every
      * consumer of this field (reset, encode, camera offset) must handle `null`.
      */
     private overlayTopSprites: SpritePipeline | null = null;
@@ -213,15 +213,15 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Creates a renderer bound to an initialized device and canvas context.
      *
-     * @param device – WebGPU device for GPU operations.
-     * @param context – WebGPU canvas context for presenting frames.
-     * @param displaySize – Logical render resolution in pixels.
-     * @param outputSize – Output drawing-buffer resolution in pixels (matches the
+     * @param device - WebGPU device for GPU operations.
+     * @param context - WebGPU canvas context for presenting frames.
+     * @param displaySize - Logical render resolution in pixels.
+     * @param outputSize - Output drawing-buffer resolution in pixels (matches the
      *   swap chain). When omitted, display-tier effects are disabled and the
      *   renderer operates at logical `displaySize` only.
-     * @param upscaleFilter – Magnification filter for the upscale pass. Defaults to
+     * @param upscaleFilter - Magnification filter for the upscale pass. Defaults to
      *   `'nearest'`.
-     * @param isOverlayEnabled – Mirrors `HardwareSettings.isOverlayEnabled`. When `true`
+     * @param isOverlayEnabled - Mirrors `HardwareSettings.isOverlayEnabled`. When `true`
      *   (the default), the four overlay pipelines are eagerly allocated in {@link init}.
      *   When `false`, they stay unallocated until the first overlay draw call.
      */
@@ -321,13 +321,13 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Sets the active palette used for rendering.
      *
-     * Stores a reference to the supplied palette – no clone is made. Subsequent
+     * Stores a reference to the supplied palette - no clone is made. Subsequent
      * calls to {@link Palette.set} or {@link Palette.copyFrom} on the same object
      * will be detected via {@link Palette.isDirty} and uploaded automatically at the
      * start of the next frame. The internal dirty flag guarantees the initial
      * upload even when the palette has never been mutated through {@link Palette.set}.
      *
-     * @param palette – Palette to use for color lookups and GPU upload.
+     * @param palette - Palette to use for color lookups and GPU upload.
      */
     setPalette(palette: Palette): void {
         this.palette = palette;
@@ -376,7 +376,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Sets the background clear color for this frame using a palette index.
      *
-     * @param paletteIndex – Palette index for the clear color.
+     * @param paletteIndex - Palette index for the clear color.
      */
     setClearColor(paletteIndex: number): void {
         this.clearPaletteIndex = paletteIndex;
@@ -466,8 +466,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a filled rectangle using two triangles.
      *
-     * @param rect – Rectangle bounds in pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.primitives.drawRectFill(rect, paletteIndex);
@@ -476,8 +476,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a filled rectangle in the overlay primitive batch (above demo sprites).
      *
-     * @param rect – Rectangle bounds in pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawBarFill(rect: Rect2i, paletteIndex: number): void {
         this.getOverlayPrimitives().drawRectFill(rect, paletteIndex);
@@ -486,8 +486,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a filled rectangle above overlay labels (tooltip chrome, etc.).
      *
-     * @param rect – Rectangle bounds in pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawBarFillOnTop(rect: Rect2i, paletteIndex: number): void {
         this.getOverlayTopPrimitives().drawRectFill(rect, paletteIndex);
@@ -496,8 +496,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a single pixel as a 1x1 filled rectangle.
      *
-     * @param pos – Pixel position.
-     * @param paletteIndex – Palette color index.
+     * @param pos - Pixel position.
+     * @param paletteIndex - Palette color index.
      */
     drawPixel(pos: Vector2i, paletteIndex: number): void {
         this.drawPixelXY(pos.x, pos.y, paletteIndex);
@@ -507,9 +507,9 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Fast-path pixel draw using raw integer coordinates.
      * Avoids Vector2i unpacking overhead when coordinates are already available as numbers.
      *
-     * @param x – X position.
-     * @param y – Y position.
-     * @param paletteIndex – Palette color index.
+     * @param x - X position.
+     * @param y - Y position.
+     * @param paletteIndex - Palette color index.
      */
     drawPixelXY(x: number, y: number, paletteIndex: number): void {
         this.primitives.drawPixelXY(x, y, paletteIndex);
@@ -519,9 +519,9 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Draws a line using optimized quad rendering for axis-aligned lines,
      * falling back to Bresenham's algorithm for diagonal lines.
      *
-     * @param p0 – Start point.
-     * @param p1 – End point.
-     * @param paletteIndex – Palette color index.
+     * @param p0 - Start point.
+     * @param p1 - End point.
+     * @param paletteIndex - Palette color index.
      */
     drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
         this.primitives.drawLine(p0, p1, paletteIndex);
@@ -530,8 +530,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a rectangle outline using four 1-pixel quads.
      *
-     * @param rect – Rectangle bounds.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds.
+     * @param paletteIndex - Palette color index.
      */
     drawRect(rect: Rect2i, paletteIndex: number): void {
         this.primitives.drawRect(rect, paletteIndex);
@@ -540,8 +540,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Fills a rectangular region with a palette-indexed color.
      *
-     * @param rect – Region to fill in pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Region to fill in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     clearRect(rect: Rect2i, paletteIndex: number): void {
         this.primitives.clearRect(rect, paletteIndex);
@@ -550,10 +550,10 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws a sprite region from an indexed sprite sheet.
      *
-     * @param spriteSheet – Source sprite sheet (must have been indexized).
-     * @param srcRect – Region to copy from the sprite sheet.
-     * @param destPos – Screen position to draw at.
-     * @param paletteOffset – Palette index offset applied at draw time (default 0).
+     * @param spriteSheet - Source sprite sheet (must have been indexized).
+     * @param srcRect - Region to copy from the sprite sheet.
+     * @param destPos - Screen position to draw at.
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
      */
     drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.sprites.drawSprite(spriteSheet, srcRect, destPos, paletteOffset);
@@ -563,10 +563,10 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Draws text using a bitmap font through the indexed sprite pipeline.
      * Renders each character as a textured sprite.
      *
-     * @param font – Bitmap font with character glyphs (underlying sheet must be indexized).
-     * @param pos – Text position (top-left corner).
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font with character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.sprites.drawBitmapText(font, pos, text, paletteOffset);
@@ -575,10 +575,10 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws bitmap text in the overlay sprite batch (above overlay bar fills).
      *
-     * @param font – Bitmap font with character glyphs.
-     * @param pos – Text position (top-left corner).
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.getOverlaySprites().drawBitmapText(font, pos, text, paletteOffset);
@@ -587,10 +587,10 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Draws bitmap text above overlay top bar fills (tooltip labels, etc.).
      *
-     * @param font – Bitmap font with character glyphs.
-     * @param pos – Text position (top-left corner).
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawLabelOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.getOverlayTopSprites().drawBitmapText(font, pos, text, paletteOffset);
@@ -628,10 +628,10 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * `overlayPrimitives`, `overlayTopPrimitives`, `sprites`, `overlaySprites`,
      * and `overlayTopSprites`.
      *
-     * @param offset – Camera position in pixels.
+     * @param offset - Camera position in pixels.
      */
     setCameraOffset(offset: Vector2i): void {
-        // Zero-alloc copy into the persistent scratch field – cloneTo() mutates
+        // Zero-alloc copy into the persistent scratch field - cloneTo() mutates
         // this.cameraOffset in place instead of allocating a new Vector2i, while still
         // keeping the stored offset independent of the caller's `offset` object.
         offset.cloneTo(this.cameraOffset);
@@ -656,7 +656,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Resets the camera to the origin (0, 0) on all scene pipelines.
      */
     resetCamera(): void {
-        // Zero in place – this.cameraOffset is a fixed persistent object, not reassignable
+        // Zero in place - this.cameraOffset is a fixed persistent object, not reassignable
         // to the frozen Vector2i.zero() singleton (setCameraOffset()'s cloneTo() would then
         // try to mutate a frozen object on the next call).
         this.cameraOffset.set(0, 0);
@@ -676,7 +676,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * - `tier='display'` -> display chain (output resolution); requires
      *   `drawingBufferSize` to be set in `configure()`.
      *
-     * @param effect – Effect instance to append.
+     * @param effect - Effect instance to append.
      * @throws If the renderer has not been initialized.
      * @throws If a `'display'` effect is added without `drawingBufferSize`
      *   set in `configure()`.
@@ -705,7 +705,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * fallback tries the other chain. Removing an effect that was never added
      * is a no-op.
      *
-     * @param effect – Effect instance to remove.
+     * @param effect - Effect instance to remove.
      * @throws If the renderer has not been initialized.
      */
     removeEffect(effect: Effect): void {
@@ -783,7 +783,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * a prior lazy draw call or a prior `init()`) is always re-initialized, since `init()` may
      * be re-entered for device-loss recovery.
      *
-     * @param existing – Current pipeline instance, or `null` if not yet allocated.
+     * @param existing - Current pipeline instance, or `null` if not yet allocated.
      * @returns The pipeline to store, or `null` when overlay stays disabled and unallocated.
      */
     private async initOverlayPrimitivePipeline(existing: PrimitivePipeline | null): Promise<PrimitivePipeline | null> {
@@ -807,7 +807,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * a prior lazy draw call or a prior `init()`) is always re-initialized, since `init()` may
      * be re-entered for device-loss recovery.
      *
-     * @param existing – Current pipeline instance, or `null` if not yet allocated.
+     * @param existing - Current pipeline instance, or `null` if not yet allocated.
      * @returns The pipeline to store, or `null` when overlay stays disabled and unallocated.
      */
     private async initOverlaySpritePipeline(existing: SpritePipeline | null): Promise<SpritePipeline | null> {
@@ -830,9 +830,9 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * `vertexBuffer`/`pipeline` would still be `null`, which would otherwise crash
      * `encodePass()` on the next `endFrame()`).
      *
-     * @param pipelineName – Field name for the log message (e.g. `'overlayPrimitives'`).
-     * @param clearField – Callback that resets the owning field to `null`.
-     * @param error – Rejection reason from the pipeline's `init()` call.
+     * @param pipelineName - Field name for the log message (e.g. `'overlayPrimitives'`).
+     * @param clearField - Callback that resets the owning field to `null`.
+     * @param error - Rejection reason from the pipeline's `init()` call.
      */
     private handleLazyOverlayInitFailure(pipelineName: string, clearField: () => void, error: unknown): void {
         console.error(`[WebGPURenderer] Failed to initialize ${pipelineName} pipeline:`, error);
@@ -845,7 +845,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      *
      * `PrimitivePipeline.init()` performs only synchronous WebGPU calls today (no real
      * `await` inside it), so its GPU/CPU setup completes before this method returns even
-     * though the returned promise is intentionally not awaited here – `drawBarFill()` is a
+     * though the returned promise is intentionally not awaited here - `drawBarFill()` is a
      * synchronous public API and cannot await. If `PrimitivePipeline.init()` ever gains real
      * async work, this call site needs to change too. A rejection (e.g. GPU resource creation
      * failure) is caught via {@link handleLazyOverlayInitFailure} rather than left as an
@@ -963,8 +963,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * `overlayTopPrimitives` ({@link drawBarFillOnTop}), then `overlayTopSprites`
      * ({@link drawLabelOnTop}).
      *
-     * @param encoder – Active command encoder.
-     * @param sceneView – Logical scene attachment view to render into.
+     * @param encoder - Active command encoder.
+     * @param sceneView - Logical scene attachment view to render into.
      */
     private encodeScenePass(encoder: GPUCommandEncoder, sceneView: GPUTextureView): void {
         const clearPaletteIndex = this.resolveClearPaletteIndex();
@@ -999,11 +999,11 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Encodes the optional pixel chain, upscale pass, and display chain in the
      * correct order based on which chains are active.
      *
-     * @param encoder – Active command encoder.
-     * @param swapChainView – Current swap-chain view (final destination).
-     * @param isPixelChainActive – Whether the pixel chain has any registered effects.
-     * @param isDisplayChainActive – Whether the display chain has any registered effects.
-     * @param deltaMs – Wall-clock milliseconds since the previous frame.
+     * @param encoder - Active command encoder.
+     * @param swapChainView - Current swap-chain view (final destination).
+     * @param isPixelChainActive - Whether the pixel chain has any registered effects.
+     * @param isDisplayChainActive - Whether the display chain has any registered effects.
+     * @param deltaMs - Wall-clock milliseconds since the previous frame.
      */
     private encodePostProcess(
         encoder: GPUCommandEncoder,
@@ -1034,8 +1034,8 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
      * Adds the optional frame-capture readback, submits the command buffer,
      * and resets per-frame pipeline state.
      *
-     * @param encoder – Active command encoder.
-     * @param swapTexture – Current swap-chain texture (capture source).
+     * @param encoder - Active command encoder.
+     * @param swapTexture - Current swap-chain texture (capture source).
      */
     private submitFrame(encoder: GPUCommandEncoder, swapTexture: GPUTexture): void {
         const isCapturing = this.frameCapture.hasPending();
@@ -1080,7 +1080,7 @@ export class WebGPURenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Picks the texture view the scene render pass should target this frame.
      *
-     * @param isPixelChainActive – Whether the pixel chain has any registered effects.
+     * @param isPixelChainActive - Whether the pixel chain has any registered effects.
      * @returns Stable view to render the scene into.
      */
     private resolveSceneView(isPixelChainActive: boolean): GPUTextureView {

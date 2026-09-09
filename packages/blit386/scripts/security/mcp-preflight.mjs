@@ -44,10 +44,10 @@ export const SECURITY_MCP_REGISTRY = [
 
 /**
  * Shadow MCP entries accepted by governance policy. Matched on name + classification + exact
- * root-config path only – the URL half of this row is pinned separately by
+ * root-config path only - the URL half of this row is pinned separately by
  * PROJECT_MCP_SERVER_URL in ../../../../scripts/check-agent-config.mjs (findProjectMcpFailures),
  * wired into `pnpm run agents:check`. See "Accepted MCP entries" in
- * docs/security/security-runbook.md – that table and this const must stay in sync manually.
+ * docs/security/security-runbook.md - that table and this const must stay in sync manually.
  * @type {{ name: string, classification: string }[]}
  */
 export const ACCEPTED_SHADOW_MCP_ENTRIES = [{ name: 'blit386-docs', classification: 'shadow-remote' }];
@@ -486,7 +486,7 @@ function main() {
 
     // A missing or nonexistent mcps-dir is not fatal here: classifyMcpServer already reports
     // each security MCP as 'absent' for a directory that does not exist, so --allow-fallback
-    // governs whether that is acceptable – deliberately not a hard exit, so a total MCP-session
+    // governs whether that is acceptable - deliberately not a hard exit, so a total MCP-session
     // outage degrades the same way a single missing server already does.
     const mcpsDir = args.mcpsDir ? path.resolve(args.mcpsDir) : '';
 

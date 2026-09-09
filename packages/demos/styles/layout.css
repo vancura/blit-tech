@@ -492,7 +492,7 @@ html[data-embed='true'][data-source='true'] {
 
     /*
      * Match the old shell page: canvas top-aligned under the toolbar.
-     * height:auto so the container hugs the canvas – the viewport-tall
+     * height:auto so the container hugs the canvas - the viewport-tall
      * embed height would leave a gap above the source panel.
      */
     & #canvas-container {

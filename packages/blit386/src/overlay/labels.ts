@@ -6,9 +6,9 @@ import type { OverlayDrawTarget } from './OverlayDrawTarget';
 
 /**
  * Matches demo registry titles, both the legacy numbered form (`BLIT386 Demo 006 - Patterns`)
- * and the current number-free form (`BLIT386 Demo – Hypercube`). Accepts an ASCII hyphen or an
+ * and the current number-free form (`BLIT386 Demo - Hypercube`). Accepts an ASCII hyphen or an
  * en dash as the separator, and a fixed-shape optional numbering segment (three digits, or the
- * legacy `00a` marker) rather than arbitrary text – this mirrors the already-bounded
+ * legacy `00a` marker) rather than arbitrary text - this mirrors the already-bounded
  * `PAGE_TITLE_PREFIX_PATTERN` in demos' `plugins/demo-registry.js`.
  */
 // The nested (?:...)? group is fixed-width ([0-9]{3} or the literal 00a), so there is no
@@ -43,8 +43,8 @@ const segmentScratch = new Vector2i(0, 0);
  * the row. Padding every such field to the same width up front keeps divider and segment
  * positions stable regardless of the underlying value.
  *
- * @param text – Already-formatted field text, e.g. `'8.3'`, `'60'`, or `'x3'` (may be empty).
- * @param width – Fixed column width in characters.
+ * @param text - Already-formatted field text, e.g. `'8.3'`, `'60'`, or `'x3'` (may be empty).
+ * @param width - Fixed column width in characters.
  * @returns `text` padded with leading spaces to at least `width` characters.
  */
 export function padOverlayField(text: string, width: number): string {
@@ -54,7 +54,7 @@ export function padOverlayField(text: string, width: number): string {
 /**
  * Turns the browser page title into a short top-left overlay label.
  *
- * @param pageTitle – Browser document title when available.
+ * @param pageTitle - Browser document title when available.
  * @returns Short label for the top-left bar (registry titles such as
  *   `BLIT386 Demo 002 - Primitives` become `Primitives Demo`).
  */
@@ -85,13 +85,13 @@ export function resolveOverlayTopLeftLabel(pageTitle: string | undefined): strin
  * literal pipes via plain {@link OverlayDrawTarget.drawLabel}. Measure the rendered
  * width with {@link overlayDividerLabelWidth}.
  *
- * @param target – Overlay draw target.
- * @param font – System bitmap font.
- * @param pos – Label draw position.
- * @param text – Engine-composed label; every `|` becomes a drawn divider.
- * @param rowRect – Row band rect the dividers span vertically.
- * @param textPaletteOffset – Palette offset for the label glyphs.
- * @param gapIndex – Palette index for divider fills (same as row gaps).
+ * @param target - Overlay draw target.
+ * @param font - System bitmap font.
+ * @param pos - Label draw position.
+ * @param text - Engine-composed label; every `|` becomes a drawn divider.
+ * @param rowRect - Row band rect the dividers span vertically.
+ * @param textPaletteOffset - Palette offset for the label glyphs.
+ * @param gapIndex - Palette index for divider fills (same as row gaps).
  */
 export function drawOverlayLabelWithDividers(
     target: OverlayDrawTarget,
@@ -142,7 +142,7 @@ export function drawOverlayLabelWithDividers(
  * {@link drawOverlayLabelWithDividers}: segment glyph advances plus
  * {@link SEGMENT_SEPARATOR_ADVANCE_PX} per divider.
  *
- * @param text – Engine-composed label with `|` separator markers.
+ * @param text - Engine-composed label with `|` separator markers.
  * @returns Rendered width in pixels (same convention as `length * SYSTEM_CHAR_ADVANCE`
  *   for plain text, including the last glyph's trailing tracking).
  */

@@ -1,10 +1,10 @@
 /**
- * Hypercube – Fez-style rotating tesseract wireframe.
+ * Hypercube - Fez-style rotating tesseract wireframe.
  * @description A Fez-style rotating tesseract: watch a four-dimensional cube turn on a 256x256 PICO-8 sized canvas.
  *
  * A tesseract is a 4D cube: two 3D cubes linked along a fourth axis (W).
  * We rotate in 4D, then project down to 2D so you can see the links stretch
- * and the "inner" cube pass through the "outer" one – like the Fez logo.
+ * and the "inner" cube pass through the "outer" one - like the Fez logo.
  *
  * Drag (mouse or touch) spins it like a trackball: horizontal = yaw around Y,
  * vertical = pitch around X. On release the spin keeps the finger's 2D velocity
@@ -52,7 +52,7 @@ const DIST_3 = 3.2;
 const C_BG = 1;
 const C_NEAR = 7;
 
-/** Fixed slots – stable colors that do not swap when edges are depth-sorted. */
+/** Fixed slots - stable colors that do not swap when edges are depth-sorted. */
 const C_CUBE_A = 8;
 const C_CUBE_B = 9;
 const C_LINK = 10;
@@ -68,7 +68,7 @@ const LIGHT_PULSE = 10;
 const LIGHT_PULSE_RATE = 1.1;
 
 /**
- * The automatic Fez tumble – the "home" spin vector we always fade back to.
+ * The automatic Fez tumble - the "home" spin vector we always fade back to.
  * `xz` stays 0 at rest; drag/flick uses it for screen-space yaw.
  *
  * @type {Readonly<Spin>}
@@ -105,7 +105,7 @@ const MAX_FLICK_SPIN = 8;
 
 /**
  * The 16 corners of a unit tesseract (±1 on x, y, z, w).
- * Built once at load; never mutated – each frame copies into a scratch vector.
+ * Built once at load; never mutated - each frame copies into a scratch vector.
  *
  * @type {number[][]}
  */
@@ -174,7 +174,7 @@ class Demo {
     /** @type {number} */
     angleZW = 0.2;
 
-    /** Screen-space yaw (XZ plane – around Y). @type {number} */
+    /** Screen-space yaw (XZ plane - around Y). @type {number} */
     angleXZ = 0;
 
     /** Free-motion angular velocity; eases toward HOME_SPIN. @type {Spin} */
@@ -240,7 +240,7 @@ class Demo {
 
                 // Exactly one bit set: axis is a power of two.
                 if (axis !== 0 && (axis & (axis - 1)) === 0) {
-                    // Bit 3 (value 8) means the edge spans W – a strut between the two cubes.
+                    // Bit 3 (value 8) means the edge spans W - a strut between the two cubes.
                     // Otherwise the edge lives on the cube whose W sign matches endpoint i.
                     const color = axis === 8 ? C_LINK : (i & 8) !== 0 ? C_CUBE_B : C_CUBE_A;
 
@@ -268,7 +268,7 @@ class Demo {
 
     /**
      * Rotate a 4D point in the plane of axes `a` and `b` (0=X, 1=Y, 2=Z, 3=W).
-     * `c` / `s` are cos/sin of the angle – precomputed once per frame.
+     * `c` / `s` are cos/sin of the angle - precomputed once per frame.
      *
      * @param {number[]} v
      * @param {number} c
@@ -450,7 +450,7 @@ class Demo {
         }
 
         // Update depth on each edge in place. Do NOT rebuild edges from a sorted
-        // index list – that pairs the wrong color with the wrong endpoints and flashes.
+        // index list - that pairs the wrong color with the wrong endpoints and flashes.
         for (let e = 0; e < this.edgeOrder.length; e++) {
             const edge = this.edgeOrder[e];
 

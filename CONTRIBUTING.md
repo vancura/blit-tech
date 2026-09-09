@@ -18,7 +18,7 @@ pnpm --filter blit386 run build
 pnpm --filter blit386 run test
 ```
 
-(Substitute `blit386` for whichever package you're working in – `blit386-demos`, `blit386-website`, `@blit386/kit`, or
+(Substitute `blit386` for whichever package you're working in - `blit386-demos`, `blit386-website`, `@blit386/kit`, or
 `create-blit386`. See each package's own `package.json` for the scripts it defines.)
 
 Requirements:
@@ -108,19 +108,19 @@ Signed-off-by: Your Name <your.email@example.com>
 
 ### Commit Types
 
-- `feat` – New feature
-- `fix` – Bug fix
-- `docs` – Documentation only
-- `style` – Formatting, no code change
-- `refactor` – Code change that neither fixes a bug nor adds a feature
-- `perf` – Performance improvement
-- `test` – Adding or updating tests
-- `build` – Build system or dependencies
-- `ci` – CI configuration
-- `chore` – Other changes
-- `revert` – Revert a previous commit
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation only
+- `style` - Formatting, no code change
+- `refactor` - Code change that neither fixes a bug nor adds a feature
+- `perf` - Performance improvement
+- `test` - Adding or updating tests
+- `build` - Build system or dependencies
+- `ci` - CI configuration
+- `chore` - Other changes
+- `revert` - Revert a previous commit
 
-Suggested scopes are conventions only – commitlint does not enforce a scope enum. The canonical list (frequency order)
+Suggested scopes are conventions only - commitlint does not enforce a scope enum. The canonical list (frequency order)
 lives in [`CLAUDE.md`](CLAUDE.md) under Git:
 
 `docs`, `audio`, `assets`, `overlay`, `core`, `api`, `ci`, `renderer`, `tests`, `utils`, `rules`, `release`, `security`,
@@ -155,22 +155,22 @@ Signed-off-by: John Doe <john@example.com>
 All code must follow the project's style guidelines:
 
 - No emoji anywhere in code, comments, or documentation
-- TypeScript strict mode – All code must pass strict TypeScript checks
-- Formatting – Code is automatically formatted by Biome and Prettier
-- Linting – Code must pass all linting checks with zero tolerance for warnings (`eslint --max-warnings 0`; Biome
+- TypeScript strict mode - All code must pass strict TypeScript checks
+- Formatting - Code is automatically formatted by Biome and Prettier
+- Linting - Code must pass all linting checks with zero tolerance for warnings (`eslint --max-warnings 0`; Biome
   diagnostics such as `noExplicitAny` are errors)
-- JSDoc – Required for public APIs (ESLint `warn` rules that fail CI via `--max-warnings 0`)
+- JSDoc - Required for public APIs (ESLint `warn` rules that fail CI via `--max-warnings 0`)
 
 ### Pre-commit Checks
 
 Before committing, run the checks for the package you changed (requires the Node.js version above). Most packages define
-a combined `preflight` script – run it if the package has one:
+a combined `preflight` script - run it if the package has one:
 
 ```bash
 pnpm --filter blit386 run preflight   # or the package you're working in
 ```
 
-`kit` and `create-blit386` have no combined `preflight` script (see Available Commands below) – run their individual
+`kit` and `create-blit386` have no combined `preflight` script (see Available Commands below) - run their individual
 `build`, `typecheck`, and `test` scripts, plus the root-level `pnpm run format:check` (neither package defines its own).
 
 Pre-commit (lint-staged) and CI/`preflight` now agree: both reject ESLint warnings and Biome errors. The example above,
@@ -204,7 +204,7 @@ gate, after every changed package's `preflight` passes.
 
 ### Available Commands
 
-These are `packages/blit386`'s scripts – the most heavily-tooled package and the one most contributions touch. Run them
+These are `packages/blit386`'s scripts - the most heavily-tooled package and the one most contributions touch. Run them
 from `packages/blit386` directly, or from the repo root with `pnpm --filter blit386 run <script>`. Other packages define
 a subset of this list in their own `package.json` (`kit` and `create-blit386` have no combined `preflight`). A handful
 of shared checks (`format:check`, `format`, `docs:links`, `agents:check`, `security:audit`, `security:audit:prod`) also
@@ -296,9 +296,9 @@ community. Blank issues are disabled.
 To report a bug, propose a feature, or flag a docs problem, use the guided forms under
 [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/):
 
-- [Bug report](.github/ISSUE_TEMPLATE/bug_report.yml) – reproduction, expected vs actual, backend, environment
-- [Feature request](.github/ISSUE_TEMPLATE/feature_request.yml) – problem, proposed API, palette-first fit
-- [Docs issue](.github/ISSUE_TEMPLATE/docs_issue.yml) – affected page and what is wrong or missing
+- [Bug report](.github/ISSUE_TEMPLATE/bug_report.yml) - reproduction, expected vs actual, backend, environment
+- [Feature request](.github/ISSUE_TEMPLATE/feature_request.yml) - problem, proposed API, palette-first fit
+- [Docs issue](.github/ISSUE_TEMPLATE/docs_issue.yml) - affected page and what is wrong or missing
 
 See `.github/ISSUE_TEMPLATE/config.yml` for docs, demos, and private vulnerability reporting links.
 

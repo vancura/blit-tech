@@ -9,7 +9,7 @@ description:
 
 # Design your own sound
 
-The engine can build a sound out of nothing – no files, no recording. The six presets in `BT.synthPreset` are the quick
+The engine can build a sound out of nothing - no files, no recording. The six presets in `BT.synthPreset` are the quick
 way (see the `play-a-sound` skill). This skill is the slow way: describing a sound yourself, knob by knob, with
 `AudioClip.synth()`.
 
@@ -44,11 +44,11 @@ Those four are required. Everything below is optional, and each one is a knob yo
 
 ## The knobs
 
-**`waveform`** – the personality of the sound. `'square'` is the classic 8-bit buzz. `'sine'` is soft and pure, like a
+**`waveform`** - the personality of the sound. `'square'` is the classic 8-bit buzz. `'sine'` is soft and pure, like a
 whistle. `'triangle'` is soft but with a bit of an edge. `'sawtooth'` is bright and rasping. `'noise'` is a hiss, with
-no pitch at all – it is what explosions and footsteps are made of.
+no pitch at all - it is what explosions and footsteps are made of.
 
-**`envelope`** – the shape of the sound over time, in four parts. Imagine plucking a guitar string versus slowly pushing
+**`envelope`** - the shape of the sound over time, in four parts. Imagine plucking a guitar string versus slowly pushing
 an organ key:
 
 ```js
@@ -63,7 +63,7 @@ envelope: {
 Those are also the defaults, so leaving `envelope` out gives you exactly that. For a percussive hit, use a tiny `attack`
 and a low `sustain`. For a soft pad, use a big `attack`.
 
-**`pitchSweep`** – makes the pitch slide while the sound plays. Sliding **up** reads as a jump or a power-up. Sliding
+**`pitchSweep`** - makes the pitch slide while the sound plays. Sliding **up** reads as a jump or a power-up. Sliding
 **down** reads as falling, or dying.
 
 ```js
@@ -73,16 +73,16 @@ pitchSweep: { toFrequency: 800 }, // starts at 200 Hz, ends at 800 Hz: a rising 
 
 Leaving `pitchSweep` out means "stay at one pitch the whole time".
 
-**`vibrato`** – a wobble in the pitch, like an opera singer. `rate` is how fast it wobbles (default 5 per second),
+**`vibrato`** - a wobble in the pitch, like an opera singer. `rate` is how fast it wobbles (default 5 per second),
 `depth` is how far (default 0, meaning off).
 
-**`noiseMix`** – stirs hiss into a pitched sound, from 0 (none) to 1 (all hiss). A little bit adds grit and dirt. This
+**`noiseMix`** - stirs hiss into a pitched sound, from 0 (none) to 1 (all hiss). A little bit adds grit and dirt. This
 is how you get an engine rumble rather than a clean tone.
 
-**`dutyCycle`** – only matters for `'square'`. It is the "thickness" of the buzz, from 0 to 1, default 0.5. Move it
+**`dutyCycle`** - only matters for `'square'`. It is the "thickness" of the buzz, from 0 to 1, default 0.5. Move it
 towards 0.1 and the square wave gets thin and nasal, which is a very NES sound.
 
-**`volume`** – 0 to 1, default 1.
+**`volume`** - 0 to 1, default 1.
 
 ## A worked example: a laser that is yours
 
@@ -102,7 +102,7 @@ this.laser = await AudioClip.synth({
 
 ## The seed
 
-`seed` is required, and it is not a volume or a pitch – it is the number the engine uses to make its random choices. The
+`seed` is required, and it is not a volume or a pitch - it is the number the engine uses to make its random choices. The
 same parameters plus the same seed always produce exactly the same sound, every run, on every machine. Pick any number
 and forget about it.
 
@@ -114,22 +114,22 @@ Careful: `seed` means something slightly different in the two places you will se
 
 ## Key calls
 
-- `AudioClip.synth(params)` (static, async) – turns a description into a playable clip. Needs `await`.
+- `AudioClip.synth(params)` (static, async) - turns a description into a playable clip. Needs `await`.
 - Required fields: `waveform`, `frequency`, `duration`, `seed`.
 - Optional fields: `volume`, `envelope` (`attack`, `decay`, `sustain`, `release`), `pitchSweep` (`toFrequency`),
   `vibrato` (`rate`, `depth`), `noiseMix`, `dutyCycle`.
 - Waveforms: `'sine'`, `'square'`, `'triangle'`, `'sawtooth'`, `'noise'`.
-- `BT.soundPlay(clip, options?)` (method) – play the clip you built. See the `play-a-sound` skill.
+- `BT.soundPlay(clip, options?)` (method) - play the clip you built. See the `play-a-sound` skill.
 
 ## Notes
 
 - Build sounds in `init()` with `await`, not in `update()`. Synthesizing takes real work, and doing it mid-game will
   hitch the frame.
-- The description is plain data – numbers, strings, and small objects. That means a sound can live in a data file and be
+- The description is plain data - numbers, strings, and small objects. That means a sound can live in a data file and be
   loaded like a level, instead of being written into your code.
 - One knob at a time. Change `waveform`, listen, then change `envelope`, listen. Changing four things at once and
   disliking the result tells you nothing.
 - A synthesized sound still will not play before the player's first click or key press. That is a browser rule, not a
-  bug – the `play-a-sound` skill explains it.
+  bug - the `play-a-sound` skill explains it.
 
 See `docs/audio.md`.

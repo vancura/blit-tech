@@ -27,11 +27,11 @@ These are read-only values; access them as properties, not function calls.
 - Audio: `BT.isAudioUnlocked`, `BT.isMusicPlaying`
 - Input: `BT.inputString`, `BT.pointerScrollDelta`, `BT.gamepadCount`
 - Scene: `BT.camera`, `BT.palette` (throws if no palette has been set yet)
-- Random: `BT.random` (engine 1.5.0+) – the shared seedable generator; a live reference, like `BT.palette`. See
+- Random: `BT.random` (engine 1.5.0+) - the shared seedable generator; a live reference, like `BT.palette`. See
   `skills/use-random/`
-- Build mode: `BT.isDevMode` (engine 1.5.0+) – gate debug HUDs, cheat keys, and verbose logging; see
+- Build mode: `BT.isDevMode` (engine 1.5.0+) - gate debug HUDs, cheat keys, and verbose logging; see
   `skills/use-dev-mode/`
-- Splash: `BT.isSplashVisible` (engine 1.5.0+) – true while the BLIT386 splash covers the screen; `BT.splashState` for
+- Splash: `BT.isSplashVisible` (engine 1.5.0+) - true while the BLIT386 splash covers the screen; `BT.splashState` for
   the raw lifecycle state
 
 ```js
@@ -55,7 +55,7 @@ BT.pointerPos(0); // pointer position (Vector2i)
 BT.randomSeed(1234); // reseed the shared generator (engine 1.5.0+)
 ```
 
-`BT.random` is the getter, `BT.randomSeed(n)` is the method – the pair works like `BT.palette` / `BT.paletteSet`. Draws
+`BT.random` is the getter, `BT.randomSeed(n)` is the method - the pair works like `BT.palette` / `BT.paletteSet`. Draws
 go through the getter: `BT.random.int(0, 320)`, `BT.random.pick(list)`. Prefer it over `Math.random()`, which cannot be
 seeded. Import `Random` from `blit386` for an independent stream, and `hash2` / `PerlinNoise` and friends for
 coordinate-based world generation; see `skills/use-random/` and `skills/use-noise/`.
@@ -93,18 +93,18 @@ Screen orientation: `BT.screenOrientation` is the current browser type string (f
 `null` when unavailable. Set `preferredOrientation` to `'landscape'` or `'portrait'` to ask for a lock after start
 (`'any'` is the default and skips the lock). Optional `onOrientationChange(type)` on your game class runs when the
 player rotates the device. Locking works on Android Chrome; iOS Safari silently ignores it. A "please rotate" prompt is
-your job – the engine only reports the orientation.
+your job - the engine only reports the orientation.
 
 ## Demo class hooks (optional methods)
 
 Optional methods on your game class (the one you pass to `bootstrap()`):
 
-- `onOrientationChange(type)` – device orientation changed (see above).
-- `onHotReload(context)` – after a hot-reload swap (engine 1.4.0+). `context.reason` is `'methods'` or `'reinit'`;
+- `onOrientationChange(type)` - device orientation changed (see above).
+- `onHotReload(context)` - after a hot-reload swap (engine 1.4.0+). `context.reason` is `'methods'` or `'reinit'`;
   `'reinit'` also provides `context.snapshot` (previous instance fields) so you can restore score and similar. Never
   fires for a `configure()` hardware change (that reloads the page). See `docs/hot-reload.md`.
 
-Do not call `registerHotReload` yourself – it is tooling-only. The `blit386()` Vite plugin injects it. Hand-calling it
+Do not call `registerHotReload` yourself - it is tooling-only. The `blit386()` Vite plugin injects it. Hand-calling it
 from game code is unsupported.
 
 ## Do not use removed names

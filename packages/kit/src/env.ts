@@ -213,7 +213,7 @@ export function exceedsCaretRange(version: string, caretRange: string): boolean 
  * Read the `blit386.engineRange` field from the kit's own package.json, or null if absent.
  *
  * The kit's package.json ships alongside this file in the npm package, so we locate it with
- * `kitRoot()` – the kit containing this code – rather than looking in `node_modules`.
+ * `kitRoot()` - the kit containing this code - rather than looking in `node_modules`.
  */
 export function kitEngineRange(): string | null {
     try {
@@ -231,7 +231,7 @@ export function kitEngineRange(): string | null {
 /**
  * Read the `blit386.docsReviewedAt` field from the kit's own package.json, or null if absent.
  *
- * Unlike `engineRange`, this marker is hand-set only – it records the last engine version a human
+ * Unlike `engineRange`, this marker is hand-set only - it records the last engine version a human
  * reviewed `content/docs/*.md` against, bumped after an actual review, never written by a script.
  * See `packages/kit/CLAUDE.md` critical rule 5.
  */

@@ -6,7 +6,7 @@
  *                        prettier.config.js + .prettierignore + scripts/prettier-plugin-compact-tables.mjs)
  *   - ../templates/js    (the JavaScript game + package.json + jsconfig)
  *   - ../templates/optional/* (wizard opt-in: CI, Cursor rules, Claude guide)
- *   - @blit386/kit content (AGENTS.md + docs/) – the single source for the AI/human guidance
+ *   - @blit386/kit content (AGENTS.md + docs/) - the single source for the AI/human guidance
  *
  * After emitting all files, scaffold writes `.blit/manifest.json` (the ownership manifest) and
  * `.blit/base/` (pristine copies of kit-owned and shared files) so future `blit agents sync` runs
@@ -185,10 +185,10 @@ function writeGeneratedFiles(targetDir: string, files: GeneratedFile[], writtenP
 
 /** Generate the project at `targetDir`. The caller guarantees the folder is empty. */
 export function scaffold(options: ScaffoldOptions): void {
-    // The kit npm installed beside this scaffolder – `resolveKitRoot`, not the kit's own `kitRoot()`.
+    // The kit npm installed beside this scaffolder - `resolveKitRoot`, not the kit's own `kitRoot()`.
     // `kitRoot()` answers "the kit containing me", which is the `blit` CLI's question: it ships inside a
     // generated game and must read its own content. The scaffolder's question is "the kit this package
-    // depends on", so it resolves from this module's URL – the same path the `@blit386/kit/adapters`
+    // depends on", so it resolves from this module's URL - the same path the `@blit386/kit/adapters`
     // import above already took, which is what keeps the content root and the loaded generators in
     // agreement. `packages/kit/src/kit-root.ts` holds both answers and documents the difference.
     const kit = resolveKitRoot(import.meta.url);
@@ -245,7 +245,7 @@ export function scaffold(options: ScaffoldOptions): void {
 
     // The kit's canonical guidance, emitted by the same generators `blit agents sync` uses, so these
     // destinations cannot drift from the paths `classifyFile` assigns ownership to. Both emitters copy
-    // the content verbatim – no `{{placeholder}}` rendering – exactly as the previous direct copy did.
+    // the content verbatim - no `{{placeholder}}` rendering - exactly as the previous direct copy did.
     writeGeneratedFiles(options.targetDir, [agentsFile(kit), ...collectDocs(kit)], writtenPaths);
 
     // Seal the ownership manifest and write pristine base copies.

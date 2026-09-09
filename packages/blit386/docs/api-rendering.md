@@ -13,7 +13,7 @@
 Primitives, sprites, text, post-process effects, and frame capture.
 
 All draw calls require a palette to be active (`BT.paletteSet(palette)` before the first `BT.drawSprite`,
-`BT.drawRectFill`, etc.). All coordinates are integer pixels – use `Vector2i` and `Rect2i`, never floats.
+`BT.drawRectFill`, etc.). All coordinates are integer pixels - use `Vector2i` and `Rect2i`, never floats.
 
 Palette addressing: primitives and `BT.systemPrint` use an absolute `paletteIndex`. Sprites and `BT.printFont` use an
 optional `paletteOffset` added to stored texel indices. See [Palette addressing](api-palette.md#palette-addressing).
@@ -48,7 +48,7 @@ BT.drawRect(rect, paletteIndex); // outline only
 BT.drawRectFill(rect, paletteIndex); // filled
 ```
 
-All primitives write palette indices, not RGBA – the active palette resolves colors at frame end.
+All primitives write palette indices, not RGBA - the active palette resolves colors at frame end.
 
 <DemoEmbed demo="002-primitives" title="BLIT386 primitives demo" />
 
@@ -75,10 +75,10 @@ BT.drawSprite(sheet, srcRect, destPos);
 BT.drawSprite(sheet, srcRect, destPos, paletteOffset);
 ```
 
-- `sheet` – an indexed `SpriteSheet` (must have been prepared via `loadIndexed` or `indexize`).
-- `srcRect` – source region within the sheet in pixels.
-- `destPos` – top-left destination in display coordinates.
-- `paletteOffset` – shift added to every stored pixel index before palette lookup (default `0`).
+- `sheet` - an indexed `SpriteSheet` (must have been prepared via `loadIndexed` or `indexize`).
+- `srcRect` - source region within the sheet in pixels.
+- `destPos` - top-left destination in display coordinates.
+- `paletteOffset` - shift added to every stored pixel index before palette lookup (default `0`).
 
 <DemoEmbed demo="008-sprites" title="BLIT386 sprites demo" />
 
@@ -92,7 +92,7 @@ before the palette lookup, so a pixel stored at index `i` renders as `palette[i 
 | `1` | `palette[1]` | `palette[1 + N]` |
 | `2` | `palette[2]` | `palette[2 + N]` |
 
-This drives palette-swap effects such as team colors or damage flashes – point the same sprite at a different band of
+This drives palette-swap effects such as team colors or damage flashes - point the same sprite at a different band of
 the palette without re-uploading texels.
 
 - Validation: `paletteOffset` must be a non-negative integer below the active palette size, or the draw throws.
@@ -146,7 +146,7 @@ BT.spritesRefresh(); // re-maps all tracked sheets to the new slot positions
 
 <Callout type="warn" title="Layout swap only">
 
-Call `spritesRefresh()` only after a palette-layout swap – when the same colors have moved to different slot indices. Do
+Call `spritesRefresh()` only after a palette-layout swap - when the same colors have moved to different slot indices. Do
 NOT call it after a palette-value swap (when you changed what color a slot holds). In the value-swap case the fragment
 shader picks up the new color automatically; calling `spritesRefresh()` is wasteful and will fail reindexing if original
 RGBA values are gone.
@@ -161,8 +161,8 @@ RGBA values are gone.
 <Since symbol="BT.systemPrintMeasure" />
 <Since symbol="BT.systemFont" />
 
-Built-in 6×14 monospace font covering printable ASCII (characters 32–126) plus a set of extra glyphs (dashes, accented
-Latin punctuation, media icons, arrows, Greek capitals, and more) – see `scripts/system-font-extra-chars.mjs` for the
+Built-in 6×14 monospace font covering printable ASCII (characters 32-126) plus a set of extra glyphs (dashes, accented
+Latin punctuation, media icons, arrows, Greek capitals, and more) - see `scripts/system-font-extra-chars.mjs` for the
 full list.
 
 `BT.systemFont` returns the same `BitmapFont` instance `BT.systemPrint` draws with, as a live reference. Read
@@ -203,21 +203,21 @@ See [Bitmap Fonts Guide](guide-bitmap-fonts.md) for the `.btfont` format spec an
 
 ## Post-process effects
 
-Two-tier fullscreen effect pipeline – a pixel tier and a display tier – running between scene render and swap-chain
+Two-tier fullscreen effect pipeline - a pixel tier and a display tier - running between scene render and swap-chain
 present, with a palette-resolve-and-upscale step bridging the two:
 
-1. Pixel tier – operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
+1. Pixel tier - operates on the logical `r8uint` framebuffer (one palette index per pixel). Effects here stay
    palette-native (chunky glitch, mosaic).
-2. Palette resolve + upscale – `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT and
+2. Palette resolve + upscale - `PaletteResolveUpscalePass` converts indices to RGBA through the active palette LUT and
    upscales to `drawingBufferSize`.
-3. Display tier – operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
+3. Display tier - operates on the RGBA output image. Hosts CRT scanlines, barrel distortion, bloom, etc. Requires
    `drawingBufferSize` in hardware settings.
 
 Both chains add zero cost when empty.
 
 <Callout type="warn" title="WebGPU only">
 
-Post-process is unsupported by the Canvas 2D software backend – calling `effectAdd` in software mode throws a clear
+Post-process is unsupported by the Canvas 2D software backend - calling `effectAdd` in software mode throws a clear
 error. Gate effect registration on `BT.activeBackend === 'webgpu'`.
 
 </Callout>
@@ -234,7 +234,7 @@ error. Gate effect registration on `BT.activeBackend === 'webgpu'`.
 import { BT, BarrelDistortion, Scanlines, Bloom, PixelGlitch, type Effect } from 'blit386';
 declare const effect: Effect;
 // ---cut---
-// Add effect – routed to pixel or display chain by Effect.tier automatically
+// Add effect - routed to pixel or display chain by Effect.tier automatically
 BT.effectAdd(new BarrelDistortion());
 BT.effectAdd(new Scanlines());
 BT.effectAdd(new Bloom());
@@ -299,7 +299,7 @@ await BT.downloadFrame('screenshot-001.png'); // custom filename
 
 Both `BT.captureFrame()` and `BT.downloadFrame()` capture at `BT.outputSize` (`drawingBufferSize ?? displaySize`). The
 F9 / Shift+F9 dev-mode capture shortcuts are a separate, internal path that instead captures at logical
-`BT.displaySize`, without display-tier post-process effects – see the resolution model in
+`BT.displaySize`, without display-tier post-process effects - see the resolution model in
 [Core](api-core.md#resolution-model) for details.
 
 ## API history

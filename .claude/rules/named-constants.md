@@ -13,8 +13,8 @@ paths:
 
 # Named constants over repeated literals
 
-A string or numeric literal that is **compared** – `===`, `switch`, a discriminant check, an `includes()` membership
-test – at more than one comparison site gets one named constant, or in TypeScript one literal-union type constraining
+A string or numeric literal that is **compared** - `===`, `switch`, a discriminant check, an `includes()` membership
+test - at more than one comparison site gets one named constant, or in TypeScript one literal-union type constraining
 every use. Never re-type the literal.
 
 Scope the constant to its consumers. Repeats inside a single file stay a module-local `const`; the moment a second file
@@ -29,7 +29,7 @@ not watching.
 ## Reach for the existing type first
 
 Before adding a constant, check whether a literal-union type already describes the domain. Widening that union is better
-than standing a parallel constant next to it – the union is the enforcement mechanism, and two sources of truth for one
+than standing a parallel constant next to it - the union is the enforcement mechanism, and two sources of truth for one
 domain is the problem this rule exists to prevent, not a fix for it.
 
 Name the constant by what it means, not by where it lives; in `packages/blit386/src/**` that naming is governed by
@@ -40,12 +40,12 @@ Name the constant by what it means, not by where it lives; in `packages/blit386/
 | Situation | Applies |
 | --- | --- |
 | The same literal compared in two or more files | yes |
-| The same literal compared twice in one file | yes – as a module-local `const`, not an export |
+| The same literal compared twice in one file | yes - as a module-local `const`, not an export |
 | A literal that names something in another package (a version range, a marker string, a file class) | yes |
-| A literal that also has to appear in a shader source, a JSON config, or a generated project file | yes – see below |
+| A literal that also has to appear in a shader source, a JSON config, or a generated project file | yes - see below |
 | A literal used exactly once | no |
 | Structural values (`0`, `1`, `-1`) as an index, a length, or a bound | no |
-| A test that deliberately hardcodes the expected wire value | no – pinning the literal is the point of the assertion |
+| A test that deliberately hardcodes the expected wire value | no - pinning the literal is the point of the assertion |
 | The constant's own definition site | no |
 
 ## Crossing out of TypeScript
@@ -87,7 +87,7 @@ written down and enforced, and a reviewer who edits one copy by hand is told so.
   `ui-theme.js` and `post-process-backend.js`, not re-typed per demo.
 - `packages/blit386` should widen an existing literal-union type wherever one covers the domain, and interpolate any
   numeric sentinel shared with a WGSL source into the shader template rather than typing it twice.
-- `packages/kit` and `packages/create-blit386` describe each other constantly – version ranges, file classes, marker
+- `packages/kit` and `packages/create-blit386` describe each other constantly - version ranges, file classes, marker
   strings, ownership manifests. Any literal one package uses to talk about the other is derived or documented, never
   copied. File classes and the paths the kit writes into a generated game (`CLAUDE.md`, `.claude/`, `.cursor/`, `docs/`)
   live once in `packages/kit/src/ownership.ts`, which both the adapters that emit those paths and the scaffolder that

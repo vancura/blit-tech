@@ -3,7 +3,7 @@
 /**
  * System Font PNG to TypeScript Converter
  *
- * Reads a PNG atlas (16 columns of 6x14 glyphs: ASCII 32–126 followed by
+ * Reads a PNG atlas (16 columns of 6x14 glyphs: ASCII 32-126 followed by
  * SYSTEM_FONT_EXTRA_CHARS, see system-font-extra-chars.mjs) and regenerates
  * src/assets/fonts/systemFontData.ts with the corresponding bit-pattern data.
  *
@@ -36,7 +36,7 @@ const ATLAS_COLS = 16;
 const FIRST_CHAR = 32;
 const LAST_CHAR = 126;
 const ASCII_GLYPH_COUNT = LAST_CHAR - FIRST_CHAR + 1; // 95
-// Contiguous ASCII block (32–126) followed by SYSTEM_FONT_EXTRA_CHARS, in atlas order.
+// Contiguous ASCII block (32-126) followed by SYSTEM_FONT_EXTRA_CHARS, in atlas order.
 const GLYPH_COUNT = ASCII_GLYPH_COUNT + SYSTEM_FONT_EXTRA_CHARS.length;
 const ATLAS_ROWS = Math.ceil(GLYPH_COUNT / ATLAS_COLS);
 const ATLAS_WIDTH = ATLAS_COLS * GLYPH_WIDTH;
@@ -46,7 +46,7 @@ const ON_THRESHOLD = 128; // Red channel >= this means "on".
 /**
  * Reads the PNG and extracts bit patterns for every glyph (ASCII plus extras).
  *
- * @param {string} inputPath – Path to the PNG atlas.
+ * @param {string} inputPath - Path to the PNG atlas.
  * @returns {number[]} Flat array of `GLYPH_COUNT * GLYPH_HEIGHT` bytes.
  */
 function extractBitmaps(inputPath) {
@@ -92,7 +92,7 @@ function extractBitmaps(inputPath) {
 /**
  * Returns the printable label for an ASCII character code.
  *
- * @param {number} charCode – ASCII character code.
+ * @param {number} charCode - ASCII character code.
  * @returns {string} Human-readable label (e.g., "A (65)" or "Space (32)").
  */
 function charLabel(charCode) {
@@ -106,7 +106,7 @@ function charLabel(charCode) {
 /**
  * Returns the printable label for an extra (non-ASCII) glyph.
  *
- * @param {{ codePoint: number, label: string }} extra – Entry from SYSTEM_FONT_EXTRA_CHARS.
+ * @param {{ codePoint: number, label: string }} extra - Entry from SYSTEM_FONT_EXTRA_CHARS.
  * @returns {string} Human-readable label (e.g., "En Dash (U+2013)").
  */
 function extraCharLabel({ codePoint, label }) {
@@ -116,7 +116,7 @@ function extraCharLabel({ codePoint, label }) {
 /**
  * Formats a byte as a two-digit hex string with 0x prefix.
  *
- * @param {number} value – Byte value (0–255).
+ * @param {number} value - Byte value (0-255).
  * @returns {string} Formatted hex string.
  */
 function hex(value) {
@@ -126,7 +126,7 @@ function hex(value) {
 /**
  * Formats a code point as a `0x` hex literal, matching SYSTEM_FONT_EXTRA_CHARS's own style.
  *
- * @param {number} codePoint – Unicode code point.
+ * @param {number} codePoint - Unicode code point.
  * @returns {string} Formatted hex literal (e.g., "0xfffd").
  */
 function codePointLiteral(codePoint) {
@@ -136,7 +136,7 @@ function codePointLiteral(codePoint) {
 /**
  * Generates the TypeScript source for systemFontData.ts.
  *
- * @param {number[]} bitmaps – Flat array of `GLYPH_COUNT * GLYPH_HEIGHT` bytes.
+ * @param {number[]} bitmaps - Flat array of `GLYPH_COUNT * GLYPH_HEIGHT` bytes.
  * @returns {string} Complete TypeScript source file content.
  */
 function generateTypeScript(bitmaps) {
@@ -145,10 +145,10 @@ function generateTypeScript(bitmaps) {
     lines.push('/**');
     lines.push(' * Built-in system font bitmap data.');
     lines.push(' *');
-    lines.push(` * Covers printable ASCII characters 32–126 (${ASCII_GLYPH_COUNT} glyphs), followed by`);
+    lines.push(` * Covers printable ASCII characters 32-126 (${ASCII_GLYPH_COUNT} glyphs), followed by`);
     lines.push(` * ${SYSTEM_FONT_EXTRA_CHARS.length} extra, non-contiguous glyphs (see SYSTEM_FONT_EXTRA_CHARS`);
     lines.push(' * below). Each glyph is 14 bytes, one byte per row (top to bottom). Bit 7 is');
-    lines.push(' * the leftmost pixel; only the top 6 bits (bits 7–2) are used for the 6-pixel');
+    lines.push(' * the leftmost pixel; only the top 6 bits (bits 7-2) are used for the 6-pixel');
     lines.push(' * glyph width. A set bit means palette index 1 (opaque foreground); a clear');
     lines.push(' * bit means index 0 (transparent).');
     lines.push(' *');
@@ -231,7 +231,7 @@ function main() {
 System Font PNG to TypeScript Converter
 
 Reads a PNG atlas and regenerates systemFontData.ts.
-Layout: 16 columns of 6x14 glyphs – ASCII 32–126, then the extra glyphs
+Layout: 16 columns of 6x14 glyphs - ASCII 32-126, then the extra glyphs
 listed in system-font-extra-chars.mjs (fallback, dashes, arrows, etc.).
 Any pixel with red channel >= 128 is treated as foreground.
 
@@ -256,7 +256,7 @@ Options:
     console.log(`Converted system font from: ${inputPath}`);
     console.log(`  Output: ${OUTPUT_PATH}`);
     console.log(
-        `  Glyphs: ${GLYPH_COUNT} (ASCII ${FIRST_CHAR}–${LAST_CHAR}, plus ${SYSTEM_FONT_EXTRA_CHARS.length} extra)`,
+        `  Glyphs: ${GLYPH_COUNT} (ASCII ${FIRST_CHAR}-${LAST_CHAR}, plus ${SYSTEM_FONT_EXTRA_CHARS.length} extra)`,
     );
     console.log(`  Atlas: ${ATLAS_WIDTH}x${ATLAS_HEIGHT} pixels (${ATLAS_COLS}x${ATLAS_ROWS} grid)`);
 }

@@ -21,19 +21,19 @@ resolvers), the existing `Palette` / `PaletteEffect` / `Splash` subsystems.
 
 ## Global Constraints
 
-- No `HardwareSettings` field for this feature – a demo's `configure()` must never be able to override the user's own
+- No `HardwareSettings` field for this feature - a demo's `configure()` must never be able to override the user's own
   accessibility preference. (Spec: Non-goals.)
-- Boolean naming: the new `BT` getter must be `is*`-prefixed per `bt-api-getters.md` – `BT.isReducedMotionPreferred`,
+- Boolean naming: the new `BT` getter must be `is*`-prefixed per `bt-api-getters.md` - `BT.isReducedMotionPreferred`,
   not `BT.prefersReducedMotion`.
-- `@since 1.7.0` on every new public symbol (`BT.isReducedMotionPreferred`, `IBTDemo.onReducedMotionChange`) – matches
-  the BT-417 issue's 1.7.0 milestone. Do not bump `BTAPI.VERSION_MINOR` – that happens at release time via
+- `@since 1.7.0` on every new public symbol (`BT.isReducedMotionPreferred`, `IBTDemo.onReducedMotionChange`) - matches
+  the BT-417 issue's 1.7.0 milestone. Do not bump `BTAPI.VERSION_MINOR` - that happens at release time via
   `scripts/bump-lockstep.mjs`, not in this feature branch.
 - `?reducedmotion` / `?noreducedmotion` valueless URL flags, `noreducedmotion` beating `reducedmotion` when both are
-  present – mirrors `?nosplash` beating `?splash` in `src/splash/gating.ts`.
+  present - mirrors `?nosplash` beating `?splash` in `src/splash/gating.ts`.
 - 4-space indent, single quotes, trailing commas, named exports only, JSDoc required on every public and private member
   (`ts-file-structure.md`). Private fields/methods must not repeat the enclosing class or file name
   (`internal-scoped-naming.md`).
-- Run `pnpm run lint:fix` after each task if `perfectionist/sort-classes` complains about member order – do not
+- Run `pnpm run lint:fix` after each task if `perfectionist/sort-classes` complains about member order - do not
   hand-sort class members.
 
 ---
@@ -52,7 +52,7 @@ resolvers), the existing `Palette` / `PaletteEffect` / `Splash` subsystems.
   `setOnChange(onChange: ((prefersReduced: boolean) => void) | null): void`, `detach(): void`.
 - Produces: exported pure functions `resolveReducedMotionPreferred(signals: ReducedMotionSignals): boolean` and
   `readReducedMotionUrlFlags(): ReducedMotionUrlFlags`, and exported types `ReducedMotionSignals`,
-  `ReducedMotionUrlFlags` – for Task 4's URL-flag tests and any future reuse.
+  `ReducedMotionUrlFlags` - for Task 4's URL-flag tests and any future reuse.
 - Consumes: nothing from other tasks (this is the leaf subsystem).
 
 - [ ] **Step 1: Write the failing tests for the pure resolver and URL-flag reader**
@@ -157,7 +157,7 @@ describe('ReducedMotion.isPreferred', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm run test:unit -- ReducedMotion` (from `packages/blit386`) Expected: FAIL –
+Run: `pnpm run test:unit -- ReducedMotion` (from `packages/blit386`) Expected: FAIL -
 `Cannot find module './ReducedMotion'`
 
 - [ ] **Step 3: Implement `ReducedMotion.ts`**
@@ -206,9 +206,9 @@ export interface ReducedMotionUrlFlags {
  * Resolves whether reduced motion is preferred, from already-gathered signals.
  *
  * An off switch should be unambiguous, so `?noreducedmotion` beats `?reducedmotion` when both
- * are present – the same rule `resolveSplashEnabled` follows for `?nosplash` / `?splash`.
+ * are present - the same rule `resolveSplashEnabled` follows for `?nosplash` / `?splash`.
  *
- * @param signals – See {@link ReducedMotionSignals}.
+ * @param signals - See {@link ReducedMotionSignals}.
  * @returns `true` when reduced motion should be preferred.
  */
 export function resolveReducedMotionPreferred(signals: ReducedMotionSignals): boolean {
@@ -315,7 +315,7 @@ export class ReducedMotion {
    *
    * No-ops when `matchMedia` is unavailable.
    *
-   * @param onChange – Optional demo callback for subsequent preference changes.
+   * @param onChange - Optional demo callback for subsequent preference changes.
    */
   public attach(onChange: ChangeHandler | null): void {
     if (typeof globalThis.matchMedia !== 'function') {
@@ -330,11 +330,11 @@ export class ReducedMotion {
   /**
    * Rebinds the demo callback for subsequent changes, without touching the live listener.
    *
-   * Used when a hot reload swaps in a new demo instance ({@link BTAPI.hotReplaceDemo}) – the
+   * Used when a hot reload swaps in a new demo instance ({@link BTAPI.hotReplaceDemo}) - the
    * `change` listener installed by {@link attach} closes over `this.onChange`, so without
    * this, preference changes would keep reaching the *previous* demo's bound handler.
    *
-   * @param onChange – Replacement demo callback, or `null` to stop forwarding events.
+   * @param onChange - Replacement demo callback, or `null` to stop forwarding events.
    */
   public setOnChange(onChange: ChangeHandler | null): void {
     this.onChange = onChange;
@@ -360,7 +360,7 @@ Run: `pnpm run test:unit -- ReducedMotion` (from `packages/blit386`) Expected: P
 
 - [ ] **Step 5: Write and run the attach/detach/change-forwarding tests (happy-dom)**
 
-Append to `packages/blit386/src/core/ReducedMotion.test.ts` – add `// @vitest-environment happy-dom` as the second line
+Append to `packages/blit386/src/core/ReducedMotion.test.ts` - add `// @vitest-environment happy-dom` as the second line
 of the file (right after the file's JSDoc comment, before the imports), then add:
 
 ```ts
@@ -512,7 +512,7 @@ Then, immediately after the existing `onOrientationChange` method (ends right be
      * Read the current value any time via {@link BT.isReducedMotionPreferred}.
      *
      * @since 1.7.0
-     * @param prefersReduced – `true` when reduced motion is now preferred.
+     * @param prefersReduced - `true` when reduced motion is now preferred.
      */
     onReducedMotionChange?(prefersReduced: boolean): void;
 ```
@@ -608,7 +608,7 @@ describe('reduced motion', () => {
 
 - [ ] **Step 3: Run the test to verify it fails**
 
-Run: `pnpm run test:unit -- BTAPI.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL –
+Run: `pnpm run test:unit -- BTAPI.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL -
 `BTAPI.instance.isReducedMotionPreferred is not a function` / `BT.isReducedMotionPreferred` is undefined
 
 - [ ] **Step 4: Wire `ReducedMotion` into `BTAPI`**
@@ -669,7 +669,7 @@ this.reducedMotion?.setOnChange(newDemo.onReducedMotionChange?.bind(newDemo) ?? 
      * Reports whether reduced motion is currently preferred.
      *
      * Resolves the `?reducedmotion` / `?noreducedmotion` URL flags over the platform's own
-     * `prefers-reduced-motion: reduce` match. Does not require a successful init – reads the
+     * `prefers-reduced-motion: reduce` match. Does not require a successful init - reads the
      * platform API directly, mirroring {@link getScreenOrientation}.
      *
      * @since 1.7.0
@@ -691,7 +691,7 @@ In `packages/blit386/src/BLIT386.ts`, right after the `screenOrientation` getter
      *
      * Resolves `window.matchMedia('(prefers-reduced-motion: reduce)')`, or the
      * `?reducedmotion` / `?noreducedmotion` URL flags when either is present. Pair with
-     * {@link IBTDemo.onReducedMotionChange} to react when the preference changes at runtime –
+     * {@link IBTDemo.onReducedMotionChange} to react when the preference changes at runtime -
      * it is not fixed for the session, the same way {@link BT.screenOrientation} is not.
      *
      * @since 1.7.0
@@ -733,9 +733,9 @@ In `packages/blit386/docs/api-core.md`:
 
 `BT.isReducedMotionPreferred` reads the browser's `prefers-reduced-motion` setting. After a successful `init()`, the
 engine also listens for changes and calls optional `IBTDemo.onReducedMotionChange(prefersReduced)` when the demo
-implements it – the preference can change while your game is running, the same way orientation can.
+implements it - the preference can change while your game is running, the same way orientation can.
 
-Reducing your own animation fidelity, screen-shake, or particle counts is a demo concern – the engine only supplies the
+Reducing your own animation fidelity, screen-shake, or particle counts is a demo concern - the engine only supplies the
 getter and the change hook. The built-in splash does respect it; see
 [The splash and reduced motion](guide-splash.md#reduced-motion).
 
@@ -776,19 +776,19 @@ section:
 `scripts/check-api-getters-drift.mjs` (wired into `pnpm run api:getters:check`, part of `preflight`) fails when a public
 `BT.*` getter has no inline-code mention anywhere in `.claude/rules/bt-api-getters.md`. In
 `packages/blit386/.claude/rules/bt-api-getters.md`, find the "Runtime:" bullet under "## Prefer getters (no
-parentheses)" – it currently ends `..., isDevMode, splashState, isSplashVisible` – and add the new getter to the list,
+parentheses)" - it currently ends `..., isDevMode, splashState, isSplashVisible` - and add the new getter to the list,
 plus one clause describing it (matching the style of the `screenOrientation` clause already there):
 
 ```md
 Runtime: `activeBackend`, `camera`, `palette`, `random`, `systemFont`, `isAudioUnlocked`, `isMusicPlaying`,
-`screenOrientation`, `loadingAssetsCount`, `isDevMode`, `splashState`, `isSplashVisible`, `isReducedMotionPreferred` –
+`screenOrientation`, `loadingAssetsCount`, `isDevMode`, `splashState`, `isSplashVisible`, `isReducedMotionPreferred` -
 `activeBackend` is `null` before init or on failure; `isAudioUnlocked` is `false` until the first user gesture resumes
 the audio context; `isMusicPlaying` is `true` while the music player has a live current track; `screenOrientation` is
 the current `screen.orientation.type` string, or `null` when the API is unavailable; `loadingAssetsCount` is the
 combined count of in-flight `AssetLoader` + `AudioClip` loads (poll for a loading screen); `random` is a live,
 time-seeded `Random` (always present; reseed with `randomSeed`); `systemFont` is the same live `BitmapFont` instance
-`BT.systemPrint` draws with – throws if read before `BT.init()` finishes creating it (mirrors `palette`); `isDevMode`
-resolves an explicit override, then the `blit386/vite` plugin's build-time flag, then live hot-reload activity – it is
+`BT.systemPrint` draws with - throws if read before `BT.init()` finishes creating it (mirrors `palette`); `isDevMode`
+resolves an explicit override, then the `blit386/vite` plugin's build-time flag, then live hot-reload activity - it is
 Tier A below, not Tier B, because no `HardwareSettings` field mirrors it, so it reads as a runtime environment query
 rather than a configure flag; `splashState` is the five-state splash machine's current state (`'disabled'` when gated
 off); `isSplashVisible` is the one-term derived query game code should prefer over `splashState`;
@@ -796,7 +796,7 @@ off); `isSplashVisible` is the one-term derived query game code should prefer ov
 `?noreducedmotion` URL override) and needs no init either, mirroring `screenOrientation`
 ```
 
-Preserve every word of the existing bullet – this is an insertion of `isReducedMotionPreferred` into the name list and
+Preserve every word of the existing bullet - this is an insertion of `isReducedMotionPreferred` into the name list and
 one clause appended to the end of the trailing prose, not a rewrite of the surrounding text.
 
 - [ ] **Step 10: Regenerate API history**
@@ -804,7 +804,7 @@ one clause appended to the end of the trailing prose, not a rewrite of the surro
 Run: `pnpm run api:history` (from `packages/blit386`)
 
 If running in a tag-less checkout (see `.claude/rules/environment-gotchas.md`), restore the committed `versions` block
-in `docs/_api-history.json` afterward – the only real diff should be the new `BT.isReducedMotionPreferred` and
+in `docs/_api-history.json` afterward - the only real diff should be the new `BT.isReducedMotionPreferred` and
 `IBTDemo.onReducedMotionChange` symbol entries.
 
 - [ ] **Step 11: Commit**
@@ -831,7 +831,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 - Consumes: nothing new (works entirely with the fake-clock harness already in `Splash.test.ts`; the `reducedMotion`
   flag is a plain boolean parameter, not a `ReducedMotion` import).
-- Produces: `Splash.start(reducedMotion: boolean = false): void` – the default keeps every existing `splash.start()`
+- Produces: `Splash.start(reducedMotion: boolean = false): void` - the default keeps every existing `splash.start()`
   call site (including every current test) compiling and behaving unchanged. Task 4 passes `true`/`false` explicitly.
 
 - [ ] **Step 1: Write the failing tests**
@@ -917,8 +917,8 @@ describe('Splash reduced motion', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm run test:unit -- Splash.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL –
-`splash.start(true)` – TypeScript will fail to compile since `start()` currently takes no parameters (a type error,
+Run: `pnpm run test:unit -- Splash.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL -
+`splash.start(true)` - TypeScript will fail to compile since `start()` currently takes no parameters (a type error,
 which Vitest surfaces as a failed test run).
 
 - [ ] **Step 3: Implement the reduced-motion behavior in `Splash.ts`**
@@ -942,7 +942,7 @@ Replace the `start()` method (around lines 167-174):
      * Calling this more than once is a no-op, so a re-entrant caller cannot
      * restart a finished splash.
      *
-     * @param reducedMotion – When `true`, skips the fade-in effect entirely (the palette
+     * @param reducedMotion - When `true`, skips the fade-in effect entirely (the palette
      *   snaps straight to the fully lit ramp) and collapses the minimum hold the same way a
      *   manual {@link skip} does, without waiting for a press.
      */
@@ -972,8 +972,8 @@ Replace the `leaveShown()` method (around lines 360-379):
      * The hold has a minimum but no maximum, so this refuses to move until the
      * game's `init()` has settled however long a skip has been waiting.
      *
-     * @param now – Current clock reading in milliseconds.
-     * @param elapsed – Milliseconds spent in `shown`.
+     * @param now - Current clock reading in milliseconds.
+     * @param elapsed - Milliseconds spent in `shown`.
      * @returns `true` when the state changed.
      */
     private leaveShown(now: number, elapsed: number): boolean {
@@ -1008,7 +1008,7 @@ Replace the `leaveShown()` method (around lines 360-379):
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm run test:unit -- Splash.test.ts` (from `packages/blit386`) Expected: PASS – both the new reduced-motion tests
+Run: `pnpm run test:unit -- Splash.test.ts` (from `packages/blit386`) Expected: PASS - both the new reduced-motion tests
 and every pre-existing test in the file (the default parameter keeps `splash.start()` behaving exactly as before).
 
 - [ ] **Step 5: Commit**
@@ -1034,7 +1034,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 
 - Consumes: `ReducedMotion.isPreferred` (Task 1), `Splash.start(reducedMotion)` (Task 3).
-- Produces: `BTAPI.endPaletteCapture(reducedMotion: boolean = false): void` – the default keeps the existing non-splash
+- Produces: `BTAPI.endPaletteCapture(reducedMotion: boolean = false): void` - the default keeps the existing non-splash
   `paletteSet()` call path (which never passes an argument) unchanged.
 
 - [ ] **Step 1: Write the failing tests**
@@ -1129,7 +1129,7 @@ describe('reduced motion', () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `pnpm run test:unit -- BTAPI.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL –
+Run: `pnpm run test:unit -- BTAPI.test.ts -t "reduced motion"` (from `packages/blit386`) Expected: FAIL -
 `endPaletteCapture(true)` is a type error (no parameter yet); the lifecycle tests fail because the palette is still
 installed blackened-then-faded and the dissolve is still enabled regardless of `matchMedia`.
 
@@ -1151,8 +1151,8 @@ In `packages/blit386/src/core/BTAPI.ts`, replace `endPaletteCapture()` (around l
      * Palette effects started during capture are dropped: they hold snapshots of a
      * palette that is about to be replaced wholesale.
      *
-     * @param reducedMotion – When `true`, skips the exposure fade entirely and installs the
-     *   target colors immediately – no intermediate blackened state, no animation.
+     * @param reducedMotion - When `true`, skips the exposure fade entirely and installs the
+     *   target colors immediately - no intermediate blackened state, no animation.
      */
     public endPaletteCapture(reducedMotion: boolean = false): void {
         const captured = this.pendingPalette;
@@ -1209,7 +1209,7 @@ Then update `runDemoInitBehindSplash()` (around lines 2217-2273) to read the pre
 
         // Gate on activeBackend, not requestedBackend: this is a runtime feature
         // gate, and the software renderer throws on post-process. Reduced motion skips the
-        // dissolve entirely – it is a simulated glitch effect, exactly the category of motion
+        // dissolve entirely - it is a simulated glitch effect, exactly the category of motion
         // the preference exists to suppress.
         if (this.activeBackend === 'webgpu' && !reducedMotion) {
             splash.enableDissolve();
@@ -1261,7 +1261,7 @@ Then update `runDemoInitBehindSplash()` (around lines 2217-2273) to read the pre
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `pnpm run test:unit -- BTAPI.test.ts` (from `packages/blit386`) Expected: PASS – the new tests and every
+Run: `pnpm run test:unit -- BTAPI.test.ts` (from `packages/blit386`) Expected: PASS - the new tests and every
 pre-existing `BTAPI splash palette capture` / `BTAPI splash lifecycle in init` test (the
 `reducedMotion: boolean = false` defaults keep every un-flagged call site behaving exactly as before).
 
@@ -1281,16 +1281,16 @@ In `packages/blit386/docs/guide-splash.md`, add a new `## Reduced motion` sectio
 
 When `BT.isReducedMotionPreferred` is `true` at splash start, the splash shows a static hold instead of animating:
 
-- No fade-in – the ramp and logo appear at full brightness immediately.
+- No fade-in - the ramp and logo appear at full brightness immediately.
 - The minimum hold still collapses the same way a manual skip does (see [The skip](#the-skip)), but it still waits on
-  `init()` – the splash doubling as a loading screen does not change.
+  `init()` - the splash doubling as a loading screen does not change.
 - The handoff into your game's palette is an instant swap, not the animated exposure fade described in
-  [The palette handoff](#the-palette-handoff) – no intermediate blackened frame.
-- The WebGPU dissolve is skipped entirely. It is a simulated glitch effect – exactly the category of motion
-  `prefers-reduced-motion` exists to suppress – rather than a decoration to tone down.
+  [The palette handoff](#the-palette-handoff) - no intermediate blackened frame.
+- The WebGPU dissolve is skipped entirely. It is a simulated glitch effect - exactly the category of motion
+  `prefers-reduced-motion` exists to suppress - rather than a decoration to tone down.
 
 You do not opt into any of this. It follows `BT.isReducedMotionPreferred` automatically, which itself follows the
-platform's `prefers-reduced-motion` setting (or the `?reducedmotion` / `?noreducedmotion` URL overrides – see
+platform's `prefers-reduced-motion` setting (or the `?reducedmotion` / `?noreducedmotion` URL overrides - see
 [API: Core](api-core.md#reduced-motion)).
 ```
 
@@ -1299,7 +1299,7 @@ platform's `prefers-reduced-motion` setting (or the `?reducedmotion` / `?noreduc
 Run: `pnpm run api:history` (from `packages/blit386`)
 
 Restore the committed `versions` block in `docs/_api-history.json` if running in a tag-less checkout (see
-`.claude/rules/environment-gotchas.md`). Expect no `symbols` diff here – Task 2 already added the only two new public
+`.claude/rules/environment-gotchas.md`). Expect no `symbols` diff here - Task 2 already added the only two new public
 symbols this feature introduces.
 
 - [ ] **Step 7: Commit**
@@ -1315,7 +1315,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ## Task 5: Final verification
 
-**Files:** none created or modified – verification only.
+**Files:** none created or modified - verification only.
 
 - [ ] **Step 1: Run the full preflight gate**
 
@@ -1323,19 +1323,19 @@ Run: `pnpm run preflight` (from `packages/blit386`)
 
 This covers format, lint (including `perfectionist/sort-classes` member order and the `is*`/`has*` boolean-naming ESLint
 rules), typecheck, spellcheck, knip, `api:since:check`, `api:history:check`, and the unit/integration test suites. Fix
-anything it flags before moving on – in particular, watch for:
+anything it flags before moving on - in particular, watch for:
 
 - `api:since:check` failing if the `@since 1.7.0` tags from Task 2 are missing or malformed.
-- `spellcheck` flagging `reducedmotion` / `noreducedmotion` (the bare URL-flag literals) or `matchMedia` – add
+- `spellcheck` flagging `reducedmotion` / `noreducedmotion` (the bare URL-flag literals) or `matchMedia` - add
   legitimate new words to the root `cspell.json` if so.
-- Class member order in `ReducedMotion.ts` and the modified sections of `BTAPI.ts` / `Splash.ts` – run
+- Class member order in `ReducedMotion.ts` and the modified sections of `BTAPI.ts` / `Splash.ts` - run
   `pnpm run lint:fix` if `perfectionist/sort-classes` complains, then re-check the diff for anything it moved that
   should not have moved.
 
 - [ ] **Step 2: Run the visual regression suite if it exists for splash-adjacent changes**
 
 This feature changes splash timing and palette values but not pixel-level rendering of any primitive, sprite, or
-post-process effect – `/test blit386 visual` is not expected to be needed, but run it if `preflight` or CI flags a
+post-process effect - `/test blit386 visual` is not expected to be needed, but run it if `preflight` or CI flags a
 `.png` snapshot diff:
 
 Run: `pnpm run test:visual` (from `packages/blit386`), only if triggered.

@@ -8,7 +8,7 @@ description:
 
 # Smooth the motion
 
-Your game thinks at a fixed speed (60 times a second) but the screen may draw much faster than that – 120 or 144 times a
+Your game thinks at a fixed speed (60 times a second) but the screen may draw much faster than that - 120 or 144 times a
 second on a modern monitor. So some drawn frames land in between two thinking steps, and the engine has to guess where
 things are. `BT.renderAlpha` is that guess, and using it is what turns stepped, jerky motion into smooth motion.
 
@@ -59,7 +59,7 @@ exactly the in-between position the screen wants.
 
 ## A smooth camera
 
-A camera scrolls the same way – remember where it was, then draw from the in-between position:
+A camera scrolls the same way - remember where it was, then draw from the in-between position:
 
 ```js
 update() {
@@ -78,16 +78,16 @@ render() {
 
 ## Key calls
 
-- `BT.renderAlpha` (getter) – how far this drawn frame sits between the last two updates, from 0 to 1.
-- `Vector2i.lerp(a, b, t)` (static) – the point `t` of the way from `a` to `b`.
-- `Vector2i.lerpTo(a, b, t, out)` (static) – the same thing, but writes into a vector you already made instead of making
+- `BT.renderAlpha` (getter) - how far this drawn frame sits between the last two updates, from 0 to 1.
+- `Vector2i.lerp(a, b, t)` (static) - the point `t` of the way from `a` to `b`.
+- `Vector2i.lerpTo(a, b, t, out)` (static) - the same thing, but writes into a vector you already made instead of making
   a new one. Use it if you are smoothing hundreds of things; see the `keep-it-fast` skill.
-- `Vector2i.clone()` (method) – a copy you can keep while the original changes.
+- `Vector2i.clone()` (method) - a copy you can keep while the original changes.
 
 ## Notes
 
 - Only smooth things that move in `update()`. Never smooth the HUD, the score, or anything you draw after
-  `BT.cameraReset()` – those should sit still.
+  `BT.cameraReset()` - those should sit still.
 - Snapshot before you move, not after. If it still looks stepped, that line is in the wrong place:
   `this.prevPos = this.pos.clone()` must be the **first** line of `update()`, not the last.
 - `Vector2i` always holds whole numbers and rounds down for you, so you do not need `Math.floor` after a `lerp`.

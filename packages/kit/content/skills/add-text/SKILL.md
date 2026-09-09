@@ -51,7 +51,7 @@ The built-in font covers plain ASCII plus dashes, arrows, media icons, uppercase
 it does not have draws as a fallback glyph, so you see a marker instead of the character quietly disappearing.
 
 A custom `.btfont` only gets that safety net if it defines its own glyph keyed by `U+FFFD` (the Unicode replacement
-character). Without one, a missing character is skipped and the pen does not move – so the next character draws on top
+character). Without one, a missing character is skipped and the pen does not move - so the next character draws on top
 of the one before it, and the whole line looks scrambled rather than merely incomplete.
 
 ```js
@@ -61,21 +61,21 @@ if (!this.font.hasGlyph('é')) {
 ```
 
 `hasGlyph()` answers whether a character has its _own_ glyph, not whether the fallback would cover it. That is
-deliberate – use it to check what a font really contains.
+deliberate - use it to check what a font really contains.
 
 ## Key calls
 
-- `BT.systemPrint(pos, slot, text)` (method) – built-in 6x14 font.
-- `BT.systemPrintMeasure(text)` (method) – returns a `Vector2i` size for centering.
-- `BitmapFont.load(url)` (static, async) – load a `.btfont` file.
-- `BT.printFont(font, pos, text, paletteOffset?)` (method) – draw with a loaded font; `paletteOffset` shifts the glyph
+- `BT.systemPrint(pos, slot, text)` (method) - built-in 6x14 font.
+- `BT.systemPrintMeasure(text)` (method) - returns a `Vector2i` size for centering.
+- `BitmapFont.load(url)` (static, async) - load a `.btfont` file.
+- `BT.printFont(font, pos, text, paletteOffset?)` (method) - draw with a loaded font; `paletteOffset` shifts the glyph
   colors.
-- `font.hasGlyph(char)` (method) – true when the font has its own glyph for that character.
+- `font.hasGlyph(char)` (method) - true when the font has its own glyph for that character.
 
 ## Notes
 
 - Positions are whole numbers (`Vector2i`).
 - The color is a palette slot number (set up colors with the use-palette skill).
-- `await` the font load – forgetting `await` is the most common beginner bug.
+- `await` the font load - forgetting `await` is the most common beginner bug.
 
 See `docs/drawing.md`.

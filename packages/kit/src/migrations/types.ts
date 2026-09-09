@@ -1,5 +1,5 @@
 /**
- * Data model for engine migrations – the structured, machine-applicable form of `blit386`'s `docs/deprecations.md`.
+ * Data model for engine migrations - the structured, machine-applicable form of `blit386`'s `docs/deprecations.md`.
  *
  * A migration bundles a set of one-to-one identifier renames (a codemod) plus a human-readable summary of intent.
  * `blit migrate` and `blit upgrade` consume this to rewrite a game's source from old API names to current ones.
@@ -65,7 +65,7 @@ export interface Rename {
     /**
      * Presentation-only list of class-qualified receivers for a `method` rename whose old name is generic enough to
      * exist on several unrelated classes (e.g. `equals` on `Vector2i`, `Rect2i`, and `Color32`). The doc generator
-     * emits one class-qualified bullet per entry, in array order. Drives doc generation only, never codemod matching –
+     * emits one class-qualified bullet per entry, in array order. Drives doc generation only, never codemod matching -
      * the codemod engine still matches `method` renames by name alone, regardless of receiver type.
      */
     receiverClasses?: string[];

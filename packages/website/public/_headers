@@ -2,7 +2,7 @@
 # Copied to dist/public/ when present in public/.
 
 # The Content-Security-Policy below is the nonce-free base policy. It is a hand-written copy of
-# `BASE_CSP` in `src/csp.ts` – this file cannot import – and `src/csp.test.ts` fails if the two ever
+# `BASE_CSP` in `src/csp.ts` - this file cannot import - and `src/csp.test.ts` fails if the two ever
 # drift apart. `script-src` has no `'unsafe-inline'`: prerendered HTML gets a per-request nonce
 # stamped onto every `<script>` by `src/csp-nonce.ts`, which replaces this header on those responses.
 

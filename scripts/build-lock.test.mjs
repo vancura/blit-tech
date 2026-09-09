@@ -67,7 +67,7 @@ describe('build-lock', () => {
                 true,
             );
 
-            // Backdate the lock directory well past LOCK_STALE_MS – staleness alone must never
+            // Backdate the lock directory well past LOCK_STALE_MS - staleness alone must never
             // evict a confirmed-alive owner, only a dead pid (or an unreadable one) may.
             const farPast = new Date(Date.now() - 60 * 60 * 1000);
             utimesSync(lockDir, farPast, farPast);
@@ -172,7 +172,7 @@ describe('build-lock', () => {
 
             // Simulates a waiter reaching the reclaim step on a lock that has, in truth, already
             // become live again (recreated by another process between the waiter's freshness
-            // check and this call) – the exact race a plain rmSync cannot protect against.
+            // check and this call) - the exact race a plain rmSync cannot protect against.
             reclaimAbandonedLock(lockDir);
 
             assert.equal(existsSync(lockDir), true);

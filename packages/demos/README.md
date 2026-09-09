@@ -48,124 +48,124 @@ to these URLs via `VINTAGE_URLS`.
 
 ### Drawing Basics
 
-- [hello-world](https://demos.blit386.dev/hello-world) – The classic first program: "Hello, World!" on screen, nothing
+- [hello-world](https://demos.blit386.dev/hello-world) - The classic first program: "Hello, World!" on screen, nothing
   else
-- [basics](https://demos.blit386.dev/basics) – Engine basics, lifecycle, bouncing sprite, canvas text
-- [basics-enhanced](https://demos.blit386.dev/basics-enhanced) – Enhanced version of the basics demo with optional
+- [basics](https://demos.blit386.dev/basics) - Engine basics, lifecycle, bouncing sprite, canvas text
+- [basics-enhanced](https://demos.blit386.dev/basics-enhanced) - Enhanced version of the basics demo with optional
   visual effects
-- [logo-lowres](https://demos.blit386.dev/logo-lowres) – Logo sprite centered on a tiny 80x60 screen, upscaled 3x to
+- [logo-lowres](https://demos.blit386.dev/logo-lowres) - Logo sprite centered on a tiny 80x60 screen, upscaled 3x to
   240x180 with nearest-neighbor filtering, then wrapped in the Tesla Orava black-and-white CRT stack (scanlines,
   scrolling roll line, flicker, RGB mask, vignette, bloom, and random analog-TV fault bursts) with a shared UI-kit
   status chip naming the current fault. The one demo that turns the engine overlay off entirely
   (`isOverlayEnabled: false`)
-- [primitives](https://demos.blit386.dev/primitives) – All primitive drawing: pixels, lines, rectangles
-- [colors](https://demos.blit386.dev/colors) – Color32 deep dive: named, HSL, alpha, lerp
-- [named-colors](https://demos.blit386.dev/named-colors) – Color32 named registry APIs: resolve, register, update,
+- [primitives](https://demos.blit386.dev/primitives) - All primitive drawing: pixels, lines, rectangles
+- [colors](https://demos.blit386.dev/colors) - Color32 deep dive: named, HSL, alpha, lerp
+- [named-colors](https://demos.blit386.dev/named-colors) - Color32 named registry APIs: resolve, register, update,
   unregister
-- [hypercube](https://demos.blit386.dev/hypercube) – Fez-style rotating tesseract wireframe on a 256×256 PICO-8 canvas
+- [hypercube](https://demos.blit386.dev/hypercube) - Fez-style rotating tesseract wireframe on a 256×256 PICO-8 canvas
 
 ### Text and Visual Art
 
-- [fonts](https://demos.blit386.dev/fonts) – Built-in system font with `BT.systemPrint()` and text measurement
-- [pixel-art](https://demos.blit386.dev/pixel-art) – Programmatic pixel art with nested loops
-- [patterns](https://demos.blit386.dev/patterns) – Mathematical art: spirals, Lissajous, waves, tunnel
-- [bitmap-font](https://demos.blit386.dev/bitmap-font) – Load a proportional `.btfont` file and draw rainbow,
+- [fonts](https://demos.blit386.dev/fonts) - Built-in system font with `BT.systemPrint()` and text measurement
+- [pixel-art](https://demos.blit386.dev/pixel-art) - Programmatic pixel art with nested loops
+- [patterns](https://demos.blit386.dev/patterns) - Mathematical art: spirals, Lissajous, waves, tunnel
+- [bitmap-font](https://demos.blit386.dev/bitmap-font) - Load a proportional `.btfont` file and draw rainbow,
   alpha-pulsing, and measured text
-- [system-font-glyphs](https://demos.blit386.dev/system-font-glyphs) – Browse every glyph the built-in system font
+- [system-font-glyphs](https://demos.blit386.dev/system-font-glyphs) - Browse every glyph the built-in system font
   covers and click one to copy it to your clipboard
 
 ### World Building
 
-- [camera](https://demos.blit386.dev/camera) – Camera scrolling, world vs screen space, mini-map
-- [sprites](https://demos.blit386.dev/sprites) – Programmatic sprite sheet, source rectangles, palette offsets
-- [animation](https://demos.blit386.dev/animation) – Tick-based animation, walk frame cycling, state machines, particles
-- [sprite-effects](https://demos.blit386.dev/sprite-effects) – Damage flash, silhouette, ghost, team colors, day/night
-- [starfield](https://demos.blit386.dev/starfield) – Parallax scrolling starfield
-- [tilemap](https://demos.blit386.dev/tilemap) – Grid-based tile world with camera
+- [camera](https://demos.blit386.dev/camera) - Camera scrolling, world vs screen space, mini-map
+- [sprites](https://demos.blit386.dev/sprites) - Programmatic sprite sheet, source rectangles, palette offsets
+- [animation](https://demos.blit386.dev/animation) - Tick-based animation, walk frame cycling, state machines, particles
+- [sprite-effects](https://demos.blit386.dev/sprite-effects) - Damage flash, silhouette, ghost, team colors, day/night
+- [starfield](https://demos.blit386.dev/starfield) - Parallax scrolling starfield
+- [tilemap](https://demos.blit386.dev/tilemap) - Grid-based tile world with camera
 
 ### Randomness
 
-- [random-basics](https://demos.blit386.dev/random-basics) – Five switchable scenes for the `BT.random` generators the
+- [random-basics](https://demos.blit386.dev/random-basics) - Five switchable scenes for the `BT.random` generators the
   other demos do not reach for: `shuffle` versus `shuffleInPlace`, `weighted` loot drops with a live tally, `gaussian`
   scatter against flat `float` scatter, `sign` coin flips, and `direction4` versus `direction8` walkers
-- [seeded-worlds](https://demos.blit386.dev/seeded-worlds) – Two worlds side by side, each labeled with the seed read
+- [seeded-worlds](https://demos.blit386.dev/seeded-worlds) - Two worlds side by side, each labeled with the seed read
   back from `BT.random.seedValue`. Copy one seed onto the other and the halves become identical, plus a `clone()` versus
   `fork()` stream comparison
-- [coordinate-patterns](https://demos.blit386.dev/coordinate-patterns) – An endless scrollable world computed from
+- [coordinate-patterns](https://demos.blit386.dev/coordinate-patterns) - An endless scrollable world computed from
   `hash1i` / `hash2i` / `hash3i` that stores zero tiles. Jump thousands of tiles away and back to find it unchanged; the
   layer slider shows terrain ignoring the third coordinate while decorations follow it
-- [noise](https://demos.blit386.dev/noise) – `ValueNoise`, `PerlinNoise`, and `SimplexNoise` at matched settings, with
+- [noise](https://demos.blit386.dev/noise) - `ValueNoise`, `PerlinNoise`, and `SimplexNoise` at matched settings, with
   an octaves slider switching between `noise2D` and `fbm2D`, a terrain or grayscale ramp, and a drift toggle driving the
   3D variants
 
 ### Palette System
 
-- [palette-presets](https://demos.blit386.dev/palette-presets) – Six built-in color sets (VGA, CGA, C64, etc.) you can
+- [palette-presets](https://demos.blit386.dev/palette-presets) - Six built-in color sets (VGA, CGA, C64, etc.) you can
   load instantly
-- [palette-animation](https://demos.blit386.dev/palette-animation) – Change palette entries every tick for instant
+- [palette-animation](https://demos.blit386.dev/palette-animation) - Change palette entries every tick for instant
   visual effects
-- [palette-swap](https://demos.blit386.dev/palette-swap) – Switch the active palette at runtime to change color themes
-- [flurry](https://demos.blit386.dev/flurry) – Retro screensaver: particle physics and palette animation (port of macOS
+- [palette-swap](https://demos.blit386.dev/palette-swap) - Switch the active palette at runtime to change color themes
+- [flurry](https://demos.blit386.dev/flurry) - Retro screensaver: particle physics and palette animation (port of macOS
   Flurry)
-- [palette-cycling](https://demos.blit386.dev/palette-cycling) – Classic retro color rotation using palette cycling
-- [palette-fade](https://demos.blit386.dev/palette-fade) – Smooth color transitions and flash effects with palette fade
-- [palette-exposure-fade](https://demos.blit386.dev/palette-exposure-fade) – Side by side: the plain fade against the
+- [palette-cycling](https://demos.blit386.dev/palette-cycling) - Classic retro color rotation using palette cycling
+- [palette-fade](https://demos.blit386.dev/palette-fade) - Smooth color transitions and flash effects with palette fade
+- [palette-exposure-fade](https://demos.blit386.dev/palette-exposure-fade) - Side by side: the plain fade against the
   camera-style exposure fade, on one palette
 
 ### Putting It All Together
 
-- [image-output](https://demos.blit386.dev/image-output) – Frame capture and PNG export
-- [game-scene](https://demos.blit386.dev/game-scene) – Capstone: tilemap ground, patterns, sprites, camera, animation,
+- [image-output](https://demos.blit386.dev/image-output) - Frame capture and PNG export
+- [game-scene](https://demos.blit386.dev/game-scene) - Capstone: tilemap ground, patterns, sprites, camera, animation,
   frame capture, and looping background music with a real intro/loop point in one scene
 
 ### Input
 
-- [pointer-basics](https://demos.blit386.dev/pointer-basics) – Mouse position, delta, scroll wheel, and four pointer
+- [pointer-basics](https://demos.blit386.dev/pointer-basics) - Mouse position, delta, scroll wheel, and four pointer
   buttons (A/B/C/D) on slot 0 with a live crosshair, button indicators, and a wheel-driven scroll bar
-- [pointer-paint](https://demos.blit386.dev/pointer-paint) – Multi-touch finger painting using all four pointer slots
+- [pointer-paint](https://demos.blit386.dev/pointer-paint) - Multi-touch finger painting using all four pointer slots
   (mouse + up to three touches), with edge-triggered clear / brush-cycle on right and middle click
-- [pointer-drag-flick](https://demos.blit386.dev/pointer-drag-flick) – Drag-and-flick physics: grab one of three
+- [pointer-drag-flick](https://demos.blit386.dev/pointer-drag-flick) - Drag-and-flick physics: grab one of three
   bouncing balls, release with `pointerDelta` as launch velocity. Multi-touch grabs one ball per finger. Throws and wall
   bounces play synthesized whoosh/thud sound effects.
-- [keyboard-input](https://demos.blit386.dev/keyboard-input) – Keyboard face buttons for two players (`BT.BTN_UP` …
+- [keyboard-input](https://demos.blit386.dev/keyboard-input) - Keyboard face buttons for two players (`BT.BTN_UP` …
   `BT.BTN_SELECT`), raw `BT.isKeyDown` / `BT.isKeyPressed` (optional tick repeat) / `BT.isKeyReleased`, and typed text
   via `BT.inputString`
-- [keyboard-diagnostic](https://demos.blit386.dev/keyboard-diagnostic) – Full on-screen keyboard layout with press /
+- [keyboard-diagnostic](https://demos.blit386.dev/keyboard-diagnostic) - Full on-screen keyboard layout with press /
   hold / release color feedback; use to verify fast taps on high-refresh displays
-- [snake-game](https://demos.blit386.dev/snake-game) – Grid snake with walls, food, keyboard, D-pad, and swipe steering,
+- [snake-game](https://demos.blit386.dev/snake-game) - Grid snake with walls, food, keyboard, D-pad, and swipe steering,
   PipBoy-style CRT post-processing, synth SFX on eat/game-over, and a looping background music track
-- [input-map-remapping](https://demos.blit386.dev/input-map-remapping) – Runtime face-button remapping with
+- [input-map-remapping](https://demos.blit386.dev/input-map-remapping) - Runtime face-button remapping with
   `BT.inputMap` / `BT.inputMapReset` (defaults, custom OR keys, clearing a binding); complements `keyboard-input`
-- [gamepad-input](https://demos.blit386.dev/gamepad-input) – Tiny hover-pod playground showing gamepad connect status,
+- [gamepad-input](https://demos.blit386.dev/gamepad-input) - Tiny hover-pod playground showing gamepad connect status,
   analog sticks, triggers, and face button masks (`BT.BTN_A | BT.BTN_B`) with `BT.getAxis` / `BT.isGamepadConnected` /
   `BT.gamepadCount`
 
 ### Post-Process Effects
 
-- [crt-pipboy](https://demos.blit386.dev/crt-pipboy) – Faux Fallout terminal with the full CRT stack (barrel, scanlines,
+- [crt-pipboy](https://demos.blit386.dev/crt-pipboy) - Faux Fallout terminal with the full CRT stack (barrel, scanlines,
   mask, bloom, glitch state machine) built from individual decomposed effects
-- [crt-toggle](https://demos.blit386.dev/crt-toggle) – Toggle the entire `BT.preset.crtPipBoy()` CRT stack on and off at
-  runtime – auto-switches between clean and CRT output every two seconds
+- [crt-toggle](https://demos.blit386.dev/crt-toggle) - Toggle the entire `BT.preset.crtPipBoy()` CRT stack on and off at
+  runtime - auto-switches between clean and CRT output every two seconds
 
 ### Audio
 
-- [audio-basics](https://demos.blit386.dev/audio-basics) – Loading clips with `AudioClip.load()`, playing SFX on a key
+- [audio-basics](https://demos.blit386.dev/audio-basics) - Loading clips with `AudioClip.load()`, playing SFX on a key
   press and a pointer click with volume/pitch/pan variation, and the `BT.isAudioUnlocked` first-gesture prompt;
   `isOverlayAudioMetersEnabled` shows live bus-level meters and a voice-count readout in the overlay
-- [synth-toy](https://demos.blit386.dev/synth-toy) – Procedural chip-tune SFX built entirely with `AudioClip.synth()`:
+- [synth-toy](https://demos.blit386.dev/synth-toy) - Procedural chip-tune SFX built entirely with `AudioClip.synth()`:
   six keyboard-triggered presets (jump/pickup/explosion/laser/hit/blip) via `BT.synthPreset`, plus a randomize key that
   rolls a fresh `SynthParams` object to show off waveform, envelope, pitch-sweep, and noise-mix variation; also opts
   into the overlay's live audio meters via `isOverlayAudioMetersEnabled`
-- [music](https://demos.blit386.dev/music) – Crossfading between two looping tracks with two different `BT.musicPlay()`
+- [music](https://demos.blit386.dev/music) - Crossfading between two looping tracks with two different `BT.musicPlay()`
   fade profiles, plus a third track demonstrating a seamless `loopStart`/`loopEnd` region after a one-time intro
-- [audio-buses](https://demos.blit386.dev/audio-buses) – Mixer bus control: draggable `main`/`music`/`sfx` volume
+- [audio-buses](https://demos.blit386.dev/audio-buses) - Mixer bus control: draggable `main`/`music`/`sfx` volume
   sliders, per-bus mute toggles that preserve the stored volume, and an alert button that ducks the music bus with
   `BT.audioVolumeSet()`
 
 ## Shared UI kit
 
-All on-screen demo UI – panels, labels, key-value rows, checkboxes, pips, buttons, sliders, meters, a virtual touch
-D-pad, swipes, and tap zones – comes from a small shared kit in `src/shared/`. It is imported by 42 of the 46 demos.
+All on-screen demo UI - panels, labels, key-value rows, checkboxes, pips, buttons, sliders, meters, a virtual touch
+D-pad, swipes, and tap zones - comes from a small shared kit in `src/shared/`. It is imported by 42 of the 46 demos.
 Four demos are deliberate exceptions: `flurry` (an immersive screensaver with no demo HUD, only the engine overlay),
 `hello-world` (a bare-bones starter kept as a minimal reference, with no demo UI at all), `hypercube` (a full-canvas
 tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with no demo HUD):
@@ -175,7 +175,7 @@ tesseract with no shared UI kit), and `logo-lowres` (a full-canvas showcase with
 | `ui.js` | The single entry point demos import: `applyTheme()` and the `ui` object |
 | `ui-core.js` | Immediate-mode context: layout anchors, pooled draw commands, hit testing |
 | `ui-widgets.js` | Panels, labels, key-value rows, checkboxes, pips, buttons, sliders, meters |
-| `ui-theme.js` | `applyTheme(palette)` – installs the 12 shared UI colors (slots 240–251 by default) |
+| `ui-theme.js` | `applyTheme(palette)` - installs the 12 shared UI colors (slots 240-251 by default) |
 | `ui-dpad.js` | The virtual touch D-pad (`ui.dpadWidget()`, `ui.dpad.isDown` / `ui.dpad.isPressed`) |
 | `ui-gestures.js` | Swipe recognition (`ui.swipe()`) and invisible tap zones (`ui.tapIn()`) |
 | `post-process-backend.js` | `isAvailable()` and `SOFTWARE_FALLBACK_NOTE` for effect demos that need WebGPU |
@@ -208,23 +208,23 @@ WebGPU support (for the full experience) is typical in:
 | --- | --- | --- |
 | Chrome/Edge | 113+ | Enabled by default |
 | Firefox | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux |
-| Safari | 26+ | Enabled by default; Safari 18–25 available via Feature Flags |
+| Safari | 26+ | Enabled by default; Safari 18-25 available via Feature Flags |
 
 ## Engine documentation
 
 These demos are thin wrappers around the library. For complete behavior, APIs, and internals, read the full docs at
 [blit386.dev](https://blit386.dev):
 
-- [Engine README](https://github.com/blit386/blit386/blob/main/README.md) – features list, quick start, bootstrap
+- [Engine README](https://github.com/blit386/blit386/blob/main/README.md) - features list, quick start, bootstrap
   helpers, manual `BT.init`, project layout
-- [Input](https://blit386.dev/docs/guides/input) – pointer slots, keyboard, gamepad, remapping
-- [Post-process effects](https://blit386.dev/docs/guides/post-process-effects) – pixel vs display tiers, presets,
+- [Input](https://blit386.dev/docs/guides/input) - pointer slots, keyboard, gamepad, remapping
+- [Post-process effects](https://blit386.dev/docs/guides/post-process-effects) - pixel vs display tiers, presets,
   writing effects
-- [Bitmap fonts](https://blit386.dev/docs/guides/bitmap-fonts) – `.btfont` format and tooling
-- [Testing](https://blit386.dev/docs/reference/testing) – unit, integration, and visual tests
-- [Performance testing](https://blit386.dev/docs/performance/testing) – benchmarks and the local baseline/compare
+- [Bitmap fonts](https://blit386.dev/docs/guides/bitmap-fonts) - `.btfont` format and tooling
+- [Testing](https://blit386.dev/docs/reference/testing) - unit, integration, and visual tests
+- [Performance testing](https://blit386.dev/docs/performance/testing) - benchmarks and the local baseline/compare
   workflow
-- [Software fallback smoke matrix](https://blit386.dev/docs/performance/smoke-matrix) – manual backend coverage notes
+- [Software fallback smoke matrix](https://blit386.dev/docs/performance/smoke-matrix) - manual backend coverage notes
 
 ## How to Run
 
@@ -247,7 +247,7 @@ plugin) and production (`dist/_redirects`). For the public build, open the flat 
 
 Editing a demo's `src/<slug>.js` file usually avoids a full page reload: a method-only edit (`render()`/`update()`)
 keeps state in place, while an edit to `init()` or the constructor re-initializes the demo instead. A `configure()`
-hardware-setting change still forces a full reload – see [CLAUDE.md](CLAUDE.md#hot-reload) for the full tier breakdown.
+hardware-setting change still forces a full reload - see [CLAUDE.md](CLAUDE.md#hot-reload) for the full tier breakdown.
 
 ## Social metadata and OG images
 
@@ -262,12 +262,12 @@ The description comes from a **required** `@description` tag in each demo's head
 // @description Classic retro color rotation with BT.paletteCycle: rotate palette slots to make a still image flow.
 ```
 
-One line, 60–104 characters, ending in a period, within the first 2000 bytes of the file. `pnpm run check:demo-registry`
+One line, 60-104 characters, ending in a period, within the first 2000 bytes of the file. `pnpm run check:demo-registry`
 enforces every one of those rules, so a new demo cannot ship without one.
 
 Each demo also has a 1200x630 OpenGraph card committed under `public/social/og-<slug>.png`. Cards are captured by hand,
 never in CI, and need `agent-browser` and `ffmpeg` on `PATH`. `pnpm run check:demo-registry` fails if a demo's card is
-missing – a new demo cannot ship without one, even though capturing stays a manual step.
+missing - a new demo cannot ship without one, even though capturing stays a manual step.
 
 **After changing a demo, re-capture its card.** Build, serve, then capture that one slug:
 
@@ -279,7 +279,7 @@ pnpm run build
 pnpm run preview
 ```
 
-Then, from a second terminal (check the port `preview` printed – it falls back to 4174 and up when 4173 is taken):
+Then, from a second terminal (check the port `preview` printed - it falls back to 4174 and up when 4173 is taken):
 
 ```bash
 pnpm run capture:og -- <slug> --force --base-url http://localhost:4173
@@ -289,7 +289,7 @@ Two things to know:
 
 - **`--force` is required.** Without it the script skips every slug that already has a card, so it silently does
   nothing.
-- **It must be `preview`, not `dev`.** `--base-url` has to serve flattened, extensionless URLs – production, the `next`
+- **It must be `preview`, not `dev`.** `--base-url` has to serve flattened, extensionless URLs - production, the `next`
   channel, or `pnpm run preview`. The dev server routes demos at `/demos/<slug>.html` and will not work.
 
 Then look at the PNG before committing it. If the frame is unrepresentative (too dark, caught mid-transition), add a
@@ -309,7 +309,7 @@ changed over re-running `--all --force`.
 
 ## Credits
 
-- [Departure Mono](https://departuremono.com) by Helena Zhang – font used in the demo navigation banner, licensed under
+- [Departure Mono](https://departuremono.com) by Helena Zhang - font used in the demo navigation banner, licensed under
   the [SIL Open Font License](public/fonts/DepartureMono/LICENSE)
 
 ## License

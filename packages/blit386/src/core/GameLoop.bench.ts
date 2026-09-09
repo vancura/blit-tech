@@ -3,7 +3,7 @@
  *
  * `detectFrameDrop` is private and only reachable in production through the
  * rAF-driven `tick()` chain, so this file uses the same narrow type-cast
- * technique as `GameLoop.test.ts` to invoke it directly – see that file's
+ * technique as `GameLoop.test.ts` to invoke it directly - see that file's
  * `frame-drop detection` describe block. Casting straight to the private
  * method (rather than driving it through `tick()`) keeps the measurement
  * limited to the O(60) min-scan itself, without `tick()`'s unrelated
@@ -59,7 +59,7 @@ describe('GameLoop frame-drop detection (steady state)', () => {
     const primed = makePrimedLoop();
 
     bench(
-        'detectFrameDrop() – full 60-sample ring buffer, no drop',
+        'detectFrameDrop() - full 60-sample ring buffer, no drop',
         () => {
             primed.detectFrameDrop(FRAME_MS_60FPS);
         },

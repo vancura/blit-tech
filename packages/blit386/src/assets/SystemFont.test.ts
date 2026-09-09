@@ -68,9 +68,9 @@ describe('createSystemFont', () => {
         }
     });
 
-    it('has glyphs for the en dash and the four cardinal arrows – the characters this pass exists for', () => {
+    it('has glyphs for the en dash and the four cardinal arrows - the characters this pass exists for', () => {
         // U+2013 en dash: was rendering as a corrupting zero-width gap through the overlay's
-        // top-left label before this font gained a glyph for it. U+2190–2193: 4-way arrows.
+        // top-left label before this font gained a glyph for it. U+2190-2193: 4-way arrows.
         const font = createSystemFont();
 
         expect(font.hasGlyph('–')).toBe(true);
@@ -81,7 +81,7 @@ describe('createSystemFont', () => {
     });
 
     it('exposes codePoints as an ascending, duplicate-free enumeration of every real glyph', () => {
-        // Structural checks rather than a hardcoded count – a glyph browser built on codePoints
+        // Structural checks rather than a hardcoded count - a glyph browser built on codePoints
         // must never need updating when the font gains or loses a glyph.
         const font = createSystemFont();
         const codePoints = font.codePoints;
@@ -136,7 +136,7 @@ describe('system font glyph access', () => {
 
     it('resolves a reserved (unassigned) placeholder to its own glyph, not the fallback', () => {
         // U+E006 is one of the 14 reserved Private Use Area placeholders that took the accented
-        // Latin letters' atlas cells after they were dropped – still a real (blank) glyph, not
+        // Latin letters' atlas cells after they were dropped - still a real (blank) glyph, not
         // a missing character routed through the fallback.
         const font = createSystemFont();
         const glyph = font.getGlyph('\ue006');
@@ -147,7 +147,7 @@ describe('system font glyph access', () => {
     });
 
     it('reports hasGlyph as false for a character with no glyph of its own, even with a fallback defined', () => {
-        // hasGlyph checks true presence, not fallback coverage – see BitmapFont's fallback-glyph
+        // hasGlyph checks true presence, not fallback coverage - see BitmapFont's fallback-glyph
         // mechanism. Hiragana "a" is nowhere near this font's coverage.
         const font = createSystemFont();
 
@@ -157,7 +157,7 @@ describe('system font glyph access', () => {
     it('substitutes the fallback glyph for control characters, not null', () => {
         // The system font now defines a U+FFFD fallback glyph (see systemFontData.ts's
         // SYSTEM_FONT_EXTRA_CHARS), so out-of-range codes render as that placeholder instead of
-        // vanishing – see BitmapFont's fallback-glyph mechanism.
+        // vanishing - see BitmapFont's fallback-glyph mechanism.
         const font = createSystemFont();
         const fallback = font.getGlyph('\uFFFD');
 

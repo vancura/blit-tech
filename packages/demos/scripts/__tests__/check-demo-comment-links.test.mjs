@@ -32,7 +32,7 @@ describe('check-demo-comment-links', () => {
         it('extracts a /** */ JSDoc-style block', () => {
             const source = [
                 '/**',
-                ' * Basics Demo – Your very first BLIT386 program!',
+                ' * Basics Demo - Your very first BLIT386 program!',
                 ' * @description Your first BLIT386 program.',
                 ' * Live version: https://demos.blit386.dev/basics',
                 ' */',

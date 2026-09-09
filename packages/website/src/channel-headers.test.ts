@@ -6,7 +6,7 @@
  * from `c.env.BLIT386_CHANNEL`, which the Worker receives through `wrangler.json` `vars`, never
  * from `process.env`, which inside the deployed Worker holds nothing the CI build step set. Both
  * tests point `process.env` at the opposite value from `c.env`, so neither can pass against a
- * `process.env` implementation – whether that read happens at module scope or per request.
+ * `process.env` implementation - whether that read happens at module scope or per request.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

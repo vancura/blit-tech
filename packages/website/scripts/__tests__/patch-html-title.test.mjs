@@ -2,8 +2,8 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { patchTitleHtml } from '../patch-html-title.mjs';
 
-// PREFIX used by the module: 'BLIT386 – ' (en dash, U+2013)
-const PREFIX = 'BLIT386 – ';
+// PREFIX used by the module: 'BLIT386 - ' (en dash, U+2013)
+const PREFIX = 'BLIT386 - ';
 
 describe('patchTitleHtml', () => {
     test('prepends prefix to <title> on un-prefixed HTML', () => {

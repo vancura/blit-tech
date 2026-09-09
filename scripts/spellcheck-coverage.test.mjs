@@ -3,13 +3,13 @@
  * DIRECTORY (the main checkout) over a nearer .git FILE (a linked worktree), so inside a
  * worktree it resolves to the wrong repo root. The main checkout's .gitignore then matches
  * every worktree file against its `.claude/worktrees/` rule, silently filtering all of them
- * out – each package's spellcheck script reports "Files checked: 0" and cspell exits 1 because
+ * out - each package's spellcheck script reports "Files checked: 0" and cspell exits 1 because
  * --no-must-find-files (used only in .lintstagedrc.json, not in these scripts) isn't set.
  *
  * A silent zero is the actual failure mode: exit 1 gets noticed, but a future regression that
  * keeps exit 0 while checking nothing would not. This asserts the file count directly for every
  * package with a spellcheck script, running each package.json's own "spellcheck" command exactly
- * as written (not `pnpm run` – pnpm's own reporter writes straight to the controlling terminal in
+ * as written (not `pnpm run` - pnpm's own reporter writes straight to the controlling terminal in
  * some nested-PTY setups, bypassing stdout capture). It intentionally does not construct a
  * synthetic worktree fixture to force the bug: cspell-gitignore resolves the repo root by
  * shelling out to git rather than pure directory-walking, so a synthetic non-git ".git" directory
@@ -33,7 +33,7 @@ function filesCheckedCount(scriptString, cwd) {
     // Mirrors what `pnpm run` does: put the package's own node_modules/.bin ahead of PATH so a
     // bare command name (e.g. "cspell") resolves without going through pnpm itself. Output is
     // redirected to a file rather than captured through node's own pipe: cspell can call
-    // process.exit() before an async pipe write flushes, silently truncating captured stdout – a
+    // process.exit() before an async pipe write flushes, silently truncating captured stdout - a
     // real shell redirect to a file does not race that way.
     const env = { ...process.env, PATH: `${join(cwd, 'node_modules', '.bin')}:${process.env.PATH}` };
     const outDir = mkdtempSync(join(tmpdir(), 'bt-460-cspell-out-'));
@@ -41,7 +41,7 @@ function filesCheckedCount(scriptString, cwd) {
     try {
         execFileSync('sh', ['-c', `${scriptString} > "${outFile}" 2>&1`], { cwd, env, stdio: 'ignore' });
     } catch {
-        // cspell exits 1 both on spelling issues and on "0 files checked" – the count we want is
+        // cspell exits 1 both on spelling issues and on "0 files checked" - the count we want is
         // still in the redirected output either way, so a nonzero exit alone isn't fatal here.
     }
     const output = readFileSync(outFile, 'utf8');

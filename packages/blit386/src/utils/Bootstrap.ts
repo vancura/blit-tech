@@ -61,7 +61,7 @@ export interface BootstrapOptions {
 
     /**
      * Whether to assign the `BT` namespace to `window.BT`, for browser-console debugging
-     * (`window.BT.captureFrame()`). Undefined follows `BT.isDevMode` – exposed in development,
+     * (`window.BT.captureFrame()`). Undefined follows `BT.isDevMode` - exposed in development,
      * not in a consumer's production build. Set `true` to force it on in release too, or `false`
      * to disable it even in development.
      *
@@ -99,11 +99,11 @@ async function waitForDOM(): Promise<void> {
 /**
  * Handles a bootstrap error by displaying it and invoking the callback.
  *
- * @param title – Error title for display.
- * @param message – Error message for display.
- * @param error – The Error object.
- * @param containerID – Container ID for error display.
- * @param onError – Optional error callback.
+ * @param title - Error title for display.
+ * @param message - Error message for display.
+ * @param error - The Error object.
+ * @param containerID - Container ID for error display.
+ * @param onError - Optional error callback.
  * @returns Result indicating failure.
  */
 function handleError(
@@ -121,9 +121,9 @@ function handleError(
 /**
  * Validates the canvas element and returns it.
  *
- * @param canvasID – Canvas element ID.
- * @param containerID – Container ID for error display.
- * @param onError – Optional error callback.
+ * @param canvasID - Canvas element ID.
+ * @param containerID - Container ID for error display.
+ * @param onError - Optional error callback.
  * @returns Canvas element or null with error handling.
  */
 function validateCanvas(
@@ -152,11 +152,11 @@ function validateCanvas(
 /**
  * Initializes the engine with the provided demo and canvas.
  *
- * @param DemoClass – Demo class constructor.
- * @param canvas – Canvas element.
- * @param containerID – Container ID for error display.
- * @param onSuccess – Optional success callback.
- * @param onError – Optional error callback.
+ * @param DemoClass - Demo class constructor.
+ * @param canvas - Canvas element.
+ * @param containerID - Container ID for error display.
+ * @param onSuccess - Optional success callback.
+ * @param onError - Optional error callback.
  * @returns Result with success status.
  */
 async function initDemo(
@@ -218,7 +218,7 @@ async function initDemo(
  * Routes an already-running engine's `bootstrap()` call to the hot-swap path, or logs a
  * double-bootstrap guard error when no hot-reload context is registered.
  *
- * @param DemoClass – Newly evaluated demo class constructor.
+ * @param DemoClass - Newly evaluated demo class constructor.
  * @returns The bootstrap result when the engine is already initialized (hot-swapped or
  *   guarded); `null` when a cold boot should proceed instead.
  */
@@ -243,19 +243,19 @@ async function routeIfAlreadyInitialized(DemoClass: DemoConstructor): Promise<bo
  * Handles canvas retrieval and engine initialization for a bootstrap call. Backend selection
  * (WebGPU or software fallback) is managed internally by BTAPI.
  *
- * Internal implementation – `BLIT386.ts` wraps this as the public `bootstrap()` export (see its
+ * Internal implementation - `BLIT386.ts` wraps this as the public `bootstrap()` export (see its
  * JSDoc for the full public contract, `@since`/`@changed` history, and usage examples) to also
  * expose `BT` on `window` per {@link BootstrapOptions.exposeGlobal} once this resolves.
  *
- * @param DemoClass – Demo class constructor implementing `IBTDemo` (optional `configure()` for hardware settings).
- * @param options – Optional configuration for IDs and callbacks.
+ * @param DemoClass - Demo class constructor implementing `IBTDemo` (optional `configure()` for hardware settings).
+ * @param options - Optional configuration for IDs and callbacks.
  * @returns `true` when the demo boots successfully; otherwise `false`.
  */
 export async function bootstrap(DemoClass: DemoConstructor, options: BootstrapOptions = {}): Promise<boolean> {
     // One microtask yield before anything else runs. Module top-level evaluation is
     // synchronous and this function is async, so the snippet's un-awaited
-    // `__blit386_registerHotReload(import.meta.hot)` call – which runs synchronously right after a
-    // demo's own un-awaited `bootstrap(Game);` call, at the same module top level – always
+    // `__blit386_registerHotReload(import.meta.hot)` call - which runs synchronously right after a
+    // demo's own un-awaited `bootstrap(Game);` call, at the same module top level - always
     // completes before this function proceeds past this line, regardless of
     // `isWaitingForDOMReady`.
     await Promise.resolve();

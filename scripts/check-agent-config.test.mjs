@@ -284,7 +284,7 @@ describe('check-agent-config', () => {
     describe('isRootMcpIgnoredByGit', () => {
         /**
          * Builds a throwaway repository whose `.gitignore` is exactly `rules`, with `.mcp.json`
-         * committed – so the tracked-file case the real repo is in gets exercised too.
+         * committed - so the tracked-file case the real repo is in gets exercised too.
          *
          * @param {string} rules Contents of the throwaway repo's `.gitignore`.
          * @returns {string} Absolute path to the repository root.

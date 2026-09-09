@@ -8,7 +8,7 @@ const DEFAULT_SIZE_PX = 256;
 
 /**
  * Palette uniform byte size: 256 palette indices x vec4(f32) x 4 bytes.
- * Matches {@link WebGPURenderer} palette buffer layout (`Palette.ts`'s `MAX_PALETTE_SIZE`, not imported here – a
+ * Matches {@link WebGPURenderer} palette buffer layout (`Palette.ts`'s `MAX_PALETTE_SIZE`, not imported here - a
  * test mock deliberately pins the expected wire value rather than importing the production constant).
  */
 const INDEX_COUNT = 256;
@@ -79,9 +79,9 @@ function resolveMockTextureSize(size: GPUTextureDescriptor['size']): { width: nu
 /**
  * Creates a mock GPUTexture.
  *
- * @param width – Texture width in pixels.
- * @param height – Texture height in pixels.
- * @param label – Texture label.
+ * @param width - Texture width in pixels.
+ * @param height - Texture height in pixels.
+ * @param label - Texture label.
  * @returns Mock GPUTexture stub.
  */
 export function createMockGPUTexture(
@@ -228,11 +228,11 @@ export function createMockGPUDevice(): GPUDevice {
  * Creates a mock GPUCanvasContext.
  *
  * When `canvas` is provided, `getCurrentTexture()` derives its mock texture's width/height from
- * `canvas.width`/`canvas.height` – mirroring the real WebGPU spec, where the current texture always
+ * `canvas.width`/`canvas.height` - mirroring the real WebGPU spec, where the current texture always
  * matches the canvas backing store set by `WebGPUContext.ts`. Tests that don't care about texture
  * size (most of them) can omit `canvas` and keep getting the fixed `DEFAULT_SIZE_PX` mock texture.
  *
- * @param canvas – Optional backing canvas to derive the current texture's size from.
+ * @param canvas - Optional backing canvas to derive the current texture's size from.
  * @returns Mock GPUCanvasContext stub.
  */
 export function createMockGPUCanvasContext(canvas?: HTMLCanvasElement): GPUCanvasContext {
@@ -245,7 +245,7 @@ export function createMockGPUCanvasContext(canvas?: HTMLCanvasElement): GPUCanva
 
 /**
  * Creates a mock GPUBuffer matching the real 4096-byte palette uniform layout.
- * Returns a plain object – does not call device.createBuffer.
+ * Returns a plain object - does not call device.createBuffer.
  *
  * @returns Mock GPUBuffer stub.
  */

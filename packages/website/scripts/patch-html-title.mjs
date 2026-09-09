@@ -5,23 +5,23 @@ import { pathToFileURL } from 'node:url';
 
 // Fumapress hard-codes <title> and <meta property="og:title"> from page.data.title
 // before the meta.page() callback runs, so there is no config hook to prefix them.
-// This script post-processes the static HTML output and prepends "BLIT386 – " to both
+// This script post-processes the static HTML output and prepends "BLIT386 - " to both
 // on every non-root page so social-card scrapers and browser tabs show the site name.
 
 const DIST_DIR = join(process.cwd(), 'dist/public');
-const PREFIX = 'BLIT386 – ';
+const PREFIX = 'BLIT386 - ';
 
 /**
- * Prepend `BLIT386 – ` to the `<title>` and first `og:title` in an HTML string.
+ * Prepend `BLIT386 - ` to the `<title>` and first `og:title` in an HTML string.
  * Idempotent: tags already prefixed are left unchanged. Returns a new string.
  */
 export const patchTitleHtml = (html) =>
     html
         // <title> - skip only if the exact prefix is already present
-        .replace(/<title>(?!BLIT386 – )([^<]+)<\/title>/, `<title>${PREFIX}$1</title>`)
+        .replace(/<title>(?!BLIT386 - )([^<]+)<\/title>/, `<title>${PREFIX}$1</title>`)
         // first <meta property="og:title"> - skip only if the exact prefix is already present
         .replace(
-            /<meta property="og:title" content="(?!BLIT386 – )([^"]+)"/,
+            /<meta property="og:title" content="(?!BLIT386 - )([^"]+)"/,
             `<meta property="og:title" content="${PREFIX}$1"`,
         );
 

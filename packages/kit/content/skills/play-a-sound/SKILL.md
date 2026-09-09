@@ -18,7 +18,7 @@ mute the volume, or asks "why is my game silent".
 
 ## The fastest win: a made-up sound
 
-`BT.synthPreset` has six ready-made retro sounds. You do not need any files – the engine builds the sound itself:
+`BT.synthPreset` has six ready-made retro sounds. You do not need any files - the engine builds the sound itself:
 `jump`, `pickup`, `explosion`, `laser`, `hit`, `blip`.
 
 ```js
@@ -55,7 +55,7 @@ async init() {
 
 ## Sound effects: play, stop, check
 
-`BT.soundPlay()` hands back a `SoundRef` – a little ticket for that one playing sound. Keep the ticket if you want to
+`BT.soundPlay()` hands back a `SoundRef` - a little ticket for that one playing sound. Keep the ticket if you want to
 stop it or ask about it later.
 
 ```js
@@ -122,24 +122,24 @@ render() {
 
 ## Key calls
 
-- `AudioClip.load(url)` (static, async) – load a sound file. `AudioClip.synth(params)` (static, async) – build a sound
+- `AudioClip.load(url)` (static, async) - load a sound file. `AudioClip.synth(params)` (static, async) - build a sound
   from a description.
-- `BT.synthPreset.jump()` / `.pickup()` / `.explosion()` / `.laser()` / `.hit()` / `.blip()` – the six ready-made
+- `BT.synthPreset.jump()` / `.pickup()` / `.explosion()` / `.laser()` / `.hit()` / `.blip()` - the six ready-made
   sounds. Each takes an optional seed number.
-- `BT.soundPlay(clip, options?)` (method) – returns a `SoundRef`. `BT.soundStop(ref, options?)`,
+- `BT.soundPlay(clip, options?)` (method) - returns a `SoundRef`. `BT.soundStop(ref, options?)`,
   `BT.isSoundPlaying(ref)`.
-- `BT.soundVolumeSet(ref, value)` / `BT.soundPitchSet(ref, value)` / `BT.soundPanSet(ref, value)` – change one playing
+- `BT.soundVolumeSet(ref, value)` / `BT.soundPitchSet(ref, value)` / `BT.soundPanSet(ref, value)` - change one playing
   sound while it plays.
-- `BT.musicPlay(clip, options?)` / `BT.musicStop(options?)` / `BT.musicVolumeSet(value)` – methods.
-- `BT.audioVolumeSet(bus, value)` / `BT.audioVolumeGet(bus)` / `BT.audioMuteSet(bus, muted)` / `BT.isAudioMuted(bus)` –
+- `BT.musicPlay(clip, options?)` / `BT.musicStop(options?)` / `BT.musicVolumeSet(value)` - methods.
+- `BT.audioVolumeSet(bus, value)` / `BT.audioVolumeGet(bus)` / `BT.audioMuteSet(bus, muted)` / `BT.isAudioMuted(bus)` -
   methods. Buses: `'main'`, `'music'`, `'sfx'`.
-- `BT.isAudioUnlocked` / `BT.isMusicPlaying` – getters (no parentheses).
+- `BT.isAudioUnlocked` / `BT.isMusicPlaying` - getters (no parentheses).
 
 ## Notes
 
 - Load and synth in `init()` with `await`. Forgetting `await` gives you a promise instead of a clip, and nothing plays.
 - Play sounds from `update()`, where the button presses are.
-- Sound works on both renderers – WebGPU and the plain Canvas 2D fallback. Unlike CRT and post-process effects, it never
+- Sound works on both renderers - WebGPU and the plain Canvas 2D fallback. Unlike CRT and post-process effects, it never
   needs a GPU, so every player hears it.
 - Audio arrived in blit386 1.3.0. If `BT.soundPlay` says it is not a function, your engine is older than that: run
   `npx blit upgrade`.

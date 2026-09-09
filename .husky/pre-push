@@ -36,13 +36,13 @@ done
 # changed since ref; --if-present skips packages with no "preflight" script
 # (packages/kit, packages/create-blit386) instead of failing on them. --if-present
 # must come BEFORE "run": placed after the script name, pnpm forwards it as an
-# argument to the script's own command chain instead of consuming it itself – for
+# argument to the script's own command chain instead of consuming it itself - for
 # a package whose preflight ends in "&& pnpm run build", that appends a stray
 # "--if-present" to the build command, which the underlying build tool then
 # rejects as an unknown flag.
 #
 # Husky's wrapper runs this script with `sh -e`, so every command whose failure
-# is intentionally tolerated below is guarded with `|| true` or `|| VAR=$?` –
+# is intentionally tolerated below is guarded with `|| true` or `|| VAR=$?` -
 # under -e, a bare failing command inside a plain assignment or statement (not
 # itself an if/&&/|| condition) aborts the whole script immediately, which on a
 # first push (no upstream yet) killed this hook before the origin/main fallback,
@@ -60,8 +60,8 @@ fi
 
 # Git exports GIT_DIR (and its siblings) into every hook, pointing at the git dir
 # of the worktree being pushed from. Those variables outrank cwd, so any git
-# subprocess a preflight step spawns for some *other* directory – a throwaway
-# fixture repo in node --test, a `git -C <path> log` – silently retargets this
+# subprocess a preflight step spawns for some *other* directory - a throwaway
+# fixture repo in node --test, a `git -C <path> log` - silently retargets this
 # repository instead. `git init` under a linked worktree's GIT_DIR is the
 # destructive case: git cannot pair that git dir with a work tree from an
 # unrelated cwd, so it writes `bare = true` into the shared .git/config and every
@@ -110,9 +110,9 @@ fi
 echo ""
 echo "Pre-push checks passed! Ready to push."
 
-# Advisory only – never fails the push. Reminds when this push touches an engine
+# Advisory only - never fails the push. Reminds when this push touches an engine
 # hot-path directory (see packages/blit386/.claude/rules/bench-coverage.md) without
-# touching any *.bench.ts file (push-wide, not per-file – see check-bench-coverage.mjs),
+# touching any *.bench.ts file (push-wide, not per-file - see check-bench-coverage.mjs),
 # since CI does not run or gate on benchmarks and it is easy to forget the local
 # baseline/compare workflow.
 if [ -n "$BASE_REF" ] && [ -f "packages/blit386/scripts/check-bench-coverage.mjs" ]; then

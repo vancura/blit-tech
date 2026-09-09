@@ -3,11 +3,11 @@
  *
  * Expands the embedded glyph bitmaps from system font data into a
  * palette-indexed texture atlas and wraps the result in a {@link BitmapFont}.
- * The font is fully synchronous to create – no `fetch()`, no image decode.
+ * The font is fully synchronous to create - no `fetch()`, no image decode.
  *
- * Covers the printable ASCII block (32–126) plus a set of extra glyphs listed in
+ * Covers the printable ASCII block (32-126) plus a set of extra glyphs listed in
  * `scripts/system-font-extra-chars.mjs` (a `U+FFFD` fallback glyph, dashes, media/UI icons,
- * uppercase Greek, arrows, and a few others) – see that file for the full list and each glyph's
+ * uppercase Greek, arrows, and a few others) - see that file for the full list and each glyph's
  * atlas position.
  *
  * The glyph data lives in `src/assets/fonts/systemFontData.ts`. To edit it
@@ -53,10 +53,10 @@ const ATLAS_HEIGHT = ATLAS_ROWS * SYSTEM_FONT_GLYPH_HEIGHT;
  * Bit 7 of each bitmap byte is the leftmost pixel.
  * A set bit maps to palette index 1 (foreground); a clear bit maps to 0 (transparent).
  *
- * @param bitmapOffset – Offset into the glyph bitmap data.
- * @param baseX – X-coordinate of the glyph's top-left corner in the atlas.
- * @param baseY – Y-coordinate of the glyph's top-left corner in the atlas.
- * @param pixels – Output pixel buffer to write into.
+ * @param bitmapOffset - Offset into the glyph bitmap data.
+ * @param baseX - X-coordinate of the glyph's top-left corner in the atlas.
+ * @param baseY - Y-coordinate of the glyph's top-left corner in the atlas.
+ * @param pixels - Output pixel buffer to write into.
  */
 function writeGlyphPixels(bitmapOffset: number, baseX: number, baseY: number, pixels: Uint8Array<ArrayBuffer>): void {
     const pixelCount = SYSTEM_FONT_GLYPH_HEIGHT * SYSTEM_FONT_GLYPH_WIDTH;
@@ -109,9 +109,9 @@ function buildAtlasPixels(): Uint8Array<ArrayBuffer> {
 
 /**
  * Returns the Unicode code point rendered by the glyph at atlas index `i`: the contiguous ASCII
- * block (32–126) first, then {@link SYSTEM_FONT_EXTRA_CHARS} in atlas order.
+ * block (32-126) first, then {@link SYSTEM_FONT_EXTRA_CHARS} in atlas order.
  *
- * @param i – Glyph index into {@link SYSTEM_FONT_BITMAPS} / the atlas.
+ * @param i - Glyph index into {@link SYSTEM_FONT_BITMAPS} / the atlas.
  * @returns Unicode code point for that glyph.
  */
 function codePointForGlyphIndex(i: number): number {

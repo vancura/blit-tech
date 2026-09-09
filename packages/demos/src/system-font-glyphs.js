@@ -1,5 +1,5 @@
 /**
- * System Font Glyphs Demo – browse every glyph the built-in system font covers.
+ * System Font Glyphs Demo - browse every glyph the built-in system font covers.
  * @description Browse every glyph the built-in system font defines, and click one to copy it to your clipboard.
  *
  * Part of the BLIT386 demo series.
@@ -11,13 +11,13 @@
  *
  * BT.systemFont is a live reference to the exact BitmapFont object BT.systemPrint() draws
  * with internally. Its codePoints property lists every Unicode character the font can draw
- * – that list is what turns into the grid below, so this file never hardcodes "there are
+ * - that list is what turns into the grid below, so this file never hardcodes "there are
  * 174 of them" anywhere, and never needs updating if the built-in font gains or loses a
  * glyph. Hover a cell to see its code point; click it to copy the actual character to your
  * system clipboard, ready to paste anywhere.
  *
  * This mirrors an interaction the engine's own debug overlay already has for its color
- * palette grid (hover for a tooltip, click to copy) – reimplemented here in plain demo code
+ * palette grid (hover for a tooltip, click to copy) - reimplemented here in plain demo code
  * with the public BT API, since the overlay's version is engine-internal.
  */
 
@@ -41,10 +41,10 @@ const C_TOOLTIP_BORDER = 7; // Tooltip border
 
 // The grid layout. GRID_COLS=16 deliberately matches the built-in font's own texture
 // atlas layout (16 glyphs per row), so the demo's grid echoes how the font stores its
-// pixels internally. Rows are NOT fixed – see gridRows below, computed from however many
+// pixels internally. Rows are NOT fixed - see gridRows below, computed from however many
 // glyphs the font actually reports.
 const GRID_COLS = 16;
-const CELL_SIZE = 16; // Each cell is 16x16 pixels – comfortable click/tap padding around a small glyph
+const CELL_SIZE = 16; // Each cell is 16x16 pixels - comfortable click/tap padding around a small glyph
 const CELL_GAP = 2; // Gap between cells, so borders don't touch
 const CELL_PITCH = CELL_SIZE + CELL_GAP; // Distance from one cell's corner to the next
 const GRID_ORIGIN_Y = 26; // Top of the grid, just below the title bar
@@ -59,9 +59,9 @@ const COPY_STATUS_SECONDS = 0.75;
  * (including the thin gaps between cells, and the couple of empty cells past the last
  * real glyph in an unfinished final row).
  *
- * @param {number} localX – Pointer X, already offset so 0 is the grid's left edge.
- * @param {number} localY – Pointer Y, already offset so 0 is the grid's top edge.
- * @param {number} glyphCount – How many real glyphs the grid holds.
+ * @param {number} localX - Pointer X, already offset so 0 is the grid's left edge.
+ * @param {number} localY - Pointer Y, already offset so 0 is the grid's top edge.
+ * @param {number} glyphCount - How many real glyphs the grid holds.
  * @returns {number}
  */
 function hitTestGlyphCell(localX, localY, glyphCount) {
@@ -93,7 +93,7 @@ function hitTestGlyphCell(localX, localY, glyphCount) {
     // Cells are numbered left-to-right, top-to-bottom, the same order codePoints lists them.
     const index = row * GRID_COLS + col;
 
-    // The last row may have a few empty cells past the final real glyph – reject those.
+    // The last row may have a few empty cells past the final real glyph - reject those.
     return index < glyphCount ? index : -1;
 }
 
@@ -113,7 +113,7 @@ class Demo {
     // applyTheme() in init(). We use theme.bg to clear the screen.
     theme = null;
 
-    // font and codePoints are filled in by init() from BT.systemFont – see there for why.
+    // font and codePoints are filled in by init() from BT.systemFont - see there for why.
     /** @type {BitmapFont | null} */
     font = null;
 
@@ -121,7 +121,7 @@ class Demo {
     codePoints = [];
 
     // How many rows the grid needs to fit every glyph. Computed in init() from
-    // codePoints.length, never hardcoded – see the comment on GRID_COLS above.
+    // codePoints.length, never hardcoded - see the comment on GRID_COLS above.
     gridRows = 0;
 
     // X position of the grid's top-left corner, computed in init() so the grid is
@@ -129,14 +129,14 @@ class Demo {
     gridOriginX = 0;
 
     // Pixel size of one glyph, measured in init() with BT.systemPrintMeasure('M') instead
-    // of being hardcoded here – this way the demo can never drift out of sync with the
+    // of being hardcoded here - this way the demo can never drift out of sync with the
     // font's real dimensions.
     glyphWidth = 6;
     glyphHeight = 14;
 
     // A running clock, in seconds, used to time how long the "Copied" / "Copy failed"
     // message stays on screen. BT.deltaSeconds is how much time passed since the last
-    // update – adding it up every tick gives us a stopwatch.
+    // update - adding it up every tick gives us a stopwatch.
     elapsed = 0;
 
     // Tracks whether we just tried to copy a glyph, and whether it worked.
@@ -167,7 +167,7 @@ class Demo {
         BT.paletteSet(this.palette);
 
         // BT.systemFont hands back the exact BitmapFont object BT.systemPrint() draws
-        // with internally – it is a real object we can ask questions of. codePoints is
+        // with internally - it is a real object we can ask questions of. codePoints is
         // the whole point of this demo: it lists every Unicode character the font can
         // draw, live, so the grid below is always accurate even if the font's glyph set
         // changes later.
@@ -193,7 +193,7 @@ class Demo {
     }
 
     // Runs at a fixed rate (60 times per second). Advances the copy-status clock and
-    // handles clicks/taps – reading the press EDGE here, not in render(), matches how
+    // handles clicks/taps - reading the press EDGE here, not in render(), matches how
     // every other pointer demo in this series (see pointer-drag-flick.js) handles clicks.
     update() {
         this.elapsed += BT.deltaSeconds;
@@ -219,7 +219,7 @@ class Demo {
      * If this pointer slot landed on a real glyph cell (and not on the UI panel above the
      * grid), starts copying that glyph to the clipboard.
      *
-     * @param {number} slot – Pointer slot that was just pressed.
+     * @param {number} slot - Pointer slot that was just pressed.
      */
     tryCopyAt(slot) {
         if (!BT.isPointerActive(slot)) {
@@ -237,7 +237,7 @@ class Demo {
 
         if (index !== -1) {
             // void tells readers (and linters) we're deliberately not waiting for this
-            // promise to finish before update() moves on – it updates copyStatus itself
+            // promise to finish before update() moves on - it updates copyStatus itself
             // once the clipboard write settles.
             void this.copyGlyph(index);
         }
@@ -246,13 +246,13 @@ class Demo {
     /**
      * Writes one glyph's actual character to the system clipboard.
      *
-     * @param {number} index – Index into this.codePoints of the glyph to copy.
+     * @param {number} index - Index into this.codePoints of the glyph to copy.
      * @returns {Promise<void>}
      */
     async copyGlyph(index) {
         // String.fromCodePoint turns a numeric code point (like 233) back into the real
         // character (like 'é') so what lands on the clipboard is the letter itself, ready
-        // to paste – not a number.
+        // to paste - not a number.
         const char = String.fromCodePoint(this.codePoints[index]);
 
         try {
@@ -289,10 +289,10 @@ class Demo {
         BT.clear(this.theme.bg);
 
         ui.begin(UI_ANCHORS.TOP_BAR);
-        ui.panel(`${this.codePoints.length} glyphs – click one to copy it to your clipboard`);
+        ui.panel(`${this.codePoints.length} glyphs - click one to copy it to your clipboard`);
         ui.end();
 
-        // Reading pointer POSITION (as opposed to a press edge) is safe from render() –
+        // Reading pointer POSITION (as opposed to a press edge) is safe from render() -
         // pointer-drag-flick.js's renderCursors() does the same thing for the same reason.
         let hoveredIndex = -1;
 
@@ -321,7 +321,7 @@ class Demo {
         const tooltip = tooltipIndex !== -1 ? this.layoutTooltip(tooltipIndex) : null;
 
         // Figuring out the tooltip's box BEFORE drawing the grid lets drawGrid() skip any
-        // glyph the box is about to sit on top of – see the comment inside drawGrid() for
+        // glyph the box is about to sit on top of - see the comment inside drawGrid() for
         // why that skip is necessary, not just tidy.
         this.drawGrid(hoveredIndex, tooltip ? tooltip.rect : null);
 
@@ -334,8 +334,8 @@ class Demo {
      * Draws every glyph cell: a border, a highlighted background for the hovered cell,
      * and the glyph itself using BT.printFont() with the font BT.systemFont handed us.
      *
-     * @param {number} hoveredIndex – Index of the cell under the pointer, or -1 for none.
-     * @param {import('blit386').Rect2i | null} tooltipRect – The tooltip's box this frame,
+     * @param {number} hoveredIndex - Index of the cell under the pointer, or -1 for none.
+     * @param {import('blit386').Rect2i | null} tooltipRect - The tooltip's box this frame,
      *   if one is showing, so its glyph cell(s) can be skipped (see below).
      */
     drawGrid(hoveredIndex, tooltipRect) {
@@ -363,18 +363,18 @@ class Demo {
             BT.drawRect(cellRect, borderColor);
 
             // BLIT386 draws every shape (rects, lines) for the whole frame first, THEN
-            // every piece of text/sprite for the whole frame on top of that – regardless
+            // every piece of text/sprite for the whole frame on top of that - regardless
             // of which order your own code called them in. That means a rect can never
             // cover up text just by being drawn "later": text always wins. So instead of
             // trying to paint over a glyph, we skip drawing the glyph in the first place
-            // for any cell the tooltip box is about to occupy this frame – the tooltip's
+            // for any cell the tooltip box is about to occupy this frame - the tooltip's
             // OWN rect and text still layer correctly, since that's all decided together.
             if (tooltipRect && cellRect.isIntersecting(tooltipRect)) {
                 continue;
             }
 
             // BT.printFont(font, position, text, paletteOffset) draws with any BitmapFont
-            // we hand it – here that's BT.systemFont, the same font BT.systemPrint() uses
+            // we hand it - here that's BT.systemFont, the same font BT.systemPrint() uses
             // internally. Centering math: a 16x16 cell minus a smaller glyph, halved,
             // rounds down to whole pixels on each side.
             const char = String.fromCodePoint(this.codePoints[index]);
@@ -391,7 +391,7 @@ class Demo {
      * the title panel at the top of the screen. Kept separate from drawTooltip() so
      * render() can know the box's position before the grid is drawn (see drawGrid()).
      *
-     * @param {number} index – Which glyph the tooltip is about.
+     * @param {number} index - Which glyph the tooltip is about.
      * @returns {{ rect: import('blit386').Rect2i, label: string }}
      */
     layoutTooltip(index) {
@@ -411,7 +411,7 @@ class Demo {
         }
 
         // BT.systemPrintMeasure tells us exactly how wide this text will be, so the
-        // tooltip box always fits its label with a little padding – no guessing.
+        // tooltip box always fits its label with a little padding - no guessing.
         const textSize = BT.systemPrintMeasure(label);
         const width = textSize.x + 6;
         const height = textSize.y + 4;
@@ -423,7 +423,7 @@ class Demo {
         const cellCenterX = cellX + Math.floor(CELL_SIZE / 2);
 
         // Center the tooltip above the cell, then clamp it so it can never be drawn
-        // partly off the edge of the screen, or above GRID_ORIGIN_Y – if there's no room
+        // partly off the edge of the screen, or above GRID_ORIGIN_Y - if there's no room
         // above the top row, this pushes the tooltip back down over the grid instead of
         // letting it climb into the title panel above.
         let x = cellCenterX - Math.floor(width / 2);

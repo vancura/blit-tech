@@ -3,14 +3,14 @@
  * own gray ramp before the game's first frame.
  *
  * Owns its palette, its own {@link PaletteEffectManager}, and its own state
- * machine. It does *not* own the frame driver – `BTAPI.init()` calls
+ * machine. It does *not* own the frame driver - `BTAPI.init()` calls
  * {@link Splash.advance} and {@link Splash.draw} from a `requestAnimationFrame`
  * loop that runs before the `GameLoop` is constructed. Keeping the loop outside
  * this class is what makes the state machine testable with a fake clock and
  * keeps the fixed-timestep accumulator from ever seeing splash time.
  *
  * No engine code outside this subsystem may branch on `fadingIn` / `fadingOut`.
- * The moment it does, the animation model becomes public API forever – which is
+ * The moment it does, the animation model becomes public API forever - which is
  * why {@link Splash.isVisible} is computed here rather than by the caller.
  */
 
@@ -91,8 +91,8 @@ export class Splash {
     /**
      * Creates a splash.
      *
-     * @param options – Ramp endpoints. Both default to black and white.
-     * @param timeProvider – Clock function returning milliseconds. Defaults to
+     * @param options - Ramp endpoints. Both default to black and white.
+     * @param timeProvider - Clock function returning milliseconds. Defaults to
      *   `performance.now()`. Pass a custom function for deterministic unit tests.
      */
     constructor(options: SplashOptions = {}, timeProvider: () => number = () => performance.now()) {
@@ -152,7 +152,7 @@ export class Splash {
      * The dissolve effect, when one is running.
      *
      * Exposed so the caller can register and, critically, *unregister it by exact
-     * reference* – the game's `init()` runs concurrently and may have added effects
+     * reference* - the game's `init()` runs concurrently and may have added effects
      * of its own, so clearing the chain is never correct here.
      *
      * @returns The glitch effect, or null on the software backend.
@@ -167,7 +167,7 @@ export class Splash {
      * Calling this more than once is a no-op, so a re-entrant caller cannot
      * restart a finished splash.
      *
-     * @param reducedMotion – When `true`, skips the fade-in effect entirely (the palette
+     * @param reducedMotion - When `true`, skips the fade-in effect entirely (the palette
      *   snaps straight to the fully lit ramp) and collapses the minimum hold the same way a
      *   manual {@link skip} does, without waiting for a press.
      */
@@ -211,8 +211,8 @@ export class Splash {
      * Steps the state machine and the palette effects by one frame.
      *
      * Reads the clock through the injected provider, so unit tests drive it
-     * without sleeping. One call may cross more than one boundary – a first frame
-     * scheduled late, or a backgrounded tab, can land well past a short fade – so
+     * without sleeping. One call may cross more than one boundary - a first frame
+     * scheduled late, or a backgrounded tab, can land well past a short fade - so
      * transitions cascade until the machine settles.
      */
     public advance(): void {
@@ -237,11 +237,11 @@ export class Splash {
      * Index 0 is transparent, so the background is drawn explicitly as the ramp's
      * dark end rather than left to reveal the clear color.
      *
-     * `IRenderer` exposes no display size, so the caller passes it – `BTAPI` is
+     * `IRenderer` exposes no display size, so the caller passes it - `BTAPI` is
      * the one that knows it.
      *
-     * @param renderer – Active renderer; the caller has already begun the frame.
-     * @param displaySize – Logical display size in pixels.
+     * @param renderer - Active renderer; the caller has already begun the frame.
+     * @param displaySize - Logical display size in pixels.
      */
     public draw(renderer: IRenderer, displaySize: Vector2i): void {
         this.background.set(0, 0, displaySize.x, displaySize.y);
@@ -287,7 +287,7 @@ export class Splash {
      * Any key, click, or tap skips. The game loop is suspended for the splash's
      * whole duration, so the input is free to take.
      *
-     * @param target – Event target to listen on, normally `window`.
+     * @param target - Event target to listen on, normally `window`.
      */
     public attachSkipInput(target: EventTarget): void {
         this.detachSkipInput();
@@ -320,9 +320,9 @@ export class Splash {
     /**
      * Applies at most one state transition.
      *
-     * A state that expires naturally hands its leftover time to the next one –
+     * A state that expires naturally hands its leftover time to the next one -
      * the entry stamp advances by the elapsed state's exact duration rather than
-     * to the current clock reading – so a single late frame cannot stretch the
+     * to the current clock reading - so a single late frame cannot stretch the
      * whole sequence. A skipped state has no duration to carry, so it stamps at
      * the current reading instead.
      *
@@ -368,8 +368,8 @@ export class Splash {
      * The hold has a minimum but no maximum, so this refuses to move until the
      * game's `init()` has settled however long a skip has been waiting.
      *
-     * @param now – Current clock reading in milliseconds.
-     * @param elapsed – Milliseconds spent in `shown`.
+     * @param now - Current clock reading in milliseconds.
+     * @param elapsed - Milliseconds spent in `shown`.
      * @returns `true` when the state changed.
      */
     private leaveShown(now: number, elapsed: number): boolean {
@@ -407,7 +407,7 @@ export class Splash {
      * Peaks at the start of the fade-in and the end of the fade-out, and sits at
      * zero through the hold, so the logo is clean while it is being read.
      *
-     * @param elapsed – Milliseconds since the current state was entered.
+     * @param elapsed - Milliseconds since the current state was entered.
      */
     private updateDissolve(elapsed: number): void {
         const glitch = this.glitch;
@@ -441,8 +441,8 @@ export class Splash {
     /**
      * Transitions to a new state and stamps when it was entered.
      *
-     * @param next – State to enter.
-     * @param at – Effective entry time in milliseconds.
+     * @param next - State to enter.
+     * @param at - Effective entry time in milliseconds.
      */
     private enter(next: SplashState, at: number): void {
         this.currentState = next;

@@ -3,7 +3,7 @@
  *
  * `resolveDevMode` is a pure function taking its inputs as parameters, so its
  * tests run in the default Node vitest environment with no `happy-dom`
- * opt-in – this property is load-bearing for BT-416, which needs `BT`
+ * opt-in - this property is load-bearing for BT-416, which needs `BT`
  * assignment guards to stay testable outside a DOM.
  */
 

@@ -53,7 +53,7 @@ subsystem entirely (for example release builds or full-screen custom HUD demos).
 ## Custom rows
 
 Demos may implement optional `overlayRows()` on `IBTDemo`. The engine calls it once per frame after `render()` when the
-overlay body is visible. Return a reused array of row objects when possible – avoid allocating new strings every frame.
+overlay body is visible. Return a reused array of row objects when possible - avoid allocating new strings every frame.
 
 ```ts twoslash
 import { type IBTDemo } from 'blit386';
@@ -97,8 +97,8 @@ readout), so those separators match the row gaps between bands; each divider kee
 sides, matching the `7px` text inset from the screen edges. For demos that draw their own HUD text with
 `BT.systemPrint`, call `palette.applyHUD(startSlot?)` once at init to fill the six common UI slots (white, background,
 label, header, dim, FPS) and register `hud_*` name aliases. See
-[API: Palette – applyHUD](api-palette.md#built-in-presets) and
-[Palette Presets – HUD](guide-palette-presets.md#hud-preset).
+[API: Palette - applyHUD](api-palette.md#built-in-presets) and
+[Palette Presets - HUD](guide-palette-presets.md#hud-preset).
 
 ```ts twoslash
 import { BT, Palette, Vector2i } from 'blit386';
@@ -113,7 +113,7 @@ BT.systemPrint(new Vector2i(8, 8), palette.getNamed('hud_label'), 'Custom row');
 ## Present FPS vs. target FPS
 
 - `Target` in the overlay = `BT.targetFPS` (fixed `update()` rate).
-- `Present: N FPS` = measured browser refresh cadence while the overlay body is visible – not the same as target FPS.
+- `Present: N FPS` = measured browser refresh cadence while the overlay body is visible - not the same as target FPS.
 
 Use `BT.deltaSeconds` / `BT.ticks` for gameplay timing; use present FPS to spot GPU or draw-call bottlenecks.
 
@@ -135,7 +135,7 @@ width. Padding keeps the `|` dividers and the segments after them in place regar
 
 <Cards>
   <Card title="API: Overlay" href="/docs/api/overlay">Full configure table, style objects, layout math.</Card>
-  <Card title="API: Assets – System Font" href="/docs/api/assets#system-font">BT.systemPrint for demo HUD text.</Card>
+  <Card title="API: Assets - System Font" href="/docs/api/assets#system-font">BT.systemPrint for demo HUD text.</Card>
   <Card title="API: Palette" href="/docs/api/palette">applyHUD, preset factories, effects.</Card>
   <Card title="Input Guide" href="/docs/guides/input">Pointer slots for corner toggle.</Card>
   <Card title="Palette Presets" href="/docs/guides/palette-presets">Exact HUD slot colors.</Card>

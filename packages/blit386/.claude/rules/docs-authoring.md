@@ -30,33 +30,33 @@ Registered components (`packages/website/press.config.tsx`, `getMdxComponents`):
 
 When to use which:
 
-- `Callout` – notes, tips, warnings, gotchas. Replaces `> Note:` blockquotes.
-- `TypeTable` – option/field/parameter reference tables (name, type, default, description).
-- `Steps` – sequential procedures, one `### heading` per step.
-- `Tabs` – genuine alternatives (per-OS commands, npm/pnpm, preferred-vs-manual).
-- `Accordions` – collapsible advanced detail or troubleshooting.
-- `Cards` – the trailing See Also section.
-- `Files` – directory trees with no per-file comment (keep comment-annotated trees as fenced ` ```text ` blocks).
-- No manual or `InlineTOC` table of contents – the site renders its own.
+- `Callout` - notes, tips, warnings, gotchas. Replaces `> Note:` blockquotes.
+- `TypeTable` - option/field/parameter reference tables (name, type, default, description).
+- `Steps` - sequential procedures, one `### heading` per step.
+- `Tabs` - genuine alternatives (per-OS commands, npm/pnpm, preferred-vs-manual).
+- `Accordions` - collapsible advanced detail or troubleshooting.
+- `Cards` - the trailing See Also section.
+- `Files` - directory trees with no per-file comment (keep comment-annotated trees as fenced ` ```text ` blocks).
+- No manual or `InlineTOC` table of contents - the site renders its own.
 
 Authoring rules:
 
-- Block form only – blank lines around component children. Inline children get reflowed by Prettier into a less-readable
+- Block form only - blank lines around component children. Inline children get reflowed by Prettier into a less-readable
   single line.
 - JSX expression props (`TypeTable type={{ ... }}`) work; the mirror leaves braces verbatim inside component blocks.
-- `Card href` is a JSX prop the mirror does not rewrite – use site-absolute `/docs/<section>/<topic>` paths, not
+- `Card href` is a JSX prop the mirror does not rewrite - use site-absolute `/docs/<section>/<topic>` paths, not
   relative `*.md` links. Unpublished docs link to the full GitHub URL instead.
 - Validate: in `packages/website`, run `pnpm run sync:docs`, then `pnpm run sync:docs:check` and `pnpm run build`
   (`pnpm run typecheck` alone is not a substitute for `build`).
 
 ## Documentation authoring style (prose)
 
-- No bold (`**`) in prose – lead with a strong sentence or promote a recurring label to a real `###` subsection. A `**`
+- No bold (`**`) in prose - lead with a strong sentence or promote a recurring label to a real `###` subsection. A `**`
   inside inline code or a fenced block (a glob, a JSDoc opener) is not bold; leave it.
-- No `---` horizontal-rule separators – let headings separate sections.
+- No `---` horizontal-rule separators - let headings separate sections.
 - Dimensions use `×`, not `x`: `320×240`, `6×14`. Exception: literal program output quoted verbatim (the overlay's
   on-screen `webgpu | 320x240`).
-- No walls of text – short paragraphs, bullet lists, `###` subsections, or `Callout`s. Every `###` needs a parent `##`.
+- No walls of text - short paragraphs, bullet lists, `###` subsections, or `Callout`s. Every `###` needs a parent `##`.
 - Credit external inspirations with a link and the author's name.
 - American English spelling (see the root [CLAUDE.md](../../../../CLAUDE.md), Shared conventions).
 
@@ -75,5 +75,5 @@ Renaming or splitting a published doc:
    table padding).
 
 After any doc change: add new proper nouns / coined words to the root `cspell.json`; re-sync the mirror
-(`pnpm run sync:docs` in `packages/website`) – required after every edit to a published doc's content, not just when a
+(`pnpm run sync:docs` in `packages/website`) - required after every edit to a published doc's content, not just when a
 sitemap entry changes.

@@ -118,8 +118,8 @@ resetKeyboardFaceButtonMaps();
 /**
  * Shows a beginner-friendly runtime error in the canvas container and console.
  *
- * @param message – Human-readable guidance to display.
- * @param title – Short heading for the error panel.
+ * @param message - Human-readable guidance to display.
+ * @param title - Short heading for the error panel.
  */
 function showBeginnerRuntimeError(message: string, title: string = 'Demo Error'): void {
     displayError(title, message);
@@ -138,7 +138,7 @@ function isRendererReady(): boolean {
 /**
  * Shows a friendly error when a draw call is made before bootstrap finishes.
  *
- * @param methodName – BT method name that was called too early.
+ * @param methodName - BT method name that was called too early.
  */
 function reportEngineNotReady(methodName: string): void {
     showBeginnerRuntimeError(
@@ -151,7 +151,7 @@ function reportEngineNotReady(methodName: string): void {
 /**
  * Converts an unknown runtime value into a concise display type label.
  *
- * @param value – Runtime value to inspect.
+ * @param value - Runtime value to inspect.
  * @returns A short readable type description.
  */
 function describeRuntimeType(value: unknown): string {
@@ -190,7 +190,7 @@ function describeRuntimeType(value: unknown): string {
 /**
  * Shows a friendly hint when a Promise was passed instead of an awaited asset.
  *
- * @param loadCall – Asset loader call name to reference in the message.
+ * @param loadCall - Asset loader call name to reference in the message.
  */
 function reportMissingAwait(loadCall: string): void {
     showBeginnerRuntimeError(`Did you forget to use 'await' before ${loadCall}?`, 'Missing await');
@@ -199,11 +199,11 @@ function reportMissingAwait(loadCall: string): void {
 /**
  * Shows a beginner-friendly error for a value thrown out of a draw call's body.
  *
- * Shared by every `BT` draw method's own `catch` block – kept as a plain function
+ * Shared by every `BT` draw method's own `catch` block - kept as a plain function
  * taking the caught value (not a callback) so no per-call closure is needed on
  * the hot draw-call path.
  *
- * @param error – Value caught from a draw call's try block.
+ * @param error - Value caught from a draw call's try block.
  */
 function reportDrawError(error: unknown): void {
     if (error instanceof Error) {
@@ -217,8 +217,8 @@ function reportDrawError(error: unknown): void {
  * Returns runtime keyboard `KeyboardEvent.code` list for a face button and player,
  * or `null` when there is no keyboard fallback (e.g. players 2-3 for face buttons).
  *
- * @param button – Face button constant (`BT.BTN_UP` … `BT.BTN_SELECT`).
- * @param player – Zero-based player index.
+ * @param button - Face button constant (`BT.BTN_UP` … `BT.BTN_SELECT`).
+ * @param player - Zero-based player index.
  * @returns Key codes for that mapping, or `null` if unsupported.
  */
 function faceButtonKeys(button: number, player: number): readonly string[] | null {
@@ -240,7 +240,7 @@ function faceButtonKeys(button: number, player: number): readonly string[] | nul
 /**
  * Maps a single pointer button bit flag to the pointer subsystem button code.
  *
- * @param pointerFlag – One pointer button bit from `BTN_POINTER_A..D`.
+ * @param pointerFlag - One pointer button bit from `BTN_POINTER_A..D`.
  * @returns Pointer subsystem button code (`20..23`) or `null` if not a pointer button.
  */
 function pointerFlagToPointerCode(pointerFlag: number): number | null {
@@ -535,8 +535,8 @@ export const BT = {
      * `canvas.focus()` so keyboard events reach the canvas.
      *
      * @since 0.1.0
-     * @param demo – Demo implementation that provides lifecycle hooks.
-     * @param canvas – Canvas used as the engine render target.
+     * @param demo - Demo implementation that provides lifecycle hooks.
+     * @param canvas - Canvas used as the engine render target.
      * @returns `true` when initialization succeeds; otherwise `false`.
      */
     init: async (demo: IBTDemo, canvas: HTMLCanvasElement): Promise<boolean> => {
@@ -688,7 +688,7 @@ export const BT = {
      * `"Untitled"`. Chart width resets add an automatic `"Start"` tag.
      *
      * @since 1.1.0
-     * @param label – Short event name (for example `'Round start'`).
+     * @param label - Short event name (for example `'Round start'`).
      */
     assignTag: (label?: string): void => {
         BTAPI.instance.assignTag(label);
@@ -699,7 +699,7 @@ export const BT = {
      *
      * `'webgpu'` or `'software'` after successful init; `null` before init or on failure.
      * May differ from {@link BT.requestedBackend} when WebGPU was requested but unavailable
-     * (automatic software fallback). Use this getter for runtime behavior – for example,
+     * (automatic software fallback). Use this getter for runtime behavior - for example,
      * skipping post-process effects that only work under WebGPU:
      *
      * ```ts
@@ -723,7 +723,7 @@ export const BT = {
      * Resolves from the `blit386/vite` plugin's injected runtime marker, falling back to a live
      * Vite HMR context, otherwise release. (The underlying resolver also accepts an explicit
      * override that always wins over both; nothing in the public `BT` surface supplies one today.)
-     * This is UX/DX gating, not DRM – any consumer can flip the underlying global by hand.
+     * This is UX/DX gating, not DRM - any consumer can flip the underlying global by hand.
      *
      * @since 1.5.0
      * @returns `true` for a dev build, `false` for release.
@@ -736,7 +736,7 @@ export const BT = {
      * Current BLIT386 splash lifecycle state.
      *
      * `'disabled'` when the splash was gated off, `'done'` once it has finished.
-     * Both mean "not on screen, never will be again" – prefer
+     * Both mean "not on screen, never will be again" - prefer
      * {@link BT.isSplashVisible} in game code, and reach for this only when the
      * distinction genuinely matters (debugging, the engine overlay).
      *
@@ -802,7 +802,7 @@ export const BT = {
      *
      * Resolves `window.matchMedia('(prefers-reduced-motion: reduce)')`, or the
      * `?reducedmotion` / `?noreducedmotion` URL flags when either is present. Pair with
-     * {@link IBTDemo.onReducedMotionChange} to react when the preference changes at runtime –
+     * {@link IBTDemo.onReducedMotionChange} to react when the preference changes at runtime -
      * it is not fixed for the session, the same way {@link BT.screenOrientation} is not.
      *
      * @since 1.7.0
@@ -830,11 +830,11 @@ export const BT = {
      * Sets the logical volume for an audio bus, optionally fading to it.
      *
      * @since 1.3.0
-     * @param bus – Audio bus to update (`'main'`, `'music'`, or `'sfx'`).
-     * @param value – Target volume, clamped to `[0, 1]`.
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade duration in milliseconds. Omit for an immediate change.
-     * @param options.easing – Easing curve for the fade. Defaults to `'linear'`; ignored when `fadeMs` is omitted.
+     * @param bus - Audio bus to update (`'main'`, `'music'`, or `'sfx'`).
+     * @param value - Target volume, clamped to `[0, 1]`.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade duration in milliseconds. Omit for an immediate change.
+     * @param options.easing - Easing curve for the fade. Defaults to `'linear'`; ignored when `fadeMs` is omitted.
      */
     audioVolumeSet: (bus: AudioBus, value: number, options?: { fadeMs?: number; easing?: EasingFunction }): void => {
         BTAPI.instance.audioVolumeSet(bus, value, options?.fadeMs, options?.easing);
@@ -846,7 +846,7 @@ export const BT = {
      * Unaffected by {@link BT.audioMuteSet} - muting never overwrites the configured level.
      *
      * @since 1.3.0
-     * @param bus – Audio bus to query.
+     * @param bus - Audio bus to query.
      * @returns Volume in `[0, 1]`, or `0` before initialization.
      */
     audioVolumeGet: (bus: AudioBus): number => {
@@ -857,7 +857,7 @@ export const BT = {
      * Mutes or unmutes an audio bus.
      *
      * @since 1.3.0
-     * @param bus – Audio bus to mute or unmute.
+     * @param bus - Audio bus to mute or unmute.
      * @param muted - `true` to mute, `false` to unmute.
      */
     audioMuteSet: (bus: AudioBus, muted: boolean): void => {
@@ -868,7 +868,7 @@ export const BT = {
      * Reports whether an audio bus is currently muted.
      *
      * @since 1.3.0
-     * @param bus – Audio bus to query.
+     * @param bus - Audio bus to query.
      * @returns `true` when muted; `false` when unmuted or before initialization.
      */
     isAudioMuted: (bus: AudioBus): boolean => {
@@ -883,10 +883,10 @@ export const BT = {
      * priority, or before the engine has unlocked audio playback.
      *
      * @since 1.3.0
-     * @param clip – Loaded audio clip to play.
-     * @param options – Playback options.
+     * @param clip - Loaded audio clip to play.
+     * @param options - Playback options.
      * @returns A handle identifying the new voice; pass it to {@link BT.soundStop} and the other
-     *   per-sound controls. Safe to use even when playback was silently dropped – every accessor
+     *   per-sound controls. Safe to use even when playback was silently dropped - every accessor
      *   on an inert handle is a no-op.
      */
     soundPlay: (clip: AudioClip, options?: SoundPlayOptions): SoundRef => {
@@ -897,9 +897,9 @@ export const BT = {
      * Stops a playing sound, optionally fading it out.
      *
      * @since 1.3.0
-     * @param ref – Sound to stop, from {@link BT.soundPlay}.
-     * @param options – Optional fade behavior.
-     * @param options.fadeOutMs – Fade-out duration in milliseconds. Omit to stop immediately.
+     * @param ref - Sound to stop, from {@link BT.soundPlay}.
+     * @param options - Optional fade behavior.
+     * @param options.fadeOutMs - Fade-out duration in milliseconds. Omit to stop immediately.
      */
     soundStop: (ref: SoundRef, options?: SoundStopOptions): void => {
         BTAPI.instance.soundStop(ref, options?.fadeOutMs);
@@ -909,7 +909,7 @@ export const BT = {
      * Reports whether a sound is still playing.
      *
      * @since 1.3.0
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns `true` when still playing; `false` once it has stopped, been stolen, or completed.
      */
     isSoundPlaying: (ref: SoundRef): boolean => {
@@ -920,10 +920,10 @@ export const BT = {
      * Sets a sound's gain, optionally fading to it.
      *
      * @since 1.3.0
-     * @param ref – Sound to update.
-     * @param value – Target gain.
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade duration in milliseconds. Omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target gain.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade duration in milliseconds. Omit for an immediate change.
      */
     soundVolumeSet: (ref: SoundRef, value: number, options?: SoundParamSetOptions): void => {
         BTAPI.instance.soundVolumeSet(ref, value, options?.fadeMs);
@@ -933,7 +933,7 @@ export const BT = {
      * Gets a sound's current gain.
      *
      * @since 1.3.0
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current gain, or `1` once the sound has stopped.
      */
     soundVolumeGet: (ref: SoundRef): number => {
@@ -944,10 +944,10 @@ export const BT = {
      * Sets a sound's playback rate, optionally fading to it.
      *
      * @since 1.3.0
-     * @param ref – Sound to update.
-     * @param value – Target playback rate.
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade duration in milliseconds. Omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target playback rate.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade duration in milliseconds. Omit for an immediate change.
      */
     soundPitchSet: (ref: SoundRef, value: number, options?: SoundParamSetOptions): void => {
         BTAPI.instance.soundPitchSet(ref, value, options?.fadeMs);
@@ -957,7 +957,7 @@ export const BT = {
      * Gets a sound's current playback rate.
      *
      * @since 1.3.0
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current playback rate, or `1` once the sound has stopped.
      */
     soundPitchGet: (ref: SoundRef): number => {
@@ -968,10 +968,10 @@ export const BT = {
      * Sets a sound's stereo pan, optionally fading to it.
      *
      * @since 1.3.0
-     * @param ref – Sound to update.
-     * @param value – Target pan.
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade duration in milliseconds. Omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target pan.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade duration in milliseconds. Omit for an immediate change.
      */
     soundPanSet: (ref: SoundRef, value: number, options?: SoundParamSetOptions): void => {
         BTAPI.instance.soundPanSet(ref, value, options?.fadeMs);
@@ -981,7 +981,7 @@ export const BT = {
      * Gets a sound's current stereo pan.
      *
      * @since 1.3.0
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current pan, or `0` once the sound has stopped.
      */
     soundPanGet: (ref: SoundRef): number => {
@@ -995,11 +995,11 @@ export const BT = {
      * Silently does nothing when the clip hasn't finished loading yet (or was already unloaded
      * with `clip.unload()`), or before the engine has initialized. While the audio context is
      * still locked (before the first unlock gesture), the request is remembered instead of
-     * dropped – it starts automatically the instant the context unlocks, unlike {@link BT.soundPlay}.
+     * dropped - it starts automatically the instant the context unlocks, unlike {@link BT.soundPlay}.
      *
      * @since 1.3.0
-     * @param clip – Loaded audio clip to play.
-     * @param options – Crossfade, volume, and loop options; see {@link MusicPlayOptions}.
+     * @param clip - Loaded audio clip to play.
+     * @param options - Crossfade, volume, and loop options; see {@link MusicPlayOptions}.
      */
     musicPlay: (clip: AudioClip, options?: MusicPlayOptions): void => {
         BTAPI.instance.musicPlay(clip, options);
@@ -1009,8 +1009,8 @@ export const BT = {
      * Stops the music player, optionally fading out first.
      *
      * @since 1.3.0
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade-out duration in milliseconds. Omit to stop immediately.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade-out duration in milliseconds. Omit to stop immediately.
      */
     musicStop: (options?: { fadeMs?: number }): void => {
         BTAPI.instance.musicStop(options?.fadeMs);
@@ -1031,9 +1031,9 @@ export const BT = {
      * Sets the music player's volume, optionally fading to it.
      *
      * @since 1.3.0
-     * @param value – Target gain.
-     * @param options – Optional fade behavior.
-     * @param options.fadeMs – Fade duration in milliseconds. Omit for an immediate change.
+     * @param value - Target gain.
+     * @param options - Optional fade behavior.
+     * @param options.fadeMs - Fade duration in milliseconds. Omit for an immediate change.
      */
     musicVolumeSet: (value: number, options?: { fadeMs?: number }): void => {
         BTAPI.instance.musicVolumeSet(value, options?.fadeMs);
@@ -1070,7 +1070,7 @@ export const BT = {
      * Creates a standalone palette instance.
      *
      * @since 1.0.3
-     * @param size – Palette size. Defaults to 256 colors.
+     * @param size - Palette size. Defaults to 256 colors.
      * @returns New mutable palette.
      */
     paletteCreate: (size: number = MAX_PALETTE_SIZE): Palette => {
@@ -1095,7 +1095,7 @@ export const BT = {
      * pixels against the new slot layout.
      *
      * @since 1.0.3
-     * @param palette – Palette to make active.
+     * @param palette - Palette to make active.
      */
     paletteSet: (palette: Palette): void => {
         if (!(palette instanceof Palette)) {
@@ -1110,7 +1110,7 @@ export const BT = {
     },
 
     /**
-     * Active engine palette (live reference – not a copy).
+     * Active engine palette (live reference - not a copy).
      *
      * Mutating slots updates colors on the next frame without {@link BT.paletteSet}.
      *
@@ -1129,7 +1129,7 @@ export const BT = {
     },
 
     /**
-     * Default engine PRNG (live reference – not a copy).
+     * Default engine PRNG (live reference - not a copy).
      *
      * Time-seeded when the engine singleton is created. Call {@link BT.randomSeed}
      * for a reproducible run. Mutating the instance (for example `BT.random.int(10)`)
@@ -1150,7 +1150,7 @@ export const BT = {
      * Reseeds the default engine PRNG so subsequent draws are reproducible.
      *
      * @since 1.5.0
-     * @param seed – Any finite number; only its lower 32 bits are used.
+     * @param seed - Any finite number; only its lower 32 bits are used.
      * @example
      * BT.randomSeed(1234);
      * const a = BT.random.next();
@@ -1169,9 +1169,9 @@ export const BT = {
      * for sub-frame precision.
      *
      * @since 1.0.3
-     * @param start – First palette index in the cycling range (inclusive).
-     * @param end – Last palette index in the cycling range (inclusive).
-     * @param speed – Steps per second. Positive = forward, negative = backward.
+     * @param start - First palette index in the cycling range (inclusive).
+     * @param end - Last palette index in the cycling range (inclusive).
+     * @param speed - Steps per second. Positive = forward, negative = backward.
      */
     paletteCycle: (start: number, end: number, speed: number): void => {
         BTAPI.instance.paletteCycle(start, end, speed);
@@ -1190,9 +1190,9 @@ export const BT = {
      * - Cross-fade: `BT.paletteFade(nightPalette, 2000, 'ease-in-out')`
      *
      * @since 1.0.3
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param easing – Easing curve. Defaults to `'linear'`.
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
      */
     paletteFade: (target: Palette, durationMs: number, easing?: EasingFunction): void => {
         BTAPI.instance.paletteFade(target, durationMs, easing);
@@ -1216,7 +1216,7 @@ export const BT = {
      * entry on one schedule, higher values push the highlights further ahead.
      * Defaults to `0.5`.
      *
-     * This is a per-index effect, not a per-pixel one – a dark object in a bright
+     * This is a per-index effect, not a per-pixel one - a dark object in a bright
      * scene fades on the dark schedule regardless of what surrounds it, because
      * the engine only knows its palette slot.
      *
@@ -1229,9 +1229,9 @@ export const BT = {
      * - Fade out: `BT.paletteFadeExposure(blackPalette, 1000)`
      *
      * @since 1.5.0
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param options – Highlight lead and easing curve.
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param options - Highlight lead and easing curve.
      */
     paletteFadeExposure: (target: Palette, durationMs: number, options?: ExposureFadeOptions): void => {
         BTAPI.instance.paletteFadeExposure(target, durationMs, options);
@@ -1244,11 +1244,11 @@ export const BT = {
      * Indices outside the range are left untouched.
      *
      * @since 1.0.3
-     * @param start – First palette index to fade (inclusive).
-     * @param end – Last palette index to fade (inclusive).
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param easing – Easing curve. Defaults to `'linear'`.
+     * @param start - First palette index to fade (inclusive).
+     * @param end - Last palette index to fade (inclusive).
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
      */
     paletteFadeRange: (
         start: number,
@@ -1267,8 +1267,8 @@ export const BT = {
      * and restored after the duration elapses. Auto-removes when complete.
      *
      * @since 1.0.3
-     * @param color – Flash color applied to all non-zero entries.
-     * @param durationMs – How long the flash lasts in milliseconds.
+     * @param color - Flash color applied to all non-zero entries.
+     * @param durationMs - How long the flash lasts in milliseconds.
      */
     paletteFlash: (color: Color32, durationMs: number): void => {
         BTAPI.instance.paletteFlash(color, durationMs);
@@ -1281,8 +1281,8 @@ export const BT = {
      * takes effect on the next frame.
      *
      * @since 1.0.3
-     * @param indexA – First palette index.
-     * @param indexB – Second palette index.
+     * @param indexA - First palette index.
+     * @param indexB - Second palette index.
      */
     paletteSwap: (indexA: number, indexB: number): void => {
         BTAPI.instance.paletteSwap(indexA, indexB);
@@ -1314,7 +1314,7 @@ export const BT = {
      * each frame from demo code.
      *
      * @since 1.0.3
-     * @param effect – Effect instance to append.
+     * @param effect - Effect instance to append.
      * When the engine is not ready, shows a canvas error instead of throwing.
      */
     effectAdd: (effect: Effect): void => {
@@ -1337,7 +1337,7 @@ export const BT = {
      * it. Removing an effect that was never added is a no-op.
      *
      * @since 1.0.3
-     * @param effect – Effect instance to remove.
+     * @param effect - Effect instance to remove.
      * When the engine is not ready, shows a canvas error instead of throwing.
      */
     effectRemove: (effect: Effect): void => {
@@ -1394,7 +1394,7 @@ export const BT = {
      * of the next frame.
      *
      * @since 0.1.0
-     * @param paletteIndex – Palette index for the full-screen clear pass.
+     * @param paletteIndex - Palette index for the full-screen clear pass.
      */
     clear: (paletteIndex: number): void => {
         if (!isRendererReady()) {
@@ -1413,8 +1413,8 @@ export const BT = {
      * Fills a rectangular display region with a palette-indexed color.
      *
      * @since 0.1.0
-     * @param rect – Rectangle in display pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle in display pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     clearRect: (rect: Rect2i, paletteIndex: number): void => {
         if (!isRendererReady()) {
@@ -1437,9 +1437,9 @@ export const BT = {
      * - `(posOrX: number, yOrColor: number, maybeColor: number)` for `(x, y, paletteIndex)`.
      *
      * @since 0.1.0
-     * @param posOrX – Pixel position as `Vector2i`, or x coordinate when using numeric overload.
-     * @param yOrColor – Palette index for vector overload, or y coordinate for numeric overload.
-     * @param maybeColor – Palette index when using numeric overload.
+     * @param posOrX - Pixel position as `Vector2i`, or x coordinate when using numeric overload.
+     * @param yOrColor - Palette index for vector overload, or y coordinate for numeric overload.
+     * @param maybeColor - Palette index when using numeric overload.
      */
     drawPixel: (posOrX: Vector2i | number, yOrColor: number, maybeColor?: number): void => {
         if (!isRendererReady()) {
@@ -1480,9 +1480,9 @@ export const BT = {
      * Uses rasterized line drawing without antialiasing.
      *
      * @since 0.1.0
-     * @param p0 – Start position in display coordinates.
-     * @param p1 – End position in display coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param p0 - Start position in display coordinates.
+     * @param p1 - End position in display coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawLine: (p0: Vector2i, p1: Vector2i, paletteIndex: number): void => {
         if (!isRendererReady()) {
@@ -1501,8 +1501,8 @@ export const BT = {
      * Draws an unfilled rectangle outline.
      *
      * @since 0.1.0
-     * @param rect – Rectangle bounds in display coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds in display coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawRect: (rect: Rect2i, paletteIndex: number): void => {
         if (!isRendererReady()) {
@@ -1521,8 +1521,8 @@ export const BT = {
      * Draws a filled rectangle.
      *
      * @since 0.1.0
-     * @param rect – Rectangle bounds in display coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds in display coordinates.
+     * @param paletteIndex - Palette color index.
      */
     drawRectFill: (rect: Rect2i, paletteIndex: number): void => {
         if (!isRendererReady()) {
@@ -1541,7 +1541,7 @@ export const BT = {
      * Sets the global camera offset applied to subsequent draw calls.
      *
      * @since 0.1.0
-     * @param offset – Camera translation in display pixels.
+     * @param offset - Camera translation in display pixels.
      */
     cameraSet: (offset: Vector2i): void => {
         BTAPI.instance.setCameraOffset(offset);
@@ -1564,9 +1564,9 @@ export const BT = {
      * If `viewSize` is omitted, the active {@link BT.displaySize} is used.
      *
      * @since 1.0.3
-     * @param camera – Desired camera origin in world coordinates.
-     * @param worldSize – Full world size in pixels.
-     * @param viewSize – Viewport size in pixels (defaults to {@link BT.displaySize}).
+     * @param camera - Desired camera origin in world coordinates.
+     * @param worldSize - Full world size in pixels.
+     * @param viewSize - Viewport size in pixels (defaults to {@link BT.displaySize}).
      * @returns Clamped camera origin.
      */
     cameraClamp: (camera: Vector2i, worldSize: Vector2i, viewSize?: Vector2i): Vector2i => {
@@ -1591,7 +1591,7 @@ export const BT = {
      * pointer.
      *
      * @since 1.0.3
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns Pointer position in display coordinates.
      */
     pointerPos: (pointerIndex: number = 0): Vector2i => {
@@ -1606,8 +1606,8 @@ export const BT = {
      * not been initialized, the slot index is out of `[0, 3]`, or the slot has no live pointer.
      *
      * @since 1.7.0
-     * @param out – Vector2i to write the pointer position into.
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param out - Vector2i to write the pointer position into.
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns The `out` vector, for chaining.
      */
     pointerPosTo: (out: Vector2i, pointerIndex: number = 0): Vector2i => {
@@ -1632,7 +1632,7 @@ export const BT = {
      * not initialized or `pointerIndex` is out of range.
      *
      * @since 1.0.3
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns Per-frame movement in display coordinates.
      */
     pointerDelta: (pointerIndex: number = 0): Vector2i => {
@@ -1649,8 +1649,8 @@ export const BT = {
      * initialized or `pointerIndex` is out of range.
      *
      * @since 1.7.0
-     * @param out – Vector2i to write the per-frame movement into.
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param out - Vector2i to write the per-frame movement into.
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns The `out` vector, for chaining.
      */
     pointerDeltaTo: (out: Vector2i, pointerIndex: number = 0): Vector2i => {
@@ -1674,7 +1674,7 @@ export const BT = {
      * true while the contact is down.
      *
      * @since 1.1.1
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns `true` while the slot has live position data.
      */
     isPointerActive: (pointerIndex: number = 0): boolean => {
@@ -1686,7 +1686,7 @@ export const BT = {
      *
      * @since 1.0.3
      * @deprecated Deprecated since 1.0.3 (2026-05-31). Use {@link isPointerActive} instead.
-     * @param pointerIndex – Pointer slot (defaults to 0 = mouse).
+     * @param pointerIndex - Pointer slot (defaults to 0 = mouse).
      * @returns `true` while the slot has live position data.
      */
     pointerPosValid: (pointerIndex: number = 0): boolean => {
@@ -1755,8 +1755,8 @@ export const BT = {
      * Pointer flags (`BTN_POINTER_*`) use the `player` argument as pointer slot.
      *
      * @since 1.1.1
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads / keyboard, or pointer slot
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads / keyboard, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
      * @returns `true` while the button remains pressed.
      */
@@ -1806,8 +1806,8 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isDown} instead.
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads / keyboard, or pointer slot.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads / keyboard, or pointer slot.
      * @returns `true` while the button remains pressed.
      */
     buttonDown: (button: number, player: number = 0): boolean => {
@@ -1825,10 +1825,10 @@ export const BT = {
      * which always runs before that frame's `render()`.
      *
      * @since 1.1.1
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads, or pointer slot
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
-     * @param repeatRate – Optional repeat interval in fixed ticks (`0`/omitted = edge only).
+     * @param repeatRate - Optional repeat interval in fixed ticks (`0`/omitted = edge only).
      * @returns `true` on the transition frame.
      */
     // eslint-disable-next-line complexity -- explicit per-flag routing keeps input semantics easy to audit.
@@ -1890,9 +1890,9 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isPressed} instead.
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads, or pointer slot.
-     * @param repeatRate – Optional repeat interval in fixed ticks (`0`/omitted = edge only).
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
+     * @param repeatRate - Optional repeat interval in fixed ticks (`0`/omitted = edge only).
      * @returns `true` on the transition frame.
      */
     buttonPressed: (button: number, player: number = 0, repeatRate?: number): boolean => {
@@ -1910,8 +1910,8 @@ export const BT = {
      * which always runs before that frame's `render()`.
      *
      * @since 1.1.1
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads, or pointer slot
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot
      *                 (0-3) for `BTN_POINTER_*`.
      * @returns `true` on the release frame.
      */
@@ -1971,8 +1971,8 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isReleased} instead.
-     * @param button – Button constant from the `BTN_*` set.
-     * @param player – Zero-based player index for gamepads, or pointer slot.
+     * @param button - Button constant from the `BTN_*` set.
+     * @param player - Zero-based player index for gamepads, or pointer slot.
      * @returns `true` on the release frame.
      */
     buttonReleased: (button: number, player: number = 0): boolean => {
@@ -1988,9 +1988,9 @@ export const BT = {
      * to clear keyboard bindings for that button until remapped again.
      *
      * @since 1.0.3
-     * @param player – Zero-based player index (`0` or `1`).
-     * @param button – Face button constant.
-     * @param keys – DOM key codes (for example `'Space'`, `'KeyW'`).
+     * @param player - Zero-based player index (`0` or `1`).
+     * @param button - Face button constant.
+     * @param keys - DOM key codes (for example `'Space'`, `'KeyW'`).
      */
     inputMap: (player: number, button: number, ...keys: string[]): void => {
         if (player !== 0 && player !== 1) {
@@ -2028,8 +2028,8 @@ export const BT = {
      * Trigger axes return values in `[0.0, 1.0]`.
      *
      * @since 1.0.3
-     * @param axis – Axis constant (`AXIS_LEFT_X` .. `AXIS_TRIGGER_R`).
-     * @param player – Zero-based player index (`0`..`3`).
+     * @param axis - Axis constant (`AXIS_LEFT_X` .. `AXIS_TRIGGER_R`).
+     * @param player - Zero-based player index (`0`..`3`).
      * @returns Axis value, or `0` when unavailable.
      */
     getAxis: (axis: number, player: number = 0): number => {
@@ -2040,7 +2040,7 @@ export const BT = {
      * Reports whether a player's gamepad is connected.
      *
      * @since 1.1.1
-     * @param player – Zero-based player index (`0`..`3`).
+     * @param player - Zero-based player index (`0`..`3`).
      * @returns `true` when a gamepad is available for that slot.
      */
     isGamepadConnected: (player: number = 0): boolean => {
@@ -2052,7 +2052,7 @@ export const BT = {
      *
      * @since 1.0.3
      * @deprecated Deprecated since 1.0.3 (2026-05-31). Use {@link isGamepadConnected} instead.
-     * @param player – Zero-based player index (`0`..`3`).
+     * @param player - Zero-based player index (`0`..`3`).
      * @returns `true` when a gamepad is available for that slot.
      */
     gamepadConnected: (player: number = 0): boolean => {
@@ -2075,7 +2075,7 @@ export const BT = {
      * Uses `KeyboardEvent.code` (for example `"KeyW"`, `"Space"`, `"ArrowUp"`).
      *
      * @since 1.1.1
-     * @param key – DOM keyboard code string.
+     * @param key - DOM keyboard code string.
      * @returns `true` while the key remains pressed.
      */
     isKeyDown: (key: string): boolean => {
@@ -2087,7 +2087,7 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isKeyDown} instead.
-     * @param key – DOM keyboard code string.
+     * @param key - DOM keyboard code string.
      * @returns `true` while the key remains pressed.
      */
     keyDown: (key: string): boolean => {
@@ -2106,8 +2106,8 @@ export const BT = {
      * `render()` can be intermittently missed under rapid input.
      *
      * @since 1.1.1
-     * @param key – DOM keyboard code string.
-     * @param repeatRate – Ticks between repeat triggers; omit or `0` for no repeat.
+     * @param key - DOM keyboard code string.
+     * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
      * @returns `true` on the press edge (and on repeat ticks when configured).
      */
     isKeyPressed: (key: string, repeatRate?: number): boolean => {
@@ -2121,8 +2121,8 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isKeyPressed} instead.
-     * @param key – DOM keyboard code string.
-     * @param repeatRate – Ticks between repeat triggers; omit or `0` for no repeat.
+     * @param key - DOM keyboard code string.
+     * @param repeatRate - Ticks between repeat triggers; omit or `0` for no repeat.
      * @returns `true` on the press edge (and on repeat ticks when configured).
      */
     keyPressed: (key: string, repeatRate?: number): boolean => {
@@ -2137,7 +2137,7 @@ export const BT = {
      * `render()` can be intermittently missed under rapid input.
      *
      * @since 1.1.1
-     * @param key – DOM keyboard code string.
+     * @param key - DOM keyboard code string.
      * @returns `true` on the release edge.
      */
     isKeyReleased: (key: string): boolean => {
@@ -2149,7 +2149,7 @@ export const BT = {
      *
      * @since 0.1.0
      * @deprecated Deprecated since 0.1.0 (2026-05-31). Use {@link isKeyReleased} instead.
-     * @param key – DOM keyboard code string.
+     * @param key - DOM keyboard code string.
      * @returns `true` on the release edge.
      */
     keyReleased: (key: string): boolean => {
@@ -2196,9 +2196,9 @@ export const BT = {
      * bitmap fonts with proportional glyphs, use {@link BT.printFont} instead.
      *
      * @since 1.0.3
-     * @param pos – Text origin in display coordinates.
-     * @param paletteIndex – Palette color index for the text.
-     * @param text – String to render.
+     * @param pos - Text origin in display coordinates.
+     * @param paletteIndex - Palette color index for the text.
+     * @param text - String to render.
      */
     systemPrint: (pos: Vector2i, paletteIndex: number, text: string): void => {
         if (!isRendererReady()) {
@@ -2218,7 +2218,7 @@ export const BT = {
      * system font.
      *
      * @since 1.0.3
-     * @param text – Text string to measure.
+     * @param text - Text string to measure.
      * @returns Width and height in pixels, or `Vector2i.zero()` before engine initialization.
      */
     systemPrintMeasure: (text: string): Vector2i => {
@@ -2244,10 +2244,10 @@ export const BT = {
      * {@link BT.drawSprite}.
      *
      * @since 0.1.0
-     * @param font – Font asset used for rendering.
-     * @param pos – Text origin in display coordinates.
-     * @param text – String to render.
-     * @param paletteOffset – Shift added to every stored glyph index before palette lookup (default 0).
+     * @param font - Font asset used for rendering.
+     * @param pos - Text origin in display coordinates.
+     * @param text - String to render.
+     * @param paletteOffset - Shift added to every stored glyph index before palette lookup (default 0).
      */
     printFont: (font: BitmapFont, pos: Vector2i, text: string, paletteOffset?: number): void => {
         if (!isRendererReady()) {
@@ -2291,7 +2291,7 @@ export const BT = {
      * object URL and clicks a synthetic anchor element.
      *
      * @since 1.0.3
-     * @param filename – Target download filename.
+     * @param filename - Target download filename.
      *
      * @example
      * await BT.downloadFrame();
@@ -2326,15 +2326,15 @@ export const BT = {
      * **Out-of-range behavior:** No CPU-side validation is performed. `paletteOffset` is passed to
      * the GPU as a `u32`. If `storedIndex + paletteOffset` exceeds the last palette index, WebGPU's
      * robust buffer access returns 0 for every component; because the fragment shader forces alpha
-     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden – a negative
+     * to 1.0, the affected pixels render as opaque black. Negative values are forbidden - a negative
      * JS number written into a `u32` vertex attribute wraps to a large unsigned integer, which also
      * produces out-of-bounds black pixels.
      *
      * @since 0.1.0
-     * @param spriteSheet – Indexed sprite sheet.
-     * @param srcRect – Source rectangle within the sprite sheet, in pixels.
-     * @param destPos – Destination top-left position in display coordinates.
-     * @param paletteOffset – Shift added to every stored pixel index before palette lookup (default 0).
+     * @param spriteSheet - Indexed sprite sheet.
+     * @param srcRect - Source rectangle within the sprite sheet, in pixels.
+     * @param destPos - Destination top-left position in display coordinates.
+     * @param paletteOffset - Shift added to every stored pixel index before palette lookup (default 0).
      *
      * @example
      * BT.drawSprite(sheet, new Rect2i(0, 0, 16, 16), new Vector2i(10, 10));
@@ -2371,7 +2371,7 @@ export const BT = {
      *
      * **Do not call this after a palette-value swap.** If you changed what color a
      * slot holds (e.g. palette animation, theme tinting), the stored indices are
-     * still correct – the fragment shader picks up the new color automatically.
+     * still correct - the fragment shader picks up the new color automatically.
      * Calling `spritesRefresh()` in that case is wasteful at best; at worst, if the
      * original RGBA values are gone from the palette, sheets with missing colors
      * will fail reindexing and be removed from the registry.
@@ -2401,16 +2401,16 @@ export const BT = {
  * @since 0.2.0
  * @changed 1.4.0 Calling `bootstrap()` again while already initialized now routes to a hot
  *   swap (via {@link registerHotReload}) when a Vite HMR context is registered, or logs a
- *   double-bootstrap guard and returns `false` otherwise – previously it silently started a
+ *   double-bootstrap guard and returns `false` otherwise - previously it silently started a
  *   second, unstoppable `GameLoop`.
  * @changed 1.7.0 Exposes `BT` on `window.BT` after bootstrap finishes, gated by
  *   {@link BootstrapOptions.exposeGlobal} (default: {@link BT.isDevMode}).
- * @param DemoClass – Demo class constructor implementing `IBTDemo` (optional `configure()` for hardware settings).
- * @param options – Optional configuration for IDs and callbacks.
+ * @param DemoClass - Demo class constructor implementing `IBTDemo` (optional `configure()` for hardware settings).
+ * @param options - Optional configuration for IDs and callbacks.
  * @returns `true` when the demo boots successfully; otherwise `false`.
  *
  * @example
- * // Simplest usage – uses default IDs.
+ * // Simplest usage - uses default IDs.
  * bootstrap(MyDemo);
  *
  * @example

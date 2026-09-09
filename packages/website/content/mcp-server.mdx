@@ -20,7 +20,7 @@ Transport: streamable-HTTP (JSON-RPC 2.0 over POST). No authentication required.
 | Tool | Description |
 | --- | --- |
 | `search_docs` | Full-text search across the documentation. Returns matching page titles, URLs, and excerpts. |
-| `get_docs_summary` | Returns the `llms.txt` summary of the site – a compact index suitable for LLM context windows. |
+| `get_docs_summary` | Returns the `llms.txt` summary of the site - a compact index suitable for LLM context windows. |
 
 ## Setup
 
@@ -32,7 +32,7 @@ For your own account, add the server with the CLI:
 claude mcp add --transport http blit386-docs https://blit386.dev/mcp
 ```
 
-Or check a project-scoped config into your repository root as `.mcp.json`, so every contributor's agent picks it up –
+Or check a project-scoped config into your repository root as `.mcp.json`, so every contributor's agent picks it up -
 `type` is required for a remote server, since Claude Code skips an entry that has a `url` but no `type`:
 
 ```json
@@ -46,7 +46,7 @@ Or check a project-scoped config into your repository root as `.mcp.json`, so ev
 }
 ```
 
-Claude Code prompts once per project to approve a project-scoped server – expect that prompt the first time you open the
+Claude Code prompts once per project to approve a project-scoped server - expect that prompt the first time you open the
 project after `.mcp.json` lands. A game scaffolded with `npm create blit386@latest` already ships this `.mcp.json`, so
 its contributors get the prompt with no setup of their own.
 

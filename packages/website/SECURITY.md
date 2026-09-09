@@ -1,6 +1,6 @@
 # Security Policy
 
-This package (`blit386-website`, the source for blit386.dev) is `private: true` and has no release line of its own – it
+This package (`blit386-website`, the source for blit386.dev) is `private: true` and has no release line of its own - it
 deploys straight from `main` to Cloudflare Workers on every push, not from a version tag. The supported-versions table
 in the [root `SECURITY.md`](../../SECURITY.md) describes the published `blit386` engine and does not apply here; this
 file exists only to route reports and note the scope specific to this package. The root file is the canonical policy.

@@ -10,13 +10,13 @@
 
 <!-- blit386.dev-banner:end -->
 
-BLIT386 is mine – [Václav](https://vancura.dev)'s – and so far nobody else's. One person, one repo, one stubborn idea
+BLIT386 is mine - [Václav](https://vancura.dev)'s - and so far nobody else's. One person, one repo, one stubborn idea
 about palettes.
 
 I am not much of a gamer. I am the one who builds the thing the gamer never thinks about: the loop, the blitter, the 256
 little color slots. I have worked on this long enough that I can't quite remember why I started, which is probably the
 honest answer to most "why" questions about it.
 
-So the list of authors is short. For now it is just me – maybe that changes, maybe it doesn't.
+So the list of authors is short. For now it is just me - maybe that changes, maybe it doesn't.
 
 See you in the commits.

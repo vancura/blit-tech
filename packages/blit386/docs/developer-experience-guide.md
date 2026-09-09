@@ -44,11 +44,11 @@ package).
 | `pnpm run test:visual` | Playwright visual regression tests (requires Chrome with WebGPU) |
 | `pnpm run test:visual:update` | Update visual test baseline screenshots |
 | `pnpm run test:visual:coverage` | Run visual tests with Istanbul coverage report |
-| `pnpm run bench` | Run CPU benchmarks – Tier 4 (Vitest bench; see [Testing](reference-testing.md)) |
+| `pnpm run bench` | Run CPU benchmarks - Tier 4 (Vitest bench; see [Testing](reference-testing.md)) |
 | `pnpm run bench:json` | Run Tier 4 benchmarks and write `benchmark-results.json` |
 | `pnpm run bench:baseline` | Run Tier 4 benchmarks and write `benchmark-baseline.json` (run on `main` before perf work) |
 | `pnpm run bench:compare` | Compare `benchmark-results.json` against `benchmark-baseline.json`, 25% regression threshold |
-| `pnpm run preflight` | All checks, in order: `format:check`, `lint`, `typecheck`, `spellcheck`, `knip`, `sync:doc-banners:check`, `api:since:check`, `api:history:check`, `api:getters:check`, `test:unit`, `test:declarations`, `test:agent-config`, `test:api-history`, `test:api-getters`, `test:bench-compare`, `test:compact-tables`, `test:shell-safety`, `test:spellcheck-coverage`, `test:security-preflight`. `docs:links` and `agents:check` are repo-wide and run at the root, not here – see the note below the table |
+| `pnpm run preflight` | All checks, in order: `format:check`, `lint`, `typecheck`, `spellcheck`, `knip`, `sync:doc-banners:check`, `api:since:check`, `api:history:check`, `api:getters:check`, `test:unit`, `test:declarations`, `test:agent-config`, `test:api-history`, `test:api-getters`, `test:bench-compare`, `test:compact-tables`, `test:shell-safety`, `test:spellcheck-coverage`, `test:security-preflight`. `docs:links` and `agents:check` are repo-wide and run at the root, not here - see the note below the table |
 | `pnpm run docs:links` | Check Markdown links in git-tracked `*.md` / `*.mdx` files (honors `.gitignore`) |
 | `pnpm run agents:check` | Check agent config drift (skills symlinks, AGENTS.md <-> CLAUDE.md pointer, root `.mcp.json`) |
 | `pnpm run sync:doc-banners` | Insert/refresh blit386.dev banners in published docs |
@@ -78,7 +78,7 @@ package).
 
 `docs:links` and `agents:check` are repo-wide: each package's copy walks the whole tree from the repo root no matter
 which `package.json` invoked it. They are deliberately absent from every package's `preflight` chain so that one push
-does not run the same full-repo check two to four times – run them once from the repo root instead
+does not run the same full-repo check two to four times - run them once from the repo root instead
 (`pnpm run docs:links`, `pnpm run agents:check`), as `.husky/pre-push` does after the per-package gates pass.
 
 Dependency audit severity policy and CI gate: [dependency-policy.md](security/dependency-policy.md). Temporary
@@ -203,7 +203,7 @@ Boolean naming (three tiers):
 - Hold vs. edge on `BT`: `isDown` / `isKeyDown` (held), `isPressed` / `isReleased` (button masks), `isKeyPressed` /
   `isKeyReleased` (keyboard codes). Internal input classes use the same names (`PointerInput.isButtonDown`,
   `KeyboardInput.isKeyDown`, `GamepadInput.isButtonDown`). Do not embed a second `Is` in the identifier (`isKeyPressed`
-  – grep: `\bis[A-Za-z]+Is[A-Z]`).
+  \- grep: `\bis[A-Za-z]+Is[A-Z]`).
 - Identifier acronyms use both capitals: `canvasID`, `containerID` (not `canvasId`).
 
 File structure and member order:
@@ -211,7 +211,7 @@ File structure and member order:
 Class member order is enforced by `perfectionist/sort-classes` (and import order by `simple-import-sort`); run
 `pnpm run lint:fix` to auto-fix. The rule uses `type: 'unsorted'`, so it enforces only the group order below and
 preserves the hand-tuned order within each group (logical method families stay as written). Match this layout when
-adding or moving code. Never use `// #region` / `// #endregion` – region markers are banned.
+adding or moving code. Never use `// #region` / `// #endregion` - region markers are banned.
 
 - File layout (top to bottom): module JSDoc → imports (`import type`, sorted) → leading module members (config/input
   constants, validators, lookup tables, type aliases) → the primary class/interface/function → trailing module members
@@ -219,7 +219,7 @@ adding or moving code. Never use `// #region` / `// #endregion` – region marke
   helpers before private ones).
 - Class member order: (1) static fields (cached singletons, registries); (2) instance fields, public → protected →
   private, `readonly` grouped, one JSDoc + blank line per field; (3) constructor (parameter-properties carry inline
-  JSDoc); (4) accessors – static getters, then instance getters/setters; (5) static methods, public before private; (6)
+  JSDoc); (4) accessors - static getters, then instance getters/setters; (5) static methods, public before private; (6)
   instance methods, public → protected → private, private helpers last.
 - Cross-cutting: keep a deprecated alias next to its canonical member (`equals` after `isEqual`); cluster method
   families (new-allocating → `*To` zero-alloc → `*InPlace` → queries → `clone`/`toString`); one blank line between
@@ -232,7 +232,7 @@ adding or moving code. Never use `// #region` / `// #endregion` – region marke
 
 ### Zed
 
-`.zed/settings.json` is committed to the repository – clone the repo and it applies automatically. It mirrors the repo
+`.zed/settings.json` is committed to the repository - clone the repo and it applies automatically. It mirrors the repo
 toolchain: Biome (via its Zed extension/language server) formats TS/JS/JSON on save, Prettier (built in) formats
 Markdown/YAML on save, and `agent.tool_permissions` blocks the built-in agent from editing lock files or `.env` files
 (mirroring the `PreToolUse` file-block hook in `.claude/settings.json`).
@@ -244,10 +244,10 @@ Claude Code reads agent policy from this repo's `.claude/` directory, plus the p
 
 | Path | Purpose |
 | --- | --- |
-| `.claude/rules/*.md` | Agent rules – always-applied global policy plus glob-scoped rules (for example `ts-file-structure.md` on `src/**/*.ts`) |
+| `.claude/rules/*.md` | Agent rules - always-applied global policy plus glob-scoped rules (for example `ts-file-structure.md` on `src/**/*.ts`) |
 | `.claude/settings.json` | Hooks: `SessionStart` → toolchain bootstrap; `PreToolUse` → RTK shell rewrite + sensitive-file block; `PostToolUse` → format + spellcheck |
 | `.claude/skills/*/SKILL.md` | Reusable command workflows (`preflight`, `format`, …); Zed symlinks under `.agents/skills/` |
-| `.mcp.json` | Project MCP servers – `blit386-docs`, the blit386.dev docs server (`search_docs`, `get_docs_summary`). Listed as a pre-approved project server in `.claude/settings.json`, so it connects without a per-machine trust prompt |
+| `.mcp.json` | Project MCP servers - `blit386-docs`, the blit386.dev docs server (`search_docs`, `get_docs_summary`). Listed as a pre-approved project server in `.claude/settings.json`, so it connects without a per-machine trust prompt |
 
 When changing `package.json` scripts or preflight steps, update matching `.claude/skills/*/SKILL.md` files and any
 `.claude/rules/*.md` that reference those commands.
@@ -283,7 +283,7 @@ Public `.d.ts` output is produced by `vite-plugin-dts` with `rollupTypes: true`,
 Watch builds skip declaration emit entirely. Under `vite build --watch` (or its `-w` shorthand) the dts plugin is left
 out of the config: API Extractor's rollup crashes on every rebuild after the first, and nothing consumes declarations
 mid-watch anyway. A watch build also leaves `dist` un-emptied, so the rolled-up `dist/blit386.d.ts` from the preceding
-full `pnpm run build` stays in place – stale against in-flight source edits, but still the real published shape. Run a
+full `pnpm run build` stays in place - stale against in-flight source edits, but still the real published shape. Run a
 one-shot `pnpm run build` to refresh it.
 
 When bumping `typescript` or `vite-plugin-dts`, confirm `pnpm run build` logs no TS/API Extractor version mismatch and
@@ -346,4 +346,4 @@ publish job; see [dependency-policy.md](security/dependency-policy.md#npm-publis
 ## Planned improvements
 
 Issue templates, the pull request template, the blit386.dev documentation site, and GitHub repo topics have shipped.
-Open DX work is tracked in Linear (VV team / BLIT386 project) – file or view tickets there for remaining backlog items.
+Open DX work is tracked in Linear (VV team / BLIT386 project) - file or view tickets there for remaining backlog items.

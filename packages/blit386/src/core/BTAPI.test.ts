@@ -66,7 +66,7 @@ vi.mock('../utils/FrameCapture', async (importOriginal) => {
 });
 
 function resetSingleton(): void {
-    // BTAPI._instance is private; the cast is intentional – there is no public
+    // BTAPI._instance is private; the cast is intentional - there is no public
     // reset API, and this is the least-invasive way to isolate singleton state
     // between tests without modifying production code.
     (BTAPI as unknown as { _instance: BTAPI | null })._instance = null;
@@ -115,7 +115,7 @@ function makeMockCanvas(): HTMLCanvasElement {
 
 function makeMock2DCanvas(): HTMLCanvasElement {
     // `canvas` is referenced from its own `toBlob` below (assigned once the whole object exists)
-    // so the mock can encode a real PNG sized to canvas.width/height – SoftwareRenderer.ts sets
+    // so the mock can encode a real PNG sized to canvas.width/height - SoftwareRenderer.ts sets
     // those directly to outputSize before ever calling toBlob(), so by the time toBlob runs they
     // hold the real resolved size, not a stale default.
     const canvas = {
@@ -173,7 +173,7 @@ function makeOffscreenCanvas2dContext(): OffscreenCanvas2DMock {
  * Stubs global `ImageData` and `OffscreenCanvas` so `FrameCapture.ts`'s `pixelBufferToPNG()`
  * (the WebGPU capture path) produces a real PNG-encoded Blob sized to whatever width/height it
  * was actually called with, instead of an opaque fake Blob. Lets a test decode the result and
- * verify the real encoded pixel dimensions – see BT-488, where a mocked fixed-content Blob could
+ * verify the real encoded pixel dimensions - see BT-488, where a mocked fixed-content Blob could
  * never have caught a captured-size regression.
  */
 function installRealPNGOffscreenCanvasMock(): void {
@@ -225,11 +225,11 @@ function installRealPNGOffscreenCanvasMock(): void {
 }
 
 /**
- * Decodes a captured PNG `Blob` with `pngjs` and returns its real encoded width/height – the
+ * Decodes a captured PNG `Blob` with `pngjs` and returns its real encoded width/height - the
  * dimensions a design tool or `sips` would report, as opposed to whatever size a mocked Blob
  * merely claims to be.
  *
- * @param blob – PNG-encoded Blob to decode.
+ * @param blob - PNG-encoded Blob to decode.
  * @returns Decoded pixel width and height.
  */
 async function decodedPngSize(blob: Blob): Promise<{ width: number; height: number }> {
@@ -375,7 +375,7 @@ describe('music playback passthroughs', () => {
     });
 
     function setAudio(audio: AudioManager | null): void {
-        // Same test-isolation technique as the "sound playback passthroughs" block above – see
+        // Same test-isolation technique as the "sound playback passthroughs" block above - see
         // its comment for why this cast is safe here.
         (BTAPI.instance as unknown as { audio: AudioManager | null }).audio = audio;
     }
@@ -1372,7 +1372,7 @@ describe('BTAPI', () => {
             installRealPNGOffscreenCanvasMock();
 
             // makeMockDemo() sets displaySize 320x240 and drawingBufferSize 640x480, so
-            // outputSize (drawingBufferSize ?? displaySize) resolves to 640x480 – the captured
+            // outputSize (drawingBufferSize ?? displaySize) resolves to 640x480 - the captured
             // PNG must match that, not the smaller logical displaySize (regression for BT-488).
             await BTAPI.instance.init(makeMockDemo(), makeMockCanvas());
             BTAPI.instance.setPalette(new Palette(16));
@@ -1585,7 +1585,7 @@ describe('BTAPI', () => {
                     isSplashEnabled: false,
                     displaySize: new Vector2i(320, 240),
                     targetFPS: 60,
-                    // No backend field – defaults to 'webgpu', should auto-fallback
+                    // No backend field - defaults to 'webgpu', should auto-fallback
                 }),
                 init: vi.fn().mockResolvedValue(true),
                 update: vi.fn(),
@@ -2048,8 +2048,8 @@ describe('BTAPI', () => {
         /**
          * Runs game-loop ticks using a stubbed rAF queue seeded before init.
          *
-         * @param demo – Demo passed to {@link BTAPI.init}.
-         * @param stopWhen – Stop draining once this returns true.
+         * @param demo - Demo passed to {@link BTAPI.init}.
+         * @param stopWhen - Stop draining once this returns true.
          * @returns Overlay spy from the initialized instance.
          */
         async function initAndDrainUntil(
@@ -2254,8 +2254,8 @@ describe('BTAPI', () => {
         /**
          * Runs game-loop ticks using a stubbed rAF queue seeded before init.
          *
-         * @param demo – Demo passed to {@link BTAPI.init}.
-         * @param stopWhen – Stop draining once this returns true.
+         * @param demo - Demo passed to {@link BTAPI.init}.
+         * @param stopWhen - Stop draining once this returns true.
          * @returns Overlay spy from the initialized instance.
          */
         async function initAndDrainUntil(
@@ -2372,7 +2372,7 @@ describe('BTAPI', () => {
         /**
          * Drains the stubbed rAF queue until `stopWhen` returns true, spying on real renderer bar fills.
          *
-         * @param demo – Demo passed to {@link BTAPI.init}.
+         * @param demo - Demo passed to {@link BTAPI.init}.
          * @returns Collected bar fills in draw order.
          */
         async function drainAndCollectBarFills(demo: IBTDemo): Promise<{ index: number; rect: Rect2i }[]> {
@@ -2439,10 +2439,10 @@ describe('BTAPI', () => {
 
         /**
          * Matches a bar fill against the audio meter's known bar geometry (width and left-edge X),
-         * not width alone – width-only matching risks false positives from unrelated same-width bars.
+         * not width alone - width-only matching risks false positives from unrelated same-width bars.
          *
-         * @param fill – Collected bar fill from {@link drainAndCollectBarFills}.
-         * @param fill.rect – Filled rectangle in display coordinates.
+         * @param fill - Collected bar fill from {@link drainAndCollectBarFills}.
+         * @param fill.rect - Filled rectangle in display coordinates.
          * @returns `true` when the fill's rect matches one of the three bus bar positions.
          */
         function isAudioMeterBar(fill: { rect: Rect2i }): boolean {
@@ -3129,7 +3129,7 @@ describe('BTAPI', () => {
             BTAPI.instance.setPalette(new Palette(16));
 
             // A capture that never resolves, standing in for a render pass that never
-            // happens because stop() runs first – the same shape as a page navigation
+            // happens because stop() runs first - the same shape as a page navigation
             // interrupting an in-flight Shift+F9 capture.
             const neverSettles = new Promise<Blob>(() => {});
 
@@ -3147,7 +3147,7 @@ describe('BTAPI', () => {
             await Promise.resolve();
 
             // stop() must clear the in-flight guard even though the capture above never
-            // settled – otherwise every Shift+F9 press after the next init() would
+            // settled - otherwise every Shift+F9 press after the next init() would
             // silently no-op forever.
             BTAPI.instance.stop();
 
@@ -3192,7 +3192,7 @@ describe('BTAPI', () => {
         }
 
         /**
-         * Finds `handleClipboardShortcutKeydown` – the bare-F9 listener attached directly to
+         * Finds `handleClipboardShortcutKeydown` - the bare-F9 listener attached directly to
          * the canvas (separately from `KeyboardInput`'s own listener, which
          * {@link findKeydownHandler} finds). `attachInputSubsystems` registers
          * `KeyboardInput`'s listener first and this one second, so it is the second
@@ -3231,7 +3231,7 @@ describe('BTAPI', () => {
         function installMockClipboard(): { write: ReturnType<typeof vi.fn> } {
             // Mirrors the real navigator.clipboard.write(): it does not resolve until every
             // ClipboardItem's data promise resolves, so a still-pending capture keeps the
-            // write (and therefore isFrameCaptureShortcutInFlight) pending too – matching
+            // write (and therefore isFrameCaptureShortcutInFlight) pending too - matching
             // real browser behavior instead of resolving eagerly regardless of capture state.
             const mockClipboard = {
                 write: vi.fn(async (items: readonly MockClipboardItem[]) => {
@@ -3462,7 +3462,7 @@ describe('BTAPI', () => {
 
             // Both shortcuts route through the renderer's single-slot capture queue
             // (IRenderer.captureFrameAtDisplaySize), so a bare-F9 copy must not start while
-            // a Shift+F9 capture is still pending – starting one would supersede the other's
+            // a Shift+F9 capture is still pending - starting one would supersede the other's
             // request instead of queuing behind it.
             let resolveCapture: ((blob: Blob) => void) | undefined;
             const pendingCapture = new Promise<Blob>((resolve) => {
@@ -3481,7 +3481,7 @@ describe('BTAPI', () => {
             getLoop()?.tick(20);
             await Promise.resolve();
 
-            // The shared guard, not KeyboardInput's tracked Shift state, is what blocks this –
+            // The shared guard, not KeyboardInput's tracked Shift state, is what blocks this -
             // no need to release Shift first.
             findClipboardShortcutKeydownHandler(canvas)(f9Event());
             await Promise.resolve();
@@ -3566,7 +3566,7 @@ describe('BTAPI', () => {
             const mockClipboard = installMockClipboard();
 
             // A capture that never resolves, standing in for a render pass that never
-            // happens because stop() runs first – the same shape as a page navigation
+            // happens because stop() runs first - the same shape as a page navigation
             // interrupting an in-flight bare-F9 copy.
             const neverSettles = new Promise<Blob>(() => {});
 
@@ -3580,7 +3580,7 @@ describe('BTAPI', () => {
             await Promise.resolve();
 
             // stop() must clear the in-flight guard even though the copy above never
-            // settled – otherwise every F9 press after the next init() would silently
+            // settled - otherwise every F9 press after the next init() would silently
             // no-op forever.
             BTAPI.instance.stop();
 
@@ -3626,7 +3626,7 @@ describe('BTAPI', () => {
 
             installMockClipboard();
 
-            // Simulates FrameCapture.resolve() completing asynchronously after stop() – it
+            // Simulates FrameCapture.resolve() completing asynchronously after stop() - it
             // captures its resolve/reject callbacks into locals before its own awaits, so a
             // capture already mid-GPU-readback when stop() runs keeps running independently
             // of the game loop and can settle later, after a new init()/capture cycle.
@@ -3667,7 +3667,7 @@ describe('BTAPI', () => {
 
             expect(isShortcutInFlight()).toBe(true);
 
-            // The stale, pre-stop() capture settles now – its completion handler must see
+            // The stale, pre-stop() capture settles now - its completion handler must see
             // that frameCaptureShortcutGeneration moved on since stop() and leave the
             // current capture's guard alone.
             resolveStaleCapture?.(new Blob(['stale-png-data'], { type: 'image/png' }));
@@ -3702,7 +3702,7 @@ describe('BTAPI', () => {
 
             const mockClipboard = installMockClipboard();
 
-            // Never resolves – proves clipboard.write() is called with the still-pending
+            // Never resolves - proves clipboard.write() is called with the still-pending
             // capture promise, not after awaiting it, since the write call is asserted
             // before this promise ever settles.
             const neverSettles = new Promise<Blob>(() => {});
@@ -3715,7 +3715,7 @@ describe('BTAPI', () => {
 
             findClipboardShortcutKeydownHandler(canvas)(f9Event());
 
-            // Flush exactly one microtask – if a future refactor introduces an `await`
+            // Flush exactly one microtask - if a future refactor introduces an `await`
             // before the clipboard.write() call, this assertion catches it: write() would
             // not yet have been called at this point since the capture never resolves.
             await Promise.resolve();
@@ -4115,7 +4115,7 @@ describe('BTAPI splash palette capture', () => {
      * Replaces the private effect manager with one on a fake clock, and installs
      * a palette as if the splash owned it.
      *
-     * @param splashPalette – Palette standing in for the splash's own ramp.
+     * @param splashPalette - Palette standing in for the splash's own ramp.
      */
     function armWithSplashPalette(splashPalette: Palette): void {
         now = 0;
@@ -4151,7 +4151,7 @@ describe('BTAPI splash palette capture', () => {
      * The manager reports a zero delta on its first update after an idle gap, so
      * this primes it before stepping.
      *
-     * @param ms – Milliseconds to advance.
+     * @param ms - Milliseconds to advance.
      */
     function advanceEffects(ms: number): void {
         const manager = (BTAPI.instance as unknown as { paletteEffects: PaletteEffectManager }).paletteEffects;
@@ -4324,9 +4324,9 @@ describe('BTAPI splash lifecycle in init', () => {
      * Builds a demo whose `configure()` returns `settings` and whose `init()` runs
      * `initBody` before resolving.
      *
-     * @param settings – Extra hardware settings merged over the display defaults.
-     * @param initBody – Optional body run inside `init()`.
-     * @param initResult – Value `init()` resolves to.
+     * @param settings - Extra hardware settings merged over the display defaults.
+     * @param initBody - Optional body run inside `init()`.
+     * @param initResult - Value `init()` resolves to.
      * @returns A demo suitable for `BTAPI.init`.
      */
     function makeSplashDemo(
@@ -4355,7 +4355,7 @@ describe('BTAPI splash lifecycle in init', () => {
      * Stubs `requestAnimationFrame` and `performance.now` with a fake frame clock,
      * so the splash's own driver runs to completion without sleeping in real time.
      *
-     * @param stepMs – Milliseconds each frame advances the clock.
+     * @param stepMs - Milliseconds each frame advances the clock.
      */
     function driveAnimationFrames(stepMs = 16): void {
         let clock = 0;
@@ -4599,7 +4599,7 @@ describe('BTAPI splash lifecycle in init', () => {
         const endUpdate = vi.spyOn(KeyboardInput.prototype, 'endUpdate');
 
         // The skip listeners themselves are covered in Splash.dom.test.ts; this asserts
-        // the other half of the swallow – that BTAPI consumes the pending edges before
+        // the other half of the swallow - that BTAPI consumes the pending edges before
         // the game's first update() can observe them.
         await BTAPI.instance.init(makeSplashDemo({ isSplashEnabled: true }), makeMockCanvas());
 

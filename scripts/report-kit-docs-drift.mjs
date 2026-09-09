@@ -3,10 +3,10 @@
  * Runs `checkKitDocsDrift` and, when drift is found, files or updates a tracking issue in Linear
  * (team BLIT386 / BT) describing which `packages/kit/content/docs/*.md` files should be reviewed.
  *
- * CI-only (`.github/workflows/kit-docs-drift.yml`) – not part of `pnpm run preflight` or any
+ * CI-only (`.github/workflows/kit-docs-drift.yml`) - not part of `pnpm run preflight` or any
  * `quality-root` step, since it needs a live `LINEAR_API_KEY` and makes a real network call.
  * Never a required check: this always exits 0, drift or not, so a standing content-review backlog
- * never shows as a red workflow run – the Linear issue/comment is the only signal.
+ * never shows as a red workflow run - the Linear issue/comment is the only signal.
  *
  * Usage:
  *   LINEAR_API_KEY=... node scripts/report-kit-docs-drift.mjs
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { checkKitDocsDrift } from './check-kit-docs-drift.mjs';
 import { addComment, createIssue, findTrackingIssue, resolveLabelIds } from './lib/linear-client.mjs';
 
-/** BLIT386 team (key `BT`) id, from `list_teams`. Structural, low-churn – see BT-293 plan. */
+/** BLIT386 team (key `BT`) id, from `list_teams`. Structural, low-churn - see BT-293 plan. */
 export const LINEAR_TEAM_ID = '1d6b360b-cb57-4f44-9b47-f729b13538ee';
 
 /** BLIT386 project id, from `list_projects`. */
@@ -26,7 +26,7 @@ export const LINEAR_PROJECT_ID = 'f9647046-9131-4acb-82d8-ec662d4df766';
 /** Václav Vančura's Linear user id, from `list_users`. */
 export const LINEAR_ASSIGNEE_ID = '77605828-2f2f-43a7-bbe6-e4b741b57c06';
 
-/** Both must already exist on the BT team – confirmed live when this was written. */
+/** Both must already exist on the BT team - confirmed live when this was written. */
 export const TRACKING_ISSUE_LABEL_NAMES = ['doc', 'create-blit386'];
 
 /** Stable prefix used to find (and reuse) an existing open tracking issue instead of spamming a new one each run. */
@@ -41,14 +41,14 @@ export function formatDriftBody(report) {
         `blit386 is at **${report.engineVersion}**; \`packages/kit/package.json\`'s \`blit386.docsReviewedAt\` is still` +
             ` **${report.docsReviewedAt}**.`,
         '',
-        'These kit docs describe engine API areas that changed since the last review – check them against',
+        'These kit docs describe engine API areas that changed since the last review - check them against',
         `\`packages/blit386/docs/changelog.md\` and the affected \`docs/api-*.md\` pages, then bump` +
             ' `docsReviewedAt` once confirmed current:',
         '',
     ];
 
     for (const { docFile, pages } of report.dueDocs) {
-        lines.push(`- \`packages/kit/${docFile}\` – changed: ${pages.join(', ')}`);
+        lines.push(`- \`packages/kit/${docFile}\` - changed: ${pages.join(', ')}`);
     }
 
     return lines.join('\n');
@@ -80,7 +80,7 @@ export async function reportDrift({ apiKey, report, log = console.log }) {
     log(`Filed new tracking issue ${created.identifier}.`);
 }
 
-/** CLI entry point. Always resolves to exit code 0 – see file header. */
+/** CLI entry point. Always resolves to exit code 0 - see file header. */
 async function main() {
     let report;
 
@@ -100,7 +100,7 @@ async function main() {
     const apiKey = process.env.LINEAR_API_KEY;
 
     if (!apiKey) {
-        console.log('Kit docs drift detected, but LINEAR_API_KEY is not set – skipping Linear filing.');
+        console.log('Kit docs drift detected, but LINEAR_API_KEY is not set - skipping Linear filing.');
         console.log(formatDriftBody(report));
         return 0;
     }

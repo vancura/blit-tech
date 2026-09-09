@@ -25,12 +25,12 @@ player nothing.
 
 Do not assume it is there. A game can switch it off with `isSplashEnabled: false` in `configure()`, a player can add
 `?nosplash` to the URL, and a development build skips it unless `?splash` is passed. So write your own loading UI when
-you need it _after_ the splash has gone – a level load mid-game, or assets you deliberately start after `init()` returns
-– and whenever loads are slow enough to matter without it.
+you need it _after_ the splash has gone - a level load mid-game, or assets you deliberately start after `init()` returns
+\- and whenever loads are slow enough to matter without it.
 
 ## How to do it
 
-If you `await` every load inside `init()`, the game loop does not start until they finish – so there is nothing to draw
+If you `await` every load inside `init()`, the game loop does not start until they finish - so there is nothing to draw
 a spinner on. To show a loading screen, return from `init()` quickly and start the loads afterward (or in a helper you
 do not await from `init()`). Then poll the counter every frame:
 
@@ -75,21 +75,21 @@ render() {
 
 After a PNG under `public/` is replaced, that sheet reports:
 
-- `sheet.status` – `'loading' | 'ready' | 'failed'`
-- `sheet.progress` – coarse `0` or `1.0` (not a percentage)
+- `sheet.status` - `'loading' | 'ready' | 'failed'`
+- `sheet.progress` - coarse `0` or `1.0` (not a percentage)
 
 A normally loaded sheet is `'ready'` with `progress` `1.0`. Use these for a per-image indicator; use
 `BT.loadingAssetsCount` for one engine-wide "anything still loading?" signal.
 
 ## Key calls
 
-- `BT.loadingAssetsCount` (getter) – in-flight image + audio count; `0` means settled.
-- `SpriteSheet.status` / `SpriteSheet.progress` (getters) – per-sheet hot-replace state.
+- `BT.loadingAssetsCount` (getter) - in-flight image + audio count; `0` means settled.
+- `SpriteSheet.status` / `SpriteSheet.progress` (getters) - per-sheet hot-replace state.
 
 ## Notes
 
 - Arrived in blit386 1.4.0. If the getter is missing, run `npx blit upgrade`.
-- Small starters can still `await` everything in `init()` and skip a loading UI – that is fine. Use this skill when you
+- Small starters can still `await` everything in `init()` and skip a loading UI - that is fine. Use this skill when you
   want the player to see progress (or when hot-reload replacements should show a brief "Loading…" state).
 - Do not invent a fine-grained byte percentage from `progress`; it is intentionally coarse.
 

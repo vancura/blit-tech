@@ -6,31 +6,31 @@ The kit behind [BLIT386](https://www.npmjs.com/package/blit386) game projects: t
 
 ## What's inside
 
-- The `blit` CLI – a small helper you run inside a BLIT386 game:
-  - `blit run` – start the dev server and open the game.
-  - `blit doctor` – check Node, git, and the installed `blit386` version.
-  - `blit upgrade` – update `blit386` to the latest version, with a friendly nudge if your work is not under git. After
+- The `blit` CLI - a small helper you run inside a BLIT386 game:
+  - `blit run` - start the dev server and open the game.
+  - `blit doctor` - check Node, git, and the installed `blit386` version.
+  - `blit upgrade` - update `blit386` to the latest version, with a friendly nudge if your work is not under git. After
     a version change it checks your game for old API names and offers to update them for you (see `blit migrate`).
-  - `blit migrate` – update old BLIT386 names in your game to the current ones, and (on blit386 1.4.0+) enable hot
+  - `blit migrate` - update old BLIT386 names in your game to the current ones, and (on blit386 1.4.0+) enable hot
     reload in `vite.config` when it is missing. It previews the changes by default and only writes them when you add
     `--write`. Safe, unambiguous renames are applied; names that are too common to change automatically (like `equals`)
     are listed for you or your AI assistant to handle.
-  - `blit agents sync` – refresh the AI-assistant files from the installed kit. It keeps your edits: kit-owned files you
+  - `blit agents sync` - refresh the AI-assistant files from the installed kit. It keeps your edits: kit-owned files you
     have not touched are updated in place, shared files (`AGENTS.md`, `CLAUDE.md`) get only their managed region
     rewritten, and a file you changed is three-way merged (or saved next to yours as `<file>.new`). Use `--check` to
     report drift without writing (CI-safe; `blit doctor` runs it too), or `--force [path...]` to take the kit version
-    back. Once sync has merged your edits into a kit file, `--check` treats that file as settled – it will not keep
+    back. Once sync has merged your edits into a kit file, `--check` treats that file as settled - it will not keep
     reporting it as drifted.
-  - `blit agents add <claude|cursor>` – set up the files for one AI assistant in a game that did not pick it at the
+  - `blit agents add <claude|cursor>` - set up the files for one AI assistant in a game that did not pick it at the
     start. It writes the new files and records them so `blit agents sync` keeps them fresh. It never overwrites a file
     you already have; if one is in the way it saves the kit version next to it as `<file>.new`.
-  - `blit clean` – replace `src/game.ts` (or `src/game.js`) with an empty skeleton: the same `init`/`update`/`render`
+  - `blit clean` - replace `src/game.ts` (or `src/game.js`) with an empty skeleton: the same `init`/`update`/`render`
     shape, no drawing, no input handling, ready for your own code. No other project file is touched other than
     `.blit/manifest.json`'s tracked hash for it, kept in step so later drift checks do not flag the skeleton as
-    modified. Warns before replacing a file that no longer matches what was scaffolded, and always asks first – add
+    modified. Warns before replacing a file that no longer matches what was scaffolded, and always asks first - add
     `--yes` to skip the prompt.
-  - `blit help` – list the commands.
-- `content/` – everything a scaffolded project ships so a person or an AI assistant can learn the engine from inside the
+  - `blit help` - list the commands.
+- `content/` - everything a scaffolded project ships so a person or an AI assistant can learn the engine from inside the
   project: the canonical `AGENTS.md` and `docs/`, the engine API `rules/`, the game-author `skills/` (listed below), and
   the agent `hooks/` plus `hooks.manifest.json`. Claude/Cursor file generation lives in `src/adapters.ts` and is
   exported as `@blit386/kit/adapters` so the scaffolder and `blit agents sync` / `blit agents add` share one
@@ -38,19 +38,19 @@ The kit behind [BLIT386](https://www.npmjs.com/package/blit386) game projects: t
   manifest drives Cursor's `.cursor/hooks.json` and Claude Code's `.claude/settings.json` (format-on-edit +
   block-dangerous-shell). Claude Code also gets a SessionStart hook that installs dependencies and runs `blit doctor`
   when a fresh remote/web session starts, so a scaffolded game works without manual setup; Cursor has no
-  SessionStart-equivalent event, so it does not get this hook. Both adapters also emit a documentation-MCP config –
-  `.mcp.json` for Claude Code, `.cursor/mcp.json` for Cursor – registering the `blit386-docs` server at
+  SessionStart-equivalent event, so it does not get this hook. Both adapters also emit a documentation-MCP config -
+  `.mcp.json` for Claude Code, `.cursor/mcp.json` for Cursor - registering the `blit386-docs` server at
   `https://blit386.dev/mcp` so an assistant can search the live docs. Claude Code asks once whether to allow it.
 
 ## The game-author skills
 
-Every scaffolded game gets these. Your AI assistant loads one on its own when the task calls for it – you do not have to
+Every scaffolded game gets these. Your AI assistant loads one on its own when the task calls for it - you do not have to
 name them. In Claude Code they live in `.claude/skills/`; in Cursor they are slash commands in `.cursor/commands/`, so
 there you can also invoke one by name (`/add-sprite`).
 
 | Skill | What it is for |
 | --- | --- |
-| `structure-a-game` | The shape of a game: `configure`, `init`, `update`, `render` – and what the engine does not do for you |
+| `structure-a-game` | The shape of a game: `configure`, `init`, `update`, `render` - and what the engine does not do for you |
 | `run` | Start the dev server and see the game |
 | `fix` | The game crashes, shows a black screen, or behaves oddly |
 | `ask-the-docs` | Look something up that the local `docs/` folder does not cover, using the live docs at blit386.dev |

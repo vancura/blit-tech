@@ -4,7 +4,7 @@
  *
  * The generated JSON it wraps is re-copied from the engine on every `pnpm run sync:docs`, so
  * these tests assert invariants over whatever it currently holds rather than naming specific
- * symbols – otherwise an unrelated engine doc change would turn this suite red.
+ * symbols - otherwise an unrelated engine doc change would turn this suite red.
  */
 
 import { describe, expect, it } from 'vitest';

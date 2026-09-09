@@ -169,7 +169,7 @@ export function buildCombobox(demos, currentIndex) {
     let isOpen = false;
 
     // When true, the input still shows the current demo label and has not been
-    // edited this open session – filter with an empty query so the full list
+    // edited this open session - filter with an empty query so the full list
     // appears (filtering by "Basics" would hide almost everything).
     let isPristine = true;
 
@@ -382,7 +382,7 @@ export function buildCombobox(demos, currentIndex) {
     });
 
     // Some automation / focus paths skip the focus event; click still opens.
-    // Select-all only when opening from closed – not on every click – so the
+    // Select-all only when opening from closed - not on every click - so the
     // user can place a caret and edit the filter with the mouse.
     input.addEventListener('click', () => {
         if (!isOpen) {

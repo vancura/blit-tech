@@ -4,7 +4,7 @@ paths: [src/**]
 
 # Architecture
 
-The file tree below is illustrative, not exhaustive – it highlights notable subsystems and entry points. Colocated
+The file tree below is illustrative, not exhaustive - it highlights notable subsystems and entry points. Colocated
 `*.test.ts` / `*.bench.ts` files and small module-local `constants.ts` / `types.ts` helpers are omitted for readability.
 
 ```text
@@ -130,7 +130,7 @@ When adding a new top-level `src/` directory, or a file within an existing one t
 (called every `update()`/`render()`, not just at init or on rare events): update this file's tree above, the Where to
 Find table in [CLAUDE.md](../../CLAUDE.md), and check whether it belongs in
 [`.claude/rules/bench-coverage.md`](bench-coverage.md)'s hot-path directory list. That file's `paths:` glob and
-`scripts/check-bench-coverage.mjs`'s `HOT_PATH_DIRS` are what make benchmark coverage get reminded about at all – a new
+`scripts/check-bench-coverage.mjs`'s `HOT_PATH_DIRS` are what make benchmark coverage get reminded about at all - a new
 hot subsystem left off both lists gets no nudge to add benchmarks and no pre-push reminder when it changes.
 
 ## Palette-First Rendering
@@ -138,10 +138,10 @@ hot subsystem left off both lists gets no nudge to add benchmarks and no pre-pus
 Two backends selectable via `HardwareSettings.backend` (default `'webgpu'`):
 
 - WebGPU (`'webgpu'`): indexed, palette-first hardware renderer.
-  1. Primitives pipeline – batched geometry writing palette indices (pixels, lines, rects). Max 50k vertices/frame.
-  2. Sprites pipeline – batched palette-indexed textured quads (sprites, bitmap text). Max 50k vertices (~8333 quads).
+  1. Primitives pipeline - batched geometry writing palette indices (pixels, lines, rects). Max 50k vertices/frame.
+  2. Sprites pipeline - batched palette-indexed textured quads (sprites, bitmap text). Max 50k vertices (~8333 quads).
      Nearest-neighbor sampling. Auto-batched by texture.
-  3. Framebuffer & post-process – the logical composite is an `r8uint` attachment at `displaySize` (one palette slot per
+  3. Framebuffer & post-process - the logical composite is an `r8uint` attachment at `displaySize` (one palette slot per
      pixel). Pixel-tier effects (`PostProcessChain`, `FullscreenPixelEffect`) run on that index buffer.
      `PaletteResolveUpscalePass` LUT-resolves indices to RGBA and upscales to `drawingBufferSize`. Display-tier effects
      run on that RGBA before present (see `docs/guide-post-process-effects.md`).

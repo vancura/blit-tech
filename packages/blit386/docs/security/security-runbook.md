@@ -45,7 +45,7 @@ pnpm run security:mcp-preflight -- \
   --output-json security-reports/mcp-preflight-latest.json
 ```
 
-Governance-only (monthly) – `--mcps-dir` is not required here, since governance-only mode never reads it (it only scans
+Governance-only (monthly) - `--mcps-dir` is not required here, since governance-only mode never reads it (it only scans
 static `*.mcp.json` files):
 
 ```bash
@@ -57,17 +57,17 @@ pnpm run security:mcp-preflight -- \
 ```
 
 This same command runs automatically every month via
-[`.github/workflows/mcp-governance-audit.yml`](../../../../.github/workflows/mcp-governance-audit.yml) – see
+[`.github/workflows/mcp-governance-audit.yml`](../../../../.github/workflows/mcp-governance-audit.yml) - see
 [Periodic governance](#periodic-governance-monthly).
 
 Exit codes:
 
-- `0` – proceed (critical MCP healthy, `--allow-fallback` with documented fallbacks, or – governance-only – no
+- `0` - proceed (critical MCP healthy, `--allow-fallback` with documented fallbacks, or - governance-only - no
   unaccepted shadow MCP entries found).
-- `1` – missing `--mcps-dir` (unless `--governance-only`, which never reads it), critical MCP down without
-  `--allow-fallback`, or – governance-only – an unaccepted shadow MCP entry found. A nonexistent `--mcps-dir` is no
+- `1` - missing `--mcps-dir` (unless `--governance-only`, which never reads it), critical MCP down without
+  `--allow-fallback`, or - governance-only - an unaccepted shadow MCP entry found. A nonexistent `--mcps-dir` is no
   longer fatal by itself: every registered security MCP is reported `absent`, and `--allow-fallback` governs whether
-  that is acceptable – this is what lets a full MCP-session outage proceed deterministically instead of crashing before
+  that is acceptable - this is what lets a full MCP-session outage proceed deterministically instead of crashing before
   fallback logic runs.
 
 Never skip the preflight silently. If a tier is unavailable, run the fallback row from the matrix below and record it in
@@ -82,7 +82,7 @@ the report.
 | Compliance | Opsera `compliance-audit` | Manual checklist below |
 | Architecture | Opsera `architecture-analyze` | `security-threat-model` and `security-ownership-map` skills, if available in your agent's skill library |
 | Supply chain metadata | JFrog MCP | `pnpm outdated --format json`, `npm view <pkg> version time.modified license` for key direct deps |
-| MCP governance | – | `pnpm run security:mcp-preflight --governance-only` plus Runlayer MCP governance rules |
+| MCP governance | - | `pnpm run security:mcp-preflight --governance-only` plus Runlayer MCP governance rules |
 
 ### SAST `rg` patterns (fallback)
 
@@ -99,11 +99,11 @@ When Opsera `compliance-audit` MCP is unavailable, gather evidence manually:
 
 | Control area | Evidence source |
 | --- | --- |
-| Dependency vulnerabilities | `pnpm run security:audit`, `pnpm run security:audit:prod` – see [dependency-policy.md](./dependency-policy.md) |
+| Dependency vulnerabilities | `pnpm run security:audit`, `pnpm run security:audit:prod` - see [dependency-policy.md](./dependency-policy.md) |
 | CI dependency gate | `.github/workflows/ci.yml` job Dependency Security Audit (moderate+, every PR and `main`) |
 | Code quality / static checks | `pnpm run preflight`, `pnpm run lint` |
 | Secrets in repo | `.gitignore`, hooks blocking `.env`; `rg` for hardcoded tokens (no secret values in reports) |
-| CI integrity | `.github/workflows/*.yml` – pinned actions, least privilege |
+| CI integrity | `.github/workflows/*.yml` - pinned actions, least privilege |
 | Deploy headers (demos) | `packages/demos/public/_headers`, `curl -I` on deployed URLs |
 | Deploy headers (website) | `packages/website/public/_headers` plus the nonce'd CSP from `packages/website/src/csp-nonce.ts`; `curl -s -D - -o /dev/null https://blit386.dev/` must show a `nonce-` in `script-src` and no `'unsafe-inline'` (a GET, not `curl -I`) |
 | Ownership / bus factor | [Maintainers](#maintainers) (solo); optional `security-ownership-map` skill output (`summary.json`) |
@@ -146,13 +146,13 @@ pnpm run preflight
 pnpm run build
 ```
 
-Note: `blit386-demos` has no `security:audit:prod` script – use `pnpm run security:audit` only for production-deps
+Note: `blit386-demos` has no `security:audit:prod` script - use `pnpm run security:audit` only for production-deps
 coverage in that package, or run `pnpm audit --prod --audit-level=moderate` directly.
 
 After toolchain or dependency upgrades, always run `pnpm run build` as a smoke test.
 
 `packages/demos`'s own `security:mcp-preflight` script already resolves the canonical script at
-`../blit386/scripts/security/mcp-preflight.mjs` – prefer `pnpm run security:mcp-preflight` from `packages/demos` over
+`../blit386/scripts/security/mcp-preflight.mjs` - prefer `pnpm run security:mcp-preflight` from `packages/demos` over
 invoking the script directly. If you do need to invoke it directly from `packages/demos`:
 
 ```bash
@@ -165,12 +165,12 @@ node ../blit386/scripts/security/mcp-preflight.mjs \
 ## Periodic governance (monthly)
 
 [`.github/workflows/mcp-governance-audit.yml`](../../../../.github/workflows/mcp-governance-audit.yml) runs this
-automatically every month from the repo root – a failing run (red X in Actions) means an unaccepted shadow MCP entry was
+automatically every month from the repo root - a failing run (red X in Actions) means an unaccepted shadow MCP entry was
 found; that is the enforced check. The steps below are the same procedure run by hand, useful as an early check or from
 inside an agent session:
 
 1. Run governance-only preflight for both packages (use each package directory as `--repo-root`).
-2. Run it once more with the monorepo root as `--repo-root` – `discoverMcpConfigPaths` only walks one level up, so a
+2. Run it once more with the monorepo root as `--repo-root` - `discoverMcpConfigPaths` only walks one level up, so a
    package-rooted run reaches `packages/`, never the repo root. Without this pass the tracked root `.mcp.json` is never
    scanned:
 
@@ -183,7 +183,7 @@ inside an agent session:
    ```
 
 3. Review shadow MCP flags against the accepted entries below. `summary.proceed` (and the script's exit code) already
-   reflects this automatically – it is `false` whenever `governance.unacceptedShadowServers` is non-empty – so this step
+   reflects this automatically - it is `false` whenever `governance.unacceptedShadowServers` is non-empty - so this step
    is about deciding what to do with a failure, not detecting one by hand: migrate or remove every unmanaged server that
    is not listed there, per organizational policy.
 4. Re-authenticate critical MCPs (Opsera) if status is `auth_required`.
@@ -199,7 +199,7 @@ finding.
 The name, config path, and classification columns are enforced automatically by `ACCEPTED_SHADOW_MCP_ENTRIES` in
 [`packages/blit386/scripts/security/mcp-preflight.mjs`](../../scripts/security/mcp-preflight.mjs); the URL column is
 enforced separately by `PROJECT_MCP_SERVER_URL` in `scripts/check-agent-config.mjs` (`pnpm run agents:check`). Both are
-hand-synced to this table – there is no shared import between them.
+hand-synced to this table - there is no shared import between them.
 
 | Server | URL | Declared in | Expected classification |
 | --- | --- | --- | --- |
@@ -207,9 +207,9 @@ hand-synced to this table – there is no shared import between them.
 
 `shadow-remote` is the correct classification, not a finding: `isRunlayerManagedEntry` only exempts Runlayer URLs, and
 this is our own first-party docs server (`packages/website/src/mcp-server.ts`, discovery card at
-`packages/website/public/.well-known/mcp/server-card.json`). It is public, unauthenticated, and read-only – it exposes
+`packages/website/public/.well-known/mcp/server-card.json`). It is public, unauthenticated, and read-only - it exposes
 `search_docs` and `get_docs_summary` over the published documentation and carries no credentials. A clean run is a
-shadow count of one whose single entry matches the whole row above – name, URL, config path, and classification
+shadow count of one whose single entry matches the whole row above - name, URL, config path, and classification
 together. Count and name alone are not enough to call it clean.
 
 ## Report template
@@ -242,12 +242,12 @@ Use this structure in agent output or issue/PR comments:
 ### Governance
 
 - Shadow MCPs: <count / none>
-- Accepted entries seen: <name, classification, config path per entry – must match the runbook's accepted row>
+- Accepted entries seen: <name, classification, config path per entry - must match the runbook's accepted row>
 - Unaccepted shadow entries: <none, or name + classification + config path per entry>
 - Config paths scanned: <list>
 ```
 
-Report the three fields above and nothing else – no secrets, credentials, auth headers, or full MCP config bodies. Give
+Report the three fields above and nothing else - no secrets, credentials, auth headers, or full MCP config bodies. Give
 config paths repo-relative: the preflight prints them absolute, so a pasted report would otherwise carry the local
 username. The accepted entry's URL is deliberately absent here; `pnpm run agents:check` is what verifies it, against a
 pinned literal rather than a copy, so aiming the server at a new URL takes a deliberate edit to
@@ -255,7 +255,7 @@ pinned literal rather than a copy, so aiming the server at a new URL takes a del
 
 ## Related docs
 
-- [dependency-policy.md](./dependency-policy.md) – CI audit gate, severity threshold, refresh cadence
-- [audit-exceptions.md](./audit-exceptions.md) – temporary GHSA acceptance playbook
-- [developer-experience-guide.md](../developer-experience-guide.md) – script reference
-- [reference-testing.md](../reference-testing.md) – preflight and CI smoke checks
+- [dependency-policy.md](./dependency-policy.md) - CI audit gate, severity threshold, refresh cadence
+- [audit-exceptions.md](./audit-exceptions.md) - temporary GHSA acceptance playbook
+- [developer-experience-guide.md](../developer-experience-guide.md) - script reference
+- [reference-testing.md](../reference-testing.md) - preflight and CI smoke checks

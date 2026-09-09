@@ -22,11 +22,11 @@ const REPLACEMENT = "createRequire(import.meta.url ?? 'file:///worker.js')";
  * `process.env.BLIT386_CHANNEL` read inside `src/channel-headers.ts` instead: that
  * module's top level re-runs inside the deployed Worker on every cold start (to
  * reconstruct the Fumapress plugin list), and the Worker has no access to the
- * shell env the CI build step ran in – only to whatever `wrangler.json` declares as
+ * shell env the CI build step ran in - only to whatever `wrangler.json` declares as
  * `vars`, surfaced at request time via `c.env`. Verified locally with `wrangler dev`:
  * without this, `X-Robots-Tag` and the `/robots.txt` override silently never fired,
  * even though `BLIT386_CHANNEL=next` was set for the build (which is why the SSG'd
- * HTML's noindex meta, banner, and canonical URLs were correct regardless – those are
+ * HTML's noindex meta, banner, and canonical URLs were correct regardless - those are
  * baked in once during the Node build, not re-evaluated in the Worker).
  *
  * `isCspReportOnly` sets `BLIT386_CSP_REPORT_ONLY: '1'`, read the same request-time way

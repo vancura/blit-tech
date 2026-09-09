@@ -62,7 +62,7 @@ describe('ensure-kit-built', () => {
             );
         });
 
-        it('is false when the registry entry file is older than the source – stale dist', () => {
+        it('is false when the registry entry file is older than the source - stale dist', () => {
             assert.equal(
                 isKitBuilt(
                     fakeEntry,

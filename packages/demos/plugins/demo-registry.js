@@ -11,12 +11,12 @@ const PAGE_TITLE_PATTERN = /@pageTitle\s+(.+?)(?:\s*\*\/|\r?\n|$)/;
 // stay short regardless of how each demo's override is written.
 const PAGE_TITLE_PREFIX_PATTERN = /^BLIT386 Demo (?:(?:[0-9]{3}|00a) )?[-–]\s*/;
 // Same shape as PAGE_TITLE_PATTERN: the `\s*\*\/` branch handles a one-line `/** @description x */`,
-// `\r?\n` the `//` and multi-line JSDoc forms. Single line only – `.` does not match a newline, so a
+// `\r?\n` the `//` and multi-line JSDoc forms. Single line only - `.` does not match a newline, so a
 // wrapped description would silently truncate at the first line rather than fail.
 //
 // The separator is `[ \t]+`, not `\s+`, and that matters: `\s` matches a newline, so a bare
 // `// @description` with the text on the following comment line would capture that next line
-// verbatim – comment markers and all – and hand `// A description...` to the meta tag.
+// verbatim - comment markers and all - and hand `// A description...` to the meta tag.
 const DESCRIPTION_PATTERN = /@description[ \t]+(.+?)(?:\s*\*\/|\r?\n|$)/;
 // Optional per-demo OG card framing, validated against OG_SCALE_MODES by check-demo-registry.
 const OG_SCALE_PATTERN = /@ogScale[ \t]+(.+?)(?:\s*\*\/|\r?\n|$)/;
@@ -33,13 +33,13 @@ export const NAV_HIDDEN_SLUGS = new Set();
 /**
  * Build the list of demos by scanning src/*.js for number-free kebab-case files.
  * Order comes from `DEMO_ORDER` (not filenames). Each entry's title defaults to
- * "BLIT386 Demo – Title Cased Topic" and may be overridden by a `@pageTitle ...` tag
+ * "BLIT386 Demo - Title Cased Topic" and may be overridden by a `@pageTitle ...` tag
  * in the JS file header. `navLabel` is always the short title (searchable, no number).
  * `description` comes from the required `@description ...` header tag and feeds the page's
  * meta description and og:description (see `plugins/social-meta.js`).
  * `ogScale` is the optional `@ogScale ...` override for how that demo's OpenGraph card is
  * framed, empty when the demo is happy with the default.
- * @param {string} rootDir – Absolute path to the project root (Vite's config.root).
+ * @param {string} rootDir - Absolute path to the project root (Vite's config.root).
  * @returns {Array<{
  *   slug: string,
  *   scriptFile: string,
@@ -129,7 +129,7 @@ export function buildRegistry(rootDir) {
 
 /**
  * Read the first HEADER_SCAN_BYTES of a file as UTF-8 text.
- * @param {string} path – Absolute file path
+ * @param {string} path - Absolute file path
  * @returns {string}
  */
 function readHeader(path) {
@@ -140,8 +140,8 @@ function readHeader(path) {
 
 /**
  * Derive the page title for a demo.
- * @param {string} slug – Kebab-case slug, e.g. "sprite-effects"
- * @param {string} header – First chunk of the JS source (to scan for @pageTitle)
+ * @param {string} slug - Kebab-case slug, e.g. "sprite-effects"
+ * @param {string} header - First chunk of the JS source (to scan for @pageTitle)
  * @returns {string}
  */
 function deriveTitle(slug, header) {
@@ -159,8 +159,8 @@ function deriveTitle(slug, header) {
  * "Flurry" or "PipBoy CRT". Strips a leading "BLIT386 Demo … - " prefix from `@pageTitle`
  * overrides that include it, so nav labels stay uniform regardless of how each demo's
  * `@pageTitle` is written.
- * @param {string} slug – Kebab-case slug, e.g. "sprite-effects"
- * @param {string} header – First chunk of the JS source (to scan for @pageTitle)
+ * @param {string} slug - Kebab-case slug, e.g. "sprite-effects"
+ * @param {string} header - First chunk of the JS source (to scan for @pageTitle)
  * @returns {string}
  */
 export function deriveShortTitle(slug, header) {
@@ -175,11 +175,11 @@ export function deriveShortTitle(slug, header) {
 
 /**
  * Extract the one-line `@description` header tag from a demo file header. Unlike `@pageTitle`
- * there is no derived fallback – the tag is required, because a description auto-generated from
+ * there is no derived fallback - the tag is required, because a description auto-generated from
  * a slug would read worse than no description at all in a social card.
  *
  * Exported so it can be unit-tested without touching disk.
- * @param {string} header – First HEADER_SCAN_BYTES of the JS source.
+ * @param {string} header - First HEADER_SCAN_BYTES of the JS source.
  * @returns {string} The trimmed description, or '' when the tag is absent.
  */
 export function deriveDescription(header) {
@@ -199,7 +199,7 @@ export function deriveDescription(header) {
  * Returns the raw value rather than validating it: `scripts/check-demo-registry.mjs` owns the
  * "is this a real mode" check, so an unknown value fails the gate loudly instead of being
  * silently swapped for a default here.
- * @param {string} header – First HEADER_SCAN_BYTES of the JS source.
+ * @param {string} header - First HEADER_SCAN_BYTES of the JS source.
  * @returns {string} The trimmed mode, or '' when the tag is absent.
  */
 export function deriveOgScale(header) {
@@ -214,7 +214,7 @@ export function deriveOgScale(header) {
 
 /**
  * Title-case a kebab-case topic, e.g. "sprite-effects" -> "Sprite Effects".
- * @param {string} topic – Kebab-case topic
+ * @param {string} topic - Kebab-case topic
  * @returns {string}
  */
 function titleCaseTopic(topic) {

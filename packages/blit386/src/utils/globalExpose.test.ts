@@ -2,7 +2,7 @@
  * Unit tests for {@link resolveExposeGlobal} and {@link exposeGlobal}.
  *
  * `resolveExposeGlobal` is a pure function taking its inputs as parameters, so its tests run in
- * the default Node vitest environment with no `happy-dom` opt-in – this property is load-bearing
+ * the default Node vitest environment with no `happy-dom` opt-in - this property is load-bearing
  * for BT-416, which needs the `window.BT` assignment guard to stay testable outside a DOM.
  */
 

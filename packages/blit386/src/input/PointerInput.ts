@@ -133,7 +133,7 @@ export class PointerInput {
      * Set by the resize observer, the window `resize` / `scroll` listeners,
      * and once per {@link endFrame} tick as a safety net for layout changes
      * that fire none of those (a CSS transform or class toggle on an
-     * ancestor) – see {@link endFrame}'s JSDoc for the tradeoff.
+     * ancestor) - see {@link endFrame}'s JSDoc for the tradeoff.
      */
     private isRectDirty = true;
 
@@ -143,7 +143,7 @@ export class PointerInput {
     /**
      * The canvas's owning `window` (`canvas.ownerDocument.defaultView`), captured
      * by {@link attach} so the `resize` / `scroll` invalidation listeners are
-     * registered on – and removed from – the same window the canvas actually
+     * registered on - and removed from - the same window the canvas actually
      * lives in, not the global `window`. These differ when the canvas sits in an
      * iframe or a secondary document.
      */
@@ -213,15 +213,15 @@ export class PointerInput {
      * Also installs the {@link cachedRect} invalidation sources: a
      * `ResizeObserver` on the canvas, and `resize` / `scroll` listeners on
      * the canvas's owning window (`canvas.ownerDocument.defaultView`, not
-     * necessarily the global `window` – they differ for a canvas in an
+     * necessarily the global `window` - they differ for a canvas in an
      * iframe or a secondary document). `scroll` uses the capture phase
      * since a scroll on any ancestor can shift the canvas's client rect
      * without resizing it. These mark the cache dirty instead of reading
      * the rect synchronously, so a high-frequency scroll gesture doesn't
      * reintroduce the same layout-thrash risk this cache exists to avoid.
      *
-     * @param canvas – Canvas element rendering the engine output.
-     * @param displaySize – Logical display size used to convert screen coordinates.
+     * @param canvas - Canvas element rendering the engine output.
+     * @param displaySize - Logical display size used to convert screen coordinates.
      */
     public attach(canvas: HTMLCanvasElement, displaySize: Vector2i): void {
         this.detach();
@@ -347,7 +347,7 @@ export class PointerInput {
      * class toggle on an ancestor resizing the canvas). Recomputing at most
      * once per tick bounds the staleness window to a single frame
      * (~16 ms at 60 fps) while still cutting reads from once per pointer
-     * event (up to 500–1000/s for a high-poll-rate mouse) down to once per
+     * event (up to 500-1000/s for a high-poll-rate mouse) down to once per
      * rendered frame.
      */
     public endFrame(): void {
@@ -370,7 +370,7 @@ export class PointerInput {
      * Valid slots return a clone; invalid slots return the shared zero singleton
      * (do not mutate the return value when the slot is invalid).
      *
-     * @param slot – Pointer slot index (0 = mouse, 1-3 = touch / pen).
+     * @param slot - Pointer slot index (0 = mouse, 1-3 = touch / pen).
      * @returns Pointer position in display coordinates, or `Vector2i.zero()` for invalid slots.
      */
     public getPos(slot: number): Vector2i {
@@ -389,8 +389,8 @@ export class PointerInput {
      * Zero-allocation alternative to `getPos()`. Writes `(0, 0)` into `out` when the slot index is
      * out of `[0, POINTER_SLOT_COUNT - 1]`.
      *
-     * @param slot – Pointer slot index (0 = mouse, 1-3 = touch / pen).
-     * @param out – Vector to write the pointer position into.
+     * @param slot - Pointer slot index (0 = mouse, 1-3 = touch / pen).
+     * @param out - Vector to write the pointer position into.
      * @returns The `out` vector, for chaining.
      */
     public getPosTo(slot: number, out: Vector2i): Vector2i {
@@ -411,7 +411,7 @@ export class PointerInput {
      *
      * Returns `Vector2i.zero()` when the slot index is out of range.
      *
-     * @param slot – Pointer slot index.
+     * @param slot - Pointer slot index.
      * @returns Per-frame delta in display coordinates.
      */
     public getDelta(slot: number): Vector2i {
@@ -431,8 +431,8 @@ export class PointerInput {
      * Zero-allocation alternative to `getDelta()`. Writes `(0, 0)` into `out` when the slot index
      * is out of range.
      *
-     * @param slot – Pointer slot index.
-     * @param out – Vector to write the delta into.
+     * @param slot - Pointer slot index.
+     * @param out - Vector to write the delta into.
      * @returns The `out` vector, for chaining.
      */
     public getDeltaTo(slot: number, out: Vector2i): Vector2i {
@@ -458,7 +458,7 @@ export class PointerInput {
      * the canvas and no subsequent `pointerleave` has cleared it. For touch /
      * pen slots this means the contact is still down.
      *
-     * @param slot – Pointer slot index.
+     * @param slot - Pointer slot index.
      * @returns `true` when the slot has live position data.
      */
     public isActive(slot: number): boolean {
@@ -469,8 +469,8 @@ export class PointerInput {
      * Reports whether the pointer in slot `slot` is positioned inside `rect`, without
      * allocating a `Vector2i` (unlike `getPos(slot)` followed by a containment check).
      *
-     * @param slot – Pointer slot index.
-     * @param rect – Rectangle to test against, in display coordinates.
+     * @param slot - Pointer slot index.
+     * @param rect - Rectangle to test against, in display coordinates.
      * @returns `true` when the slot is active and its position is inside `rect`.
      */
     public isSlotInRect(slot: number, rect: Rect2i): boolean {
@@ -511,7 +511,7 @@ export class PointerInput {
      * scroll while the pointer is over the canvas unless
      * {@link setIsScrollCaptureForced} is active.
      *
-     * @param enabled – Whether the demo opted into pointer scroll capture.
+     * @param enabled - Whether the demo opted into pointer scroll capture.
      */
     public setIsCapturingScroll(enabled: boolean): void {
         this.isCapturingScroll = enabled;
@@ -524,7 +524,7 @@ export class PointerInput {
      * Independent of {@link setIsCapturingScroll}. Cleared when the pointer
      * leaves the palette band or the overlay body is hidden.
      *
-     * @param forced – Whether overlay scroll capture is active this frame.
+     * @param forced - Whether overlay scroll capture is active this frame.
      */
     public setIsScrollCaptureForced(forced: boolean): void {
         this.isScrollCaptureForced = forced;
@@ -541,8 +541,8 @@ export class PointerInput {
      * For slots 1-3 (touch / pen): only `BTN_A` is ever true while the
      * contact is down; `B`, `C`, `D` always return `false`.
      *
-     * @param button – One of `BTN_A..D`.
-     * @param slot – Pointer slot index.
+     * @param button - One of `BTN_A..D`.
+     * @param slot - Pointer slot index.
      * @returns `true` while the button remains pressed and the slot is active.
      */
     public isButtonDown(button: number, slot: number): boolean {
@@ -571,8 +571,8 @@ export class PointerInput {
      * Unlike {@link isButtonDown}, does not require the slot to be active, so press
      * edges remain visible after deactivation.
      *
-     * @param button – One of `BTN_A..D`.
-     * @param slot – Pointer slot index.
+     * @param button - One of `BTN_A..D`.
+     * @param slot - Pointer slot index.
      * @returns `true` only on the frame the button transitions from up to down.
      */
     public isButtonPressed(button: number, slot: number): boolean {
@@ -600,8 +600,8 @@ export class PointerInput {
      * Reports whether the given pointer button transitioned to up on the current frame.
      * Unlike {@link isButtonDown}, does not require the slot to be active.
      *
-     * @param button – One of `BTN_A..D`.
-     * @param slot – Pointer slot index.
+     * @param button - One of `BTN_A..D`.
+     * @param slot - Pointer slot index.
      * @returns `true` only on the frame the button transitions from down to up.
      */
     public isButtonReleased(button: number, slot: number): boolean {
@@ -652,7 +652,7 @@ export class PointerInput {
      * already bound to this `pointerId` for touch / pen. Drops touch / pen
      * moves with no slot binding (allocation only happens on `pointerdown`).
      *
-     * @param event – DOM pointer event from the canvas.
+     * @param event - DOM pointer event from the canvas.
      */
     private handleMove(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
@@ -690,7 +690,7 @@ export class PointerInput {
      * 1..3 and set `BTN_A`; events that arrive while all touch
      * slots are full are dropped silently.
      *
-     * @param event – DOM pointer event from the canvas.
+     * @param event - DOM pointer event from the canvas.
      */
     private handleDown(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
@@ -714,7 +714,7 @@ export class PointerInput {
             return;
         }
 
-        // Touch or pen: route to the first free slot in 1..POINTER_SLOT_COUNT – 1.
+        // Touch or pen: route to the first free slot in 1..POINTER_SLOT_COUNT - 1.
         if (this.idToSlot.has(event.pointerId)) {
             return;
         }
@@ -756,7 +756,7 @@ export class PointerInput {
      * slot 0 but leave the slot valid. Touch / pen events free their slot
      * completely so a subsequent contact can reuse it.
      *
-     * @param event – DOM pointer event from the canvas.
+     * @param event - DOM pointer event from the canvas.
      */
     private handleUp(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
@@ -789,7 +789,7 @@ export class PointerInput {
      * same as `pointerleave`: deactivates slot 0 for mouse, frees the slot
      * for touch / pen.
      *
-     * @param event – DOM pointer event from the canvas.
+     * @param event - DOM pointer event from the canvas.
      */
     private handleCancel(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
@@ -812,7 +812,7 @@ export class PointerInput {
      * mouse: deactivates slot 0 and clears all buttons. For touch / pen:
      * frees the slot.
      *
-     * @param event – DOM pointer event from the canvas.
+     * @param event - DOM pointer event from the canvas.
      */
     private handlePointerLeave(event: PointerEvent): void {
         if (event.pointerType === 'mouse') {
@@ -840,7 +840,7 @@ export class PointerInput {
      * Capture is active when {@link setIsCapturingScroll} or
      * {@link setIsScrollCaptureForced} is enabled.
      *
-     * @param event – DOM wheel event from the canvas.
+     * @param event - DOM wheel event from the canvas.
      */
     private handleWheel(event: WheelEvent): void {
         if (!this.isCapturingScroll && !this.isScrollCaptureForced) {
@@ -907,7 +907,7 @@ export class PointerInput {
      * Returns a slot to the empty / inactive state without reallocating its
      * `Vector2i` storage.
      *
-     * @param slot – Slot to reset in place.
+     * @param slot - Slot to reset in place.
      */
     private resetSlot(slot: Slot): void {
         slot.pointerId = null;
@@ -951,7 +951,7 @@ export class PointerInput {
      * velocity via `getDelta`. The next pointerdown that reuses this slot
      * resyncs `prevPos` so the first frame's delta starts at zero.
      *
-     * @param slotIndex – Index of the slot to free.
+     * @param slotIndex - Index of the slot to free.
      */
     private freeSlot(slotIndex: number): void {
         // eslint-disable-next-line security/detect-object-injection -- slotIndex resolved from idToSlot, always in [0, POINTER_SLOT_COUNT)
@@ -1009,8 +1009,8 @@ export class PointerInput {
      * Buttons 3 and 4 (back / forward) both map to `D`. Other values are
      * silently ignored.
      *
-     * @param slot – Mouse slot to update (always slot 0).
-     * @param button – DOM `PointerEvent.button` value.
+     * @param slot - Mouse slot to update (always slot 0).
+     * @param button - DOM `PointerEvent.button` value.
      * @param isPressed - `true` to set the button down, `false` to release it.
      */
     private setMouseButton(slot: Slot, button: number, isPressed: boolean): void {
@@ -1040,9 +1040,9 @@ export class PointerInput {
      * Skips the update when the canvas has zero size (no layout yet) so the
      * division does not produce NaN coordinates.
      *
-     * @param slot – Slot whose position to update.
-     * @param clientX – DOM `clientX` from the source event.
-     * @param clientY – DOM `clientY` from the source event.
+     * @param slot - Slot whose position to update.
+     * @param clientX - DOM `clientX` from the source event.
+     * @param clientY - DOM `clientY` from the source event.
      */
     private updateSlotPosition(slot: Slot, clientX: number, clientY: number): void {
         const displaySize = this.displaySize;
@@ -1079,7 +1079,7 @@ export class PointerInput {
      * Returns the canvas's bounding client rect, reusing {@link cachedRect}
      * unless {@link isRectDirty} demands a fresh `getBoundingClientRect()`
      * read. This is what keeps a burst of pointer events (a high-poll-rate
-     * mouse firing `pointermove` at 500–1000 Hz) from each forcing a
+     * mouse firing `pointermove` at 500-1000 Hz) from each forcing a
      * synchronous style/layout flush.
      *
      * @returns The current canvas rect, or `null` when not attached.
@@ -1105,7 +1105,7 @@ export class PointerInput {
      * Used by all public read methods to bounds-check the caller-supplied slot
      * argument while keeping `noUncheckedIndexedAccess` happy.
      *
-     * @param index – Slot index to look up.
+     * @param index - Slot index to look up.
      * @returns Slot at the index, or `null` for out-of-range indices.
      */
     private getSlotOrNull(index: number): Slot | null {
@@ -1123,7 +1123,7 @@ export class PointerInput {
      * Resolves the `idToSlot` map and the indexed slot lookup in one
      * helper so event handlers can early-return without repeating the guards.
      *
-     * @param pointerId – Native `pointerId` from a DOM pointer event.
+     * @param pointerId - Native `pointerId` from a DOM pointer event.
      * @returns Slot bound to this `pointerId`, or `null` when no slot is bound.
      */
     private lookupSlotById(pointerId: number): Slot | null {

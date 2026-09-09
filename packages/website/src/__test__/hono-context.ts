@@ -1,7 +1,7 @@
 /**
  * Hono request/response doubles for the Fumapress `ServerPlugin`s in `src/`.
  *
- * `hono` is not a dependency of this package – it reaches us only as a transitive type through
+ * `hono` is not a dependency of this package - it reaches us only as a transitive type through
  * `fumapress`, whose declaration files resolve it from their own pnpm directory. Every Hono type
  * below is therefore recovered structurally from `ServerPlugin['createMiddlewares']` rather than
  * imported. `Context` is a class, so no object literal can ever be structurally assignable to it;
@@ -15,7 +15,7 @@ import type { AppContext, ServerPlugin } from 'fumapress';
 
 type CreateMiddlewares = NonNullable<ServerPlugin['createMiddlewares']>;
 
-/** `{ app: Hono }` – the argument Fumapress hands to `createMiddlewares`. */
+/** `{ app: Hono }` - the argument Fumapress hands to `createMiddlewares`. */
 type MiddlewareEnv = Parameters<CreateMiddlewares>[0];
 
 /** Hono's `MiddlewareHandler`, recovered without importing `hono`. */
@@ -107,7 +107,7 @@ export function createMockContext(options: MockContextOptions = {}): MockContext
 
 /**
  * Fumapress passes `{ app }` into `createMiddlewares`. None of the plugins in `src/` read it and a
- * real `Hono` is not constructible here, so a stub stands in – legal without `unknown`, since
+ * real `Hono` is not constructible here, so a stub stands in - legal without `unknown`, since
  * `Hono` is assignable to `{}`.
  */
 const MIDDLEWARE_ENV = { app: {} } as MiddlewareEnv;

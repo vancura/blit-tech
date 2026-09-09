@@ -143,7 +143,7 @@ describe('downloadBlob', () => {
 
         // Filenames come from callers such as `BT.downloadFrame` (a caller-chosen
         // name) or the Shift+F9 shortcut's `defaultFrameCaptureFilename` (a
-        // timestamped one) – downloadBlob itself is filename-agnostic, so exercise
+        // timestamped one) - downloadBlob itself is filename-agnostic, so exercise
         // it with the timestamped shape to match how the Shift+F9 path actually calls it.
         const filename = defaultFrameCaptureFilename(new Date(2026, 8, 18, 7, 19, 33));
 
@@ -176,7 +176,7 @@ describe('FrameCapture', () => {
     it('should set a pending flag after request', () => {
         const capture = new FrameCapture();
 
-        // Don't await – just queue the request.
+        // Don't await - just queue the request.
         void capture.request();
 
         expect(capture.hasPending()).toBe(true);
@@ -366,7 +366,7 @@ describe('pixelBufferToPNG decoded dimensions (regression)', () => {
      * Installs an `OffscreenCanvas` mock whose `convertToBlob()` actually encodes real PNG bytes
      * (via `pngjs`) from the `ImageData` it was given, instead of returning an opaque fake `Blob`.
      * Unlike {@link installBrowserMocks}, this lets a test decode the result and verify its real
-     * encoded pixel dimensions – the whole point of this regression test (see BT-488): a mocked
+     * encoded pixel dimensions - the whole point of this regression test (see BT-488): a mocked
      * fixed-content Blob can't catch a width/height mismatch introduced upstream.
      */
     function installRealPNGBrowserMocks(): void {
@@ -427,7 +427,7 @@ describe('pixelBufferToPNG decoded dimensions (regression)', () => {
         const width = 320;
         const height = 240;
 
-        // 320 * 4 = 1280, already a multiple of 256, so no row padding to strip here – this test
+        // 320 * 4 = 1280, already a multiple of 256, so no row padding to strip here - this test
         // is about width/height correctness, not the padding logic covered elsewhere in this file.
         const paddedBytesPerRow = alignedBytesPerRow(width);
         const buffer = new ArrayBuffer(paddedBytesPerRow * height);
@@ -446,7 +446,7 @@ describe('pixelBufferToPNG decoded dimensions (regression)', () => {
         installRealPNGBrowserMocks();
 
         // Mirrors BT-488: a captured frame must match outputSize (drawingBufferSize ?? displaySize),
-        // here a 640x480 drawing buffer for a 320x240 logical display – not the logical size.
+        // here a 640x480 drawing buffer for a 320x240 logical display - not the logical size.
         const width = 640;
         const height = 480;
         const paddedBytesPerRow = alignedBytesPerRow(width);

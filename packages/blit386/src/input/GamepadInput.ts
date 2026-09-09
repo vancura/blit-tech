@@ -85,8 +85,8 @@ type GamepadAxes = [number, number, number, number, number, number];
 /**
  * Reads and clamps a raw stick axis to `[-1, 1]`.
  *
- * @param pad – Gamepad object.
- * @param index – Raw axis index.
+ * @param pad - Gamepad object.
+ * @param index - Raw axis index.
  * @returns Clamped axis value.
  */
 function getAxis(pad: Gamepad, index: number): number {
@@ -102,8 +102,8 @@ function getAxis(pad: Gamepad, index: number): number {
 /**
  * Reads a trigger/button analog value and clamps to `[0, 1]`.
  *
- * @param pad – Gamepad object.
- * @param index – Raw button index.
+ * @param pad - Gamepad object.
+ * @param index - Raw button index.
  * @returns Clamped analog value.
  */
 function getButtonValue(pad: Gamepad, index: number): number {
@@ -121,8 +121,8 @@ function getButtonValue(pad: Gamepad, index: number): number {
 /**
  * Checks digital down-state for a gamepad button.
  *
- * @param pad – Gamepad object.
- * @param index – Raw button index.
+ * @param pad - Gamepad object.
+ * @param index - Raw button index.
  * @returns `true` when considered pressed.
  */
 function isButtonDown(pad: Gamepad, index: number): boolean {
@@ -177,7 +177,7 @@ export class GamepadInput {
     /**
      * Creates a gamepad input tracker.
      *
-     * @param deadZone – Stick dead-zone threshold in `[0, 0.99]`.
+     * @param deadZone - Stick dead-zone threshold in `[0, 0.99]`.
      */
     constructor(deadZone: number = DEFAULT_GAMEPAD_DEAD_ZONE) {
         this.current = [
@@ -228,7 +228,7 @@ export class GamepadInput {
     /**
      * Sets the analog stick dead zone used by {@link GamepadInput.getAxis} for stick axes.
      *
-     * @param deadZone – New dead-zone threshold.
+     * @param deadZone - New dead-zone threshold.
      */
     public setDeadZone(deadZone: number): void {
         this.deadZone = this.sanitizeDeadZone(deadZone);
@@ -248,7 +248,7 @@ export class GamepadInput {
      * frame's edge detection, then polls gamepads once for the frame about to
      * start.
      *
-     * @param _currentTick – Current engine tick (unused; kept for BTAPI parity).
+     * @param _currentTick - Current engine tick (unused; kept for BTAPI parity).
      */
     public endFrame(_currentTick: number): void {
         for (let i = 0; i < GAMEPAD_PLAYER_COUNT; i++) {
@@ -273,8 +273,8 @@ export class GamepadInput {
     /**
      * Reports whether any button in `buttonMask` is currently held for `player`.
      *
-     * @param buttonMask – One or more `BTN_*` bit flags.
-     * @param player – Zero-based player index.
+     * @param buttonMask - One or more `BTN_*` bit flags.
+     * @param player - Zero-based player index.
      * @returns `true` when any requested button is currently down.
      */
     public isButtonDown(buttonMask: number, player: number): boolean {
@@ -298,10 +298,10 @@ export class GamepadInput {
      *
      * Matching uses ANY semantics across `buttonMask` bits.
      *
-     * @param buttonMask – One or more `BTN_*` bit flags.
-     * @param player – Zero-based player index.
-     * @param repeatRate – Tick interval for repeat (`<= 0` or omitted = edge only).
-     * @param currentTick – Current fixed-update tick.
+     * @param buttonMask - One or more `BTN_*` bit flags.
+     * @param player - Zero-based player index.
+     * @param repeatRate - Tick interval for repeat (`<= 0` or omitted = edge only).
+     * @param currentTick - Current fixed-update tick.
      * @returns `true` on press edge or repeat tick.
      */
     public isButtonPressed(
@@ -355,8 +355,8 @@ export class GamepadInput {
      * Reports whether any button in `buttonMask` was released this frame, including
      * when the gamepad disconnects while buttons were held.
      *
-     * @param buttonMask – One or more `BTN_*` bit flags.
-     * @param player – Zero-based player index.
+     * @param buttonMask - One or more `BTN_*` bit flags.
+     * @param player - Zero-based player index.
      * @returns `true` when any requested button transitions from down to up.
      */
     public isButtonReleased(buttonMask: number, player: number): boolean {
@@ -389,8 +389,8 @@ export class GamepadInput {
      *
      * Stick axes apply dead-zone filtering. Trigger axes return raw `[0, 1]`.
      *
-     * @param axis – Axis constant (`AXIS_*`).
-     * @param player – Zero-based player index.
+     * @param axis - Axis constant (`AXIS_*`).
+     * @param player - Zero-based player index.
      * @returns Axis value, or `0` for invalid/disconnected inputs.
      */
     public getAxis(axis: number, player: number): number {
@@ -412,7 +412,7 @@ export class GamepadInput {
     /**
      * Reports whether a gamepad is connected for the given player slot.
      *
-     * @param player – Zero-based player index.
+     * @param player - Zero-based player index.
      * @returns `true` when connected.
      */
     public isConnected(player: number): boolean {
@@ -458,7 +458,7 @@ export class GamepadInput {
     /**
      * Normalizes and clamps dead-zone configuration.
      *
-     * @param deadZone – Requested dead-zone value.
+     * @param deadZone - Requested dead-zone value.
      * @returns Clamped dead-zone value.
      */
     private sanitizeDeadZone(deadZone: number): number {
@@ -515,7 +515,7 @@ export class GamepadInput {
     /**
      * Maps standard Gamepad API buttons to `BTN_*` bit flags.
      *
-     * @param pad – Gamepad object from browser API.
+     * @param pad - Gamepad object from browser API.
      * @returns Button-state bitmask.
      */
     private mapButtons(pad: Gamepad): number {
@@ -565,8 +565,8 @@ export class GamepadInput {
      * Maps gamepad axis/button values into `AXIS_*` order, writing into the
      * given preallocated tuple in place.
      *
-     * @param pad – Gamepad object from browser API.
-     * @param target – Preallocated axis tuple to write into.
+     * @param pad - Gamepad object from browser API.
+     * @param target - Preallocated axis tuple to write into.
      */
     private mapAxesInto(pad: Gamepad, target: GamepadAxes): void {
         target[0] = this.applyStickDeadZone(getAxis(pad, 0));
@@ -580,7 +580,7 @@ export class GamepadInput {
     /**
      * Applies configured dead zone and re-normalizes stick range.
      *
-     * @param value – Raw stick axis value.
+     * @param value - Raw stick axis value.
      * @returns Dead-zone filtered value.
      */
     private applyStickDeadZone(value: number): number {
@@ -598,7 +598,7 @@ export class GamepadInput {
     /**
      * Validates player slot index.
      *
-     * @param player – Caller-supplied player index.
+     * @param player - Caller-supplied player index.
      * @returns Normalized index or `null` when invalid.
      */
     private normalizePlayer(player: number): number | null {
@@ -612,9 +612,9 @@ export class GamepadInput {
     /**
      * Stores first-press ticks for newly pressed buttons in this frame.
      *
-     * @param player – Player slot index.
-     * @param edgeMask – Newly pressed button bits.
-     * @param tick – Current engine tick.
+     * @param player - Player slot index.
+     * @param edgeMask - Newly pressed button bits.
+     * @param tick - Current engine tick.
      */
     private recordNewPressTicks(player: number, edgeMask: number, tick: number): void {
         const table = this.firstPressTick[player];
@@ -633,8 +633,8 @@ export class GamepadInput {
     /**
      * Finds the oldest held-button first-press tick within `heldMask`.
      *
-     * @param player – Player slot index.
-     * @param heldMask – Currently held button bits.
+     * @param player - Player slot index.
+     * @param heldMask - Currently held button bits.
      * @returns Earliest held-button tick anchor, if any.
      */
     private getMinFirstPressTick(player: number, heldMask: number): number | undefined {
@@ -664,8 +664,8 @@ export class GamepadInput {
     /**
      * Removes repeat anchors for buttons no longer held.
      *
-     * @param player – Player slot index.
-     * @param heldMask – Current held button mask.
+     * @param player - Player slot index.
+     * @param heldMask - Current held button mask.
      */
     private dropReleasedTickAnchors(player: number, heldMask: number): void {
         const table = this.firstPressTick[player];

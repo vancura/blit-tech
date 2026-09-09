@@ -14,7 +14,7 @@ without anyone ticking a box, issues get pushed to the next milestone, and state
 ticket trustworthy again so `/release` can be run against it.
 
 Requires the Linear MCP tools (`get_issue`, `list_issues`, `save_issue`, `list_milestones`). Without them, stop and say
-so – there is no useful repo-only subset of this skill.
+so - there is no useful repo-only subset of this skill.
 
 ## Usage
 
@@ -23,7 +23,7 @@ so – there is no useful repo-only subset of this skill.
 ```
 
 With no argument, resolve the milestone before the ticket. Call `list_milestones` on the BLIT386 project and pick the
-one whose version matches the release being prepared – do not assume the highest number and do not assume the most
+one whose version matches the release being prepared - do not assume the highest number and do not assume the most
 recently created. Then call `list_issues` for the BLIT386 team requesting the `projectMilestone` field and keep only the
 issues on that milestone; `list_issues` has no milestone parameter, so that filtering is yours to do. From those, pick
 the issue titled `Release engine <version>`.
@@ -46,13 +46,13 @@ This skill covers what `/release` never looks at: Linear, and the agent-facing f
 
 ## 1. Get the inventory from `/release`, do not re-derive it
 
-Read `.claude/skills/release/SKILL.md` and follow its steps 2 through 7 – last tag, commits since, merged PRs with their
+Read `.claude/skills/release/SKILL.md` and follow its steps 2 through 7 - last tag, commits since, merged PRs with their
 changed files, direct pushes, per-package grouping. Answer its step 1 version question with the milestone's version.
 
 Those steps are read-only inventory, and running them from here must stay that way. The allowed set is `git describe`,
 `git log`, `git rev-list`, `gh pr list`, `gh repo view`, and `gh api repos/<repo>/commits/<sha>/pulls`, plus local
 parsing of what they return. Run nothing outside it. If a step in that range has grown a command that writes a file,
-creates a branch, or publishes anything, stop and report it instead of running it – a review must not mutate what it is
+creates a branch, or publishes anything, stop and report it instead of running it - a review must not mutate what it is
 reviewing.
 
 **Stop before step 8.** Writing `RELEASE.md` belongs to the release, not to the review. What you want is the grouped PR
@@ -68,11 +68,11 @@ produced a real finding the last time this ran:
 | Scope that moved milestone | The ticket lists a ticket as shipping; that ticket now sits on the next milestone |
 | Checkbox versus status | Unchecked boxes for issues that are Done, and "(In Progress)" annotations long out of date |
 | Milestone issues the ticket omits | Open issues on the milestone named nowhere in the punch list |
-| Status contradicting shipped code | An issue reverted to Todo while its code is on `main` – check the source, not the ticket |
+| Status contradicting shipped code | An issue reverted to Todo while its code is on `main` - check the source, not the ticket |
 | Wrong-state issues on the milestone | Duplicate or Canceled issues still counting toward the burn-down |
 
 For scope that moved, do not simply delete it. Move it into the ticket's deferred section with the date and a sentence
-on what its absence means for this release – a release that quietly loses a feature is worse than one that records why.
+on what its absence means for this release - a release that quietly loses a feature is worse than one that records why.
 
 ## 3. Reconcile the ticket against the repo
 
@@ -84,7 +84,7 @@ date you checked:
 - Pre-bump values the bump script rewrites: `BTAPI.VERSION_MAJOR` / `MINOR` / `PATCH`, kit `blit386.engineRange`,
   `scaffold.ts`'s `BLIT386_RANGE`
 - Named files: confirm each path exists and holds what the ticket says. A doc item can be satisfied in a different file
-  than the one named – when it is, say so explicitly, or the next reader duplicates the content into the named file
+  than the one named - when it is, say so explicitly, or the next reader duplicates the content into the named file
 
 ## 4. The blind spots
 
@@ -100,7 +100,7 @@ Three classes of problem sit outside both `/release` and the ticket's own checkl
 
 ## 5. Patch the ticket
 
-Use `save_issue` with `patch` operations, never a full-body resend – see mechanics below.
+Use `save_issue` with `patch` operations, never a full-body resend - see mechanics below.
 
 Four rules:
 
@@ -112,7 +112,7 @@ Four rules:
 
 ## 6. Report
 
-Lead with what is genuinely still open – that is the answer the user wants. Then the corrections you made, then the
+Lead with what is genuinely still open - that is the answer the user wants. Then the corrections you made, then the
 milestone and status fixes you are recommending but did not apply. If the review found work worth its own issue, file it
 with the `linear-issue` skill rather than burying it in a checkbox.
 
@@ -125,10 +125,10 @@ with the `linear-issue` skill rather than burying it in a checkbox.
 - A bare identifier outside a fenced block becomes a live mention, which is what you want. Inside a fenced block it
   stays literal, so starting prompts survive intact. Verify after saving rather than assuming.
 - `save_issue` echoes the whole issue back, which for a punch list can exceed the tool-result limit. That is a display
-  failure, not a save failure. Verify with `get_issue` – it is the authoritative read, and it is what confirms the
+  failure, not a save failure. Verify with `get_issue` - it is the authoritative read, and it is what confirms the
   persisted body, the checkbox state, and that the decision records survived. On a ticket large enough that the echo was
   truncated, check the sections you touched rather than the whole body.
 - `git show --name-only --format=` prints no file names, and `git diff-tree -m --first-parent <sha>` over-reports on a
-  merge commit – on one of this repo's merges it returned three files, a lockfile and two `package.json`s, that the
+  merge commit - on one of this repo's merges it returned three files, a lockfile and two `package.json`s, that the
   first-parent diff does not contain. Use `git diff-tree --no-commit-id --name-only -r <sha>^1 <sha>`, which compares
   the commit against its first parent and is correct for both squash commits and merges.

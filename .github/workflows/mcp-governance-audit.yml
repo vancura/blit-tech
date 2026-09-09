@@ -1,11 +1,11 @@
 name: MCP Governance Audit
 
 # BT-38: automated monthly check that the tracked root .mcp.json carries only the
-# documented, accepted shadow MCP entry (blit386-docs – see "Accepted MCP entries" in
+# documented, accepted shadow MCP entry (blit386-docs - see "Accepted MCP entries" in
 # packages/blit386/docs/security/security-runbook.md) and nothing unmanaged or unreviewed.
 #
 # Runs mcp-preflight.mjs in --governance-only mode, which never touches live MCP session
-# state (it only scans static *.mcp.json files) – so a partial or total MCP outage
+# state (it only scans static *.mcp.json files) - so a partial or total MCP outage
 # elsewhere never blocks this check, and it needs no --mcps-dir at all.
 
 on:
@@ -39,7 +39,7 @@ jobs:
 
       # No pnpm install: mcp-preflight.mjs uses only Node builtins (fs, os, path, node:util).
       # The checkout root here already is the monorepo root, so a single governance-only
-      # pass covers the tracked root .mcp.json directly – unlike the documented agent-session
+      # pass covers the tracked root .mcp.json directly - unlike the documented agent-session
       # procedure, which starts from inside a package directory and needs a --repo-root ../..
       # walk-up pass to reach it.
       - name: Run MCP governance preflight

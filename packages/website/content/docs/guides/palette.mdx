@@ -185,18 +185,18 @@ camera does not behave that way. Closing an iris multiplies light, and only then
 holds its brightness and then collapses near the end.
 
 `paletteFadeExposure` works in that same linear light: it interpolates each entry's RGB between its starting color and
-its target there, rather than in the encoded values. Fading up from black or down to black – the case a cinematic fade
-almost always is – that interpolation reduces to scaling light up or down, exactly as an iris does.
+its target there, rather than in the encoded values. Fading up from black or down to black - the case a cinematic fade
+almost always is - that interpolation reduces to scaling light up or down, exactly as an iris does.
 
 Worth recording so nobody re-derives it wrong later: fading in linear light does not by itself make highlights linger
-relative to shadows. sRGB is close to a pure power curve, and a power curve is scale-invariant – multiplying linear
+relative to shadows. sRGB is close to a pure power curve, and a power curve is scale-invariant - multiplying linear
 light by `k` multiplies every encoded value by roughly the same factor. You get a better-shaped curve, not a
 differential between white and dark gray.
 
 On real film that differential comes from headroom. A practical lamp in frame can sit far above diffuse white in linear
 scene terms, so stopping down two stops leaves it still clipping at pure white while everything else has visibly
 dropped. A palette engine has no headroom: 255 is the ceiling. So `paletteFadeExposure` approximates it by offsetting
-each entry's schedule by its luminance – bright entries start rising earlier and finish falling later, dark entries
+each entry's schedule by its luminance - bright entries start rising earlier and finish falling later, dark entries
 start late and crush early. That is the toe and shoulder behavior, with one knob (`highlightLead`).
 
 Every entry still reaches the target exactly at the end, so nothing drifts and no color is left one step off after the
@@ -205,7 +205,7 @@ fade lands.
 <Callout type="warn" title="A palette fade is per-index, not per-pixel">
 
 The schedule offset comes from a palette entry's own luminance, so a dark object sitting in a bright scene fades on the
-dark schedule regardless of what surrounds it – the engine only knows its palette slot, and real exposure has no such
+dark schedule regardless of what surrounds it - the engine only knows its palette slot, and real exposure has no such
 notion. For a fade up from black or down to black this reads correctly. In a busier scene, look at the result before
 committing to it, or fall back to `paletteFade`.
 

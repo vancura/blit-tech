@@ -34,7 +34,7 @@ export const CLAUDE_HOOKS_DIR = `${CLAUDE_DIR}hooks/`;
 export const CLAUDE_SETTINGS_JSON = `${CLAUDE_DIR}settings.json`;
 
 /**
- * Claude Code's MCP server configuration. Project root, not under `.claude/` – that is Claude Code's
+ * Claude Code's MCP server configuration. Project root, not under `.claude/` - that is Claude Code's
  * own convention, so this is the one Claude path the `CLAUDE_DIR` prefix does not cover and
  * `AGENT_PATHS` has to name outright.
  */
@@ -56,9 +56,9 @@ export const DOCS_DIR = 'docs/';
 /**
  * Which agent-sync ownership class a generated file belongs to.
  *
- * - `kit-owned`  – regenerated freely on sync when unmodified; never clobbered when modified
- * - `shared`     – only the managed region (`<!-- blit-kit:managed:start/end -->`) is rewritten on sync
- * - `user-owned` – scaffolded once, never touched again by sync or upgrade
+ * - `kit-owned`  - regenerated freely on sync when unmodified; never clobbered when modified
+ * - `shared`     - only the managed region (`<!-- blit-kit:managed:start/end -->`) is rewritten on sync
+ * - `user-owned` - scaffolded once, never touched again by sync or upgrade
  */
 export type FileClass = 'kit-owned' | 'shared' | 'user-owned';
 
@@ -84,10 +84,10 @@ const KIT_OWNED_DIRS: readonly string[] = [
  *
  * Files under `docs/` and the AI-tooling directories are kit-owned (sync regenerates them).
  * `AGENTS.md` and `CLAUDE.md` are shared (sync rewrites only the managed region). Everything else -
- * game sources, language config, README, package.json – is user-owned, scaffolded once and never
+ * game sources, language config, README, package.json - is user-owned, scaffolded once and never
  * overwritten by sync or upgrade.
  *
- * @param relPath – Path relative to the project root; Windows separators are normalized.
+ * @param relPath - Path relative to the project root; Windows separators are normalized.
  * @returns The ownership class sync applies to that file.
  */
 export function classifyFile(relPath: string): FileClass {
@@ -108,7 +108,7 @@ export function classifyFile(relPath: string): FileClass {
  * Does the kit regenerate this class on sync? User-owned files are never touched, so only kit-owned
  * and shared files are hashed, kept as pristine `.blit/base/` copies, and checked for drift.
  *
- * @param fileClass – The class recorded for a file in `.blit/manifest.json`.
+ * @param fileClass - The class recorded for a file in `.blit/manifest.json`.
  * @returns True when sync may rewrite the file or its managed region.
  */
 export function isKitManaged(fileClass: FileClass): boolean {
@@ -142,7 +142,7 @@ export const AGENT_SETUP_HINT: Record<AgentKind, string> = {
  * Exact paths and directory prefixes each assistant's generated files occupy.
  *
  * Every path an adapter emits must match here, or `hasAgentFiles` under-reports and a sync skips that
- * assistant's files – `test/ownership.test.mjs` pins that invariant. Claude needs `CLAUDE_MCP_JSON`
+ * assistant's files - `test/ownership.test.mjs` pins that invariant. Claude needs `CLAUDE_MCP_JSON`
  * spelled out because it sits at the project root rather than under `.claude/`; Cursor's `mcp.json`
  * is already covered by the `CURSOR_DIR` prefix.
  *
@@ -158,8 +158,8 @@ const AGENT_PATHS: Record<AgentKind, { readonly files: readonly string[]; readon
 /**
  * Is this project-relative path part of `agent`'s generated file set?
  *
- * @param relPath – Path relative to the project root; Windows separators are normalized.
- * @param agent – The assistant to test against.
+ * @param relPath - Path relative to the project root; Windows separators are normalized.
+ * @param agent - The assistant to test against.
  * @returns True when the path is one the assistant's adapter emits.
  */
 export function isAgentPath(relPath: string, agent: AgentKind): boolean {
@@ -175,8 +175,8 @@ export function isAgentPath(relPath: string, agent: AgentKind): boolean {
  * Takes anything carrying a `path` so the scaffolder's writer-side manifest entries and the CLI's
  * reader-side ones both satisfy it structurally, without this module depending on either shape.
  *
- * @param files – The manifest's tracked file entries.
- * @param agent – The assistant to look for.
+ * @param files - The manifest's tracked file entries.
+ * @param agent - The assistant to look for.
  * @returns True when at least one tracked file belongs to that assistant.
  */
 export function hasAgentFiles(files: readonly { readonly path: string }[], agent: AgentKind): boolean {

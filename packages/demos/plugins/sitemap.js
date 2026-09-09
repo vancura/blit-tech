@@ -7,7 +7,7 @@ import { buildRegistry } from './demo-registry.js';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const rootDir = resolve(__dirname, '..');
 
-// Mirrors package.json's "homepage" field – the canonical production origin. Also consumed by
+// Mirrors package.json's "homepage" field - the canonical production origin. Also consumed by
 // channel-headers.js to point production's robots.txt at this file.
 export const SITE_URL = 'https://demos.blit386.dev';
 
@@ -21,8 +21,8 @@ export const NEXT_SITE_URL = 'https://next.demos.blit386.dev';
  * Build the sitemap XML body for the live demo registry: the site root plus every demo's
  * canonical, extensionless URL, in registry order. Pure and exported so it can be
  * unit-tested without touching disk.
- * @param {Array<{ slug: string }>} registry – Live demo registry entries.
- * @param {string} siteUrl – Absolute origin to build URLs from (SITE_URL or NEXT_SITE_URL).
+ * @param {Array<{ slug: string }>} registry - Live demo registry entries.
+ * @param {string} siteUrl - Absolute origin to build URLs from (SITE_URL or NEXT_SITE_URL).
  * @returns {string} A complete `sitemap.xml` document.
  */
 export function buildSitemapXml(registry, siteUrl) {
@@ -40,7 +40,7 @@ export function buildSitemapXml(registry, siteUrl) {
 /**
  * Writes `dist/sitemap.xml` from the live demo registry: the site root plus every demo's
  * canonical, extensionless URL. Cloudflare Pages serves `/<slug>` and 308s `/<slug>.html` to
- * it, so only the extensionless form belongs here – same rule `demoRedirectsPlugin` follows
+ * it, so only the extensionless form belongs here - same rule `demoRedirectsPlugin` follows
  * for `_redirects`.
  *
  * Skipped entirely on the `next.demos.blit386.dev` preview channel (`BLIT386_CHANNEL=next`):

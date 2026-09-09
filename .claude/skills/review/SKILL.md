@@ -22,10 +22,10 @@ Where `<package>` is one of `blit386`, `demos`, `website`, `kit`, `create-blit38
 
 1. Gather changes
 
-Never collect `.claude/settings.local.json`, `.claude/launch.json`, or `.claude/scheduled_tasks.*` – gitignored,
+Never collect `.claude/settings.local.json`, `.claude/launch.json`, or `.claude/scheduled_tasks.*` - gitignored,
 machine-local, never in scope for a review. Use an explicit allowlist rather than a broad exclusion pattern, so a new
 root file that isn't yet gitignored can't slip into the review context either. The allowlists below are shell arrays,
-not space-separated strings – zsh (macOS's default shell) does not word-split an unquoted `"$VAR"` scalar the way bash
+not space-separated strings - zsh (macOS's default shell) does not word-split an unquoted `"$VAR"` scalar the way bash
 does, so a plain string variable silently collapses into one no-op pathspec argument there.
 
 - A package: run `git diff`, `git diff --cached`, and `git ls-files --others --exclude-standard` (each with
@@ -40,7 +40,7 @@ does, so a plain string variable silently collapses into one no-op pathspec argu
   git ls-files --others --exclude-standard -- "${POLICY_ALLOWLIST[@]}"
   ```
 
-- `root`: run the same three commands against the full root-owned allowlist – everything a root-level change could
+- `root`: run the same three commands against the full root-owned allowlist - everything a root-level change could
   touch, and nothing else:
 
   ```bash
@@ -61,13 +61,13 @@ does, so a plain string variable silently collapses into one no-op pathspec argu
 - `blit386`: `pnpm run lint`, `pnpm run typecheck`, `pnpm run spellcheck` (all inside `packages/blit386`)
 - `demos`: `pnpm run lint`, `pnpm run spellcheck`, `pnpm run build` (production build is the deployment gate for
   Cloudflare Pages)
-- `website`: covered by `/preflight website` – run it before merge
+- `website`: covered by `/preflight website` - run it before merge
 - `kit` / `create-blit386`: `pnpm run typecheck` (per package); root `pnpm run format:check` covers lint via Biome
 
 3. Check against project rules
 
 Full detail lives in the root `CLAUDE.md` and the package's own `CLAUDE.md`, plus the rule files under `.claude/rules/`
-– read those for the exact getter list, naming exceptions, and edge cases rather than relying on a paraphrase here.
+\- read those for the exact getter list, naming exceptions, and edge cases rather than relying on a paraphrase here.
 
 Shared across every package:
 
@@ -90,7 +90,7 @@ Shared across every package:
 - Plain JavaScript (ES2022, no TypeScript)
 - Beginner-friendly comments: every logical block in `src/*.js` needs a plain-English comment explaining what it does
   and why. A comment that only restates the code (`// increment counter` above `i++`) is not sufficient
-- Shared UI kit only – on-screen UI comes from `src/shared/ui.js` (`applyTheme()` in `init()` before `BT.paletteSet()`,
+- Shared UI kit only - on-screen UI comes from `src/shared/ui.js` (`applyTheme()` in `init()` before `BT.paletteSet()`,
   `ui.tick()` first in `update()`, `ui.begin()` / widgets / `ui.end()` in `render()`); never hand-rolled panels,
   buttons, or HUD colors (`flurry` is the one intentional exception)
 - Touch usability: every key-triggered action also has a `ui.button` with a `{ key }` binding; directional input also
@@ -148,4 +148,4 @@ Overall assessment of the changes and readiness for a commit.
 
 ## Notes
 
-- Run or suggest `/preflight <package>` before approving – that is the full gate.
+- Run or suggest `/preflight <package>` before approving - that is the full gate.

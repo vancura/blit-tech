@@ -1,9 +1,9 @@
 // Your BLIT386 game, ready for your own code.
 //
 // Every BLIT386 game is one class with up to four methods. This file keeps the three required ones:
-//   init()   – runs once at the start. Set up your palette and starting state here.
-//   update() – runs about 60 times a second. Read input and update your state here.
-//   render() – runs about 60 times a second. Draw everything here.
+//   init()   - runs once at the start. Set up your palette and starting state here.
+//   update() - runs about 60 times a second. Read input and update your state here.
+//   render() - runs about 60 times a second. Draw everything here.
 //
 // Optional hooks you can add later: configure() for screen settings or to turn off the BLIT386
 // splash, onHotReload() to keep state across init() edits while the Vite plugin hot-reloads.

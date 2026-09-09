@@ -33,12 +33,12 @@ Documentation is part of the implementation, not a follow-up step, in every pack
   Information" table in its `CLAUDE.md`.
 - Script, hook, or preflight changes: update the matching `.claude/skills/*/SKILL.md`.
 - Onboarding surface changes (a `README.md` Quick Start, a scaffolder default, a minimal example shape): check every
-  downstream package that documents or generates from that surface – `packages/create-blit386` templates, `packages/kit`
+  downstream package that documents or generates from that surface - `packages/create-blit386` templates, `packages/kit`
   docs, and any pinned version range.
 - Update a package's `README.md` only when its quick start, prerequisites, features list, or compatibility claims are
   affected.
 - If no docs update is needed, state why explicitly in the final response.
 
 Each package's own `CLAUDE.md` and `.claude/rules/` describe the concrete documentation mechanics for that package
-(doc-site sync scripts, MDX conventions, versioning tags, kit-content drift) – follow those for the how; this file is
+(doc-site sync scripts, MDX conventions, versioning tags, kit-content drift) - follow those for the how; this file is
 the shared why.

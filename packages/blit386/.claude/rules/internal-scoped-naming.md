@@ -19,7 +19,7 @@ class or file name.** Context already supplies that scope.
 | `#privateField`, `private method()` | yes |
 | `protected readonly fragmentShader` | yes |
 | Module `const`, file-local `type` / `interface` | yes |
-| `BT.*`, barrel exports, public class methods | **no** – public API stays stable |
+| `BT.*`, barrel exports, public class methods | **no** - public API stays stable |
 | JSDoc `@link` to another module's public symbol | use the **full public name** |
 
 ## Good vs bad (same file provides context)
@@ -40,7 +40,7 @@ const FRAGMENT_WGSL // not BLOOM_FRAGMENT_WGSL
 type Serialized = { … } // not PaletteJSON or JSON (JSON shadows global)
 
 // PointerInput.ts (module-local wire codes)
-const BTN_A = 20; // OK — short local name
+const BTN_A = 20; // OK - short local name
 // JSDoc: maps to BT.BTN_POINTER_A, not BT.BTN_A (gamepad)
 ```
 

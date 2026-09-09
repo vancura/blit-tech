@@ -1,5 +1,5 @@
 /**
- * Unit tests for the shared ownership module – the single source of truth for which generated files
+ * Unit tests for the shared ownership module - the single source of truth for which generated files
  * the kit owns and which project-relative paths each AI assistant occupies.
  *
  * Both `create-blit386` (scaffold time) and `blit agents sync` / `add` (sync time) classify files
