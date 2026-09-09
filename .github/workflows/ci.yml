@@ -419,8 +419,12 @@ jobs:
       - name: Set up workspace
         uses: ./.github/actions/setup
 
-      # No typecheck: demos is plain JavaScript. None of these resolve the engine's
-      # types, so they do not need packages/blit386/dist - only the build below does.
+      # No typecheck: demos is plain JavaScript. Lint/spellcheck/registry checks don't
+      # resolve the engine's types either, so they don't need packages/blit386/dist.
+      # `knip` and `test` (which now covers src/shared/, importing the real `blit386`
+      # package) both self-build it via `ensure-engine-built.mjs` when missing/stale -
+      # that script is concurrency-safe by design (see its own header), so the two can
+      # race here as background steps without a separate sequential build step.
       - name: Lint code
         run: pnpm --filter blit386-demos run lint
         background: true

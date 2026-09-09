@@ -49,7 +49,7 @@ from `DEMO_ORDER` in `plugins/demo-order.js`.
 4. Run `pnpm run check:demo-registry` so disk, order, vintage, and nav-hidden sets stay consistent.
 5. Add the demo to the `## Demos` list in `README.md` under the right category, using the hosted URL.
 
-The page title defaults to `BLIT386 Demo - Title Cased Topic` (en dash; the sidebar `navLabel` also uses an en dash).
+The page title defaults to `BLIT386 Demo – Title Cased Topic` (en dash; the sidebar `navLabel` also uses an en dash).
 Override with a `// @pageTitle Custom Title` comment in the file header.
 
 Three header tags are parsed out of the first `HEADER_SCAN_BYTES` (2000) of each demo file by
@@ -160,6 +160,11 @@ zones - comes from the immediate-mode kit in `src/shared/ui.js`. Read that file 
 Never hand-roll panels, buttons, or HUD text colors in a demo. Of the 46 demos, 42 import it; the intentional exceptions
 are `flurry`, `hello-world`, `hypercube`, `logo-lowres` (a bare-bones starter plus three immersive/showcase pieces, none
 with a demo HUD).
+
+The invariants below are covered by `node:test` unit tests in `src/shared/__tests__/` (slot allocation and collisions,
+the draw-command pool's allocates-nothing-per-frame claim, layout anchor math, widget value mapping, gesture and D-pad
+edge semantics) - see the `/test demos` skill for the full file-by-file breakdown. `_partials/demo-shell.js` and
+individual demo files under `src/<topic>.js` are not part of that coverage.
 
 - `applyTheme(this.palette)` in `init()`, before `BT.paletteSet()` - installs the 12 shared UI colors (slots 240-251 by
   default; pass a `startSlot` if that range collides)
