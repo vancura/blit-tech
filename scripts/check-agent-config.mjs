@@ -18,6 +18,10 @@
  *   - `.mcp.json` declares the blit386.dev docs server, it and the website's
  *     discovery card both still point at the pinned endpoint, and git does not
  *     ignore the file.
+ *   - `.cursor/rules/*.mdc` <-> `.claude/rules/*.md` parity (a rule added to
+ *     one side must exist on the other, by basename).
+ *   - `.cursor/mcp.json` declares the blit386.dev docs server using Cursor's
+ *     own remote-server schema (no `type` field), pinned to the same URL.
  *
  * Repo root and every package that carries an AGENTS.md or CLAUDE.md:
  *   - AGENTS.md still points at an existing CLAUDE.md.
@@ -224,6 +228,60 @@ const PROJECT_MCP_SERVER_TYPE = 'http';
  */
 const PROJECT_MCP_SERVER_URL = 'https://blit386.dev/mcp';
 
+const CLAUDE_RULES_DIR = join(REPO_ROOT, '.claude', 'rules');
+const CURSOR_RULES_DIR = join(REPO_ROOT, '.cursor', 'rules');
+
+/**
+ * Sorted basenames (no extension) of files matching `extension` directly under `dir`.
+ *
+ * @param {string} dir Absolute path to a rules directory.
+ * @param {string} extension File extension to match, including the leading dot.
+ * @returns {string[]} Sorted basenames, or `[]` when the directory does not exist.
+ */
+function readRuleNames(dir, extension) {
+    if (!existsSync(dir)) {
+        return [];
+    }
+
+    return readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(extension))
+        .map((entry) => basename(entry.name, extension))
+        .sort();
+}
+
+/**
+ * Verifies `.cursor/rules/*.mdc` and `.claude/rules/*.md` define the same set of rule names.
+ * Mirrors are condensed summaries, not identical content – Cursor's `.mdc` frontmatter
+ * (`description`/`globs`/`alwaysApply`) differs from Claude's `paths:` key – so this checks
+ * basename parity rather than file contents, matching the policy this check had before PR #434
+ * removed it (it is intentionally scoped to whatever rule files exist on either side today,
+ * not a fixed list – `.claude/rules/` has shrunk from 12 files to 2 since 2026-07 as most rule
+ * content migrated into CLAUDE.md, and this check tracks that count automatically).
+ *
+ * @param {string[]} cursorRuleNames Basenames (no extension) of `.cursor/rules/*.mdc`.
+ * @param {string[]} claudeRuleNames Basenames (no extension) of `.claude/rules/*.md`.
+ * @returns {string[]} Human-readable failure messages (empty when in parity).
+ */
+export function findRulesParityFailures(cursorRuleNames, claudeRuleNames) {
+    const cursorSet = new Set(cursorRuleNames);
+    const claudeSet = new Set(claudeRuleNames);
+    const failures = [];
+
+    for (const name of cursorSet) {
+        if (!claudeSet.has(name)) {
+            failures.push(`.cursor/rules/${name}.mdc has no matching .claude/rules/${name}.md`);
+        }
+    }
+
+    for (const name of claudeSet) {
+        if (!cursorSet.has(name)) {
+            failures.push(`.claude/rules/${name}.md has no matching .cursor/rules/${name}.mdc`);
+        }
+    }
+
+    return failures.sort();
+}
+
 /**
  * Whether git would ignore the root `.mcp.json` if it were removed and re-added.
  *
@@ -339,6 +397,64 @@ export function findProjectMcpFailures(mcpConfigContent, serverCardContent, root
     } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         failures.push(`server-card.json is not parseable as JSON: ${detail}`);
+    }
+
+    return failures;
+}
+
+/**
+ * Verifies `.cursor/mcp.json` declares the pinned `blit386-docs` server, using Cursor's own
+ * schema for a remote server – which is not Claude's schema. `packages/kit/src/adapters.ts`
+ * (`buildMcpConfig`) documents why: for Cursor a `type` field marks a *local stdio* server, so
+ * a remote HTTP entry must omit it entirely, unlike the root `.mcp.json` (Claude Code), which
+ * requires `"type": "http"`. This is why `.cursor/mcp.json` cannot be a symlink to the root
+ * `.mcp.json` the way `.agents/skills/*` symlinks into `.claude/skills/*` – the two files are
+ * shaped differently on purpose and would misconfigure one assistant or the other if unified.
+ *
+ * @param {string | null} cursorMcpContent Contents of `.cursor/mcp.json`, or `null` when missing.
+ * @returns {string[]} Human-readable failure messages (empty when the config is consistent).
+ */
+export function findCursorMcpFailures(cursorMcpContent) {
+    if (cursorMcpContent === null) {
+        return ['.cursor/mcp.json is missing'];
+    }
+
+    const failures = [];
+
+    /** @type {Record<string, unknown>} */
+    let server;
+
+    try {
+        const parsed = JSON.parse(cursorMcpContent);
+        const servers = parsed?.mcpServers;
+
+        if (servers === null || typeof servers !== 'object') {
+            failures.push('.cursor/mcp.json has no mcpServers object');
+            return failures;
+        }
+
+        if (!Object.hasOwn(servers, PROJECT_MCP_SERVER_NAME)) {
+            failures.push(`.cursor/mcp.json does not declare the \`${PROJECT_MCP_SERVER_NAME}\` server`);
+            return failures;
+        }
+
+        server = servers[PROJECT_MCP_SERVER_NAME] ?? {};
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        failures.push(`.cursor/mcp.json is not parseable as JSON: ${detail}`);
+        return failures;
+    }
+
+    if (Object.hasOwn(server, 'type')) {
+        failures.push(
+            `.cursor/mcp.json entry \`${PROJECT_MCP_SERVER_NAME}\` must not have a \`type\` field for a remote server (Cursor reserves it for local stdio servers)`,
+        );
+    }
+
+    if (server.url !== PROJECT_MCP_SERVER_URL) {
+        failures.push(
+            `.cursor/mcp.json declares URL ${JSON.stringify(server.url)}, expected the pinned ${JSON.stringify(PROJECT_MCP_SERVER_URL)}`,
+        );
     }
 
     return failures;
@@ -498,6 +614,14 @@ function runAllChecks() {
         ),
     );
 
+    collect(
+        failures,
+        '.',
+        findRulesParityFailures(readRuleNames(CURSOR_RULES_DIR, '.mdc'), readRuleNames(CLAUDE_RULES_DIR, '.md')),
+    );
+
+    collect(failures, '.', findCursorMcpFailures(readFileIfExists(join(REPO_ROOT, '.cursor', 'mcp.json'))));
+
     for (const packageName of discoverPackageAgentRoots(join(REPO_ROOT, 'packages'))) {
         const root = join(REPO_ROOT, 'packages', packageName);
         collect(failures, `packages/${packageName}`, checkAgentsPointer(root));
@@ -520,7 +644,7 @@ function main() {
     }
 
     console.log(
-        'Agent config OK (skills symlinks, AGENTS.md <-> CLAUDE.md pointers, Copilot instructions, Zed settings, project .mcp.json).',
+        'Agent config OK (skills symlinks, AGENTS.md <-> CLAUDE.md pointers, Copilot instructions, Zed settings, project .mcp.json, cursor rules parity, cursor .mcp.json).',
     );
 }
 
