@@ -53,9 +53,53 @@ if (this.crt) {
 BT.effectClear();
 ```
 
+## Step 3: respect reduced motion (engine 1.7.0+)
+
+Some players ask their system for less motion because heavy movement makes them dizzy or unwell. The moving effects are
+the first thing to tone down: `Flicker`, `Interference`, `RollLine`, `Noise`, and `PixelGlitch` all animate, and a
+flickering, rolling CRT is exactly what that setting exists to suppress. Static curvature, scanlines, and vignette are
+fine to leave on.
+
+```js
+import { BT, Flicker, Interference, Noise, RollLine } from 'blit386';
+
+async init() {
+    if (BT.activeBackend === 'webgpu') {
+        this.crt = BT.preset.crtPipBoy();
+        this.applyMotionPreference();
+    }
+    return true;
+}
+
+applyMotionPreference() {
+    if (!this.crt) return;
+
+    // Keep the still parts of the look, drop the ones that move.
+    // crtPipBoy() ships four animating effects; the rest (curvature, aberration, scanlines,
+    // mask, bloom) hold still and are fine to leave on.
+    const moving = [Flicker, RollLine, Interference, Noise];
+
+    for (const fx of this.crt) BT.effectRemove(fx);
+    for (const fx of this.crt) {
+        if (BT.isReducedMotionPreferred && moving.some((Kind) => fx instanceof Kind)) continue;
+        BT.effectAdd(fx);
+    }
+}
+
+// Optional. Runs if the player changes the setting while the game is open.
+onReducedMotionChange() {
+    this.applyMotionPreference();
+}
+```
+
+`BT.isReducedMotionPreferred` is a getter (no parentheses). Screen shake you wrote yourself deserves the same
+treatment - clamp its amplitude to `0` when the flag is set.
+
 ## Key calls
 
 - `BT.effectAdd(effect)` / `BT.effectRemove(effect)` / `BT.effectClear()` - methods.
+- `BT.isReducedMotionPreferred` (getter, engine 1.7.0+) - true when the player asked for less motion; optional
+  `onReducedMotionChange(prefersReduced)` on your game class fires when that changes mid-session.
 - Presets (functions on `BT.preset`): `BT.preset.crtPipBoy()`, `BT.preset.amber()`, `BT.preset.green()` - each returns a
   fresh array of effects.
 - Effect classes you can construct, tweak, then `effectAdd`: display-tier `Scanlines`, `BarrelDistortion`, `Bloom`,

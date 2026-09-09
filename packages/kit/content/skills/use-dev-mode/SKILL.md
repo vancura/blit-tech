@@ -37,6 +37,21 @@ render() {
 has it already (see `use-hot-reload`). It reads `true` while `npm run dev` is running the game through that plugin, and
 `false` in a built/shipped game (`npm run build`).
 
+## What dev mode turns on for you (engine 1.7.0+)
+
+Two things come free with a dev build, without any code:
+
+- **`window.BT`** - the engine puts itself on the page, so you can type `BT.ticks`, `BT.activeBackend`, or
+  `BT.palette.get(1)` straight into the browser console and inspect the running game. It is not assigned in a built
+  game. Override it either way with `bootstrap(Game, { exposeGlobal: true })` (or `false`) if you need to.
+- **F9 / Shift+F9 frame capture** - F9 copies the current frame to the clipboard, Shift+F9 saves it as a PNG. Turn both
+  off with `isFrameCaptureShortcutEnabled: false` in `configure()` when your game wants F9 for itself. See the
+  `save-a-screenshot` skill.
+
+Left alone, both follow `BT.isDevMode`, so neither ships to players by accident. Each also has an explicit override that
+wins over that default - `exposeGlobal: true` for the first, `isFrameCaptureShortcutEnabled: true` for the second - if
+you want one in a release build on purpose.
+
 ## Notes
 
 - `BT.isDevMode` is tied to the dev server, not to `NODE_ENV` or any bundler define - there is nothing else to

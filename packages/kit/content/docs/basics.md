@@ -65,6 +65,28 @@ game assumes one layout - the engine asks the browser to lock after start when i
 Safari). Optional `onOrientationChange(type)` on your game class runs when the player rotates the device. Drawing a
 "please rotate" message is still your code; the engine only tells you the orientation.
 
+## Respecting reduced motion (blit386 1.7.0+)
+
+Some people turn on a system setting that asks apps for less movement - because heavy motion makes them dizzy or unwell.
+`BT.isReducedMotionPreferred` is `true` when they have (a property, no parentheses):
+
+```js
+async init() {
+    this.shakeAmount = BT.isReducedMotionPreferred ? 0 : 4;
+    return true;
+}
+
+// Optional. The engine calls this if the setting changes while the game is running.
+onReducedMotionChange(prefersReduced) {
+    this.shakeAmount = prefersReduced ? 0 : 4;
+}
+```
+
+Read it once in `init()` for the starting value, and add `onReducedMotionChange(prefersReduced)` to your game class if
+you want to react mid-session. The BLIT386 splash already tones itself down on its own, but the engine never changes
+your drawing for you. Screen shake, flashing, and long swooping transitions are the things worth toning down; the game
+itself moving is fine.
+
 ## Drawing between two steps
 
 `update()` runs at a fixed speed (60 times a second), but the screen often draws faster than that - 120 or 144 times a

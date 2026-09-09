@@ -29,6 +29,24 @@ async init() {
 }
 ```
 
+## Fill a run of slots in one call (engine 1.7.0+)
+
+When a block of slots is built from one list of colors - a dimmed copy for shadows, a tinted copy for a night theme -
+use `fillBlock` instead of writing the loop:
+
+```js
+// fillBlock(start, source, transform) writes transform(source[i], i) into slot start + i,
+// and returns the next free slot after the block.
+// Slots 1..3 are taken above, so this darker copy starts at 4 and must fit inside the 16 slots.
+const next = this.palette.fillBlock(
+  4,
+  this.baseColors,
+  (color) => new Color32(color.r >> 1, color.g >> 1, color.b >> 1),
+);
+```
+
+Chain from the return value to lay a second block down straight after the first, so no slot numbers are counted by hand.
+
 ## Change a color later (the palette is live)
 
 ```js
@@ -43,6 +61,8 @@ update() {
 
 - `BT.paletteCreate(size?)` (method) - new palette (default 256 slots).
 - `palette.set(index, color)` / `palette.get(index)` (methods) - write / read a slot.
+- `palette.fillBlock(start, source, transform)` (method, engine 1.7.0+) - write a transformed block of colors into
+  contiguous slots; returns `start + source.length`.
 - `BT.paletteSet(palette)` (method) - make a palette active.
 - `palette.applyHUD(startSlot?)` (method) - fill six ready-made HUD colors (white, background, label, header, dim, code)
   in one call.

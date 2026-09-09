@@ -71,6 +71,27 @@ One catch worth knowing: a palette fade works per slot, not per pixel. A dark ob
 the dark schedule no matter what is around it, because the engine only knows its slot number. Fading up from black or
 down to black always looks right; in a busy scene, look at it before shipping it.
 
+## Building the target palette (engine 1.7.0+)
+
+A fade target is a whole `Palette`, and it is usually the current one with every color pushed the same way. Build it
+with `fillBlock` rather than a loop of `set()` calls:
+
+```js
+async init() {
+    this.nightPalette = BT.paletteCreate(16);
+
+    // Same colors, cooled and dimmed - one call, starting at slot 1.
+    this.nightPalette.fillBlock(1, this.dayColors, (color) =>
+        new Color32(color.r * 0.4, color.g * 0.5, color.b * 0.8),
+    );
+
+    return true;
+}
+```
+
+`fillBlock(start, source, transform)` writes `transform(source[i], i)` into slot `start + i` and returns the next free
+slot, so a second block can start where the first ended.
+
 ## Notes
 
 - These animate the active palette; set one up first (use-palette skill).

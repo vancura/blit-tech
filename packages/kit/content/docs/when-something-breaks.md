@@ -17,6 +17,26 @@ Your game leaves clues in two places. Check both before anything else.
 An error message looks scary, but it always answers two questions: what went wrong and where. Look for your file name
 (like `game.js`, or `game.ts` in a TypeScript project) and a line number. That is the spot to inspect.
 
+### Poking at the running game from the console (blit386 1.7.0+)
+
+The console is not only for reading errors - you can type into it. While `npm run dev` is running, the engine puts
+itself on the page as `window.BT` once the game has started, so anything the guides show as `BT.something` works there
+too, on the game running in front of you:
+
+```js
+BT.displaySize; // how big the screen actually is
+BT.ticks; // how many update steps have happened so far
+BT.activeBackend; // 'webgpu' or 'canvas2d' - which renderer you really got
+BT.palette.get(1); // what color is actually in slot 1
+```
+
+That is often the fastest way to answer "is this value what I think it is" without adding a `console.log` and reloading.
+Type `BT` on its own and press Enter to expand the whole object and browse it.
+
+A built game does not get `window.BT` - it is there for you while you work, and gone once you ship. It is a debugging
+convenience, not a place to write game code: your game should always reach the engine through its own
+`import { BT } from 'blit386'`, never through `window`.
+
 ## The screen is blank or black
 
 Work through this list in order:

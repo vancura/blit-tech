@@ -55,24 +55,24 @@ here - review in the same pass, not later. Run `/kit-audit` to walk the checklis
 | Kit file | Review when |
 | --- | --- |
 | `content/docs/getting-started.md` | Install/run flow, `npx blit run` / `doctor`, first-edit hot reload |
-| `content/docs/basics.md` | `configure()`, loop timing getters, bootstrap flow, orientation, `loadingAssetsCount`, the splash and its off switch |
+| `content/docs/basics.md` | `configure()`, loop timing getters, bootstrap flow, orientation, `loadingAssetsCount`, the splash and its off switch, `BT.isReducedMotionPreferred` / `onReducedMotionChange` |
 | `content/docs/drawing.md` | `BT.clear`, primitives, text APIs |
 | `content/docs/input.md` | `BT.isDown`, edges, keyboard, pointer, gamepad, scroll-capture / touch-action |
-| `content/docs/palette.md` | `paletteCreate`, slots, `Color32`, the two whole-screen fades |
+| `content/docs/palette.md` | `paletteCreate`, slots, `Color32`, `Palette.fillBlock`, the two whole-screen fades |
 | `content/docs/random.md` | `BT.random` / `BT.randomSeed`, seeding a run, noise and hash world generation |
 | `content/docs/audio.md` | `AudioClip`, `BT.synthPreset`, buses, the unlock rule |
 | `content/docs/hot-reload.md` | `blit386/vite`, swap tiers, `onHotReload`, asset hot-replace, `BT.isDevMode` |
-| `content/docs/when-something-breaks.md` | Common errors, `await`, palette slot 0, silent audio, hot-reload surprises |
+| `content/docs/when-something-breaks.md` | Common errors, `await`, palette slot 0, silent audio, hot-reload surprises, `window.BT` console debugging |
 | `content/AGENTS.md` | Overall game shape, hard rules, doc routing, hot-reload tiers |
-| `content/rules/blit-api-names.md` | `BT` getters, configure flags, wake lock, `onHotReload` / never `registerHotReload` |
+| `content/rules/blit-api-names.md` | `BT` getters, configure flags, wake lock, `onHotReload` / `onReducedMotionChange`, never `registerHotReload` |
 | `content/rules/blit-integer-coords.md` | Integer-coordinate rule (`Vector2i` / `Rect2i`) |
 | `content/skills/use-hot-reload/SKILL.md` | Swap tiers, `onHotReload`, vite plugin opt-in for older games |
-| `content/skills/use-dev-mode/SKILL.md` | `BT.isDevMode` resolution order, cheat-key / debug-HUD gating examples |
+| `content/skills/use-dev-mode/SKILL.md` | `BT.isDevMode` resolution order, cheat-key / debug-HUD gating examples, what dev mode turns on (`window.BT`, F9 capture) |
 | `content/skills/show-a-loading-screen/SKILL.md` | `BT.loadingAssetsCount`, per-sheet status, and how the splash already covers `init()` |
 | `content/skills/use-random/SKILL.md` | `BT.random` / `BT.randomSeed`, `Random` methods, state and stream helpers |
 | `content/skills/use-noise/SKILL.md` | `hash*` functions, `ValueNoise` / `PerlinNoise` / `SimplexNoise`, fBm defaults |
 | `content/skills/move-and-time/SKILL.md` | Clock getters, `Timer`, the `EasingFunction` curve list, `interpolate` |
-| `content/skills/animate-the-palette/SKILL.md` | Cycle / fade / exposure fade / flash / swap, `highlightLead` |
+| `content/skills/animate-the-palette/SKILL.md` | Cycle / fade / exposure fade / flash / swap, `highlightLead`, building a fade target with `fillBlock` |
 | `content/skills/ask-the-docs/SKILL.md` | The docs MCP tool set, `llms.txt`, or the site's markdown negotiation changes |
 | `content/skills/*/SKILL.md` | Other game-author skills; each demonstrates a slice of the `BT` surface |
 | `content/hooks/shell-safety.sh` | Shell commands the hook blocks in a generated game (Cursor + Claude protocols) |

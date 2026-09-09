@@ -33,6 +33,10 @@ These are read-only values; access them as properties, not function calls.
   `skills/use-dev-mode/`
 - Splash: `BT.isSplashVisible` (engine 1.5.0+) - true while the BLIT386 splash covers the screen; `BT.splashState` for
   the raw lifecycle state
+- Accessibility: `BT.isReducedMotionPreferred` (engine 1.7.0+) - true when the player asked their system for less
+  motion; pair it with the `onReducedMotionChange` hook below
+- Fonts: `BT.systemFont` (engine 1.7.0+) - the built-in 6x14 font as a live `BitmapFont`, so `font.codePoints` and
+  `font.hasGlyph(char)` work on it; throws if read before `init()` finishes
 
 ```js
 const w = BT.displaySize.x; // correct
@@ -52,8 +56,18 @@ BT.isPressed(BT.BTN_A, 0); // check just-pressed edge
 BT.isKeyDown('ArrowLeft'); // keyboard hold
 BT.isPointerActive(0); // mouse or touch slot 0 is active
 BT.pointerPos(0); // pointer position (Vector2i)
+BT.pointerPosTo(out, 0); // same, written into an existing Vector2i (engine 1.7.0+)
+BT.pointerDeltaTo(out, 0); // same for the per-frame delta (engine 1.7.0+)
 BT.randomSeed(1234); // reseed the shared generator (engine 1.5.0+)
 ```
+
+The `*To` pointer calls take the destination `Vector2i` first and the slot second, and return that same vector. They
+exist to avoid allocating in a hot loop; `BT.pointerPos` / `BT.pointerDelta` stay the readable default. See
+`skills/read-pointer/` and `skills/keep-it-fast/`.
+
+Palette blocks: `palette.fillBlock(start, source, transform)` (engine 1.7.0+) writes `transform(source[i], i)` into slot
+`start + i` for every color in `source` and returns the next free slot. It replaces a hand-written `for` loop of
+`palette.set()` calls; see `skills/use-palette/`.
 
 `BT.random` is the getter, `BT.randomSeed(n)` is the method - the pair works like `BT.palette` / `BT.paletteSet`. Draws
 go through the getter: `BT.random.int(0, 320)`, `BT.random.pick(list)`. Prefer it over `Math.random()`, which cannot be
@@ -72,6 +86,7 @@ configure() {
         isCapturingPointerScroll: true, // opt in when mapping BT.pointerScrollDelta
         isCapturingKeyboardScroll: true, // opt in when mapping Arrow/Space for gameplay
         isWakeLockEnabled: true, // opt in to stop mobile screens dimming during play
+        isFrameCaptureShortcutEnabled: false, // opt out of the dev-mode F9 / Shift+F9 capture keys (engine 1.7.0+)
         preferredOrientation: 'landscape', // ask the browser to lock after start (Android)
     };
 }
@@ -103,6 +118,10 @@ Optional methods on your game class (the one you pass to `bootstrap()`):
 - `onHotReload(context)` - after a hot-reload swap (engine 1.4.0+). `context.reason` is `'methods'` or `'reinit'`;
   `'reinit'` also provides `context.snapshot` (previous instance fields) so you can restore score and similar. Never
   fires for a `configure()` hardware change (that reloads the page). See `docs/hot-reload.md`.
+- `onReducedMotionChange(prefersReduced)` - the player's reduced-motion preference changed (engine 1.7.0+). Read the
+  current value any time from `BT.isReducedMotionPreferred`; this hook is for reacting mid-session. The engine tones
+  down its own splash for you, but never changes your draw calls - toning down shake, flicker, and long transitions is
+  your code.
 
 Do not call `registerHotReload` yourself - it is tooling-only. The `blit386()` Vite plugin injects it. Hand-calling it
 from game code is unsupported.

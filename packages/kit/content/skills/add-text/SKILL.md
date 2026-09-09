@@ -63,6 +63,17 @@ if (!this.font.hasGlyph('é')) {
 `hasGlyph()` answers whether a character has its _own_ glyph, not whether the fallback would cover it. That is
 deliberate - use it to check what a font really contains.
 
+You can ask the same question of the built-in font through `BT.systemFont` (a getter, engine 1.7.0+), which hands you
+the very font `BT.systemPrint` draws with:
+
+```js
+BT.systemFont.hasGlyph('é'); // false - draws as the fallback marker
+BT.systemFont.codePoints.length; // how many characters it covers in total
+```
+
+Read it after `init()` has started - it throws if the engine has not built the font yet. `codePoints` is a sorted array
+of Unicode code points, useful when you want to show the player which characters they can actually type.
+
 ## Key calls
 
 - `BT.systemPrint(pos, slot, text)` (method) - built-in 6x14 font.
@@ -71,6 +82,9 @@ deliberate - use it to check what a font really contains.
 - `BT.printFont(font, pos, text, paletteOffset?)` (method) - draw with a loaded font; `paletteOffset` shifts the glyph
   colors.
 - `font.hasGlyph(char)` (method) - true when the font has its own glyph for that character.
+- `BT.systemFont` (getter, engine 1.7.0+) - the built-in font as a `BitmapFont`, so `hasGlyph` and `codePoints` work on
+  it too. Pass it to `BT.printFont` to draw with the exact glyphs `BT.systemPrint` uses.
+- `font.codePoints` (getter, engine 1.7.0+) - every Unicode code point the font covers, ascending.
 
 ## Notes
 
