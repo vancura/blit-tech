@@ -140,6 +140,12 @@ to these URLs via `VINTAGE_URLS`.
   analog sticks, triggers, and face button masks (`BT.BTN_A | BT.BTN_B`) with `BT.getAxis` / `BT.isGamepadConnected` /
   `BT.gamepadCount`
 
+### Accessibility
+
+- [reduced-motion](https://demos.blit386.dev/reduced-motion) - Perspective warp starfield whose speed, streaks, screen
+  shake, and blinking lamp each damp when `prefers-reduced-motion` is on, with a live `onReducedMotionChange` counter
+  and a key that forces the mode
+
 ### Post-Process Effects
 
 - [crt-pipboy](https://demos.blit386.dev/crt-pipboy) - Faux Fallout terminal with the full CRT stack (barrel, scanlines,

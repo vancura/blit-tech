@@ -109,6 +109,8 @@ export const OG_CAPTURE_OVERRIDES = {
     'snake-game': { settle: 7 },
     // Stars need time to spread across the field.
     starfield: { settle: 6 },
+    // Cruises for the first 2.5 seconds; land mid-warp so the card shows the streaks.
+    'reduced-motion': { settle: 4.5 },
     'audio-basics': { settle: 5 },
 };
 
