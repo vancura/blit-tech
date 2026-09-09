@@ -1,15 +1,8 @@
 ---
 description: Named constants over repeated literals compared at more than one site
 globs:
-  {
-    packages/*/src/**,
-    packages/*/templates/**,
-    packages/*/content/**,
-    packages/*/scripts/**,
-    packages/*/test/**,
-    packages/*/package.json,
-    scripts/**,
-  }
+  packages/*/src/**, packages/*/templates/**, packages/*/content/**, packages/*/scripts/**, packages/*/test/**,
+  packages/*/package.json, scripts/**
 alwaysApply: false
 ---
 
