@@ -44,6 +44,28 @@ render() {
 - `color.toLinear()` / `color.toSrgb()` - switch between the numbers a color is stored as and actual light (blit386
   1.5.0+). Only needed if you are doing your own brightness math; the palette effects already do this for you.
 
+## Filling a block of slots at once (blit386 1.7.0+)
+
+When you want a run of slots built from one list of colors - a darker copy of your sprite colors for a shadow, a tinted
+copy for a night theme - `fillBlock` does the whole run in one call instead of a hand-written loop:
+
+```js
+// palette.fillBlock(start, source, transform)
+// Writes transform(source[i], i) into slot start + i, and returns the next free slot.
+const shadowStart = this.palette.fillBlock(
+  16, // first slot to write
+  this.baseColors, // an array of Color32 to read from
+  (color) => new Color32(color.r >> 1, color.g >> 1, color.b >> 1), // half brightness
+);
+```
+
+The return value is `start + source.length` - the first slot the block did _not_ use - so you can chain a second block
+straight after it without counting by hand.
+
+`transform` also receives the index (`(color, i) => ...`) if you want the change to vary across the run. Each write goes
+through `palette.set()`, so the same rules apply: the block must fit inside the palette, and it must not try to make
+slot 0 solid.
+
 ## The transparent slot
 
 Slot 0 is always see-through. Drawing with slot 0 draws nothing, which is occasionally useful, but for visible colors

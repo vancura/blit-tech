@@ -41,6 +41,9 @@ update() {
 ## Key calls
 
 - `BT.pointerPos(slot?)` / `BT.pointerDelta(slot?)` - methods, return `Vector2i`.
+- `BT.pointerPosTo(out, slot?)` / `BT.pointerDeltaTo(out, slot?)` - methods, engine 1.7.0+; write into an existing
+  `Vector2i` and return it, instead of making a new one. The destination comes first. Reach for these only inside a hot
+  loop - see the `keep-it-fast` skill.
 - `BT.isPointerActive(slot?)` - method; is a pointer present in that slot.
 - `BT.pointerScrollDelta` - getter; vertical wheel delta this frame (requires `isCapturingPointerScroll: true`).
 - Buttons: `BT.BTN_POINTER_A` (primary), `BTN_POINTER_B/C/D`, `BTN_POINTER_ANY`, used with
