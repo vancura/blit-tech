@@ -33,6 +33,13 @@ at build time.
 | `frame-ancestors` | `'self' https://vancura.dev https://*.framer.app https://blit386.dev https://next.blit386.dev http://localhost:*` | `'self'` is required so the persistent shell can iframe the same demo (`?embed` / `?embed&source`). Also allows embedding in the Framer site, vancura.dev articles, the Fumapress docs site ([blit386.dev](https://blit386.dev)) and its `next.blit386.dev` preview channel, and any local port for testing the docs site's `DemoEmbed` against production demos before a release. |
 | `upgrade-insecure-requests` | (enabled) | Upgrades subresource requests to HTTPS on the production host. |
 
+### Iframe permissions delegation
+
+The shell's `#demo-frame` iframe in [`_partials/layout.html`](../_partials/layout.html) carries
+`allow="clipboard-write"`, delegating the Clipboard API into the embedded demo so the F9 frame-copy shortcut can write
+to the clipboard from inside the frame. This is separate from the CSP table above - `allow` on an iframe element
+controls permissions-policy delegation into that frame, not what the top-level document may fetch or embed.
+
 ### `media-src 'none'` and the audio demos
 
 The demos do play sound - see [audio-basics](../src/audio-basics.js), [music](../src/music.js),
@@ -63,7 +70,7 @@ in the same change, and update the table above.
 ### Build
 
 ```bash
-cd blit386-demos
+cd packages/demos
 pnpm run build
 test -f dist/_headers
 ```
@@ -90,7 +97,7 @@ Smoke-test in a browser:
 
 1. [basics](https://demos.blit386.dev/basics) - shell iframe loads (`frame-ancestors` must include `'self'`); WebGPU +
    source panel uses Pragmata Pro from `fonts.vancura.dev` (no CSP `font-src` violation in the console).
-2. [image-output](https://demos.blit386.dev/image-output) - Space triggers PNG download (`blob:`).
+2. [image-output](https://demos.blit386.dev/image-output) - S triggers PNG download (`blob:`).
 3. [crt-pipboy](https://demos.blit386.dev/crt-pipboy) - WebGPU post-process chain.
 4. Embed check - demo iframe on [vancura.dev](https://vancura.dev) articles and [blit386.dev](https://blit386.dev) docs
    still loads (`frame-ancestors`).

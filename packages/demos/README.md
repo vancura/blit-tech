@@ -10,7 +10,7 @@ Want to build your own game with the engine? Start with the
 [create-blit386](https://github.com/blit386/blit386/tree/main/packages/create-blit386) scaffolder
 (`npm create blit386@latest my-game`).
 
-There are 45 demo modules today, covering drawing, palettes, post-process CRT effects, input (pointer, keyboard,
+There are 46 demo modules today, covering drawing, palettes, post-process CRT effects, input (pointer, keyboard,
 gamepad), audio, and seeded randomness. Each demo lives in a single number-free kebab-case file under `src/` (for
 example `src/basics.js`). Navigation order comes from `plugins/demo-order.js` (`DEMO_ORDER`), not from filenames. Most
 demos import the shared UI kit in `src/shared/` for their on-screen panels and touch controls (see
@@ -234,8 +234,8 @@ You need both the `blit386` engine and `blit386-demos` set up as a pnpm workspac
 Once the workspace is ready:
 
 ```bash
-cd blit386-demos
 pnpm install
+cd packages/demos
 pnpm run dev
 ```
 
