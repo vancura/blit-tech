@@ -200,9 +200,10 @@ function findOrderBijectionFailures(diskSlugs, diskSlugSet) {
     return failures;
 }
 
-// Matches the confirmed README entry format `- [slug](https://demos.blit386.dev/slug) - ...`.
-// Anchored to line start so it only matches list items, not prose mentioning the same URL.
-const README_DEMO_LINK_PATTERN = /^-\s*\[([a-z0-9-]+)\]\(https:\/\/demos\.blit386\.dev\/([a-z0-9-]+)\)/;
+// Matches a README demo link of the form `[slug](https://demos.blit386.dev/slug)`, global so a
+// line with more than one such link (e.g. a stale cross-reference alongside the real entry) has
+// every occurrence inspected, not just the first.
+const README_DEMO_LINK_PATTERN = /\[([a-z0-9-]+)\]\(https:\/\/demos\.blit386\.dev\/([a-z0-9-]+)\)/g;
 
 /**
  * Extract the demo slugs linked from the `## Demos` section of README.md, scoped to that
@@ -210,7 +211,8 @@ const README_DEMO_LINK_PATTERN = /^-\s*\[([a-z0-9-]+)\]\(https:\/\/demos\.blit38
  * `demos.blit386.dev` link and the "Browser and Renderer" section's splash-video mention -
  * are never mistaken for list entries. Exported so it can be unit-tested without touching disk.
  * @param {string} readmeText - Full contents of README.md.
- * @returns {string[]} Slugs in list order, one entry per README line (duplicates preserved).
+ * @returns {string[]} Slugs in document order, one entry per link found (duplicates preserved,
+ *   including more than one link on the same line).
  */
 export function extractReadmeDemoSlugs(readmeText) {
     const lines = readmeText.split('\n');
@@ -228,9 +230,7 @@ export function extractReadmeDemoSlugs(readmeText) {
             break;
         }
 
-        const match = line.match(README_DEMO_LINK_PATTERN);
-
-        if (match) {
+        for (const match of line.matchAll(README_DEMO_LINK_PATTERN)) {
             slugs.push(match[2]);
         }
     }

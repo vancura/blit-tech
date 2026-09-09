@@ -220,6 +220,16 @@ describe('extractReadmeDemoSlugs', () => {
 
         assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics', 'basics']);
     });
+
+    it('catches a second, stale demo link on the same list-item line', () => {
+        const readme = [
+            '## Demos',
+            '',
+            '- [basics](https://demos.blit386.dev/basics) - See also [ghost-demo](https://demos.blit386.dev/ghost-demo)',
+        ].join('\n');
+
+        assert.deepEqual(extractReadmeDemoSlugs(readme), ['basics', 'ghost-demo']);
+    });
 });
 
 describe('findReadmeListFailures', () => {
