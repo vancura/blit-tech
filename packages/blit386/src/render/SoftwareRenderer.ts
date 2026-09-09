@@ -120,9 +120,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Creates a software renderer bound to the given canvas.
      *
-     * @param canvas – Target HTML canvas element to draw into.
-     * @param displaySize – Logical render resolution in pixels.
-     * @param outputSize – Output resolution in pixels. Defaults to `displaySize` (no upscaling).
+     * @param canvas - Target HTML canvas element to draw into.
+     * @param displaySize - Logical render resolution in pixels.
+     * @param outputSize - Output resolution in pixels. Defaults to `displaySize` (no upscaling).
      */
     constructor(canvas: HTMLCanvasElement, displaySize: Vector2i, outputSize?: Vector2i) {
         this.canvas = canvas;
@@ -163,10 +163,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Estimates primitive vertices for a line using the same rules as {@link PrimitivePipeline.drawLine}.
      *
-     * @param x0 – Start X.
-     * @param y0 – Start Y.
-     * @param x1 – End X.
-     * @param y1 – End Y.
+     * @param x0 - Start X.
+     * @param y0 - Start Y.
+     * @param x1 - End X.
+     * @param y1 - End Y.
      * @returns Vertex count for the line draw.
      */
     private static estimateLineVertexCount(x0: number, y0: number, x1: number, y1: number): number {
@@ -185,7 +185,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Estimates primitive vertices for a rectangle outline using {@link PrimitivePipeline.drawRect} rules.
      *
-     * @param rect – Outline bounds.
+     * @param rect - Outline bounds.
      * @returns Vertex count for the outline draw.
      */
     private static estimateRectOutlineVertexCount(rect: Rect2i): number {
@@ -203,10 +203,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Counts Bresenham steps between two integer endpoints (inclusive).
      *
-     * @param x0 – Start X.
-     * @param y0 – Start Y.
-     * @param x1 – End X.
-     * @param y1 – End Y.
+     * @param x0 - Start X.
+     * @param y0 - Start Y.
+     * @param x1 - End X.
+     * @param y1 - End Y.
      * @returns Number of pixels visited.
      */
     private static countBresenhamSteps(x0: number, y0: number, x1: number, y1: number): number {
@@ -245,7 +245,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * the `instanceof` test never throws in a browser where the global does not exist (see
      * {@link createLogicalCanvas}'s own fallback).
      *
-     * @param canvas – Candidate logical canvas.
+     * @param canvas - Candidate logical canvas.
      * @returns True when `canvas` is an `OffscreenCanvas`.
      */
     private static isOffscreenCanvas(canvas: OffscreenCanvas | HTMLCanvasElement): canvas is OffscreenCanvas {
@@ -292,7 +292,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Sets the active palette used for all color lookups during rendering.
      *
-     * @param palette – Palette to activate.
+     * @param palette - Palette to activate.
      */
     setPalette(palette: Palette): void {
         this.palette = palette;
@@ -329,7 +329,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Sets the palette index used to fill the background on each frame.
      *
-     * @param paletteIndex – Palette entry index for the clear color.
+     * @param paletteIndex - Palette entry index for the clear color.
      */
     setClearColor(paletteIndex: number): void {
         this.clearPaletteIndex = paletteIndex;
@@ -394,8 +394,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues a filled rectangle draw command.
      *
-     * @param rect – Rectangle to fill in logical pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
+     * @param rect - Rectangle to fill in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
      */
     drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.queueRectFillXY(rect.x, rect.y, rect.width, rect.height, paletteIndex);
@@ -404,8 +404,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues an overlay bar fill (same FIFO queue as {@link drawRectFill}).
      *
-     * @param rect – Rectangle to fill in logical pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
+     * @param rect - Rectangle to fill in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
      */
     drawBarFill(rect: Rect2i, paletteIndex: number): void {
         this.drawRectFill(rect, paletteIndex);
@@ -416,8 +416,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * The software backend does not layer overlay draws above demo content;
      * `OnTop` variants are equivalent to their base methods.
      *
-     * @param rect – Rectangle to fill in logical pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
+     * @param rect - Rectangle to fill in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
      */
     drawBarFillOnTop(rect: Rect2i, paletteIndex: number): void {
         this.drawBarFill(rect, paletteIndex);
@@ -426,8 +426,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues a single pixel draw command at the given position.
      *
-     * @param pos – Pixel position in logical coordinates.
-     * @param paletteIndex – Palette entry index for the pixel color.
+     * @param pos - Pixel position in logical coordinates.
+     * @param paletteIndex - Palette entry index for the pixel color.
      */
     drawPixel(pos: Vector2i, paletteIndex: number): void {
         this.queueRectFillXY(pos.x, pos.y, 1, 1, paletteIndex);
@@ -437,9 +437,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * Queues a single pixel draw command at raw coordinates.
      * More efficient than {@link drawPixel} when coordinates are already unpacked.
      *
-     * @param x – X position in logical coordinates.
-     * @param y – Y position in logical coordinates.
-     * @param paletteIndex – Palette entry index for the pixel color.
+     * @param x - X position in logical coordinates.
+     * @param y - Y position in logical coordinates.
+     * @param paletteIndex - Palette entry index for the pixel color.
      */
     drawPixelXY(x: number, y: number, paletteIndex: number): void {
         this.queueRectFillXY(x, y, 1, 1, paletteIndex);
@@ -448,9 +448,9 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues a Bresenham line draw command between two points.
      *
-     * @param p0 – Line start position in logical coordinates.
-     * @param p1 – Line end position in logical coordinates.
-     * @param paletteIndex – Palette entry index for the line color.
+     * @param p0 - Line start position in logical coordinates.
+     * @param p1 - Line end position in logical coordinates.
+     * @param paletteIndex - Palette entry index for the line color.
      */
     drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
         this.commands.push({
@@ -469,8 +469,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues an outline rectangle draw command (four lines, no fill).
      *
-     * @param rect – Rectangle to outline in logical pixels.
-     * @param paletteIndex – Palette entry index for the border color.
+     * @param rect - Rectangle to outline in logical pixels.
+     * @param paletteIndex - Palette entry index for the border color.
      */
     drawRect(rect: Rect2i, paletteIndex: number): void {
         this.commands.push({
@@ -489,8 +489,8 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Fills the given rectangle with a palette color (alias for `drawRectFill`).
      *
-     * @param rect – Rectangle to clear in logical pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
+     * @param rect - Rectangle to clear in logical pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
      */
     clearRect(rect: Rect2i, paletteIndex: number): void {
         this.drawRectFill(rect, paletteIndex);
@@ -499,10 +499,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues a sprite blit from a source sheet rectangle to a destination position.
      *
-     * @param spriteSheet – Source sprite sheet containing the indexed pixels.
-     * @param srcRect – Source region within the sprite sheet in pixels.
-     * @param destPos – Destination position in logical coordinates.
-     * @param paletteOffset – Palette index offset applied to every non-transparent pixel.
+     * @param spriteSheet - Source sprite sheet containing the indexed pixels.
+     * @param srcRect - Source region within the sprite sheet in pixels.
+     * @param destPos - Destination position in logical coordinates.
+     * @param paletteOffset - Palette index offset applied to every non-transparent pixel.
      */
     drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
         this.commands.push({
@@ -520,10 +520,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues a bitmap text draw command, expanding each character to a sprite blit on replay.
      *
-     * @param font – Bitmap font containing glyph sheet and metrics.
-     * @param pos – Top-left position of the text in logical coordinates.
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to every glyph pixel.
+     * @param font - Bitmap font containing glyph sheet and metrics.
+     * @param pos - Top-left position of the text in logical coordinates.
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to every glyph pixel.
      */
     drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         const glyphData = new Int32Array(text.length * 6);
@@ -564,10 +564,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Queues an overlay label (same FIFO queue as {@link drawBitmapText}).
      *
-     * @param font – Bitmap font with character glyphs.
-     * @param pos – Text origin in logical pixels.
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text origin in logical pixels.
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawLabel(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.drawBitmapText(font, pos, text, paletteOffset);
@@ -578,10 +578,10 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * The software backend does not layer overlay draws above demo content;
      * `OnTop` variants are equivalent to their base methods.
      *
-     * @param font – Bitmap font with character glyphs.
-     * @param pos – Text origin in logical pixels.
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font with character glyphs.
+     * @param pos - Text origin in logical pixels.
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      */
     drawLabelOnTop(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
         this.drawLabel(font, pos, text, paletteOffset);
@@ -632,7 +632,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Sets the camera scroll offset applied to all subsequent draw commands.
      *
-     * @param offset – New camera offset in logical pixels.
+     * @param offset - New camera offset in logical pixels.
      */
     setCameraOffset(offset: Vector2i): void {
         this.cameraOffset = offset.clone();
@@ -653,24 +653,24 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     }
 
     /**
-     * Not supported – always throws.
+     * Not supported - always throws.
      *
-     * @param _effect – Ignored.
+     * @param _effect - Ignored.
      */
     addEffect(_effect: Effect): void {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
 
     /**
-     * Not supported – always throws.
+     * Not supported - always throws.
      *
-     * @param _effect – Ignored.
+     * @param _effect - Ignored.
      */
     removeEffect(_effect: Effect): void {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
 
-    /** Not supported – always throws. */
+    /** Not supported - always throws. */
     clearEffects(): void {
         throw new Error(SoftwareRenderer.EFFECTS_UNSUPPORTED_MESSAGE);
     }
@@ -680,11 +680,11 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * and {@link drawPixel} so neither has to allocate a `Rect2i` just to shuttle four numbers
      * into the command queue.
      *
-     * @param x – Left edge in logical pixels.
-     * @param y – Top edge in logical pixels.
-     * @param width – Rectangle width in pixels.
-     * @param height – Rectangle height in pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
+     * @param x - Left edge in logical pixels.
+     * @param y - Top edge in logical pixels.
+     * @param width - Rectangle width in pixels.
+     * @param height - Rectangle height in pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
      */
     private queueRectFillXY(x: number, y: number, width: number, height: number, paletteIndex: number): void {
         this.commands.push({
@@ -721,13 +721,13 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Fills the entire `framePixels` buffer with a solid RGBA color via a single word-at-a-time
      * fill over {@link wordView}. Packing matches {@link Color32.toUint32}'s ABGR layout, which on
-     * little-endian platforms lays out as byte0=r, byte1=g, byte2=b, byte3=a – the same RGBA byte
+     * little-endian platforms lays out as byte0=r, byte1=g, byte2=b, byte3=a - the same RGBA byte
      * order `framePixels` itself uses.
      *
-     * @param r – Red channel (0-255).
-     * @param g – Green channel (0-255).
-     * @param b – Blue channel (0-255).
-     * @param a – Alpha channel (0-255).
+     * @param r - Red channel (0-255).
+     * @param g - Green channel (0-255).
+     * @param b - Blue channel (0-255).
+     * @param a - Alpha channel (0-255).
      */
     private fillFrame(r: number, g: number, b: number, a: number): void {
         const packed = ((a << 24) | (b << 16) | (g << 8) | r) >>> 0;
@@ -738,7 +738,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Dispatches a single draw command to the appropriate rasterizer.
      *
-     * @param command – Command to replay into `framePixels`.
+     * @param command - Command to replay into `framePixels`.
      */
     private replayCommand(command: DrawCommand): void {
         switch (command.kind) {
@@ -791,13 +791,13 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Rasterizes a filled rectangle into `framePixels`, clipped to display bounds.
      *
-     * @param x – Left edge in world coordinates.
-     * @param y – Top edge in world coordinates.
-     * @param width – Rectangle width in pixels.
-     * @param height – Rectangle height in pixels.
-     * @param paletteIndex – Palette entry index for the fill color.
-     * @param cameraX – Horizontal camera offset to subtract.
-     * @param cameraY – Vertical camera offset to subtract.
+     * @param x - Left edge in world coordinates.
+     * @param y - Top edge in world coordinates.
+     * @param width - Rectangle width in pixels.
+     * @param height - Rectangle height in pixels.
+     * @param paletteIndex - Palette entry index for the fill color.
+     * @param cameraX - Horizontal camera offset to subtract.
+     * @param cameraY - Vertical camera offset to subtract.
      */
     private rasterRectFill(
         x: number,
@@ -830,13 +830,13 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Rasterizes a four-sided outline rectangle by drawing four lines.
      *
-     * @param x – Left edge in world coordinates.
-     * @param y – Top edge in world coordinates.
-     * @param width – Rectangle width in pixels.
-     * @param height – Rectangle height in pixels.
-     * @param paletteIndex – Palette entry index for the border color.
-     * @param cameraX – Horizontal camera offset to subtract.
-     * @param cameraY – Vertical camera offset to subtract.
+     * @param x - Left edge in world coordinates.
+     * @param y - Top edge in world coordinates.
+     * @param width - Rectangle width in pixels.
+     * @param height - Rectangle height in pixels.
+     * @param paletteIndex - Palette entry index for the border color.
+     * @param cameraX - Horizontal camera offset to subtract.
+     * @param cameraY - Vertical camera offset to subtract.
      */
     private rasterRect(
         x: number,
@@ -863,13 +863,13 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
     /**
      * Rasterizes a line using Bresenham's algorithm.
      *
-     * @param x0 – Start X in world coordinates.
-     * @param y0 – Start Y in world coordinates.
-     * @param x1 – End X in world coordinates.
-     * @param y1 – End Y in world coordinates.
-     * @param paletteIndex – Palette entry index for the line color.
-     * @param cameraX – Horizontal camera offset to subtract.
-     * @param cameraY – Vertical camera offset to subtract.
+     * @param x0 - Start X in world coordinates.
+     * @param y0 - Start Y in world coordinates.
+     * @param x1 - End X in world coordinates.
+     * @param y1 - End Y in world coordinates.
+     * @param paletteIndex - Palette entry index for the line color.
+     * @param cameraX - Horizontal camera offset to subtract.
+     * @param cameraY - Vertical camera offset to subtract.
      */
     private rasterLine(
         x0: number,
@@ -921,7 +921,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * Rasterizes a sprite by iterating its source rect and writing palette-resolved pixels.
      * Index 0 is treated as transparent and skipped.
      *
-     * @param command – Sprite draw command with sheet, source rect, destination, and camera state.
+     * @param command - Sprite draw command with sheet, source rect, destination, and camera state.
      */
     private rasterSprite(command: SpriteCommand): void {
         const indexedPixels = command.spriteSheet.getIndexedPixelsRef();
@@ -945,7 +945,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * were resolved once at queue time (see {@link drawBitmapText}), so this loop does not
      * look up glyph metrics or allocate per glyph.
      *
-     * @param command – Bitmap text command with sheet, precomputed glyph data, position, and camera state.
+     * @param command - Bitmap text command with sheet, precomputed glyph data, position, and camera state.
      */
     private rasterBitmapText(command: BitmapTextCommand): void {
         const indexedPixels = command.spriteSheet.getIndexedPixelsRef();
@@ -976,16 +976,16 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * non-transparent pixel through the active palette. Shared by {@link rasterSprite} and
      * {@link rasterBitmapText} so neither call site allocates a command object per blit.
      *
-     * @param indexedPixels – Source sheet's indexed-pixel buffer (row-major, one byte per pixel).
-     * @param sheetWidth – Source sheet width in pixels.
-     * @param sheetHeight – Source sheet height in pixels.
-     * @param srcX – Source rect X in sheet coordinates.
-     * @param srcY – Source rect Y in sheet coordinates.
-     * @param srcWidth – Source rect width.
-     * @param srcHeight – Source rect height.
-     * @param destX – Destination X in logical coordinates (camera already applied).
-     * @param destY – Destination Y in logical coordinates (camera already applied).
-     * @param paletteOffset – Palette index offset applied to every non-transparent pixel.
+     * @param indexedPixels - Source sheet's indexed-pixel buffer (row-major, one byte per pixel).
+     * @param sheetWidth - Source sheet width in pixels.
+     * @param sheetHeight - Source sheet height in pixels.
+     * @param srcX - Source rect X in sheet coordinates.
+     * @param srcY - Source rect Y in sheet coordinates.
+     * @param srcWidth - Source rect width.
+     * @param srcHeight - Source rect height.
+     * @param destX - Destination X in logical coordinates (camera already applied).
+     * @param destY - Destination Y in logical coordinates (camera already applied).
+     * @param paletteOffset - Palette index offset applied to every non-transparent pixel.
      */
     private blitIndexedRect(
         indexedPixels: Uint8Array,
@@ -1038,16 +1038,16 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      *
      * `pixels` is taken as a parameter (the caller's own {@link framePixels} read, done once per
      * raster call) rather than read from `this` here, since this runs once per pixel and
-     * `framePixels` is a checked accessor – re-reading it per pixel would re-run that check on
+     * `framePixels` is a checked accessor - re-reading it per pixel would re-run that check on
      * every call.
      *
-     * @param pixels – Destination buffer, from {@link framePixels}.
-     * @param x – Pixel X in logical coordinates.
-     * @param y – Pixel Y in logical coordinates.
-     * @param r – Red channel (0-255).
-     * @param g – Green channel (0-255).
-     * @param b – Blue channel (0-255).
-     * @param a – Alpha channel (0-255).
+     * @param pixels - Destination buffer, from {@link framePixels}.
+     * @param x - Pixel X in logical coordinates.
+     * @param y - Pixel Y in logical coordinates.
+     * @param r - Red channel (0-255).
+     * @param g - Green channel (0-255).
+     * @param b - Blue channel (0-255).
+     * @param a - Alpha channel (0-255).
      */
     private writePixel(
         pixels: Uint8ClampedArray,
@@ -1073,17 +1073,17 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
 
     /**
      * Writes one RGBA pixel into `pixels` without a bounds check. Callers must guarantee
-     * `(x, y)` already lies within `[0, displaySize)` – used by loops that pre-clamp their
+     * `(x, y)` already lies within `[0, displaySize)` - used by loops that pre-clamp their
      * range, such as {@link rasterRectFill}. See {@link writePixel} for why `pixels` is a
      * parameter rather than a `this.framePixels` read.
      *
-     * @param pixels – Destination buffer, from {@link framePixels}.
-     * @param x – Pixel X in logical coordinates, already known in-bounds.
-     * @param y – Pixel Y in logical coordinates, already known in-bounds.
-     * @param r – Red channel (0-255).
-     * @param g – Green channel (0-255).
-     * @param b – Blue channel (0-255).
-     * @param a – Alpha channel (0-255).
+     * @param pixels - Destination buffer, from {@link framePixels}.
+     * @param x - Pixel X in logical coordinates, already known in-bounds.
+     * @param y - Pixel Y in logical coordinates, already known in-bounds.
+     * @param r - Red channel (0-255).
+     * @param g - Green channel (0-255).
+     * @param b - Blue channel (0-255).
+     * @param a - Alpha channel (0-255).
      */
     private writePixelUnchecked(
         pixels: Uint8ClampedArray,
@@ -1107,7 +1107,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * Resolves a palette index to a `Color32` for primitive drawing.
      * Returns `null` for out-of-range indices and fully transparent colors.
      *
-     * @param paletteIndex – Palette entry index to look up.
+     * @param paletteIndex - Palette entry index to look up.
      * @returns Resolved color, or `null` when the pixel should not be drawn.
      */
     private resolvePrimitiveColor(paletteIndex: number): Color32 | null {
@@ -1124,7 +1124,7 @@ export class SoftwareRenderer implements IRenderer, OverlayDrawTarget {
      * Resolves a palette index to a `Color32` for sprite drawing.
      * Returns `Color32.black` for out-of-range indices instead of skipping.
      *
-     * @param paletteIndex – Palette entry index to look up.
+     * @param paletteIndex - Palette entry index to look up.
      * @returns Resolved color.
      */
     private resolveSpriteColor(paletteIndex: number): Color32 {

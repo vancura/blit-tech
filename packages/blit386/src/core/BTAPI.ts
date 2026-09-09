@@ -129,7 +129,7 @@ export class BTAPI {
      * fixed-update steps (common once the render rate approaches or exceeds the fixed update
      * rate, for example at 120 Hz) would draw the world with whatever the *previous* frame's
      * `render()` left the live offset at after its own {@link resetCamera} call for
-     * screen-space UI – which is always `(0, 0)` - producing a visible snap-to-origin flash
+     * screen-space UI - which is always `(0, 0)` - producing a visible snap-to-origin flash
      * instead of holding the last correct scroll position.
      */
     private lastCameraOffset: Vector2i = Vector2i.zero();
@@ -195,7 +195,7 @@ export class BTAPI {
      * flight (see {@link HardwareSettings.isFrameCaptureShortcutEnabled}). Shared by both
      * shortcuts rather than one guard each: both ultimately call
      * `IRenderer.captureFrameAtDisplaySize()`, which is backed by a single-slot
-     * `FrameCapture` request queue on the renderer – a second call while the first is still
+     * `FrameCapture` request queue on the renderer - a second call while the first is still
      * pending rejects the first with "Capture superseded by a new request" instead of
      * queuing it. Independent guards would let one shortcut silently fail the other's
      * capture instead of preventing the overlap, so holding or rapidly alternating between
@@ -365,15 +365,15 @@ export class BTAPI {
      * - attach screen orientation detection (and optional lock via
      *   {@link HardwareSettings.preferredOrientation})
      *
-     * Initialization failures resolve to `false` rather than throwing – a demo
+     * Initialization failures resolve to `false` rather than throwing - a demo
      * `init()` that returns `false` or throws is caught and reported. The one
      * exception is a splash frame that throws: {@link runSplash} rejects and that
      * error propagates out of this method, because nothing else can settle it and
      * silently reporting `false` would hide a renderer fault. `bootstrap()` catches
      * it and routes it to `onError`.
      *
-     * @param demo – Demo implementing the IBTDemo interface.
-     * @param canvas – Render target canvas (WebGPU or software backend).
+     * @param demo - Demo implementing the IBTDemo interface.
+     * @param canvas - Render target canvas (WebGPU or software backend).
      * @returns `true` when initialization succeeds; otherwise `false`.
      * @throws Error when a splash frame throws while the splash is on screen.
      */
@@ -477,9 +477,9 @@ export class BTAPI {
 
                 // Dev-mode default: Shift+F9 saves a screenshot in every demo, no demo
                 // code needed. Unlike the overlay toggle above, this doesn't need to wait
-                // for the render phase – it just kicks off an async capture-and-download.
+                // for the render phase - it just kicks off an async capture-and-download.
                 // Bare F9 (no Shift) instead copies to the OS clipboard, but that path is
-                // NOT handled here – see handleClipboardShortcutKeydown's doc comment for
+                // NOT handled here - see handleClipboardShortcutKeydown's doc comment for
                 // why it runs from a dedicated keydown listener instead of this tick.
                 if (!this.isFrameCaptureShortcutInFlight && this.isShiftF9ShortcutPressed(tick)) {
                     void this.captureFrameViaShortcut();
@@ -603,7 +603,7 @@ export class BTAPI {
      * without the clear, every F9/Shift+F9 press after the next `init()` would silently
      * no-op forever. The generation bump additionally covers the rarer case where that
      * capture *was* already mid-GPU-readback (past `FrameCapture.executeInEncoder`) when
-     * `stop()` ran – `FrameCapture.resolve()` keeps running independently of the game loop
+     * `stop()` ran - `FrameCapture.resolve()` keeps running independently of the game loop
      * once started, and can settle after a subsequent `init()` starts a new capture on a new
      * renderer; the bump stops that stale completion from clearing the new capture's guard.
      */
@@ -641,7 +641,7 @@ export class BTAPI {
      * the *previous* demo's bound `onOrientationChange` / `onReducedMotionChange`, so without
      * this, those events would keep reaching stale code after the swap.
      *
-     * @param newDemo – Freshly constructed candidate demo instance.
+     * @param newDemo - Freshly constructed candidate demo instance.
      * @returns `true` when `newDemo.init()` succeeds and {@link demo} was swapped to it.
      */
     public async hotReplaceDemo(newDemo: IBTDemo): Promise<boolean> {
@@ -709,7 +709,7 @@ export class BTAPI {
      *
      * No-op when the overlay or timing chart is disabled.
      *
-     * @param label – Tag text; empty becomes `"Untitled"`.
+     * @param label - Tag text; empty becomes `"Untitled"`.
      */
     public assignTag(label?: string): void {
         this.overlay?.assignTag(label, this.getTicks());
@@ -835,10 +835,10 @@ export class BTAPI {
      *
      * No-op when the audio subsystem is not initialized.
      *
-     * @param bus – Audio bus to update.
-     * @param volume – Target volume, clamped to `[0, 1]`.
-     * @param fadeMs – Optional fade duration in milliseconds; omit for an immediate change.
-     * @param easing – Easing curve for the fade. Defaults to `'linear'`; ignored when `fadeMs` is omitted.
+     * @param bus - Audio bus to update.
+     * @param volume - Target volume, clamped to `[0, 1]`.
+     * @param fadeMs - Optional fade duration in milliseconds; omit for an immediate change.
+     * @param easing - Easing curve for the fade. Defaults to `'linear'`; ignored when `fadeMs` is omitted.
      */
     public audioVolumeSet(bus: AudioBus, volume: number, fadeMs?: number, easing?: EasingFunction): void {
         this.audio?.volumeSet(bus, volume, fadeMs, easing);
@@ -847,7 +847,7 @@ export class BTAPI {
     /**
      * Gets the logical (pre-mute) volume for an audio bus.
      *
-     * @param bus – Audio bus to query.
+     * @param bus - Audio bus to query.
      * @returns Volume in `[0, 1]`, or `0` when the audio subsystem is not initialized.
      */
     public audioVolumeGet(bus: AudioBus): number {
@@ -859,7 +859,7 @@ export class BTAPI {
      *
      * No-op when the audio subsystem is not initialized.
      *
-     * @param bus – Audio bus to mute or unmute.
+     * @param bus - Audio bus to mute or unmute.
      * @param muted - `true` to mute, `false` to unmute.
      */
     public audioMuteSet(bus: AudioBus, muted: boolean): void {
@@ -869,7 +869,7 @@ export class BTAPI {
     /**
      * Reports whether an audio bus is currently muted.
      *
-     * @param bus – Audio bus to query.
+     * @param bus - Audio bus to query.
      * @returns `true` when muted; `false` when unmuted or not initialized.
      */
     public isAudioMuted(bus: AudioBus): boolean {
@@ -883,8 +883,8 @@ export class BTAPI {
      * available (not finished loading yet, or already unloaded) or when the audio subsystem is
      * not initialized.
      *
-     * @param clip – Loaded audio clip to play.
-     * @param options – Playback options; see {@link SoundPlayOptions}.
+     * @param clip - Loaded audio clip to play.
+     * @param options - Playback options; see {@link SoundPlayOptions}.
      * @returns A {@link SoundRef} identifying the new voice, or {@link INVALID_SOUND_REF}.
      */
     public soundPlay(clip: AudioClip, options?: SoundPlayOptions): SoundRef {
@@ -898,8 +898,8 @@ export class BTAPI {
     /**
      * Stops a playing sound, optionally fading it out.
      *
-     * @param ref – Sound to stop.
-     * @param fadeOutMs – Optional linear fade-out duration in milliseconds.
+     * @param ref - Sound to stop.
+     * @param fadeOutMs - Optional linear fade-out duration in milliseconds.
      */
     public soundStop(ref: SoundRef, fadeOutMs?: number): void {
         this.audio?.soundStop(ref, fadeOutMs);
@@ -908,7 +908,7 @@ export class BTAPI {
     /**
      * Reports whether a sound is still playing.
      *
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns `true` when still playing; `false` on a stale ref or when the audio subsystem is not initialized.
      */
     public isSoundPlaying(ref: SoundRef): boolean {
@@ -918,9 +918,9 @@ export class BTAPI {
     /**
      * Sets a sound's gain, optionally fading to it.
      *
-     * @param ref – Sound to update.
-     * @param value – Target gain.
-     * @param fadeMs – Optional fade duration in milliseconds; omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target gain.
+     * @param fadeMs - Optional fade duration in milliseconds; omit for an immediate change.
      */
     public soundVolumeSet(ref: SoundRef, value: number, fadeMs?: number): void {
         this.audio?.soundVolumeSet(ref, value, fadeMs);
@@ -929,7 +929,7 @@ export class BTAPI {
     /**
      * Gets a sound's current gain.
      *
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current gain in `[0, 1]`, or `1` on a stale ref or when the audio subsystem is not initialized.
      */
     public soundVolumeGet(ref: SoundRef): number {
@@ -939,9 +939,9 @@ export class BTAPI {
     /**
      * Sets a sound's playback rate, optionally fading to it.
      *
-     * @param ref – Sound to update.
-     * @param value – Target playback rate.
-     * @param fadeMs – Optional fade duration in milliseconds; omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target playback rate.
+     * @param fadeMs - Optional fade duration in milliseconds; omit for an immediate change.
      */
     public soundPitchSet(ref: SoundRef, value: number, fadeMs?: number): void {
         this.audio?.soundPitchSet(ref, value, fadeMs);
@@ -950,7 +950,7 @@ export class BTAPI {
     /**
      * Gets a sound's current playback rate.
      *
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current playback rate, or `1` on a stale ref or when the audio subsystem is not initialized.
      */
     public soundPitchGet(ref: SoundRef): number {
@@ -960,9 +960,9 @@ export class BTAPI {
     /**
      * Sets a sound's stereo pan, optionally fading to it.
      *
-     * @param ref – Sound to update.
-     * @param value – Target pan.
-     * @param fadeMs – Optional fade duration in milliseconds; omit for an immediate change.
+     * @param ref - Sound to update.
+     * @param value - Target pan.
+     * @param fadeMs - Optional fade duration in milliseconds; omit for an immediate change.
      */
     public soundPanSet(ref: SoundRef, value: number, fadeMs?: number): void {
         this.audio?.soundPanSet(ref, value, fadeMs);
@@ -971,7 +971,7 @@ export class BTAPI {
     /**
      * Gets a sound's current stereo pan.
      *
-     * @param ref – Sound to query.
+     * @param ref - Sound to query.
      * @returns Current pan, or `0` on a stale ref or when the audio subsystem is not initialized.
      */
     public soundPanGet(ref: SoundRef): number {
@@ -985,8 +985,8 @@ export class BTAPI {
      * No-ops when the clip's buffer isn't available (not finished loading yet, or already
      * unloaded), mirroring {@link soundPlay}, or when the audio subsystem is not initialized.
      *
-     * @param clip – Loaded audio clip to play.
-     * @param options – Playback options; see {@link MusicPlayOptions}.
+     * @param clip - Loaded audio clip to play.
+     * @param options - Playback options; see {@link MusicPlayOptions}.
      */
     public musicPlay(clip: AudioClip, options?: MusicPlayOptions): void {
         if (clip.buffer === null) {
@@ -999,7 +999,7 @@ export class BTAPI {
     /**
      * Stops the music player, optionally fading out first.
      *
-     * @param fadeMs – Optional linear fade-out duration in milliseconds; omit to stop immediately.
+     * @param fadeMs - Optional linear fade-out duration in milliseconds; omit to stop immediately.
      */
     public musicStop(fadeMs?: number): void {
         this.audio?.musicStop(fadeMs);
@@ -1018,8 +1018,8 @@ export class BTAPI {
     /**
      * Sets the music player's volume, optionally fading to it.
      *
-     * @param value – Target gain.
-     * @param fadeMs – Optional fade duration in milliseconds; omit for an immediate change.
+     * @param value - Target gain.
+     * @param fadeMs - Optional fade duration in milliseconds; omit for an immediate change.
      */
     public musicVolumeSet(value: number, fadeMs?: number): void {
         this.audio?.musicVolumeSet(value, fadeMs);
@@ -1072,7 +1072,7 @@ export class BTAPI {
     /**
      * Returns the current `screen.orientation.type` string when available.
      *
-     * Does not require a successful init – reads the platform API directly.
+     * Does not require a successful init - reads the platform API directly.
      * Examples: `'landscape-primary'`, `'portrait-secondary'`.
      *
      * @returns Orientation type string, or `null` when the Screen Orientation API
@@ -1086,7 +1086,7 @@ export class BTAPI {
      * Reports whether reduced motion is currently preferred.
      *
      * Resolves the `?reducedmotion` / `?noreducedmotion` URL flags over the platform's own
-     * `prefers-reduced-motion: reduce` match. Does not require a successful init – reads the
+     * `prefers-reduced-motion: reduce` match. Does not require a successful init - reads the
      * platform API directly, mirroring {@link getScreenOrientation}.
      *
      * @since 1.7.0
@@ -1133,7 +1133,7 @@ export class BTAPI {
      */
     public getPalette(): Palette | null {
         // While the splash owns the palette, the game must see its own palette,
-        // not the splash's ramp – otherwise in-place slot edits and
+        // not the splash's ramp - otherwise in-place slot edits and
         // spritesRefresh() would both target the wrong object. Null until the
         // game sets one, which matches the pre-paletteSet behavior it already
         // expects.
@@ -1155,7 +1155,7 @@ export class BTAPI {
     /**
      * Reseeds the default engine PRNG.
      *
-     * @param seed – Any finite number; only its lower 32 bits are used.
+     * @param seed - Any finite number; only its lower 32 bits are used.
      */
     public randomSeed(seed: number): void {
         this.random.seed(seed);
@@ -1169,7 +1169,7 @@ export class BTAPI {
      * {@link BTAPI.spritesRefresh}). In-place slot value changes on the active
      * palette do not go through this method and need no refresh.
      *
-     * @param palette – Palette to store as the active engine palette.
+     * @param palette - Palette to store as the active engine palette.
      */
     public setPalette(palette: Palette): void {
         if (this.spriteSheets.size > 0) {
@@ -1212,8 +1212,8 @@ export class BTAPI {
      * Palette effects started during capture are dropped: they hold snapshots of a
      * palette that is about to be replaced wholesale.
      *
-     * @param reducedMotion – When `true`, skips the exposure fade entirely and installs the
-     *   target colors immediately – no intermediate blackened state, no animation.
+     * @param reducedMotion - When `true`, skips the exposure fade entirely and installs the
+     *   target colors immediately - no intermediate blackened state, no animation.
      */
     public endPaletteCapture(reducedMotion: boolean = false): void {
         const captured = this.pendingPalette;
@@ -1256,7 +1256,7 @@ export class BTAPI {
     /**
      * Sets the background clear color for each frame using a palette index.
      *
-     * @param paletteIndex – Palette index for the clear color.
+     * @param paletteIndex - Palette index for the clear color.
      */
     public setClearColor(paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1268,8 +1268,8 @@ export class BTAPI {
     /**
      * Fills a rectangular region with a palette-indexed color.
      *
-     * @param rect – Region to fill in pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Region to fill in pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     public clearRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1283,8 +1283,8 @@ export class BTAPI {
     /**
      * Draws a single pixel at the specified position.
      *
-     * @param pos – Pixel coordinates.
-     * @param paletteIndex – Palette color index.
+     * @param pos - Pixel coordinates.
+     * @param paletteIndex - Palette color index.
      */
     public drawPixel(pos: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1297,12 +1297,12 @@ export class BTAPI {
 
     /**
      * Draws a single pixel at raw coordinates.
-     * More efficient than {@link drawPixel} when coordinates are already unpacked –
+     * More efficient than {@link drawPixel} when coordinates are already unpacked -
      * avoids constructing a `Vector2i` just to shuttle two numbers.
      *
-     * @param x – X coordinate.
-     * @param y – Y coordinate.
-     * @param paletteIndex – Palette color index.
+     * @param x - X coordinate.
+     * @param y - Y coordinate.
+     * @param paletteIndex - Palette color index.
      */
     public drawPixelXY(x: number, y: number, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1317,9 +1317,9 @@ export class BTAPI {
      * Draws a line between two points using Bresenham's algorithm.
      * Produces pixel-perfect lines without antialiasing.
      *
-     * @param p0 – Start point.
-     * @param p1 – End point.
-     * @param paletteIndex – Palette color index.
+     * @param p0 - Start point.
+     * @param p1 - End point.
+     * @param paletteIndex - Palette color index.
      */
     public drawLine(p0: Vector2i, p1: Vector2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1333,8 +1333,8 @@ export class BTAPI {
     /**
      * Draws a rectangle outline (unfilled).
      *
-     * @param rect – Rectangle bounds.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds.
+     * @param paletteIndex - Palette color index.
      */
     public drawRect(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1348,8 +1348,8 @@ export class BTAPI {
     /**
      * Draws a filled rectangle.
      *
-     * @param rect – Rectangle bounds.
-     * @param paletteIndex – Palette color index.
+     * @param rect - Rectangle bounds.
+     * @param paletteIndex - Palette color index.
      */
     public drawRectFill(rect: Rect2i, paletteIndex: number): void {
         this.assertPaletteIndex(paletteIndex);
@@ -1367,14 +1367,14 @@ export class BTAPI {
      * `paletteIndex` parameter is converted to a sprite pipeline palette
      * offset so that each foreground pixel maps to `palette[paletteIndex]`.
      *
-     * @param pos – Text position (top-left corner).
-     * @param paletteIndex – Palette color index for the text.
-     * @param text – String to display.
+     * @param pos - Text position (top-left corner).
+     * @param paletteIndex - Palette color index for the text.
+     * @param text - String to display.
      */
     public drawSystemText(pos: Vector2i, paletteIndex: number, text: string): void {
         this.assertPaletteIndex(paletteIndex);
 
-        // Palette index 0 is transparent – nothing to draw.
+        // Palette index 0 is transparent - nothing to draw.
         if (paletteIndex === TRANSPARENT_PALETTE_INDEX) {
             return;
         }
@@ -1384,7 +1384,7 @@ export class BTAPI {
             this.markDrawCall();
 
             // Offset math: font stores foreground as index 1.
-            // Shader computes 1 + (paletteIndex – 1) = paletteIndex.
+            // Shader computes 1 + (paletteIndex - 1) = paletteIndex.
             this.renderer?.drawBitmapText(this.systemFont, pos, text, paletteIndex - 1);
         }
     }
@@ -1402,10 +1402,10 @@ export class BTAPI {
      * Draws a sprite region from an indexed sprite sheet.
      * The renderer batches compatible sprite draws internally.
      *
-     * @param spriteSheet – Source sprite sheet (must have been indexized via spriteSheet.indexize()).
-     * @param srcRect – Region to copy from the sprite sheet.
-     * @param destPos – Screen position to draw in (the top-left corner).
-     * @param paletteOffset – Palette index offset applied at draw time (default 0).
+     * @param spriteSheet - Source sprite sheet (must have been indexized via spriteSheet.indexize()).
+     * @param srcRect - Region to copy from the sprite sheet.
+     * @param destPos - Screen position to draw in (the top-left corner).
+     * @param paletteOffset - Palette index offset applied at draw time (default 0).
      * @throws If the sprite sheet has not been indexized.
      */
     public drawSprite(spriteSheet: SpriteSheet, srcRect: Rect2i, destPos: Vector2i, paletteOffset: number = 0): void {
@@ -1425,10 +1425,10 @@ export class BTAPI {
      * Draws text using a bitmap font with variable-width glyphs.
      * Supports Unicode characters and per-glyph render offsets.
      *
-     * @param font – Bitmap font containing character glyphs (underlying sheet must be indexized).
-     * @param pos – Text position (top-left corner).
-     * @param text – String to render.
-     * @param paletteOffset – Palette index offset applied to all glyphs (default 0).
+     * @param font - Bitmap font containing character glyphs (underlying sheet must be indexized).
+     * @param pos - Text position (top-left corner).
+     * @param text - String to render.
+     * @param paletteOffset - Palette index offset applied to all glyphs (default 0).
      * @throws If the font's sprite sheet has not been indexized.
      */
     public drawBitmapText(font: BitmapFont, pos: Vector2i, text: string, paletteOffset: number = 0): void {
@@ -1502,7 +1502,7 @@ export class BTAPI {
      * Sets the camera offset for scrolling effects.
      * The offset is applied to subsequent renderer draw calls.
      *
-     * @param offset – Camera position offset in pixels.
+     * @param offset - Camera position offset in pixels.
      */
     public setCameraOffset(offset: Vector2i): void {
         this.lastCameraOffset = offset.clone();
@@ -1531,9 +1531,9 @@ export class BTAPI {
      * Classic water/fire/plasma animation. Runs indefinitely until canceled
      * via {@link paletteClearEffects}.
      *
-     * @param start – First palette index in the cycling range (inclusive).
-     * @param end – Last palette index in the cycling range (inclusive).
-     * @param speed – Steps per second. Positive = forward, negative = backward.
+     * @param start - First palette index in the cycling range (inclusive).
+     * @param end - Last palette index in the cycling range (inclusive).
+     * @param speed - Steps per second. Positive = forward, negative = backward.
      */
     public paletteCycle(start: number, end: number, speed: number): void {
         if (!Number.isFinite(speed)) {
@@ -1552,9 +1552,9 @@ export class BTAPI {
      *
      * Snapshots the current palette at start. Auto-removes when complete.
      *
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param easing – Easing curve. Defaults to `'linear'`.
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
      */
     public paletteFade(target: Palette, durationMs: number, easing?: EasingFunction): void {
         const palette = this.getPalette();
@@ -1574,9 +1574,9 @@ export class BTAPI {
      * values, and offsets each entry's schedule by its luminance. With black at
      * one end that is a straight scaling of light. Auto-removes when complete.
      *
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param options – Highlight lead and easing curve.
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param options - Highlight lead and easing curve.
      */
     public paletteFadeExposure(target: Palette, durationMs: number, options?: ExposureFadeOptions): void {
         const palette = this.getPalette();
@@ -1592,11 +1592,11 @@ export class BTAPI {
     /**
      * Fades only a subset of palette indices toward a target over time.
      *
-     * @param start – First palette index to fade (inclusive).
-     * @param end – Last palette index to fade (inclusive).
-     * @param target – Target palette to fade toward.
-     * @param durationMs – Fade duration in milliseconds.
-     * @param easing – Easing curve. Defaults to `'linear'`.
+     * @param start - First palette index to fade (inclusive).
+     * @param end - Last palette index to fade (inclusive).
+     * @param target - Target palette to fade toward.
+     * @param durationMs - Fade duration in milliseconds.
+     * @param easing - Easing curve. Defaults to `'linear'`.
      */
     public paletteFadeRange(
         start: number,
@@ -1620,8 +1620,8 @@ export class BTAPI {
      *
      * Index 0 (transparent) is preserved. Auto-removes after duration.
      *
-     * @param color – Flash color applied to all non-zero entries.
-     * @param durationMs – How long the flash lasts in milliseconds.
+     * @param color - Flash color applied to all non-zero entries.
+     * @param durationMs - How long the flash lasts in milliseconds.
      */
     public paletteFlash(color: Color32, durationMs: number): void {
         if (!this.getPalette()) {
@@ -1637,8 +1637,8 @@ export class BTAPI {
      *
      * This is an immediate operation, not an animated effect.
      *
-     * @param indexA – First palette index.
-     * @param indexB – Second palette index.
+     * @param indexA - First palette index.
+     * @param indexB - Second palette index.
      */
     public paletteSwap(indexA: number, indexB: number): void {
         // getPalette(), so a swap during the splash edits the game's captured palette
@@ -1669,7 +1669,7 @@ export class BTAPI {
      * require `drawingBufferSize` in hardware settings. Effects run in
      * registration order within each tier.
      *
-     * @param effect – Effect instance to append.
+     * @param effect - Effect instance to append.
      * @throws Error if the renderer has not been initialized.
      */
     public effectAdd(effect: Effect): void {
@@ -1687,7 +1687,7 @@ export class BTAPI {
      * never added is a no-op. When the last effect is removed the renderer
      * reverts to drawing directly to the swap chain on the next frame.
      *
-     * @param effect – Effect instance to remove.
+     * @param effect - Effect instance to remove.
      * @throws Error if the renderer has not been initialized.
      */
     public effectRemove(effect: Effect): void {
@@ -1716,7 +1716,7 @@ export class BTAPI {
      * gating and both Shift key codes. Extracted from the fixed-update tick closure to keep
      * its cyclomatic complexity within lint limits.
      *
-     * @param tick – Current fixed-update tick, for the keyboard's edge-detection window.
+     * @param tick - Current fixed-update tick, for the keyboard's edge-detection window.
      * @returns `true` when Shift+F9 was pressed this tick and the shortcut is enabled.
      */
     private isShiftF9ShortcutPressed(tick: number): boolean {
@@ -1733,15 +1733,15 @@ export class BTAPI {
      * polled from the fixed-update tick. `navigator.clipboard.write()` needs to run inside
      * the browser's synchronous `keydown` dispatch to reliably count as tied to the
      * triggering user gesture in Firefox and Safari, which can reject the call once a task
-     * boundary – not just a microtask/await boundary – has passed since the keypress; a
+     * boundary - not just a microtask/await boundary - has passed since the keypress; a
      * `GameLoop` tick is always scheduled via `requestAnimationFrame`, a later task than the
      * `keydown` event that triggers it. Reads `event.shiftKey` and `event.repeat` directly
      * instead of {@link KeyboardInput}'s tracked state, so this needs no coordination with
      * that tracker. Shift+F9 (the file-download path, see {@link isShiftF9ShortcutPressed})
-     * stays on the tick-based check – its `downloadBlob` call has no equivalent
+     * stays on the tick-based check - its `downloadBlob` call has no equivalent
      * user-activation staleness constraint, so there is nothing to gain by moving it too.
      *
-     * @param event – Native `keydown` event dispatched to the canvas.
+     * @param event - Native `keydown` event dispatched to the canvas.
      */
     private readonly handleClipboardShortcutKeydown = (event: KeyboardEvent): void => {
         if (
@@ -1785,7 +1785,7 @@ export class BTAPI {
             console.error('[BT] Frame capture (Shift+F9) failed:', error);
         } finally {
             // Only clear the guard if stop() hasn't bumped the generation since this
-            // capture started – see frameCaptureShortcutGeneration's doc comment.
+            // capture started - see frameCaptureShortcutGeneration's doc comment.
             if (generation === this.frameCaptureShortcutGeneration) {
                 this.isFrameCaptureShortcutInFlight = false;
             }
@@ -1795,13 +1795,13 @@ export class BTAPI {
     /**
      * Copies the current frame to the OS clipboard as a PNG, for the bare-F9 dev-mode
      * shortcut. Called synchronously from {@link handleClipboardShortcutKeydown}'s DOM
-     * keydown handler, not polled from the update tick – see that field's doc comment for
+     * keydown handler, not polled from the update tick - see that field's doc comment for
      * why. Errors are logged, not thrown, so a failed copy never crashes the caller.
      *
      * Deliberately not `async`/`await`: this method's own body must stay synchronous up to
      * the `navigator.clipboard.write()` call inside {@link writeBlobToClipboard}, so the
      * call happens within the same synchronous call stack as the triggering `keydown`
-     * event – some browsers invalidate sticky user activation once a task boundary (not
+     * event - some browsers invalidate sticky user activation once a task boundary (not
      * just a microtask/await) has passed, and reject `clipboard.write()` as not
      * user-initiated if it runs after one. Passing the still-pending
      * `captureFrameAtDisplaySize()` promise straight into `writeBlobToClipboard` (rather
@@ -1822,7 +1822,7 @@ export class BTAPI {
 
         if (!clipboard?.write || typeof ClipboardItem === 'undefined') {
             // Expected in a same-origin iframe missing an explicit allow="clipboard-write"
-            // attribute, and in insecure (non-HTTPS/non-localhost) contexts – surfaced clearly
+            // attribute, and in insecure (non-HTTPS/non-localhost) contexts - surfaced clearly
             // so it reads as "your embed/host is missing a permissions grant", not an engine bug.
             console.error(
                 '[BT] Frame copy (F9) failed: Clipboard API unavailable (missing HTTPS/localhost, or a hosting iframe is missing allow="clipboard-write")',
@@ -1845,10 +1845,10 @@ export class BTAPI {
      * Awaits an in-flight bare-F9 clipboard write and clears
      * {@link isFrameCaptureShortcutInFlight} once it settles. Split out of
      * {@link copyFrameViaShortcut} so that method's own body can stay synchronous up to the
-     * `navigator.clipboard.write()` call – see its doc comment.
+     * `navigator.clipboard.write()` call - see its doc comment.
      *
-     * @param writePromise – Promise returned by `writeBlobToClipboard`, already in flight.
-     * @param generation – {@link frameCaptureShortcutGeneration} at the moment this copy
+     * @param writePromise - Promise returned by `writeBlobToClipboard`, already in flight.
+     * @param generation - {@link frameCaptureShortcutGeneration} at the moment this copy
      *   started; the guard clears only if it still matches once `writePromise` settles.
      */
     private async settleFrameCopy(writePromise: Promise<void>, generation: number): Promise<void> {
@@ -1877,7 +1877,7 @@ export class BTAPI {
     /**
      * Reads and validates demo `configure()` output into resolved hardware settings.
      *
-     * @param demo – Demo implementing {@link IBTDemo}.
+     * @param demo - Demo implementing {@link IBTDemo}.
      * @returns `false` when hardware settings are invalid (bad dimensions, targetFPS, or audioVoices).
      */
     private loadHardwareSettings(demo: IBTDemo): boolean {
@@ -1965,7 +1965,7 @@ export class BTAPI {
     /**
      * Attaches pointer, keyboard, and gamepad input to the canvas.
      *
-     * @param canvas – Render target canvas.
+     * @param canvas - Render target canvas.
      */
     private attachInputSubsystems(canvas: HTMLCanvasElement): void {
         const hw = this.hwSettings;
@@ -1986,7 +1986,7 @@ export class BTAPI {
         });
         this.keyboard.setIsCapturingScroll(hw.isCapturingKeyboardScroll === true);
 
-        // Own listener, separate from KeyboardInput – see handleClipboardShortcutKeydown's
+        // Own listener, separate from KeyboardInput - see handleClipboardShortcutKeydown's
         // doc comment. Remove-before-add guards against a duplicate registration if this
         // method ever runs twice against the same canvas.
         canvas.removeEventListener('keydown', this.handleClipboardShortcutKeydown);
@@ -2000,7 +2000,7 @@ export class BTAPI {
     /**
      * Attaches the audio context, bus graph, and unlock listeners to the canvas.
      *
-     * @param canvas – Render target canvas.
+     * @param canvas - Render target canvas.
      */
     private attachAudioSubsystem(canvas: HTMLCanvasElement): void {
         const hw = this.hwSettings;
@@ -2025,7 +2025,7 @@ export class BTAPI {
      * project's lint threshold, following the same pattern as {@link attachInputSubsystems}
      * and {@link attachAudioSubsystem}.
      *
-     * @param demo – Active demo instance whose optional {@link IBTDemo.onReducedMotionChange}
+     * @param demo - Active demo instance whose optional {@link IBTDemo.onReducedMotionChange}
      *   hook is bound.
      */
     private attachReducedMotion(demo: IBTDemo): void {
@@ -2040,8 +2040,8 @@ export class BTAPI {
      * Logs the selected backend name, constructs the matching {@link IRenderer},
      * calls {@link IRenderer.init}, and reports success or failure.
      *
-     * @param canvas – Render target canvas.
-     * @param hw – Active hardware settings.
+     * @param canvas - Render target canvas.
+     * @param hw - Active hardware settings.
      * @returns `true` when the renderer is ready; `false` on failure.
      */
     private async initRenderer(canvas: HTMLCanvasElement, hw: HardwareSettings): Promise<boolean> {
@@ -2176,7 +2176,7 @@ export class BTAPI {
      * `false`, clears input and audio subsystems that were attached earlier in
      * the init sequence.
      *
-     * @param demo – Active demo instance.
+     * @param demo - Active demo instance.
      * @returns `true` when the demo reports success.
      */
     private async runDemoInit(demo: IBTDemo): Promise<boolean> {
@@ -2207,8 +2207,8 @@ export class BTAPI {
      * The {@link GameLoop} auto-calibrates its baseline to the actual rAF cadence,
      * so sustained slowness re-baselines instead of generating sustained log spam.
      *
-     * @param event – Dropped-frame event from {@link GameLoop}.
-     * @param logToConsole – When true, emits a one-line console warning.
+     * @param event - Dropped-frame event from {@link GameLoop}.
+     * @param logToConsole - When true, emits a one-line console warning.
      */
     private handleFrameDrop(event: FrameDropEvent, logToConsole: boolean): void {
         this.overlayTiming.droppedFrames = event.droppedFrames;
@@ -2224,7 +2224,7 @@ export class BTAPI {
     /**
      * Validates that a sprite sheet has been indexized and registers it for refresh tracking.
      *
-     * @param sheet – Sprite sheet to validate.
+     * @param sheet - Sprite sheet to validate.
      * @throws If the sprite sheet has not been indexized.
      */
     private requireIndexizedSheet(sheet: SpriteSheet): void {
@@ -2238,8 +2238,8 @@ export class BTAPI {
     /**
      * Validates that a duration is a finite, non-negative number.
      *
-     * @param method – Calling method name for the error message.
-     * @param durationMs – Duration to validate.
+     * @param method - Calling method name for the error message.
+     * @param durationMs - Duration to validate.
      * @throws Error if the duration is not finite or is negative.
      */
     private assertFiniteDuration(method: string, durationMs: number): void {
@@ -2308,7 +2308,7 @@ export class BTAPI {
      * Input runs here (not in {@link Overlay.updateAndRender}) so visibility is current
      * when deciding whether to track palette usage during `demo.render()`. The usage mask is
      * only cleared when tracking is actually active this frame (it toggles with overlay/palette
-     * visibility above) – nothing reads or repopulates it otherwise, so clearing it would be
+     * visibility above) - nothing reads or repopulates it otherwise, so clearing it would be
      * wasted work on every frame the overlay palette grid is not visible.
      */
     private beginRenderFrame(): void {
@@ -2341,7 +2341,7 @@ export class BTAPI {
     /**
      * Marks a palette index as used for the current frame.
      *
-     * @param index – Palette index to track.
+     * @param index - Palette index to track.
      */
     private trackPaletteIndexUsed(index: number): void {
         if (!this.isTrackingFramePaletteUsage() || !this.renderer) {
@@ -2354,9 +2354,9 @@ export class BTAPI {
     /**
      * Marks palette indices referenced by bitmap text glyphs in a string.
      *
-     * @param font – Bitmap font whose glyph atlas is scanned.
-     * @param text – Text about to be drawn.
-     * @param paletteOffset – Palette offset applied at draw time.
+     * @param font - Bitmap font whose glyph atlas is scanned.
+     * @param text - Text about to be drawn.
+     * @param paletteOffset - Palette offset applied at draw time.
      */
     private markBitmapTextPaletteUsage(font: BitmapFont, text: string, paletteOffset: number): void {
         if (!this.isTrackingFramePaletteUsage()) {
@@ -2381,7 +2381,7 @@ export class BTAPI {
      * The non-integer/negative check always runs regardless of palette state.
      * The range check only runs when a palette has been set.
      *
-     * @param index – Palette index to validate.
+     * @param index - Palette index to validate.
      * @throws Error if the index is not a non-negative integer.
      * @throws Error if a palette is active and the index is out of its range.
      */
@@ -2406,12 +2406,12 @@ export class BTAPI {
      * driver keeps the loop's fixed-timestep accumulator, its `lastUpdateTime`,
      * and its rolling dropped-frame baseline from ever seeing splash time.
      *
-     * The splash frame deliberately skips `beginRenderFrame()` and the overlay –
+     * The splash frame deliberately skips `beginRenderFrame()` and the overlay -
      * the overlay would draw over the logo and resolve its HUD slots through the
      * splash's ramp, and keeping it out is also what keeps the overlay free of
      * splash-state branching.
      *
-     * @param displaySize – Logical display size the splash centers its logo in.
+     * @param displaySize - Logical display size the splash centers its logo in.
      * @returns Promise resolving once the splash is done.
      */
     private async runSplash(displaySize: Vector2i): Promise<void> {
@@ -2470,8 +2470,8 @@ export class BTAPI {
     /**
      * Runs the game's `init()`, behind the splash when one is playing.
      *
-     * @param demo – Demo whose `init()` runs.
-     * @param hwSettings – Resolved hardware settings for this run.
+     * @param demo - Demo whose `init()` runs.
+     * @param hwSettings - Resolved hardware settings for this run.
      * @returns Whatever the demo's `init()` resolved to.
      */
     private async runDemoInitWithSplash(demo: IBTDemo, hwSettings: HardwareSettings): Promise<boolean> {
@@ -2490,9 +2490,9 @@ export class BTAPI {
      * The two run concurrently, so the splash doubles as a loading screen and
      * costs close to zero perceived time.
      *
-     * @param demo – Demo whose `init()` runs behind the splash.
-     * @param splash – The splash covering the screen.
-     * @param displaySize – Logical display size passed through to the splash.
+     * @param demo - Demo whose `init()` runs behind the splash.
+     * @param splash - The splash covering the screen.
+     * @param displaySize - Logical display size passed through to the splash.
      * @returns Whatever the demo's `init()` resolved to.
      */
     private async runDemoInitBehindSplash(demo: IBTDemo, splash: Splash, displaySize: Vector2i): Promise<boolean> {
@@ -2508,7 +2508,7 @@ export class BTAPI {
 
         // Gate on activeBackend, not requestedBackend: this is a runtime feature
         // gate, and the software renderer throws on post-process. Reduced motion skips the
-        // dissolve entirely – it is a simulated glitch effect, exactly the category of motion
+        // dissolve entirely - it is a simulated glitch effect, exactly the category of motion
         // the preference exists to suppress.
         if (this.activeBackend === 'webgpu' && !reducedMotion) {
             splash.enableDissolve();
@@ -2564,7 +2564,7 @@ export class BTAPI {
      * already-warned-about palette, and warning twice for one `BT.paletteSet()`
      * call would be noise.
      *
-     * @param palette – Palette to store as the active engine palette.
+     * @param palette - Palette to store as the active engine palette.
      */
     private installPalette(palette: Palette): void {
         // In-flight effects hold snapshots of the old palette. Drop them so they
@@ -2582,7 +2582,7 @@ export class BTAPI {
  * A module-level helper rather than a method so `init()` stays within its
  * complexity budget; it needs no instance state.
  *
- * @param hwSettings – Resolved hardware settings for this run.
+ * @param hwSettings - Resolved hardware settings for this run.
  * @returns A fresh splash, or `null` when gating turned it off.
  */
 function createSplashIfEnabled(hwSettings: HardwareSettings): Splash | null {

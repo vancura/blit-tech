@@ -8,7 +8,7 @@ description:
 
 # Keep it fast
 
-A BLIT386 game gets 16 milliseconds to think and draw each frame. That is a lot – until you do something wasteful sixty
+A BLIT386 game gets 16 milliseconds to think and draw each frame. That is a lot - until you do something wasteful sixty
 times a second. Almost every slow BLIT386 game is slow for one of the reasons below.
 
 ## When to use
@@ -46,7 +46,7 @@ See the `show-debug-overlay` skill for the rest of the overlay.
 ## Rule 1: do not make new objects every frame
 
 This is the big one. Every `new Vector2i(...)` and `new Rect2i(...)` is a small piece of litter. Make one per frame and
-nobody cares. Make one per enemy per frame, and the browser eventually has to stop the game to sweep up – which is felt
+nobody cares. Make one per enemy per frame, and the browser eventually has to stop the game to sweep up - which is felt
 as a regular hitch every few seconds.
 
 Make them once, then reuse them:
@@ -74,7 +74,7 @@ render() {
 ```
 
 The engine also gives you no-litter versions of the calls that would otherwise hand you a new object. They take an `out`
-argument – the object to write the answer into:
+argument - the object to write the answer into:
 
 - `Vector2i.lerpTo(a, b, t, out)` instead of `Vector2i.lerp(a, b, t)`
 - `Rect2i.intersectTo(other, out)` instead of making a new rectangle
@@ -97,7 +97,7 @@ for (const e of this.enemies) BT.drawSprite(this.bodySheet, e.bodyRect, e.pos);
 for (const e of this.enemies) BT.drawSprite(this.gunSheet, e.gunRect, e.gunPos);
 ```
 
-If you can fit your art on one sheet, do – then there is nothing to switch.
+If you can fit your art on one sheet, do - then there is nothing to switch.
 
 ## Rule 3: do not draw what nobody can see
 
@@ -123,16 +123,16 @@ shapes have their own budgets and do not compete for each other's room.
 Shapes all cost the same: a rectangle, a line, and even a single pixel are each drawn as two triangles, so each one
 costs the same slice of the budget. An outlined rectangle (`BT.drawRect`) is four lines, so it costs four.
 
-Go past it and the extra drawing is **thrown away** – the sprite simply does not appear. It logs a warning to the
+Go past it and the extra drawing is **thrown away** - the sprite simply does not appear. It logs a warning to the
 browser console and counts the drops on the overlay's renderer diagnostics bar, but your game does not crash and does
 not tell you. So: **if things randomly stop appearing when the screen gets busy, you are over budget**, and the fix is
 rule 3, not a bigger budget.
 
 ## Key calls
 
-- `BT.assignTag(label)` (method) – mark a moment on the overlay timing chart. Needs `isOverlayTimingChartEnabled`.
-- `Vector2i.lerpTo(a, b, t, out)` / `Rect2i.intersectTo(other, out)` (methods) – the no-litter versions.
-- `rect.set(x, y, w, h)` / `vec.set(x, y)` / `vec.copyFrom(other)` (methods) – reuse an object instead of making one.
+- `BT.assignTag(label)` (method) - mark a moment on the overlay timing chart. Needs `isOverlayTimingChartEnabled`.
+- `Vector2i.lerpTo(a, b, t, out)` / `Rect2i.intersectTo(other, out)` (methods) - the no-litter versions.
+- `rect.set(x, y, w, h)` / `vec.set(x, y)` / `vec.copyFrom(other)` (methods) - reuse an object instead of making one.
 - Configure flags: `isOverlayTimingChartEnabled`, `isOverlayRendererDiagnosticsBarEnabled`.
 
 ## Notes

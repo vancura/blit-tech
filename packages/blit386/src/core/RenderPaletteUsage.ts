@@ -13,7 +13,7 @@ export const USAGE_CAPACITY = MAX_PALETTE_SIZE;
 /**
  * Clears a palette usage bitmask.
  *
- * @param usedMask – Mutable usage mask cleared in place.
+ * @param usedMask - Mutable usage mask cleared in place.
  */
 export function resetUsage(usedMask: Uint8Array): void {
     usedMask.fill(0);
@@ -24,8 +24,8 @@ export function resetUsage(usedMask: Uint8Array): void {
  *
  * Index `0` (transparent) is ignored.
  *
- * @param usedMask – Mutable usage mask.
- * @param index – Palette index referenced by a draw call.
+ * @param usedMask - Mutable usage mask.
+ * @param index - Palette index referenced by a draw call.
  */
 export function markIndexUsed(usedMask: Uint8Array, index: number): void {
     if (!Number.isInteger(index) || index <= 0 || index >= usedMask.length) {
@@ -39,9 +39,9 @@ export function markIndexUsed(usedMask: Uint8Array, index: number): void {
 /**
  * Collects sorted used palette indices into a reusable scratch array.
  *
- * @param usedMask – Usage mask populated during the current frame.
- * @param paletteSize – Active palette size upper bound.
- * @param scratch – Reusable output buffer mutated in place.
+ * @param usedMask - Usage mask populated during the current frame.
+ * @param paletteSize - Active palette size upper bound.
+ * @param scratch - Reusable output buffer mutated in place.
  * @returns The same scratch array containing sorted used indices.
  */
 export function collectUsedIndices(usedMask: Uint8Array, paletteSize: number, scratch: number[]): readonly number[] {

@@ -35,8 +35,8 @@ at build time.
 
 ### `media-src 'none'` and the audio demos
 
-The demos do play sound – see [audio-basics](../src/audio-basics.js), [music](../src/music.js),
-[audio-buses](../src/audio-buses.js), [synth-toy](../src/synth-toy.js), and the `.wav` files under `public/audio/` – yet
+The demos do play sound - see [audio-basics](../src/audio-basics.js), [music](../src/music.js),
+[audio-buses](../src/audio-buses.js), [synth-toy](../src/synth-toy.js), and the `.wav` files under `public/audio/` - yet
 `media-src` is still `'none'`, and that is not a contradiction.
 
 `media-src` governs `<audio>` and `<video>` elements. The engine has neither: `AudioClip.load()` fetches the `.wav` file
@@ -51,12 +51,12 @@ in the same change, and update the table above.
 
 ### Intentionally not in this pass
 
-- `script-src` nonces / hashes – would require build-time CSP injection or moving all JS external (layout already
+- `script-src` nonces / hashes - would require build-time CSP injection or moving all JS external (layout already
   external; not worth nonce plumbing for demos).
-- `style-src` without `'unsafe-inline'` – would require extracting layout CSS to a file (separate refactor).
-- `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` – not required for WebGPU here; may affect third-party
+- `style-src` without `'unsafe-inline'` - would require extracting layout CSS to a file (separate refactor).
+- `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` - not required for WebGPU here; may affect third-party
   embed debugging.
-- `X-Frame-Options` – superseded by `frame-ancestors`; avoid conflicting duplicate framing policy.
+- `X-Frame-Options` - superseded by `frame-ancestors`; avoid conflicting duplicate framing policy.
 
 ## Verification
 
@@ -88,11 +88,11 @@ curl -sI 'https://demos.blit386.dev/basics' | rg -i '^(content-security-policy|x
 
 Smoke-test in a browser:
 
-1. [basics](https://demos.blit386.dev/basics) – shell iframe loads (`frame-ancestors` must include `'self'`); WebGPU +
+1. [basics](https://demos.blit386.dev/basics) - shell iframe loads (`frame-ancestors` must include `'self'`); WebGPU +
    source panel uses Pragmata Pro from `fonts.vancura.dev` (no CSP `font-src` violation in the console).
-2. [image-output](https://demos.blit386.dev/image-output) – Space triggers PNG download (`blob:`).
-3. [crt-pipboy](https://demos.blit386.dev/crt-pipboy) – WebGPU post-process chain.
-4. Embed check – demo iframe on [vancura.dev](https://vancura.dev) articles and [blit386.dev](https://blit386.dev) docs
+2. [image-output](https://demos.blit386.dev/image-output) - Space triggers PNG download (`blob:`).
+3. [crt-pipboy](https://demos.blit386.dev/crt-pipboy) - WebGPU post-process chain.
+4. Embed check - demo iframe on [vancura.dev](https://vancura.dev) articles and [blit386.dev](https://blit386.dev) docs
    still loads (`frame-ancestors`).
 
 Check the browser console for CSP violations after deploy.
@@ -101,4 +101,4 @@ Check the browser console for CSP violations after deploy.
 
 - Security runbook (the parent hardening program, in the engine package):
   [`packages/blit386/docs/security/security-runbook.md`](https://github.com/blit386/blit386/blob/main/packages/blit386/docs/security/security-runbook.md)
-  – the deploy-headers row records the evidence for this page.
+  \- the deploy-headers row records the evidence for this page.

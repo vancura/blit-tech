@@ -47,12 +47,12 @@ BT.paletteClearEffects();
 - `BT.paletteCycle(start, end, speed)`
 - `BT.paletteFade(targetPalette, durationMs, easing?)`
 - `BT.paletteFadeRange(start, end, targetPalette, durationMs, easing?)`
-- `BT.paletteFadeExposure(targetPalette, durationMs, options?)` – engine 1.5.0+; options are `{ highlightLead, easing }`
+- `BT.paletteFadeExposure(targetPalette, durationMs, options?)` - engine 1.5.0+; options are `{ highlightLead, easing }`
 - `BT.paletteFlash(color, durationMs)`
 - `BT.paletteSwap(indexA, indexB)`
 - `BT.paletteClearEffects()`
 - Easing names: `'linear'`, `'ease-in'`, `'ease-out'`, `'ease-in-out'`, plus the full curve library on blit386 1.5.0+
-  (`'sine-*'`, `'cubic-*'`, `'expo-*'`, `'bounce-*'`, and more – see the `move-and-time` skill).
+  (`'sine-*'`, `'cubic-*'`, `'expo-*'`, `'bounce-*'`, and more - see the `move-and-time` skill).
 
 ## Which fade do I want?
 
@@ -74,7 +74,7 @@ down to black always looks right; in a busy scene, look at it before shipping it
 ## Notes
 
 - These animate the active palette; set one up first (use-palette skill).
-- A fade target is a whole `Palette` – build the "night" palette once in `init()`.
+- A fade target is a whole `Palette` - build the "night" palette once in `init()`.
 - Slots past the end of the target palette are left alone. Hand `paletteFadeExposure` a small target palette and it only
   touches that many slots, which is how two different fades can run at once on one palette.
 - If you change a sprite's colors as a full theme swap with `BT.paletteSet`, call `BT.spritesRefresh()` afterward so

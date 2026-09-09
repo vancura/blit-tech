@@ -78,8 +78,8 @@ class MockOffscreenCanvas {
     /**
      * Creates a mock offscreen canvas with the given pixel dimensions.
      *
-     * @param width – Canvas width in pixels.
-     * @param height – Canvas height in pixels.
+     * @param width - Canvas width in pixels.
+     * @param height - Canvas height in pixels.
      */
     constructor(
         public width: number,
@@ -89,7 +89,7 @@ class MockOffscreenCanvas {
     /**
      * Returns the shared no-op logical 2D context mock.
      *
-     * @param contextId – Context type requested; only `'2d'` returns a context.
+     * @param contextId - Context type requested; only `'2d'` returns a context.
      * @returns Mock 2D context, or `null` for any other context type.
      */
     getContext(contextId?: string): MockContext | null {
@@ -106,9 +106,9 @@ vi.stubGlobal(
         /**
          * Creates a mock `ImageData` backed by a plain `Uint8ClampedArray`.
          *
-         * @param width – Image width in pixels.
-         * @param height – Image height in pixels.
-         * @param data – Backing pixel buffer; defaults to a zeroed buffer sized for `width` x `height`.
+         * @param width - Image width in pixels.
+         * @param height - Image height in pixels.
+         * @param data - Backing pixel buffer; defaults to a zeroed buffer sized for `width` x `height`.
          */
         constructor(
             public width: number,
@@ -152,8 +152,8 @@ function makeBenchPalette(): Palette {
 /**
  * Builds an indexed sprite sheet filled with cycling non-zero palette indices.
  *
- * @param width – Sheet width in pixels.
- * @param height – Sheet height in pixels.
+ * @param width - Sheet width in pixels.
+ * @param height - Sheet height in pixels.
  * @returns Sprite sheet for benchmark fixtures.
  */
 function makeBenchSheet(width: number, height: number): SpriteSheet {

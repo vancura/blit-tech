@@ -19,7 +19,7 @@ export interface FakeLoader {
 export interface FakeLoaderCalls {
     /** Slug arrays handed to `getPage`, in call order. */
     getPage: string[][];
-    /** How many times `getPages` ran – the feed and MCP corpus caches must hold this at 1. */
+    /** How many times `getPages` ran - the feed and MCP corpus caches must hold this at 1. */
     getPages: number;
 }
 

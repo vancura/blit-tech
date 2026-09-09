@@ -1,11 +1,11 @@
 /**
  * Unit tests for the virtual D-pad's isDown/isPressed edge semantics and visibility gating.
  *
- * downState/pressedState/visible are module-level state in ui-dpad.js (not per-context – see
+ * downState/pressedState/visible are module-level state in ui-dpad.js (not per-context - see
  * the file's own header), so every test after the first "settles" it with one neutral
  * stepDpad() call (no pointer contact) before asserting anything. That overwrites any stale
  * true left by a previous test in this file, because stepDpad() unconditionally recomputes
- * downState[dir] = isHeld every call – see the note on each test below.
+ * downState[dir] = isHeld every call - see the note on each test below.
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
@@ -16,7 +16,7 @@ import { dpadIsDown, dpadIsPressed, dpadWidget, stepDpad } from '../ui-dpad.js';
 import { stubBt } from './bt-stub.mjs';
 import { createFakePalette } from './ui-test-helpers.mjs';
 
-// This must run before any other test in this file calls applyTheme() – T.ready starts
+// This must run before any other test in this file calls applyTheme() - T.ready starts
 // false for a freshly loaded ui-theme.js module and never resets, so this guard is only
 // observable once, right here. (node --test runs each test file in its own subprocess, so
 // this is not racing against ui-core.test.mjs or ui-widgets.test.mjs.)
@@ -51,7 +51,7 @@ describe('dpad isDown / isPressed edge semantics', () => {
     }
 
     // Default layout (size 34, gap 4, margin 8, corner 'bottomRight') against the stub's
-    // 320x180 display puts the 'up' key at x:[240,274), y:[62,96) – see dpadWidget()'s
+    // 320x180 display puts the 'up' key at x:[240,274), y:[62,96) - see dpadWidget()'s
     // baseX/baseY/step math in ui-dpad.js. (240, 70) lands inside it with room to spare.
     const UP_KEY_X = 250;
     const UP_KEY_Y = 70;

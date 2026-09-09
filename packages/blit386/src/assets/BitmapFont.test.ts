@@ -28,8 +28,8 @@ import { SpriteSheet } from './SpriteSheet';
 
 // registerFontForHotReload() normalizes the source url against `document.baseURI`
 // whenever hot reload is active (see BitmapFont.ts). Real browsers always have
-// `document`; this file's default Node test environment does not, so – like the
-// GPU/AudioContext stubs in src/__test__/setup.ts – install it once, only if
+// `document`; this file's default Node test environment does not, so - like the
+// GPU/AudioContext stubs in src/__test__/setup.ts - install it once, only if
 // missing, so it survives every describe block's `vi.unstubAllGlobals()` call.
 if (typeof globalThis.document === 'undefined') {
     (globalThis as unknown as { document?: { baseURI: string } }).document = { baseURI: 'http://localhost/' };
@@ -49,7 +49,7 @@ type FontData = {
  * Creates a stub Image class for use with `vi.stubGlobal('Image', ...)`.
  *
  * @param opts           - Configuration options.
- * @param opts.fireError – When true, fires `onerror` instead of `onload` on src assignment.
+ * @param opts.fireError - When true, fires `onerror` instead of `onload` on src assignment.
  * @param opts.onSrcSet  - Optional callback invoked with the assigned src value before the load/error event.
  * @param opts.width     - Reported image width (default 64).
  * @param opts.height    - Reported image height (default 16).
@@ -99,7 +99,7 @@ function createStubImage({
 /**
  * Builds a mocked fetch response that returns JSON text like {@link BitmapFont.load} expects.
  *
- * @param data – Font descriptor object to serialize.
+ * @param data - Font descriptor object to serialize.
  * @returns Resolved fetch response stub.
  */
 function mockFontFetchResponse(data: unknown) {
@@ -750,7 +750,7 @@ describe('BitmapFont', () => {
             const sheet = SpriteSheet.fromIndexedPixels(16, 16, pixels);
 
             // Nothing validates glyph keys down to a single Unicode scalar on load, so a
-            // malformed .btfont could define one keyed by a multi-character string – here,
+            // malformed .btfont could define one keyed by a multi-character string - here,
             // 'A' followed by a combining acute accent (U+0301). Naively taking
             // codePointAt(0) on both keys below would report 0x41 (plain 'A') twice.
             const glyphs = new Map([
@@ -814,7 +814,7 @@ describe('BitmapFont', () => {
             ]);
             const font = buildFont(glyphs);
 
-            // A(8) + fallback(6) + A(8) = 22 – the cursor advances for the missing glyph too,
+            // A(8) + fallback(6) + A(8) = 22 - the cursor advances for the missing glyph too,
             // instead of collapsing to 0 and letting the next glyph overdraw the previous one.
             expect(font.measureText('A–A')).toBe(22);
         });
@@ -831,7 +831,7 @@ describe('BitmapFont', () => {
         });
 
         describe('astral code points (beyond U+FFFF)', () => {
-            // U+1F600 GRINNING FACE – a real astral character, encoded as a UTF-16 surrogate
+            // U+1F600 GRINNING FACE - a real astral character, encoded as a UTF-16 surrogate
             // pair, to exercise the boundary String.fromCharCode gets wrong.
             const ASTRAL_CHAR = '😀';
             const ASTRAL_CODE_POINT = 0x1f600;

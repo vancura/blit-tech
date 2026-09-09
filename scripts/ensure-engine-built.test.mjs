@@ -62,7 +62,7 @@ describe('ensure-engine-built', () => {
             );
         });
 
-        it('is false when the vite entry file is older than the source – stale dist', () => {
+        it('is false when the vite entry file is older than the source - stale dist', () => {
             assert.equal(
                 isEngineBuilt(
                     fakeEntry,

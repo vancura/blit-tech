@@ -3,16 +3,16 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "The BLIT386 Splash"
 description: "The BLIT386 splash: gating, the loading-screen hold, the palette handoff, and the skip."
-lastModified: "2026-09-03T20:55:39+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/guide-splash.md"
 ---
 
 Every published BLIT386 game shows a short BLIT386 splash before it starts: a logo bitmap fading in on its own 16-step
 gray ramp, holding, then fading out into the game's palette. Release builds play it by default and development builds
-skip it by default – both are defaults you can override.
+skip it by default - both are defaults you can override.
 
 This guide covers when it plays and how to turn it off, the loading-screen behavior, the palette handoff, and the skip.
-The getters themselves – `BT.splashState` and `BT.isSplashVisible` – are in [API: Core](/docs/api/core#splash-state), and
+The getters themselves - `BT.splashState` and `BT.isSplashVisible` - are in [API: Core](/docs/api/core#splash-state), and
 the three `configure()` fields are in the [hardware settings table](/docs/api/core#hardware-settings).
 
 ## When it plays
@@ -21,7 +21,7 @@ Three gating layers, resolved in order. The first match wins.
 
 1. `HardwareSettings.isSplashEnabled` from your `configure()`. Explicit wins over everything.
 2. The `?splash` and `?nosplash` URL flags. Both are valueless.
-3. `BT.isDevMode` – on in release builds, off in development.
+3. `BT.isDevMode` - on in release builds, off in development.
 
 So with no configuration at all, a production build shows the splash and a dev server does not.
 
@@ -71,7 +71,7 @@ Your `init()` runs concurrently with the splash rather than after it. The splash
 maximum: it extends until `init()` settles, so a slow load costs close to zero extra perceived time, and a fast one
 still gets the full animation.
 
-That is what `BT.isSplashVisible` is for inside `init()` – if something is already covering the screen, optional work
+That is what `BT.isSplashVisible` is for inside `init()` - if something is already covering the screen, optional work
 can happen now instead of stuttering the first frames.
 
 ```ts twoslash
@@ -92,7 +92,7 @@ The hold also ends when `init()` _fails_, not only when it succeeds, so a reject
 holding forever.
 
 Your `update()` and `render()` are suspended for the splash's whole duration. This is forced by palette ownership: the
-game drawing indices through the splash's ramp would resolve every color wrong. The game loop is not merely paused – it
+game drawing indices through the splash's ramp would resolve every color wrong. The game loop is not merely paused - it
 has not been constructed yet, so no splash time reaches its fixed-timestep accounting.
 
 ## The palette handoff
@@ -109,7 +109,7 @@ slot edits and `BT.spritesRefresh()` behave normally.
 
 <Callout type="warn" title="Palette effects started in init() are dropped">
 
-Palette _effects_ – `BT.paletteCycle`, `BT.paletteFade`, and friends – started inside `init()` while the splash is up
+Palette _effects_ - `BT.paletteCycle`, `BT.paletteFade`, and friends - started inside `init()` while the splash is up
 are discarded at handoff. They hold snapshots of a palette that is about to be replaced wholesale. Start them from your
 first `update()` instead.
 
@@ -124,7 +124,7 @@ Any key, click, or tap skips.
 
 Skip collapses the fade-in and the minimum hold, but it still waits on `init()`. When the splash is also the loading
 screen, "skip" cannot mean "start now" if the assets are not ready. The fade-out then runs at its full duration, because
-it is the handoff into your palette rather than decoration – cutting it would produce exactly the hard cut the exposure
+it is the handoff into your palette rather than decoration - cutting it would produce exactly the hard cut the exposure
 fade exists to avoid.
 
 The press that skipped is swallowed. The engine drains pending input edges at handoff, so your first `update()` sees no
@@ -143,16 +143,16 @@ Swallowing consumes the press _edge_, not the key. A key still physically down a
 
 When `BT.isReducedMotionPreferred` is `true` at splash start, the splash shows a static hold instead of animating:
 
-- No fade-in – the ramp and logo appear at full brightness immediately.
+- No fade-in - the ramp and logo appear at full brightness immediately.
 - The minimum hold still collapses the same way a manual skip does (see [The skip](#the-skip)), but it still waits on
-  `init()` – the splash doubling as a loading screen does not change.
+  `init()` - the splash doubling as a loading screen does not change.
 - The handoff into your game's palette is an instant swap, not the animated exposure fade described in
-  [The palette handoff](#the-palette-handoff) – no intermediate blackened frame.
-- The WebGPU dissolve is skipped entirely. It is a simulated glitch effect – exactly the category of motion
-  `prefers-reduced-motion` exists to suppress – rather than a decoration to tone down.
+  [The palette handoff](#the-palette-handoff) - no intermediate blackened frame.
+- The WebGPU dissolve is skipped entirely. It is a simulated glitch effect - exactly the category of motion
+  `prefers-reduced-motion` exists to suppress - rather than a decoration to tone down.
 
 You do not opt into any of this. It follows `BT.isReducedMotionPreferred` automatically, which itself follows the
-platform's `prefers-reduced-motion` setting (or the `?reducedmotion` / `?noreducedmotion` URL overrides – see
+platform's `prefers-reduced-motion` setting (or the `?reducedmotion` / `?noreducedmotion` URL overrides - see
 [API: Core](/docs/api/core#reduced-motion)).
 
 ## Backends
@@ -165,7 +165,7 @@ out. That is an accepted difference in fidelity, not a bug.
 
 ## Customizing the ramp
 
-The splash's palette is a 16-step ramp between two endpoints, spaced evenly in encoded sRGB channel values – the same
+The splash's palette is a 16-step ramp between two endpoints, spaced evenly in encoded sRGB channel values - the same
 numbers an image editor shows you. Quantization is therefore predictable: a tone you draw lands on the nearest step to
 the value you drew it as, because the logo converter picks a step straight from each pixel's value. Both endpoints are
 configurable:

@@ -1,10 +1,10 @@
-# blit386 (engine) – agent quick start
+# blit386 (engine) - agent quick start
 
 A palette-first WebGPU retro engine for TypeScript, inspired by RetroBlit. Pixel-perfect 2D rendering where primitives
 and sprites resolve through a shared indexed palette, with a Canvas 2D software fallback.
 
 This file is a standalone quick start for tools that read `AGENTS.md` and not `CLAUDE.md`. For architecture routing, API
-conventions, and documentation rules, [`CLAUDE.md`](CLAUDE.md) is canonical – read it before non-trivial work. Shared
+conventions, and documentation rules, [`CLAUDE.md`](CLAUDE.md) is canonical - read it before non-trivial work. Shared
 monorepo conventions live in the repo root [`CLAUDE.md`](../../CLAUDE.md) and [`AGENTS.md`](../../AGENTS.md).
 
 ## Tech stack
@@ -24,16 +24,16 @@ pnpm run preflight           # Package quality gates (format, lint, typecheck, s
 
 `pnpm run preflight` is the one command to run before committing here: it covers every CI check for this package except
 visual regression tests (`/test blit386 visual`, run separately when renderer output can change). Repo-wide checks such
-as `docs:links` and `agents:check` are not in it – `.husky/pre-push` and CI's `Code Quality (root)` job run those from
+as `docs:links` and `agents:check` are not in it - `.husky/pre-push` and CI's `Code Quality (root)` job run those from
 the repository root once the per-package gates pass.
 
 ## Rules that matter most
 
-- Integer coordinates always – use `Vector2i` / `Rect2i` for rendering, never raw floats.
-- Use the `BT` namespace – never access the internal `BTAPI` singleton directly from demo code.
-- No `any` types – use `unknown` or a proper type; type-only imports (`import type { ... }`).
-- Named exports only – no default exports.
-- Performance first – minimize allocations in `update()`/`render()`, reuse buffers, batch draws.
+- Integer coordinates always - use `Vector2i` / `Rect2i` for rendering, never raw floats.
+- Use the `BT` namespace - never access the internal `BTAPI` singleton directly from demo code.
+- No `any` types - use `unknown` or a proper type; type-only imports (`import type { ... }`).
+- Named exports only - no default exports.
+- Performance first - minimize allocations in `update()`/`render()`, reuse buffers, batch draws.
 - Documentation is part of every feature: a public API change updates the relevant `docs/api-*.md`; a behavior change
   updates the affected `docs/` guide. Never treat docs as a follow-up step.
 
@@ -45,5 +45,5 @@ always-applicable agent rules also live in `.claude/rules/*.md`.
 
 1.4.0 surface highlights:
 
-- [Hot Reload guide](docs/guide-hot-reload.md) – `blit386/vite` plugin, hot-swap tiers, and asset hot-replace.
-- [API: Assets](docs/api-assets.md#loading-assets) – `BT.loadingAssetsCount` and asset loading progress.
+- [Hot Reload guide](docs/guide-hot-reload.md) - `blit386/vite` plugin, hot-swap tiers, and asset hot-replace.
+- [API: Assets](docs/api-assets.md#loading-assets) - `BT.loadingAssetsCount` and asset loading progress.

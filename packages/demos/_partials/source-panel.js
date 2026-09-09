@@ -3,7 +3,7 @@
  * event (sent by `plugins/virtual-demos.js` after a demo entry edit is re-highlighted) and swaps the
  * highlighted code block in place, so the source panel stays fresh without a page reload.
  *
- * Injected into a demo page's HTML only in dev (see virtual-demos.js's isDevMode / renderHtml) – the
+ * Injected into a demo page's HTML only in dev (see virtual-demos.js's isDevMode / renderHtml) - the
  * production build never references or ships this file.
  */
 

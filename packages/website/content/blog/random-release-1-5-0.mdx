@@ -1,7 +1,7 @@
 ---
-title: BLIT386 1.5.0 – the same world, every time
+title: BLIT386 1.5.0 - the same world, every time
 description:
-  The random release – a seeded PRNG, stateless coordinate hashes, three kinds of noise – plus the full easing curve
+  The random release - a seeded PRNG, stateless coordinate hashes, three kinds of noise - plus the full easing curve
   library and an exposure-curve palette fade.
 date: 2026-08-11
 tags: [release, random]
@@ -31,14 +31,14 @@ const loot = BT.random.weighted(['common', 'rare', 'legendary'], [80, 18, 2]);
 const order = BT.random.shuffle([1, 2, 3, 4, 5]);
 ```
 
-Beyond the obvious draws there are the ones you actually reach for at 1am – `bool`, `sign`, `pick`, `angle`, `gaussian`
-– and spatial helpers like `insideRect` and `direction8`, each with an allocation-free `*To(out)` variant for the render
-loop. `getState` / `setState` / `clone` / `fork` are there for when one generator is not enough and you want the loot
-table to stop stealing numbers from the terrain.
+Beyond the obvious draws there are the ones you actually reach for at 1am - `bool`, `sign`, `pick`, `angle`, `gaussian`
+\- and spatial helpers like `insideRect` and `direction8`, each with an allocation-free `*To(out)` variant for the
+render loop. `getState` / `setState` / `clone` / `fork` are there for when one generator is not enough and you want the
+loot table to stop stealing numbers from the terrain.
 
 The [random-basics demo](https://demos.blit386.dev/random-basics) runs five scenes through it: shuffling, weighted
 drops, scatter, flips, and walkers. [Seeded worlds](https://demos.blit386.dev/seeded-worlds) is the one that makes the
-point better than any paragraph can – two worlds side by side, each labeled with its seed, and copying one seed over
+point better than any paragraph can - two worlds side by side, each labeled with its seed, and copying one seed over
 makes the halves identical.
 
 ## Hashes, which store nothing
@@ -77,7 +77,7 @@ Details in [API: Random](/docs/api/random), and the reasoning about streams and 
 ## Curves, finally all of them
 
 Easing had linear and quadratic, which covers roughly the first afternoon of caring about motion. `EasingFunction` now
-carries the full set – sine, cubic, quartic, quintic, expo, circ, back, elastic, bounce, each in / out / in-out – and
+carries the full set - sine, cubic, quartic, quintic, expo, circ, back, elastic, bounce, each in / out / in-out - and
 `interpolate()` applies any of them across `number`, `Vector2i`, `Color32`, and `Rect2i`:
 
 ```ts twoslash
@@ -118,7 +118,7 @@ keep things.
 
 ## The splash, and knowing you are in dev
 
-The engine has a splash now – the logo fading in on its own 16-step gray ramp, holding, fading out before your first
+The engine has a splash now - the logo fading in on its own 16-step gray ramp, holding, fading out before your first
 frame. It is not decoration: your `init()` runs concurrently and the hold extends until assets settle, so it is the
 loading screen you were going to have to build anyway. It hands off into your palette with a single continuous
 `BT.paletteFadeExposure`, which is why that fade exists at all. Any key, click, or tap skips it, and the press is
@@ -137,7 +137,7 @@ release. Worth saying plainly: a build that skips the plugin silently gets relea
 ### Text stopped losing characters
 
 `BitmapFont` learned fallback glyphs. A font can define a glyph keyed by `U+FFFD`, and any character without its own
-glyph now draws that instead of vanishing. The vanishing was the actual bug – a skipped character did not advance the
+glyph now draws that instead of vanishing. The vanishing was the actual bug - a skipped character did not advance the
 pen either, so the next character drew on top of the one before it and a whole line turned to soup. The built-in system
 font gained 79 glyphs while I was in there: dashes, arrows, uppercase Greek, media icons, a heart. `hasGlyph()` still
 reports true glyph presence rather than fallback coverage, deliberately.

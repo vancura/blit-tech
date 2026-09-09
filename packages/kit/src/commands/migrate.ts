@@ -152,7 +152,7 @@ function emptySummary(hotReload: MigrateSummary['hotReload'] = 'none'): MigrateS
  * Decide whether this project should get the Vite hot-reload plugin rewrite.
  *
  * When blit386 is not installed yet, we still offer the rewrite (scaffold / migrate before install). When it is
- * installed below 1.4.0, skip – `blit386/vite` does not exist on older engines.
+ * installed below 1.4.0, skip - `blit386/vite` does not exist on older engines.
  */
 function shouldOfferHotReload(installed: string | null): boolean {
     if (!installed) {
@@ -237,14 +237,14 @@ export async function migrateProject(
             out(ui.success('Your game already uses the current BLIT386 names. Nothing to change.'));
             out(
                 ui.info(
-                    'No vite.config at the project root – add `plugins: [blit386()]` from `blit386/vite` yourself for hot reload (see docs/hot-reload.md).',
+                    'No vite.config at the project root - add `plugins: [blit386()]` from `blit386/vite` yourself for hot reload (see docs/hot-reload.md).',
                 ),
             );
         } else if (hotReload === 'unsupported') {
             out(ui.success('Your game already uses the current BLIT386 names. Nothing to rename.'));
             out(
                 ui.warn(
-                    "Could not safely edit vite.config for hot reload – add `import { blit386 } from 'blit386/vite'` and `plugins: [blit386()]` by hand (see docs/hot-reload.md).",
+                    "Could not safely edit vite.config for hot reload - add `import { blit386 } from 'blit386/vite'` and `plugins: [blit386()]` by hand (see docs/hot-reload.md).",
                 ),
             );
         } else if (hotReload === 'skipped-engine') {
@@ -334,7 +334,7 @@ export async function migrateProject(
                 out(ui.success('Enabled hot reload in vite.config.'));
             }
             if (hotReloadPending) {
-                out(ui.info('Restart `npx blit run` once, then save a file – the game should keep playing.'));
+                out(ui.info('Restart `npx blit run` once, then save a file - the game should keep playing.'));
             }
         } else {
             out('');
@@ -364,7 +364,7 @@ export async function migrateProject(
         out('');
         out(
             ui.warn(
-                "Could not safely edit vite.config for hot reload – add `import { blit386 } from 'blit386/vite'` and `plugins: [blit386()]` by hand (see docs/hot-reload.md).",
+                "Could not safely edit vite.config for hot reload - add `import { blit386 } from 'blit386/vite'` and `plugins: [blit386()]` by hand (see docs/hot-reload.md).",
             ),
         );
     }

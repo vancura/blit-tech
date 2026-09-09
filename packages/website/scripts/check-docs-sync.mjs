@@ -10,11 +10,11 @@
  * rewritten into one new commit the way a squash would. So a PR that commits
  * an engine-doc edit *before* running `sync:docs`, and regenerates the mirror
  * from that history, embeds a `lastModified` that already matches what
- * `git log` reports once the PR merges – no lag to chase.
+ * `git log` reports once the PR merges - no lag to chase.
  *
  * This script regenerates the mirror and then inspects the diff: a clean diff
  * passes. Any diff at all fails the build, including one confined to the
- * `lastModified` frontmatter field – that shape means the commit order above
+ * `lastModified` frontmatter field - that shape means the commit order above
  * wasn't followed (the doc edit wasn't committed before `sync:docs` ran), not
  * an unavoidable byproduct of the merge strategy. `classifyDocsDiff` still
  * distinguishes a `lastModified`-only diff from real content drift (title,
@@ -33,7 +33,7 @@ const LAST_MODIFIED_LINE_PATTERN = /^[+-]lastModified: /u;
 /**
  * A generated page's frontmatter (see `renderPage` in sync-docs-from-engine.mjs)
  * is always the opening `---`, a two-line banner, up to four fields, and the
- * closing `---` – 8 lines at most. A hunk whose pre-image starts beyond that is
+ * closing `---` - 8 lines at most. A hunk whose pre-image starts beyond that is
  * necessarily body content, never frontmatter, however its lines read.
  */
 const FRONTMATTER_HUNK_START_LIMIT = 8;
@@ -43,13 +43,13 @@ const FRONTMATTER_HUNK_START_LIMIT = 8;
  * `'lastModifiedOnly'` (every changed line is a `lastModified` frontmatter
  * value, and at least one such line exists), or `'drift'` (anything else,
  * including a rename or mode change with no matching content lines). Diff
- * file-header lines (`--- a/...`, `+++ b/...`) are ignored – they always
+ * file-header lines (`--- a/...`, `+++ b/...`) are ignored - they always
  * change alongside any edit and carry no content of their own.
  *
  * `lastModified`-shaped text is only trusted inside a hunk that starts within
  * `FRONTMATTER_HUNK_START_LIMIT` of the file's top, so a coincidentally
- * matching line added to prose or a code example – never actually frontmatter
- * – still counts as drift.
+ * matching line added to prose or a code example - never actually frontmatter
+ * - still counts as drift.
  */
 const classifyDocsDiff = (diffText) => {
     if (diffText.trim() === '') {
@@ -82,7 +82,7 @@ const classifyDocsDiff = (diffText) => {
 /**
  * List untracked, non-ignored files under `content/docs`. `git diff` (used above) never reports
  * an untracked path at all, so a brand-new mirror page that `sync:docs` wrote but nobody staged
- * is invisible to `classifyDocsDiff` – this is the other half of what a clean verdict must check.
+ * is invisible to `classifyDocsDiff` - this is the other half of what a clean verdict must check.
  */
 const listUntrackedDocsFiles = (cwd = process.cwd()) =>
     execFileSync('git', ['ls-files', '--others', '--exclude-standard', '--', 'content/docs'], {
@@ -98,7 +98,7 @@ const listUntrackedDocsFiles = (cwd = process.cwd()) =>
  * Narrow a list of untracked files to the ones that are actually generated pages, by
  * cross-referencing the sitemap manifest's published-page entries (a page's `path` is already
  * `<section>/<topic>`, and `sync-docs-from-engine.mjs` writes it to `content/docs/<path>.mdx`).
- * An untracked file that matches no sitemap page – a hand-authored draft, for instance – is out
+ * An untracked file that matches no sitemap page - a hand-authored draft, for instance - is out
  * of scope for this check and is left out.
  */
 const findUntrackedGeneratedPages = (untrackedFiles, pages = PAGES) => {
@@ -140,7 +140,7 @@ const main = () => {
         console.error(
             'Docs mirror lastModified timestamp(s) are stale. This repo lands PRs as merge commits (squash merging ' +
                 'is disabled), so a doc edit committed before `pnpm run sync:docs` runs should already embed the ' +
-                'right date – this diff means the engine doc edit was not committed before sync:docs ran. Commit the ' +
+                'right date - this diff means the engine doc edit was not committed before sync:docs ran. Commit the ' +
                 'engine doc edit first, then run `pnpm run sync:docs` again and commit the regenerated mirror.\n',
         );
         console.error(diff);

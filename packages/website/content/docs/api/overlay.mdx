@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Overlay"
 description: "Engine overlay HUD configure flags, style objects, and worked examples."
-lastModified: "2026-08-08T20:51:38+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/api-overlay.md"
 ---
 
@@ -36,13 +36,13 @@ custom rows, and the bottom band (palette grid plus hint bar).
 
 The `|` separators shown in the engine row formats below (backend/resolution, frame metrics, timing, renderer
 diagnostics, and the audio meter readout) do not render as text glyphs: each one draws as a `1px` full-row-height
-vertical divider filled with `overlayStyle.gapPaletteIndex` – the same color as the row gaps between bands – with `7px`
+vertical divider filled with `overlayStyle.gapPaletteIndex` - the same color as the row gaps between bands - with `7px`
 of space between the line and the text on each side. Overlay text and chrome keep the same `7px` inset from the left and
 right screen edges. Custom rows are user content, so a `|` in their text stays a literal glyph.
 
 ### Top row 1 (left)
 
-- Short demo title derived from `document.title` (registry pages titled `BLIT386 Demo NNN – Topic` show as
+- Short demo title derived from `document.title` (registry pages titled `BLIT386 Demo NNN - Topic` show as
   `Topic Demo`).
 
 ### Top row 1 (right)
@@ -139,7 +139,7 @@ right screen edges. Custom rows are user content, so a `|` in their text stays a
 ### Top row 3 (left)
 
 - `Frame: Xms | update(): Yms | render(): Zms` (shows `xN` on `update()` when multiple fixed updates ran this frame)
-- `N` is the number of fixed `update()` steps the accumulator drained for that render frame – normally `1`; higher when
+- `N` is the number of fixed `update()` steps the accumulator drained for that render frame - normally `1`; higher when
   `render()` falls behind `targetFPS` (a throttled background tab, a slow device, or a power-saving cap on
   `requestAnimationFrame`). Game logic stays time-correct either way; see
   [Multiple update() steps per render frame](/docs/api/game-loop#multiple-update-steps-per-render-frame) in Game Loop.
@@ -199,11 +199,11 @@ class Demo {
 Toggle the overlay body at runtime with backquote/tilde (`~`) or a primary pointer press in the bottom-left `17×13px`
 corner, as long as `isOverlayToggleEnabled` is `true` (default). These flags shape that behavior:
 
-- `isOverlayToggleHintVisible: false` – hide the hint icon while the body stays hidden.
-- `isOverlayToggleEnabled: false` – lock body visibility at `isOverlayVisibleAtStart` (no key or corner input).
-- `isOverlayToggleHitDebugVisible: true` – draw a 1 px outline of the bottom-left toggle hit region (opt-in; useful when
+- `isOverlayToggleHintVisible: false` - hide the hint icon while the body stays hidden.
+- `isOverlayToggleEnabled: false` - lock body visibility at `isOverlayVisibleAtStart` (no key or corner input).
+- `isOverlayToggleHitDebugVisible: true` - draw a 1 px outline of the bottom-left toggle hit region (opt-in; useful when
   tuning the corner size).
-- `isOverlayEnabled: false` – disable the overlay subsystem and all toggle input entirely (for example release builds).
+- `isOverlayEnabled: false` - disable the overlay subsystem and all toggle input entirely (for example release builds).
 
 On WebGPU, the engine draws the HUD after your `render()` call, composited above demo sprites via internal overlay draw
 batches (not exposed on `BT`).
@@ -241,7 +241,7 @@ may still draw, and palette usage tracking is off.
 
 <Callout type="warn" title="Do not use present FPS for simulation timing">
 
-Use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead – see [Game Loop](/docs/api/game-loop). Present FPS varies with the
+Use `BT.ticks`, `BT.deltaSeconds`, or `Timer` instead - see [Game Loop](/docs/api/game-loop). Present FPS varies with the
 display refresh rate and overlay visibility.
 
 </Callout>
@@ -257,12 +257,12 @@ Demos should not duplicate engine overlay text; the overlay provides it. Leave r
   - Add `overlayAudioMeterHeight + 1px` (or `14px`) when `isOverlayAudioMetersEnabled: true`.
 - Bottom of screen: about `14px` clear by default (`1px` separator + `13px` hint bar).
 - With the palette grid (`isOverlayPaletteEnabled: true`): add the grid height, its `1px` filled row gap, and the `13px`
-  hint bar – for example about `83px` on the default `320×240` layout with a 256-slot palette (32 columns × 8 rows of
+  hint bar - for example about `83px` on the default `320×240` layout with a 256-slot palette (32 columns × 8 rows of
   `7px` swatches with `1px` gaps, plus the gap and hint bar).
 
 ### Palette grid sizing
 
-Column count is chosen by halving from `palette.size` until the row fits `displayWidth – 2 * edgeMargin`. The footer
+Column count is chosen by halving from `palette.size` until the row fits `displayWidth - 2 * edgeMargin`. The footer
 band height matches `resolveOverlayFooterHeight()` in `layoutPlan.ts`:
 
 ```text

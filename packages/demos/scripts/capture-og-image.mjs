@@ -4,7 +4,7 @@
  * upscaled and centered on a 1200x630 black canvas, written to public/social/og-<slug>.png.
  *
  * Why an element screenshot rather than the engine's own PNG export: `BT.captureFrame()` is
- * reachable only from inside a demo module – there is no `window.BT` global – and a WebGPU
+ * reachable only from inside a demo module - there is no `window.BT` global - and a WebGPU
  * swap chain does not reliably read back through `canvas.toDataURL()`, which is exactly why
  * WebGPUContext configures the canvas with COPY_SRC for the engine's own capture path.
  * `agent-browser screenshot <selector>` goes through CDP and captures the composited surface,
@@ -24,7 +24,7 @@
  *        pnpm run capture:og -- --all [options]
  *
  * Note: --base-url must point at a host serving flattened, extensionless demo URLs
- * (production, the next channel, or `vite preview`) – the `pnpm run dev` server routes demos
+ * (production, the next channel, or `vite preview`) - the `pnpm run dev` server routes demos
  * at /demos/<slug>.html instead and is not supported. Use `pnpm run build && pnpm run preview`
  * to capture a demo that is not deployed yet.
  */
@@ -84,7 +84,7 @@ export const DEFAULTS = {
     out: '',
     baseUrl: SITE_URL,
     settle: 2.5,
-    // Empty means "no CLI override" – each demo's own `@ogScale` tag decides, falling back to
+    // Empty means "no CLI override" - each demo's own `@ogScale` tag decides, falling back to
     // OG_SCALE_DEFAULT. An explicit --scale-mode wins over both, for one-off experiments.
     scaleMode: '',
     force: false,
@@ -297,7 +297,7 @@ export function resolveScaleMode(cliMode, demoMode) {
  * `integer` mode picks the largest whole-number factor that fits, which is the point of the
  * whole pipeline: every source pixel becomes an identical square block, so pixel art keeps hard
  * edges. `fit` mode allows a fractional factor, filling the card at the cost of uneven pixel
- * widths. `auto` – the default – takes integer when it already fills most of the card and falls
+ * widths. `auto` - the default - takes integer when it already fills most of the card and falls
  * back to fit when it would leave the demo marooned in black.
  *
  * A demo overrides the mode for its own card with an `@ogScale` header tag.
@@ -342,7 +342,7 @@ export function computeOgScale(
 /**
  * The ffmpeg filter graph that turns a native-resolution screenshot into the finished card.
  *
- * `flags=neighbor` is what keeps pixel edges hard – any other scaler blurs them before a social
+ * `flags=neighbor` is what keeps pixel edges hard - any other scaler blurs them before a social
  * player ever sees the image. The pad color matches the site's own black page background, so a
  * non-16:9 demo reads as deliberately letterboxed rather than as a broken image.
  *
@@ -398,13 +398,13 @@ export function buildOgFfmpegArgs(input, output, target) {
  *
  * Both overrides need `!important` to land. The engine's `applyCanvasLayoutStyles` sets
  * `max-width` / `max-height` inline with `!important`, and layout.css sizes the canvas with a
- * `min(100dvw, ...)` expression – so a plain `canvas.style.width = ...` loses to both, the
+ * `min(100dvw, ...)` expression - so a plain `canvas.style.width = ...` loses to both, the
  * screenshot comes back at the CSS-fit size instead, and the result is a silently resampled,
  * wrong-sized card.
  *
  * `body` also gets a defensive reset: an element screenshot captures the page at its current zoom,
- * not at zoom 1, so a stray page-level `zoom` – a browser setting, an extension, or a future
- * layout.css regression (BT-468 traced one such accidental rule) – would otherwise turn a 320x320
+ * not at zoom 1, so a stray page-level `zoom` - a browser setting, an extension, or a future
+ * layout.css regression (BT-468 traced one such accidental rule) - would otherwise turn a 320x320
  * canvas into a resampled, wrong-sized PNG, and that resampling is what corrupts glyphs and gaps
  * wireframe lines on the finished card.
  *

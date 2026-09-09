@@ -19,7 +19,7 @@ init).
 | --- | --- | --- |
 | Chrome/Edge | 113+ | Enabled by default |
 | Firefox | 141+ (Windows) | Enabled by default; 145+/147+ on macOS; Nightly on Linux/Android |
-| Safari | 26+ | Enabled by default; Safari 18–25 available via Feature Flags |
+| Safari | 26+ | Enabled by default; Safari 18-25 available via Feature Flags |
 
 <Callout title="Point-in-time snapshot">
 
@@ -47,7 +47,7 @@ codec support follows the browser, not BLIT386.
 
 Codec support shifts with browser updates. Treat this matrix as a snapshot and re-check the vendor release notes
 periodically. This is why `AudioClip.load()` accepts an ordered fallback list (for example `['theme.ogg', 'theme.mp3']`)
-– the engine tries each candidate in order until one decodes.
+\- the engine tries each candidate in order until one decodes.
 
 </Callout>
 
@@ -88,7 +88,7 @@ attempt `screen.orientation.lock()` after init; the default `'any'` skips the lo
 
 <Callout title="Silent no-op fallback">
 
-Lock support is uneven – Chrome on Android and Samsung Internet typically allow it; iOS Safari does not. When locking is
+Lock support is uneven - Chrome on Android and Samsung Internet typically allow it; iOS Safari does not. When locking is
 unsupported or rejected, the engine continues without unlocking or failing `init()`. Detection and `onOrientationChange`
 still work wherever `screen.orientation` exists.
 
@@ -98,15 +98,15 @@ still work wherever `screen.orientation` exists.
 
 macOS Low Power Mode makes Safari/WebKit halve its `requestAnimationFrame` dispatch rate to about `30 Hz`, even on a
 `120 Hz` display and even when the page's JavaScript is nowhere near the frame budget. WebKit first shipped this
-throttle for iOS – see [WebKit bug 168837](https://bugs.webkit.org/show_bug.cgi?id=168837), "[iOS] Throttle
-requestAnimationFrame to 30fps in low power mode" – and the same WebKit power-saving policy applies on macOS once Apple
+throttle for iOS - see [WebKit bug 168837](https://bugs.webkit.org/show_bug.cgi?id=168837), "[iOS] Throttle
+requestAnimationFrame to 30fps in low power mode" - and the same WebKit power-saving policy applies on macOS once Apple
 added Low Power Mode there in macOS `12` (2021), where it is reproducible on Apple silicon laptops. It is not a web
 standard, and a page cannot opt out of it. Chromium (Chrome/Edge) and Gecko (Firefox) do not tie their
 `requestAnimationFrame` cadence to the OS power state this way; both keep dispatching at the display's native rate
 regardless of Low Power Mode.
 
 BLIT386's `render()` runs on `requestAnimationFrame`, so this halves the render rate while `update()` keeps advancing at
-`targetFPS` through the fixed-timestep accumulator – see
+`targetFPS` through the fixed-timestep accumulator - see
 [Multiple update() steps per render frame](api-game-loop.md#multiple-update-steps-per-render-frame). Game logic stays
 correct; only the visible frame rate drops, and the overlay's frame-metrics row shows the resulting `x2` (or higher)
 suffix on `update()`. Turning off Low Power Mode restores a clean `60 fps` ceiling on WebKit (capped by its own "prefer

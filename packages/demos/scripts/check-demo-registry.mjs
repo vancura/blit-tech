@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Enforce mutual consistency between demo files on disk, DEMO_ORDER, VINTAGE_URLS,
- * and NAV_HIDDEN_SLUGS. Failures exit 1 with clear messages – soft console.warns from
+ * and NAV_HIDDEN_SLUGS. Failures exit 1 with clear messages - soft console.warns from
  * buildRegistry are not enough for CI / preflight.
  *
  * Rules:
@@ -24,14 +24,14 @@ import { RETIRED_SLUGS, VINTAGE_URLS } from '../plugins/demo-vintage-urls.js';
 import { OG_IMAGE_DIR, OG_SCALE_MODES } from '../plugins/social-meta.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-// Mirrors plugins/demo-registry.js – kept local so this script can list files without
+// Mirrors plugins/demo-registry.js - kept local so this script can list files without
 // going through buildRegistry's soft-warn merge path.
 const FILENAME_PATTERN = /^([a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.js$/;
 
 // The ceiling is the column budget, not an SEO limit: the tag must be one line, and the
 // longest prefix (" * @description ") is 16 characters, so 104 is the most that fits this
 // repo's 120-column convention. That lands comfortably under every consumer's truncation
-// point anyway – Google cuts a meta description around 155 characters, and Facebook's own
+// point anyway - Google cuts a meta description around 155 characters, and Facebook's own
 // guidance is under 155. The floor keeps one-word placeholders ("Sprites.") from passing the
 // gate.
 const DESCRIPTION_MIN_CHARS = 60;
@@ -60,14 +60,14 @@ function listDiskSlugs() {
 /**
  * Validate a demo's `@description` header tag: presence, length range, forbidden characters,
  * and sentence-final punctuation. Exported so it can be unit-tested without touching disk.
- * @param {string} slug – Demo slug, used only to shape the failure messages.
- * @param {string} description – Trimmed `@description` value, or '' when the tag is absent.
+ * @param {string} slug - Demo slug, used only to shape the failure messages.
+ * @param {string} description - Trimmed `@description` value, or '' when the tag is absent.
  * @returns {string[]} Failure messages, empty when the description is valid.
  */
 export function findDescriptionFailures(slug, description) {
     if (description === '') {
         return [
-            `src/${slug}.js has no "@description <one sentence>" header tag – required for the ` +
+            `src/${slug}.js has no "@description <one sentence>" header tag - required for the ` +
                 `meta description and og:description, and it must appear within the first ` +
                 `${HEADER_SCAN_BYTES} bytes of the file`,
         ];
@@ -90,7 +90,7 @@ export function findDescriptionFailures(slug, description) {
     }
 
     if (/[<>]/.test(description)) {
-        failures.push(`src/${slug}.js @description contains < or > – keep it plain prose`);
+        failures.push(`src/${slug}.js @description contains < or > - keep it plain prose`);
     }
 
     // A period specifically, not any sentence-final mark: the documented rule says period, and
@@ -105,8 +105,8 @@ export function findDescriptionFailures(slug, description) {
 /**
  * Validate a demo's optional `@ogScale` header tag against the real OG_SCALE_MODES set.
  * Exported so it can be unit-tested without touching disk.
- * @param {string} slug – Demo slug, used only to shape the failure message.
- * @param {string} ogScale – Trimmed `@ogScale` value, or '' when the tag is absent.
+ * @param {string} slug - Demo slug, used only to shape the failure message.
+ * @param {string} ogScale - Trimmed `@ogScale` value, or '' when the tag is absent.
  * @returns {string | null} A failure message, or null when the value is valid or absent.
  */
 export function findOgScaleFailure(slug, ogScale) {
@@ -122,9 +122,9 @@ export function findOgScaleFailure(slug, ogScale) {
  * RETIRED_SLUGS (and not both), and that every RETIRED_SLUGS entry is still meaningful: absent
  * from disk and targeted by at least one VINTAGE_URLS entry. Exported so it can be
  * unit-tested without touching disk.
- * @param {Record<string, string>} vintageUrls – Vintage slug -> current slug map.
- * @param {Set<string>} diskSlugSet – Slugs with a live `src/<slug>.js` file.
- * @param {Set<string>} retiredSlugs – Slugs explicitly retired (no longer live, still redirected).
+ * @param {Record<string, string>} vintageUrls - Vintage slug -> current slug map.
+ * @param {Set<string>} diskSlugSet - Slugs with a live `src/<slug>.js` file.
+ * @param {Set<string>} retiredSlugs - Slugs explicitly retired (no longer live, still redirected).
  * @returns {string[]} Failure messages, empty when everything is consistent.
  */
 export function findVintageUrlFailures(vintageUrls, diskSlugSet, retiredSlugs) {
@@ -146,7 +146,7 @@ export function findVintageUrlFailures(vintageUrls, diskSlugSet, retiredSlugs) {
 
         if (isLive && isRetired) {
             failures.push(
-                `Slug "${currentSlug}" is both live on disk and listed in RETIRED_SLUGS – remove it from RETIRED_SLUGS`,
+                `Slug "${currentSlug}" is both live on disk and listed in RETIRED_SLUGS - remove it from RETIRED_SLUGS`,
             );
         }
     }
@@ -167,8 +167,8 @@ export function findVintageUrlFailures(vintageUrls, diskSlugSet, retiredSlugs) {
 /**
  * Validate the DEMO_ORDER ↔ disk bijection: no duplicate entries, every DEMO_ORDER slug has a
  * matching file, and every file is listed.
- * @param {string[]} diskSlugs – Slugs found on disk.
- * @param {Set<string>} diskSlugSet – Same slugs, as a set.
+ * @param {string[]} diskSlugs - Slugs found on disk.
+ * @param {Set<string>} diskSlugSet - Same slugs, as a set.
  * @returns {string[]} Failure messages, empty when the bijection holds.
  */
 function findOrderBijectionFailures(diskSlugs, diskSlugSet) {
@@ -201,8 +201,8 @@ function findOrderBijectionFailures(diskSlugs, diskSlugSet) {
 /**
  * Validate that no live slug collides with a vintage URL key mapping elsewhere, which would
  * steal that demo's public path.
- * @param {string[]} diskSlugs – Slugs found on disk.
- * @param {Record<string, string>} vintageUrls – Vintage slug -> current slug map.
+ * @param {string[]} diskSlugs - Slugs found on disk.
+ * @param {Record<string, string>} vintageUrls - Vintage slug -> current slug map.
  * @returns {string[]} Failure messages, empty when there is no collision.
  */
 function findVintageKeyCollisions(diskSlugs, vintageUrls) {
@@ -247,7 +247,7 @@ function findHeaderTagFailures(registry) {
 
 /**
  * Validate that every demo has a committed OpenGraph card. `buildSocialMeta` would fall back to
- * og-default.png for any slug missing here, so this is not needed for the page to render – it is
+ * og-default.png for any slug missing here, so this is not needed for the page to render - it is
  * needed so a new demo does not silently ship without a real card. Capturing one needs a built
  * site, a preview server, a browser, and ffmpeg, so this stays manual (`pnpm run capture:og`, see
  * README) rather than something preflight runs itself.
@@ -260,7 +260,7 @@ function findMissingOgCardFailures(registry) {
         .filter((slug) => !existsSync(join(ROOT, 'public', OG_IMAGE_DIR, `og-${slug}.png`)))
         .map(
             (slug) =>
-                `public/${OG_IMAGE_DIR}/og-${slug}.png is missing – capture it with \`pnpm run capture:og -- ${slug}\``,
+                `public/${OG_IMAGE_DIR}/og-${slug}.png is missing - capture it with \`pnpm run capture:og -- ${slug}\``,
         );
 }
 
@@ -274,7 +274,7 @@ function main() {
     const diskSlugs = listDiskSlugs();
     const diskSlugSet = new Set(diskSlugs);
 
-    // Mute buildRegistry's soft warns – this script reports the same issues as hard errors.
+    // Mute buildRegistry's soft warns - this script reports the same issues as hard errors.
     const originalWarn = console.warn;
     console.warn = () => {};
     const registry = buildRegistry(ROOT);
@@ -287,7 +287,7 @@ function main() {
     const errors = [
         ...(registryDrifted
             ? [
-                  'buildRegistry() slug set disagrees with src/ scan — FILENAME_PATTERN may have drifted between demo-registry.js and this script.',
+                  'buildRegistry() slug set disagrees with src/ scan - FILENAME_PATTERN may have drifted between demo-registry.js and this script.',
               ]
             : []),
         ...findOrderBijectionFailures(diskSlugs, diskSlugSet),

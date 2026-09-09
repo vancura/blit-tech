@@ -1,5 +1,5 @@
 /**
- * Unit tests for `src/kit-root.ts` – the single home for both ways of finding a kit package root.
+ * Unit tests for `src/kit-root.ts` - the single home for both ways of finding a kit package root.
  *
  * `kitRoot()` ("the kit containing me") and `resolveKitRoot(fromUrl)` ("the kit the caller's package
  * depends on") are not interchangeable, and the interesting failures are silent: a resolver that
@@ -50,7 +50,7 @@ function emittedModules() {
  *
  * `depth` is how many directories below the package root the emitted tree is placed. tsup already
  * emits `dist/migrations/*.js` one level below `dist/`, and splits shared code into `chunk-*.js`
- * whose location is an esbuild implementation detail – so the resolver must not care. Moving the
+ * whose location is an esbuild implementation detail - so the resolver must not care. Moving the
  * whole tree keeps every relative sibling import intact while changing what `../package.json` would
  * have meant, which is exactly the assumption under test.
  */
@@ -103,7 +103,7 @@ test('no emitted module resolves the kit root by a hardcoded depth', () => {
     assert.deepEqual(
         offenders,
         [],
-        'the `new URL("../package.json", import.meta.url)` idiom is only correct at dist root – use kitRoot()',
+        'the `new URL("../package.json", import.meta.url)` idiom is only correct at dist root - use kitRoot()',
     );
 });
 

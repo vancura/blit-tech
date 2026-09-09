@@ -19,14 +19,14 @@ Zero-argument read-only values on `BT`:
   `?backend=software`); `null` before `BT.init()`
 - Loop: `deltaSeconds`, `timeSeconds`, `ticks`, `renderAlpha`
 - Runtime: `activeBackend`, `camera`, `palette`, `random`, `systemFont`, `isAudioUnlocked`, `isMusicPlaying`,
-  `screenOrientation`, `loadingAssetsCount`, `isDevMode`, `splashState`, `isSplashVisible`, `isReducedMotionPreferred` –
+  `screenOrientation`, `loadingAssetsCount`, `isDevMode`, `splashState`, `isSplashVisible`, `isReducedMotionPreferred` -
   `activeBackend` is `null` before init or on failure; `isAudioUnlocked` is `false` until the first user gesture resumes
   the audio context; `isMusicPlaying` is `true` while the music player has a live current track; `screenOrientation` is
   the current `screen.orientation.type` string, or `null` when the API is unavailable; `loadingAssetsCount` is the
   combined count of in-flight `AssetLoader` + `AudioClip` loads (poll for a loading screen); `random` is a live,
   time-seeded `Random` (always present; reseed with `randomSeed`); `systemFont` is the same live `BitmapFont` instance
-  `BT.systemPrint` draws with – throws if read before `BT.init()` finishes creating it (mirrors `palette`); `isDevMode`
-  resolves an explicit override, then the `blit386/vite` plugin's build-time flag, then live hot-reload activity – it is
+  `BT.systemPrint` draws with - throws if read before `BT.init()` finishes creating it (mirrors `palette`); `isDevMode`
+  resolves an explicit override, then the `blit386/vite` plugin's build-time flag, then live hot-reload activity - it is
   Tier A below, not Tier B, because no `HardwareSettings` field mirrors it, so it reads as a runtime environment query
   rather than a configure flag; `splashState` is the five-state splash machine's current state (`'disabled'` when gated
   off); `isSplashVisible` is the one-term derived query game code should prefer over `splashState`;
@@ -39,7 +39,7 @@ Good: `BT.displaySize.y`, `BT.targetFPS`, `BT.ticks % 180`
 Bad: `BT.displaySize()`, `BT.fps()`, `BT.getActiveBackend()` (removed; use property forms)
 
 `Vector2i` getters return a clone per read. `activeBackend` is what actually started after fallback, not
-`configure().backend`. `palette` and `random` are live references – mutating palette slots affects rendering on the next
+`configure().backend`. `palette` and `random` are live references - mutating palette slots affects rendering on the next
 frame; calling methods on `BT.random` advances the shared stream.
 
 ## Keep as methods
@@ -57,12 +57,12 @@ frame; calling methods on `BT.random` advances the shared stream.
 - Drawing / clearing: `clear`, `clearRect`, `drawPixel`, `drawLine`, `drawRect`, `drawRectFill`, `drawSprite`,
   `systemPrint`, `systemPrintMeasure`, `printFont` (4th arg is optional `paletteOffset`, not `Color32`)
 - Any parameter: `pointerPos(0)`, `pointerDelta(0)`, `isDown(BT.BTN_A)`, `getAxis(...)`, `cameraClamp(...)`
-- Zero-alloc out-param counterparts: `pointerPosTo(out, index?)`, `pointerDeltaTo(out, index?)` – write into the
+- Zero-alloc out-param counterparts: `pointerPosTo(out, index?)`, `pointerDeltaTo(out, index?)` - write into the
   caller's `Vector2i` instead of allocating; `out` comes first because the slot index has a default
 - Boolean queries with parameters (Tier A; always methods on `BT`): `isPointerActive(0)`, `isDown(...)`,
   `isPressed(...)`, `isReleased(...)`, `isGamepadConnected(...)`, `isKeyDown(...)`, `isKeyPressed(...)`,
   `isKeyReleased(...)`
-- Side-effect booleans (Tier C): `Timer.fireIfElapsed()` – not `is*` because the call advances state
+- Side-effect booleans (Tier C): `Timer.fireIfElapsed()` - not `is*` because the call advances state
 - Async: `captureFrame`, `downloadFrame`
 
 Deprecated aliases still on `BT` (do not use in new code): see `docs/reference-deprecations.md` (`pointerPosValid`,
@@ -79,7 +79,7 @@ Deprecated aliases still on `BT` (do not use in new code): see `docs/reference-d
 - Use `-ing` for configure flags that enable ongoing behavior (`isDetectingDroppedFrames`).
 - Hold vs edge on `BT`: `isDown` / `isKeyDown`; `isPressed` / `isReleased`; `isKeyPressed` / `isKeyReleased`. Public
   `BT` uses `isDown`; internal input classes use `isButtonDown` / `isKeyDown` and related names. No embedded second `Is`
-  – audit with `\bis[A-Za-z]+Is[A-Z]`.
+  \- audit with `\bis[A-Za-z]+Is[A-Z]`.
 - Identifier acronyms: `canvasID`, `containerID` (not `canvasId`).
 
 ## Naming when adding getters
@@ -99,9 +99,9 @@ Deprecated aliases still on `BT` (do not use in new code): see `docs/reference-d
    field)
 4. Update `docs/api-*.md`, demos if public; overlay behavior also updates `docs/guide-overlay.md`; structural `src/`
    changes update `.claude/rules/architecture.md` and the Where to Find table in `CLAUDE.md`
-5. New per-frame hot-path API (called every `update()`/`render()`, not just at init) – add or extend a `*.bench.ts`
+5. New per-frame hot-path API (called every `update()`/`render()`, not just at init) - add or extend a `*.bench.ts`
    alongside it, and if it lands in a directory `.claude/rules/bench-coverage.md` does not already cover, add that
-   directory there – see `.claude/rules/architecture.md`'s "Adding a new subsystem" section
+   directory there - see `.claude/rules/architecture.md`'s "Adding a new subsystem" section
 
 ## `@since` discipline and API history
 
@@ -110,9 +110,9 @@ signature or behavior; or deprecating a public symbol: follow `docs/documentatio
 
 1. Add `@since <version>` / `@changed <version> <note>` / `@deprecated Deprecated since <version> (<date>). ...` JSDoc
    tags at the symbol's original declaration (not the re-export line).
-2. Run `pnpm run api:history` to regenerate `docs/_api-history.json` – never hand-edit it, commit the regenerated file.
+2. Run `pnpm run api:history` to regenerate `docs/_api-history.json` - never hand-edit it, commit the regenerated file.
 3. Add or update the `<Since symbol="...">`, `<ApiAvailability page="...">`, and `<PageChangelog page="...">` MDX
-   components on the symbol's one documentation home (the page with real explanatory prose – see the guide's Step 3 for
+   components on the symbol's one documentation home (the page with real explanatory prose - see the guide's Step 3 for
    how to pick it).
 
 `pnpm run preflight` already runs `api:since:check` and `api:history:check`, so a missing or malformed tag fails

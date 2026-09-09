@@ -22,12 +22,12 @@ import { C64_HEX, CGA_HEX, GAMEBOY_HEX, NES_HEX, PICO8_HEX, VGA_HEX } from './pa
  * Palette slot that is always transparent, regardless of palette size.
  *
  * `errorMessages.ts#hudStartSlotError` re-types this value in its message text instead of importing it, to avoid a
- * circular import (this file already imports from `errorMessages.ts`) – keep the two in sync by hand.
+ * circular import (this file already imports from `errorMessages.ts`) - keep the two in sync by hand.
  */
 export const TRANSPARENT_PALETTE_INDEX = 0;
 
 /**
- * Maximum number of colors a palette can hold – the fixed size of the GPU palette buffer, the WGSL palette array,
+ * Maximum number of colors a palette can hold - the fixed size of the GPU palette buffer, the WGSL palette array,
  * and the usage-tracking mask.
  */
 export const MAX_PALETTE_SIZE = 256;
@@ -58,7 +58,7 @@ type Serialized = {
 /**
  * Checks whether a palette size is one of the supported indexed formats.
  *
- * @param size – Candidate palette size.
+ * @param size - Candidate palette size.
  * @returns `true` when the size is supported.
  */
 function isValidSize(size: number): boolean {
@@ -71,7 +71,7 @@ function isValidSize(size: number): boolean {
 /**
  * Validates a palette size and throws for unsupported values.
  *
- * @param size – Palette size to validate.
+ * @param size - Palette size to validate.
  * @throws Error if the size is not one of the supported indexed formats.
  */
 function validateSize(size: number): void {
@@ -83,9 +83,9 @@ function validateSize(size: number): void {
 /**
  * Reads a preset or serialized hex color string at a known index.
  *
- * @param hexColors – Source hex color collection.
- * @param index – Entry index to read.
- * @param context – Human-readable context for thrown errors.
+ * @param hexColors - Source hex color collection.
+ * @param index - Entry index to read.
+ * @param context - Human-readable context for thrown errors.
  * @returns Hex color string.
  * @throws Error if the requested entry is missing.
  */
@@ -103,8 +103,8 @@ function readHexColor(hexColors: readonly string[], index: number, context: stri
 /**
  * Reads a byte from a typed array and throws if it is unexpectedly missing.
  *
- * @param data – Source byte array.
- * @param index – Byte index to read.
+ * @param data - Source byte array.
+ * @param index - Byte index to read.
  * @returns Byte value.
  * @throws Error if the requested byte is missing.
  */
@@ -125,8 +125,8 @@ function readByte(data: Uint8Array, index: number): number {
  * Index `0` remains the reserved transparent entry. Preset data therefore
  * begins at index `1`.
  *
- * @param hexColors – Preset color data in `RRGGBB` format.
- * @param size – Palette size to construct.
+ * @param hexColors - Preset color data in `RRGGBB` format.
+ * @param size - Palette size to construct.
  * @returns New palette populated with the preset colors.
  */
 function createPreset(hexColors: readonly string[], size: number): Palette {
@@ -173,14 +173,14 @@ export class Palette {
      *
      * Set by {@link set} and {@link copyFrom}. Cleared by {@link clearDirty} after
      * the renderer has uploaded the updated palette uniform buffer. Not set by the
-     * constructor – initial upload is always triggered by {@link IRenderer.setPalette}.
+     * constructor - initial upload is always triggered by {@link IRenderer.setPalette}.
      */
     private _isDirty: boolean = false;
 
     /**
      * Creates a new palette with the requested indexed size.
      *
-     * @param size – Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
+     * @param size - Palette size. Must be one of `2, 4, 16, 32, 64, 128, 256`.
      */
     constructor(size: number = MAX_PALETTE_SIZE) {
         validateSize(size);
@@ -194,7 +194,7 @@ export class Palette {
      *
      * The renderer checks this flag each frame and re-uploads the palette uniform
      * buffer when it is set, then calls {@link clearDirty} to reset it. Palette
-     * animation works automatically – no per-frame {@link BT.paletteSet} required.
+     * animation works automatically - no per-frame {@link BT.paletteSet} required.
      *
      * @returns `true` if any color has been written via {@link set} or {@link copyFrom}
      *   since the last call to {@link clearDirty}.
@@ -206,7 +206,7 @@ export class Palette {
     /**
      * Reconstructs a palette from JSON data produced by {@link Palette.toJSON}.
      *
-     * @param data – Serialized palette payload.
+     * @param data - Serialized palette payload.
      * @returns Reconstructed palette.
      * @throws Error if the payload shape or size is invalid.
      */
@@ -249,8 +249,8 @@ export class Palette {
     /**
      * Creates a palette from packed RGB bytes.
      *
-     * @param data – Byte array containing RGB triplets.
-     * @param size – Optional explicit palette size. When omitted, it is
+     * @param data - Byte array containing RGB triplets.
+     * @param size - Optional explicit palette size. When omitted, it is
      * inferred from `data.length / 3`.
      * @returns Reconstructed palette.
      * @throws Error if the byte length or palette size is invalid.
@@ -362,7 +362,7 @@ export class Palette {
      * - `hud_dim`    - `#646464` dim gray (FPS, secondary info)
      * - `hud_code`   - `#6496c8` slate blue code snippets
      *
-     * @param startSlot – First palette index to write. Must be a positive integer >= 1
+     * @param startSlot - First palette index to write. Must be a positive integer >= 1
      *   and leave room for all six entries within the palette size. Defaults to `1`.
      * @throws Error if `startSlot` is not an integer, is NaN, or is less than 1.
      * @throws Error if the six entries would exceed the palette size.
@@ -393,15 +393,15 @@ export class Palette {
      * `palette.set(start + i, transform(baseColors[i]))` into one call.
      *
      * @since 1.7.0
-     * @param start – First palette index to write.
-     * @param source – Source colors to read from, in order. `source[i]` maps to slot `start + i`.
-     * @param transform – Called once per source color as `transform(color, i)`; its return value is written to
+     * @param start - First palette index to write.
+     * @param source - Source colors to read from, in order. `source[i]` maps to slot `start + i`.
+     * @param transform - Called once per source color as `transform(color, i)`; its return value is written to
      *   slot `start + i`.
      * @returns The next free slot after the written block (`start + source.length`), for chaining further
      *   writes.
      * @throws Error if `start` is not a non-negative integer.
      * @throws Error if the block would exceed the palette size.
-     * @throws Error if an individual slot write is invalid – see {@link set}.
+     * @throws Error if an individual slot write is invalid - see {@link set}.
      */
     public fillBlock(
         start: number,
@@ -426,8 +426,8 @@ export class Palette {
     /**
      * Writes a color into a palette slot.
      *
-     * @param index – Palette index to overwrite.
-     * @param color – Color to store.
+     * @param index - Palette index to overwrite.
+     * @param color - Color to store.
      * @throws Error if the index is invalid or if index `0` is set opaque.
      */
     public set(index: number, color: Color32): void {
@@ -454,7 +454,7 @@ export class Palette {
      * Returns a clone so callers cannot mutate internal state without going
      * through {@link set}, which keeps the dirty flag accurate.
      *
-     * @param index – Palette index to read.
+     * @param index - Palette index to read.
      * @returns Clone of the stored color entry.
      * @throws Error if the index is invalid.
      */
@@ -476,7 +476,7 @@ export class Palette {
      * per-frame cloning is unacceptable. Normal application code should prefer
      * {@link get} and {@link set} to keep the dirty flag accurate automatically.
      *
-     * @param index – Palette index to access.
+     * @param index - Palette index to access.
      * @returns Direct reference to the internal color entry.
      * @throws Error if the index is invalid.
      */
@@ -489,8 +489,8 @@ export class Palette {
     /**
      * Associates a human-readable name with a palette index.
      *
-     * @param name – Name to register.
-     * @param index – Palette index referenced by the name.
+     * @param name - Name to register.
+     * @param index - Palette index referenced by the name.
      * @throws Error if the index is invalid.
      */
     public setNamed(name: string, index: number): void {
@@ -502,7 +502,7 @@ export class Palette {
     /**
      * Looks up a previously named palette index.
      *
-     * @param name – Registered color name.
+     * @param name - Registered color name.
      * @returns Palette index bound to the name.
      * @throws Error if the name is unknown.
      */
@@ -521,7 +521,7 @@ export class Palette {
     /**
      * Resolves a named color directly to its stored {@link Color32}.
      *
-     * @param name – Registered color name.
+     * @param name - Registered color name.
      * @returns Color stored at the named index.
      * @throws Error if the name is unknown.
      */
@@ -555,7 +555,7 @@ export class Palette {
      * transparent in the destination. Named indices that do not fit inside the
      * destination size are ignored.
      *
-     * @param other – Source palette to copy from.
+     * @param other - Source palette to copy from.
      */
     public copyFrom(other: Palette): void {
         const copyCount = Math.min(this.size, other.size);
@@ -641,7 +641,7 @@ export class Palette {
      * palette size are left unchanged in the target buffer. {@link toFloat32Array}
      * zero-initializes a fresh 256-slot buffer before calling this method.
      *
-     * @param target – Pre-allocated float buffer to write normalized RGBA values into.
+     * @param target - Pre-allocated float buffer to write normalized RGBA values into.
      */
     public toFloat32ArrayInto(target: Float32Array): void {
         for (let i = 0; i < this.size; i++) {
@@ -652,7 +652,7 @@ export class Palette {
     /**
      * Searches the palette for an exact color match.
      *
-     * @param color – Color to search for.
+     * @param color - Color to search for.
      * @returns Matching palette index, or `-1` when no exact match exists.
      */
     public findColor(color: Color32): number {
@@ -674,7 +674,7 @@ export class Palette {
      * Aliases that reference an index outside this palette's size are ignored.
      * Clears the current named index map before copying.
      *
-     * @param from – Source palette to copy named indices from.
+     * @param from - Source palette to copy named indices from.
      */
     private copyNamedIndices(from: Palette): void {
         this.namedIndices.clear();
@@ -689,7 +689,7 @@ export class Palette {
     /**
      * Validates that a palette index is within the active palette size.
      *
-     * @param index – Palette index to validate.
+     * @param index - Palette index to validate.
      * @throws Error if the index is outside the active palette size.
      */
     private assertIndexInRange(index: number): void {
@@ -705,7 +705,7 @@ export class Palette {
     /**
      * Returns a palette color after initialization checks.
      *
-     * @param index – Palette index to resolve.
+     * @param index - Palette index to resolve.
      * @returns Stored color instance.
      * @throws Error if the entry is unexpectedly uninitialized.
      */

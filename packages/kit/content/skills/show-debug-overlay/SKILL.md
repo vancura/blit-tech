@@ -48,7 +48,7 @@ overlayRows() {
 
 ```js
 update() {
-    // Drop the marker once, the moment the level starts – not every frame, or you stack duplicates.
+    // Drop the marker once, the moment the level starts - not every frame, or you stack duplicates.
     if (this.levelStarted && !this.levelTagged) {
         BT.assignTag('Level 2'); // a labeled marker on the chart
         this.levelTagged = true;
@@ -62,8 +62,8 @@ update() {
   `isOverlayToggleEnabled`, `isOverlayPaletteEnabled`, `isOverlayTimingChartEnabled`, `isOverlayAudioMetersEnabled`
   (live volume meters for the sound buses), `isOverlayRendererDiagnosticsBarEnabled` (an extra bar with renderer
   details).
-- `overlayRows()` – optional method on your game class returning `{ leftText, rightText? }[]`.
-- `BT.assignTag(label?)` (method) – drop a labeled marker (needs the timing chart enabled).
+- `overlayRows()` - optional method on your game class returning `{ leftText, rightText? }[]`.
+- `BT.assignTag(label?)` (method) - drop a labeled marker (needs the timing chart enabled).
 
 ## Notes
 

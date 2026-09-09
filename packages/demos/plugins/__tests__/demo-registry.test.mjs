@@ -26,7 +26,7 @@ describe('deriveDescription', () => {
     it('extracts the tag from a multi-line JSDoc header', () => {
         const header = [
             '/**',
-            ' * Basics Demo – your very first BLIT386 program!',
+            ' * Basics Demo - your very first BLIT386 program!',
             ' *',
             ' * @description Bootstrap the engine, load a sprite, and bounce it off the edges.',
             ' */',
@@ -107,7 +107,7 @@ describe('deriveOgScale', () => {
 // uses one form throughout.
 describe('deriveShortTitle', () => {
     it('strips a BLIT386 Demo prefix written with an en dash', () => {
-        const header = '// @pageTitle BLIT386 Demo – PipBoy CRT\n';
+        const header = '// @pageTitle BLIT386 Demo - PipBoy CRT\n';
         assert.equal(deriveShortTitle('crt-pipboy', header), 'PipBoy CRT');
     });
 

@@ -24,18 +24,18 @@ skills are hand-authored beginner prose, so they drift silently when the engine 
    If a specific engine change prompted this (a new feature, a renamed `BT.*` member, a getter-vs-method change, new or
    removed constants), note it. Otherwise audit broadly. The engine package is `packages/blit386`; its public surface is
    `packages/blit386/src/BLIT386.ts`, `packages/blit386/CLAUDE.md` (BT API getters vs methods, Boolean naming), and
-   `packages/blit386/docs/api-*.md`. Read those for the current truth – never from memory.
+   `packages/blit386/docs/api-*.md`. Read those for the current truth - never from memory.
 
 2. Audit the kit docs
 
-   List the docs first – a list written down here is exactly how this audit goes stale.
+   List the docs first - a list written down here is exactly how this audit goes stale.
 
    ```bash
    ls packages/kit/content/docs/
    ```
 
    Check every code example and API mention in each one against the current engine. For what each doc leans on, use the
-   "Kit file / Review when" table in this package's `CLAUDE.md` – that table is maintained, so read it rather than
+   "Kit file / Review when" table in this package's `CLAUDE.md` - that table is maintained, so read it rather than
    copying it here.
 
 3. Audit the shipped skills
@@ -49,7 +49,7 @@ skills are hand-authored beginner prose, so they drift silently when the engine 
    The skills demonstrate engine APIs the same way the docs do. Check each one whose topic touches the changed surface,
    confirming method-vs-getter usage, `BT` names, and constants against the engine.
 
-   While you are here, confirm every skill directory appears in the skills table in `packages/kit/README.md` – that is
+   While you are here, confirm every skill directory appears in the skills table in `packages/kit/README.md` - that is
    the only human-facing list of what ships, and it has no automated guard.
 
 4. Check the version pin

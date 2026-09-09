@@ -23,7 +23,7 @@ export interface FrameCaptureShortcutSignals {
  * Resolves whether the F9 / Shift+F9 frame-capture shortcuts are active, from already-gathered
  * signals. Both shortcuts share this one gate; only the key combo and capture destination differ.
  *
- * @param signals – See {@link FrameCaptureShortcutSignals}.
+ * @param signals - See {@link FrameCaptureShortcutSignals}.
  * @returns `true` when F9 should copy, and Shift+F9 should download, the current frame.
  */
 export function resolveFrameCaptureShortcutEnabled(signals: FrameCaptureShortcutSignals): boolean {
@@ -37,7 +37,7 @@ export function resolveFrameCaptureShortcutEnabled(signals: FrameCaptureShortcut
 /**
  * Gathers the frame-capture shortcuts' gating signal and resolves it.
  *
- * @param configureFlag – Explicit `HardwareSettings.isFrameCaptureShortcutEnabled`, if the demo set one.
+ * @param configureFlag - Explicit `HardwareSettings.isFrameCaptureShortcutEnabled`, if the demo set one.
  * @returns `true` when F9 should copy, and Shift+F9 should download, the current frame.
  */
 export function isFrameCaptureShortcutEnabled(configureFlag?: boolean): boolean {
@@ -47,7 +47,7 @@ export function isFrameCaptureShortcutEnabled(configureFlag?: boolean): boolean 
 /**
  * Zero-pads a number to two digits.
  *
- * @param value – Number to pad (0-59 in practice: month, day, hour, minute, or second).
+ * @param value - Number to pad (0-59 in practice: month, day, hour, minute, or second).
  * @returns A two-character string.
  */
 function pad2(value: number): string {
@@ -58,7 +58,7 @@ function pad2(value: number): string {
  * Builds the default filename for a Shift+F9 frame capture: the local date and time it was
  * taken, so repeated presses never overwrite each other and sort chronologically.
  *
- * @param date – Capture moment. Defaults to now.
+ * @param date - Capture moment. Defaults to now.
  * @returns A `blit386-capture-YYYY-MM-DD-HH-MM-SS.png` filename.
  */
 export function defaultFrameCaptureFilename(date: Date = new Date()): string {

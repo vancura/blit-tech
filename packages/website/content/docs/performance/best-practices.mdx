@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Performance Best Practices"
 description: "When and how to optimize demos: object allocation, batching, and hot-path guidance."
-lastModified: "2026-08-07T22:12:53+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/performance-best-practices.md"
 ---
 
@@ -26,25 +26,25 @@ Follow this approach:
 
 <Step>
 
-Write clear, simple code first – Use inline object creation (`new Vector2i(x, y)`)
+Write clear, simple code first - Use inline object creation (`new Vector2i(x, y)`)
 
 </Step>
 
 <Step>
 
-Measure performance – Use browser dev tools to identify bottlenecks
+Measure performance - Use browser dev tools to identify bottlenecks
 
 </Step>
 
 <Step>
 
-Optimize hot paths only – Focus on code that runs 50+ times per frame
+Optimize hot paths only - Focus on code that runs 50+ times per frame
 
 </Step>
 
 <Step>
 
-Keep it simple elsewhere – Clarity matters more than micro-optimizations in UI code
+Keep it simple elsewhere - Clarity matters more than micro-optimizations in UI code
 
 </Step>
 
@@ -55,9 +55,9 @@ Keep it simple elsewhere – Clarity matters more than micro-optimizations in UI
 Each render frame (one `requestAnimationFrame` callback) must finish before the next vsync. On a 60 Hz display that is
 about 16.66 ms per frame (`1000 / 60`). That budget covers:
 
-- Zero or more fixed `update()` steps at `BT.targetFPS` (~2–4 ms total when one step runs)
-- One `render()` pass (~8–12 ms)
-- Browser overhead (~2–4 ms)
+- Zero or more fixed `update()` steps at `BT.targetFPS` (~2-4 ms total when one step runs)
+- One `render()` pass (~8-12 ms)
+- Browser overhead (~2-4 ms)
 
 If work exceeds the display's render cadence, you drop frames and see stuttering. That is independent of `BT.targetFPS`:
 a 60 Hz simulation on a 120 Hz monitor still has a ~8.33 ms render budget per rAF callback.
@@ -79,7 +79,7 @@ declare const x: number;
 declare const y: number;
 declare const font: BitmapFont;
 // ---cut---
-// Clear and readable – palette indices, not Color32
+// Clear and readable - palette indices, not Color32
 const WHITE = 1;
 BT.drawPixel(new Vector2i(x, y), WHITE);
 BT.drawRect(new Rect2i(10, 10, 50, 50), WHITE);
@@ -214,7 +214,7 @@ Less optimal:
 
 ### Palette offset performance
 
-Changing `paletteOffset` per draw is cheap – it shifts stored texel indices before palette lookup, not RGBA tint
+Changing `paletteOffset` per draw is cheap - it shifts stored texel indices before palette lookup, not RGBA tint
 multiplication:
 
 ```ts twoslash
@@ -223,12 +223,12 @@ declare const sheet: SpriteSheet;
 const sprite = new Rect2i(0, 0, 16, 16);
 const pos = new Vector2i(0, 0);
 // ---cut---
-// Same performance – offset is a uniform add, not per-pixel color math
+// Same performance - offset is a uniform add, not per-pixel color math
 BT.drawSprite(sheet, sprite, pos);
 BT.drawSprite(sheet, sprite, pos, 16); // team-color range
 ```
 
-Use palette offsets liberally for team colors and damage flashes – batching cost dominates, not the offset itself.
+Use palette offsets liberally for team colors and damage flashes - batching cost dominates, not the offset itself.
 
 ### Line rendering costs
 
@@ -272,7 +272,7 @@ for (let i = 0; i < 200; i++) {
 
 When diagonal line cost matters:
 
-- Drawing 10–20 short diagonal lines per frame: Fine
+- Drawing 10-20 short diagonal lines per frame: Fine
 - Drawing 100+ diagonal line segments (curves, circles): Consider alternatives
 - Static complex patterns: Pre-render to a sprite sheet
 
@@ -316,13 +316,13 @@ Ticks are simpler and more deterministic for most demo logic.
 
 If your `update()` or `render()` takes too long:
 
-1. Confirm the symptom – Set `isDetectingDroppedFrames: true` in `configure()` to log a console warning whenever the
+1. Confirm the symptom - Set `isDetectingDroppedFrames: true` in `configure()` to log a console warning whenever the
    browser misses a vsync deadline. The detector auto-calibrates to the actual rAF cadence so it works on any refresh
    rate (60 / 120 / 144 Hz, etc.) and on Firefox where rAF often fires at the display rate rather than at `targetFPS`.
-2. Profile with browser dev tools – Find the actual bottleneck
-3. Reduce draw calls – Cull off-screen objects
-4. Optimize hot loops – Use pre-allocation in tight loops
-5. Simplify logic – Can you defer expensive operations?
+2. Profile with browser dev tools - Find the actual bottleneck
+3. Reduce draw calls - Cull off-screen objects
+4. Optimize hot loops - Use pre-allocation in tight loops
+5. Simplify logic - Can you defer expensive operations?
 
 ## Common pitfalls
 
@@ -356,7 +356,7 @@ class GoodDemo {
 
 <Accordion title="2. Ignoring the profiler">
 
-Don't guess what's slow – measure it. Use:
+Don't guess what's slow - measure it. Use:
 
 - Chrome DevTools Performance tab
 - `console.time()` / `console.timeEnd()`
@@ -435,8 +435,8 @@ class BestStringDemo {
 | Operations/Frame | Recommendation | Example |
 | --- | --- | --- |
 | &lt; 10 | Inline allocation fine | UI text, menu rendering |
-| 10–50 | Borderline, prefer clarity | Simple animations, small particle systems |
-| 50–100 | Consider pre-allocation | Complex scenes, medium particle systems |
+| 10-50 | Borderline, prefer clarity | Simple animations, small particle systems |
+| 50-100 | Consider pre-allocation | Complex scenes, medium particle systems |
 | 100+ | Definitely pre-allocate | Pattern demos, large particle systems |
 
 ### When to use each pattern
@@ -464,25 +464,25 @@ examples below demonstrate both approaches:
 
 ### Clarity-first examples (inline allocation)
 
-- `001-basics.js` – Entry-level example teaching core concepts
-- `022-bitmap-font.js` – Bitmap font loading and palette indexize workflow
-- `002-primitives.js` – Drawing primitive shapes
-- `008-sprites.js` – Sprite rendering and palette offsets
-- `004-fonts.js` – System font and text rendering
+- `001-basics.js` - Entry-level example teaching core concepts
+- `022-bitmap-font.js` - Bitmap font loading and palette indexize workflow
+- `002-primitives.js` - Drawing primitive shapes
+- `008-sprites.js` - Sprite rendering and palette offsets
+- `004-fonts.js` - System font and text rendering
 
 These prioritize readability and learning over micro-optimizations.
 
 ### Performance-optimized examples (pre-allocation)
 
-- `006-patterns.js` – Complex animations with 200+ operations/frame
-- `007-camera.js` – Scrolling world with many buildings
+- `006-patterns.js` - Complex animations with 200+ operations/frame
+- `007-camera.js` - Scrolling world with many buildings
 
 These demonstrate when and how to optimize for performance-critical scenarios.
 
 ### Effect and animation examples
 
-- `009-animation.js` – Tick-based timing (inline allocation, focus on clarity)
-- `010-sprite-effects.js` – Palette offset effects for team colors and flashes
+- `009-animation.js` - Tick-based timing (inline allocation, focus on clarity)
+- `010-sprite-effects.js` - Palette offset effects for team colors and flashes
 
 ## Conclusion
 

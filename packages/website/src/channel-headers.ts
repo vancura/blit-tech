@@ -7,7 +7,7 @@ const NOINDEX_ROBOTS_TXT = 'User-agent: *\nDisallow: /\n';
  * disallow-all `/robots.txt` there instead of the production `public/robots.txt` asset.
  *
  * Reads `c.env.BLIT386_CHANNEL` at request time, the same way `markdown-negotiation.ts` reads
- * `c.env.ASSETS` – NOT a build-time `process.env.BLIT386_CHANNEL` constant. This module's top
+ * `c.env.ASSETS` - NOT a build-time `process.env.BLIT386_CHANNEL` constant. This module's top
  * level re-runs inside the deployed Worker on every cold start (to reconstruct the Fumapress
  * plugin list), and the Worker has no access to the CI build step's shell env, only to whatever
  * `wrangler.json` declares as `vars` (injected by `scripts/patch-wrangler.mjs` when
@@ -49,7 +49,7 @@ export function channelHeadersPlugin<C extends ConfigContext = ConfigContext>():
                     // assumed (BT-464). Hono does NOT clone here: `set res` only reconstructs when
                     // `c.res` had already been read, and nothing upstream reads it, so after
                     // `next()` this `c.res` is the very object `markdownNegotiationPlugin`
-                    // returned – which for a static asset is `c.env.ASSETS.fetch()`'s response.
+                    // returned - which for a static asset is `c.env.ASSETS.fetch()`'s response.
                     // Fetch-spec headers on such a response are guarded `immutable` and `set()`
                     // would throw `TypeError: immutable`; workerd does not enforce that guard, so
                     // the write lands. Confirmed against the deployed `blit386-next` Worker: an

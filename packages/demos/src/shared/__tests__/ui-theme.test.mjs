@@ -12,7 +12,7 @@ import { applyTheme, T, THEME_DEFAULT_START_SLOT, THEME_PANEL_OFFSET, THEME_TEXT
  * A minimal fake palette: just enough surface for applyTheme() to write into (`size`,
  * `set(slot, color)`, `setNamed(name, slot)`).
  *
- * @param {number} [size] – Palette slot count.
+ * @param {number} [size] - Palette slot count.
  * @returns {{ size: number, slots: Map<number, unknown>, named: Map<string, number>,
  *   set: (slot: number, color: unknown) => void, setNamed: (name: string, slot: number) => void }}
  */
@@ -95,7 +95,7 @@ describe('applyTheme', () => {
     it("fits exactly when the block ends on the palette's last slot", () => {
         const palette = createFakePalette(252);
 
-        // 12 colors starting at 240 fill slots 240..251 – the last slot of a 252-size palette.
+        // 12 colors starting at 240 fill slots 240..251 - the last slot of a 252-size palette.
         assert.doesNotThrow(() => applyTheme(palette, 240));
     });
 

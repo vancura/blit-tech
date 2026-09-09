@@ -33,16 +33,16 @@ render() {
 }
 ```
 
-`BT.isDevMode` is a getter (no parentheses) and needs no setup beyond having `blit386/vite` installed – every scaffold
+`BT.isDevMode` is a getter (no parentheses) and needs no setup beyond having `blit386/vite` installed - every scaffold
 has it already (see `use-hot-reload`). It reads `true` while `npm run dev` is running the game through that plugin, and
 `false` in a built/shipped game (`npm run build`).
 
 ## Notes
 
-- `BT.isDevMode` is tied to the dev server, not to `NODE_ENV` or any bundler define – there is nothing else to
+- `BT.isDevMode` is tied to the dev server, not to `NODE_ENV` or any bundler define - there is nothing else to
   configure.
 - It answers exactly one question: is this a dev build. It has nothing to do with your own game state (paused, in a
-  menu, level number) – keep those as your own fields.
+  menu, level number) - keep those as your own fields.
 - The engine gates one thing on this by itself: the BLIT386 splash plays in a release build and not in a dev build. Add
   `?splash` to the URL to see it while developing, or turn it off for good with `isSplashEnabled: false` in
   `configure()`. See `docs/basics.md` (The splash).

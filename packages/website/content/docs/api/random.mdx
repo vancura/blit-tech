@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Random"
 description: "Seeded Random PRNG, coordinate hashes, and Value/Perlin/Simplex pattern noise for procedural worlds."
-lastModified: "2026-08-09T16:20:34+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/api-random.md"
 ---
 
@@ -108,7 +108,7 @@ rng.direction8(); // cardinals plus diagonals
 
 ## Coordinate hashing
 
-Stateless spatial lookups for chunked and procedural worlds. Same coordinates and seed always return the same value – no
+Stateless spatial lookups for chunked and procedural worlds. Same coordinates and seed always return the same value - no
 stored RNG state, so you do not need an instance per chunk. Complements `Random` (a sequence generator).
 
 <Since symbol="hash1i" />
@@ -161,7 +161,7 @@ classes are distinct from the post-process `Noise` display effect (GPU grain).
 | `PerlinNoise` | Same surface as `ValueNoise` (gradient Perlin) |
 | `SimplexNoise` | `noise2D` / `noise3D`, `fbm2D` / `fbm3D` (no 1D) |
 
-Omit the constructor seed (or pass `0`) for a fixed default world seed – same convention as `hash2i`. Call `seed(n)` to
+Omit the constructor seed (or pass `0`) for a fixed default world seed - same convention as `hash2i`. Call `seed(n)` to
 switch fields. fBm defaults: `octaves = 4`, `persistence = 0.5`, `lacunarity = 2`. Octave amplitudes are normalized so
 fBm stays in approximately `[-1, 1]`.
 
@@ -208,11 +208,11 @@ rng.setState(saved); // restore and replay
 | `fork()` | Advance this instance once; seed a child so the two streams diverge |
 | `seedValue` | Last seed passed to the constructor or `seed()`; `undefined` after `setState()`, or on a forked child |
 
-`seedValue` reads back the seed itself, not the current position in the sequence – the value `getState()` returns keeps
+`seedValue` reads back the seed itself, not the current position in the sequence - the value `getState()` returns keeps
 changing as you draw, but `seedValue` stays put until the generator is genuinely reseeded. It is normalized to an
 unsigned 32-bit value, the same representation `getState()` uses, not necessarily the raw number passed in. `setState()`
 clears it, since jumping to an arbitrary saved state does not correspond to any known seed. `clone()` copies it verbatim
-(including `undefined`), matching the identical stream a clone produces. `fork()`'s child always reports `undefined` – a
+(including `undefined`), matching the identical stream a clone produces. `fork()`'s child always reports `undefined` - a
 fork is a new stream and should not claim a seed its caller never chose.
 
 ## API history

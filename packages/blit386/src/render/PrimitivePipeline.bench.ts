@@ -11,10 +11,10 @@ const BENCH_OPTIONS = {
     warmupIterations: 25,
 };
 
-/** Palette index used for all benchmark draws – value is not itself relevant. */
+/** Palette index used for all benchmark draws - value is not itself relevant. */
 const PALETTE_INDEX = 3;
 
-/** Diagonal line endpoints – a full-height 320x240 display diagonal (Bresenham worst case). */
+/** Diagonal line endpoints - a full-height 320x240 display diagonal (Bresenham worst case). */
 const LINE_START = new Vector2i(0, 0);
 const LINE_END = new Vector2i(319, 239);
 
@@ -22,9 +22,9 @@ const LINE_END = new Vector2i(319, 239);
  * Fills a pipeline's batch with a fixed number of filled rectangles.
  * Shared by the fill-throughput benches and the reset() setup below.
  *
- * @param pipeline – Pipeline instance to fill.
- * @param rect – Reused rect instance passed to `drawRectFill()`.
- * @param count – Number of rectangles to draw.
+ * @param pipeline - Pipeline instance to fill.
+ * @param rect - Reused rect instance passed to `drawRectFill()`.
+ * @param count - Number of rectangles to draw.
  */
 function fillWithRects(pipeline: PrimitivePipeline, rect: Rect2i, count: number): void {
     for (let i = 0; i < count; i++) {
@@ -51,7 +51,7 @@ describe('PrimitivePipeline vertex batch filling', () => {
             pipeline.reset();
 
             // Each pixel emits a 6-vertex quad, so 10,000 pixels (60,000 vertices) exceed the
-            // pipeline's 50,000-vertex per-frame capacity – reset partway through so the batch
+            // pipeline's 50,000-vertex per-frame capacity - reset partway through so the batch
             // stays within capacity instead of silently dropping vertices near the end.
             for (let i = 0; i < 10000; i++) {
                 if (i === 8000) {
@@ -68,7 +68,7 @@ describe('PrimitivePipeline vertex batch filling', () => {
         'drawLine diagonal (Bresenham) x 100',
         () => {
             // Each 320px diagonal line emits ~1,920 vertices (6 per pixel), so the batch is
-            // reset between calls rather than accumulated – accumulating 100 of them would
+            // reset between calls rather than accumulated - accumulating 100 of them would
             // exceed the pipeline's per-frame vertex capacity and start dropping vertices.
             for (let i = 0; i < 100; i++) {
                 pipeline.reset();
@@ -81,7 +81,7 @@ describe('PrimitivePipeline vertex batch filling', () => {
     bench(
         'reset() after full batch',
         () => {
-            // Populate a realistically full batch before measuring the reset cost itself –
+            // Populate a realistically full batch before measuring the reset cost itself -
             // reset() empties the batch, so each iteration needs fresh contents beforehand.
             fillWithRects(pipeline, rect, 5000);
             pipeline.reset();

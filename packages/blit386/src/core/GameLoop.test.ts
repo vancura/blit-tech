@@ -160,7 +160,7 @@ describe('GameLoop', () => {
 
             p.isRunning = true;
             p.lastUpdateTime = 0;
-            p.tick(10000); // huge pause – MAX_STEPS clamp leaves 0 leftover
+            p.tick(10000); // huge pause - MAX_STEPS clamp leaves 0 leftover
 
             const alpha = loop.getRenderAlpha();
 
@@ -244,7 +244,7 @@ describe('GameLoop', () => {
             // Execute outer RAF callback.
             rafCallbacks[0]?.();
 
-            // Execute inner RAF callback – sets lastUpdateTime and schedules first tick.
+            // Execute inner RAF callback - sets lastUpdateTime and schedules first tick.
             rafCallbacks[1]?.();
 
             expect(p.lastUpdateTime).toBeGreaterThan(0);
@@ -267,11 +267,11 @@ describe('GameLoop', () => {
 
             loop.start();
             rafCallbacks[0]?.(); // outer start() rAF
-            rafCallbacks[1]?.(); // inner start() rAF – schedules the first tick
+            rafCallbacks[1]?.(); // inner start() rAF - schedules the first tick
 
             const firstTickCallback = rafCallbacks[2];
 
-            firstTickCallback?.(10); // run the first tick – schedules the next one
+            firstTickCallback?.(10); // run the first tick - schedules the next one
             const secondTickCallback = rafCallbacks[3];
 
             expect(firstTickCallback).toBeDefined();
@@ -327,7 +327,7 @@ describe('GameLoop', () => {
 
             p.isRunning = true;
             p.lastUpdateTime = 0;
-            p.tick(10000); // huge pause – MAX_STEPS = 8 caps at 8 updates
+            p.tick(10000); // huge pause - MAX_STEPS = 8 caps at 8 updates
 
             expect(onUpdate).toHaveBeenCalledTimes(8);
         });
@@ -465,7 +465,7 @@ describe('GameLoop', () => {
 
             const event = onFrameDrop.mock.calls[0]?.[0] as FrameDropEvent;
 
-            expect(event.droppedFrames).toBe(2); // round(50 / 16.67) – 1 = 2
+            expect(event.droppedFrames).toBe(2); // round(50 / 16.67) - 1 = 2
             expect(event.deltaTime).toBe(50);
             expect(event.expectedInterval).toBeCloseTo(16.67);
         });
@@ -479,7 +479,7 @@ describe('GameLoop', () => {
 
             p.isRunning = true;
             p.lastUpdateTime = 0;
-            p.tick(16); // 1.6x baseline – between 1 and 2 in raw frame terms
+            p.tick(16); // 1.6x baseline - between 1 and 2 in raw frame terms
 
             expect(onFrameDrop).toHaveBeenCalledOnce();
 
@@ -593,7 +593,7 @@ describe('GameLoop', () => {
         });
     });
 
-    describe('frame-drop detection – incremental baseline matches full rescan', () => {
+    describe('frame-drop detection - incremental baseline matches full rescan', () => {
         type PrivateDetector = {
             detectFrameDrop: (deltaTime: number) => void;
         };
@@ -668,7 +668,7 @@ describe('GameLoop', () => {
                 ...(Array(30).fill(8.33) as number[]), // switch to 120Hz cadence
                 20, // drop relative to the 8.33 baseline
                 ...(Array(40).fill(8.33) as number[]), // continue at 120Hz, wraps the ring buffer, evicts old 60Hz + drop samples
-                5000, // background pause – excluded from ring and reporting
+                5000, // background pause - excluded from ring and reporting
                 50, // drop relative to the 8.33 baseline, right after the pause
                 ...(Array(70).fill(16.67) as number[]), // back to 60Hz for long enough to evict all 8.33 samples
                 35, // drop relative to the re-established 16.67 baseline

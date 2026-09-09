@@ -92,9 +92,9 @@ export class TimingChart {
     /**
      * Creates a timing chart with the given feature flag.
      *
-     * @param isEnabled – When false, sample/draw are no-ops.
-     * @param targetFps – Configured fixed-step rate for frame-budget classification.
-     * @param diagnosticsMode – Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
+     * @param isEnabled - When false, sample/draw are no-ops.
+     * @param targetFps - Configured fixed-step rate for frame-budget classification.
+     * @param diagnosticsMode - Renderer diagnostic visualization (`minimal`, `rich`, or `false`).
      */
     constructor(isEnabled = false, targetFps = 60, diagnosticsMode: OverlayTimingChartDiagnosticsMode = false) {
         this.#isEnabled = isEnabled;
@@ -116,8 +116,8 @@ export class TimingChart {
      *
      * No-op when the chart is disabled. Empty labels become `"Untitled"`.
      *
-     * @param label – Tag text shown above the chart band.
-     * @param currentTick – Current fixed-update tick (`BT.ticks`).
+     * @param label - Tag text shown above the chart band.
+     * @param currentTick - Current fixed-update tick (`BT.ticks`).
      */
     assignTag(label: string | undefined, currentTick: number): void {
         if (this.#bufferWidth <= 0) {
@@ -136,8 +136,8 @@ export class TimingChart {
      *
      * Resets tags and adds a {@link TIMING_CHART_TAG_START} marker (RetroBlit Reset parity).
      *
-     * @param width – New chart width in pixels.
-     * @param currentTick – Current fixed-update tick for tag epoch and start marker.
+     * @param width - New chart width in pixels.
+     * @param currentTick - Current fixed-update tick for tag epoch and start marker.
      */
     reset(width: number, currentTick = 0): void {
         if (width <= 0) {
@@ -173,7 +173,7 @@ export class TimingChart {
     /**
      * Records one frame timing sample into the ring buffer.
      *
-     * @param timing – Per-frame snapshot from BTAPI.
+     * @param timing - Per-frame snapshot from BTAPI.
      */
     sample(timing: OverlayTimingSnapshot): void {
         if (!this.#isEnabled || this.#bufferWidth <= 0) {
@@ -214,11 +214,11 @@ export class TimingChart {
      * Uses {@link OverlayDrawTarget.drawBarFill} with 1x1 rects so update and render samples stay
      * visible without alpha blending (palette-indexed engine).
      *
-     * @param target – Overlay draw target.
-     * @param chartRect – Screen-space chart band from layout plan.
-     * @param style – Resolved chart palette indices.
-     * @param font – System bitmap font for tag labels.
-     * @param currentTick – Current fixed-update tick for tag scroll and prune.
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band from layout plan.
+     * @param style - Resolved chart palette indices.
+     * @param font - System bitmap font for tag labels.
+     * @param currentTick - Current fixed-update tick for tag scroll and prune.
      */
     draw(
         target: OverlayDrawTarget,
@@ -249,9 +249,9 @@ export class TimingChart {
     /**
      * Draws one-pixel timing samples for each populated ring-buffer column.
      *
-     * @param target – Overlay draw target.
-     * @param chartRect – Screen-space chart band.
-     * @param style – Resolved chart palette indices.
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band.
+     * @param style - Resolved chart palette indices.
      */
     #drawSamples(target: OverlayDrawTarget, chartRect: Rect2i, style: TimingChartDrawStyle): void {
         const baselineY = timingChartBaselineY(chartRect);
@@ -319,10 +319,10 @@ export class TimingChart {
     /**
      * Draws a one-pixel vertical marker per tag, aligned with timing columns.
      *
-     * @param target – Overlay draw target.
-     * @param chartRect – Screen-space chart band.
-     * @param style – Resolved chart palette indices.
-     * @param tagGroupScratch – Tags grouped by sample column; only `groups[0..groupCount)` is live.
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band.
+     * @param style - Resolved chart palette indices.
+     * @param tagGroupScratch - Tags grouped by sample column; only `groups[0..groupCount)` is live.
      */
     #drawTagMarkers(
         target: OverlayDrawTarget,
@@ -347,11 +347,11 @@ export class TimingChart {
     /**
      * Draws event tag labels above the chart band.
      *
-     * @param target – Overlay draw target.
-     * @param chartRect – Screen-space chart band.
-     * @param style – Resolved chart palette indices.
-     * @param font – System bitmap font.
-     * @param tagGroupScratch – Tags grouped by sample column; only `groups[0..groupCount)` is live.
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band.
+     * @param style - Resolved chart palette indices.
+     * @param font - System bitmap font.
+     * @param tagGroupScratch - Tags grouped by sample column; only `groups[0..groupCount)` is live.
      */
     #drawTags(
         target: OverlayDrawTarget,
@@ -410,9 +410,9 @@ export class TimingChart {
     /**
      * Draws faint horizontal grid lines behind timing dots.
      *
-     * @param target – Overlay draw target.
-     * @param chartRect – Screen-space chart band from layout plan.
-     * @param style – Resolved chart palette indices.
+     * @param target - Overlay draw target.
+     * @param chartRect - Screen-space chart band from layout plan.
+     * @param style - Resolved chart palette indices.
      */
     #drawGridLines(target: OverlayDrawTarget, chartRect: Rect2i, style: TimingChartDrawStyle): void {
         const markerCount = writeTimingChartGridMarkers(this.#targetFps, this.#gridMarkerMs);
@@ -441,7 +441,7 @@ export class TimingChart {
      * Resolves semantic tint palette index for a severity level.
      *
      * @param severity - {@link TIMING_CHART_SEVERITY_NONE}, {@link TIMING_CHART_SEVERITY_WARNING}, or {@link TIMING_CHART_SEVERITY_ERROR}.
-     * @param style – Resolved chart palette indices.
+     * @param style - Resolved chart palette indices.
      * @returns Palette index, or `null` to use per-bar update/render colors.
      */
     #severityPaletteIndex(severity: number, style: TimingChartDrawStyle): number | null {
@@ -459,10 +459,10 @@ export class TimingChart {
     /**
      * Draws a one-pixel severity marker on the chart baseline.
      *
-     * @param target – Overlay draw target.
-     * @param x – Column X in screen space.
-     * @param baselineY – Bottom row of the chart band.
-     * @param paletteIndex – Palette index for the marker.
+     * @param target - Overlay draw target.
+     * @param x - Column X in screen space.
+     * @param baselineY - Bottom row of the chart band.
+     * @param paletteIndex - Palette index for the marker.
      */
     #drawBaselineMarker(target: OverlayDrawTarget, x: number, baselineY: number, paletteIndex: number): void {
         this.#dotScratch.set(x, baselineY, 1, 1);
@@ -472,11 +472,11 @@ export class TimingChart {
     /**
      * Draws one timing sample as a single pixel anchored from the chart bottom row.
      *
-     * @param target – Overlay draw target.
-     * @param x – Column X in screen space.
-     * @param ms – Timing sample in milliseconds.
-     * @param chartRect – Chart band bounds for clamping.
-     * @param paletteIndex – Palette index for the dot.
+     * @param target - Overlay draw target.
+     * @param x - Column X in screen space.
+     * @param ms - Timing sample in milliseconds.
+     * @param chartRect - Chart band bounds for clamping.
+     * @param paletteIndex - Palette index for the dot.
      */
     #drawDot(target: OverlayDrawTarget, x: number, ms: number, chartRect: Rect2i, paletteIndex: number): void {
         const y = computeTimingChartDotY(ms, chartRect, TIMING_CHART_FULL_SCALE_MS);
@@ -493,12 +493,12 @@ export class TimingChart {
     /**
      * Draws a vertex-pressure sample in the lower third of the chart band (rich diagnostics mode).
      *
-     * @param target – Overlay draw target.
-     * @param x – Column X in screen space.
-     * @param vertices – Submitted vertex count for the pipeline.
-     * @param chartRect – Chart band bounds for clamping.
-     * @param regionHeight – Height of the pressure sub-band in pixels.
-     * @param paletteIndex – Palette index for the dot.
+     * @param target - Overlay draw target.
+     * @param x - Column X in screen space.
+     * @param vertices - Submitted vertex count for the pipeline.
+     * @param chartRect - Chart band bounds for clamping.
+     * @param regionHeight - Height of the pressure sub-band in pixels.
+     * @param paletteIndex - Palette index for the dot.
      */
     #drawPressureDot(
         target: OverlayDrawTarget,

@@ -14,7 +14,7 @@
  * Usage: pnpm run capture:demo -- <slug> --duration <seconds> --out <dir> [options]
  *
  * Note: --base-url must point at a host serving flattened, extensionless demo URLs
- * (production, the next channel, or `vite preview`) – the `pnpm run dev` server routes
+ * (production, the next channel, or `vite preview`) - the `pnpm run dev` server routes
  * demos at /demos/<slug>.html instead and is not supported by this script.
  */
 import { spawnSync } from 'node:child_process';
@@ -272,7 +272,7 @@ export function buildRecorderScript(bitrate) {
 
 /**
  * Browser-side script that stops the recorder, concatenates the recorded chunks into a
- * Blob, and base64-encodes it into window.__b64 in B64_PUSH_CHUNK_CHARS-sized slices –
+ * Blob, and base64-encodes it into window.__b64 in B64_PUSH_CHUNK_CHARS-sized slices -
  * String.fromCharCode.apply blows the call stack on one giant array, so the encode has to
  * happen in pieces even though the result is one string.
  *
@@ -420,7 +420,7 @@ const main = async () => {
     try {
         mkdirSync(options.out, { recursive: true });
 
-        // Fail fast on a missing ffmpeg before the timed recording, not after – ffmpeg is
+        // Fail fast on a missing ffmpeg before the timed recording, not after - ffmpeg is
         // only actually invoked post-capture (see runFfmpeg below), so without this check a
         // missing binary would waste the full --duration wait and discard a good recording.
         const ffmpegProbe = spawnSync('ffmpeg', ['-hide_banner', '-version'], { stdio: 'ignore' });

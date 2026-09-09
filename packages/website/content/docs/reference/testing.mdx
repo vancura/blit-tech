@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Testing"
 description: "Testing tiers (unit, integration, visual) plus CPU benchmarks and WebGPU mocks."
-lastModified: "2026-09-08T14:46:55+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/reference-testing.md"
 ---
 
@@ -14,52 +14,52 @@ regression tracking, compared locally rather than in CI.
 
 ### Tier 1: Unit tests (Vitest, Node.js)
 
-Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed. The list below is illustrative – see
+Pure logic with no GPU dependencies. Tests run in Node.js for maximum speed. The list below is illustrative - see
 `src/**/*.test.ts` for the full set (~60+ files).
 
-- Vector2i – all arithmetic, distance, comparison, factory methods
-- Rect2i – intersection, containment, computed properties
-- Color32 – color math, conversions, blending
-- Palette – construction, set/get, named aliases, serialization, GPU float layout, preset factories
-- PaletteEffect – manager lifecycle, CycleEffect rotation, FadeEffect/FadeRangeEffect lerp, FlashEffect, paletteSwap
-- Easing – boundary values, monotonicity, midpoint checks for all easing curves
-- GameLoop – constructor validation, tick counter
-- IBTDemo – `defaultConfig()` and optional `configure()`
+- Vector2i - all arithmetic, distance, comparison, factory methods
+- Rect2i - intersection, containment, computed properties
+- Color32 - color math, conversions, blending
+- Palette - construction, set/get, named aliases, serialization, GPU float layout, preset factories
+- PaletteEffect - manager lifecycle, CycleEffect rotation, FadeEffect/FadeRangeEffect lerp, FlashEffect, paletteSwap
+- Easing - boundary values, monotonicity, midpoint checks for all easing curves
+- GameLoop - constructor validation, tick counter
+- IBTDemo - `defaultConfig()` and optional `configure()`
 
 ### Tier 2: Integration tests (Vitest, Node + GPU mocks)
 
 Code that requires WebGPU objects or DOM APIs. Most tests run in Node with `src/__test__/webgpu-mock.ts` for GPU stubs
 and `vi` for browser API stubs. Tests that need a full DOM (Bootstrap, BootstrapHelpers) opt into `happy-dom` via the
-`// @vitest-environment happy-dom` directive. Inventory is illustrative – not exhaustive.
+`// @vitest-environment happy-dom` directive. Inventory is illustrative - not exhaustive.
 
-- AssetLoader – image caching and deduplication, `evict()`, and `loadingCount` (Node + vi stubs for `Image`)
-- SpriteSheet – UV calculation, lazy texture creation, indexization, `loadIndexed()` convenience flow,
+- AssetLoader - image caching and deduplication, `evict()`, and `loadingCount` (Node + vi stubs for `Image`)
+- SpriteSheet - UV calculation, lazy texture creation, indexization, `loadIndexed()` convenience flow,
   `getIndexedPixels()` defensive-copy semantics, and `status`/`progress` load tracking (Node + GPU mocks)
-- AudioClip – decode cache, deduplication, fallback URL lists, `loadingCount`, and hot-replace wiring (Node + Web Audio
+- AudioClip - decode cache, deduplication, fallback URL lists, `loadingCount`, and hot-replace wiring (Node + Web Audio
   mocks)
-- BitmapFont – glyph lookup, text measurement (Node + vi stubs)
-- BootstrapHelpers – WebGPU support detection, canvas lookup (happy-dom)
-- Bootstrap – full bootstrap lifecycle, including `?backend=software` WebGPU-skip path, double-`bootstrap()` guard
+- BitmapFont - glyph lookup, text measurement (Node + vi stubs)
+- BootstrapHelpers - WebGPU support detection, canvas lookup (happy-dom)
+- Bootstrap - full bootstrap lifecycle, including `?backend=software` WebGPU-skip path, double-`bootstrap()` guard
   (`Promise<boolean>`), and hot-swap delegation (happy-dom)
-- HotRuntime / HotSwap – Vite HMR context registration, tier selection, asset hot-replace routing (Node)
-- WakeLock / Orientation – acquire/release lifecycle, silent no-op fallbacks (Node + vi stubs)
-- PointerInput – `touch-action` gating for scroll capture and palette-band override (happy-dom)
-- WebGPURenderer – frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
-- SoftwareRenderer – frame lifecycle, palette enforcement, camera offsets, indexed sprite blits, bitmap text,
+- HotRuntime / HotSwap - Vite HMR context registration, tier selection, asset hot-replace routing (Node)
+- WakeLock / Orientation - acquire/release lifecycle, silent no-op fallbacks (Node + vi stubs)
+- PointerInput - `touch-action` gating for scroll capture and palette-band override (happy-dom)
+- WebGPURenderer - frame lifecycle, camera, pipeline delegation (Node + GPU mocks)
+- SoftwareRenderer - frame lifecycle, palette enforcement, camera offsets, indexed sprite blits, bitmap text,
   `captureFrame()` semantics, and unsupported-effects assertions (Node + 2D canvas mocks)
-- PrimitivePipeline – vertex buffer math, line algorithm (Node + GPU mocks)
-- SpritePipeline – texture batching, UV coordinates (Node + GPU mocks)
-- WebGPUContext – initialization with mock adapter/device (Node + GPU mocks)
-- BTAPI – singleton coordinator; lazy-loads `WebGPURenderer` after WebGPU init succeeds; includes software-mode init,
+- PrimitivePipeline - vertex buffer math, line algorithm (Node + GPU mocks)
+- SpritePipeline - texture batching, UV coordinates (Node + GPU mocks)
+- WebGPUContext - initialization with mock adapter/device (Node + GPU mocks)
+- BTAPI - singleton coordinator; lazy-loads `WebGPURenderer` after WebGPU init succeeds; includes software-mode init,
   `?backend=software` URL override, `BT.requestedBackend` vs. `BT.activeBackend` after WebGPU fallback, `captureFrame()`
   in software mode, `BT.loadingAssetsCount`, and overlay render path (Node + GPU mocks + 2D canvas mocks)
-- Overlay – colocated tests under `src/overlay/*.test.ts`: label parsing, layout helpers, `layoutPlan` golden Y
+- Overlay - colocated tests under `src/overlay/*.test.ts`: label parsing, layout helpers, `layoutPlan` golden Y
   positions for 320×240 (including custom rows, palette grid variable bottom band, and timing chart scaffold cases),
   `PaletteView.computeGrid` width/size matrix, `PaletteInteraction` hit-test/scroll/tooltip helpers,
   `RenderPaletteUsage` mask helpers (`markIndexUsed`, `collectUsedIndices`), toggle hit-testing, and `updateAndRender`
   integration (Node)
-- FrameCapture – GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
-- consumer-doc-imports – `src/docs/consumer-doc-imports.test.ts` guards README/docs import paths against `BLIT386.ts`
+- FrameCapture - GPU readback, PNG conversion (Node + GPU mocks + browser stubs)
+- consumer-doc-imports - `src/docs/consumer-doc-imports.test.ts` guards README/docs import paths against `BLIT386.ts`
   exports
 
 ### Tier 3: Visual regression (Playwright, Chromium)
@@ -69,16 +69,16 @@ Actual GPU rendering verified via screenshot comparison. Requires Chrome with We
 Most specs cover both the default WebGPU backend and the `?backend=software` software backend, producing separate
 baseline screenshots for each. `post-process.spec.ts` is WebGPU-only (software backend throws on effects).
 
-- Primitives – pixel, line, and rectangle rendering (WebGPU + software)
-- Sprites – palette-indexed sprite rendering, palette offsets, batching
-- Camera – camera offset transforms applied to all geometry
-- Fonts – placeholder text rendering at known positions
-- Mixed – primitives and sprites combined with correct layering
-- Post-process – baseline scene, pixel/display-tier effects, CRT preset stacks, upscale filters
+- Primitives - pixel, line, and rectangle rendering (WebGPU + software)
+- Sprites - palette-indexed sprite rendering, palette offsets, batching
+- Camera - camera offset transforms applied to all geometry
+- Fonts - placeholder text rendering at known positions
+- Mixed - primitives and sprites combined with correct layering
+- Post-process - baseline scene, pixel/display-tier effects, CRT preset stacks, upscale filters
 
 ### Tier 4: CPU benchmarks (Vitest bench)
 
-Hot-path performance checks for methods and allocation patterns. Benchmarks run locally only – compare a feature branch
+Hot-path performance checks for methods and allocation patterns. Benchmarks run locally only - compare a feature branch
 against a `main` baseline with `pnpm run bench:compare`; see [Performance Testing](/docs/performance/testing).
 
 ## Declaration tooling checks
@@ -86,11 +86,11 @@ against a `main` baseline with `pnpm run bench:compare`; see [Performance Testin
 Public types are rolled up during `pnpm run build` via `vite-plugin-dts` and API Extractor. The workspace pins
 TypeScript to the same version API Extractor bundles (see [Developer Experience](https://github.com/blit386/blit386/blob/main/docs/developer-experience-guide.md)).
 
-- `pnpm run test:declarations` – Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns, required
+- `pnpm run test:declarations` - Node test runner for `scripts/check-declaration-tooling.mjs` (drift patterns, required
   `BT` getters in rolled-up `.d.ts`, and alignment log parsing). Included in `pnpm run preflight`.
-- CI – after `pnpm run build`, `node scripts/check-declaration-tooling.mjs build.log` runs in the
+- CI - after `pnpm run build`, `node scripts/check-declaration-tooling.mjs build.log` runs in the
   `.github/workflows/ci.yml` `build-library` and `bundle-size` jobs to fail on drift warnings and version mismatch.
-- Manual – `pnpm run build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
+- Manual - `pnpm run build 2>&1 | tee build.log && node scripts/check-declaration-tooling.mjs build.log`
 
 ## Commands
 
@@ -114,23 +114,23 @@ pnpm run bench:compare          # Compare benchmark-results.json against benchma
 Tests are colocated next to their source files:
 
 ```text
-src/utils/Vector2i.ts       – Source
-src/utils/Vector2i.test.ts  – Test
+src/utils/Vector2i.ts       - Source
+src/utils/Vector2i.test.ts  - Test
 ```
 
 Visual regression tests live in a separate directory:
 
 ```text
 tests/visual/
-  fixtures/             – HTML pages and Vite config
-  __snapshots__/        – Git-tracked reference screenshots
-  coverage-fixture.ts   – Playwright fixture for Istanbul coverage
-  primitives.spec.ts    – Primitive rendering visual test
-  sprites.spec.ts       – Sprite rendering visual test
-  camera.spec.ts        – Camera transform visual test
-  fonts.spec.ts         – Text rendering visual test
-  mixed.spec.ts         – Combined rendering visual test
-  post-process.spec.ts  – Post-process effect chain visual test
+  fixtures/             - HTML pages and Vite config
+  __snapshots__/        - Git-tracked reference screenshots
+  coverage-fixture.ts   - Playwright fixture for Istanbul coverage
+  primitives.spec.ts    - Primitive rendering visual test
+  sprites.spec.ts       - Sprite rendering visual test
+  camera.spec.ts        - Camera transform visual test
+  fonts.spec.ts         - Text rendering visual test
+  mixed.spec.ts         - Combined rendering visual test
+  post-process.spec.ts  - Post-process effect chain visual test
 ```
 
 ## Writing a new test
@@ -198,12 +198,12 @@ const texture = createMockGPUTexture(256, 256);
 
 Available mocks:
 
-- `createMockGPUDevice()` – returns a stub GPUDevice
-- `createMockGPUTexture(width, height)` – returns a stub GPUTexture
-- `createMockGPUCanvasContext()` – returns a stub GPUCanvasContext
-- `createMockRenderPassEncoder()` – returns a stub GPURenderPassEncoder
-- `createMockPaletteBuffer()` – returns a 4096-byte stub GPUBuffer for palette uniform tests
-- `installMockNavigatorGPU()` / `uninstallMockNavigatorGPU()` – install/remove global navigator.gpu
+- `createMockGPUDevice()` - returns a stub GPUDevice
+- `createMockGPUTexture(width, height)` - returns a stub GPUTexture
+- `createMockGPUCanvasContext()` - returns a stub GPUCanvasContext
+- `createMockRenderPassEncoder()` - returns a stub GPURenderPassEncoder
+- `createMockPaletteBuffer()` - returns a 4096-byte stub GPUBuffer for palette uniform tests
+- `installMockNavigatorGPU()` / `uninstallMockNavigatorGPU()` - install/remove global navigator.gpu
 
 For software-renderer tests that need a Canvas 2D context, use the `makeMock2DCanvas()` helper defined in
 `src/core/BTAPI.test.ts`. It returns an `HTMLCanvasElement` stub whose `getContext('2d')` yields a minimal
@@ -269,7 +269,7 @@ GitHub Actions runs unit tests and quality gates in CI. Visual regression is loc
 
 ### `ci.yml` (`CI` workflow)
 
-Triggers on push to `main` and on pull requests targeting `main` (`opened`, `synchronize`, `reopened` – labeling a PR
+Triggers on push to `main` and on pull requests targeting `main` (`opened`, `synchronize`, `reopened` - labeling a PR
 does not retrigger the workflow).
 
 The pipeline is path-filtered. A `changes` job runs [`dorny/paths-filter`](https://github.com/dorny/paths-filter) first
@@ -282,7 +282,7 @@ consumes the engine as `workspace:*`, and `website` includes `packages/blit386/d
 | Job | Gated on | What it runs |
 | --- | --- | --- |
 | `changes` | always | Path filters; emits the per-package booleans every job below reads |
-| `quality-root` | always | `format:check`, `docs:links`, `agents:check` – repo-wide, so they run once rather than per package |
+| `quality-root` | always | `format:check`, `docs:links`, `agents:check` - repo-wide, so they run once rather than per package |
 | `security-audit` | always | `pnpm run security:audit`, `pnpm run security:audit:prod` (dependency policy gate), workspace-wide |
 | `quality-engine` | engine | `lint`, `typecheck`, `spellcheck`, `knip`, `sync:doc-banners:check`, `api:since:check`, `api:history:check` |
 | `build-engine` | engine | `pnpm run build`, declaration tooling check, uploads `dist/` artifact |
@@ -303,11 +303,11 @@ Jobs needing full git history ask the shared setup action for it: `quality-engin
 is no longer laxer than CI. It runs last in both places for the same reason: it regenerates `content/docs` in the
 working tree, so anything reading that tree afterwards would be reading regenerated rather than committed content. It
 could not run at all before the monorepo merge, because the docs-site repository had no engine checkout to sync against
-– so a stale published mirror was only ever caught by hand.
+\- so a stale published mirror was only ever caught by hand.
 
 The four workflow files are `ci.yml`, `pr-checks.yml`, `dco.yml`, and `deploy.yml`; CodeQL runs from GitHub's default
 setup rather than a checked-in workflow. On pull requests, `pr-checks.yml` complements `ci.yml` with Conventional
-Commits validation only; every other gate – knip, bundle size, doc links, agent-config drift – runs inside `ci.yml`.
+Commits validation only; every other gate - knip, bundle size, doc links, agent-config drift - runs inside `ci.yml`.
 
 ### `pr-checks.yml` (`PR Checks` workflow)
 
@@ -336,10 +336,10 @@ what CI gates on.
 
 ### Known quirks
 
-- `// @vitest-environment happy-dom` – required at the top of test files that touch DOM APIs without GPU mocks.
-- AssetLoader – tests stub `Image` with `vi`; do not rely on happy-dom data-URI `onload` behavior.
-- `Vector2i -0` vs. `0` – use `result.x + 0` in assertions when sign is meaningless.
-- `docs:links` scope – `scripts/check-markdown-links.mjs` enumerates git-tracked `*.md` / `*.mdx` via `git ls-files`
+- `// @vitest-environment happy-dom` - required at the top of test files that touch DOM APIs without GPU mocks.
+- AssetLoader - tests stub `Image` with `vi`; do not rely on happy-dom data-URI `onload` behavior.
+- `Vector2i -0` vs. `0` - use `result.x + 0` in assertions when sign is meaningless.
+- `docs:links` scope - `scripts/check-markdown-links.mjs` enumerates git-tracked `*.md` / `*.mdx` via `git ls-files`
   (honors `.gitignore`), not only `docs/` and README.
 
 ## See also

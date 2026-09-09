@@ -43,7 +43,7 @@ benchmark-comparison.md
 .claude/scheduled_tasks.*
 .claude/launch.json
 
-# MCP configs – nested/local ones may carry secrets; the root file is tracked and secret-free
+# MCP configs - nested/local ones may carry secrets; the root file is tracked and secret-free
 .mcp.json
 mcp.json
 !/.mcp.json
@@ -81,7 +81,7 @@ tmp/
 temp/
 
 # Cross-process build locks (scripts/build-lock.mjs, used by ensure-engine-built.mjs and
-# ensure-kit-built.mjs) – created and removed at runtime; a crashed process can leave one behind
+# ensure-kit-built.mjs) - created and removed at runtime; a crashed process can leave one behind
 /.ensure-engine-built.lock/
 /.ensure-kit-built.lock/
 
@@ -91,6 +91,9 @@ docs/superpowers/
 
 # Local security run reports (MCP preflight / governance)
 security-reports/
+
+# /release skill scratch: a copy-paste source for GitHub Releases, deleted after use, never committed
+/RELEASE.md
 
 # Scaffolder ownership manifest and pristine kit copies (create-blit386 test fixtures,
 # generated games). Never reformat .blit/base/ - it makes `blit agents sync` report

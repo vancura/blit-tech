@@ -25,10 +25,10 @@ export function sha256(filePath: string): string {
 
 /**
  * True if `absPath` (assumed to resolve under `root`) is reached through a symlink at any existing
- * path segment – the file itself or any of its parent directories. Checked with `lstatSync`, which
+ * path segment - the file itself or any of its parent directories. Checked with `lstatSync`, which
  * does not follow symlinks, so a symlink pointing outside `root` (or to a file outside it) is caught
  * even when it resolves to something that exists. A segment that does not exist yet is not a symlink
- * and is treated as safe – the caller is about to create it, not read or write through it.
+ * and is treated as safe - the caller is about to create it, not read or write through it.
  */
 export function hasSymlinkedSegment(absPath: string, root: string): boolean {
     const rel = relative(root, absPath);
@@ -60,7 +60,7 @@ export function hasSymlinkedSegment(absPath: string, root: string): boolean {
 
 /**
  * Reject manifest paths that are absolute, escape the project root via `..` segments, or are reached
- * through a symlink (the file itself or a parent directory) – lexical safety alone would still let a
+ * through a symlink (the file itself or a parent directory) - lexical safety alone would still let a
  * symlink swapped in after scaffolding redirect a read or write outside the project.
  */
 export function isSafeRelPath(relPath: string, root: string): boolean {

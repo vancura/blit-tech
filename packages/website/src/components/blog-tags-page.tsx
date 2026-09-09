@@ -15,7 +15,7 @@ const TAGS_DESCRIPTION = `Browse all tags used on the ${SITE_NAME} blog.`;
 /**
  * Thin wrappers around fumapress's default tags pages. `BlogLayout` no longer assigns
  * `[grid-area:main]` itself (the post page needs its content and its table-of-contents sidebar
- * in separate grid areas), so every other page rendered inside it – including these – now claims
+ * in separate grid areas), so every other page rendered inside it - including these - now claims
  * its own placement.
  *
  * Also the only place these pages get a `<title>`/OG/canonical block at all: fumapress's stock

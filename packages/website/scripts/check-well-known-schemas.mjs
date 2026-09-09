@@ -10,7 +10,7 @@
  * schema here is instead hand-encoded from the relevant spec / the shape this repo
  * already ships, using `zod` (already a direct dependency of this package).
  *
- * This only checks structure – it does not check that any advertised URL actually
+ * This only checks structure - it does not check that any advertised URL actually
  * resolves. See `check-well-known-urls.mjs` for that.
  *
  * Usage:

@@ -33,7 +33,7 @@ update, or when the user says "update my game to the new version" or "fix the re
    - Inside the `bootstrap(...)` options object only: `canvasId` -> `canvasID`, `containerId` -> `containerID`,
      `waitForDOMReady` -> `isWaitingForDOMReady`
 4. Leave anything that is not a BLIT386 value alone. A plain array's `.contains(...)` or your own `tick()` method is not
-   the engine – do not touch it.
+   the engine - do not touch it.
 5. If migrate could not edit an unusual `vite.config`, add hot reload by hand (see the use-hot-reload skill /
    `docs/hot-reload.md`), then restart `npx blit run` once.
 6. Verify: run `npx blit run` and play the game, or `npx blit doctor` to check the setup. If something still breaks, use
@@ -43,7 +43,7 @@ update, or when the user says "update my game to the new version" or "fix the re
 
 - The full, authoritative list of old -> new names is the engine's deprecation timeline:
   https://blit386.dev/docs/reference/deprecations
-- Hot reload enablement needs blit386 1.4.0+. Prefer `npx blit upgrade` first if you are behind – it updates the engine
+- Hot reload enablement needs blit386 1.4.0+. Prefer `npx blit upgrade` first if you are behind - it updates the engine
   and then offers the same migrate step.
 - `blit migrate` previews by default and only changes files with `--write`, so it is always safe to run and read first.
-- If the project is not saved with git, save a copy before writing – `blit migrate --write` warns about this first.
+- If the project is not saved with git, save a copy before writing - `blit migrate --write` warns about this first.

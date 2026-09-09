@@ -5,8 +5,8 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Enabled-green.svg)](https://www.w3.org/TR/webgpu/)
 
-A palette-first retro engine for the web. You draw with numbered colors instead of RGBA pixels – the same trick that
-made VGA games shimmer – and a modern GPU does the rest. Roll the palette and water flows, fire rises, the sky drifts at
+A palette-first retro engine for the web. You draw with numbered colors instead of RGBA pixels - the same trick that
+made VGA games shimmer - and a modern GPU does the rest. Roll the palette and water flows, fire rises, the sky drifts at
 dusk, all without redrawing a single pixel. WebGPU when your browser has it, an automatic Canvas 2D fallback when it
 does not.
 
@@ -39,8 +39,8 @@ class Game {
   }
 
   // update() is the THINKING step: change the world here (move things, read
-  // input, run physics), but never draw. It runs at a FIXED rate – targetFPS,
-  // 60 times a second by default – no matter how fast the screen is. The engine
+  // input, run physics), but never draw. It runs at a FIXED rate - targetFPS,
+  // 60 times a second by default - no matter how fast the screen is. The engine
   // runs it as many times per frame as it needs to hold that pace, so your game
   // moves at the same speed on every machine.
   update() {
@@ -52,8 +52,8 @@ class Game {
   }
 
   // render() is the DRAWING step: only paint the world as it is right now,
-  // never change state. It runs ONCE PER SCREEN REFRESH – way faster on a
-  // high-refresh monitor, slower on a struggling machine – so it is not locked
+  // never change state. It runs ONCE PER SCREEN REFRESH - way faster on a
+  // high-refresh monitor, slower on a struggling machine - so it is not locked
   // to update().
   render() {
     // Draw with slot numbers, not colors.
@@ -67,7 +67,7 @@ bootstrap(Game); // hand the class to the engine and start the loop
 ```
 
 That is a whole game on a 320×240 screen: `update()` thinks, `render()` draws, and the box slides back and forth at the
-same speed on every machine – because `update()` ticks at a fixed rate while `render()` just follows your screen. No
+same speed on every machine - because `update()` ticks at a fixed rate while `render()` just follows your screen. No
 config, no scene graph, no ceremony.
 
 ### Load a sprite and draw it
@@ -102,8 +102,8 @@ bootstrap(Game);
 
 ### Make an ocean out of one palette
 
-This is the party trick. Build eight shades of blue, then tell the engine to rotate them. The pixels never change – only
-the paint-box labels shuffle – and the whole sea starts to move, exactly like it did in DeluxePaint.
+This is the party trick. Build eight shades of blue, then tell the engine to rotate them. The pixels never change - only
+the paint-box labels shuffle - and the whole sea starts to move, exactly like it did in DeluxePaint.
 
 ```js
 import { bootstrap, BT, Color32, Rect2i } from 'blit386';
@@ -151,19 +151,19 @@ bootstrap(Game);
   tiny palette upload. `BT.paletteFadeExposure` goes further and fades in linear light like an iris pull, so highlights
   hold and shadows crush instead of everything dimming at one flat rate.
 - Retro palettes in the box: VGA, CGA, C64, Game Boy, PICO-8, and NES presets.
-- Recolor without redrawing: Palette offsets turn one sprite sheet into team colors, day and night, or power-up states –
+- Recolor without redrawing: Palette offsets turn one sprite sheet into team colors, day and night, or power-up states -
   no duplicate textures.
 - CRT when you want it: A two-tier post-process chain with bundled CRT presets for that curved-glass glow.
 - Everything a tiny engine needs: Pointer, keyboard, and gamepad input, a fixed-timestep loop with render-time
   interpolation for smooth motion between ticks, bitmap fonts, a camera, and one-call PNG frame capture.
 - Sound that plays, not just routes: Fire off sound effects and crossfading music through a three-bus mixer (sfx, music,
   main) with volume, mute, and fades, synthesize blips and booms from scratch or reach for a built-in preset, and read
-  live levels off the overlay's audio meters – all while tracking the browser's autoplay-gesture unlock honestly instead
+  live levels off the overlay's audio meters - all while tracking the browser's autoplay-gesture unlock honestly instead
   of pretending it doesn't exist.
-- Worlds that come back the same: a seeded PRNG (`BT.random`, `BT.randomSeed`) with the draws games actually reach for –
-  picks, shuffles, weighted drops, points in a rect – plus Value, Perlin, and Simplex noise and stateless coordinate
+- Worlds that come back the same: a seeded PRNG (`BT.random`, `BT.randomSeed`) with the draws games actually reach for -
+  picks, shuffles, weighted drops, points in a rect - plus Value, Perlin, and Simplex noise and stateless coordinate
   hashes for chunked terrain that needs no stored generator.
-- Motion with a shape: the full easing family set – sine, cubic, quartic, quintic, expo, circ, back, elastic, bounce –
+- Motion with a shape: the full easing family set - sine, cubic, quartic, quintic, expo, circ, back, elastic, bounce -
   and `interpolate()` across numbers, `Vector2i`, `Color32`, and `Rect2i`.
 - Loading progress: `BT.loadingAssetsCount` tracks in-flight image and audio loads so you can drive a loading screen.
 - A splash that is also a loading screen: the BLIT386 logo fades in on its own gray ramp while your `init()` runs, holds
@@ -175,7 +175,7 @@ bootstrap(Game);
 
 ## Get started
 
-The fastest way – easy enough that a pigeon would skip its dinner to try it – is the scaffolder. It writes a
+The fastest way - easy enough that a pigeon would skip its dinner to try it - is the scaffolder. It writes a
 ready-to-run Vite project, installs the engine, and drops in a starter game plus local docs.
 
 ```bash
@@ -184,7 +184,7 @@ cd my-game
 npm run dev
 ```
 
-Works with npm, pnpm, yarn, or bun – it uses whichever you ran it with. Open the address it prints and edit
+Works with npm, pnpm, yarn, or bun - it uses whichever you ran it with. Open the address it prints and edit
 `src/game.js`. See [create-blit386](../create-blit386) for the options and what lands in the project.
 
 ### Add it to a project you already have
@@ -201,23 +201,23 @@ pnpm add blit386
 ```
 
 You need an ESM bundler (Vite, esbuild, webpack, and friends) and Node >=22.18.0. The engine wants a WebGPU browser and
-quietly falls back to Canvas 2D when there is not one – see [Browser support](docs/api-browser-support.md) for the
+quietly falls back to Canvas 2D when there is not one - see [Browser support](docs/api-browser-support.md) for the
 version details.
 
-On Vite, add the `blit386/vite` plugin to `vite.config.js` for hot reload during development – most code and asset edits
+On Vite, add the `blit386/vite` plugin to `vite.config.js` for hot reload during development - most code and asset edits
 apply to the running game without a page reload (a hardware setting change or an unrecognized asset type still falls
 back to one). See the [Hot Reload guide](docs/guide-hot-reload.md).
 
 ## Demos
 
 Play the [hosted demos at demos.blit386.dev](https://demos.blit386.dev), or read the source in
-[`packages/demos`](../demos) – dozens of small, heavily commented examples from a single moving square up to a full
+[`packages/demos`](../demos) - dozens of small, heavily commented examples from a single moving square up to a full
 Snake game.
 
 ## Documentation
 
 The full, typeset documentation lives at [blit386.dev/docs](https://blit386.dev/docs). The Markdown sources are in
-[`docs/`](docs/) – start with [API: Core](docs/api-core.md) for `bootstrap()` and initialization. The rest of the
+[`docs/`](docs/) - start with [API: Core](docs/api-core.md) for `bootstrap()` and initialization. The rest of the
 important pages:
 
 | Documentation | What it covers |
@@ -246,13 +246,13 @@ important pages:
 | [Post-Process Effects](docs/guide-post-process-effects.md) | the effect chain, built-in effects, CRT presets |
 | [Changelog](docs/changelog.md) | release history in Keep a Changelog style |
 
-The full index – performance, testing, security, contributor guides – lives in
+The full index - performance, testing, security, contributor guides - lives in
 [Developer Experience](docs/developer-experience-guide.md#documentation-index).
 
 ## Inspiration
 
 BLIT386 owes its whole philosophy to [RetroBlit](https://www.badcastle.com/retroblit.html) by Martin Cietwierkowski
-([@daafu](https://github.com/daafu)) – a retro pixel framework for Unity that throws out the scene graph and hands you a
+([@daafu](https://github.com/daafu)) - a retro pixel framework for Unity that throws out the scene graph and hands you a
 clean, low-level demo loop. BLIT386 brings that same feeling to the web with WebGPU: no frameworks, just sprites,
 primitives, fonts, and a palette.
 
@@ -265,7 +265,7 @@ primitives, fonts, and a palette.
 
 ## Made by
 
-BLIT386 is built by Václav Vančura ([@vancura](https://github.com/vancura)) – one person, so far. I am not a player, I
+BLIT386 is built by Václav Vančura ([@vancura](https://github.com/vancura)) - one person, so far. I am not a player, I
 am an engine maker.
 
 Want to help? The contributor workflow, scripts, and release process live in

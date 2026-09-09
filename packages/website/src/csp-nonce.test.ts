@@ -1,13 +1,13 @@
 /**
  * Covers `cspNoncePlugin`.
  *
- * The plugin wraps the server entry's `fetch`, so these tests call it the way Cloudflare does –
- * `fetch(request, env, ctx)` – with a stub entry standing in for Waku's.
+ * The plugin wraps the server entry's `fetch`, so these tests call it the way Cloudflare does -
+ * `fetch(request, env, ctx)` - with a stub entry standing in for Waku's.
  *
  * `HTMLRewriter` is a workerd global and this package runs plain Vitest on Node (`vitest.config.ts`,
  * "Test runners" in CLAUDE.md), so the plugin takes a rewriter factory and these tests inject a
- * double. That draws the fidelity line deliberately: everything the plugin decides – when to stamp,
- * what nonce, which headers survive – is asserted here, while the HTML parsing stays Cloudflare's and
+ * double. That draws the fidelity line deliberately: everything the plugin decides - when to stamp,
+ * what nonce, which headers survive - is asserted here, while the HTML parsing stays Cloudflare's and
  * is covered by the `wrangler dev` pass in CLAUDE.md.
  */
 

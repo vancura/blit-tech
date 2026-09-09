@@ -1,15 +1,15 @@
 /**
- * `blit clean` – replace the game's source file with an empty, ready-to-fill skeleton.
+ * `blit clean` - replace the game's source file with an empty, ready-to-fill skeleton.
  *
  * Detects TypeScript vs JavaScript by which language config is present (`tsconfig.json` vs
  * `jsconfig.json`), then overwrites `src/game.ts` / `src/game.js` with the kit's empty skeleton: the
  * same `init`/`update`/`render` shape, no drawing, no input handling. Nothing else in the project is
- * touched – agent files, config, and docs are all scaffolded once and never revisited by this command.
+ * touched - agent files, config, and docs are all scaffolded once and never revisited by this command.
  *
  * Before writing, compares the current file's SHA-256 against the hash `.blit/manifest.json` recorded
  * for it at scaffold time. A match means the file is still the untouched default; a mismatch means the
  * user has started their own game, so the confirm prompt below is phrased as a warning instead of a
- * routine question. Either way, nothing is written without an explicit yes – or `--yes` to skip the
+ * routine question. Either way, nothing is written without an explicit yes - or `--yes` to skip the
  * prompt for scripted use, mirroring `confirm()`'s own non-TTY safe default.
  *
  * After a successful write, the manifest entry's hash is updated to match the new skeleton, so the
@@ -105,7 +105,7 @@ export async function runClean(args: string[]): Promise<void> {
 
     if (isModified) {
         out(ui.warn(`${relPath} has changed since it was scaffolded.`));
-        out(ui.info('Cleaning replaces it with an empty skeleton – your current code will be lost.'));
+        out(ui.info('Cleaning replaces it with an empty skeleton - your current code will be lost.'));
     } else {
         out(ui.info(`This replaces ${relPath} with an empty skeleton, ready for your own code.`));
     }
@@ -124,7 +124,7 @@ export async function runClean(args: string[]): Promise<void> {
     writeFileSync(absPath, skeleton);
     out(ui.success(`Replaced ${relPath} with an empty skeleton.`));
 
-    // The game file is already replaced – the command's actual job is done. Keeping the manifest's tracked hash in
+    // The game file is already replaced - the command's actual job is done. Keeping the manifest's tracked hash in
     // step is bookkeeping for later drift checks (`blit doctor`, `blit agents sync --check`), not the deliverable
     // itself, so a failure here is reported and swallowed rather than crashing a command that otherwise succeeded.
     if (manifest && entry && isSafeRelPath(relPath, root)) {

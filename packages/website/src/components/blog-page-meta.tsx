@@ -13,9 +13,9 @@ export const BLOG_INDEX_OG_IMAGE_HEIGHT = 630;
 /**
  * Reconstructs fumapress's internal `renderPageMeta` (`title`, `og:title`/`og:description`,
  * the site's `meta.page()` block from `press.config.tsx`, and every `ctx.data['core:page-meta']`
- * hook – notably `takumiPlugin`'s `og:image`/`width`/`height`). That function
+ * hook - notably `takumiPlugin`'s `og:image`/`width`/`height`). That function
  * itself is not part of fumapress's public API, only exercised internally by the framework's own
- * `docsPageLayout` and stock blog layout – `BlogPage` replaces the latter with a hand-rolled
+ * `docsPageLayout` and stock blog layout - `BlogPage` replaces the latter with a hand-rolled
  * component (for the docs-style TOC sidebar, see its own doc comment) and lost this call in the
  * process. `getPressContext()`'s public `AppContext` type exposes both pieces (`metaConfig` and
  * `data`) needed to rebuild it without reaching into fumapress internals.
@@ -37,8 +37,8 @@ export function renderBlogPostMeta(page: MetaPage, ctx: AppContext) {
 
 interface ListingMetaOptions {
     /** Only `/blog` itself carries this: `takumiPlugin` generates an OG image per content-loader
-     * page (`packages/blit386/docs/...`, `content/blog/...`), and every route this file covers –
-     * the index, the tags listing, and each tag – is a plugin-created route rather than one of
+     * page (`packages/blit386/docs/...`, `content/blog/...`), and every route this file covers -
+     * the index, the tags listing, and each tag - is a plugin-created route rather than one of
      * those. `/blog` gets a hand-rolled equivalent (`press.config.tsx`, `/blog.webp`); the tags
      * routes do not, since no template exists for what a per-tag card should show. */
     ogImage?: { width: number; height: number };
@@ -50,7 +50,7 @@ interface ListingMetaOptions {
 /**
  * Shared by `renderBlogIndexMeta`, `renderBlogTagsMeta`, and `renderBlogTagMeta` below: none of
  * `/blog`, `/blog/tags`, or `/blog/tags/<tag>` key off a single `Page`, so fumapress's own
- * `renderPageMeta` (see `renderBlogPostMeta`'s doc comment) has nothing to call for any of them –
+ * `renderPageMeta` (see `renderBlogPostMeta`'s doc comment) has nothing to call for any of them -
  * `createBlogIndexPage()`/`createBlogTagsPage()`/`createBlogTagPage()` never call it either, which
  * left all three shipping with no `<title>` at all.
  */
@@ -114,7 +114,7 @@ function renderListingMeta(
     );
 }
 
-/** `/blog` – see `renderListingMeta`'s doc comment for why this doesn't call fumapress's own
+/** `/blog` - see `renderListingMeta`'s doc comment for why this doesn't call fumapress's own
  * `renderPageMeta`. Carries the JSON-LD `Blog` block and, now that `/blog.webp` exists
  * (`press.config.tsx`), the same `og:image`/`width`/`height`/`twitter:card` set `takumiPlugin`
  * emits for a real content-loader page. */
@@ -125,13 +125,13 @@ export function renderBlogIndexMeta(ctx: AppContext, indexPath: string, title: s
     });
 }
 
-/** `/blog/tags` – see `renderListingMeta`'s doc comment. No OG image: out of scope, no template
+/** `/blog/tags` - see `renderListingMeta`'s doc comment. No OG image: out of scope, no template
  * exists for what a tags-listing card should show. */
 export function renderBlogTagsMeta(ctx: AppContext, tagsPath: string, title: string, description: string) {
     return renderListingMeta(ctx, tagsPath, title, description);
 }
 
-/** `/blog/tags/<tag>` – see `renderListingMeta`'s doc comment. `title`/`description` are synthetic
+/** `/blog/tags/<tag>` - see `renderListingMeta`'s doc comment. `title`/`description` are synthetic
  * (there is no `Page` backing a tag), and, like `renderBlogTagsMeta`, there is no OG image. */
 export function renderBlogTagMeta(ctx: AppContext, tagsPath: string, tag: string) {
     const title = `Tag "${tag}"`;

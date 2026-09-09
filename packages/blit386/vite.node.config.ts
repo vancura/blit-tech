@@ -14,7 +14,7 @@ export default defineConfig({
             // single-entry bundle from the nearest `package.json`'s `types` field (walking up from `root`) before
             // falling back to `outDir`/`fileName`. This repo's root `package.json` already declares
             // `types: "./dist/blit386.d.ts"` for the main build, so without this override the second (node) build
-            // would silently reuse that same path instead of writing `dist/vite.d.ts` – it would read
+            // would silently reuse that same path instead of writing `dist/vite.d.ts` - it would read
             // `dist/blit386.d.ts` as its bundle entry point and write the (unchanged) result back to it, leaving no
             // `vite.d.ts` behind at all. Pointing `root` at the filesystem root stops the package.json lookup from
             // ever reaching this repo's `package.json` (`/package.json` does not exist), so the plugin falls back to

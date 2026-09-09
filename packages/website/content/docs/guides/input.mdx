@@ -3,7 +3,7 @@
 # Do not edit by hand: edit the engine source, then run `pnpm run sync:docs`.
 title: "Input"
 description: "Pointer, keyboard, gamepad, and text-accumulation input in BLIT386."
-lastModified: "2026-09-03T10:03:05+02:00"
+lastModified: "2026-09-09T08:29:04+02:00"
 editUrl: "https://github.com/blit386/blit386/blob/main/docs/guide-input.md"
 ---
 
@@ -25,7 +25,7 @@ The engine tracks up to four simultaneous pointers:
 | 2 | Second touch / pen contact |
 | 3 | Third touch / pen contact |
 
-The engine tracks four pointer slots (indices `0`–`3`). Overflow contacts beyond slot 3 are dropped silently.
+The engine tracks four pointer slots (indices `0`-`3`). Overflow contacts beyond slot 3 are dropped silently.
 
 ### Mouse slot (slot 0)
 
@@ -34,7 +34,7 @@ The engine tracks four pointer slots (indices `0`–`3`). Overflow contacts beyo
 - Tracks all four buttons (A, B, C, D).
 - Position is preserved after the mouse leaves; a new `pointermove` re-syncs it.
 
-### Touch / pen slots (slots 1–3)
+### Touch / pen slots (slots 1-3)
 
 - Allocated on `pointerdown` in the first free slot; freed on `pointerup`, `pointercancel`, or `pointerleave`.
 - Only `BTN_POINTER_A` reports true while the contact is down; B, C, D always return false.
@@ -58,7 +58,7 @@ const touch = BT.pointerPos(1); // slot 1 (first touch)
 const delta = BT.pointerDelta(); // slot 0 (mouse)
 const td = BT.pointerDelta(1); // slot 1
 
-// Validity check – false means no live pointer in this slot
+// Validity check - false means no live pointer in this slot
 if (BT.isPointerActive()) {
   // Mouse is over the canvas
 }
@@ -193,7 +193,7 @@ if (BT.isKeyReleased('Escape')) {
 
 `BT.isKeyPressed` and `BT.isKeyReleased` clear once per fixed-update tick, and that tick always finishes before
 `render()` runs for the same frame. Reading either from `render()` instead of `update()` intermittently drops presses
-under rapid input – the tick already consumed and cleared the edge before render got a chance to see it. `BT.isKeyDown`
+under rapid input - the tick already consumed and cleared the edge before render got a chance to see it. `BT.isKeyDown`
 (held state) has no such restriction and is safe to call from `render()`.
 
 </Callout>
@@ -326,7 +326,7 @@ Player constants:
 Default stick dead zone is `0.75` (`GamepadInput.DEFAULT_GAMEPAD_DEAD_ZONE` internally; not a public export). Filtering
 is per axis, not radial: each stick axis is zeroed when `Math.abs(axis) <= deadZone`, then the remaining range is
 re-normalized with `(abs - deadZone) / (1 - deadZone)`. At the default `0.75`, a stick axis must exceed ~75% deflection
-before movement registers – much larger than typical `0.1`–`0.2` dead zones. There is no public `BT` API to change this
+before movement registers - much larger than typical `0.1`-`0.2` dead zones. There is no public `BT` API to change this
 value today.
 
 </Callout>
@@ -375,7 +375,7 @@ long as a pointer is over the band, independent of the configure flag.
 <Callout type="warn" title="Upgrading from 1.3.0 or earlier">
 
 Pointer wheel capture is opt-in as of 1.4.0. If your game relied on `BT.pointerScrollDelta` without setting
-`isCapturingPointerScroll: true` in `configure()`, add the flag – otherwise the delta stays zero and the host page
+`isCapturingPointerScroll: true` in `configure()`, add the flag - otherwise the delta stays zero and the host page
 scrolls normally.
 
 </Callout>
@@ -444,17 +444,17 @@ Pointer transitions:
 
 `attach()` installs guards on the canvas to prevent browser defaults from interfering:
 
-- `wheel` with `{ passive: false }` – when `isCapturingPointerScroll` is `true` (or the overlay forces capture over the
+- `wheel` with `{ passive: false }` - when `isCapturingPointerScroll` is `true` (or the overlay forces capture over the
   palette band), `preventDefault()` stops page scroll and the delta feeds `BT.pointerScrollDelta`. When capture is off,
   the page scrolls normally.
-- `keydown` – when `isCapturingKeyboardScroll` is `true`, `preventDefault()` stops page scroll for arrow keys, Space,
+- `keydown` - when `isCapturingKeyboardScroll` is `true`, `preventDefault()` stops page scroll for arrow keys, Space,
   PageUp/PageDown, Home, and End while the canvas is focused. When capture is off, those keys keep their browser
   defaults.
-- `canvas.style.touchAction` – when `isCapturingPointerScroll` is `true` (or the overlay forces capture over the palette
+- `canvas.style.touchAction` - when `isCapturingPointerScroll` is `true` (or the overlay forces capture over the palette
   band), touch-action is `'none'`, preventing iOS Safari pinch-zoom, double-tap-zoom, and touch scroll from competing
   with capture. When capture is off, touch-action is `'pan-y'`, so the host page still scrolls vertically past the
   canvas on touch devices.
-- `contextmenu` with `preventDefault()` – prevents the OS context menu on right-click so `BTN_POINTER_B` works.
+- `contextmenu` with `preventDefault()` - prevents the OS context menu on right-click so `BTN_POINTER_B` works.
 
 `detach()` reverses the pointer and keyboard guards and removes all event listeners. This happens automatically when the
 engine stops or when `demo.init()` throws.
@@ -481,7 +481,7 @@ Coordinates are clamped to `[0, displaySize - 1]` on each axis. The conversion i
   methods.
 - Default keyboard tables live in `defaultKeyboardMap.ts`; runtime remaps are stored in the `BT` facade and reset with
   `BT.inputMapReset()`.
-- Pointer slot count is 4 (indices `0`–`3`); iterate with a literal loop or constant in demo code – there is no public
+- Pointer slot count is 4 (indices `0`-`3`); iterate with a literal loop or constant in demo code - there is no public
   `POINTER_SLOT_COUNT` export.
 - `PointerInput`, `KeyboardInput`, and `GamepadInput` are created and attached inside `BTAPI.init()`, so they are ready
   before `demo.init()` runs.

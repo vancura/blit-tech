@@ -8,7 +8,7 @@ import type { Color32 } from '../utils/Color32';
  * Lifecycle state of the BLIT386 splash.
  *
  * `disabled` and `done` are indistinguishable to every consumer outside the
- * engine – both mean "not on screen, never will be again" – which is why
+ * engine - both mean "not on screen, never will be again" - which is why
  * {@link BT.isSplashVisible} exists as the derived one-term query.
  *
  * With the splash disabled, `disabled` is the only value game code ever reads.

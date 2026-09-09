@@ -30,6 +30,5 @@
     "prettier --write",
     "sh -c 'cspell --no-progress --no-must-find-files --gitignore-root \"$(git rev-parse --show-toplevel)\" \"$@\"' --"
   ],
-  "*.{yaml,yml}": ["prettier --write"],
-  "*.{ts,tsx,js,cjs,mjs,md,mdx}": ["node scripts/check-dash-typography.mjs"]
+  "*.{yaml,yml}": ["prettier --write"]
 }

@@ -107,7 +107,7 @@ const MAX_UNICODE_CODE_POINT = 0x10ffff;
 
 /**
  * Glyph map key that, when present, is used as the fallback rendered in place of any character
- * missing its own glyph – the standard Unicode replacement character. Any `.btfont` file (or the
+ * missing its own glyph - the standard Unicode replacement character. Any `.btfont` file (or the
  * embedded system font) can opt in by including an entry keyed by this character; fonts without
  * one keep the previous behavior of silently skipping the character.
  */
@@ -116,7 +116,7 @@ const FALLBACK_GLYPH_CHAR = '\uFFFD';
 /**
  * Resolves a font's fallback glyph from its glyph map.
  *
- * @param glyphs – Font's Unicode glyph map.
+ * @param glyphs - Font's Unicode glyph map.
  * @returns The {@link FALLBACK_GLYPH_CHAR} glyph, or `null` when the font defines none.
  */
 function resolveFallbackGlyph(glyphs: ReadonlyMap<string, Glyph>): Glyph | null {
@@ -127,7 +127,7 @@ function resolveFallbackGlyph(glyphs: ReadonlyMap<string, Glyph>): Glyph | null 
  * Returns whether a value is a non-null plain object (not an array).
  * Used to validate `FileData.glyphs` and individual glyph entries before reading their fields.
  *
- * @param value – The value to check.
+ * @param value - The value to check.
  * @returns `true` if the value is a non-null plain object, `false` otherwise.
  */
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
@@ -146,9 +146,9 @@ function createAsciiGlyphTable(): (Glyph | null)[] {
 /**
  * Writes a single-byte glyph into the ASCII fast-path table when the key is in range.
  *
- * @param asciiGlyphs – Pre-sized lookup table for codes `0-127`.
- * @param char – Glyph map key from the `.btfont` file.
- * @param glyph – Runtime glyph metadata to store.
+ * @param asciiGlyphs - Pre-sized lookup table for codes `0-127`.
+ * @param char - Glyph map key from the `.btfont` file.
+ * @param glyph - Runtime glyph metadata to store.
  */
 function populateAsciiGlyph(asciiGlyphs: (Glyph | null)[], char: string, glyph: Glyph): void {
     if (char.length === 1) {
@@ -165,7 +165,7 @@ function populateAsciiGlyph(asciiGlyphs: (Glyph | null)[], char: string, glyph: 
  * Dev-only registry of live bitmap fonts keyed by normalized `.btfont` source URL,
  * so `HotRuntime.handleAssetChanged` can find and hot-reload every font loaded from
  * a changed font file. Populated only while {@link isHotActive} (no production
- * memory cost). Entries are never pruned – unlike {@link SpriteSheet}, `BitmapFont`
+ * memory cost). Entries are never pruned - unlike {@link SpriteSheet}, `BitmapFont`
  * has no destroy/dispose lifecycle to hook; acceptable since the registry only
  * exists in dev mode.
  */
@@ -175,8 +175,8 @@ const hotReloadRegistry = new Map<string, Set<BitmapFont>>();
  * Registers `font` under its normalized source URL for hot-reload routing, when a
  * Vite HMR context is active. Called by {@link BitmapFont.load}.
  *
- * @param url – Source URL the font was loaded from.
- * @param font – Font to register.
+ * @param url - Source URL the font was loaded from.
+ * @param font - Font to register.
  */
 function registerFontForHotReload(url: string, font: BitmapFont): void {
     if (!isHotActive()) {
@@ -193,10 +193,10 @@ function registerFontForHotReload(url: string, font: BitmapFont): void {
 /**
  * Returns every registered font loaded from a URL matching `url` after normalization.
  *
- * Internal – used by `HotRuntime.handleAssetChanged` to route a `'font'`
+ * Internal - used by `HotRuntime.handleAssetChanged` to route a `'font'`
  * asset-changed event to the fonts that need reloading.
  *
- * @param url – Changed asset URL to look up.
+ * @param url - Changed asset URL to look up.
  * @returns Matching fonts, or `undefined` when none are registered.
  */
 export function getHotReloadFonts(url: string): ReadonlySet<BitmapFont> | undefined {
@@ -256,13 +256,13 @@ export class BitmapFont {
      * Creates a BitmapFont instance.
      * Use {@link BitmapFont.load} or {@link BitmapFont.createFromGlyphs} to construct instances.
      *
-     * @param spriteSheet – Texture atlas containing all font glyphs.
-     * @param glyphs – Map of character strings to glyph metadata.
-     * @param asciiGlyphs – Pre-populated ASCII lookup array.
-     * @param name – Font display name.
-     * @param size – Original font size in points.
-     * @param lineHeight – Vertical spacing between lines.
-     * @param baseline – Distance from top to text baseline.
+     * @param spriteSheet - Texture atlas containing all font glyphs.
+     * @param glyphs - Map of character strings to glyph metadata.
+     * @param asciiGlyphs - Pre-populated ASCII lookup array.
+     * @param name - Font display name.
+     * @param size - Original font size in points.
+     * @param lineHeight - Vertical spacing between lines.
+     * @param baseline - Distance from top to text baseline.
      */
     private constructor(
         spriteSheet: SpriteSheet,
@@ -295,13 +295,13 @@ export class BitmapFont {
     /**
      * Returns every Unicode code point this font defines a glyph for, ascending.
      *
-     * Derived live from the same {@link glyphs} map {@link getGlyph} / {@link hasGlyph} read –
+     * Derived live from the same {@link glyphs} map {@link getGlyph} / {@link hasGlyph} read -
      * it can never drift from what actually renders. Includes ordinary ASCII (the ASCII
      * fast-path array is populated from this same map at construction time, not a second,
      * disjoint source) and the fallback glyph when the font defines one (see
      * `FALLBACK_GLYPH_CHAR`). Skips a key that spans more than one Unicode scalar value (for
      * example a multi-character string from a malformed `.btfont` file) rather than reporting
-     * just its first scalar – nothing validates glyph keys down to a single scalar on load, so
+     * just its first scalar - nothing validates glyph keys down to a single scalar on load, so
      * this getter defends its own "one code point per real glyph" guarantee instead of risking
      * a duplicate or misleading entry. `codePoints.length` can therefore be lower than
      * {@link glyphCount} for such a font.
@@ -329,12 +329,12 @@ export class BitmapFont {
      * otherwise drift out of sync with {@link glyphs} (and so with `getGlyph()`,
      * `hasGlyph()`, and `codePoints`).
      *
-     * @param spriteSheet – Texture atlas containing all font glyphs.
-     * @param glyphs – Map of character strings to glyph metadata.
-     * @param name – Font display name.
-     * @param size – Font size in points.
-     * @param lineHeight – Vertical spacing between lines in pixels.
-     * @param baseline – Distance from top to text baseline in pixels.
+     * @param spriteSheet - Texture atlas containing all font glyphs.
+     * @param glyphs - Map of character strings to glyph metadata.
+     * @param name - Font display name.
+     * @param size - Font size in points.
+     * @param lineHeight - Vertical spacing between lines in pixels.
+     * @param baseline - Distance from top to text baseline in pixels.
      * @returns Fully constructed BitmapFont ready for rendering.
      */
     static createFromGlyphs(
@@ -361,7 +361,7 @@ export class BitmapFont {
      * The font descriptor can reference either an embedded PNG data URI
      * (`data:image/png;base64,...`) or a texture file path relative to the font JSON file.
      *
-     * @param url – Path to the .btfont file.
+     * @param url - Path to the .btfont file.
      * @returns Loaded bitmap font instance.
      * @throws Error if the font descriptor or texture cannot be loaded.
      */
@@ -376,7 +376,7 @@ export class BitmapFont {
 
         BitmapFont.validateGlyphEntriesPreAtlas(glyphEntries);
 
-        // Load texture – embedded PNG data URIs and relative PNG paths are both allowed.
+        // Load texture - embedded PNG data URIs and relative PNG paths are both allowed.
         const image = await BitmapFont.loadTexture(data.texture, url);
         const spriteSheet = new SpriteSheet(image);
         const atlasWidth = spriteSheet.width;
@@ -410,7 +410,7 @@ export class BitmapFont {
     /**
      * Coerces a `.btfont` display `name` field to a non-empty string.
      *
-     * @param value – Raw JSON value for `name`.
+     * @param value - Raw JSON value for `name`.
      * @returns Trimmed name when `value` is a non-empty string; otherwise `'Unknown'`.
      */
     private static resolveDisplayName(value: unknown): string {
@@ -426,8 +426,8 @@ export class BitmapFont {
     /**
      * Coerces a `.btfont` metadata field to a positive finite number.
      *
-     * @param value – Raw JSON value for `size`, `lineHeight`, or `baseline`.
-     * @param fallback – Value used when `value` is missing or invalid.
+     * @param value - Raw JSON value for `size`, `lineHeight`, or `baseline`.
+     * @param fallback - Value used when `value` is missing or invalid.
      * @returns Safe positive metric for {@link BitmapFont} construction.
      */
     private static resolvePositiveMetric(value: unknown, fallback: number): number {
@@ -444,7 +444,7 @@ export class BitmapFont {
     /**
      * Coerces a raw `.btfont` metric field to a number.
      *
-     * @param value – Raw JSON value for `size`, `lineHeight`, or `baseline`.
+     * @param value - Raw JSON value for `size`, `lineHeight`, or `baseline`.
      * @returns Parsed number, or `NaN` when the value cannot be coerced.
      */
     private static parseMetricValue(value: unknown): number {
@@ -462,8 +462,8 @@ export class BitmapFont {
     /**
      * Parses and validates a `.btfont` JSON payload after byte-size checks.
      *
-     * @param url – Path to the `.btfont` file (used in error messages).
-     * @param jsonText – Raw JSON text from the font file.
+     * @param url - Path to the `.btfont` file (used in error messages).
+     * @param jsonText - Raw JSON text from the font file.
      * @returns Parsed font descriptor and glyph map entries.
      */
     private static parseBtfontFile(
@@ -512,7 +512,7 @@ export class BitmapFont {
      * Used by both the JSON parse failure and the structural validation failure paths in
      * {@link parseBtfontFile} to ensure identical messaging.
      *
-     * @param url – Path to the `.btfont` file (used in the error message and hint).
+     * @param url - Path to the `.btfont` file (used in the error message and hint).
      * @returns Error ready to throw.
      */
     private static buildBrokenFileError(url: string): Error {
@@ -525,7 +525,7 @@ export class BitmapFont {
     /**
      * Returns whether parsed `.btfont` JSON has the required top-level fields.
      *
-     * @param data – Parsed font descriptor.
+     * @param data - Parsed font descriptor.
      * @returns Whether the data is valid.
      */
     private static isValidFileData(data: unknown): data is FileData {
@@ -546,7 +546,7 @@ export class BitmapFont {
     /**
      * Returns whether a glyph entry is a plain object suitable for validation.
      *
-     * @param glyphData – Raw glyph entry from the parsed font file.
+     * @param glyphData - Raw glyph entry from the parsed font file.
      * @returns Whether the glyph data is a valid object.
      */
     private static isGlyphEntryObject(glyphData: unknown): glyphData is GlyphData {
@@ -556,7 +556,7 @@ export class BitmapFont {
     /**
      * Validates glyph entries before the font atlas image is decoded.
      *
-     * @param glyphEntries – Glyph map entries from the parsed font file.
+     * @param glyphEntries - Glyph map entries from the parsed font file.
      */
     private static validateGlyphEntriesPreAtlas(glyphEntries: Array<[string, GlyphData]>): void {
         for (const [char, glyphData] of glyphEntries) {
@@ -575,9 +575,9 @@ export class BitmapFont {
     /**
      * Converts validated `.btfont` glyph entries into runtime glyph maps.
      *
-     * @param glyphEntries – Glyph map entries from the parsed font file.
-     * @param atlasWidth – Font texture atlas width in pixels.
-     * @param atlasHeight – Font texture atlas height in pixels.
+     * @param glyphEntries - Glyph map entries from the parsed font file.
+     * @param atlasWidth - Font texture atlas width in pixels.
+     * @param atlasHeight - Font texture atlas height in pixels.
      * @returns Glyph lookup tables for Unicode and ASCII fast paths.
      */
     private static buildGlyphsFromEntries(
@@ -618,8 +618,8 @@ export class BitmapFont {
     /**
      * Loads a texture from either a base64 data URI or a relative path.
      *
-     * @param texture – Data URI (starts with "data:") or relative path.
-     * @param url – URL of the .btfont file (used to resolve relative paths).
+     * @param texture - Data URI (starts with "data:") or relative path.
+     * @param url - URL of the .btfont file (used to resolve relative paths).
      * @returns Loaded texture image for the font atlas.
      */
     private static loadTexture(texture: string, url: string): Promise<HTMLImageElement> {
@@ -636,7 +636,7 @@ export class BitmapFont {
      * Cache-busts a `.btfont` texture reference for a hot reload, unless it is an
      * embedded data URI (always fresh from the just-re-fetched JSON, nothing to bust).
      *
-     * @param texture – Raw `texture` field from the re-fetched `.btfont` JSON.
+     * @param texture - Raw `texture` field from the re-fetched `.btfont` JSON.
      * @returns `texture` unchanged for a data URI; otherwise with a cache-bust query appended.
      */
     private static bustTextureUrl(texture: string): string {
@@ -648,8 +648,8 @@ export class BitmapFont {
     /**
      * Returns a user-friendly load error for a font request.
      *
-     * @param url – Font file path that failed to load.
-     * @param status – HTTP status code from fetch.
+     * @param url - Font file path that failed to load.
+     * @param status - HTTP status code from fetch.
      * @returns Beginner-friendly message with useful hints.
      */
     private static buildLoadErrorMessage(url: string, status: number): string {
@@ -676,8 +676,8 @@ export class BitmapFont {
     /**
      * Suggests a corrected extension when the URL uses a different file type.
      *
-     * @param url – Original URL string.
-     * @param expectedExtension – Extension that should be used.
+     * @param url - Original URL string.
+     * @param expectedExtension - Extension that should be used.
      * @returns Hint text or an empty string.
      */
     private static buildExtensionHint(url: string, expectedExtension: string): string {
@@ -694,7 +694,7 @@ export class BitmapFont {
     /**
      * Formats a glyph character label for user-facing validation errors.
      *
-     * @param char – Glyph map key from the `.btfont` file.
+     * @param char - Glyph map key from the `.btfont` file.
      * @returns Printable label or a Unicode code point for control characters.
      */
     private static formatGlyphCharLabel(char: string): string {
@@ -720,7 +720,7 @@ export class BitmapFont {
     /**
      * Loads an image from a URL or data URI.
      *
-     * @param src – Image source (URL or data URI).
+     * @param src - Image source (URL or data URI).
      * @returns Loaded image element for the font texture.
      */
     private static loadImage(src: string): Promise<HTMLImageElement> {
@@ -765,7 +765,7 @@ export class BitmapFont {
      * map for everything else, then to the font's fallback glyph (see {@link FALLBACK_GLYPH_CHAR})
      * when neither has an entry for the character.
      *
-     * @param char – Single character to look up (supports Unicode).
+     * @param char - Single character to look up (supports Unicode).
      * @returns Glyph metadata; the font's fallback glyph when the character is missing and a
      *   fallback is defined; otherwise `null`.
      */
@@ -798,7 +798,7 @@ export class BitmapFont {
      * of being truncated. Falls back to the font's fallback glyph (see {@link FALLBACK_GLYPH_CHAR})
      * when the code has no glyph of its own, or is not a valid Unicode code point at all.
      *
-     * @param charCode – Unicode code point to look up.
+     * @param charCode - Unicode code point to look up.
      * @returns Glyph metadata; the font's fallback glyph when no glyph exists for the code, or the
      *   code point is invalid, and a fallback is defined; otherwise `null`.
      */
@@ -811,7 +811,7 @@ export class BitmapFont {
         } else if (Number.isInteger(charCode) && charCode <= MAX_UNICODE_CODE_POINT) {
             glyph = this.glyphs.get(String.fromCodePoint(charCode)) ?? this.fallbackGlyph;
         } else {
-            // Not a valid code point (non-integer, NaN, or beyond U+10FFFF) – String.fromCodePoint
+            // Not a valid code point (non-integer, NaN, or beyond U+10FFFF) - String.fromCodePoint
             // would throw; there is no glyph to look up, so go straight to the fallback.
             glyph = this.fallbackGlyph;
         }
@@ -837,7 +837,7 @@ export class BitmapFont {
      * fast path and fallback-glyph substitution) goes through {@link getGlyph}, so a measured
      * width always matches what actually renders.
      *
-     * @param text – String to measure.
+     * @param text - String to measure.
      * @returns Total width in pixels.
      */
     measureText(text: string): number {
@@ -881,7 +881,7 @@ export class BitmapFont {
      * results from separate calls never alias each other. For hot loops where
      * per-call allocation matters, use `measureTextSizeInto()` instead.
      *
-     * @param text – String to measure.
+     * @param text - String to measure.
      * @returns A new width/height pair for the measured text.
      */
     measureTextSize(text: string): TextSize {
@@ -898,8 +898,8 @@ export class BitmapFont {
      * performance-sensitive call sites: writes into `result` instead of
      * allocating a new object.
      *
-     * @param text – String to measure.
-     * @param result – Object that receives the measured width and height.
+     * @param text - String to measure.
+     * @param result - Object that receives the measured width and height.
      * @returns The same `result` object after being populated.
      */
     measureTextSizeInto(text: string, result: TextSize): TextSize {
@@ -916,7 +916,7 @@ export class BitmapFont {
      * character can still render, as the fallback, even when this returns `false`. Uses the same
      * ASCII fast path as `getGlyph()` for single-byte characters.
      *
-     * @param char – Character to check.
+     * @param char - Character to check.
      * @returns `true` if the character has its own glyph entry, independent of fallback coverage.
      */
     hasGlyph(char: string): boolean {
@@ -952,16 +952,16 @@ export class BitmapFont {
      * Hot-reloads this font's `.btfont` descriptor and texture in place, keeping the
      * same `BitmapFont` instance so demo-held references stay valid.
      *
-     * Internal – routed from `HotRuntime.handleAssetChanged` when the dev asset
+     * Internal - routed from `HotRuntime.handleAssetChanged` when the dev asset
      * watcher reports a changed font file. Re-fetches a cache-busted copy of the
      * `.btfont` JSON, rebuilds the glyph tables and measurement cache in place, and
      * replaces the underlying sprite sheet's image via
      * {@link SpriteSheet.hotReplaceImage} (which itself re-indexizes it when it was
      * already indexized). `name`/`size`/`lineHeight`/`baseline` are not updated by a
-     * hot reload – only glyph data and the texture.
+     * hot reload - only glyph data and the texture.
      *
      * @param url - `.btfont` URL this font was originally loaded from.
-     * @param palette – Active palette, forwarded to {@link SpriteSheet.hotReplaceImage}.
+     * @param palette - Active palette, forwarded to {@link SpriteSheet.hotReplaceImage}.
      * @throws Error if the re-fetched `.btfont` file is missing or malformed (mirrors {@link BitmapFont.load}).
      */
     async hotReload(url: string, palette: Palette | null): Promise<void> {

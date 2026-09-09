@@ -63,7 +63,7 @@ const getDepartureMono = (() => {
 })();
 
 // Reads and caches the Open Graph logo as a base64 data URL, for the same reason as
-// `getDepartureMono` above – Takumi needs it inline, not as a file path.
+// `getDepartureMono` above - Takumi needs it inline, not as a file path.
 const getOgLogoDataUrl = (() => {
     let cache: string | undefined;
     return () => {
@@ -91,7 +91,7 @@ const rootLayout = createRootLayout({
 interface DocsPageData extends PageData {
     /**
      * Declared `z.coerce.date()` in the schema, so this is `Date | undefined` per the
-     * generated `Page` type – but `async: true` collections expose `page.data` from the raw
+     * generated `Page` type - but `async: true` collections expose `page.data` from the raw
      * frontmatter object without running that coercion, so the ACTUAL runtime value is the ISO
      * string from the MDX frontmatter (confirmed by logging it during a real build), never a
      * `Date` instance. This field's static type does not match its runtime value; read it via
@@ -151,16 +151,16 @@ const docsPageLayout = createDocsLayoutPage<DocsLayoutContext>({
         // (`useState` + `useEffect`) and calls `value.toLocaleDateString()` on it directly with
         // no coercion, unconditionally assuming a real `Date` instance. `page.data.lastModified`
         // is declared `z.coerce.date()` in the schema, but `async: true` collections expose
-        // `page.data` from the raw frontmatter object without running that coercion – confirmed
+        // `page.data` from the raw frontmatter object without running that coercion - confirmed
         // by logging the value during a real build: it is the ISO string from the MDX
         // frontmatter (e.g. `"2026-07-06T19:37:01.000Z"`), never a `Date`. Calling
-        // `.toLocaleDateString()` on that string throws (a string has no such method) – this
+        // `.toLocaleDateString()` on that string throws (a string has no such method) - this
         // crashed client-side hydration with `TypeError: e.toLocaleDateString is not a function`
         // before this fix. Coerce explicitly with `new Date(...)` and render the formatted
         // result as plain server-rendered text below, bypassing the built-in component (and the
         // client/serialization boundary) entirely.
         const lastModified = rawLastModified(page);
-        // `timeZone: 'UTC'` keeps the formatted date reproducible across build machines – this
+        // `timeZone: 'UTC'` keeps the formatted date reproducible across build machines - this
         // is a static build, so the date is baked in once at build time, not reformatted
         // per-viewer; without it, a commit within ~12h of UTC midnight could render as a
         // different calendar day depending on which timezone the build happened to run in.
@@ -248,7 +248,7 @@ const GLOBAL_HEAD = (
  * Builds the Open Graph image content rendered by `takumiPlugin` below.
  *
  * Takumi renders this tree through a Satori-like layout engine, not a browser, so only inline
- * styles work here – Tailwind classes and `src/app.css` do not apply.
+ * styles work here - Tailwind classes and `src/app.css` do not apply.
  */
 function buildOgNode(title: string | undefined, description: string | undefined) {
     return (
@@ -307,7 +307,7 @@ function buildOgNode(title: string | undefined, description: string | undefined)
  * Hand-rolled equivalent of `takumiPlugin`'s own `core:page-meta` OG-image route (below), for
  * `/blog` specifically. `takumiPlugin` only builds images for pages returned by
  * `this.getLoader().getPages()` (`packages/blit386/docs/...`, `content/blog/...`); `/blog` is a
- * route `blogPlugin` registers itself, not a loader page, so it never gets one – confirmed via
+ * route `blogPlugin` registers itself, not a loader page, so it never gets one - confirmed via
  * `curl -sI https://blit386.dev/blog.webp` returning 404 where a real content page's `.webp`
  * returns 200. `takumiPlugin` exposes no option to register an extra image page, so this
  * registers its own `createApiIsomorphic` route with the same signature takumi.js uses for a
@@ -345,7 +345,7 @@ export default defineConfig({
     /**
      * Build a fully static site. On Cloudflare Workers the dynamic FlexSearch
      * endpoint rebuilt the entire index per cold isolate, exceeding the Worker
-     * resource limits (error 1102) and intermittently 503-ing /api/search – so
+     * resource limits (error 1102) and intermittently 503-ing /api/search - so
      * search only ever worked on localhost. In static mode the index is built
      * at build time, shipped as a static asset, and queried client-side.
      */
@@ -364,7 +364,7 @@ export default defineConfig({
             const description = page.data.description ?? '';
             const url = `${SITE_BASE_URL}${page.url}`;
             const ogType = page.url === '/' ? 'website' : 'article';
-            const prefixedTitle = ogType === 'website' ? title : `${SITE_NAME} – ${title}`;
+            const prefixedTitle = ogType === 'website' ? title : `${SITE_NAME} - ${title}`;
 
             // Escape </ so a field value containing "</script>" cannot terminate the tag.
             // `\/` is a valid JSON escape, so parsers handle the output correctly.
@@ -414,7 +414,7 @@ export default defineConfig({
     // binding and returns without calling next(), so a plugin registered after it would
     // never see those requests to override robots.txt or set a response header on them.
     //
-    // cspNoncePlugin contributes no middleware at all – it wraps the server entry's fetch,
+    // cspNoncePlugin contributes no middleware at all - it wraps the server entry's fetch,
     // outside the whole chain, because that is the only place the response body exists. Its
     // position in this list is therefore cosmetic; it leads because it is outermost.
 

@@ -63,9 +63,9 @@ const eased = applyEasing(0.5, 'cubic-in'); // 0.125
 
 Applies the curve to `t`, then interpolates from `start` to `end`.
 
-- `number` – floating-point blend
-- `Vector2i` / `Rect2i` – each component rounded to the nearest integer
-- `Color32` – each channel rounded and clamped to `[0, 255]`
+- `number` - floating-point blend
+- `Vector2i` / `Rect2i` - each component rounded to the nearest integer
+- `Color32` - each channel rounded and clamped to `[0, 255]`
 
 ```ts twoslash
 import { interpolate, Rect2i } from 'blit386';

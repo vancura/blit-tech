@@ -10,7 +10,7 @@
 
 <!-- blit386.dev-banner:end -->
 
-The camera applies a global pixel offset to all subsequent draw calls. Integer only – pass `Vector2i`, never floats.
+The camera applies a global pixel offset to all subsequent draw calls. Integer only - pass `Vector2i`, never floats.
 
 <Since symbol="BT.cameraSet" />
 <Since symbol="BT.camera" />
@@ -25,7 +25,7 @@ declare const desired: Vector2i;
 declare const worldSize: Vector2i;
 // ---cut---
 BT.cameraSet(new Vector2i(scrollX, scrollY)); // apply offset
-BT.camera; // Vector2i – current offset
+BT.camera; // Vector2i - current offset
 BT.cameraReset(); // set back to (0, 0)
 
 // Clamp a camera origin so the viewport stays within a world:
@@ -37,7 +37,7 @@ const clamped2 = BT.cameraClamp(desired, worldSize, new Vector2i(160, 120));
 
 ## Camera persists across zero-update frames
 
-`BT.cameraSet()`'s offset persists across render frames automatically, including frames where `update()` does not run –
+`BT.cameraSet()`'s offset persists across render frames automatically, including frames where `update()` does not run -
 common on high refresh-rate displays where `render()` outpaces the fixed update rate (see
 [Render frames with zero update() steps](api-game-loop.md#render-frames-with-zero-update-steps) in API: Game Loop). Call
 `cameraSet()` once per `update()` tick and `cameraReset()` at the end of `render()` to switch to screen space for UI

@@ -39,7 +39,7 @@ Needs blit386 `^1.4.0`. Production builds skip the plugin (`apply: 'serve'`), so
 
 | Edit | What happens |
 | --- | --- |
-| `update()` / `render()` / module constants they use | Method swap – instance fields kept; `init()` does not re-run |
+| `update()` / `render()` / module constants they use | Method swap - instance fields kept; `init()` does not re-run |
 | `init()`, constructor, or class field initializers | Fresh instance + `init()`; optional `onHotReload` can restore fields |
 | `configure()` hardware settings | Full page reload (display size, backend, FPS, audio voices, overlay flags) |
 
@@ -56,16 +56,16 @@ onHotReload(context) {
 }
 ```
 
-Without this hook, a re-init still works – fields just reset to whatever the new `init()` sets. A failed `init()` leaves
+Without this hook, a re-init still works - fields just reset to whatever the new `init()` sets. A failed `init()` leaves
 the previous instance running.
 
 ### 4. Asset hot-replace
 
 Files under `public/` (images, audio, `.btfont`) update in place. Demo-held references stay valid. If a replaced image
-changes size, recompute any `srcRect` you cached – the sheet's size updates, but your old rectangle does not.
+changes size, recompute any `srcRect` you cached - the sheet's size updates, but your old rectangle does not.
 
 ## Notes
 
-- You never call `registerHotReload` yourself – the plugin injects it.
+- You never call `registerHotReload` yourself - the plugin injects it.
 - Hot reload is local-dev only. It does nothing after `npm run build`.
 - See `docs/hot-reload.md` for the beginner walkthrough.

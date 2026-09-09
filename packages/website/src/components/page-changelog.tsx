@@ -81,7 +81,7 @@ const LINK_TAG_PATTERN = /\{@link\s+([^}]+)\}/gu;
 
 /**
  * Renders a change note, turning any `{@link Name}` / `{@link Name.member}` JSDoc tag into a real
- * link straight to the `<Since>` badge for `Name` (or its base symbol) – see
+ * link straight to the `<Since>` badge for `Name` (or its base symbol) - see
  * {@link resolveSymbolLink} and `since-badge.tsx`'s `id={symbolAnchorId(symbol)}`. An
  * unresolvable target (e.g. a deprecated helper with no `<Since>` tag of its own) falls back to
  * plain text rather than a dead link.
@@ -150,7 +150,7 @@ export function PageChangelog({ page }: PageChangelogProps) {
                     <section key={version} className={`${styles.version} ${date ? '' : styles.unreleased}`}>
                         <h3 className={styles.versionHeading}>
                             {version}
-                            {date && <span className={styles.versionDate}> – {date}</span>}
+                            {date && <span className={styles.versionDate}> - {date}</span>}
                         </h3>
 
                         <ul className={styles.eventList}>

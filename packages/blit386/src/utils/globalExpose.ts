@@ -33,7 +33,7 @@ export interface ExposeGlobalSignals {
 /**
  * Resolves whether `BT` should be assigned to `window`, from already-gathered signals.
  *
- * @param signals – See {@link ExposeGlobalSignals}.
+ * @param signals - See {@link ExposeGlobalSignals}.
  * @returns `true` when the assignment should happen.
  */
 export function resolveExposeGlobal(signals: ExposeGlobalSignals): boolean {
@@ -47,8 +47,8 @@ export function resolveExposeGlobal(signals: ExposeGlobalSignals): boolean {
 /**
  * Assigns `value` to `window.BT` when gating allows it and a `window` is actually present.
  *
- * @param value – The `BT` namespace to expose.
- * @param override – Explicit `BootstrapOptions.exposeGlobal`, if the caller set one.
+ * @param value - The `BT` namespace to expose.
+ * @param override - Explicit `BootstrapOptions.exposeGlobal`, if the caller set one.
  */
 export function exposeGlobal(value: unknown, override?: boolean): void {
     if (!resolveExposeGlobal({ override, devMode: isDevMode() })) {

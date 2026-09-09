@@ -10,7 +10,7 @@ All TypeScript code blocks in published docs (`docs/api-*.md`, `docs/guide-*.md`
 
 Every block must be self-contained for TypeScript compilation. Two patterns:
 
-**Self-contained block** (imports at the top, block compiles on its own – no cut needed):
+**Self-contained block** (imports at the top, block compiles on its own - no cut needed):
 
 ```ts twoslash
 import { BT, Color32, Palette } from 'blit386';
@@ -18,7 +18,7 @@ const palette = Palette.c64();
 BT.paletteSet(palette);
 ```
 
-**Fragment block** (shows a partial snippet, context variables assumed from prose – use a hidden preamble +
+**Fragment block** (shows a partial snippet, context variables assumed from prose - use a hidden preamble +
 `// ---cut---`):
 
 ```ts twoslash
@@ -30,8 +30,8 @@ BT.paletteFade(nightPalette, 2000, 'ease-in-out');
 
 Everything above `// ---cut---` is compiled by TypeScript but hidden from the reader. Everything below is shown.
 
-**Multi-file block** (the visible code imports a relative module that does not exist – a test file importing its
-subject, a benchmark importing the type it measures – use hidden `// @filename:` stubs before the cut):
+**Multi-file block** (the visible code imports a relative module that does not exist - a test file importing its
+subject, a benchmark importing the type it measures - use hidden `// @filename:` stubs before the cut):
 
 ```ts twoslash
 // @filename: MyType.ts
@@ -55,7 +55,7 @@ describe('MyType hot paths', () => {
 
 Each `// @filename:` opens a virtual file; the last one holds the visible code, and its path has to sit at the depth the
 relative import expects (`../__test__/webgpu-mock` needs the visible file one directory down, e.g.
-`render/SpritePipeline.test.ts`). Stub the imported module with `export declare class` / `export declare function` –
+`render/SpritePipeline.test.ts`). Stub the imported module with `export declare class` / `export declare function` -
 signatures only, no bodies. Real packages (`vitest`) resolve from `packages/website/node_modules` and need no stub;
 `declare module 'vitest'` in a block that has imports is a module _augmentation_ and fails instead.
 

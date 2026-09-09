@@ -37,7 +37,7 @@ export type TimingChartTagColumnGroup = {
 
 /**
  * Reusable scratch pool for {@link groupTimingChartTagsByColumn}, one per {@link TimingChart}
- * instance. `groups`' capacity only grows across calls, never shrinks – only the first
+ * instance. `groups`' capacity only grows across calls, never shrinks - only the first
  * `groupCount` entries are live for the most recent call. Consumers must iterate
  * `groups[0..groupCount)`, not `groups` itself, so a frame with fewer tag columns than a
  * previous one does not discard the descriptors a later, busier frame would otherwise have to
@@ -64,9 +64,9 @@ export function createTimingChartTagGroupScratch(): TimingChartTagGroupScratch {
  * Returns the pooled group descriptor at `index`, growing the pool and resetting the
  * descriptor's tag list as needed.
  *
- * @param scratch – Scratch pool.
- * @param index – Zero-based group index for this call.
- * @param sampleIndex – Column sample index for this group.
+ * @param scratch - Scratch pool.
+ * @param index - Zero-based group index for this call.
+ * @param sampleIndex - Column sample index for this group.
  * @returns Reset, reused group descriptor.
  */
 function acquireTagGroup(
@@ -90,7 +90,7 @@ function acquireTagGroup(
 /**
  * Normalizes a tag label; empty or missing labels become `"Untitled"`.
  *
- * @param label – Caller-provided label.
+ * @param label - Caller-provided label.
  * @returns Non-empty label string.
  */
 export function normalizeTimingChartTagLabel(label: string | undefined): string {
@@ -102,9 +102,9 @@ export function normalizeTimingChartTagLabel(label: string | undefined): string 
  *
  * Columns follow timing samples (one per overlay frame), not fixed-update ticks.
  *
- * @param sampleIndex – Sample ordinal when the tag was assigned.
- * @param totalSamples – Timing samples recorded since the last chart width reset.
- * @param chartWidth – Chart width in pixels (ring buffer width).
+ * @param sampleIndex - Sample ordinal when the tag was assigned.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
+ * @param chartWidth - Chart width in pixels (ring buffer width).
  * @returns Column index, or `null` when the tag is past the right edge.
  */
 export function computeTimingChartTagColumn(
@@ -129,9 +129,9 @@ export function computeTimingChartTagColumn(
 /**
  * Returns whether a tag should be removed from the active list.
  *
- * @param totalSamples – Timing samples recorded since the last chart width reset.
- * @param sampleIndex – Sample ordinal stored on the tag.
- * @param chartWidth – Chart width in pixels.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
+ * @param sampleIndex - Sample ordinal stored on the tag.
+ * @param chartWidth - Chart width in pixels.
  * @returns `true` when the tag should be dropped.
  */
 export function shouldPruneTimingChartTag(totalSamples: number, sampleIndex: number, chartWidth: number): boolean {
@@ -143,10 +143,10 @@ export function shouldPruneTimingChartTag(totalSamples: number, sampleIndex: num
 /**
  * Screen-space X for tick and label text above the chart band.
  *
- * @param chartX – Left edge of the chart band.
- * @param chartWidth – Chart width in pixels.
- * @param sampleIndex – Sample ordinal when the tag was assigned.
- * @param totalSamples – Timing samples recorded since the last chart width reset.
+ * @param chartX - Left edge of the chart band.
+ * @param chartWidth - Chart width in pixels.
+ * @param sampleIndex - Sample ordinal when the tag was assigned.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
  * @returns Pixel X for text left edge, or `null` when past the right edge.
  */
 export function computeTimingChartTagTextX(
@@ -167,10 +167,10 @@ export function computeTimingChartTagTextX(
 /**
  * Screen-space X for the one-pixel vertical marker (aligned with timing dots).
  *
- * @param chartX – Left edge of the chart band.
- * @param chartWidth – Chart width in pixels.
- * @param sampleIndex – Sample ordinal when the tag was assigned.
- * @param totalSamples – Timing samples recorded since the last chart width reset.
+ * @param chartX - Left edge of the chart band.
+ * @param chartWidth - Chart width in pixels.
+ * @param sampleIndex - Sample ordinal when the tag was assigned.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
  * @returns Pixel X for the marker column, or `null` when past the right edge.
  */
 export function computeTimingChartTagMarkerX(
@@ -191,7 +191,7 @@ export function computeTimingChartTagMarkerX(
 /**
  * Screen-space Y for the relative tick row above the chart band.
  *
- * @param chartTopY – Top edge of the chart band.
+ * @param chartTopY - Top edge of the chart band.
  * @returns Pixel Y for the tick text baseline.
  */
 export function computeTimingChartTagTickY(chartTopY: number): number {
@@ -201,8 +201,8 @@ export function computeTimingChartTagTickY(chartTopY: number): number {
 /**
  * Screen-space Y for a stacked tag label row below the tick row.
  *
- * @param chartTopY – Top edge of the chart band.
- * @param stackIndex – Zero-based row below the tick (0 = first label).
+ * @param chartTopY - Top edge of the chart band.
+ * @param stackIndex - Zero-based row below the tick (0 = first label).
  * @returns Pixel Y for the label text baseline.
  */
 export function computeTimingChartTagLabelY(chartTopY: number, stackIndex: number): number {
@@ -218,14 +218,14 @@ export function computeTimingChartTagLabelY(chartTopY: number, stackIndex: numbe
  *
  * Relies on {@link TimingChartTag.sampleIndex} being non-decreasing across `tags` (tags are
  * pushed in assignment order and `sampleIndex` is the monotonic sample counter at assign time,
- * and pruning preserves relative order), so tags sharing a column are always contiguous – a
+ * and pruning preserves relative order), so tags sharing a column are always contiguous - a
  * single run-length pass over pooled group descriptors replaces the previous per-call
  * `Map`/array allocations.
  *
- * @param tags – Active tags for the current frame.
- * @param totalSamples – Timing samples recorded since the last chart width reset.
- * @param chartWidth – Chart width in pixels.
- * @param scratch – Reusable group pool from {@link createTimingChartTagGroupScratch}, mutated in
+ * @param tags - Active tags for the current frame.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
+ * @param chartWidth - Chart width in pixels.
+ * @param scratch - Reusable group pool from {@link createTimingChartTagGroupScratch}, mutated in
  * place: `scratch.groups[0..scratch.groupCount)` holds this call's groups in first-seen column
  * order, live only until the next call with `scratch`.
  * @returns The same `scratch` object, for convenience at call sites that don't already hold it.
@@ -266,8 +266,8 @@ export function groupTimingChartTagsByColumn(
 /**
  * Relative tick text for the tag tick row (ticks since chart reset).
  *
- * @param tagTick – Absolute tick when the tag was assigned.
- * @param startTick – Tick recorded when the chart last reset.
+ * @param tagTick - Absolute tick when the tag was assigned.
+ * @param startTick - Tick recorded when the chart last reset.
  * @returns Relative tick string capped at {@link TIMING_CHART_TAG_REL_TICK_MAX}.
  */
 export function formatTimingChartTagRelTick(tagTick: number, startTick: number): string {
@@ -279,9 +279,9 @@ export function formatTimingChartTagRelTick(tagTick: number, startTick: number):
 /**
  * Removes off-screen tags using an in-place compact (no allocation).
  *
- * @param tags – Mutable tag list.
- * @param totalSamples – Timing samples recorded since the last chart width reset.
- * @param chartWidth – Chart width in pixels.
+ * @param tags - Mutable tag list.
+ * @param totalSamples - Timing samples recorded since the last chart width reset.
+ * @param chartWidth - Chart width in pixels.
  */
 export function pruneTimingChartTagsInPlace(tags: TimingChartTag[], totalSamples: number, chartWidth: number): void {
     let write = 0;

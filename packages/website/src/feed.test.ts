@@ -248,7 +248,7 @@ describe('feedPlugin', () => {
     });
 
     describe('when the build fails', () => {
-        /** A loader that cannot be obtained at all – the failure happens before any build starts. */
+        /** A loader that cannot be obtained at all - the failure happens before any build starts. */
         function unobtainableLoader(): () => FakeLoader {
             return () => {
                 throw new Error('loader unavailable');

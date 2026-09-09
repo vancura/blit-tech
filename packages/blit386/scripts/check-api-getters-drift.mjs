@@ -18,7 +18,7 @@ const RULE_FILE_PATH = join(ROOT, '.claude', 'rules', 'bt-api-getters.md');
 
 /**
  * Bare `BT.*` member names that legitimately never get an individual backtick-wrapped mention in
- * `bt-api-getters.md` – they are deprecated aliases documented only by cross-reference to
+ * `bt-api-getters.md` - they are deprecated aliases documented only by cross-reference to
  * `docs/reference-deprecations.md` (the "Deprecated aliases still on `BT`" paragraph), never listed
  * by name in the getters/methods sections this check scans.
  */
@@ -36,10 +36,10 @@ export const NO_INLINE_MENTION_ALLOWLIST = new Set([
 /**
  * Reduces a flat symbol-name list (as produced by `enumerateSymbols`) to bare namespace member
  * names, stripping the `<prefix>.` qualifier and discarding non-namespaced top-level exports
- * (types, classes) – the rule file's convention is bare backtick names, never `BT.foo`.
+ * (types, classes) - the rule file's convention is bare backtick names, never `BT.foo`.
  *
- * @param {string[]} symbolNames – Symbol names, e.g. `['BT.paletteFade', 'Vector2i']`.
- * @param {{ namespaceExportName?: string }} [options] – `namespaceExportName` defaults to `'BT'`.
+ * @param {string[]} symbolNames - Symbol names, e.g. `['BT.paletteFade', 'Vector2i']`.
+ * @param {{ namespaceExportName?: string }} [options] - `namespaceExportName` defaults to `'BT'`.
  * @returns {string[]} Bare member names, e.g. `['paletteFade']`.
  */
 export function deriveBtMemberNames(symbolNames, options = {}) {
@@ -50,17 +50,17 @@ export function deriveBtMemberNames(symbolNames, options = {}) {
 
 /**
  * Asserts every member name (except allowlisted deprecated aliases) appears as an exact
- * backtick-delimited inline code span somewhere in the rule file text – either the bare name
+ * backtick-delimited inline code span somewhere in the rule file text - either the bare name
  * (`` `paletteFade` ``) or a call-syntax mention (`` `audioVolumeSet(bus, value, options?)` ``, the
- * convention used for methods with documented arguments). Loose substring match by design – this
- * is prose, not a structured document – but requiring a backtick immediately before the name and
+ * convention used for methods with documented arguments). Loose substring match by design - this
+ * is prose, not a structured document - but requiring a backtick immediately before the name and
  * a backtick or `(` immediately after stops a longer sibling name (e.g. `paletteFadeRange`) from
  * masking a missing shorter one (`paletteFade`). Collects every miss instead of stopping at the
  * first one.
  *
- * @param {string[]} memberNames – Bare `BT.*` member names to check for.
- * @param {string} ruleContent – Full text of `bt-api-getters.md`.
- * @param {ReadonlySet<string>} [allowlist] – Names exempt from the check.
+ * @param {string[]} memberNames - Bare `BT.*` member names to check for.
+ * @param {string} ruleContent - Full text of `bt-api-getters.md`.
+ * @param {ReadonlySet<string>} [allowlist] - Names exempt from the check.
  * @returns {string[]} Human-readable failure messages, one per missing member (empty when all found).
  */
 export function findMissingRuleMentions(memberNames, ruleContent, allowlist = NO_INLINE_MENTION_ALLOWLIST) {

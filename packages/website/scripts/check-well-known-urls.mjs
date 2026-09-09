@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Cross-check that every URL/endpoint this site advertises to agents – in
- * `public/webmcp.js`, the agent-skills `SKILL.md`, and the well-known JSON files –
+ * Cross-check that every URL/endpoint this site advertises to agents - in
+ * `public/webmcp.js`, the agent-skills `SKILL.md`, and the well-known JSON files -
  * actually resolves in the *built* output.
  *
  * This is deliberately more than a 404 check. The bug BT-247 fixed
  * (`925033c8`) was a dead `/api/search` endpoint that returned HTTP 200 with
- * someone else's content – a plain status check would not have caught it. So this
+ * someone else's content - a plain status check would not have caught it. So this
  * boots the real built worker (`wrangler dev` against `dist/server/wrangler.json`,
  * the same config `pnpm run start` uses) and, for `/mcp`, sends the exact JSON-RPC
  * calls `webmcp.js` itself makes and asserts the response actually contains results,
@@ -14,10 +14,10 @@
  *
  * `/mcp` cannot be checked any other way: it is Hono middleware registered by a
  * Fumapress plugin (`src/mcp-server.ts`), not a static file, and it reads its docs
- * corpus from the Cloudflare `ASSETS` binding at request time – there is no static
+ * corpus from the Cloudflare `ASSETS` binding at request time - there is no static
  * route manifest to inspect and no dist/ file to check for existence.
  *
- * Requires a build to have already run (`pnpm run build`) – see `preflight` in
+ * Requires a build to have already run (`pnpm run build`) - see `preflight` in
  * package.json for the ordering.
  *
  * Usage:
@@ -206,7 +206,7 @@ function startWranglerDev(port) {
                 const res = await fetch(baseUrl, { signal: AbortSignal.timeout(2_000) });
                 if (res.ok || res.status === 404) return;
             } catch {
-                // Not up yet – keep polling.
+                // Not up yet - keep polling.
             }
             await new Promise((r) => setTimeout(r, SERVER_POLL_INTERVAL_MS));
         }
@@ -316,7 +316,7 @@ async function checkStaticPath(baseUrl, path) {
 async function main() {
     if (!existsSync(DIST_SERVER_WRANGLER_CONFIG)) {
         console.error(
-            `check:well-known-urls requires a build first – ${DIST_SERVER_WRANGLER_CONFIG} does not exist. Run "pnpm run build".`,
+            `check:well-known-urls requires a build first - ${DIST_SERVER_WRANGLER_CONFIG} does not exist. Run "pnpm run build".`,
         );
         process.exit(1);
     }

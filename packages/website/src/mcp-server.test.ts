@@ -1,7 +1,7 @@
 /**
  * Covers `mcpServerPlugin`: the public JSON-RPC 2.0 endpoint at `POST /mcp`.
  *
- * This is an external contract – agents call it, so its envelope, error codes, and tool schemas
+ * This is an external contract - agents call it, so its envelope, error codes, and tool schemas
  * are as public as the site's HTML. `search_docs` ranking is asserted at the exact weight rather
  * than as "title beats body", because the documented contract is that a title or description match
  * counts for ten body matches, and a test that only checks the ordering would still pass if that
@@ -509,7 +509,7 @@ describe('mcpServerPlugin', () => {
             });
 
             it('evicts a failed extraction so the next search retries', async () => {
-                // The failure has to land inside the cached promise – a loader that throws on the
+                // The failure has to land inside the cached promise - a loader that throws on the
                 // way in never gets as far as being cached. Here the adapter rejects, so
                 // `Promise.all` rejects and the eviction path is the one under test. Without it,
                 // one transient failure would poison search_docs for the isolate's whole life.

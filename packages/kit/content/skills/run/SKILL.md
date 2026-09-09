@@ -19,7 +19,7 @@ Use this when you need to run the game to test a change, or when the user says "
 
 1. In the project folder, run `{{pmRunDev}}` (or `npx blit run`).
 2. The browser opens automatically at `http://localhost:5173` (or the next free port).
-3. Edit and save – with the starter's `blit386` Vite plugin, most code and `public/` asset edits keep the game running
+3. Edit and save - with the starter's `blit386` Vite plugin, most code and `public/` asset edits keep the game running
    (hot reload) instead of wiping state. Full detail: `docs/hot-reload.md`. There is no need to restart the server after
    each edit.
 4. To stop the server: press `Ctrl+C` in the terminal.

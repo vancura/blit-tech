@@ -1,7 +1,7 @@
 # Environment and tooling gotchas
 
 Learned running preflight and the versioning workflow in ephemeral / CI-style checkouts (no git tags, no outbound
-network). These are environment artifacts, not code bugs – do not "fix" them by editing the checks.
+network). These are environment artifacts, not code bugs - do not "fix" them by editing the checks.
 
 - `_api-history.json` regeneration needs git tags. `pnpm run api:history` bakes each release date into the `versions`
   map from git tag dates (`resolveTagDate`). In a tag-less checkout every date regenerates as `null`, wiping the
@@ -12,14 +12,13 @@ network). These are environment artifacts, not code bugs – do not "fix" them b
   Keep a Changelog and WebKit-bug references) returning 403 through a sandbox proxy; every relative/internal link still
   resolves. Confirm all failures are external before treating one as real.
 - Hooks amplify those two artifacts. The pre-push hook runs each changed package's `preflight` (which includes
-  `typecheck` + `lint`), then – only if that succeeds – a root-level pass that includes `docs:links` once for the whole
+  `typecheck` + `lint`), then - only if that succeeds - a root-level pass that includes `docs:links` once for the whole
   push (`docs:links` and `agents:check` are not package-scoped, so they were removed from every package's own
-  `preflight` chain to stop running 2–4x per push – see the `preflight` skill). A failed package preflight skips the
+  `preflight` chain to stop running 2-4x per push - see the `preflight` skill). A failed package preflight skips the
   root-level `format:check` / `docs:links` / `agents:check` pass entirely. The lint-staged pre-commit hook runs `biome`
-  / `prettier` / `eslint --fix` / `cspell` / `scripts/check-dash-typography.mjs` on staged files; the commit-msg hook
-  runs the same dash-typography check against the commit message itself via a local commitlint plugin. When the only
-  failures are the tag-less / no-network artifacts above, push with `--no-verify` after confirming the real checks
-  (`typecheck`, `lint`, `format:check`, `spellcheck`) pass on their own.
+  / `prettier` / `eslint --fix` / `cspell` on staged files. When the only failures are the tag-less / no-network
+  artifacts above, push with `--no-verify` after confirming the real checks (`typecheck`, `lint`, `format:check`,
+  `spellcheck`) pass on their own.
 - `.agents/skills/*` are symlinks to `.claude/skills/*`. Edit the `.claude` copy once and both update; do not treat them
   as two files to patch.
 - `pnpm run spellcheck` (from `packages/blit386`) scopes to `src/`, `docs/`, and `README.md`, so it does not scan the

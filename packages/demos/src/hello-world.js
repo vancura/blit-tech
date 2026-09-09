@@ -1,4 +1,4 @@
-// Hello World: the smallest possible BLIT386 program – one line of text, nothing else.
+// Hello World: the smallest possible BLIT386 program - one line of text, nothing else.
 // @description The smallest possible BLIT386 program: one line of text, nothing else on screen.
 
 import { bootstrap, BT, Color32, Vector2i } from 'blit386';

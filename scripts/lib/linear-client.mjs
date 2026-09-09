@@ -1,6 +1,6 @@
 /**
  * Thin wrapper around Linear's GraphQL API (https://developers.linear.app/docs/graphql/working-with-the-graphql-api).
- * No dependency – uses the built-in `fetch`. Every function takes the API key explicitly rather
+ * No dependency - uses the built-in `fetch`. Every function takes the API key explicitly rather
  * than reading `process.env` itself, so callers control where the key comes from and tests never
  * need to touch real environment state.
  */
@@ -8,7 +8,7 @@
 const LINEAR_GRAPHQL_URL = 'https://api.linear.app/graphql';
 
 /**
- * @param {string} apiKey Linear Personal API key. Sent as a raw `Authorization` header value –
+ * @param {string} apiKey Linear Personal API key. Sent as a raw `Authorization` header value -
  *   Linear's API does not use a `Bearer` prefix.
  * @param {string} query GraphQL query or mutation document.
  * @param {Record<string, unknown>} [variables] GraphQL variables.

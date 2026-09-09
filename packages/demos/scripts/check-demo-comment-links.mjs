@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Catch dead or placeholder links in `src/*.js` header comments – the `Prerequisites:` /
+ * Catch dead or placeholder links in `src/*.js` header comments - the `Prerequisites:` /
  * `Guide:` / `Live version:` block every demo carries (see `.claude/rules/file-structure.md`).
  * These are reader-visible: the demo source is published and rendered in the source panel on
  * demos.blit386.dev, so a stale link there is a stale link a visitor can click. BT-448 fixed
@@ -8,11 +8,11 @@
  * nothing stopped a future edit from reintroducing that, or from linking a docs page or demo
  * slug that no longer exists. This is the registry-driven guard against all three.
  *
- * Only the leading header comment block is scanned – not the whole file – so an explanatory
+ * Only the leading header comment block is scanned - not the whole file - so an explanatory
  * link buried mid-file (a third-party credit, an MDN reference) is out of scope by design.
  *
  * Checks, per `https://` URL found in that block:
- *   - Placeholder domain: host is `vancura.dev` or ends in `.vancura.dev` – always a failure.
+ *   - Placeholder domain: host is `vancura.dev` or ends in `.vancura.dev` - always a failure.
  *   - `blit386.dev/docs/...`: the path (fragment stripped) must match a `path` value in
  *     `packages/blit386/docs/_sitemap.json`.
  *   - `demos.blit386.dev/<slug>`: the first path segment must be a `DEMO_ORDER` entry.
@@ -30,13 +30,13 @@ import { DEMO_ORDER } from '../plugins/demo-order.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Hostnames a header link must never point at – matched as an exact host or a `.`-suffix. */
+/** Hostnames a header link must never point at - matched as an exact host or a `.`-suffix. */
 const PLACEHOLDER_DOMAIN_SUFFIXES = ['vancura.dev'];
 
 const URL_PATTERN = /https:\/\/[^\s)'"]+/gu;
 
 /**
- * Extracts the leading header comment block of a demo source file – either a `/** *\/` block at
+ * Extracts the leading header comment block of a demo source file - either a `/** *\/` block at
  * the very top, or a run of consecutive `//`-prefixed lines from the top, stopping at the first
  * line that is not a `//` comment. Mirrors the "header comment -> imports" section order
  * documented in `.claude/rules/file-structure.md`.
@@ -78,7 +78,7 @@ export function findLinksInHeader(headerText) {
 /**
  * The regex in `findLinksInHeader` is permissive by design (it has to catch a placeholder
  * domain regardless of what path or syntax follows it), so it can capture text that isn't a
- * valid URL – e.g. an illustrative `https://[id]` in prose. Parsing that with `new URL()`
+ * valid URL - e.g. an illustrative `https://[id]` in prose. Parsing that with `new URL()`
  * throws, which would otherwise crash the whole script on one bad match instead of reporting a
  * clean per-file failure.
  *
@@ -186,7 +186,7 @@ export function findDemoLinkFailures(urls, demoSlugs) {
  *
  * @param {string} source Full file contents.
  * @param {{ sitemapPaths: Set<string>, demoSlugs: Set<string> }} registries
- * @returns {string[]} Human-readable failure messages (unprefixed – the caller adds the file name).
+ * @returns {string[]} Human-readable failure messages (unprefixed - the caller adds the file name).
  */
 export function findCommentLinkFailures(source, { sitemapPaths, demoSlugs }) {
     const urls = findLinksInHeader(extractHeaderComment(source));

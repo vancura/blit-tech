@@ -28,7 +28,7 @@ import type { TemplateVars } from './manifest';
 
 // Ownership classification lives in its own leaf module (the generators below build every path they
 // emit from its constants), re-exported here because `./adapters` is the kit's only published
-// subpath – create-blit386 imports these from '@blit386/kit/adapters'.
+// subpath - create-blit386 imports these from '@blit386/kit/adapters'.
 export {
     AGENT_KINDS,
     AGENT_LABEL,
@@ -43,7 +43,7 @@ export {
 
 // Kit-root resolution lives in its own leaf module so `./env` and the CLI commands can import it
 // without pulling in the generators, re-exported here because `./adapters` is the kit's only published
-// subpath – create-blit386 imports `resolveKitRoot` from '@blit386/kit/adapters'. The two answers are
+// subpath - create-blit386 imports `resolveKitRoot` from '@blit386/kit/adapters'. The two answers are
 // not interchangeable; `./kit-root` documents which question each one asks.
 export { KIT_PACKAGE_NAME, kitRoot, resolveKitRoot } from './kit-root';
 
@@ -90,11 +90,11 @@ export interface GeneratedFile {
  * Replace {{placeholder}} tokens; unknown tokens are left untouched so mistakes stay visible.
  *
  * Exported so `create-blit386` renders its templates with the same grammar the kit renders its own
- * content with – both write into the same generated project, so two copies of this regex would let
+ * content with - both write into the same generated project, so two copies of this regex would let
  * the placeholder syntax drift between them.
  *
- * @param content – Template text containing `{{name}}` tokens.
- * @param vars – Values to substitute, keyed by token name.
+ * @param content - Template text containing `{{name}}` tokens.
+ * @param vars - Values to substitute, keyed by token name.
  * @returns The rendered text.
  */
 export function render(content: string, vars: TemplateVars): string {
@@ -215,8 +215,8 @@ export function collectDocs(root: string): GeneratedFile[] {
  *   - `.claude/hooks/{script}`         (kit-owned; copied verbatim)
  *   - `.mcp.json`                      (kit-owned; the blit386.dev documentation MCP server)
  *
- * @param root – The kit root directory.
- * @param vars – Template variables used when rendering generated content.
+ * @param root - The kit root directory.
+ * @param vars - Template variables used when rendering generated content.
  * @returns The generated Claude Code files and their contents.
  */
 export function generateClaudeAdapter(root: string, vars: TemplateVars): GeneratedFile[] {
@@ -309,7 +309,7 @@ export function generateClaudeAdapter(root: string, vars: TemplateVars): Generat
                 continue;
             }
 
-            // Only ship a hook script this adapter actually wires up in settings.json/hooks.json –
+            // Only ship a hook script this adapter actually wires up in settings.json/hooks.json -
             // a script referenced by only one adapter's manifest entries (e.g. a Claude-only
             // SessionStart bootstrap) must not land as dead weight in the other adapter's project.
             if (claudeHookScripts && !claudeHookScripts.has(entry.name)) {
@@ -477,7 +477,7 @@ type McpTarget = 'claude' | 'cursor';
 
 /** One remote MCP server entry. */
 interface McpServerEntry {
-    /** Transport marker. Required by Claude Code, omitted for Cursor – see `buildMcpConfig`. */
+    /** Transport marker. Required by Claude Code, omitted for Cursor - see `buildMcpConfig`. */
     type?: string;
     url: string;
 }
@@ -492,7 +492,7 @@ interface McpConfigJson {
  *
  * The two entries differ by one key on purpose, and the difference is not cosmetic:
  * Claude Code rejects a remote entry that has a `url` but no `type` and skips the server entirely,
- * while for Cursor a `type` is the marker of a local stdio server – adding one there would make it
+ * while for Cursor a `type` is the marker of a local stdio server - adding one there would make it
  * misread a remote HTTP endpoint. Do not harmonize the two shapes.
  */
 function buildMcpConfig(target: McpTarget): McpConfigJson {
@@ -552,7 +552,7 @@ export function generateCursorAdapter(root: string, vars: TemplateVars): Generat
                 continue;
             }
 
-            // Only ship a hook script this adapter actually wires up – see the matching guard in
+            // Only ship a hook script this adapter actually wires up - see the matching guard in
             // generateClaudeAdapter for why (a script referenced by only one adapter must not land
             // as dead weight in the other adapter's project).
             if (cursorHookScripts && !cursorHookScripts.has(entry.name)) {

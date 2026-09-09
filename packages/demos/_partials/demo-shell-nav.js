@@ -52,7 +52,7 @@ const PAGE_SUFFIX = document.body.dataset.pageSuffix ?? '.html';
  * Build a same-directory link to another demo page. The directory is derived from
  * the current page's own pathname, so this resolves correctly under both dev
  * (/demos/<slug>.html) and the flattened production build (/<slug>).
- * @param {string} slug – Demo slug, e.g. "basics"
+ * @param {string} slug - Demo slug, e.g. "basics"
  * @returns {string}
  */
 export function urlFor(slug) {
@@ -115,7 +115,7 @@ function titleFor(demos, slug) {
         }
     }
 
-    return `BLIT386 Demo – ${titleCaseSlug(slug)}`;
+    return `BLIT386 Demo - ${titleCaseSlug(slug)}`;
 }
 
 /**

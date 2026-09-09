@@ -83,7 +83,7 @@ describe('UiContext draw-command pool', () => {
         assert.equal(ctx.commandCount, 193);
         assert.equal(warnCalls.length, 1);
 
-        // A second overflow must not warn again – it is logged once per context, not once
+        // A second overflow must not warn again - it is logged once per context, not once
         // per overflow.
         ctx.addCommand(0, 0, 0, 1, 1, 0);
         assert.equal(warnCalls.length, 1);
@@ -143,8 +143,8 @@ describe('UiContext layout anchor math', () => {
      * Runs one begin()/addCommand()/end() cycle for `anchor` against a stubbed 320x180
      * display and returns the absolute x/y the flush handed to the stubbed drawRectFill.
      *
-     * @param {string} anchor – One of UI_ANCHORS.
-     * @param {import('node:test').TestContext} t – The running test's context.
+     * @param {string} anchor - One of UI_ANCHORS.
+     * @param {import('node:test').TestContext} t - The running test's context.
      * @returns {{ x: number, y: number }}
      */
     function flushOneRectAndCapture(anchor, t) {
@@ -160,7 +160,7 @@ describe('UiContext layout anchor math', () => {
 
         ctx.begin(anchor);
 
-        // Go through addRow(), like every real widget does – it is what feeds maxGroupW
+        // Go through addRow(), like every real widget does - it is what feeds maxGroupW
         // (and therefore the final groupW resolveOriginX/Y need) and advances cursorY
         // (therefore groupH). A bare addCommand() with no addRow() would leave both at 0.
         const rowY = ctx.addRow(10, 10);

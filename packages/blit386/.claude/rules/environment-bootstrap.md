@@ -16,10 +16,10 @@ when the lockfile has not changed, so it stays a fast no-op on a machine that al
 The same script is wired into two places at the repo root, both pointing at this one file so the bootstrap logic is
 never duplicated:
 
-- Root `.claude/settings.json` – a `SessionStart` hook (`matcher: "startup|resume|clear|compact|fork"`) runs it at the
+- Root `.claude/settings.json` - a `SessionStart` hook (`matcher: "startup|resume|clear|compact|fork"`) runs it at the
   start of every Claude Code session, regardless of which package the session touches.
-- Root `.devcontainer/devcontainer.json` – an optional devcontainer (`typescript-node:22-bookworm`) for reproducible
+- Root `.devcontainer/devcontainer.json` - an optional devcontainer (`typescript-node:22-bookworm`) for reproducible
   Codespaces/cloud environments; `postCreateCommand` runs the same script once the container is created.
 
-Neither blocks nor fails the session/container on a bootstrap error – a missing `pnpm`/network failure is logged and the
+Neither blocks nor fails the session/container on a bootstrap error - a missing `pnpm`/network failure is logged and the
 script exits `0`, since a `SessionStart` hook cannot prevent a session from starting anyway.

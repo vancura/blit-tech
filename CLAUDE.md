@@ -3,56 +3,53 @@
 A pnpm workspace holding the BLIT386 engine, its demos, its published docs site, and the game scaffolder + kit. One
 `.claude/` (hooks, skills, rules), one root `.mcp.json`, and one root `CLAUDE.md` govern every package; each package's
 own `CLAUDE.md` (read together with this one, nearest-file-wins for anything package-specific) carries what is genuinely
-local to it. Open Claude Code at this repo root, not a parent directory – that is what activates hooks, skills, and
+local to it. Open Claude Code at this repo root, not a parent directory - that is what activates hooks, skills, and
 rules at all.
 
 ## Packages
 
 | Package | npm name | Purpose |
 | --- | --- | --- |
-| `packages/blit386` | `blit386` | The engine – palette-first WebGPU retro rendering for TypeScript |
+| `packages/blit386` | `blit386` | The engine - palette-first WebGPU retro rendering for TypeScript |
 | `packages/demos` | `blit386-demos` | Interactive demos and examples, deployed to demos.blit386.dev |
 | `packages/website` | `blit386-website` | Docs site publishing this repo's `packages/blit386/docs/` to blit386.dev |
 | `packages/kit` | `@blit386/kit` | Canonical kit content (the IR) and the `blit` CLI for generated games |
 | `packages/create-blit386` | `create-blit386` | `npm create blit386@latest` scaffolder CLI and templates |
 
 `packages/blit386`, `packages/kit`, and `packages/create-blit386` release in lockstep: one shared `x.y.z` version across
-all three, bumped together by `scripts/bump-lockstep.mjs` – see `/release` or `packages/create-blit386/PUBLISHING.md`.
+all three, bumped together by `scripts/bump-lockstep.mjs` - see `/release` or `packages/create-blit386/PUBLISHING.md`.
 **The engine anchors semver**: a breaking change confined to the scaffolder CLI or to kit content is a `minor`, not a
-`major` – only a breaking change in the engine's own public API justifies a major bump.
+`major` - only a breaking change in the engine's own public API justifies a major bump.
 
 ## Shared conventions
 
 These apply to every package; a package's own `CLAUDE.md` adds to them, never contradicts them.
 
-- No emoji anywhere – code, docs, commits, PR titles, errors, logs.
-- Use the en dash (–) for parenthetical breaks and ranges (`word – word`, `10–20`, `2020–2026`). Never the em dash (—)
-  and never a double hyphen (`--`) as a dash substitute. Hyphens stay hyphens: compound words (`well-known`), CLI flags
-  (`--verbose`), and ISO dates (`2026-06-14`) are not dashes. Enforced on staged
-  `.ts`/`.tsx`/`.js`/`.cjs`/`.mjs`/`.md`/`.mdx` files (lint-staged pre-commit) and on the commit message itself
-  (commitlint, `commit-msg`) by `scripts/check-dash-typography.mjs` – a heuristic, not a parser, so it only catches the
-  common case, not everything.
+- No emoji anywhere - code, docs, commits, PR titles, errors, logs.
+- Use a plain hyphen-minus (-) for parenthetical breaks and ranges (`word - word`, `10-20`, `2020-2026`) - never the en
+  dash (–) or em dash (—). Same character as compound words (`well-known`), CLI flags (`--verbose`), and ISO dates
+  (`2026-06-14`). Style preference, not an automated gate - no hook or CI check enforces it.
 - American English spelling in prose, JSDoc, and this project's own identifiers. Exempt: third-party or spec-mandated
   names correctly spelled with a British `s`/`c` in their own spec (Web Audio's `AnalyserNode`, the CSS-mirroring
-  `gray`/`grey` alias in `packages/blit386/src/utils/Color32.ts`) – do not "fix" those.
-- Named constants over repeated literals – a string or numeric literal compared (`===`, `switch`, a discriminant check)
+  `gray`/`grey` alias in `packages/blit386/src/utils/Color32.ts`) - do not "fix" those.
+- Named constants over repeated literals - a string or numeric literal compared (`===`, `switch`, a discriminant check)
   at more than one comparison site gets one named constant or literal-union type constraining every use: module-local
   while the repeats stay inside one file, exported once a second file or package needs it. A copy that has to live
   outside TypeScript (a shader source string, a sibling package's JSON, a generated project file) is threaded through
-  from that constant or documented as a manual-sync hazard at both sites – never left as two silent copies. Full policy:
+  from that constant or documented as a manual-sync hazard at both sites - never left as two silent copies. Full policy:
   `.claude/rules/named-constants.md`.
 - Conventional Commits: `<type>(<scope>): <description>`. The type enum is commitlint-enforced; scope is convention only
-  – see each package's own `CLAUDE.md` for the scopes its history actually uses.
+  \- see each package's own `CLAUDE.md` for the scopes its history actually uses.
 - DCO sign-off on every commit: `git commit -s`. AI-assisted commits carry
   `Co-Authored-By: Claude <noreply@anthropic.com>`.
-- `main` is protected – never push to it. Land through a PR (`gh pr create`, wait for checks, `gh pr merge --merge`);
-  squash merging is disabled on the repository, so PRs land as merge commits – the branch's own commits keep their
+- `main` is protected - never push to it. Land through a PR (`gh pr create`, wait for checks, `gh pr merge --merge`);
+  squash merging is disabled on the repository, so PRs land as merge commits - the branch's own commits keep their
   original SHA and author date on `main`, reachable through the merge commit's non-first parent.
 - Release tags carry no `v` prefix (`1.2.0`, not `v1.2.0`), created after the PR merges, pointing at the resulting
   `main` commit. Tag pushes are allowed; branch pushes to `main` are not.
 - pnpm only, and `pnpm run <script>` (not bare `pnpm <script>`) so the RTK shell hook rewrites it. Package manager
   version is pinned in the root `package.json` (`packageManager`).
-- Markdown tables are deliberately compact – one space of padding, never aligned to the widest cell – so editing one
+- Markdown tables are deliberately compact - one space of padding, never aligned to the widest cell - so editing one
   cell gives a one-line diff. This is not Prettier's default: it comes from
   `scripts/prettier-plugin-compact-tables.mjs`, wired into the root Prettier config and shared by every package. Never
   hand-align a table back, and do not add `.markdownlint.json`.
@@ -72,7 +69,7 @@ These apply to every package; a package's own `CLAUDE.md` adds to them, never co
   [`packages/blit386/docs/security/security-runbook.md`](packages/blit386/docs/security/security-runbook.md). Use
   `/security-run <package>`
 - Project MCP servers: the tracked root [`.mcp.json`](.mcp.json) declares `blit386-docs`, the blit386.dev docs server
-  (`search_docs`, `get_docs_summary`) – query the published engine docs without leaving the repo. Setup for other
+  (`search_docs`, `get_docs_summary`) - query the published engine docs without leaving the repo. Setup for other
   clients: `packages/website/content/mcp-server.mdx`
 - RTK policy: `~/.claude/RTK.md`
 - Session notes written by the `/remember` skill live in `.remember/` and are not a repo artifact
@@ -80,8 +77,8 @@ These apply to every package; a package's own `CLAUDE.md` adds to them, never co
 ## Working with Claude
 
 - Planning vs implementation sessions: during planning work (reviewing issues, discussing architecture) do not modify
-  source files – only update Linear. Wait for a separate implementation session before touching code.
-- Documentation is part of every feature – never wait to be asked. Shared policy: `.claude/rules/docs-sync-required.md`.
+  source files - only update Linear. Wait for a separate implementation session before touching code.
+- Documentation is part of every feature - never wait to be asked. Shared policy: `.claude/rules/docs-sync-required.md`.
   Package-specific mechanics (versioning tags, doc-site sync, kit-content drift) live in that package's own rules.
 - Never treat a package's `README.md` update as optional when its quick start, prerequisites, features list, or
   compatibility claims changed.

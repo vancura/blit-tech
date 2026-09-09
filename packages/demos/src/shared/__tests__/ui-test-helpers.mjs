@@ -19,7 +19,7 @@ function createFakePalette() {
 
 /**
  * Applies the theme (required before any UiContext.begin() call) and returns a fresh
- * UiContext – fresh per test, so no per-instance state (hitRects, pointer, tickPointer,
+ * UiContext - fresh per test, so no per-instance state (hitRects, pointer, tickPointer,
  * commands) leaks between cases.
  *
  * @returns {UiContext}

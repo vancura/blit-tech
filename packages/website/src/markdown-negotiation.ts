@@ -21,7 +21,7 @@ function estimateTokens(text: string): number {
  * Identical to the incoming one except for HTML, where the conditional headers are dropped so the
  * binding cannot answer `304`. `csp-nonce.ts` stamps a fresh per-request nonce into every HTML body,
  * and a `304` would hand the client that nonce's `Content-Security-Policy` to merge into a *stored*
- * body carrying a different one – blocking every script on the page. Only HTML pays for this: hashed
+ * body carrying a different one - blocking every script on the page. Only HTML pays for this: hashed
  * JS, CSS, and fonts keep their conditionals and their `304`s.
  */
 function assetRequest(request: Request, pathname: string): Request {

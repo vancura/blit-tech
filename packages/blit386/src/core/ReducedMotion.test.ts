@@ -10,8 +10,8 @@ import { readReducedMotionUrlFlags, ReducedMotion, resolveReducedMotionPreferred
 /**
  * Runs `body` with `globalThis.location.search` stubbed to `search`, restoring it afterward.
  *
- * @param search – Query string including the leading '?'.
- * @param body – Assertions to run while the stub is installed.
+ * @param search - Query string including the leading '?'.
+ * @param body - Assertions to run while the stub is installed.
  */
 function withSearch(search: string, body: () => void): void {
     const original = Reflect.getOwnPropertyDescriptor(globalThis, 'location');
@@ -208,7 +208,7 @@ describe('ReducedMotion instance', () => {
 
             reducedMotion.attach(onChange);
 
-            // The platform now prefers reduced motion, but ?noreducedmotion still forces it off –
+            // The platform now prefers reduced motion, but ?noreducedmotion still forces it off -
             // the resolved value (false) hasn't changed from what attach() already reported.
             mql.dispatchEvent(Object.assign(new Event('change'), { matches: true }));
 

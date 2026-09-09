@@ -29,7 +29,7 @@
 
     /*
      * Prefer dark tokens on the black panel; keep token span backgrounds clear.
-     * Do not target .twoslash-popup-container / .twoslash-hover – those are also
+     * Do not target .twoslash-popup-container / .twoslash-hover - those are also
      * spans inside .shiki and must keep their own background.
      *
      * Placed first, alongside the .twoslash-popup-code override below: both are
@@ -87,7 +87,7 @@
         background-color: transparent;
     }
 
-    /* Popover polish – closer to blit386.dev's fd-twoslash-popover spacing */
+    /* Popover polish - closer to blit386.dev's fd-twoslash-popover spacing */
     & .shiki .twoslash-popup-container {
         top: 100%;
 
@@ -108,7 +108,7 @@
 
         /*
          * .shiki now wraps too (pre-wrap), but popup text should never break
-         * mid-line like code does – force normal flow so long type signatures
+         * mid-line like code does - force normal flow so long type signatures
          * wrap at word boundaries and stay inside the popover box.
          */
         white-space: normal;

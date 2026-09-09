@@ -31,7 +31,7 @@ type EntryFetch = (request: Request, env?: unknown, ctx?: unknown) => Response |
 
 export interface CspNonceOptions {
     /**
-     * Builds the rewriter. Exists so `csp-nonce.test.ts` can inject a double – `HTMLRewriter` is a
+     * Builds the rewriter. Exists so `csp-nonce.test.ts` can inject a double - `HTMLRewriter` is a
      * workerd global and this package runs plain Vitest on Node (see `vitest.config.ts`). The real
      * HTML parsing is Cloudflare's and is covered by the `wrangler dev` pass in `CLAUDE.md`.
      */
@@ -44,7 +44,7 @@ export interface CspNonceOptions {
  * `HTMLRewriter` only exists in workerd. This same entry is also fetched under Node: once per page
  * while `waku build` prerenders the site, again by `linkValidationPlugin`, and again under
  * `waku dev`. None of those serve the `public/_headers` policy in the first place, so having no
- * rewriter there is not a degraded mode – there is simply nothing to stamp.
+ * rewriter there is not a degraded mode - there is simply nothing to stamp.
  */
 function resolveRewriterFactory(override?: () => HtmlRewriterLike): (() => HtmlRewriterLike) | undefined {
     if (override !== undefined) {
@@ -59,7 +59,7 @@ function resolveRewriterFactory(override?: () => HtmlRewriterLike): (() => HtmlR
  *
  * A null body rules out both `HEAD` and `304 Not Modified`; the explicit 304 check is belt-and-braces
  * in case a runtime ever hands back an empty-but-present stream. Status is otherwise unconstrained so
- * that Waku's rendered 404 page – which carries the same inline bootstrap scripts as any other page –
+ * that Waku's rendered 404 page - which carries the same inline bootstrap scripts as any other page -
  * is stamped too.
  */
 function isStampableHtml(response: Response, method: string): boolean {
@@ -75,7 +75,7 @@ function isStampableHtml(response: Response, method: string): boolean {
  *
  * Removing `etag` and `last-modified` is load-bearing, not tidying. HTML is served
  * `cache-control: public, max-age=0, must-revalidate`, so with a validator present the browser would
- * revalidate, get a `304`, and apply that response's *fresh* nonce header to its *cached* body – whose
+ * revalidate, get a `304`, and apply that response's *fresh* nonce header to its *cached* body - whose
  * scripts carry the previous nonce. Every script on the page would then be blocked. Without a
  * validator there is nothing to revalidate with, so a body and its header always arrive together. The
  * cost is a full HTML body instead of a 304 on repeat visits; at `max-age=0` the round trip happened
@@ -100,7 +100,7 @@ function stampNonce(response: Response, createRewriter: () => HtmlRewriterLike, 
 
     if (reportOnly) {
         // Rollout mode: measure a policy against real traffic on next.blit386.dev without risking a
-        // blank page. Nothing is enforced here – the base policy that `public/_headers` applied has
+        // blank page. Nothing is enforced here - the base policy that `public/_headers` applied has
         // to go too, or it would block the very scripts the report is meant to be measuring.
         headers.delete('content-security-policy');
         headers.set('content-security-policy-report-only', buildCsp(nonce));
@@ -146,12 +146,12 @@ function wrapFetch(inner: EntryFetch, options: CspNonceOptions): EntryFetch {
  * This wraps the server entry's `fetch` rather than contributing a middleware, because a Fumapress
  * `ServerPlugin` middleware never sees the response it would need to rewrite. Fumapress runs plugin
  * middlewares through its own composer (`fumapress/dist/router/index.js`, `pluginsMiddleware`), which
- * keeps a downstream handler's returned `Response` in a local and returns it at the end – it never
+ * keeps a downstream handler's returned `Response` in a local and returns it at the end - it never
  * assigns `c.res`. So after `await next()`, `c.res` is still Hono's placeholder, and only its
  * *headers* survive, merged onto the real response by Hono's `set res`. That is enough for
  * `channelHeadersPlugin`'s `x-robots-tag`, and not enough here: stamping needs the body.
  *
- * The server entry is the outermost hook, and its `fetch` is called with `(request, env, ...)` –
+ * The server entry is the outermost hook, and its `fetch` is called with `(request, env, ...)` -
  * which is also where the `BLIT386_CSP_REPORT_ONLY` var arrives, the same request-time binding read
  * `channelHeadersPlugin` documents for `BLIT386_CHANNEL`.
  */
@@ -163,7 +163,7 @@ export function cspNoncePlugin<C extends ConfigContext = ConfigContext>(
 
         unstable_onServerEntry(entry) {
             // Both, deliberately. `entry.defaultExport.fetch` is what Cloudflare invokes on the
-            // deployed Worker – `dist/server/index.js` re-exports it – while `entry.fetch` is the
+            // deployed Worker - `dist/server/index.js` re-exports it - while `entry.fetch` is the
             // one `waku build`'s prerender and `linkValidationPlugin` call. Patching only the
             // former would leave the build path unwrapped; patching only the latter (the obvious
             // reading of "the entry's fetch") silently does nothing in production.

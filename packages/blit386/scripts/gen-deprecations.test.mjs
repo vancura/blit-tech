@@ -137,7 +137,7 @@ describe('renderDeprecationsMarkdown', () => {
 
         assert.ok(!markdown.includes('2026-01-01'), 'importPath-only migration must not render a section');
         assert.ok(!markdown.includes('2026-02-01'), 'empty-renames migration must not render a section');
-        assert.ok(markdown.includes('## 2026-03-01 – compatibility aliases added'));
+        assert.ok(markdown.includes('## 2026-03-01 - compatibility aliases added'));
     });
 
     it('renders the generated header and every included group heading', () => {

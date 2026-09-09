@@ -30,7 +30,7 @@ export const apiHistory = raw as ApiHistory;
 /**
  * Looks up a symbol's version history by name, or `undefined` if it isn't documented.
  *
- * `apiHistory` comes from `JSON.parse`, so its records inherit `Object.prototype` – without the
+ * `apiHistory` comes from `JSON.parse`, so its records inherit `Object.prototype` - without the
  * own-property guard, `getSymbol('toString')` would hand back a function typed as `SymbolHistory`.
  */
 export const getSymbol = (name: string): SymbolHistory | undefined =>
@@ -74,14 +74,14 @@ export const symbolAnchorId = (name: string): string => name.replaceAll('.', '-'
 /** Where a `{@link Name}` / `{@link Name.member}` target is documented. */
 export interface SymbolLink {
     page: string;
-    /** The resolved symbol's own name – e.g. `HardwareSettings` for a `HardwareSettings.foo` link – for use with {@link symbolAnchorId}. */
+    /** The resolved symbol's own name - e.g. `HardwareSettings` for a `HardwareSettings.foo` link - for use with {@link symbolAnchorId}. */
     symbol: string;
 }
 
 /**
  * Resolves a `{@link Name}` or `{@link Name.member}` target to the page and symbol it is
  * documented under, or `undefined` when neither the full name nor its base symbol (before the
- * first `.`) is tracked in `apiHistory.pages` – e.g. a deprecated helper that never received a
+ * first `.`) is tracked in `apiHistory.pages` - e.g. a deprecated helper that never received a
  * `<Since>` tag of its own.
  */
 export function resolveSymbolLink(name: string): SymbolLink | undefined {
@@ -121,7 +121,7 @@ function parseSegment(segment: string | undefined): VersionSegment {
 
 /**
  * Orders two zero-stripped digit strings. More digits is always the larger number, and equal
- * lengths compare lexicographically – which for equal-length digit strings is numeric order.
+ * lengths compare lexicographically - which for equal-length digit strings is numeric order.
  *
  * Deliberately not `Number(a) - Number(b)`: a segment of more than 308 digits converts to
  * `Infinity`, and two such segments would then subtract to `NaN`.
@@ -145,7 +145,7 @@ function compareDigits(a: string, b: string): number {
  * zero, or a positive number in the same sense as an `Array.prototype.sort` comparator.
  *
  * A segment carrying a prerelease suffix sorts below the same segment without one, so
- * `"1.5.0-beta.1"` is below `"1.5.0"`. Every input yields `-1`, `0`, or `1` – neither a segment of
+ * `"1.5.0-beta.1"` is below `"1.5.0"`. Every input yields `-1`, `0`, or `1` - neither a segment of
  * any length nor one that fails to parse can produce `NaN`, which an `Array.prototype.sort`
  * comparator must never return.
  */

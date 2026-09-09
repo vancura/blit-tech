@@ -66,7 +66,7 @@ palette slot `255` from the clamp, not an inherent error color.
 | Action | Use |
 | --- | --- |
 | First activation or swap to a different `Palette` instance | `BT.paletteSet(palette)` |
-| Edit colors on the current active palette | `BT.palette.set(slot, color)` – live reference, no second `paletteSet()` needed |
+| Edit colors on the current active palette | `BT.palette.set(slot, color)` - live reference, no second `paletteSet()` needed |
 | Read the active palette | `BT.palette` (throws if none set) |
 
 `BT.palette` returns the same object the engine draws with. Mutating slots updates colors on the next frame. Call
@@ -91,7 +91,7 @@ const palette = new Palette(256);
 // Set and get colors (slot = absolute palette index; see Palette addressing above)
 palette.set(1, new Color32(255, 0, 0, 255)); // red at absolute slot 1
 palette.get(1); // → Color32 (defensive copy)
-palette.getRef(1); // → Color32 (live reference – do not store)
+palette.getRef(1); // → Color32 (live reference - do not store)
 
 // Activate for rendering
 BT.paletteSet(palette);
@@ -163,7 +163,7 @@ const baseColors = [new Color32(200, 60, 40), new Color32(180, 140, 60), new Col
 // Write a "fire" variant of baseColors starting at slot 20, one call instead of a loop.
 const next = palette.fillBlock(20, baseColors, (color) => new Color32(Math.min(255, color.r + 80), color.g, color.b));
 
-// next is 20 + baseColors.length – chain a second block right after the first.
+// next is 20 + baseColors.length - chain a second block right after the first.
 palette.fillBlock(next, baseColors, (color) => new Color32(color.r, color.g, Math.min(255, color.b + 80)));
 ```
 
@@ -218,7 +218,7 @@ const slot = palette.findColor(color); // → index, or -1 if not found
 
 Animated effects run automatically each frame in the engine's end-of-frame pass (after `demo.render()`, before the GPU
 upload). Multiple effects can run simultaneously on different palette ranges and will not conflict. The public
-`Palette.isDirty` getter reflects whether slots changed since the last GPU upload – effects set this flag; no polling
+`Palette.isDirty` getter reflects whether slots changed since the last GPU upload - effects set this flag; no polling
 needed.
 
 ```ts twoslash
@@ -275,7 +275,7 @@ interpolates each RGB channel in linear light instead, and gives each entry a ti
 so bright entries come up first and hold on longest while dark entries arrive late and crush early. Both fades start and
 end in the same place; only the middle differs.
 
-Fading up from black or down to black – the usual case – interpolating in linear light is exactly scaling light up or
+Fading up from black or down to black - the usual case - interpolating in linear light is exactly scaling light up or
 down, which is what closing an iris does.
 
 `highlightLead` is the single knob. At `0` every entry runs on one schedule and you get a plain linear-light fade; the
@@ -308,7 +308,7 @@ BT.paletteFadeExposure(gamePalette, 1500);
 // Softer differential between highlights and shadows
 BT.paletteFadeExposure(gamePalette, 1500, { highlightLead: 0.2 });
 
-// Fade out – the same curve mirrored, highlights linger
+// Fade out - the same curve mirrored, highlights linger
 BT.paletteFadeExposure(blackPalette, 1000, { easing: 'ease-in-out' });
 ```
 
@@ -317,7 +317,7 @@ BT.paletteFadeExposure(blackPalette, 1000, { easing: 'ease-in-out' });
 <Callout type="warn" title="Per-index, not per-pixel">
 
 A palette fade acts on color indices, not pixels. A dark object sitting in a bright scene fades on the dark schedule
-regardless of what surrounds it, because the engine only knows its palette slot – real exposure has no such notion. For
+regardless of what surrounds it, because the engine only knows its palette slot - real exposure has no such notion. For
 a fade up from black or down to black this reads correctly; in a busier scene, check the result before shipping it.
 
 </Callout>
@@ -338,7 +338,7 @@ The full curve list (sine, cubic, bounce, and more) and the `interpolate` helper
 <Callout title="Timing">
 
 Effects are applied after `demo.render()` but before the GPU palette upload in `Renderer.endFrame()`. This means user
-draw calls and palette effects see the same consistent snapshot within a frame – they never interleave mid-frame.
+draw calls and palette effects see the same consistent snapshot within a frame - they never interleave mid-frame.
 
 Effects that auto-remove (fade, flash) clean up when their duration elapses. `paletteCycle` runs indefinitely until
 `paletteClearEffects()` is called.

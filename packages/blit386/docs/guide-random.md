@@ -10,7 +10,7 @@
 
 <!-- blit386.dev-banner:end -->
 
-The full surface – every `Random` method, the `BT.random` engine default, coordinate hashes, and the noise classes –
+The full surface - every `Random` method, the `BT.random` engine default, coordinate hashes, and the noise classes -
 lives in [API: Random](api-random.md). This guide walks through the ideas behind it: why the engine stays deterministic,
 how a seed reproduces a whole run, when to split off an independent stream, and how to build worlds from coordinates
 instead of a sequence.
@@ -21,7 +21,7 @@ The engine core makes zero `Math.random()` calls, so a run only varies where you
 the one shared generator the engine exposes: a live `Random` instance, time-seeded from `Date.now()` when the engine
 singleton is created. Read from it and every run differs, as you would expect.
 
-The payoff is control. Call `BT.randomSeed(seed)` once at startup and the whole run becomes reproducible – the same
+The payoff is control. Call `BT.randomSeed(seed)` once at startup and the whole run becomes reproducible - the same
 enemy waves, the same loot, the same particle scatter, every time. That is what makes seeded runs worth having:
 regression tests that assert exact frames, replays that reconstruct a session from its seed and inputs, and
 daily-challenge games where every player faces the identical board.
@@ -38,7 +38,7 @@ BT.random.int(0, 100); // same value on every run seeded with 1234
 ```
 
 Prefer `BT.random` for demo and game code. Reach for a standalone `new Random(seed)` only when you need a stream that is
-independent of the shared engine one – see [Independent streams](#independent-streams).
+independent of the shared engine one - see [Independent streams](#independent-streams).
 
 ## Same seed, same world
 
@@ -51,12 +51,12 @@ import { Random } from 'blit386';
 const a = new Random(42);
 const b = new Random(42);
 
-a.int(0, 1000) === b.int(0, 1000); // true – identical streams
+a.int(0, 1000) === b.int(0, 1000); // true - identical streams
 a.pick(['fire', 'water', 'earth']) === b.pick(['fire', 'water', 'earth']); // true
 
 a.seed(42); // rewind a to the beginning
 a.int(0, 1000); // same first value as before
-a.seedValue; // 42 – the seed itself, readable back after the fact
+a.seedValue; // 42 - the seed itself, readable back after the fact
 ```
 
 The order of draws is part of the state. Adding a `rng.bool()` call between two `rng.int()` calls shifts every value
@@ -68,9 +68,9 @@ separate stream so tweaking them never disturbs the layout.
 
 `clone()` and `fork()` both branch a generator, for opposite reasons.
 
-`clone()` copies the state, so the copy replays the parent's exact upcoming sequence – useful to preview draws without
+`clone()` copies the state, so the copy replays the parent's exact upcoming sequence - useful to preview draws without
 consuming them, or to snapshot before a speculative rollback. `fork()` advances the parent once and seeds a child from
-that draw, so the two streams diverge – the way to give a subsystem its own randomness without coupling it to the shared
+that draw, so the two streams diverge - the way to give a subsystem its own randomness without coupling it to the shared
 engine stream.
 
 ```ts twoslash
@@ -102,7 +102,7 @@ rng.setState(checkpoint); // rewind and replay the same draws
 
 `seedValue` answers a different question than `getState()`: not "where am I in the sequence" but "what seed got me
 here." It reports the last seed passed to the constructor or `seed()`, for exactly as long as that claim stays true.
-`setState()` breaks the claim – an arbitrary saved state is not a seed – so it clears `seedValue` to `undefined` rather
+`setState()` breaks the claim - an arbitrary saved state is not a seed - so it clears `seedValue` to `undefined` rather
 than report something misleading. `clone()` and `fork()` diverge for the same opposite reasons as before: a clone is
 defined to replay the parent's exact sequence, so it copies `seedValue` along with the state; a fork is defined to
 diverge, so its child never claims a seed the caller didn't choose, even though `fork()` seeds the child internally from
@@ -110,8 +110,8 @@ a drawn value.
 
 ## Procedural patterns from coordinates
 
-A `Random` is a sequence: draw after draw, order matters. For a world you explore out of order – chunks that load as the
-camera moves, a tile you query long before its neighbors – you want the opposite: ask "what belongs at `(x, y)`?" and
+A `Random` is a sequence: draw after draw, order matters. For a world you explore out of order - chunks that load as the
+camera moves, a tile you query long before its neighbors - you want the opposite: ask "what belongs at `(x, y)`?" and
 get a stable answer with no stored state per cell. That is coordinate hashing.
 
 `hash2i(x, y, seed?)` returns the same unsigned 32-bit value for the same inputs, every call, from anywhere. `hash2`
@@ -129,10 +129,10 @@ function hasChest(tileX: number, tileY: number): boolean {
 }
 
 hasChest(4, 2);
-hasChest(4, 2); // identical – no state, safe to re-ask
+hasChest(4, 2); // identical - no state, safe to re-ask
 ```
 
-Hashing gives independent per-cell values; for fields that vary smoothly – terrain height, cloud cover, organic drift –
+Hashing gives independent per-cell values; for fields that vary smoothly - terrain height, cloud cover, organic drift -
 use the noise classes. `ValueNoise`, `PerlinNoise`, and `SimplexNoise` sample continuous space in approximately
 `[-1, 1]`, and their `fbm*` methods layer octaves for natural detail.
 
@@ -185,6 +185,6 @@ BT.random.bool(0.25);
 <Cards>
   <Card title="API: Random" href="/docs/api/random">Every Random method, BT.random, coordinate hashes, and the noise classes.</Card>
   <Card title="API: Core Types" href="/docs/api/core-types">Vector2i and Rect2i, drawn at random with insideRect and pointInRange.</Card>
-  <Card title="Game Loop Guide" href="/docs/guides/game-loop">Fixed-step timing – the other half of a reproducible run.</Card>
+  <Card title="Game Loop Guide" href="/docs/guides/game-loop">Fixed-step timing - the other half of a reproducible run.</Card>
   <Card title="Performance Best Practices" href="/docs/performance/best-practices">The zero-allocation *To(out) variants for update() and render().</Card>
 </Cards>

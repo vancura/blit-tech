@@ -402,10 +402,10 @@ describe('JSDoc backfill codemod', () => {
         // outside any comment (the exact regression this fix addresses).
         assert.match(
             updatedSource,
-            /\/\*\*\n\s+\* Fixture single-line JSDoc member, no version tag yet – matches the real `BT` namespace style\.\n\s+\* @since 1\.2\.0\n\s+\*\/\n\s+flag: 1,/u,
+            /\/\*\*\n\s+\* Fixture single-line JSDoc member, no version tag yet - matches the real `BT` namespace style\.\n\s+\* @since 1\.2\.0\n\s+\*\/\n\s+flag: 1,/u,
         );
 
-        // Re-parsing the updated text (in memory – never touching the fixture file on disk) must
+        // Re-parsing the updated text (in memory - never touching the fixture file on disk) must
         // still find a well-formed `flag` property with the newly inserted @since, and no parse
         // errors, proving the codemod output is valid, re-consumable TypeScript/JSDoc.
         const reparsedSourceFile = ts.createSourceFile(
@@ -566,7 +566,7 @@ describe('findIntroducingVersion (git pickaxe, real repo fixture with a rename)'
      * edited afterward, mirroring the real regression: `src/BlitTech.ts` renamed to
      * `src/BLIT386.ts` shortly before a release tag, which made every symbol declared in that file
      * falsely resolve to the post-rename release when `git log` ran without `--follow`. A mocked
-     * `execFile` cannot prove this – it only proves the codemod builds the argv it is told to
+     * `execFile` cannot prove this - it only proves the codemod builds the argv it is told to
      * build. Only a real git repo proves the `--follow` flag itself changes pickaxe results.
      *
      * @returns {{ dir: string, oldSha: string, renameSha: string }} Fixture repo directory and the
@@ -577,7 +577,7 @@ describe('findIntroducingVersion (git pickaxe, real repo fixture with a rename)'
         const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
         const { tmpdir } = await import('node:os');
         const dir = mkdtempSync(join(tmpdir(), 'gen-api-history-rename-'));
-        // GIT_DIR and its siblings outrank `cwd`, and git exports them into every hook it runs –
+        // GIT_DIR and its siblings outrank `cwd`, and git exports them into every hook it runs -
         // including `.husky/pre-push`, which is what dispatches this test suite. Left in place,
         // `run(['init', ...])` below re-initializes the *real* repository instead of the fixture:
         // a push from a linked worktree carries GIT_DIR=.git/worktrees/<name>, which git cannot
@@ -607,7 +607,7 @@ describe('findIntroducingVersion (git pickaxe, real repo fixture with a rename)'
             GIT_COMMITTER_EMAIL: 'test@example.com',
         };
         // -c commit.gpgsign=false / tag.gpgsign=false override the caller's global git config for
-        // this throwaway, git-config-isolated fixture repo only – a machine with commit signing
+        // this throwaway, git-config-isolated fixture repo only - a machine with commit signing
         // enabled globally would otherwise fail these commits without a configured signing key.
         const run = (args) =>
             execFileSync('git', ['-c', 'commit.gpgsign=false', '-c', 'tag.gpgsign=false', ...args], {

@@ -38,7 +38,7 @@ describe('slider', () => {
         assert.equal(nextValue, 3);
         assert.ok(!Number.isNaN(nextValue));
 
-        // A zero-width range draws no fill rect (nothing to divide by zero into) – just the
+        // A zero-width range draws no fill rect (nothing to divide by zero into) - just the
         // two text commands and the border stroke.
         assert.equal(ctx.commandCount, 3);
         assert.ok(!ctx.commands.slice(0, ctx.commandCount).some((cmd) => cmd.kind === CMD_RECT_FILL));
@@ -84,7 +84,7 @@ describe('slider', () => {
         ctx.end();
 
         // Bar hit rect is at absolute x = margin(4) + pad(5) = 9, width 100. A press at
-        // x=59 is halfway across, so the drag reports 0.5 – not the 0.1 passed in.
+        // x=59 is halfway across, so the drag reports 0.5 - not the 0.1 passed in.
         assert.equal(nextValue, 0.5);
     });
 });
@@ -132,14 +132,14 @@ describe('checkbox', () => {
 
         const ctx = createReadyContext();
 
-        // Render once so the widget registers 'KeyM' as a watched key – a key nothing has
+        // Render once so the widget registers 'KeyM' as a watched key - a key nothing has
         // ever asked about is never checked by tick().
         ctx.begin(UI_ANCHORS.TOP_LEFT);
         assert.equal(checkbox(ctx, 'Mute', false, { key: 'KeyM' }), false);
         ctx.end();
 
         // update(): the key goes down. tick() is what makes this safe to read here instead
-        // of render() – see ui-core.js's file header and CLAUDE.md's shared-UI-kit section.
+        // of render() - see ui-core.js's file header and CLAUDE.md's shared-UI-kit section.
         keyPressedThisTick = true;
         ctx.tick();
         keyPressedThisTick = false;
@@ -149,7 +149,7 @@ describe('checkbox', () => {
         assert.equal(checkbox(ctx, 'Mute', false, { key: 'KeyM' }), true);
         ctx.end();
 
-        // A second render before the next tick() must not re-fire the same press – it was
+        // A second render before the next tick() must not re-fire the same press - it was
         // delivered to exactly one render frame.
         ctx.begin(UI_ANCHORS.TOP_LEFT);
         assert.equal(checkbox(ctx, 'Mute', false, { key: 'KeyM' }), false);
@@ -186,7 +186,7 @@ describe('pip', () => {
         ctx.end();
     });
 
-    it('never registers a hit rectangle – it is purely visual', (t) => {
+    it('never registers a hit rectangle - it is purely visual', (t) => {
         stubBt(t);
 
         const ctx = createReadyContext();
@@ -251,7 +251,7 @@ describe('meter', () => {
         ctx.begin(UI_ANCHORS.TOP_LEFT);
         meter(ctx, null, 0.5, { width: 100 });
 
-        // Bar fill + bar stroke only – no label CMD_TEXT command queued.
+        // Bar fill + bar stroke only - no label CMD_TEXT command queued.
         assert.equal(ctx.commandCount, 2);
 
         ctx.end();

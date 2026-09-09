@@ -2,12 +2,12 @@
 /**
  * Advisory pre-push reminder for the local benchmark workflow (see `docs/performance-testing.md`, the
  * `/perf` skill): prints a note when a push touches one of the engine's hot-path directories without
- * touching any `*.bench.ts` file. The check is push-wide, not per-file – any `*.bench.ts` touched
+ * touching any `*.bench.ts` file. The check is push-wide, not per-file - any `*.bench.ts` touched
  * anywhere in the push counts as "benchmarks were considered," not only one colocated with the exact
  * hot file that changed (see `checkBenchCoverage`'s tests for why: per-file matching has no reliable
  * way to know which benchmark covers a given change, and a wrong guess would train people to ignore
  * the reminder). This cannot know whether a given change actually needed a benchmark either way, so it
- * never fails – it only makes the local baseline/compare loop hard to forget about. `HOT_PATH_DIRS`
+ * never fails - it only makes the local baseline/compare loop hard to forget about. `HOT_PATH_DIRS`
  * below and the `paths:` glob in `.claude/rules/bench-coverage.md` name the same six directories;
  * update both together.
  *
@@ -44,7 +44,7 @@ export function checkBenchCoverage(changedFiles) {
 /**
  * @param {string} baseRef Git ref to diff the current worktree against.
  * @returns {string[]} Changed `src/` file paths relative to this package root, or `[]` if the diff cannot be
- *   computed (for example, `baseRef` does not exist locally) – this reminder is best-effort, never fatal.
+ *   computed (for example, `baseRef` does not exist locally) - this reminder is best-effort, never fatal.
  */
 function changedFilesSince(baseRef) {
     try {
@@ -78,7 +78,7 @@ function printReminder({ hotFiles }) {
 }
 
 /**
- * CLI entry point. Always resolves to exit code 0 – see file header.
+ * CLI entry point. Always resolves to exit code 0 - see file header.
  *
  * @returns {number} Always `0`.
  */

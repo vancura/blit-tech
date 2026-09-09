@@ -1,6 +1,6 @@
 /**
- * Environment for `git` subprocesses that must act on the repository they are pointed at – by
- * `cwd`, by `-C`, or by an explicit path – rather than on whatever repository the parent process
+ * Environment for `git` subprocesses that must act on the repository they are pointed at - by
+ * `cwd`, by `-C`, or by an explicit path - rather than on whatever repository the parent process
  * happened to belong to.
  *
  * Git exports `GIT_DIR` (and a handful of siblings) into every hook it runs, and hooks are where
@@ -11,7 +11,7 @@
  *
  * - `git init` in a throwaway temp repo re-initializes the real one instead. When the push came
  *   from a linked worktree, `GIT_DIR` is `.git/worktrees/<name>`, which git cannot pair with a
- *   work tree from an unrelated cwd – so it writes `bare = true` into the shared `.git/config`,
+ *   work tree from an unrelated cwd - so it writes `bare = true` into the shared `.git/config`,
  *   and every later git command in the main checkout and in every worktree fails with
  *   "fatal: this operation must be run in a work tree" until someone resets it by hand.
  * - `git log` against a fixture repo silently reads the real repo's history instead, so
@@ -25,8 +25,8 @@
  * Variables through which git locates a repository. Anything here outranks `cwd`/`-C`, so it has
  * to go before a subprocess may be trusted to act on the directory it was handed.
  *
- * `git rev-parse --local-env-vars` is the authority – it is exactly the list git itself clears
- * before recursing into an unrelated repository – and `git-env.test.mjs` asserts this set stays a
+ * `git rev-parse --local-env-vars` is the authority - it is exactly the list git itself clears
+ * before recursing into an unrelated repository - and `git-env.test.mjs` asserts this set stays a
  * superset of what the installed git reports, so a future git adding one fails the suite rather
  * than silently widening the hole. The three extras beyond that list (`GIT_CEILING_DIRECTORIES`,
  * `GIT_NAMESPACE`, `GIT_QUARANTINE_PATH`) scope discovery and ref visibility rather than the repo

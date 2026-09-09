@@ -1,6 +1,6 @@
 # Sound and music
 
-BLIT386 can make noise. It plays sound files, it loops background music, and – the fun part – it can build little retro
+BLIT386 can make noise. It plays sound files, it loops background music, and - the fun part - it can build little retro
 sounds out of nothing, so you can have a jump sound before you have found a single `.wav` file.
 
 ## The six ready-made sounds
@@ -41,7 +41,7 @@ this.boom = await AudioClip.load('/sounds/boom.wav');
 
 ## Playing, stopping, and asking
 
-`BT.soundPlay()` gives you back a `SoundRef` – think of it as a cloakroom ticket for that one sound. You only need to
+`BT.soundPlay()` gives you back a `SoundRef` - think of it as a cloakroom ticket for that one sound. You only need to
 keep the ticket if you plan to stop the sound or ask about it later.
 
 ```js
@@ -55,12 +55,12 @@ if (BT.isSoundPlaying(this.hum)) {
 
 The options you can pass to `BT.soundPlay(clip, options)`:
 
-- `loop` – repeat forever (default: false).
-- `volume` – 0 (silent) to 1 (full).
-- `pitch` – 1 is normal, 2 is twice as high, 0.5 is an octave down.
-- `pan` – where it sits between your ears: -1 left, 0 middle, 1 right.
-- `fadeInMs` – slide the volume up over this many milliseconds instead of starting abruptly.
-- `priority` – a hint for which sound to drop first when too many are playing at once.
+- `loop` - repeat forever (default: false).
+- `volume` - 0 (silent) to 1 (full).
+- `pitch` - 1 is normal, 2 is twice as high, 0.5 is an octave down.
+- `pan` - where it sits between your ears: -1 left, 0 middle, 1 right.
+- `fadeInMs` - slide the volume up over this many milliseconds instead of starting abruptly.
+- `priority` - a hint for which sound to drop first when too many are playing at once.
 
 ## Music
 
@@ -80,9 +80,9 @@ BT.musicStop({ fadeMs: 500 }); // fade out when the level ends
 
 Every sound travels through a "bus" on its way to the speakers, and each bus has its own volume knob:
 
-- `'sfx'` – all your sound effects.
-- `'music'` – the music track.
-- `'main'` – everything, the master knob.
+- `'sfx'` - all your sound effects.
+- `'music'` - the music track.
+- `'main'` - everything, the master knob.
 
 ```js
 BT.audioVolumeSet('main', 0.8);
@@ -135,15 +135,15 @@ fades in, how fast it dies away), `pitchSweep` slides the pitch while it plays (
 reads as falling), `vibrato` adds a wobble to the pitch, `noiseMix` stirs in hiss for grit, `dutyCycle` thins out a
 square wave into that nasal NES buzz, and `volume` (0 to 1, default 1) sets the clip's own level.
 
-Build sounds in `init()`, never in `update()` – synthesizing takes real work and will hitch the frame mid-game.
+Build sounds in `init()`, never in `update()` - synthesizing takes real work and will hitch the frame mid-game.
 
 ## Notes
 
-- Sound works on both renderers – WebGPU and the plain Canvas 2D fallback. Unlike CRT and post-process effects, it never
+- Sound works on both renderers - WebGPU and the plain Canvas 2D fallback. Unlike CRT and post-process effects, it never
   touches the graphics card, so every player hears it.
-- Sound arrived in blit386 1.3.0. If `BT.soundPlay` is not a function, you have an older engine – run
+- Sound arrived in blit386 1.3.0. If `BT.soundPlay` is not a function, you have an older engine - run
   `npx blit upgrade`.
-- Need a loading screen while clips load? Poll `BT.loadingAssetsCount` (engine 1.4.0) – see `docs/basics.md` and the
+- Need a loading screen while clips load? Poll `BT.loadingAssetsCount` (engine 1.4.0) - see `docs/basics.md` and the
   show-a-loading-screen skill.
 
 Next: `docs/input.md` for the button presses that trigger your sounds, `docs/when-something-breaks.md` when things go

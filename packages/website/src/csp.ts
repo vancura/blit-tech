@@ -4,7 +4,7 @@
  * Two surfaces serve this policy and they must not drift apart:
  *
  * - `public/_headers` applies {@link BASE_CSP} to every response Cloudflare serves from the ASSETS
- *   binding – images, fonts, `.md` routes, JSON. It is the fail-closed default.
+ *   binding - images, fonts, `.md` routes, JSON. It is the fail-closed default.
  * - `src/csp-nonce.ts` replaces that header on prerendered HTML with `buildCsp(nonce)`, whose
  *   `script-src` carries a fresh per-request nonce.
  *
@@ -36,7 +36,7 @@ const NONCE_BYTES = 16;
  *
  * Load-bearing entries that must not be tightened (see `CLAUDE.md`, "Blog media"): `media-src 'self'`
  * for the self-hosted blog clips, and `frame-src https://demos.blit386.dev` for embedded demos.
- * `style-src 'unsafe-inline'` remains – Fumadocs and Tailwind both emit inline styles, and removing it
+ * `style-src 'unsafe-inline'` remains - Fumadocs and Tailwind both emit inline styles, and removing it
  * is a separate piece of work from BT-191.
  */
 const CSP_DIRECTIVES: readonly (readonly [directive: string, ...sources: string[]])[] = [
@@ -82,7 +82,7 @@ export function buildCsp(nonce?: string): string {
  * The policy `public/_headers` serves, with no nonce.
  *
  * Every response the Worker does not rewrite gets this, and so does any HTML the Worker somehow
- * misses – in which case the page fails closed (blank) rather than silently losing its protection.
+ * misses - in which case the page fails closed (blank) rather than silently losing its protection.
  */
 export const BASE_CSP = buildCsp();
 
@@ -96,7 +96,7 @@ export function generateNonce(): string {
 /**
  * File extensions served as something other than HTML.
  *
- * Anything else – `/`, `/docs/getting-started`, `/blog/`, an explicit `.html` – is a prerendered page.
+ * Anything else - `/`, `/docs/getting-started`, `/blog/`, an explicit `.html` - is a prerendered page.
  * The list errs toward "not HTML" only for extensions this site actually emits, because the costly
  * mistake runs the other way: an HTML path misread as an asset keeps its conditional request headers
  * and can end up serving a stale body against a fresh nonce (see `isHtmlAssetPath`).
@@ -123,7 +123,7 @@ const NON_HTML_EXTENSIONS = new Set([
  * Used to decide which requests must not be answered with a `304`. A conditional request for HTML is
  * unanswerable once nonces are in play: RFC 9111 has the client merge the `304`'s headers into its
  * *stored* body, so a fresh `Content-Security-Policy` would land on a body whose scripts carry an
- * older nonce – or none at all, for a copy cached before this shipped – and every script on the page
+ * older nonce - or none at all, for a copy cached before this shipped - and every script on the page
  * would be blocked until that file's hash changed. `markdown-negotiation.ts` therefore drops the
  * conditional headers on the way to the ASSETS binding for these paths, and only these: hashed JS,
  * CSS, and fonts genuinely rely on `304`s.

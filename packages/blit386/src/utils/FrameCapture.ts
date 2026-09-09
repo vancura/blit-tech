@@ -20,7 +20,7 @@ type Reject = (reason: Error) => void;
 /**
  * Calculates the WebGPU-aligned byte size per row for a given image width.
  *
- * @param width – Image width in pixels.
+ * @param width - Image width in pixels.
  * @returns Byte count per row, padded to the GPU alignment boundary.
  */
 export function alignedBytesPerRow(width: number): number {
@@ -32,7 +32,7 @@ export function alignedBytesPerRow(width: number): number {
 /**
  * Swaps blue and red channels in a BGRA pixel array to produce RGBA (in place).
  *
- * @param data – Pixel array in BGRA order (4 bytes per pixel).
+ * @param data - Pixel array in BGRA order (4 bytes per pixel).
  */
 export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
     for (let i = 0; i < data.length; i += BYTES_PER_PIXEL) {
@@ -48,11 +48,11 @@ export function swizzleBGRAtoRGBA(data: Uint8ClampedArray): void {
 /**
  * Converts a raw pixel buffer into a PNG image Blob.
  *
- * @param buffer – Raw pixel data (potentially padded and in BGRA order).
- * @param width – Image width in pixels.
- * @param height – Image height in pixels.
- * @param paddedBytesPerRow – Bytes per row including GPU alignment padding.
- * @param isBGRA – Whether the pixel data needs BGRA-to-RGBA swizzling.
+ * @param buffer - Raw pixel data (potentially padded and in BGRA order).
+ * @param width - Image width in pixels.
+ * @param height - Image height in pixels.
+ * @param paddedBytesPerRow - Bytes per row including GPU alignment padding.
+ * @param isBGRA - Whether the pixel data needs BGRA-to-RGBA swizzling.
  * @returns PNG-encoded Blob.
  */
 export async function pixelBufferToPNG(
@@ -96,8 +96,8 @@ export async function pixelBufferToPNG(
  * and a synthetic anchor click. Shared by `BT.downloadFrame` and the engine's
  * Shift+F9 frame-capture shortcut so both trigger a download the same way.
  *
- * @param blob – File contents to download.
- * @param filename – Target download filename.
+ * @param blob - File contents to download.
+ * @param filename - Target download filename.
  */
 export function downloadBlob(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
@@ -113,13 +113,13 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /**
  * Writes an in-flight PNG capture to the OS clipboard, for `BT`'s bare-F9 dev-mode
  * frame-copy shortcut. Takes the still-pending `Promise<Blob>` rather than an
- * already-resolved `Blob` – passing an unresolved promise into `ClipboardItem` is the
+ * already-resolved `Blob` - passing an unresolved promise into `ClipboardItem` is the
  * Safari-safe pattern for a deferred clipboard write, and it also keeps the call to
  * `navigator.clipboard.write()` itself synchronous relative to the caller, which some
  * browsers require to treat the write as still tied to the triggering user gesture.
  *
- * @param capturePromise – In-flight PNG capture (not yet resolved).
- * @param mimeType – MIME type key for the `ClipboardItem` payload; defaults to `image/png`.
+ * @param capturePromise - In-flight PNG capture (not yet resolved).
+ * @param mimeType - MIME type key for the `ClipboardItem` payload; defaults to `image/png`.
  * @returns Resolves once the clipboard write completes; rejects on denial or API failure.
  */
 export function writeBlobToClipboard(capturePromise: Promise<Blob>, mimeType = 'image/png'): Promise<void> {
@@ -190,9 +190,9 @@ export class FrameCapture {
      * Call only when {@link hasPending} is true, after the render pass ends but
      * before submitting the command buffer.
      *
-     * @param device – WebGPU device for buffer creation.
-     * @param texture – The rendered canvas texture to capture.
-     * @param commandEncoder – Active command encoder to add the copy command to.
+     * @param device - WebGPU device for buffer creation.
+     * @param texture - The rendered canvas texture to capture.
+     * @param commandEncoder - Active command encoder to add the copy command to.
      */
     executeInEncoder(device: GPUDevice, texture: GPUTexture, commandEncoder: GPUCommandEncoder): void {
         this.width = texture.width;
@@ -218,7 +218,7 @@ export class FrameCapture {
     /**
      * Waits for GPU completion, reads back the staging buffer, and resolves the pending capture.
      *
-     * @param device – WebGPU device (used for onSubmittedWorkDone).
+     * @param device - WebGPU device (used for onSubmittedWorkDone).
      */
     async resolve(device: GPUDevice): Promise<void> {
         const resolve = this.pendingResolve;

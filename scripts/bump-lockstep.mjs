@@ -349,7 +349,7 @@ export function applyBlit386Range(raw, range) {
  */
 
 /**
- * A lockstep target whose `apply` only rewrites its `package.json`'s top-level `version` – no
+ * A lockstep target whose `apply` only rewrites its `package.json`'s top-level `version` - no
  * derived fields. Shared by the engine's and scaffolder's manifests, which are otherwise identical.
  *
  * @param {string} path Package.json path, relative to `ROOT`.
@@ -487,7 +487,7 @@ export function bumpLockstep(options) {
  * anchor (the engine anchors semver for all three packages), every other value is re-derived from it
  * with the exact transforms the bump uses, and any field whose checked-in value differs is reported.
  * A target already in step is a fixed point of its own transform, so this needs no second copy of
- * the derivation rules – which is the point: `bump` is a writer run once per release, and until now
+ * the derivation rules - which is the point: `bump` is a writer run once per release, and until now
  * nothing verified the result afterwards. A hand edit, a bad merge, or a cherry-pick drifted
  * silently.
  *

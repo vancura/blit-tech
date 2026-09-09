@@ -58,7 +58,7 @@ describe('reportDrift', () => {
 
     it('creates a new issue when no tracking issue exists', async () => {
         // reportDrift calls the real linear-client functions, which default to global fetch when no
-        // fetchImpl is passed – so this test monkeypatches global fetch for the duration of the call.
+        // fetchImpl is passed - so this test monkeypatches global fetch for the duration of the call.
         const { fetchImpl, calls } = makeLinearFetch();
         const originalFetch = globalThis.fetch;
         globalThis.fetch = fetchImpl;

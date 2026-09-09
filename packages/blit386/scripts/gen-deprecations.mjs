@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Builds `docs/reference-deprecations.md` – the deprecation timeline – from `@blit386/kit`'s
+ * Builds `docs/reference-deprecations.md` - the deprecation timeline - from `@blit386/kit`'s
  * migration registry (`packages/kit/src/migrations/registry.ts`, built to
  * `packages/kit/dist/migrations/registry.js`).
  *
@@ -8,7 +8,7 @@
  * mirrors one dated section of this doc, and each `Rename`'s optional `section` /
  * `removalTarget` / `receiverClasses` fields (see `packages/kit/src/migrations/types.ts`) drive
  * how it renders here. A migration with no renames carrying a `section` (an `importPath`-only
- * rename, or an empty `renames` array) is naturally excluded – no special-casing by migration id
+ * rename, or an empty `renames` array) is naturally excluded - no special-casing by migration id
  * or rename kind.
  *
  * Usage:
@@ -60,7 +60,7 @@ const REMOVAL_CHECKLIST = `### Removal checklist
 <Callout title="Public aliases only">
 
 This tracker lists public compatibility aliases only. Internal deprecated helpers that used to live beside overlay
-layout functions and \`RenderPaletteUsage\` re-exports were removed rather than carried forward – search \`@deprecated\` in
+layout functions and \`RenderPaletteUsage\` re-exports were removed rather than carried forward - search \`@deprecated\` in
 \`src/\` for anything that remains outside this list.
 
 </Callout>`;
@@ -78,7 +78,7 @@ const SEE_ALSO = `## See also
  * Renders one rename as one or more arrow bullets (`- \`from\` → \`to\``), expanding
  * `receiverClasses` into one class-qualified bullet per entry, in array order.
  *
- * @param {import('../../kit/src/migrations/types.ts').Rename} rename – Rename to render.
+ * @param {import('../../kit/src/migrations/types.ts').Rename} rename - Rename to render.
  * @returns {string[]} One or more markdown bullet lines.
  */
 export function renderRenameBullets(rename) {
@@ -102,7 +102,7 @@ export function renderRenameBullets(rename) {
  * with no `section` (an `importPath`-only rename's sole entry) are skipped rather than special-
  * cased by kind.
  *
- * @param {import('../../kit/src/migrations/types.ts').Migration} migration – Migration to group.
+ * @param {import('../../kit/src/migrations/types.ts').Migration} migration - Migration to group.
  * @returns {Array<{ section: string, removalTarget: string | undefined, bullets: string[] }>}
  *   One entry per group, in encounter order. Empty when the migration has no sectioned renames.
  */
@@ -130,11 +130,11 @@ export function groupMigrationSections(migration) {
 }
 
 /**
- * Renders one migration's `## <date> – compatibility aliases added` block, or `null` when it has
+ * Renders one migration's `## <date> - compatibility aliases added` block, or `null` when it has
  * no sectioned renames (excluded from the doc entirely, matching the current hand-written file's
  * omission of `importPath`-only and empty-`renames` migrations).
  *
- * @param {import('../../kit/src/migrations/types.ts').Migration} migration – Migration to render.
+ * @param {import('../../kit/src/migrations/types.ts').Migration} migration - Migration to render.
  * @returns {string | null} Rendered markdown block, or `null` if excluded.
  */
 export function renderMigrationBlock(migration) {
@@ -151,7 +151,7 @@ export function renderMigrationBlock(migration) {
     });
 
     return (
-        `## ${migration.date} – compatibility aliases added\n\n` +
+        `## ${migration.date} - compatibility aliases added\n\n` +
         'These aliases were introduced to preserve backward compatibility after the API naming refactor.\n\n' +
         sections.join('\n\n')
     );
@@ -160,7 +160,7 @@ export function renderMigrationBlock(migration) {
 /**
  * Renders the full `docs/reference-deprecations.md` contents from the migration registry.
  *
- * @param {readonly import('../../kit/src/migrations/types.ts').Migration[]} migrations – Migrations, oldest first.
+ * @param {readonly import('../../kit/src/migrations/types.ts').Migration[]} migrations - Migrations, oldest first.
  * @returns {string} Full markdown document, `\n`-terminated.
  */
 export function renderDeprecationsMarkdown(migrations) {
@@ -183,7 +183,7 @@ export function renderDeprecationsMarkdown(migrations) {
  * Parses CLI flags into a plain options object. Pure (no `process` access) so it is unit
  * testable without spawning the script.
  *
- * @param {string[]} argv – `process.argv.slice(2)`-style argument list.
+ * @param {string[]} argv - `process.argv.slice(2)`-style argument list.
  * @returns {{ isCheck: boolean }} Parsed CLI options.
  */
 export function parseCliArgs(argv) {
@@ -193,7 +193,7 @@ export function parseCliArgs(argv) {
 /**
  * Path relative to the repo root, for readable console output.
  *
- * @param {string} filePath – Absolute file path.
+ * @param {string} filePath - Absolute file path.
  * @returns {string} Repo-relative path.
  */
 function relativeToRoot(filePath) {
@@ -204,7 +204,7 @@ function relativeToRoot(filePath) {
  * Runs `--check`: regenerates the doc in memory and diffs it against the committed
  * `docs/reference-deprecations.md`, exiting non-zero on drift. Mirrors `gen-api-history.mjs --check`.
  *
- * @param {string} desiredMarkdown – Freshly generated markdown (already `\n`-terminated).
+ * @param {string} desiredMarkdown - Freshly generated markdown (already `\n`-terminated).
  */
 function runCheck(desiredMarkdown) {
     const relativeOutput = relativeToRoot(OUTPUT_FILE);

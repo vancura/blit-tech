@@ -1,6 +1,6 @@
 # Hot reload: keep playing while you edit
 
-When you change a line and save, your game should keep running – score, position, and colors still where you left them.
+When you change a line and save, your game should keep running - score, position, and colors still where you left them.
 That is hot reload. New games from `create-blit386` already wire it up in `vite.config.js`. You do not have to write any
 special code for the basic case.
 
@@ -8,8 +8,8 @@ special code for the basic case.
 
 With the `blit386` Vite plugin in place (it ships in the starter `vite.config.js`):
 
-- Edit `update()` or `render()` and save – the new code takes over; your game state stays put.
-- Edit a PNG, a sound, or a `.btfont` under `public/` – the running game swaps that asset in place. No reload.
+- Edit `update()` or `render()` and save - the new code takes over; your game state stays put.
+- Edit a PNG, a sound, or a `.btfont` under `public/` - the running game swaps that asset in place. No reload.
 - A broken save that makes `init()` fail leaves the previous game running, so you can fix the typo without losing the
   session.
 
@@ -20,12 +20,12 @@ includes it.
 
 Not every edit is the same:
 
-1. Method-only change – you edited `update()`, `render()`, or a top-level constant those methods use. The running game
+1. Method-only change - you edited `update()`, `render()`, or a top-level constant those methods use. The running game
    keeps every field (`this.score`, `this.pos`, …). This is the common case.
-2. Re-init – you edited `init()`, the constructor, or a class field initializer. The engine builds a fresh instance and
+2. Re-init - you edited `init()`, the constructor, or a class field initializer. The engine builds a fresh instance and
    runs `init()` again. Without extra code, fields reset to whatever `init()` sets. Optional `onHotReload` lets you copy
    important values across (see below).
-3. Full page reload – you changed something in `configure()` that rebuilds the screen or audio graph (`displaySize`,
+3. Full page reload - you changed something in `configure()` that rebuilds the screen or audio graph (`displaySize`,
    `backend`, `targetFPS`, `audioVoices`, overlay flags, and friends). The page reloads because those settings cannot be
    swapped live.
 
@@ -70,7 +70,7 @@ npx blit migrate --write  # also enables hot reload in vite.config when missing
 ```
 
 `blit migrate` / `blit upgrade` rewrite a standard Vite `defineConfig({...})` to add the import and
-`plugins: [blit386()]`. Restart the dev server once after that, then save a file – the game should keep playing. If your
+`plugins: [blit386()]`. Restart the dev server once after that, then save a file - the game should keep playing. If your
 vite.config is unusual, add the two lines by hand (this page) or ask your AI assistant (the use-hot-reload skill).
 
 The plugin needs blit386 1.4.0 or newer.
@@ -84,18 +84,18 @@ The plugin needs blit386 1.4.0 or newer.
 
 ## Telling a dev build from a release build
 
-Installing the plugin above also gets you `BT.isDevMode` (blit386 1.5.0+) – `true` while `npm run dev` is running the
+Installing the plugin above also gets you `BT.isDevMode` (blit386 1.5.0+) - `true` while `npm run dev` is running the
 game, `false` once you `npm run build` it. Use it to gate things you only want while developing:
 
 ```js
 update() {
     if (BT.isDevMode) {
-        console.log('dev build – extra logging on');
+        console.log('dev build - extra logging on');
     }
 }
 ```
 
-Read it inside `update()` or `render()`, not at the top of a file – the plugin marks the build as dev after the rest of
+Read it inside `update()` or `render()`, not at the top of a file - the plugin marks the build as dev after the rest of
 your entry file has already run, so a check outside those methods can see `false` even while developing.
 
 See the use-dev-mode skill for cheat-key and debug-HUD examples.

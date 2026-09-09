@@ -1,4 +1,4 @@
-# AGENTS.md – working on a BLIT386 game
+# AGENTS.md - working on a BLIT386 game
 
 <!-- blit-kit:managed:start -->
 <!-- Everything between the managed markers is owned by @blit386/kit and will be rewritten by a future
@@ -6,7 +6,7 @@
 
 This file is the home base for anyone (a person or an AI assistant) working on this game. It is short on purpose: it
 tells you how a BLIT386 game is shaped, the rules to follow, and which doc to open when you need detail. Read the linked
-doc only when the task needs it – do not load everything at once.
+doc only when the task needs it - do not load everything at once.
 
 BLIT386 is a palette-first 2D pixel engine. You draw with small whole-number coordinates and numbered colors, and the
 engine puts pixels on a `<canvas>`. It runs on WebGPU when available and falls back to plain Canvas 2D otherwise, so a
@@ -47,7 +47,7 @@ bootstrap(Game);
 - No fullscreen post-process effects in a starter. Effects like CRT need WebGPU and do not run on the Canvas 2D
   fallback. Keep starters working everywhere.
 - Sound waits for the player. Browsers refuse to play audio until someone clicks, taps, or presses a key, so a game is
-  silent until then – that is the web's rule, not a bug. `BT.musicPlay` is remembered and starts on the first
+  silent until then - that is the web's rule, not a bug. `BT.musicPlay` is remembered and starts on the first
   interaction; `BT.soundPlay` before it is dropped. See `docs/audio.md`.
 - No emoji anywhere in code, comments, or text.
 
@@ -73,31 +73,31 @@ When these local docs come up short, the live documentation at https://blit386.d
 this game already knows how to query it:
 
 - Ask the `blit386-docs` MCP server. If you set up Claude Code or Cursor, it is already configured (`.mcp.json` for
-  Claude Code, `.cursor/mcp.json` for Cursor) and gives your assistant two tools: `search_docs` (full-text search – page
+  Claude Code, `.cursor/mcp.json` for Cursor) and gives your assistant two tools: `search_docs` (full-text search - page
   titles, URLs, and excerpts) and `get_docs_summary` (the whole site's contents in one compact block).
 - No MCP server? Fetch https://blit386.dev/llms.txt for the same summary as one plain text file.
 - Reading a page? Request its URL with the header `Accept: text/markdown` and the site returns markdown instead of HTML
-  – far less to wade through.
+  \- far less to wade through.
 
 The `ask-the-docs` skill walks an assistant through all three. The source code lives at
-https://github.com/blit386/blit386 – go there only when the documentation itself does not answer the question.
+https://github.com/blit386/blit386 - go there only when the documentation itself does not answer the question.
 
 ## Running the game
 
 From the project folder:
 
-- `npm run dev` (or `pnpm run dev`) – start the game and open it in your browser.
-- `npx blit run` – the same thing, the friendly way.
-- `npx blit doctor` – check your setup if something seems off.
-- `npx blit upgrade` – update BLIT386 to the latest version (and offer to fix any renamed API names for you).
-- `npx blit migrate` – update old BLIT386 names in your game to the current ones (and enable hot reload on blit386
+- `npm run dev` (or `pnpm run dev`) - start the game and open it in your browser.
+- `npx blit run` - the same thing, the friendly way.
+- `npx blit doctor` - check your setup if something seems off.
+- `npx blit upgrade` - update BLIT386 to the latest version (and offer to fix any renamed API names for you).
+- `npx blit migrate` - update old BLIT386 names in your game to the current ones (and enable hot reload on blit386
   1.4.0+). Add `--write` to apply the changes.
 
 The `blit` helper is installed inside the project (it ships with `@blit386/kit`), so it is not on the system PATH.
 Always invoke it through `npx blit ...` (or `pnpm exec blit ...`); plain `blit` only works inside package scripts.
 
 While the dev server is running, most saves hot-reload instead of wiping the page: edits to `update()` / `render()` keep
-your score and position; edits to `init()` re-run setup (optional `onHotReload` can copy fields across – see the
+your score and position; edits to `init()` re-run setup (optional `onHotReload` can copy fields across - see the
 commented example in `src/game.js` / `src/game.ts`); edits to `configure()` screen settings reload the page; files under
 `public/` swap in place. Details: `docs/hot-reload.md`.
 
@@ -107,7 +107,7 @@ commented example in `src/game.js` / `src/game.ts`); edits to `configure()` scre
 - Keep `update()` cheap: it runs 60 times a second. Avoid creating lots of new objects every frame in hot paths.
 - The starter game (`src/game.js`, or `src/game.ts` in a TypeScript project) is yours to change. Read its comments
   first; they explain every line. Prefer starting from scratch over editing the starter around your idea? Run
-  `npx blit clean` to replace it with an empty `init`/`update`/`render` skeleton – same shape, no demo code.
+  `npx blit clean` to replace it with an empty `init`/`update`/`render` skeleton - same shape, no demo code.
 - Prefer method-body edits while you tweak gameplay so hot reload keeps state. Reach for `onHotReload` only when you
   edit `init()` a lot and care about carrying score (or similar) across the re-init.
 
@@ -132,6 +132,6 @@ Run `npx blit agents sync` after a kit update (`npx blit upgrade`) to refresh th
 
 ## Your notes
 
-Everything below the managed end marker is yours. Write down decisions, todos, or project-specific rules here – for
+Everything below the managed end marker is yours. Write down decisions, todos, or project-specific rules here - for
 yourself or for your AI assistant. Kit updates (`npx blit agents sync`) rewrite only the managed part above and never
 touch this section.

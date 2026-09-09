@@ -1,5 +1,5 @@
 /**
- * Covers `src/csp.ts`, and – more importantly – guards the one copy of the policy that TypeScript
+ * Covers `src/csp.ts`, and - more importantly - guards the one copy of the policy that TypeScript
  * cannot see: the `Content-Security-Policy` line in `public/_headers`.
  *
  * That file is a static Cloudflare config with no import mechanism, so its CSP has to be a

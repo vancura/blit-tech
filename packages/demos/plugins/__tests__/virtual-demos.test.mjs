@@ -1,7 +1,7 @@
 /**
  * Unit tests for the pure helpers behind the `virtual-demos` Vite plugin: the layout template
  * substitution (`renderDemoHtml`) and the dev-only vintage-URL redirect lookup
- * (`resolveVintageRedirect`). Both are pure, so every case here is a plain assertion – no fs,
+ * (`resolveVintageRedirect`). Both are pure, so every case here is a plain assertion - no fs,
  * no Vite server, no request/response objects.
  */
 import assert from 'node:assert/strict';
@@ -24,7 +24,7 @@ const LAYOUT_TEMPLATE = [
     '</html>',
 ].join('\n');
 
-const ENTRY = { title: 'BLIT386 Demo – Palette Cycling', scriptFile: '/src/palette-cycling', slug: 'palette-cycling' };
+const ENTRY = { title: 'BLIT386 Demo - Palette Cycling', scriptFile: '/src/palette-cycling', slug: 'palette-cycling' };
 
 /**
  * Build a full options object for renderDemoHtml with sane defaults, overridable per test.

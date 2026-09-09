@@ -3,19 +3,19 @@
 //
 // BT.downloadFrame() takes a screenshot of whatever is currently on screen and saves
 // it as a PNG image file to your computer. Click or tap the "Save PNG" button from the
-// shared UI kit (or press S) to download the current frame – so the demo works on
+// shared UI kit (or press S) to download the current frame - so the demo works on
 // touch screens too. Note: the kit panel is drawn on screen, so it appears in the
-// saved PNG as well. That is fine for this demo – see the comment in render().
+// saved PNG as well. That is fine for this demo - see the comment in render().
 //
 // Dev-mode extras, built into the engine itself (every demo gets these for free,
 // not just this one): while BT.isDevMode is true (running from `pnpm run dev`, not
 // a production build), pressing F9 copies the current frame to the OS clipboard, and
-// Shift+F9 saves it as a timestamped file – neither needs a button click first. See
+// Shift+F9 saves it as a timestamped file - neither needs a button click first. See
 // HardwareSettings.isFrameCaptureShortcutEnabled.
 // Note for demos other than this one: both shortcuts save at the logical
 // BT.displaySize, not BT.outputSize, so they stay pixel-for-pixel even when a demo
 // sets a larger drawingBufferSize for display-tier post-process effects (CRT,
-// vignette, and the like) – those effects are not included in either shortcut's
+// vignette, and the like) - those effects are not included in either shortcut's
 // output. This demo has no drawingBufferSize, so its own shortcut output is
 // unaffected and still matches the Save PNG button above.
 // The engine also exposes the whole BT namespace as window.BT in dev mode
@@ -37,7 +37,7 @@ import { applyTheme, ui, UI_ANCHORS } from './shared/ui.js';
 // Every color used for drawing is stored in a numbered "palette" slot.
 // Think of each slot like a labeled paint jar on an artist's shelf.
 // Index 0 is always transparent (invisible). Our custom colors start at 1.
-// These are the SCENE colors – the test pattern itself. All the UI text and the
+// These are the SCENE colors - the test pattern itself. All the UI text and the
 // Save button draw with the shared UI theme instead (installed by applyTheme() in init()).
 const C_WHITE = 1; // White: grid dots, border, and crosshairs
 const C_BG = 2; // Very dark blue-gray: the background color
@@ -45,7 +45,7 @@ const C_BG = 2; // Very dark blue-gray: the background color
 // Dynamic slots: these six colors change every frame to create the animated rainbow stripes.
 // We pre-allocate (reserve) index slots 10 through 15, one for each horizontal stripe.
 // In update() we calculate the new color and store it here; render() just uses the index.
-// This is called "palette animation" – the retro trick that made old consoles look alive!
+// This is called "palette animation" - the retro trick that made old consoles look alive!
 const C_STRIPE_0 = 10; // Animated color for the top stripe (stripe 0)
 // Stripes 1-5 follow at C_STRIPE_0 + 1 through C_STRIPE_0 + 5
 
@@ -93,7 +93,7 @@ class Demo {
             // overlay. This demo's whole point is saving a picture with
             // BT.downloadFrame(), and the overlay is drawn on top of everything, so
             // that hint would end up baked into the saved PNG. We hide the hint to keep
-            // captures tidy. (The kit's Save panel DOES appear in the capture – a
+            // captures tidy. (The kit's Save panel DOES appear in the capture - a
             // deliberate trade-off so touch users can save at all; see render().)
             // The overlay still works on demand: press ` to show it and ` again to
             // hide it before you capture. The bottom-left 17x13 corner also stays
@@ -102,14 +102,14 @@ class Demo {
             isOverlayToggleHintVisible: false,
 
             // Most demos leave displaySize unset and let the engine fill in its
-            // default hardware profile, which includes a 640x480 "drawing buffer" –
+            // default hardware profile, which includes a 640x480 "drawing buffer" -
             // an internal 2x upscale so the picture looks crisp on screen. Save PNG
             // would then download that upscaled 640x480 buffer instead of the demo's
             // real 320x240 canvas. Declaring displaySize here (even though 320x240 is
             // already the default value) tells the engine "this demo picked its own
             // sizes on purpose," which turns that automatic upscale off. The picture
-            // still looks sharp on screen – your browser scales the smaller image up
-            // using the same nearest-neighbor technique the engine used internally –
+            // still looks sharp on screen - your browser scales the smaller image up
+            // using the same nearest-neighbor technique the engine used internally -
             // but the saved PNG now has exactly one file pixel per canvas pixel,
             // which is what "pixel-perfect" means for retro pixel art.
             displaySize: new Vector2i(320, 240),
@@ -141,7 +141,7 @@ class Demo {
         // Step 2: install the shared UI theme. applyTheme() writes the twelve UI kit
         // colors into high palette slots (240-251 by default), far above our scene
         // slots 1-15. Every kit widget (the panel, button, labels) draws with these
-        // colors automatically – this demo never needs the slot numbers itself, so
+        // colors automatically - this demo never needs the slot numbers itself, so
         // we call applyTheme() only for that side effect and ignore its return value.
         applyTheme(this.palette);
 
@@ -173,7 +173,7 @@ class Demo {
         // Palette animation for the six horizontal stripes
         // Instead of computing colors inside render(), we compute them here in update()
         // and store the results in reserved palette slots. render() then just uses the index numbers.
-        // This is the classic "palette animation" technique – retro hardware did the same thing!
+        // This is the classic "palette animation" technique - retro hardware did the same thing!
         for (let i = 0; i < 6; i++) {
             // phase is an angle-like value 0-359 that moves as tick increases.
             // Each stripe adds i * 20 so neighboring stripes do not look identical.
@@ -194,7 +194,7 @@ class Demo {
             const b = Math.floor(127 + 127 * Math.sin(((phase + 240) * Math.PI) / 180));
 
             // Store the computed color in the palette slot for this stripe.
-            // render() will read C_STRIPE_0 + i to draw each stripe – no Color32 needed there!
+            // render() will read C_STRIPE_0 + i to draw each stripe - no Color32 needed there!
             this.palette.set(C_STRIPE_0 + i, new Color32(r, g, b));
         }
     }
@@ -212,7 +212,7 @@ class Demo {
         BT.clear(C_BG);
 
         // Draw six horizontal stripes using the animated palette slots we updated in update().
-        // Each stripe's color was already computed and stored – we just reference the index.
+        // Each stripe's color was already computed and stored - we just reference the index.
         const stripeHeight = 40;
 
         for (let i = 0; i < 6; i++) {
@@ -247,17 +247,17 @@ class Demo {
         // overlay, and we do not want the two to fight over taps; top-left has no
         // such conflict.
         // Note: this panel is drawn onto the frame, so it WILL be part of the saved
-        // PNG. That is acceptable here – it even doubles as a caption telling you
+        // PNG. That is acceptable here - it even doubles as a caption telling you
         // which demo produced the screenshot.
         ui.begin(UI_ANCHORS.TOP_LEFT);
         ui.panel('Image Output');
 
         // The Save button. ui.button() returns true only on the single frame it was
-        // clicked, tapped, or its bound key (S) was pressed – so holding S does not
+        // clicked, tapped, or its bound key (S) was pressed - so holding S does not
         // spam downloads. We also ignore it while a save is already running.
         // Bound to S rather than Space: Space is the browser's page-scroll key, and
         // this demo does not opt into isCapturingKeyboardScroll, so a Space press
-        // would both save AND scroll the page – confusing on a page taller than the
+        // would both save AND scroll the page - confusing on a page taller than the
         // canvas.
         if (ui.button('Save PNG (S)', { key: 'KeyS' }) && !this.capturing) {
             this.saveFrame();
@@ -266,15 +266,15 @@ class Demo {
         // One status row below the button. We always draw a row (even when idle) so
         // the panel does not jump in size when a message appears or disappears.
         if (this.capturing) {
-            // A save is in flight – the browser is busy reading the canvas.
+            // A save is in flight - the browser is busy reading the canvas.
             ui.label('Capturing...', { color: 'info' });
         } else if (this.messageTimer > 0) {
-            // A save just finished – show the result in green (success) or orange (error).
+            // A save just finished - show the result in green (success) or orange (error).
             ui.label(this.lastCaptureMessage, { color: this.lastCaptureColor });
         } else {
-            // Nothing happening – a quiet hint in dim gray. In dev mode (running from
+            // Nothing happening - a quiet hint in dim gray. In dev mode (running from
             // `pnpm run dev`, not a production build) we also mention the F9/Shift+F9
-            // shortcuts – engine defaults (every demo gets them, see
+            // shortcuts - engine defaults (every demo gets them, see
             // HardwareSettings.isFrameCaptureShortcutEnabled), not something this demo
             // wires up itself. It has no visible button of its own to advertise them, so
             // this is the most relevant place to mention them.
@@ -301,7 +301,7 @@ class Demo {
         // BT.downloadFrame() reads the canvas and asks the browser to save a file.
         // Most browsers open a "Save as" dialog or drop the file straight into your
         // Downloads folder (depends on your browser settings). The demo cannot pick
-        // the folder for you – that is normal browser security.
+        // the folder for you - that is normal browser security.
         BT.downloadFrame('blit386-capture.png')
             .then(() => {
                 // Success: remember a friendly message and show it in green.

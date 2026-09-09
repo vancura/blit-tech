@@ -10,8 +10,8 @@ const rootDir = resolve(__dirname, '..');
 /**
  * Build the `robots.txt` body for either channel. Pure and exported so it can be
  * unit-tested without touching disk.
- * @param {boolean} isNextChannel – True on the `next.demos.blit386.dev` preview channel.
- * @param {string} siteUrl – Production origin, used to point crawlers at the sitemap.
+ * @param {boolean} isNextChannel - True on the `next.demos.blit386.dev` preview channel.
+ * @param {string} siteUrl - Production origin, used to point crawlers at the sitemap.
  * @returns {string} A complete `robots.txt` document.
  */
 export function buildRobotsTxt(isNextChannel, siteUrl) {
@@ -26,19 +26,19 @@ export function buildRobotsTxt(isNextChannel, siteUrl) {
  * @returns {string}
  */
 export function buildNoindexHeadersBlock() {
-    return '\n# BT-406: next.demos.blit386.dev preview channel — never index.\n/*\n  X-Robots-Tag: noindex\n';
+    return '\n# BT-406: next.demos.blit386.dev preview channel - never index.\n/*\n  X-Robots-Tag: noindex\n';
 }
 
 /**
  * On the `next.demos.blit386.dev` preview channel (`BLIT386_CHANNEL=next`, set only in the
- * `deploy-demos-next` CI job – see `.github/workflows/deploy.yml`), appends an
+ * `deploy-demos-next` CI job - see `.github/workflows/deploy.yml`), appends an
  * `X-Robots-Tag: noindex` block to `dist/_headers` and writes a disallow-all `dist/robots.txt`.
  * Production gets neither `_headers` addition: it stays exactly what `viteStaticCopy` copied
  * from `public/_headers`. Production's `robots.txt` instead allows everything and points
  * crawlers at `sitemapPlugin`'s `dist/sitemap.xml`.
  *
  * Runs in `closeBundle`, which fires after every plugin's `writeBundle` hook across the whole
- * build (Rollup runs the hooks in phases, not by plugin array order) – so `dist/_headers` from
+ * build (Rollup runs the hooks in phases, not by plugin array order) - so `dist/_headers` from
  * `viteStaticCopy` already exists by the time this reads/appends to it.
  * @returns {import('vite').Plugin}
  */

@@ -739,7 +739,7 @@ describe('AudioManager', () => {
             expect(audio.getSfxBus()).toBeNull();
 
             // Re-attaching and asking the (new, empty) pool about the old ref must not throw and
-            // must report it as not playing – the old pool instance was discarded on detach.
+            // must report it as not playing - the old pool instance was discarded on detach.
             audio.attach(canvas);
             expect(() => audio.playSound(createMockAudioBuffer())).not.toThrow();
             expect(ref).not.toEqual(INVALID_SOUND_REF);
@@ -756,7 +756,7 @@ describe('AudioManager', () => {
             expect(audio.isMusicPlaying()).toBe(false);
             expect(audio.hasRememberedMusicRequest()).toBe(true);
 
-            // No voice was actually started – the request is only remembered, never dropped
+            // No voice was actually started - the request is only remembered, never dropped
             // silently like a pre-unlock playSound() call, but also not started early.
             const context = getMockContext();
 
@@ -776,7 +776,7 @@ describe('AudioManager', () => {
 
             const context = getMockContext();
 
-            // Still locked – neither call started a voice yet, only the second overwrote the
+            // Still locked - neither call started a voice yet, only the second overwrote the
             // first as the remembered pending request.
             expect((context as unknown as { createBufferSourceCalls: unknown[] }).createBufferSourceCalls).toHaveLength(
                 0,
@@ -848,7 +848,7 @@ describe('AudioManager', () => {
 
             const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-            // Invalid loopStart/loopEnd pair – MusicPlayer.play() validates and throws
+            // Invalid loopStart/loopEnd pair - MusicPlayer.play() validates and throws
             // synchronously, which must not be mistaken for a context.resume() failure.
             audio.musicPlay(createMockAudioBuffer(), { loopStart: 5, loopEnd: 1 });
 
@@ -875,7 +875,7 @@ describe('AudioManager', () => {
         it('does not replay a stale remembered request on a later unlock attempt', async () => {
             audio.attach(canvas);
 
-            // Queue a request while locked, then unlock – this replays it exactly once.
+            // Queue a request while locked, then unlock - this replays it exactly once.
             audio.musicPlay(createMockAudioBuffer());
 
             canvas.dispatchEvent(new Event('pointerdown', { bubbles: true }));
@@ -890,7 +890,7 @@ describe('AudioManager', () => {
                 1,
             );
 
-            // A later gesture must not find a stale remembered request to replay – the source
+            // A later gesture must not find a stale remembered request to replay - the source
             // count stays at 1, not 2.
             canvas.dispatchEvent(new Event('pointerdown', { bubbles: true }));
 

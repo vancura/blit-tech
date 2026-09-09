@@ -29,8 +29,8 @@ update() {
 }
 ```
 
-- `BT.ticks`, `BT.timeSeconds`, `BT.deltaSeconds`, `BT.targetFPS` – all getters.
-- `BT.ticksReset()` (method) – zero the tick counter, e.g. on restart.
+- `BT.ticks`, `BT.timeSeconds`, `BT.deltaSeconds`, `BT.targetFPS` - all getters.
+- `BT.ticksReset()` (method) - zero the tick counter, e.g. on restart.
 
 ## Timer helper
 
@@ -65,13 +65,13 @@ Every family below comes in three versions: `-in` (slow start), `-out` (slow fin
 
 | Name | Feels like |
 | --- | --- |
-| `'linear'` | No easing – constant speed |
+| `'linear'` | No easing - constant speed |
 | `'ease-in'` / `'ease-out'` / `'ease-in-out'` | The gentle default (quadratic) |
 | `'sine-*'` | Very soft, barely noticeable |
 | `'cubic-*'`, `'quartic-*'`, `'quintic-*'` | Progressively sharper acceleration |
-| `'expo-*'` | Extreme – near-still, then a rush |
+| `'expo-*'` | Extreme - near-still, then a rush |
 | `'circ-*'` | Slow, then a sudden hard pull |
-| `'back-*'` | Overshoots slightly and settles – good for menus popping in |
+| `'back-*'` | Overshoots slightly and settles - good for menus popping in |
 | `'elastic-*'` | Springs past the target and wobbles |
 | `'bounce-*'` | Bounces like a dropped ball |
 
@@ -90,13 +90,13 @@ const t = (BT.ticks % 90) / 89; // 0..1, reaching 1 on the last frame of the cyc
 this.pos = interpolate('bounce-out', new Vector2i(20, 20), new Vector2i(200, 180), t);
 ```
 
-Watch the argument order – it is the reverse of `applyEasing`: `interpolate(easing, start, end, t)` but
+Watch the argument order - it is the reverse of `applyEasing`: `interpolate(easing, start, end, t)` but
 `applyEasing(t, easing)`.
 
 ## Notes
 
 - Do timing in `update()`, not `render()`.
-- Round to whole numbers before drawing (`Math.floor`) – rendering is integer-only.
+- Round to whole numbers before drawing (`Math.floor`) - rendering is integer-only.
 - `Timer.fireIfElapsed()` advances its own state, so call it once per frame.
 
 See `docs/basics.md`.

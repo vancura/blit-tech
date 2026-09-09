@@ -8,7 +8,7 @@
  * of members these three files actually touch and restores the original property
  * descriptors once the test finishes. This is preferred over Node's `node:test`
  * `mock.module()` API, which still requires the `--experimental-test-module-mocks` flag on
- * Node 22 and has open upstream bugs affecting ESM interop – not worth the fragility here.
+ * Node 22 and has open upstream bugs affecting ESM interop - not worth the fragility here.
  *
  * `drawRectFill`/`drawRect`/`systemPrint` MUST always be stubbed: an un-booted real `BT`
  * does not no-op them, it falls into a DOM-touching "engine not ready" error path. The
@@ -44,10 +44,10 @@ const SAFE_DEFAULTS = {
 /**
  * Installs safe, test-controllable defaults onto the real `BT` object, merging in
  * `overrides`, and registers a `t.after()` cleanup that restores every original property
- * descriptor – so no state ever leaks from one test to the next.
+ * descriptor - so no state ever leaks from one test to the next.
  *
- * @param {import('node:test').TestContext} t – The running test's context (for `t.after()`).
- * @param {Partial<typeof SAFE_DEFAULTS>} [overrides] – Per-key replacements, e.g.
+ * @param {import('node:test').TestContext} t - The running test's context (for `t.after()`).
+ * @param {Partial<typeof SAFE_DEFAULTS>} [overrides] - Per-key replacements, e.g.
  *   `{ isPointerActive: (slot) => slot === 0 }`.
  */
 function stubBt(t, overrides = {}) {
