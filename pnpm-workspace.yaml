@@ -26,6 +26,14 @@ overrides:
   # `security:audit` covers dev + prod, so it fails CI. 3.1.6 is the patch; pinned to the
   # latest 3.x (3.1.7) rather than the 4.x major, since ajv declares `^3.0.1`.
   fast-uri@<3.1.6: ^3.1.7
+  # GHSA-rgj7-g3m4-5g8c (GHSA-g89c-p67h-r497 / GHSA-2jg2-4ch7-h545, high): libheif
+  # vulnerabilities. Dev-only, reached through miniflare via wrangler
+  # (packages/website devDependency) for OG image generation, so it never enters a
+  # runtime bundle - but `security:audit` covers dev + prod, so it fails CI. No wrangler
+  # release (checked up to the latest 5.x alpha pulled by wrangler@4.130.0) bundles a
+  # patched miniflare - every version still pins sharp@0.35.2 - so this overrides the
+  # transitive dependency directly. 0.35.4 is the patch.
+  sharp@<0.35.4: ^0.35.4
 
 allowBuilds:
   esbuild: true
