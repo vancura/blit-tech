@@ -161,6 +161,11 @@ Never hand-roll panels, buttons, or HUD text colors in a demo. Of the 46 demos, 
 are `flurry`, `hello-world`, `hypercube`, `logo-lowres` (a bare-bones starter plus three immersive/showcase pieces, none
 with a demo HUD).
 
+The invariants below are covered by `node:test` unit tests in `src/shared/__tests__/` (slot allocation and collisions,
+the draw-command pool's allocates-nothing-per-frame claim, layout anchor math, widget value mapping, gesture and D-pad
+edge semantics) – see the `/test demos` skill for the full file-by-file breakdown. `_partials/demo-shell.js` and
+individual demo files under `src/<topic>.js` are not part of that coverage.
+
 - `applyTheme(this.palette)` in `init()`, before `BT.paletteSet()` – installs the 12 shared UI colors (slots 240-251 by
   default; pass a `startSlot` if that range collides)
 - `ui.tick()` as the first line of `update()` whenever the demo uses `{ key }` bindings, gestures, or the D-pad. This is
