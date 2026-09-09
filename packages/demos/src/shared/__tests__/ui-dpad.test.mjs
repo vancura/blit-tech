@@ -14,13 +14,7 @@ import { UiContext } from '../ui-core.js';
 import { applyTheme } from '../ui-theme.js';
 import { dpadIsDown, dpadIsPressed, dpadWidget, stepDpad } from '../ui-dpad.js';
 import { stubBt } from './bt-stub.mjs';
-
-/**
- * @returns {{ size: number, set: Function, setNamed: Function }}
- */
-function createFakePalette() {
-    return { size: 256, set() {}, setNamed() {} };
-}
+import { createFakePalette } from './ui-test-helpers.mjs';
 
 // This must run before any other test in this file calls applyTheme() – T.ready starts
 // false for a freshly loaded ui-theme.js module and never resets, so this guard is only

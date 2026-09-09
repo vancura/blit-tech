@@ -6,31 +6,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { hitContains, UI_ANCHORS, UiContext } from '../ui-core.js';
-import { applyTheme } from '../ui-theme.js';
+import { hitContains, UI_ANCHORS } from '../ui-core.js';
 import { stubBt } from './bt-stub.mjs';
-
-/**
- * A minimal fake palette, matching the surface applyTheme() writes into.
- *
- * @returns {{ size: number, set: Function, setNamed: Function }}
- */
-function createFakePalette() {
-    return { size: 256, set() {}, setNamed() {} };
-}
-
-/**
- * Applies the theme (required before any UiContext.begin() call) and returns a fresh
- * UiContext – fresh per test, so no per-instance state (hitRects, pointer, tickPointer,
- * commands) leaks between cases.
- *
- * @returns {UiContext}
- */
-function createReadyContext() {
-    applyTheme(createFakePalette());
-
-    return new UiContext();
-}
+import { createReadyContext } from './ui-test-helpers.mjs';
 
 describe('hitContains', () => {
     const rec = { x: 10, y: 10, w: 20, h: 20 };

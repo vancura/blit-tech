@@ -1,31 +1,16 @@
 /**
  * Unit tests for the shared UI kit's widgets: slider value mapping, checkbox/pip state, and
  * meter clamping. Every widget needs an open UiContext group (ctx.begin()), so tests share
- * the same `createReadyContext()` + `stubBt()` setup as ui-core.test.mjs.
+ * the same `createReadyContext()` (from ui-test-helpers.mjs) + `stubBt()` setup as
+ * ui-core.test.mjs.
  */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { CMD_RECT_FILL, UI_ANCHORS, UiContext } from '../ui-core.js';
-import { applyTheme } from '../ui-theme.js';
+import { CMD_RECT_FILL, UI_ANCHORS } from '../ui-core.js';
 import { checkbox, meter, pip, slider } from '../ui-widgets.js';
 import { stubBt } from './bt-stub.mjs';
-
-/**
- * @returns {{ size: number, set: Function, setNamed: Function }}
- */
-function createFakePalette() {
-    return { size: 256, set() {}, setNamed() {} };
-}
-
-/**
- * @returns {UiContext}
- */
-function createReadyContext() {
-    applyTheme(createFakePalette());
-
-    return new UiContext();
-}
+import { createReadyContext } from './ui-test-helpers.mjs';
 
 describe('slider', () => {
     it('clamps an out-of-range value even with no drag in progress', (t) => {
