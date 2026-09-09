@@ -13,8 +13,10 @@
  * - Every NAV_HIDDEN_SLUGS / RETIRED_SLUGS entry is still meaningful (no stale rows).
  * - Every demo carries a one-line `@description` header tag of a length that survives every
  *   social-card consumer intact (see DESCRIPTION_MIN_CHARS / DESCRIPTION_MAX_CHARS).
+ * - Every live slug appears exactly once in the `## Demos` list in README.md, and every
+ *   demos.blit386.dev/<slug> link in that list resolves to a live slug.
  */
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -198,6 +200,81 @@ function findOrderBijectionFailures(diskSlugs, diskSlugSet) {
     return failures;
 }
 
+// Matches a README demo link of the form `[slug](https://demos.blit386.dev/slug)`, global so a
+// line with more than one such link (e.g. a stale cross-reference alongside the real entry) has
+// every occurrence inspected, not just the first.
+const README_DEMO_LINK_PATTERN = /\[([a-z0-9-]+)\]\(https:\/\/demos\.blit386\.dev\/([a-z0-9-]+)\)/g;
+
+/**
+ * Extract the demo slugs linked from the `## Demos` section of README.md, scoped to that
+ * section (up to the next `## ` heading) so links elsewhere in the file - the intro's bare
+ * `demos.blit386.dev` link and the "Browser and Renderer" section's splash-video mention -
+ * are never mistaken for list entries. Exported so it can be unit-tested without touching disk.
+ * @param {string} readmeText - Full contents of README.md.
+ * @returns {string[]} Slugs in document order, one entry per link found (duplicates preserved,
+ *   including more than one link on the same line).
+ */
+export function extractReadmeDemoSlugs(readmeText) {
+    const lines = readmeText.split('\n');
+    const start = lines.findIndex((line) => line.trim() === '## Demos');
+
+    if (start === -1) {
+        return [];
+    }
+
+    /** @type {string[]} */
+    const slugs = [];
+
+    for (const line of lines.slice(start + 1)) {
+        if (/^## /.test(line)) {
+            break;
+        }
+
+        for (const match of line.matchAll(README_DEMO_LINK_PATTERN)) {
+            slugs.push(match[2]);
+        }
+    }
+
+    return slugs;
+}
+
+/**
+ * Validate the README `## Demos` list against the live disk slug set: every live slug appears
+ * exactly once, and no entry links to a slug that is not live. Exported so it can be
+ * unit-tested without touching disk.
+ * @param {string[]} diskSlugs - Slugs found on disk.
+ * @param {string[]} readmeSlugs - Slugs linked from the README `## Demos` list, in list order.
+ * @returns {string[]} Failure messages, empty when the list matches disk exactly.
+ */
+export function findReadmeListFailures(diskSlugs, readmeSlugs) {
+    /** @type {string[]} */
+    const failures = [];
+    const diskSlugSet = new Set(diskSlugs);
+    const occurrences = new Map();
+
+    for (const slug of readmeSlugs) {
+        occurrences.set(slug, (occurrences.get(slug) ?? 0) + 1);
+
+        if (!diskSlugSet.has(slug)) {
+            failures.push(`README.md demo list links to "${slug}" but src/${slug}.js is missing`);
+        }
+    }
+
+    for (const slug of diskSlugs) {
+        if (!occurrences.has(slug)) {
+            failures.push(`src/${slug}.js is missing from the README.md demo list`);
+        }
+    }
+
+    for (const [slug, count] of occurrences) {
+        if (count > 1 && diskSlugSet.has(slug)) {
+            failures.push(`README.md demo list links to "${slug}" ${count} times, expected exactly once`);
+        }
+    }
+
+    return failures;
+}
+
 /**
  * Validate that no live slug collides with a vintage URL key mapping elsewhere, which would
  * steal that demo's public path.
@@ -284,6 +361,9 @@ function main() {
     const registryDrifted =
         registrySlugSet.size !== diskSlugSet.size || [...registrySlugSet].some((slug) => !diskSlugSet.has(slug));
 
+    const readmeText = readFileSync(join(ROOT, 'README.md'), 'utf8');
+    const readmeSlugs = extractReadmeDemoSlugs(readmeText);
+
     const errors = [
         ...(registryDrifted
             ? [
@@ -291,6 +371,7 @@ function main() {
               ]
             : []),
         ...findOrderBijectionFailures(diskSlugs, diskSlugSet),
+        ...findReadmeListFailures(diskSlugs, readmeSlugs),
         ...findVintageKeyCollisions(diskSlugs, VINTAGE_URLS),
         ...findVintageUrlFailures(VINTAGE_URLS, diskSlugSet, RETIRED_SLUGS),
         ...[...NAV_HIDDEN_SLUGS]
@@ -308,7 +389,8 @@ function main() {
         }
 
         console.error(`\n${errors.length} error(s). Fix plugins/demo-order.js, plugins/demo-vintage-urls.js,`);
-        console.error('plugins/demo-registry.js (NAV_HIDDEN_SLUGS), or the matching src/*.js file(s).');
+        console.error('plugins/demo-registry.js (NAV_HIDDEN_SLUGS), README.md (the ## Demos list), or the matching');
+        console.error('src/*.js file(s).');
         console.error(`@description must be one line, ${DESCRIPTION_MIN_CHARS}-${DESCRIPTION_MAX_CHARS} characters.`);
         process.exit(1);
     }
