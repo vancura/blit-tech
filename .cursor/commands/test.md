@@ -30,22 +30,26 @@ regression is an intentional change.
 
 ## packages/demos
 
-Demo _content_ (`src/*.js`, the interactive WebGPU pieces) has no automated tests. Do not look for Vitest, Playwright,
-or a `tests/` directory for those – automated unit or E2E coverage would require a headless WebGPU runtime (not broadly
-available) and would largely duplicate what `packages/blit386`'s own suite already covers. Correctness is verified by:
+Demo _content_ (`src/<topic>.js`, the interactive WebGPU pieces) has no automated tests. Do not look for Vitest,
+Playwright, or a `tests/` directory for those - automated unit or E2E coverage would require a headless WebGPU runtime
+(not broadly available) and would largely duplicate what `packages/blit386`'s own suite already covers. Correctness is
+verified by:
 
 1. Running the dev server (`pnpm run dev`) and opening the demo in a browser
-2. The production build (`pnpm run build`) – a build failure surfaces broken imports or plugin errors
-3. Preflight checks (`/preflight demos`) – format:check, lint, test, spellcheck, knip, check:demo-registry,
+2. The production build (`pnpm run build`) - a build failure surfaces broken imports or plugin errors
+3. Preflight checks (`/preflight demos`) - format:check, lint, test, spellcheck, knip, check:demo-registry,
    check:demo-comment-links, build
 
 What to do instead: verify a new demo with `pnpm run dev` + manual exercise; confirm no build regression with
 `pnpm run build`; check code quality with `/preflight demos` or `/review demos`; full pre-push audit with
 `/deep-review demos`.
 
-Tooling _scripts_ and _plugins_ are different. `pnpm run test` runs `node --test` over two directories –
-`scripts/__tests__/*.test.mjs` and `plugins/__tests__/*.test.mjs` – covering pure helpers that need no browser or
-WebGPU:
+Tooling _scripts_, _plugins_, and the shared UI kit are different. `pnpm run test` runs `node --test` over three
+directories - `scripts/__tests__/*.test.mjs`, `plugins/__tests__/*.test.mjs`, and `src/shared/__tests__/*.test.mjs` -
+covering pure helpers that need no browser or WebGPU. The shared UI kit's tests do import the real `blit386` package
+(for `Rect2i`/`Vector2i` and to unit-test `ui-core.js` etc. against it), so `pnpm --filter blit386 run build` must have
+produced `packages/blit386/dist/` first - `pnpm run test` builds it automatically via
+`../../scripts/ensure-engine-built.mjs` when missing or stale, same as `dev`/`build`/`preview`/`knip` already do.
 
 | Test file | Covers |
 | --- | --- |
@@ -53,36 +57,42 @@ WebGPU:
 | `scripts/__tests__/capture-og-image.test.mjs` | OG card argument parsing, scale-mode resolution, integer/fit/auto scale math, the ffmpeg filter graph, the `!important` canvas-prep script |
 | `plugins/__tests__/demo-registry.test.mjs` | `@description` and `@ogScale` header-tag parsing across both comment styles |
 | `plugins/__tests__/social-meta.test.mjs` | The social head block: tag set, escaping, channel-aware URLs, JSON-LD, OG image fallback |
+| `src/shared/__tests__/ui-theme.test.mjs` | `applyTheme()`: default/custom `startSlot`, the 12-color block, out-of-range guards, the fresh-copy-vs-singleton distinction |
+| `src/shared/__tests__/ui-core.test.mjs` | `hitContains()`'s inclusive/exclusive edges, the draw-command pool's allocates-nothing-per-frame invariant (and its overflow-growth path), `begin()`/`end()` group invariants, layout anchor math for all five `UI_ANCHORS` |
+| `src/shared/__tests__/ui-widgets.test.mjs` | `slider()` pixel/value mapping and clamping, `checkbox()` click and key-edge toggling, `pip()`'s purely-visual state, `meter()` fraction clamping |
+| `src/shared/__tests__/ui-gestures.test.mjs` | Swipe direction/threshold/time-window recognition, the widget-exclusion gate, the dominant-axis tie-break |
+| `src/shared/__tests__/ui-dpad.test.mjs` | `isDown`/`isPressed` edge semantics across ticks, `show: 'auto'` vs `'always'` visibility gating |
 
-The live capture-to-file pipelines (driving `agent-browser`, encoding with ffmpeg) are not covered – verify those by
-hand, running the script against a real demo.
+The live capture-to-file pipelines (driving `agent-browser`, encoding with ffmpeg) are not covered - verify those by
+hand, running the script against a real demo. `_partials/demo-shell.js` (shell chrome, needs a DOM harness) and the
+individual demo files under `src/<topic>.js` remain uncovered, per the "no automated tests" note above.
 
-Manual hot-reload check (nothing automated covers this – run by hand after touching hot-reload wiring):
+Manual hot-reload check (nothing automated covers this - run by hand after touching hot-reload wiring):
 
 1. `pnpm run dev:watch`, then open `basics` (shell URL; the demo runs inside the `?embed&source` iframe)
-2. Edit a `render()` color constant – visual change, state kept, console shows `[BT] Hot reload #1 (methods)`
-3. Edit `init()` – re-init runs, `onHotReload` fires with a snapshot, no page reload
-4. Edit `configure()`'s `displaySize` – full page reload
-5. Edit a `public/sprites/*.png` used by a demo – texture updates in place, no reload
-6. Edit `public/audio/blip.wav` – the next `soundPlay` uses the new sound; replacing playing music restarts the track
-7. Edit `src/shared/ui.js` – demo state kept, UI kit still works; D-pad visibility may reset (expected)
-8. Edit `_partials/layout.html` or `_partials/demo-shell.js` – full reload of the shell only
-9. Jump to another demo via the banner combobox or prev/next – address bar updates via `pushState`, only the iframe
+2. Edit a `render()` color constant - visual change, state kept, console shows `[BT] Hot reload #1 (methods)`
+3. Edit `init()` - re-init runs, `onHotReload` fires with a snapshot, no page reload
+4. Edit `configure()`'s `displaySize` - full page reload
+5. Edit a `public/sprites/*.png` used by a demo - texture updates in place, no reload
+6. Edit `public/audio/blip.wav` - the next `soundPlay` uses the new sound; replacing playing music restarts the track
+7. Edit `src/shared/ui.js` - demo state kept, UI kit still works; D-pad visibility may reset (expected)
+8. Edit `_partials/layout.html` or `_partials/demo-shell.js` - full reload of the shell only
+9. Jump to another demo via the banner combobox or prev/next - address bar updates via `pushState`, only the iframe
    reloads, browser back/forward restores the previous demo
-10. Edit an engine `src/` file – the library rebuilds and the page full-reloads
-11. Repeat steps 2-3 with `?backend=software` on the embed URL – full reload is the known tier-detection gap, not a
+10. Edit an engine `src/` file - the library rebuilds and the page full-reloads
+11. Repeat steps 2-3 with `?backend=software` on the embed URL - full reload is the known tier-detection gap, not a
     regression
-12. Introduce a syntax error in a demo – the old demo keeps running; fixing it recovers automatically
+12. Introduce a syntax error in a demo - the old demo keeps running; fixing it recovers automatically
 
 ## packages/website
 
 `node --test scripts/__tests__/*.test.mjs`, run via `pnpm run test` (or `pnpm run test:watch`). Covers the sync and
-build helper scripts, not the rendered site itself – visual/content correctness is verified by `pnpm run build` + manual
+build helper scripts, not the rendered site itself - visual/content correctness is verified by `pnpm run build` + manual
 check.
 
 ## packages/kit and packages/create-blit386
 
-Seven `node --test` suites, 57 cases total. No Vitest, no Playwright, no top-level `tests/` directory – each package
+Seven `node --test` suites, 57 cases total. No Vitest, no Playwright, no top-level `tests/` directory - each package
 owns its own `test/` folder.
 
 | Suite | Cases | Covers |
@@ -95,7 +105,7 @@ owns its own `test/` folder.
 | `packages/kit/test/env.test.mjs` | 3 | `satisfiesCaretRange` / `exceedsCaretRange`: the caret-range comparison behind `doctor` and `upgrade` |
 | `packages/kit/test/upgrade.test.mjs` | 2 | `blit upgrade`: the not-under-git abort, and the offline bump that offers `migrate` when renames are pending |
 
-Prerequisites: a build for the scaffolder suite – it shells out to `packages/create-blit386/dist/index.js` and
+Prerequisites: a build for the scaffolder suite - it shells out to `packages/create-blit386/dist/index.js` and
 `packages/kit/dist/cli.js`. The kit package rebuilds itself through a `pretest` script; the scaffolder package does not,
 so run `pnpm run build` first if either `dist/` is missing or stale.
 

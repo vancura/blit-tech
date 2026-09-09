@@ -20,7 +20,7 @@ The description after the package argument becomes the commit subject.
 
 2. Run quality checks
 
-- Execute `/preflight <package>` (or the underlying `pnpm run preflight` / package-specific checks – see that skill)
+- Execute `/preflight <package>` (or the underlying `pnpm run preflight` / package-specific checks - see that skill)
 - If any check fails, stop and report errors; don't proceed with failing checks
 
 3. Review changes
@@ -36,9 +36,9 @@ The description after the package argument becomes the commit subject.
   - Format: `<type>(<scope>): <description>`
   - Types (commitlint-enforced): `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
     `revert`. Subject lowercase, no trailing period, header at most 100 characters
-  - Scopes are convention only, not enforced by commitlint – prefer one already used by that package's history (see the
+  - Scopes are convention only, not enforced by commitlint - prefer one already used by that package's history (see the
     per-package list below)
-- DCO sign-off: `git commit -s` – required for every package. `.github/workflows/dco.yml` is a single repo-wide workflow
+- DCO sign-off: `git commit -s` - required for every package. `.github/workflows/dco.yml` is a single repo-wide workflow
   (no path filter) that checks every commit in a PR/push regardless of which package it touches
 - Include trailer: `Co-Authored-By: Claude <noreply@anthropic.com>`
 
@@ -64,9 +64,9 @@ The description after the package argument becomes the commit subject.
 
 - `blit386`: `docs`, `audio`, `assets`, `overlay`, `core`, `api`, `ci`, `renderer`, `tests`, `utils`, `rules`,
   `release`, `security`, `input`, `deps` / `deps-dev`, `visual`, `camera` (rare/legacy: `examples`)
-- `demos`: `demos` (most common – demo JS source), `ui` (shared UI kit), `assets`, `docs`, `skills`, `deps`
+- `demos`: `demos` (most common - demo JS source), `ui` (shared UI kit), `assets`, `docs`, `skills`, `deps`
 - `website`: `content`, `ci`, `docs`, `deps`, `config`
-- `kit` / `create-blit386`: no fixed convention beyond the general type enum – pick a scope that matches the changed
+- `kit` / `create-blit386`: no fixed convention beyond the general type enum - pick a scope that matches the changed
   area (`kit`, `scaffold`, `templates`, `cli`, `migrations`, `docs`, `deps`)
 - `root` (files outside every package: root `CLAUDE.md`, `.claude/`, `.husky/`, `.github/`, root configs): `repo` is the
   established scope (see recent history, e.g. `refactor(repo): ...`)

@@ -26,8 +26,8 @@ repo tree from root.
 1. Run formatters
 
 - Whole repo (no argument, or `root`): `pnpm run format` from the repository root - Biome across every package (`.ts`,
-  `.tsx`, `.js`, `.jsx`, `.cjs`, `.mjs`, `.json`, `.jsonc`, `.css`) plus Prettier for Markdown/YAML (`.md`, `.mdx`,
-  `.yml`, `.yaml`) repo-wide.
+  `.tsx`, `.js`, `.jsx`, `.cjs`, `.mjs`, `.json`, `.jsonc`, `.css`) plus Prettier for Markdown/MDX/YAML/MDC (`.md`,
+  `.mdx`, `.mdc`, `.yml`, `.yaml`) repo-wide.
 - A single package: `pnpm --filter <name> run format` (`blit386`, `blit386-demos`, `blit386-website`, or the package's
   own `name` field), or `cd packages/<dir> && pnpm run format`. `kit` and `create-blit386` have no package-local
   `format` script yet - their files are covered by the root-wide run above.
@@ -48,7 +48,7 @@ repo tree from root.
 | File Types | Tool | Config |
 | --- | --- | --- |
 | `.ts`, `.tsx`, `.js`, `.jsx`, `.cjs`, `.mjs`, `.json`, `.jsonc`, `.css` | Biome | `biome.json` |
-| `.md`, `.mdx`, `.yml`, `.yaml` | Prettier | `prettier.config.js` |
+| `.md`, `.mdx`, `.mdc`, `.yml`, `.yaml` | Prettier | `prettier.config.js` |
 
 ## Formatting Rules
 

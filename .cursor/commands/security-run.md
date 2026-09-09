@@ -9,7 +9,7 @@ scanner availability is uncertain.
 /security-run <package>
 ```
 
-Where `<package>` is `blit386` or `demos`. `website`, `kit`, and `create-blit386` have no MCP-backed security scanning –
+Where `<package>` is `blit386` or `demos`. `website`, `kit`, and `create-blit386` have no MCP-backed security scanning -
 run their `security:audit` script directly (see `/deep-review <package>` step 3) instead of this skill.
 
 ## Prerequisites
@@ -65,7 +65,7 @@ run their `security:audit` script directly (see `/deep-review <package>` step 3)
 ## Periodic governance (monthly)
 
 `.github/workflows/mcp-governance-audit.yml` runs a governance-only pass from the repo root automatically every month
-and fails (exit 1) if it finds an unaccepted shadow MCP entry – that is the enforced check. Run it by hand only as an
+and fails (exit 1) if it finds an unaccepted shadow MCP entry - that is the enforced check. Run it by hand only as an
 early check or when you specifically need agent-session context; from a package directory:
 
 ```bash
@@ -76,7 +76,7 @@ pnpm run security:mcp-preflight -- \
   --output-json security-reports/mcp-governance-$(date +%Y-%m).json
 ```
 
-`--mcps-dir` is not required for governance-only calls – that mode never reads the MCP session's tool-state folder, only
+`--mcps-dir` is not required for governance-only calls - that mode never reads the MCP session's tool-state folder, only
 static `*.mcp.json` files.
 
 Then run it once more with the monorepo root as `--repo-root` (`--repo-root ../..` from a package directory), keeping
@@ -86,11 +86,11 @@ and never scans the tracked root `.mcp.json`.
 
 Review shadow MCP flags. Exactly one entry is accepted, and only when all four fields match: name `blit386-docs`,
 classification `shadow-remote`, config path the repo-root `.mcp.json`, and URL `https://blit386.dev/mcp`. A shadow count
-of one matching all four is a clean run; anything else – a different name, a different config path, or the same name
-pointing elsewhere – is a finding, not an accepted entry. See "Accepted MCP entries" in the runbook. This is no longer
+of one matching all four is a clean run; anything else - a different name, a different config path, or the same name
+pointing elsewhere - is a finding, not an accepted entry. See "Accepted MCP entries" in the runbook. This is no longer
 just a human judgment call: the report's `governance.unacceptedShadowServers` and `summary.proceed` (the exit code)
 already reflect it, matched against `ACCEPTED_SHADOW_MCP_ENTRIES` in `mcp-preflight.mjs` (name and classification;
-config path is checked against the repo root's own `.mcp.json`) – the URL field is enforced separately by
+config path is checked against the repo root's own `.mcp.json`) - the URL field is enforced separately by
 `pnpm run agents:check`, so a finding here still needs a human to decide migrate/remove vs. update the allowlist.
 
 The preflight report prints name, classification, and config path but not the URL, so the URL half is enforced
@@ -98,7 +98,7 @@ separately by `pnpm run agents:check` (`findProjectMcpFailures` in `scripts/chec
 literal `https://blit386.dev/mcp` rather than just comparing the root `.mcp.json` against the website's discovery card,
 so a coordinated edit aiming both files at another host fails CI too.
 
-Report exactly the three fields the runbook's report template asks for – server name, classification, and config path –
+Report exactly the three fields the runbook's report template asks for - server name, classification, and config path -
 and nothing else. Never output secrets, credentials, auth headers, or a full MCP config body. Rewrite config paths
 repo-relative before pasting them anywhere: the preflight prints absolute paths, so a copied report otherwise leaks the
 local username.

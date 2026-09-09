@@ -6,7 +6,7 @@ Use this skill when the task involves:
 - benchmarking a new hot method or allocation pattern
 - working on the local baseline/compare workflow
 
-For visual correctness verification (not performance), use `/test blit386 visual` – see the Visual Regression Tests
+For visual correctness verification (not performance), use `/test blit386 visual` - see the Visual Regression Tests
 section in `packages/blit386/CLAUDE.md`.
 
 ## CPU Benchmarks
@@ -39,7 +39,7 @@ Rules:
 
 ## Local Baseline/Compare Workflow
 
-Benchmarks run locally only – CI does not run or gate on benchmarks (GitHub-hosted runners are too noisy for a useful
+Benchmarks run locally only - CI does not run or gate on benchmarks (GitHub-hosted runners are too noisy for a useful
 regression threshold).
 
 - on a clean checkout of `main`: `pnpm run bench:baseline`, which writes `benchmark-baseline.json`
@@ -56,7 +56,7 @@ replace the CI gate.
 ### Coverage reminder
 
 `.claude/rules/bench-coverage.md` auto-loads when editing `src/render/`, `src/input/`, `src/overlay/`, `src/core/`,
-`src/assets/`, or `src/utils/` – the engine's per-frame hot paths – and reminds you to add or extend a `*.bench.ts`
+`src/assets/`, or `src/utils/` - the engine's per-frame hot paths - and reminds you to add or extend a `*.bench.ts`
 alongside a meaningful change there. `scripts/check-bench-coverage.mjs` backs that up at push time: the `pre-push` hook
 runs it and prints a reminder (never fails the push) when a push touches one of those directories without touching any
 `*.bench.ts` file.
