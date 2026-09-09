@@ -1,12 +1,3 @@
----
-name: format
-description:
-  Format all code with Biome and Prettier and verify the result with format:check. Use when the user wants formatting
-  done and confirmed - before a commit or PR, when a format check has failed in CI or a hook, or any time the result
-  needs to be trustworthy rather than just fast. For a no-verification quick pass, use quick-format instead. Takes a
-  package argument (blit386, demos, website, kit, create-blit386, or root for repo-wide files).
----
-
 # Format Code
 
 Format code files using the project's formatters and verify results.

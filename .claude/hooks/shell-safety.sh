@@ -22,7 +22,8 @@
 # checkout's overloaded roles in 2.23; restore is the current, recommended spelling) and must
 # always land in the same tier - see BT-413. Do not add a new destructive command to either tier
 # without updating both copies of this file: this one and
-# packages/kit/content/hooks/shell-safety.sh (the copy shipped into every scaffolded game).
+# packages/kit/content/hooks/shell-safety.sh (the copy shipped into every scaffolded game, and
+# symlinked from this repo's own .cursor/hooks/shell-safety.sh).
 
 set -u
 

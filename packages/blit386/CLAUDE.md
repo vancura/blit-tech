@@ -33,6 +33,8 @@ Routing that is not obvious from the file tree. For "how does subsystem X work",
 | How does the BLIT386 splash work, and how do I turn it off? | `BT.isSplashVisible`, `HardwareSettings.isSplashEnabled`; `src/splash/`, `docs/guide-splash.md` |
 | How does dev vs. release detection work? | `BT.isDevMode`; `src/utils/devMode.ts`, dev marker set by `src/vite/transform.ts`, `docs/api-core.md#dev-vs-release-mode` |
 | How is agent config drift checked? | `scripts/check-agent-config.mjs` (root), wired into `pnpm run agents:check` and the `quality` CI job |
+| Where do the `.cursor/commands/*.md` slash commands come from? | Generated from `.claude/skills/*/SKILL.md` (frontmatter stripped) by `scripts/sync-cursor-commands.mjs` (root); never hand-edit them. `pnpm run sync:cursor-commands` regenerates, `pnpm run sync:cursor-commands:check` reports drift |
+| Where are Cursor agent rules and hooks? | `.cursor/rules/*.mdc` mirrors only the rule files still standalone in root `.claude/rules/` (currently `docs-sync-required`, `named-constants`) - everything else Cursor gets from `AGENTS.md`, which it reads natively; `.cursor/hooks.json`; `.cursor/mcp.json` (Cursor's own schema, not a symlink to root `.mcp.json` - see `scripts/check-agent-config.mjs`'s `findCursorMcpFailures`) |
 | Where is the public docs site? | `packages/website` builds it from this package's `docs/`; `docs/_sitemap.json` controls what publishes |
 | Dependency security policy / CI audit gate? | `docs/security/dependency-policy.md`, `docs/security/audit-exceptions.md` |
 | Where is the annotated `src/` tree? | `.claude/rules/architecture.md` |
@@ -114,7 +116,8 @@ blit386.dev banner you must never hand-edit - lives in `.claude/rules/docs-autho
 
 Scripts are `pnpm run <script>` from this package's directory (or `pnpm --filter blit386 run <script>` from the repo
 root); `package.json` is the list, and `pnpm run preflight` is the gating set. Shell commands are rewritten by
-`rtk hook claude` - prefer `rtk read` / `rtk grep` over native Read/Grep for exploration.
+`rtk hook claude` (Claude Code) / `rtk hook cursor` (Cursor) - prefer `rtk read` / `rtk grep` over native Read/Grep for
+exploration.
 
 ## Testing
 

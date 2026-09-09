@@ -10,7 +10,9 @@ import {
     discoverPackageAgentRoots,
     findAgentsPointerFailures,
     findCopilotPointerFailures,
+    findCursorMcpFailures,
     findProjectMcpFailures,
+    findRulesParityFailures,
     findSkillsSymlinkFailures,
     findZedSettingsFailures,
     isRootMcpIgnoredByGit,
@@ -186,6 +188,39 @@ describe('check-agent-config', () => {
         });
     });
 
+    describe('findRulesParityFailures', () => {
+        it('passes when cursor and claude rule sets match by basename', () => {
+            const failures = findRulesParityFailures(
+                ['docs-sync-required', 'named-constants'],
+                ['docs-sync-required', 'named-constants'],
+            );
+            assert.deepEqual(failures, []);
+        });
+
+        it('fails when a .cursor/rules entry has no matching .claude/rules file', () => {
+            const failures = findRulesParityFailures(['docs-sync-required', 'orphan-rule'], ['docs-sync-required']);
+            assert.equal(failures.length, 1);
+            assert.match(
+                failures[0],
+                /\.cursor\/rules\/orphan-rule\.mdc has no matching \.claude\/rules\/orphan-rule\.md/,
+            );
+        });
+
+        it('fails when a .claude/rules entry has no matching .cursor/rules file', () => {
+            const failures = findRulesParityFailures(['docs-sync-required'], ['docs-sync-required', 'new-rule']);
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /\.claude\/rules\/new-rule\.md has no matching \.cursor\/rules\/new-rule\.mdc/);
+        });
+
+        it('sorts failures and reports both directions in one call', () => {
+            const failures = findRulesParityFailures(['cursor-only'], ['claude-only']);
+            assert.deepEqual(failures, [
+                '.claude/rules/claude-only.md has no matching .cursor/rules/claude-only.mdc',
+                '.cursor/rules/cursor-only.mdc has no matching .claude/rules/cursor-only.md',
+            ]);
+        });
+    });
+
     describe('findProjectMcpFailures', () => {
         const MCP_CONFIG = JSON.stringify({
             mcpServers: { 'blit386-docs': { type: 'http', url: 'https://blit386.dev/mcp' } },
@@ -278,6 +313,57 @@ describe('check-agent-config', () => {
 
         it('does not fail when git could not answer whether the file is ignored', () => {
             assert.deepEqual(findProjectMcpFailures(MCP_CONFIG, SERVER_CARD, null), []);
+        });
+    });
+
+    describe('findCursorMcpFailures', () => {
+        const VALID_CURSOR_MCP = JSON.stringify({
+            mcpServers: { 'blit386-docs': { url: 'https://blit386.dev/mcp' } },
+        });
+
+        it('passes when .cursor/mcp.json declares the pinned server with no type field', () => {
+            assert.deepEqual(findCursorMcpFailures(VALID_CURSOR_MCP), []);
+        });
+
+        it('fails when .cursor/mcp.json is missing', () => {
+            const failures = findCursorMcpFailures(null);
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /\.cursor\/mcp\.json is missing/);
+        });
+
+        it('fails when .cursor/mcp.json is not parseable as JSON', () => {
+            const failures = findCursorMcpFailures('{not json');
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /\.cursor\/mcp\.json is not parseable as JSON/);
+        });
+
+        it('fails when the mcpServers object is absent', () => {
+            const failures = findCursorMcpFailures('{}');
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /no mcpServers object/);
+        });
+
+        it('fails when the blit386-docs server is not declared', () => {
+            const config = JSON.stringify({ mcpServers: { other: { url: 'https://example.com/mcp' } } });
+            const failures = findCursorMcpFailures(config);
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /does not declare the `blit386-docs` server/);
+        });
+
+        it('fails when the server entry carries a type field (Cursor reserves it for local stdio servers)', () => {
+            const config = JSON.stringify({
+                mcpServers: { 'blit386-docs': { type: 'http', url: 'https://blit386.dev/mcp' } },
+            });
+            const failures = findCursorMcpFailures(config);
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /must not have a `type` field/);
+        });
+
+        it('fails when .cursor/mcp.json drifts off the pinned URL', () => {
+            const config = JSON.stringify({ mcpServers: { 'blit386-docs': { url: 'https://blit386.dev/mcp/v2' } } });
+            const failures = findCursorMcpFailures(config);
+            assert.equal(failures.length, 1);
+            assert.match(failures[0], /declares URL .*expected the pinned/);
         });
     });
 

@@ -1,0 +1,39 @@
+---
+description: Named constants over repeated literals compared at more than one site
+globs:
+  packages/*/src/**, packages/*/templates/**, packages/*/content/**, packages/*/scripts/**, packages/*/test/**,
+  packages/*/package.json, scripts/**
+alwaysApply: false
+---
+
+# Named constants over repeated literals
+
+A string or numeric literal that is **compared** - `===`, `switch`, a discriminant check, an `includes()` membership
+test - at more than one comparison site gets one named constant, or in TypeScript one literal-union type constraining
+every use. Never re-type the literal.
+
+Scope the constant to its consumers. Repeats inside a single file stay a module-local `const`; the moment a second file
+or a second package needs the value, export it once and import it everywhere. Do not export a constant nothing outside
+its own file reads.
+
+## Reach for the existing type first
+
+Before adding a constant, check whether a literal-union type already describes the domain. Widening that union is better
+than standing a parallel constant next to it.
+
+## When it applies
+
+| Situation | Applies |
+| --- | --- |
+| The same literal compared in two or more files | yes |
+| The same literal compared twice in one file | yes - as a module-local `const`, not an export |
+| A literal that names something in another package | yes |
+| A literal that also has to appear in a shader source, a JSON config, or a generated project file | yes - thread it through, or document the duplication as a manual-sync hazard at both sites |
+| A literal used exactly once | no |
+| Structural values (`0`, `1`, `-1`) as an index, a length, or a bound | no |
+| A test that deliberately hardcodes the expected wire value | no |
+| The constant's own definition site | no |
+
+Full policy, per-package notes, and worked examples: `CLAUDE.md`.
+
+Claude: `.claude/rules/named-constants.md` (same content, `paths:` frontmatter instead of `globs:`).

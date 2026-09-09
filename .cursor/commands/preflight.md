@@ -1,11 +1,3 @@
----
-name: preflight
-description:
-  Run all quality checks for a package (format, lint, typecheck, spellcheck, knip, tests, build, and package-specific
-  gates) before committing or pushing. Use when the user wants to verify code is ready to commit or run every check at
-  once. Takes a package argument (blit386, demos, website, kit, create-blit386, or root).
----
-
 # Preflight Checks
 
 Run comprehensive quality checks before committing or pushing code.
@@ -107,7 +99,7 @@ Preflight runs under `.husky/pre-push`, which git invokes with `GIT_DIR` exporte
 any git subprocess a preflight step spawns for some other directory silently acts on the repo being pushed from instead
 \- `git init` in a fixture repo then writes `bare = true` into the shared `.git/config` and breaks git in every
 checkout. The hook clears git's `--local-env-vars` before dispatching, and every git call in `packages/website/scripts/`
-must pass `env: gitEnv()` ([`packages/website/scripts/git-env.mjs`](../../../packages/website/scripts/git-env.mjs)); the
+must pass `env: gitEnv()` ([`packages/website/scripts/git-env.mjs`](../../packages/website/scripts/git-env.mjs)); the
 same scrub is inline in `packages/blit386/scripts/gen-api-history.test.mjs`. Guarded by
 `packages/website/scripts/__tests__/git-env.test.mjs`.
 
