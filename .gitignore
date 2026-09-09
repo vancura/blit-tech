@@ -62,6 +62,15 @@ ai-rules/
 *.iml
 .zed/*
 !.zed/settings.json
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+!.cursor/commands/
+!.cursor/commands/**
+!.cursor/hooks.json
+!.cursor/hooks/
+!.cursor/hooks/**
+!.cursor/mcp.json
 *.swp
 *.swo
 *~

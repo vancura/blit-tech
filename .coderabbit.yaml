@@ -11,6 +11,9 @@
 #   regression baselines; content is not useful for text review.
 # - `.agents/skills/**` is relative symlinks into the matching `.claude/skills/**`;
 #   reviewing both duplicates identical content.
+# - `.cursor/commands/**` are generated verbatim from `.claude/skills/*/SKILL.md`
+#   (frontmatter stripped) by `scripts/sync-cursor-commands.mjs` — reviewing them
+#   would just duplicate review of the source skill file.
 # - `pnpm-lock.yaml` is the single generated workspace lock file (listed
 #   explicitly even though it may already match CodeRabbit defaults).
 # - `packages/website/content/docs/{api,guides,performance,reference}/**` and
@@ -37,6 +40,7 @@ reviews:
     - '!packages/blit386/docs/_api-history.json'
     - '!packages/blit386/tests/visual/__snapshots__/**'
     - '!.agents/skills/**'
+    - '!.cursor/commands/**'
     - '!pnpm-lock.yaml'
     - '!packages/website/content/docs/api/**'
     - '!packages/website/content/docs/guides/**'
