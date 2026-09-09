@@ -26,6 +26,15 @@ overrides:
   # `security:audit` covers dev + prod, so it fails CI. 3.1.6 is the patch; pinned to the
   # latest 3.x (3.1.7) rather than the 4.x major, since ajv declares `^3.0.1`.
   fast-uri@<3.1.6: ^3.1.7
+  # GHSA-gqvv-2mrq-wpjv (moderate): incomplete fix for CVE-2026-39408 - toSSG() still
+  # writes files outside the output directory. GHSA-g6gw-c38x-mqfc (moderate): unbounded
+  # dot-notation nesting in parseBody() can cause memory exhaustion. GHSA-crvj-82cr-hjcx
+  # (moderate): query parser reads params after the URL fragment, causing cache-key and
+  # proxy interpretation differentials. Build-tooling only, reached through fumadocs-core
+  # and waku in packages/website's docs pipeline, so it never enters a runtime bundle -
+  # but `security:audit` covers dev + prod, so it fails CI. 4.13.5 is the patch; pinned
+  # to the latest 4.x (4.13.7) since waku@1.0.0-beta.6 declares hono@^4.12.14.
+  hono@<4.13.5: ^4.13.7
 
 allowBuilds:
   esbuild: true
