@@ -26,9 +26,10 @@ Requirements:
 - Node.js >=22.18.0 (`engines` in `package.json`)
 - pnpm 11.20.0 (`packageManager` in `package.json`)
 
-Claude Code sessions and the optional [devcontainer](.devcontainer/devcontainer.json) (`typescript-node:22-bookworm`)
-auto-run `packages/blit386/scripts/session-start-bootstrap.sh` via their SessionStart hooks / `postCreateCommand`, so a
-fresh checkout gets `pnpm install --frozen-lockfile` without a manual step. See
+AI agent sessions (Claude Code) and the optional [devcontainer](.devcontainer/devcontainer.json)
+(`typescript-node:22-bookworm`) auto-run `packages/blit386/scripts/session-start-bootstrap.sh` via their SessionStart
+hooks / `postCreateCommand`, so a fresh checkout gets `pnpm install --frozen-lockfile` without a manual step. Cursor
+sessions do not (see the Cursor hooks note in `packages/blit386/docs/developer-experience-guide.md#ide-setup`). See
 [Environment bootstrap](packages/blit386/CLAUDE.md#environment-bootstrap-sessionstart-hook-and-devcontainer) in that
 package's `CLAUDE.md` for the full detail.
 
@@ -196,11 +197,12 @@ Pre-commit (lint-staged) and CI/`preflight` now agree: both reject ESLint warnin
 - Spellcheck coverage tests (`test:spellcheck-coverage`)
 - Security preflight tests (`test:security-preflight`)
 
-`docs:links` and `agents:check` are **not** part of any package's `preflight`. Each package's copy of those scripts
-walks the whole repo from the root regardless of which `package.json` invoked it, so they were pulled out of the
-per-package chains to stop a single push running the same full-repo check two to four times. Run them once from the repo
-root (`pnpm run docs:links`, `pnpm run agents:check`); `.husky/pre-push` runs them there, alongside the rest of the root
-gate, after every changed package's `preflight` passes.
+`docs:links`, `agents:check`, and `sync:cursor-commands:check` are **not** part of any package's `preflight`. Each is a
+root-only script that walks (or generates against) the whole repo regardless of which `package.json` invoked it, so all
+three were pulled out of the per-package chains to stop a single push running the same full-repo check two to four
+times. Run them once from the repo root (`pnpm run docs:links`, `pnpm run agents:check`,
+`pnpm run sync:cursor-commands:check`); `.husky/pre-push` runs them there, alongside the rest of the root gate, after
+every changed package's `preflight` passes.
 
 ### Available Commands
 
@@ -220,7 +222,9 @@ pnpm run typecheck                  # Run TypeScript checks
 pnpm run spellcheck                 # Check spelling
 pnpm run knip                       # Find unused exports and dependencies
 pnpm run docs:links                 # Check Markdown links
-pnpm run agents:check               # Check agent config drift (skills symlinks, AGENTS.md pointer, root .mcp.json)
+pnpm run agents:check               # Check agent config drift (skills symlinks, AGENTS.md pointer, root .mcp.json, cursor rules parity, cursor .mcp.json)
+pnpm run sync:cursor-commands       # Generate .cursor/commands/*.md from .claude/skills/*/SKILL.md
+pnpm run sync:cursor-commands:check # Check .cursor/commands/*.md for drift against .claude/skills/*/SKILL.md
 pnpm run sync:doc-banners           # Insert/refresh blit386.dev banners in published docs
 pnpm run sync:doc-banners:check     # Check doc site banner drift
 pnpm run api:history                # Regenerate API version-history manifest
@@ -233,6 +237,7 @@ pnpm run test                       # Run unit tests (alias for test:unit)
 pnpm run test:unit                  # Run unit tests
 pnpm run test:declarations          # Declaration tooling checker tests
 pnpm run test:agent-config          # Agent config drift checker tests
+pnpm run test:cursor-commands       # Cursor commands drift checker tests
 pnpm run test:api-history           # API history generator tests
 pnpm run test:security-preflight    # Security preflight tests
 pnpm run test:visual                # Playwright visual regression (local; not in preflight)
