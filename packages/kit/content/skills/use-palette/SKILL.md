@@ -37,8 +37,9 @@ use `fillBlock` instead of writing the loop:
 ```js
 // fillBlock(start, source, transform) writes transform(source[i], i) into slot start + i,
 // and returns the next free slot after the block.
+// Slots 1..3 are taken above, so this darker copy starts at 4 and must fit inside the 16 slots.
 const next = this.palette.fillBlock(
-  16,
+  4,
   this.baseColors,
   (color) => new Color32(color.r >> 1, color.g >> 1, color.b >> 1),
 );

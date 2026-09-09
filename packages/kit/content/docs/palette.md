@@ -50,17 +50,29 @@ When you want a run of slots built from one list of colors - a darker copy of yo
 copy for a night theme - `fillBlock` does the whole run in one call instead of a hand-written loop:
 
 ```js
-// palette.fillBlock(start, source, transform)
-// Writes transform(source[i], i) into slot start + i, and returns the next free slot.
-const shadowStart = this.palette.fillBlock(
-  16, // first slot to write
-  this.baseColors, // an array of Color32 to read from
-  (color) => new Color32(color.r >> 1, color.g >> 1, color.b >> 1), // half brightness
-);
+async init() {
+    // Room for the colors above plus a darker copy of them.
+    this.palette = BT.paletteCreate(16);
+    this.baseColors = [new Color32(230, 80, 60), new Color32(120, 200, 120), new Color32(240, 240, 255)];
+
+    // palette.fillBlock(start, source, transform)
+    // Writes transform(source[i], i) into slot start + i, and returns the next free slot.
+    const nextFree = this.palette.fillBlock(
+        5, // first slot to write, so this fills 5, 6, and 7
+        this.baseColors, // an array of Color32 to read from
+        (color) => new Color32(color.r >> 1, color.g >> 1, color.b >> 1), // half brightness
+    );
+
+    BT.paletteSet(this.palette);
+    return true;
+}
 ```
 
-The return value is `start + source.length` - the first slot the block did _not_ use - so you can chain a second block
-straight after it without counting by hand.
+The return value is `start + source.length` - the first slot the block did _not_ use, `8` here - so you can chain a
+second block straight after it without counting by hand.
+
+The whole block has to fit: `start + source.length` must not run past the size you gave `paletteCreate`. Three colors
+starting at slot 5 need a palette of at least 8 slots.
 
 `transform` also receives the index (`(color, i) => ...`) if you want the change to vary across the run. Each write goes
 through `palette.set()`, so the same rules apply: the block must fit inside the palette, and it must not try to make

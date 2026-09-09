@@ -61,6 +61,8 @@ flickering, rolling CRT is exactly what that setting exists to suppress. Static 
 fine to leave on.
 
 ```js
+import { BT, Flicker, Interference, Noise, RollLine } from 'blit386';
+
 async init() {
     if (BT.activeBackend === 'webgpu') {
         this.crt = BT.preset.crtPipBoy();
@@ -73,9 +75,13 @@ applyMotionPreference() {
     if (!this.crt) return;
 
     // Keep the still parts of the look, drop the ones that move.
+    // crtPipBoy() ships four animating effects; the rest (curvature, aberration, scanlines,
+    // mask, bloom) hold still and are fine to leave on.
+    const moving = [Flicker, RollLine, Interference, Noise];
+
     for (const fx of this.crt) BT.effectRemove(fx);
     for (const fx of this.crt) {
-        if (BT.isReducedMotionPreferred && (fx instanceof Flicker || fx instanceof RollLine)) continue;
+        if (BT.isReducedMotionPreferred && moving.some((Kind) => fx instanceof Kind)) continue;
         BT.effectAdd(fx);
     }
 }

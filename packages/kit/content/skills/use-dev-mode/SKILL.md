@@ -48,7 +48,9 @@ Two things come free with a dev build, without any code:
   off with `isFrameCaptureShortcutEnabled: false` in `configure()` when your game wants F9 for itself. See the
   `save-a-screenshot` skill.
 
-Both follow `BT.isDevMode`, so neither ships to players by accident.
+Left alone, both follow `BT.isDevMode`, so neither ships to players by accident. Each also has an explicit override that
+wins over that default - `exposeGlobal: true` for the first, `isFrameCaptureShortcutEnabled: true` for the second - if
+you want one in a release build on purpose.
 
 ## Notes
 
