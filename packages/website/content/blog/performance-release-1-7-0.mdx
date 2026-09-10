@@ -1,0 +1,137 @@
+---
+title: BLIT386 1.7.0 - nothing left to collect
+description:
+  The performance release - the per-frame allocations are gone from the engine's hot paths, plus reduced motion,
+  window.BT, and F9 frame capture.
+date: 2026-09-11
+tags: [release, performance]
+author: vancura
+---
+
+A garbage collector is a polite guest right up until it isn't. It waits, it tidies up after you, and then one frame in
+every few hundred it decides now is the moment, and your smooth scroll gets a small stutter that you can feel but not
+quite point at. On a 256-color canvas running at 60 fps this is especially annoying, because the whole appeal of the
+thing is that it should be trivially fast. It's a few thousand pixels. It has no business hitching.
+
+1.7.0 is the release where I went looking for what the engine was handing the collector every frame, and stopped it. No
+new subsystem this time - just a lot of objects that used to be born and die sixty times a second and now simply are
+not. Plus reduced motion support, which I should have shipped a year ago, and a handful of small things that make
+debugging less of a chore.
+
+## The frame that allocates nothing
+
+The hot-path pass went through the places that run per pixel, per blit, per draw call, or per frame, and took the
+allocations out of all of them. `SoftwareRenderer` was minting objects per pixel and per blit. Sprite batching created a
+fresh UV object per quad. The `BT` draw-call wrappers allocated a closure on every single call. Gamepad polling happened
+per query rather than per frame, and built new axis arrays while it was at it. Pointer handling read the canvas bounding
+rect on every `pointermove`, which a high-poll-rate mouse fires at 500-1000 Hz. The overlay draw path churned.
+`GameLoop` allocated its rAF callback again each frame. And the palette re-uploaded itself to the GPU on ticks where
+nothing about it had changed.
+
+None of that changed the public API, so existing games collect the whole pass by upgrading and doing nothing else.
+
+The honest part: benchmarks moved out of CI this cycle, because GitHub runners are too noisy to gate anything on, so
+these are local numbers from one machine, comparing the `1.6.0` tag against what is about to become `1.7.0`. Untouched
+benchmarks drift by about ten percent between the two runs, which is roughly the floor of what I'd call noise. These are
+comfortably above it:
+
+| What | Faster by |
+| --- | --- |
+| `SoftwareRenderer` empty frame clear and present | 69x |
+| `SoftwareRenderer` diagonal line | 28x |
+| `SoftwareRenderer` 300 pixels | 13x |
+| `GamepadInput.isConnected` | 13x |
+| `SoftwareRenderer` 8x8 sprite blit | 3.2x |
+| A frame's worth of `pointermove` events | 1.3x |
+
+The suspiciously large ones are all `SoftwareRenderer`, which is the Canvas 2D fallback the engine drops to when WebGPU
+is unavailable. It rasterizes every pixel on the CPU, so an allocation inside that loop costs more than an allocation
+anywhere else in the codebase, and removing it pays back accordingly. Which means the machines least equipped to run
+this engine are the ones that got the biggest win, and I did not plan that, but I'll take it.
+
+The one piece of the pass with new surface is a pair of accessors. `BT.pointerPos()` and `BT.pointerDelta()` mint a
+fresh `Vector2i` every call, which is fine once a frame and less fine four times a frame:
+
+```ts twoslash
+import { BT, Vector2i } from 'blit386';
+
+const pointer = new Vector2i();
+
+BT.pointerPosTo(pointer);
+```
+
+You allocate the scratch vector once, they write into it and hand it back. Both report `(0, 0)` under exactly the
+conditions the allocating pair returns `Vector2i.zero()`, so nothing else about the behavior changes.
+
+## Some people would rather the screen held still
+
+Every desktop and phone has a switch for reduced motion - macOS calls it "Reduce motion", Windows calls it "Animation
+effects" - and until now the engine ignored it completely. `BT.isReducedMotionPreferred` reads it, and the optional
+`IBTDemo.onReducedMotionChange(prefersReduced)` hook fires when it flips mid-session, because it can, the same way
+orientation can. There are `?reducedmotion` and `?noreducedmotion` URL flags for testing both states without touching
+your OS settings.
+
+What the engine deliberately does not do is decide what "less motion" means for your game. Screen shake, particle
+counts, animation fidelity - those are yours. The one thing it does honor on its own is the splash, which holds a static
+frame instead of animating.
+
+The [reduced-motion demo](https://demos.blit386.dev/reduced-motion) is a warp starfield, which is about the most
+motion-sick-making thing I could build on purpose. Flip the setting and it keeps flying, but slower, with no streaks, no
+hull shake, and a warning lamp that stays lit instead of blinking. It never freezes, because a frozen screen reads as a
+crash, and that is a worse experience than the one you were trying to avoid.
+
+## Other changes
+
+### A palette block, in one line
+
+`Palette.fillBlock(start, source, transform)` writes `transform(source[i], i)` into slot `start + i` for every source
+color and returns the next free slot, so consecutive blocks chain into each other. It collapses the
+`palette.set(start + i, transform(baseColors[i]))` loop that every sprite recolor kept spelling out by hand. Each write
+still goes through `set()`, so all its validation applies, including the rule that slot 0 stays transparent.
+
+### The console can drive the game
+
+Once `bootstrap()` finishes, `BT` is assigned to `window.BT`, so you can open devtools and poke a running game -
+`window.BT.captureFrame()`, or anything else on the facade. It follows `BT.isDevMode` by default,
+`BootstrapOptions.exposeGlobal` overrides in either direction, and the assignment goes through the engine's existing
+`globalThis` guard, so importing into SSR or Node stays inert.
+
+### F9
+
+In dev mode, F9 copies the current frame to the clipboard and Shift+F9 downloads it as a timestamped PNG. Both save at
+logical `BT.displaySize` rather than `BT.outputSize`, resolved from the palette-indexed scene buffer, so one logical
+pixel is one output pixel and a 2x display does not silently double your screenshot. The tradeoff is that both bypass
+display-tier post-process effects, so no scanlines, no vignette, no bloom - you get the pixels, not the CRT. If you want
+both keys back, or want them in a production build, `HardwareSettings.isFrameCaptureShortcutEnabled` decides.
+`BT.captureFrame()` and `BT.downloadFrame()` are untouched and still match `BT.outputSize`.
+
+### Every glyph the system font has
+
+`BT.systemFont` is a live reference to the same `BitmapFont` that `BT.systemPrint` draws with, and
+`BitmapFont.codePoints` returns every code point a font actually defines a glyph for, ascending, derived from the same
+map `getGlyph()` reads. A font's coverage is a thing you can enumerate now instead of guess at. The
+[glyph browser](https://demos.blit386.dev/system-font-glyphs) draws all 174 of the system font's glyphs in a grid and
+copies one to your clipboard when you click it, which is mostly there so I stop counting characters in a hex editor.
+
+### The kit
+
+`blit clean` replaces `src/game.ts` with an empty skeleton - the same `init` / `update` / `render` shape, no drawing, no
+input handling - for when the scaffolded example has served its purpose and you want the file to stop being someone
+else's code. It touches nothing else, warns before replacing a file that no longer matches what was scaffolded, and
+always asks first unless you pass `--yes`.
+
+Cursor support is back: rules, commands, hooks, and MCP config, generated from the same shared definitions Claude Code's
+files come from, with a parity check in CI so the two cannot quietly drift apart again. And the deprecations reference
+page is now generated from the kit's migration registry rather than maintained by hand, which means it can no longer
+disagree with the thing that actually performs the migrations.
+
+Existing games pick all of this up with `blit upgrade`. Nothing renamed or changed behavior this cycle, so there is
+nothing to migrate.
+
+The full list, in the usual Keep a Changelog shape, is at [the changelog](/docs/reference/changelog).
+
+```bash
+npm create blit386@latest my-game
+```
+
+Go make a frame that allocates nothing.
