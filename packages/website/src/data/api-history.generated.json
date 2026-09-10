@@ -1287,7 +1287,12 @@
     "Palette": {
       "kind": "class",
       "since": "1.0.3",
-      "changes": [],
+      "changes": [
+        {
+          "version": "1.7.0",
+          "note": "Added the `fillBlock` method, writing a transformed block of colors into contiguous\nslots via `set()` and returning the next free slot, so consecutive blocks chain."
+        }
+      ],
       "deprecated": null,
       "status": "stable"
     },
