@@ -19,6 +19,54 @@ This page is editorial - release highlights and migration notes, not an exhausti
 `guides/*` reference page, or [GitHub Releases](https://github.com/blit386/blit386/releases) for the full PR-by-PR
 notes, including dependency bumps and CI changes omitted here for brevity.
 
+## 1.7.0 - Unreleased
+
+### Added
+
+- Reduced motion: `BT.isReducedMotionPreferred` reads the browser's `prefers-reduced-motion` setting, and the optional
+  `IBTDemo.onReducedMotionChange(prefersReduced)` hook fires when it changes mid-session - the preference can flip while
+  a game is running, the same way orientation can. `?reducedmotion` and `?noreducedmotion` are valueless URL flags for
+  testing either state without changing OS settings or emulating a media query in devtools. Cutting your own animation
+  fidelity, screen shake, or particle counts stays a game concern; the engine supplies the getter and the hook. The
+  built-in splash already honors it, holding a static frame instead of animating. See [Core](api-core.md#reduced-motion)
+  and [the splash guide](guide-splash.md#reduced-motion).
+- `Palette#fillBlock(start, source, transform)`: writes `transform(source[i], i)` into slot `start + i` for every source
+  color and returns the next free slot, so consecutive blocks chain. Each write delegates to `set()`, inheriting its
+  validation including the rule that slot 0 stays transparent. It collapses the
+  `palette.set(start + i, transform(baseColors[i]))` loop that transformed sprite color blocks kept spelling out by
+  hand. See [Palette](api-palette.md#fill-a-block-of-slots).
+- `window.BT`: once `bootstrap()` finishes, the `BT` namespace is assigned to `window.BT`, so the browser console can
+  drive a running game (`window.BT.captureFrame()`). It follows `BT.isDevMode` by default, with
+  `BootstrapOptions.exposeGlobal` overriding in either direction, and the assignment goes through the engine's existing
+  `globalThis` guard so an SSR or Node import stays inert. See [Core](api-core.md#bootstrap).
+- `BT.pointerPosTo(out, slot?)` and `BT.pointerDeltaTo(out, slot?)`: allocation-free counterparts to `pointerPos()` /
+  `pointerDelta()`, which mint a fresh `Vector2i` on every call. They write into a scratch vector you allocate once and
+  return it, so a demo reading pointer state more than once per frame stops churning garbage. Both write `(0, 0)` under
+  the same conditions the allocating pair returns `Vector2i.zero()`, and the slot argument now trails the out param. See
+  [Input guide](guide-input.md#zero-allocation-reads).
+- `BT.systemFont`: a live reference to the same `BitmapFont` instance `BT.systemPrint` draws with, so it can be handed
+  to `BT.printFont` or queried directly. Alongside it, `BitmapFont#codePoints` returns every Unicode code point a font
+  defines a glyph for, ascending, derived live from the same glyph map `getGlyph()` and `hasGlyph()` read - a font's
+  coverage is now enumerable instead of something to guess at. The system font's own 174-glyph coverage is documented in
+  full. See [Rendering](api-rendering.md#system-font) and
+  [Bitmap Fonts guide](guide-bitmap-fonts.md#listing-covered-characters).
+- Dev-mode frame capture shortcuts: F9 copies the current frame to the OS clipboard and Shift+F9 downloads it as a
+  timestamped PNG. Both save at logical `BT.displaySize` rather than `BT.outputSize`, resolved from the palette-indexed
+  scene buffer, so every logical pixel stays a single output pixel - which also means both bypass display-tier
+  post-process effects such as scanlines, vignette, and bloom. `HardwareSettings.isFrameCaptureShortcutEnabled` governs
+  them: unset means enabled in development and disabled in release, `true` keeps them in a production build, `false`
+  frees both keys. The public `BT.captureFrame()` / `BT.downloadFrame()` are untouched and still match `BT.outputSize`.
+  See [Core](api-core.md#hardware-settings).
+
+### Changed
+
+- The engine hot-path pass: per-frame and per-call allocations are gone from `SoftwareRenderer` (per-pixel and
+  per-blit), sprite batching (per-quad UV objects), the `BT` draw-call wrappers (per-call closures), gamepad polling
+  (now once per frame, reusing its axis arrays), pointer handling (cached canvas bounding rect), the overlay draw path,
+  and `GameLoop`'s rAF callback; the palette also skips its GPU re-upload on ticks that mutate nothing. No public API
+  changed, so existing games collect this by upgrading and nothing else. `BT.pointerPosTo` / `BT.pointerDeltaTo` above
+  are the only part of the pass with new surface.
+
 ## 1.6.0 - 2026-09-01
 
 No changes to blit386's public API this release. The version bump is lockstep with `@blit386/kit` and `create-blit386`,

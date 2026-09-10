@@ -157,6 +157,8 @@ function createPreset(hexColors: readonly string[], size: number): Palette {
  *   Use `clone()` when a snapshot is needed before modification.
  *
  * @since 1.0.3
+ * @changed 1.7.0 Added the `fillBlock` method, writing a transformed block of colors into contiguous
+ *   slots via `set()` and returning the next free slot, so consecutive blocks chain.
  */
 export class Palette {
     /** Number of usable palette entries. */
