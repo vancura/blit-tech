@@ -73,7 +73,7 @@ Deprecated aliases still on `BT` (do not use in new code): see `docs/reference-d
 | Tier | Use | Examples |
 | --- | --- | --- |
 | **A** Runtime queries | `is*` / `has*` | `isPointerActive`, `isIndexed`, `hasGlyph`, `Palette.isDirty`, `isDevMode` |
-| **B** Configure flags | grammatical `is*` | `isOverlayEnabled`, `isSplashEnabled`, `isDetectingDroppedFrames`, `isOverlayPaletteEnabled`, `isOverlayVisibleAtStart`, `isWaitingForDOMReady`, `isCapturingPointerScroll`, `isWakeLockEnabled` |
+| **B** Configure flags | grammatical `is*` | `isOverlayEnabled`, `isSplashEnabled`, `isDetectingDroppedFrames`, `isOverlayPaletteEnabled`, `isOverlayVisibleAtStart`, `isWaitingForDOMReady`, `isCapturingPointerScroll`, `isCapturingKeyboardScroll`, `isWakeLockEnabled`, `isFrameCaptureShortcutEnabled`, `isOverlayToggleHintVisible`, `isOverlayToggleEnabled`, `isOverlayToggleHitDebugVisible`, `isOverlayTimingChartEnabled`, `isOverlayRendererDiagnosticsBarEnabled`, `isOverlayAudioMetersEnabled` |
 | **C** Side effects / results | imperative verbs | `fireIfElapsed()`, `remove(): boolean`, `init(): Promise<boolean>` |
 
 - Use `-ing` for configure flags that enable ongoing behavior (`isDetectingDroppedFrames`).
