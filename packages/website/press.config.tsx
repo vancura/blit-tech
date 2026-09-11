@@ -14,6 +14,7 @@ import { blogPlugin } from 'fumapress/plugins/blog';
 import { takumiPlugin } from 'fumapress/plugins/takumi';
 import { createRootLayout } from 'fumapress/layouts/root';
 import { createDocsLayoutPage } from 'fumapress/layouts/docs';
+import { blogPostDateAdapter } from './src/blog-post-date';
 import { CHANNEL_DESCRIPTION, feedPlugin } from './src/feed';
 import { markdownNegotiationPlugin } from './src/markdown-negotiation';
 import { mcpServerPlugin } from './src/mcp-server';
@@ -486,6 +487,11 @@ export default defineConfig({
     )
 
     .adapters(
+        // Ahead of `fumadocsMdx`, whose own `core:get-creation-date` only answers for a real
+        // `Date` instance - which `async: true` collections never produce. See
+        // `blogPostDateAdapter`'s doc comment for what that broke.
+        blogPostDateAdapter(),
+
         /**
          * Extend the default MDX component map so the engine docs can use the full
          * Fumadocs component set (Steps, Tabs, Accordions, Files, TypeTable,

@@ -1,3 +1,5 @@
+import type { Adapter, ConfigContext } from 'fumapress';
+
 /**
  * Reads a blog post's publish date straight from its `date` frontmatter field.
  *
@@ -22,4 +24,24 @@ export function getPostDate(page: { data: unknown }): Date | undefined {
     }
 
     return undefined;
+}
+
+/**
+ * Supplies `core:get-creation-date` from the same frontmatter reader the blog index and
+ * `feedPlugin` use, so fumapress's own blog layouts resolve dates the way our components do.
+ *
+ * Registered ahead of `fumadocsMdx` in `press.config.tsx`. Without it the tag pages
+ * (`/blog/tags/<tag>`) rendered today's date on every card: they are fumapress's stock
+ * `createBlogTagPage()`, whose `OrderedBlogGrid` resolves each post through `getCreationDate`
+ * and substitutes `new Date(Date.now())` whenever no adapter answers - and the mdx adapter's
+ * hook answers only for a real `Date` instance, which async doc collections never produce (see
+ * `getPostDate` above). The blog index escaped this only because it never asks the adapters.
+ *
+ * The mdx adapter is left in place behind this one rather than replaced: it also serves
+ * `core:render-body`, `core:render-toc`, `core:get-modified-date`, and `blog:get-tags`.
+ */
+export function blogPostDateAdapter<C extends ConfigContext = ConfigContext>(): Adapter<C> {
+    return {
+        'core:get-creation-date': (page) => getPostDate(page),
+    };
 }
