@@ -19,7 +19,7 @@ This page is editorial - release highlights and migration notes, not an exhausti
 `guides/*` reference page, or [GitHub Releases](https://github.com/blit386/blit386/releases) for the full PR-by-PR
 notes, including dependency bumps and CI changes omitted here for brevity.
 
-## 1.7.0 - Unreleased
+## 1.7.0 - 2026-09-11
 
 ### Added
 
