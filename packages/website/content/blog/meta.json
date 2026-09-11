@@ -3,6 +3,7 @@
   "defaultOpen": true,
   "pagesIndex": "[Blog](/blog)",
   "pages": [
+    "performance-release-1-7-0",
     "mcp-release-1-6-0",
     "random-release-1-5-0",
     "hot-reload-release-1-4-0",
